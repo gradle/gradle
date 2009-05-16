@@ -187,16 +187,15 @@ test {
     exclude 'org/gradle/integtests/**/*IntegrationTest.*'
 }
 
-libs {
-    jar(appendix: 'wrapper') {
-        fileSet(dir: classesDir) {
-            include 'org/gradle/wrapper/'
-        }
-        manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.WrapperMain')
+task wrapperJar(type: Jar) {
+    appendix = 'wrapper'
+    fileSet(dir: classesDir) {
+        include 'org/gradle/wrapper/'
     }
+    manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.WrapperMain')
 }
 
-archive_jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
+jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
 
 explodedDistDir = new File(distsDir, 'exploded')
 explodedDistDocsDir = new File(explodedDistDir, 'docs')
@@ -207,7 +206,7 @@ explodedDistLibDir = new File(explodedDistDir, 'lib')
 samplesSrcDir = new File(srcRoot, 'samples')
 userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
 
-createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
+task explodedDistBase(dependsOn: [libs, javadoc, groovydoc]) << {
     [explodedDistDir, explodedDistSamplesDir, explodedDistLibDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
@@ -219,12 +218,12 @@ createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
         }
         // todo: find out why Ivy does not include the jar in the resolve
         delete { fileset(dir:explodedDistLibDir, includes:"$archivesBaseName-*.jar") }
-        copy(file: archive_jar.archivePath, toDir: explodedDistLibDir)
-        copy(file: archive_wrapper_jar.archivePath, toDir: explodedDistLibDir)
+        copy(file: jar.archivePath, toDir: explodedDistLibDir)
+        copy(file: wrapperJar.archivePath, toDir: explodedDistLibDir)
         logger.info('Generate start scripts')
         StartScriptsGenerator.generate("$archivesBaseName-${version}.jar", explodedDistBinDir, archivesBaseName)
         logger.info('Generate and copy samples.')
-        WrapperProjectCreator.createProject(explodedDistSamplesDir, task('archive_bin_zip').archivePath.parentFile,
+        WrapperProjectCreator.createProject(explodedDistSamplesDir, binZip.archivePath.parentFile,
                 version.toString())
         logger.info('Copy binary sources.')
         copy(toDir: explodedDistSrcDir) {
@@ -237,13 +236,13 @@ createTask('explodedDistBase', dependsOn: ['libs', 'javadoc', 'groovydoc']) {
     }
 }
 
-createTask('explodedDist', dependsOn: ['explodedDistBase', 'userguide', 'distDocs'])
+task explodedDist(dependsOn: [explodedDistBase, 'userguide', 'distDocs'])
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 
 distsRetroLibsFolder = new File(distsDir, 'retroLibs')
 
-createTask('retroTranslateLibs', dependsOn: 'explodedDist') {
+task retroTranslateLibs(dependsOn: explodedDist) << {
     distsRetroLibsFolder.mkdirs()
     ant {
         taskdef(name: "retrotranslator", classname: "net.sf.retrotranslator.transformer.RetrotranslatorTask",
@@ -263,7 +262,8 @@ createTask('retroTranslateLibs', dependsOn: 'explodedDist') {
             }
         }
     }
-}.configure {
+}
+retroTranslateLibs {
     enabled = project.hasProperty('gradle_retroLibsDir')
     skipProperties << 'skip.archive_all-jdk14_zip'
 }
@@ -281,71 +281,84 @@ void retroExe(File file, Closure fileSet) {
     }
 }
 
-dists {
-    dependsOn 'explodedDist'
-    Closure binFileSets = {task ->
-        delegate = task
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
-            include 'bin/*'
-            exclude 'bin/*.*'
-        }
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-            include 'bin/*.*'
-        }
+Closure binFileSets = {task ->
+    delegate = task
+    zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
+        include 'bin/*'
+        exclude 'bin/*.*'
     }
-    zip(classifier: 'all').doFirst {Task task ->
-        task.configure {
-            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-                exclude 'bin/*'
-            }
-            binFileSets(delegate)
-        }
+    zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+        include 'bin/*.*'
     }
-    zip(classifier: 'all-jdk14').doFirst {Task task ->
-        task.configure {
-            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-                exclude 'bin/*'
-                exclude 'lib/gradle*.jar'
-                exclude 'lib/logback*.jar'
-            }
-            zipFileSet(dir: distsRetroLibsFolder, prefix: "$zipRootFolder/lib")
-            dependencies.retrotranslatorAntTask.resolve().each {File file ->
-                zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
-                    include file.name
-                }
-            }
-            binFileSets(delegate)
-        }
-    }.configure {
-        dependsOn 'retroTranslateLibs'
-        enabled = project.hasProperty('gradle_retroLibsDir')
-    }
-    zip(classifier: 'bin').doFirst {Task task ->
-        task.configure {
-            zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-                exclude 'bin/*'
-                exclude 'src/'
-                exclude 'samples/'
-            }
-            binFileSets(delegate)
-        }
-    }
+}
 
-    zip(classifier: 'src').doFirst {Task task ->
-        task.configure {
-            destinationDir = distsDir
-            zipFileSet(dir: projectDir, prefix: zipRootFolder, fileMode: '775') {
-                include 'gradlew'
-            }
-            zipFileSet(dir: projectDir, prefix: zipRootFolder) {
-                include 'buildSrc/', 'wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
-            }
+task allZip(type: Zip) {
+    dependsOn explodedDist
+    classifier = 'all'
+}
+allZip.doFirst {task ->
+    task.configure {
+        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+            exclude 'bin/*'
+        }
+        binFileSets(delegate)
+    }
+}
+
+task binZip(type: Zip) {
+    dependsOn explodedDist
+    classifier = 'bin'
+}
+binZip.doFirst {task ->
+    task.configure {
+        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+            exclude 'bin/*'
+            exclude 'src/'
+            exclude 'samples/'
+        }
+        binFileSets(delegate)
+    }
+}
+
+task srcZip(type: Zip) {
+    dependsOn explodedDist
+    classifier = 'src'
+}
+srcZip.doFirst {task ->
+    task.configure {
+        zipFileSet(dir: projectDir, prefix: zipRootFolder, fileMode: '775') {
+            include 'gradlew'
+        }
+        zipFileSet(dir: projectDir, prefix: zipRootFolder) {
+            include 'buildSrc/', 'wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
         }
     }
 }
 
+task jdk14AllZip(type: Zip) {
+    dependsOn retroTranslateLibs, explodedDist
+    classifier = 'all-jdk14'
+    enabled = project.hasProperty('gradle_retroLibsDir')
+}
+jdk14AllZip.doFirst {Task task ->
+    task.configure {
+        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
+            exclude 'bin/*'
+            exclude 'lib/gradle*.jar'
+            exclude 'lib/logback*.jar'
+        }
+        zipFileSet(dir: distsRetroLibsFolder, prefix: "$zipRootFolder/lib")
+        dependencies.retrotranslatorAntTask.each {File file ->
+            zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
+                include file.name
+            }
+        }
+        binFileSets(delegate)
+    }
+}
+
 artifacts {
-    dists.archiveTasks.each {
+    tasks.findAll { task -> task.class == Zip }.each {
         dists it
     }
 }
@@ -360,12 +373,12 @@ javadoc {
     // todo: make this true
     failOnError = false
 }
-javadoc.doFirst {
+javadoc << {
     javadoc.title = "Gradle API $version"
     javadoc.options.docTitle = javadoc.title
 }
 
-createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
+task uploadJavadoc(dependsOn: javadoc) << {
     ftp(action: 'mkdir', remotedir: javadocRemoteDir)
     ftp(action: 'delete', remotedir: javadocRemoteDir) {
         fileset() {include(name: '**/*')}
@@ -377,6 +390,7 @@ createTask('uploadJavadoc', dependsOn: ['javadoc', 'init']) {
     }
 }
 
+srcDocsDir = file('src/docs')
 userguideDir = new File(buildDir, "$docsDir.name/userguide")
 userguideSrcDir = new File(srcDocsDir, 'userguide')
 userguideHtmlDir = new File(explodedDistDocsDir, 'userguide')
@@ -386,10 +400,9 @@ docbookSrc = new File(project.buildDir, 'docbook/src')
 docbookDir = new File(project.buildDir, 'docbook/stylesheets')
 snippetsDir = new File(project.buildDir, 'docbook/snippets')
 
-createTask('userguide', dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'], description: 'Generates the userguide')
+task userguide(dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'], description: 'Generates the userguide')
 
-createTask('samples', type: ExtractSnippetsTask)
-samples {
+task samples(type: ExtractSnippetsTask) {
     sourceFiles = ant.fileset(dir: samplesSrcDir) {
         exclude(name: 'userguideOutput/**')
         exclude(name: 'userguide/tutorial/antChecksumFiles/**')
@@ -397,7 +410,7 @@ samples {
     destDir = explodedDistSamplesDir
     snippetsDir = project.snippetsDir
 }
-samples.doLast {
+samples << {
     ant.copy(todir: explodedDistSamplesDir) {
         fileset(dir: samplesSrcDir) {
             include(name: 'userguide/tutorial/antChecksumFiles/**')
@@ -405,8 +418,7 @@ samples.doLast {
     }
 }
 
-createTask('userguideSrc', type: UserGuideTransformTask, dependsOn: 'samples')
-userguideSrc {
+task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
     snippetsDir = project.snippetsDir
@@ -417,7 +429,7 @@ userguideSrc.doFirst {
 }
 userguideSrc.skipProperties << 'skip.userguide'
 
-createTask('userguideStyleSheets') {
+task userguideStyleSheets << {
     ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
         globmapper(from: 'docbook-xsl-1.74.3/*', to: '*')
     }
@@ -427,7 +439,7 @@ createTask('userguideStyleSheets') {
 }
 userguideStyleSheets.skipProperties << 'skip.userguide'
 
-createTask('userguideHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
+task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
@@ -443,7 +455,7 @@ createTask('userguideHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets'])
 }
 userguideHtml.skipProperties << 'skip.userguide'
 
-createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
+task userguideSingleHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     userguideSingleHtmlFile.parentFile.mkdirs()
     
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
@@ -463,7 +475,7 @@ createTask('userguideSingleHtml', dependsOn: ['userguideSrc', 'userguideStyleShe
 }
 userguideSingleHtml.skipProperties << 'skip.userguide'
 
-createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) {
+task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     File pdfSourceHtml = new File(docbookSrc, 'userguidePdf.html')
 
     pdfSourceHtml.parentFile.mkdirs()
@@ -496,7 +508,7 @@ createTask('userguidePdf', dependsOn: ['userguideSrc', 'userguideStyleSheets']) 
 }
 userguidePdf.skipProperties << 'skip.userguide'
 
-createTask('uploadUserguide', dependsOn: ['userguide']) {
+task uploadUserguide(dependsOn: [userguide]) << {
     ftp(action: 'mkdir', remotedir: userguideRemoteDir)
     ftp(action: 'delete', remotedir: userguideRemoteDir) {
         fileset() {
@@ -508,8 +520,7 @@ createTask('uploadUserguide', dependsOn: ['userguide']) {
     }
 }
 
-createTask('distDocs', type: UserGuideTransformTask, dependsOn: 'userguideStyleSheets')
-distDocs.configure {
+task distDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) {
     javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
     standalone = true
     sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
@@ -517,7 +528,7 @@ distDocs.configure {
     snippetsDir = project.snippetsDir
     classpath = configurations.userGuideTask
 }
-distDocs.doLast {
+distDocs << {
     explodedDistDir.mkdirs()
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
@@ -535,8 +546,7 @@ distDocs.doLast {
     ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: explodedDistDir)
 }
 
-createTask('websiteDocs', type: UserGuideTransformTask, dependsOn: 'userguideStyleSheets')
-websiteDocs {
+task websiteDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) {
     javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
     standalone = true
     sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
@@ -544,7 +554,7 @@ websiteDocs {
     snippetsDir = project.snippetsDir
     classpath = configurations.userGuideTask
 }
-websiteDocs.doLast {
+websiteDocs << {
     File websiteDocs = new File(buildDir, 'docs')
     websiteDocs.mkdirs()
 
@@ -565,8 +575,7 @@ websiteDocs.doLast {
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
 integTestDistDir = new File(buildDir, 'integ test')
-createTask('integTest', type: Test, dependsOn: ['compileTests', 'dists', 'userguideSrc'])
-integTest {
+task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc]) {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
@@ -584,9 +593,9 @@ integTest.doFirst {
     }
 }
 
-createTask('nightlyBuild', dependsOn: ['integTest', 'uploadJavadoc', 'uploadUserguide'])
+task nightlyBuild(dependsOn: [integTest, uploadJavadoc, uploadUserguide])
 
-createTask('install', dependsOn: 'integTest', description: 'Installs the distribution into directory $gradle_installPath') {
+task install(dependsOn: integTest, description: 'Installs the distribution into directory $gradle_installPath') << {
     ant.delete(dir: installDir)
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
         windowsInstall()
@@ -597,7 +606,7 @@ createTask('install', dependsOn: 'integTest', description: 'Installs the distrib
 }
 
 build.taskGraph.whenReady { graph ->
-    if (graph.hasTask(':install')) {
+    if (graph.hasTask(install)) {
         // Do this early to ensure that the properties we need have been set, and fail early
         installDir = file("$gradle_installPath")
         if (installDir.file) {
@@ -613,7 +622,7 @@ build.taskGraph.whenReady { graph ->
 }
 
 void windowsInstall() {
-    ant.unzip(src: task('archive_all_zip').archivePath, dest: installDir.parentFile)
+    ant.unzip(src: allZip.archivePath, dest: installDir.parentFile)
 }
 
 /**
@@ -624,7 +633,7 @@ void asternixInstall() {
         arg(value: '-q')
         arg(value: '-d')
         arg(value: installDir.parentFile)
-        arg(value: "${task('archive_all_zip').archivePath}")
+        arg(value: "${allZip.archivePath}")
     }
 }
 
@@ -639,9 +648,9 @@ uploadDists {
     }
 }
 
-createTask('developerBuild', dependsOn: ['clean', 'integTest'])
+task developerBuild(dependsOn: [clean, integTest])
 
-createTask('ide') {
+task ide << {
     def libDir = file('lib')
     ant.delete(dir: libDir)
     [configurations.runtime, configurations.testRuntime].each {config ->
@@ -651,18 +660,18 @@ createTask('ide') {
     }
 }
 
-createTask('release', dependsOn: ['uploadDists', 'uploadUserguide', 'uploadJavadoc']) {
+task release(dependsOn: [uploadDists, uploadUserguide, uploadJavadoc]) << {
     svn.release()
 }
 
-createTask('wrapper', type: Wrapper, dependsOn: ['archive_bin_zip']).doFirst {task ->
+task wrapper(type: Wrapper, dependsOn: binZip) << {task ->
     task.configure {
         gradleVersion = customWrapperVersion ?: version
         jarPath = 'wrapper'
     }
 }
 
-createTask('rebuildWrapper', dependsOn: ['clean', 'wrapper'])
+task rebuildWrapper(dependsOn: [clean, wrapper])
 
 void ftp(Map args, Closure antFileset = {}) {
     ant {

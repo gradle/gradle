@@ -19,19 +19,17 @@ package org.gradle.build.release
 import org.gradle.StartParameter
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory
 import org.gradle.build.release.Svn
 import org.gradle.build.release.Version
-import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.initialization.IProjectDescriptorRegistry
-import org.gradle.initialization.ISettingsFinder
 import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
 import org.gradle.util.GradleUtil
 import org.gradle.api.internal.project.*
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory
 
 /**
  * @author Hans Dockter
@@ -56,7 +54,6 @@ class VersionTest extends GroovyTestCase {
     }
 
     DefaultProject createRootProject(File rootDir) {
-        ISettingsFinder settingsFinder = [getSettingsDir: { new File('root') }] as ISettingsFinder
         IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
                 new DefaultConfigurationContainerFactory(),
@@ -71,7 +68,6 @@ class VersionTest extends GroovyTestCase {
         IProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry()
         ProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir, registry)
         DefaultProject project = projectFactory.createProject(descriptor, null, new DefaultBuild(new StartParameter(), null, null))
-        project.setBuildScript(new EmptyScript())
         return project;
     }
 
