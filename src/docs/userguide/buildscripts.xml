@@ -4,7 +4,7 @@
         file called <filename>build.gradle</filename> in the current directory.
         <footnote><para>There are command line switches to change this behavior. See <xref linkend='gradle_command_line'/>)</para></footnote>
         We call this <filename>build.gradle</filename> file a <firstterm>build script</firstterm>, although strictly speaking it is
-        a build configuration script, as we will see later. In Gradle the build script file defines a project. The name
+        a build configuration script, as we will see later. In Gradle the build script defines a project. The name
         of the directory containing the build script is used as the name of the project.
     </para>
     <section>

@@ -26,16 +26,35 @@
         information about your build.
     </para>
 
-    <table>
-        <title>Project Reports Plugin - Directory Properties</title>
-        <thead>
-            <tr>
-                <td>Directory Name Property</td>
-                <td>Directory File Property</td>
-                <td>Default Name</td>
-                <td>Default File</td>
-            </tr>
-        </thead>
-        <xi:include href="reportingBasePluginProperties.xml"/>
-    </table>
+    <section>
+        <title>Tasks</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Project Layout</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Configurations</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Convention Properties</title>
+        <table>
+            <title>Project Reports Plugin - Directory Properties</title>
+            <thead>
+                <tr>
+                    <td>Directory Name Property</td>
+                    <td>Directory File Property</td>
+                    <td>Default Name</td>
+                    <td>Default File</td>
+                </tr>
+            </thead>
+            <xi:include href="reportingBasePluginProperties.xml"/>
+        </table>
+    </section>
+    
 </chapter>

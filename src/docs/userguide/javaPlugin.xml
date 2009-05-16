@@ -1,394 +1,415 @@
 <chapter id='java_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Java Plugin</title>
-    <para>
-        <xref linkend='javalayout'/>
-        shows the default project layout assumed by the Java Plugin. This is configurable via the convention object.
-        <xref linkend='javatasks'/>
-        shows the tasks added by the Java Plugin. These tasks constitute a lifecycle for Java builds.
-        <xref linkend='javaconventionDir'/> and <xref linkend='javaconventionNonDir'/>
-        shows the most important properties of the convention object of the Java plugin.
-        <footnote>
-            <para>The
-                <emphasis>buildDir</emphasis>
-                property is a property of the project object. It defaults to <literal>build</literal>.
-            </para>
-        </footnote>
-        Gradle's conventions contain a convention for the directory hierarchy as well as conventions for the element
-        names of the hierarchy. For example the
-        <literal>srcDirs</literal>
-        are relative to the <literal>srcRoot</literal>. Therefore
-        <literal>srcDirs</literal>
-        is a read-only property. If you want to change the name of the source dirs you need to do this via the
-        <literal>srcDirNames</literal>
-        property. But the paths you specify here are
-        <emphasis>relative</emphasis>
-        to the <literal>srcRoot</literal>. This has the advantage to make bulk changes easy. If you change
-        <literal>srcRoot</literal>
-        from
-        <literal>src</literal>
-        to <literal>source</literal>, this automatically applies to all directory properties which are relative to
-        <literal>srcRoot</literal>. As this also introduces an inflexibility, we have additional floating dirs, which
-        are not bound to any hierarchy (see <xref linkend='javaconventionFloatingDir'/>). For example code
-        generation tool could make use of this, by adding a source dir which is located in the build folder.
+
+    <para>The Java Plugin adds Java compilation, testing and bundling capabilities to a project. It serves as the basis
+        for most of the other Gradle plugins.
     </para>
-    <table id='javalayout'>
-        <title>Default Directory Layout</title>
-        <thead>
-            <tr>
-                <td>Directory</td>
-                <td>Meaning</td>
-            </tr>
-        </thead>
-        <tr>
-            <td>
-                <literal>src/main/java</literal>
-            </td>
-            <td>Application/Library sources</td>
-        </tr>
-        <tr>
-            <td>
-                <literal>src/main/resources</literal>
-            </td>
-            <td>Application/Library resources</td>
-        </tr>
-        <tr>
-            <td>
-                <literal>src/test/java</literal>
-            </td>
-            <td>Test sources</td>
-        </tr>
-        <tr>
-            <td>
-                <literal>src/test/resources</literal>
-            </td>
-            <td>Test resources</td>
-        </tr>
+    
+    <section>
+        <title>Tasks</title>
+        <para>The Java plugin adds the tasks shown in <xref linkend='javatasks'/> to a project.
+            These tasks constitute a lifecycle for Java builds.
+        </para>
 
-    </table>
-    <table id='javatasks'>
-        <title>Java Plugin Tasks</title>
-        <thead>
+        <table id='javatasks'>
+            <title>Java Plugin - Tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
             <tr>
-                <td>Taskname</td>
-                <td>dependsOn</td>
-                <td>Type</td>
+                <td>
+                    <literal>clean</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.Clean"/></td>
             </tr>
-        </thead>
-        <tr>
-            <td>
-                <literal>clean</literal>
-            </td>
-            <td>-</td>
-            <td><apilink class="org.gradle.api.tasks.Clean"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>init</literal>
-            </td>
-            <td>-</td>
-            <td><apilink class="org.gradle.api.Task"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>processResources</literal>
-            </td>
-            <td>
-                <literal>init</literal>
-            </td>
-            <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>compile</literal>
-            </td>
-            <td>
-                <literal>processResources</literal>
-            </td>
-            <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>processTestResources</literal>
-            </td>
-            <td>
-                <literal>compile</literal>
-            </td>
-            <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>compileTests</literal>
-            </td>
-            <td>
-                <literal>processTestResources</literal>
-            </td>
-            <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>test</literal>
-            </td>
-            <td>
-                <literal>compileTests</literal>
-            </td>
-            <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>javadoc</literal>
-            </td>
-            <td>-</td>
-            <td><apilink class="org.gradle.api.tasks.javadoc.Javadoc"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>libs</literal>
-            </td>
-            <td>
-                All <literal>Jar</literal> and <literal>War</literal> tasks in the project.
-            </td>
-            <td><apilink class="org.gradle.api.Task"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>dists</literal>
-            </td>
-            <td>
-                <literal>libs</literal> and all <literal>Zip</literal> and <literal>Tar</literal> tasks in the project.
-            </td>
-            <td><apilink class="org.gradle.api.Task"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>build<replaceable>ConfigurationName</replaceable></literal>
-            </td>
-            <td>
-                The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
-            </td>
-            <td><apilink class="org.gradle.api.Task"/></td>
-        </tr>
-        <tr>
-            <td>
-                <literal>upload<replaceable>ConfigurationName</replaceable></literal>
-            </td>
-            <td>
-                The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
-            </td>
-            <td><apilink class="org.gradle.api.tasks.Upload"/></td>
-        </tr>
-    </table>
-    <table id='javaconventionDir'>
-        <title>Java Plugin - Directory Properties</title>
-        <thead>
             <tr>
-                <td>Directory Name Property</td>
-                <td>Directory File Property</td>
-                <td>Default Name</td>
-                <td>Default File</td>
+                <td>
+                    <literal>init</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
-        </thead>
-        <tr>
-            <td>srcRootName</td>
-            <td>srcRoot</td>
-            <td>
-                <literal>src</literal>
-            </td>
-            <td>
-                <literal><replaceable>projectDir</replaceable>/src</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>srcDirNames</td>
-            <td>srcDirs</td>
-            <td>
-                [<literal>main/java</literal>]
-            </td>
-            <td>
-                [<literal><replaceable>srcRoot</replaceable>/main/java</literal>]
-            </td>
-        </tr>
-        <tr>
-            <td>resourceDirNames</td>
-            <td>resourceDirs</td>
-            <td>
-                [<literal>main/resources</literal>]
-            </td>
-            <td>
-                [<literal><replaceable>srcRoot</replaceable>/main/resources</literal>]
-            </td>
-        </tr>
-        <tr>
-            <td>testSrcDirNames</td>
-            <td>testSrcDirs</td>
-            <td>
-                [<literal>test/java</literal>]
-            </td>
-            <td>
-                [<literal><replaceable>srcRoot</replaceable>/test/java</literal>]
-            </td>
-        </tr>
-        <tr>
-            <td>testResourceDirNames</td>
-            <td>testResourceDirs</td>
-            <td>
-                <literal>main/resources</literal>
-            </td>
-            <td>
-                [<literal><replaceable>srcRoot</replaceable>/main/resources</literal>]
-            </td>
-        </tr>
-        <tr>
-            <td>classesDirName</td>
-            <td>classesDir</td>
-            <td>
-                <literal>classes</literal>
-            </td>
-            <td>
-                <literal><replaceable>buildDir</replaceable>/classes</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>testClassesDirName</td>
-            <td>testClassesDir</td>
-            <td>
-                <literal>test-classes</literal>
-            </td>
-            <td>
-                <literal><replaceable>buildDir</replaceable>/test-classes</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>testResultsDir</td>
-            <td>testResultsDirName</td>
-            <td>
-                <literal>test-results</literal>
-            </td>
-            <td>
-                <literal><replaceable>buildDir</replaceable>/test-results</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>testReportDir</td>
-            <td>testReportDirName</td>
-            <td>
-                <literal>tests</literal>
-            </td>
-            <td>
-                <literal><replaceable>reportsDir</replaceable>/test</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>libsDirName</td>
-            <td>libsDir</td>
-            <td>
-                <literal>libs</literal>
-            </td>
-            <td>
-                <literal><replaceable>buildDir</replaceable>/libs</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>distsDirName</td>
-            <td>distsDir</td>
-            <td>
-                <literal>dists</literal>
-            </td>
-            <td>
-                <literal><replaceable>buildDir</replaceable>/dists</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>docsDirName</td>
-            <td>docsDir</td>
-            <td>
-                <literal>docs</literal>
-            </td>
-            <td>
-                <literal><replaceable>buildDir</replaceable>/docs</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>javadocDirName</td>
-            <td>javadocDir</td>
-            <td>
-                <literal>javadoc</literal>
-            </td>
-            <td>
-                <literal><replaceable>buildDir</replaceable>/javadoc</literal>
-            </td>
-        </tr>
-        <xi:include href="reportingBasePluginProperties.xml"/>
-    </table>
-    <table id='javaconventionFloatingDir'>
-        <title>Java Convention Object - Floating Dir Properties</title>
-        <thead>
             <tr>
-                <td>Property</td>
-                <td>Type</td>
-                <td>Default Value</td>
+                <td>
+                    <literal>processResources</literal>
+                </td>
+                <td>
+                    <literal>init</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
             </tr>
-        </thead>
-        <tr>
-            <td>floatingSrcDirs</td>
-            <td>List</td>
-            <td>empty</td>
-        </tr>
-        <tr>
-            <td>floatingResourceDirs</td>
-            <td>List</td>
-            <td>empty</td>
-        </tr>
-        <tr>
-            <td>floatingTestSrcDirs</td>
-            <td>List</td>
-            <td>empty</td>
-        </tr>
-        <tr>
-            <td>floatingTestResourceDirs</td>
-            <td>List</td>
-            <td>empty</td>
-        </tr>
-    </table>
+            <tr>
+                <td>
+                    <literal>compile</literal>
+                </td>
+                <td>
+                    <literal>processResources</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>processTestResources</literal>
+                </td>
+                <td>
+                    <literal>compile</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>compileTests</literal>
+                </td>
+                <td>
+                    <literal>processTestResources</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>test</literal>
+                </td>
+                <td>
+                    <literal>compileTests</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>javadoc</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.javadoc.Javadoc"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>libs</literal>
+                </td>
+                <td>
+                    All <literal>Jar</literal> and <literal>War</literal> tasks in the project.
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>dists</literal>
+                </td>
+                <td>
+                    <literal>libs</literal> and all <literal>Zip</literal> and <literal>Tar</literal> tasks in the project.
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>build<replaceable>ConfigurationName</replaceable></literal>
+                </td>
+                <td>
+                    The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>upload<replaceable>ConfigurationName</replaceable></literal>
+                </td>
+                <td>
+                    The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Upload"/></td>
+            </tr>
+        </table>
+    </section>
 
-    <table id='javaconventionNonDir'>
-        <title>Java Convention Object - Non Dir Properties</title>
-        <thead>
-            <tr>
-                <td>Property</td>
-                <td>Type</td>
-                <td>Default Value</td>
-            </tr>
-        </thead>
-        <tr>
-            <td>sourceCompatibility</td>
-            <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or a Number, eg
-                <literal>'1.5'</literal> or <literal>1.5</literal>.
-            </td>
-            <td>
-                <literal>1.5</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>targetCompatibility</td>
-            <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or Number, eg
-                <literal>'1.5'</literal> or <literal>1.5</literal>.
-            </td>
-            <td>
-                <literal><replaceable>sourceCompatibility</replaceable></literal>
-            </td>
-        </tr>
-        <tr>
-            <td>manifest</td>
-            <td><apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/></td>
-            <td>empty</td>
-        </tr>
-        <tr>
-            <td>metaInf</td>
-            <td>List</td>
-            <td>empty</td>
-        </tr>
+    <section>
+        <title>Project Layout</title>
+        <para>The Java plugin assumes the project layout shown in <xref linkend='javalayout'/>. This is configurable
+            using the convention properties listed in the next section.
+        </para>
 
-    </table>
+        <table id='javalayout'>
+            <title>Java Plugin - Default Project Layout</title>
+            <thead>
+                <tr>
+                    <td>Directory</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <filename>src/main/java</filename>
+                </td>
+                <td>Application/Library Java source</td>
+            </tr>
+            <tr>
+                <td>
+                    <filename>src/main/resources</filename>
+                </td>
+                <td>Application/Library resources</td>
+            </tr>
+            <tr>
+                <td>
+                    <filename>src/test/java</filename>
+                </td>
+                <td>Test Java source</td>
+            </tr>
+            <tr>
+                <td>
+                    <filename>src/test/resources</filename>
+                </td>
+                <td>Test resources</td>
+            </tr>
+        </table>
+
+    </section>
+
+    <section>
+        <title>Configurations</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Convention Properties</title>
+
+        <para>
+            The Java plugin adds the convention properties shown in <xref linkend='javaconventionDir'/> and
+            <xref linkend='javaconventionNonDir'/>.
+            <footnote>
+                <para>The <emphasis>buildDir</emphasis> property is a property of the project object. It defaults to
+                    <literal>build</literal>.
+                </para>
+            </footnote>
+            Gradle's conventions contain a convention for the directory hierarchy as well as conventions for the element
+            names of the hierarchy. For example the <literal>srcDirs</literal> are relative to the
+            <literal>srcRoot</literal>. Therefore <literal>srcDirs</literal> is a read-only property. If you want to
+            change the name of the source dirs you need to do this via the <literal>srcDirNames</literal> property. But
+            the paths you specify here are <emphasis>relative</emphasis> to the <literal>srcRoot</literal>. This has the
+            advantage to make bulk changes easy. If you change <literal>srcRoot</literal> from <literal>src</literal>
+            to <literal>source</literal>, this automatically applies to all directory properties which are relative to
+            <literal>srcRoot</literal>. As this also introduces an inflexibility, we have additional floating dirs,
+            which are not bound to any hierarchy (see <xref linkend='javaconventionFloatingDir'/>). For example code
+            generation tool could make use of this, by adding a source dir which is located in the build folder.
+        </para>
+
+        <table id='javaconventionDir'>
+            <title>Java Plugin - Directory Properties</title>
+            <thead>
+                <tr>
+                    <td>Directory Name Property</td>
+                    <td>Directory File Property</td>
+                    <td>Default Name</td>
+                    <td>Default File</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>srcRootName</td>
+                <td>srcRoot</td>
+                <td>
+                    <literal>src</literal>
+                </td>
+                <td>
+                    <literal><replaceable>projectDir</replaceable>/src</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>srcDirNames</td>
+                <td>srcDirs</td>
+                <td>
+                    [<literal>main/java</literal>]
+                </td>
+                <td>
+                    [<literal><replaceable>srcRoot</replaceable>/main/java</literal>]
+                </td>
+            </tr>
+            <tr>
+                <td>resourceDirNames</td>
+                <td>resourceDirs</td>
+                <td>
+                    [<literal>main/resources</literal>]
+                </td>
+                <td>
+                    [<literal><replaceable>srcRoot</replaceable>/main/resources</literal>]
+                </td>
+            </tr>
+            <tr>
+                <td>testSrcDirNames</td>
+                <td>testSrcDirs</td>
+                <td>
+                    [<literal>test/java</literal>]
+                </td>
+                <td>
+                    [<literal><replaceable>srcRoot</replaceable>/test/java</literal>]
+                </td>
+            </tr>
+            <tr>
+                <td>testResourceDirNames</td>
+                <td>testResourceDirs</td>
+                <td>
+                    <literal>main/resources</literal>
+                </td>
+                <td>
+                    [<literal><replaceable>srcRoot</replaceable>/main/resources</literal>]
+                </td>
+            </tr>
+            <tr>
+                <td>classesDirName</td>
+                <td>classesDir</td>
+                <td>
+                    <literal>classes</literal>
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/classes</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>testClassesDirName</td>
+                <td>testClassesDir</td>
+                <td>
+                    <literal>test-classes</literal>
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/test-classes</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>testResultsDir</td>
+                <td>testResultsDirName</td>
+                <td>
+                    <literal>test-results</literal>
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/test-results</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>testReportDir</td>
+                <td>testReportDirName</td>
+                <td>
+                    <literal>tests</literal>
+                </td>
+                <td>
+                    <literal><replaceable>reportsDir</replaceable>/test</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>libsDirName</td>
+                <td>libsDir</td>
+                <td>
+                    <literal>libs</literal>
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/libs</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>distsDirName</td>
+                <td>distsDir</td>
+                <td>
+                    <literal>dists</literal>
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/dists</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>docsDirName</td>
+                <td>docsDir</td>
+                <td>
+                    <literal>docs</literal>
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/docs</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>javadocDirName</td>
+                <td>javadocDir</td>
+                <td>
+                    <literal>javadoc</literal>
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/javadoc</literal>
+                </td>
+            </tr>
+            <xi:include href="reportingBasePluginProperties.xml"/>
+        </table>
+
+        <table id='javaconventionFloatingDir'>
+            <title>Java Plugin - Floating Directory Properties</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>floatingSrcDirs</td>
+                <td>List</td>
+                <td>empty</td>
+            </tr>
+            <tr>
+                <td>floatingResourceDirs</td>
+                <td>List</td>
+                <td>empty</td>
+            </tr>
+            <tr>
+                <td>floatingTestSrcDirs</td>
+                <td>List</td>
+                <td>empty</td>
+            </tr>
+            <tr>
+                <td>floatingTestResourceDirs</td>
+                <td>List</td>
+                <td>empty</td>
+            </tr>
+        </table>
+
+        <table id='javaconventionNonDir'>
+            <title>Java Plugin - Other Properties</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>sourceCompatibility</td>
+                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or a Number, eg
+                    <literal>'1.5'</literal> or <literal>1.5</literal>.
+                </td>
+                <td>
+                    <literal>1.5</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>targetCompatibility</td>
+                <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or Number, eg
+                    <literal>'1.5'</literal> or <literal>1.5</literal>.
+                </td>
+                <td>
+                    <literal><replaceable>sourceCompatibility</replaceable></literal>
+                </td>
+            </tr>
+            <tr>
+                <td>manifest</td>
+                <td><apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/></td>
+                <td>empty</td>
+            </tr>
+            <tr>
+                <td>metaInf</td>
+                <td>List</td>
+                <td>empty</td>
+            </tr>
+        </table>
+
+    </section>
+
     <section>
         <title>Init</title>
         <para>The
@@ -402,6 +423,7 @@
             which does not depends on <literal>init</literal>).
         </para>
     </section>
+
     <section id='sec:javadoc'>
         <title>Javadoc</title>
         <para>The
@@ -479,6 +501,7 @@
 
         </table>
     </section>
+
     <section id='sec:clean'>
         <title>Clean</title>
         <para>The
@@ -491,6 +514,7 @@
             more control now, you can use the <emphasis>Ant delete task</emphasis>.
         </para>
     </section>
+
     <section id='sec:resources'>
         <title>Resources</title>
         <para>Gradle uses the
@@ -536,6 +560,7 @@
             <apilink class="org.gradle.api.tasks.Copy"/> to learn about the details.
         </para>
     </section>
+
     <section id='sec:compile'>
         <title>Compile</title>
         <para>The
@@ -613,6 +638,7 @@
             task you can set most of the properties of Ants javac task.
         </para>
     </section>
+
     <section id='sec:java_test'>
         <title>Test</title>
         <para>The
@@ -666,6 +692,7 @@
             one of our next releases.
         </para>
     </section>
+
     <section id='sec:bundles'>
         <title>Bundles</title>
         <para>The
@@ -1027,6 +1054,7 @@ metaInf << new FileSet(someDir)
 ]]></programlisting>
         </section>
     </section>
+
     <section id='sec:upload'>
         <title>Upload</title>
         <para>The
@@ -1043,6 +1071,7 @@ metaInf << new FileSet(someDir)
             <apilink class="org.gradle.api.tasks.Upload"/> to learn more.
         </para>
     </section>
+    
     <section id='sec:eclipse'>
         <title>Eclipse</title>
         <para>Gradle comes with a number of tasks for generating eclipse files for your projects.

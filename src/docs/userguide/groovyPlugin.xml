@@ -7,122 +7,140 @@
                 <literal>javac</literal>. In particular as you would have to supply a groovy jar for doing this.
             </para>
         </footnote>
-        with mixed Java and Groovy projects, and with pure Groovy projects. The Groovy plugin does not add any tasks.
-        It modifies some of the tasks of the Java Plugin and adds to the <emphasis>Convention</emphasis> object.
-        See <xref linkend='groovylayout'/>, <xref linkend='groovyconvention'/>
-        and <xref linkend='groovyconventionFloatingDir'/>. It also add a new dependency configuration
-        <literal>groovy</literal>.
+        with mixed Java and Groovy projects, and with pure Groovy projects.
     </para>
-    <para>Gradle is written in Groovy and allows you to write your build scripts in Groovy. But this is an internal
-        aspect of Gradle which is strictly separated from building Groovy projects. You are free to choose the Groovy
-        version your project should be build with. This Groovy version is not just used for compiling your code and
-        running your tests. The <literal>groovyc</literal> compiler and the the <literal>groovydoc</literal>
-        tool are also taken from the Groovy version you provide. As usual, with freedom comes responsibility ;). You are
-        not just free to choose a Groovy version, you have to provide one. Gradle expects that the groovy libraries are
-        assigned to the <literal>groovy</literal> dependency configuration. Here is an example using the public Maven
-        repository:
-    </para>
-    <sample id="quickstartGroovyDependency" dir="groovy/quickstart">
-        <sourcefile file="build.gradle" snippet="groovy-dependency"/>
-    </sample>
-    <para>And here is an example using the Groovy JARs checked into the <filename>lib</filename> directory of the source
-        tree:</para>
-    <sample id="flatDirGroovyDependency" dir="userguide/tutorial/groovyWithFlatDir">
-        <sourcefile file="build.gradle" snippet="groovy-dependency"/>
-    </sample>
-    <table id='groovylayout'>
-        <title>Default Directory Layout (additional to the Java layout)</title>
-        <thead>
-            <tr>
-                <td>Folder</td>
-                <td>Meaning</td>
-            </tr>
-        </thead>
-        <tr>
-            <td>
-                <literal>src/main/groovy</literal>
-            </td>
-            <td>Application/Library sources in Groovy</td>
-        </tr>
-        <tr>
-            <td>
-                <literal>src/test/groovy</literal>
-            </td>
-            <td>Test sources in Groovy</td>
-        </tr>
 
-    </table>
-    <table id='groovyconvention'>
-        <title>Groovy Convention Object (extends JavaConvention).</title>
-        <thead>
-            <tr>
-                <td>Dir Name</td>
-                <td>Dir File</td>
-                <td>Default Value Name</td>
-                <td>Default Value File</td>
-            </tr>
-        </thead>
-        <tr>
-            <td>groovySrcDirNames</td>
-            <td>groovySrcDirs</td>
-            <td>
-                [<literal>main/groovy</literal>]
-            </td>
-            <td>
-                [<literal><replaceable>srcRoot</replaceable>/main/groovy</literal>]
-            </td>
-        </tr>
-        <tr>
-            <td>groovyTestSrcDirNames</td>
-            <td>groovyTestSrcDirs</td>
-            <td>
-                <literal>test/groovy</literal>
-            </td>
-            <td>
-                [<literal><replaceable>srcRoot</replaceable>/test/groovy</literal>]
-            </td>
-        </tr>
-        <tr>
-            <td>groovydocDirName</td>
-            <td>groovydocDir</td>
-            <td>
-                <literal>groovydoc</literal>
-            </td>
-            <td>
-                <literal><replaceable>docsDir</replaceable>/groovydoc</literal>
-            </td>
-        </tr>
+    <section>
+        <title>Tasks</title>
+        <para>The Groovy plugin does not add any tasks. It modifies some of the tasks of the Java Plugin.</para>
+    </section>
 
-    </table>
-    <table id='groovyconventionFloatingDir'>
-        <title>Groovy Convention Object (extends JavaConvention) - Floating Dir Properties</title>
-        <thead>
+    <section>
+        <title>Project Layout</title>
+        <para>The Groovy plugin assumes the project layout shown in <xref linkend='groovylayout'/>. All the Groovy s
+            ource directories can contain Groovy <emphasis>and</emphasis> Java code. The Java source directories may
+            only contain Java source code (and can of course be empty).
+            <footnote>
+                <para>We are using the same conventions as introduced by Russel Winders Gant tool (<ulink
+                        url='http://gant.codehaus.org'/>).
+                </para>
+            </footnote>
+        </para>
+
+        <table id='groovylayout'>
+            <title>Groovy Plugin - Project Layout</title>
+            <thead>
+                <tr>
+                    <td>Directory</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
             <tr>
-                <td>Property</td>
-                <td>Type</td>
-                <td>Default Value</td>
+                <td>
+                    <filename>src/main/groovy</filename>
+                </td>
+                <td>Application/Library Groovy/Java source</td>
             </tr>
-        </thead>
-        <tr>
-            <td>floatingGroovySrcDirs</td>
-            <td>List</td>
-            <td>empty</td>
-        </tr>
-        <tr>
-            <td>floatingGroovyTestSrcDirs</td>
-            <td>List</td>
-            <td>empty</td>
-        </tr>
-    </table>
-    <para>All the Groovy source directories can contain Groovy
-        <emphasis>and</emphasis>
-        Java code. The Java source directories may only contain Java source code (and can of course be empty)
-        <footnote>
-            <para>We are using the same conventions as introduced by Russel Winders Gant tool (<ulink
-                    url='http://gant.codehaus.org'/>).
-            </para>
-        </footnote>
-    </para>
+            <tr>
+                <td>
+                    <filename>src/test/groovy</filename>
+                </td>
+                <td>Test Groovy/Java source</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Configurations</title>
+        <para>The Groovy plugin adds a dependency configuration called <literal>groovy</literal>.</para>
+        <para>Gradle is written in Groovy and allows you to write your build scripts in Groovy. But this is an internal
+            aspect of Gradle which is strictly separated from building Groovy projects. You are free to choose the Groovy
+            version your project should be build with. This Groovy version is not just used for compiling your code and
+            running your tests. The <literal>groovyc</literal> compiler and the the <literal>groovydoc</literal>
+            tool are also taken from the Groovy version you provide. As usual, with freedom comes responsibility ;). You are
+            not just free to choose a Groovy version, you have to provide one. Gradle expects that the groovy libraries are
+            assigned to the <literal>groovy</literal> dependency configuration. Here is an example using the public Maven
+            repository:
+        </para>
+        <sample id="quickstartGroovyDependency" dir="groovy/quickstart">
+            <sourcefile file="build.gradle" snippet="groovy-dependency"/>
+        </sample>
+        <para>And here is an example using the Groovy JARs checked into the <filename>lib</filename> directory of the source
+            tree:</para>
+        <sample id="flatDirGroovyDependency" dir="userguide/tutorial/groovyWithFlatDir">
+            <sourcefile file="build.gradle" snippet="groovy-dependency"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Convention Properties</title>
+        <para>The Groovy plugin adds the convention properties shown in <xref linkend='groovyconvention'/>
+        and <xref linkend='groovyconventionFloatingDir'/>.</para>
+
+        <table id='groovyconvention'>
+            <title>Groovy Plugin - Directory Properties</title>
+            <thead>
+                <tr>
+                    <td>Dir Name</td>
+                    <td>Dir File</td>
+                    <td>Default Value Name</td>
+                    <td>Default Value File</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>groovySrcDirNames</td>
+                <td>groovySrcDirs</td>
+                <td>
+                    [<literal>main/groovy</literal>]
+                </td>
+                <td>
+                    [<literal><replaceable>srcRoot</replaceable>/main/groovy</literal>]
+                </td>
+            </tr>
+            <tr>
+                <td>groovyTestSrcDirNames</td>
+                <td>groovyTestSrcDirs</td>
+                <td>
+                    <literal>test/groovy</literal>
+                </td>
+                <td>
+                    [<literal><replaceable>srcRoot</replaceable>/test/groovy</literal>]
+                </td>
+            </tr>
+            <tr>
+                <td>groovydocDirName</td>
+                <td>groovydocDir</td>
+                <td>
+                    <literal>groovydoc</literal>
+                </td>
+                <td>
+                    <literal><replaceable>docsDir</replaceable>/groovydoc</literal>
+                </td>
+            </tr>
+
+        </table>
+        <table id='groovyconventionFloatingDir'>
+            <title>Groovy Plugin - Floating Directory Properties</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>floatingGroovySrcDirs</td>
+                <td>List</td>
+                <td>empty</td>
+            </tr>
+            <tr>
+                <td>floatingGroovyTestSrcDirs</td>
+                <td>List</td>
+                <td>empty</td>
+            </tr>
+        </table>
+    </section>
+
     <section id='sec:groovyCompile'>
         <title>Compile</title>
         <para>The

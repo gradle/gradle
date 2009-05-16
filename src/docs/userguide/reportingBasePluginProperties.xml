@@ -16,10 +16,10 @@
 <tgroup>
     <tr>
         <td>
-            <literal>reportsDirName</literal>
+            reportsDirName
         </td>
         <td>
-            <literal>reportsDir</literal>
+            reportsDir
         </td>
         <td>
             <filename>reports</filename>

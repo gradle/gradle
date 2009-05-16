@@ -1,13 +1,18 @@
 <chapter id='war_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The War Plugin</title>
     <para>The war plugin extends the Java Plugin. It disables the default jar archive generation of the Java Plugin and
-        adds a default war archive task. Have also a look at <apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/>
+        adds a default war archive task.
     </para>
-    <section id='sec:default_settings'>
-        <title>Default Settings</title>
 
+    <section>
+        <title>Tasks</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Project Layout</title>
         <table>
-            <title>Default Directory Layout</title>
+            <title>War Plugin - Project Layout</title>
             <thead>
                 <tr>
                     <td>Directory</td>
@@ -16,12 +21,30 @@
             </thead>
             <tr>
                 <td>
-                    <literal>src/main/webapp</literal>
+                    <filename>src/main/webapp</filename>
                 </td>
                 <td>Web application sources</td>
             </tr>
         </table>
+    </section>
 
+    <section>
+        <title>Configurations</title>
+        <para>The War plugin add two dependency configurations: <literal>providedCompile</literal> and
+            <literal>providedRuntime</literal>. Those configurations have the same scope as the respective
+            <literal>compile</literal> and <literal>runtime</literal> configurations, except that they are not added to
+            the WAR archive. It is important to note that those <literal>provided</literal> configurations work
+            transitively. Let's say you add <literal>commons-httpclient:commons-httpclient:3.0</literal> to any of the
+            provided configurations. This dependency has a dependency on <literal>commons-codec</literal>.
+            This means neither <literal>httpclient</literal> nor <literal>commons-codec</literal> is added to your
+            WAR, even if <literal>commons-code</literal> were an explicit dependency of your <literal>compile</literal>
+            configuration. If you don't want this transitive behavior, simply declare your <literal>provided</literal>
+            dependencies like <literal>commons-httpclient:commons-httpclient:3.0@jar</literal>.
+        </para>
+    </section>
+
+    <section>
+        <title>Convention Properties</title>
         <table>
             <title>War Plugin - Directory Properties</title>
             <thead>
@@ -47,16 +70,15 @@
                 </td>
             </tr>
         </table>
-        
-        <para>The default behavior of the War plugin is to copy the content of
-            <literal>src/main/webapp</literal>
-            to the root of the archive. Your
-            <literal>webapp</literal>
-            folder may of course contain a
-            <literal>WEB-INF</literal>
-            sub-directory, which again may contain a
-            <literal>web.xml</literal>
-            file. Your compiled classes are compiled to <literal>WEB-INF/classes</literal>. All the dependencies of the
+    </section>
+
+    <section id='sec:default_settings'>
+        <title>War</title>
+
+        <para>The default behavior of the War task is to copy the content of <literal>src/main/webapp</literal>
+            to the root of the archive. Your <literal>webapp</literal> folder may of course contain a
+            <literal>WEB-INF</literal> sub-directory, which again may contain a <literal>web.xml</literal> file.
+            Your compiled classes are compiled to <literal>WEB-INF/classes</literal>. All the dependencies of the
             <literal>runtime</literal>
             <footnote>
                 <para>The
@@ -66,30 +88,8 @@
                     configuration.
                 </para>
             </footnote>
-            configuration are copied to <literal>WEB-INF/lib</literal>. The War plugin add two new dependency
-            configurations:
-            <literal>providedCompile</literal>
-            and <literal>providedRuntime</literal>. Those new configurations have the same scope as the respective
-            <literal>compile</literal>
-            and
-            <literal>runtime</literal>
-            configurations. Except that they are not added to the war-archive. It is important to note that those
-            <literal>provided</literal>
-            configurations work transitively. Let's say you add
-            <literal>commons-httpclient:commons-httpclient:3.0</literal>
-            to any of the provided configurations. This dependency has a dependency on <literal>commons-codec</literal>.
-            This means neither
-            <literal>httpclient</literal>
-            nor
-            <literal>commons-codec</literal>
-            is added to your war, even if
-            <literal>commons-code</literal>
-            were an explicit dependency of your
-            <literal>compile</literal>
-            configuration. If you don't want this transitive behavior, simply declare your
-            <literal>provided</literal>
-            dependencies like <literal>commons-httpclient:commons-httpclient:3.0@jar</literal>.
-        </para>
+            configuration are copied to <literal>WEB-INF/lib</literal>.</para>
+        <para>Have also a look at <apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/>.</para>
     </section>
     <section id='sec:customizing'>
         <title>Customizing</title>
@@ -103,7 +103,7 @@
         <para>If you want to enable the generation of the default jar archive additional to the war archive just type:
         </para>
         <programlisting><![CDATA[
-archive_jar.enabled = true
+jar.enabled = true
 ]]></programlisting>
     </section>
     <section id='sec:eclipse_wtp'>
@@ -111,8 +111,7 @@ archive_jar.enabled = true
         <para>
             <apilink class="org.gradle.api.tasks.ide.eclipse.EclipseWtp"/>
             has a default instance with the name <literal>eclipseWtp</literal>. It generates a
-            <literal>.settings/org.eclipse.wst.common.component</literal>
-            file.
+            <filename>.settings/org.eclipse.wst.common.component</filename> file.
         </para>
     </section>
 </chapter>

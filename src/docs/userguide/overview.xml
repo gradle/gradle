@@ -181,22 +181,14 @@
         </para>
         <itemizedlist>
             <listitem>
-                <para>Creating IDE project and classpath files. This is one of the top priorities for the next release.
-                    We want to provide this for IntelliJ, Eclipse and NetBeans.
+                <para>Creating IDE project and classpath files for IntelliJ and NetBeans. Gradle supports IDE project
+                    file generation for Eclipse.
                 </para>
             </listitem>
             <listitem>
-                <para>Integration for Emma, Cobertura and JDepends in our build-by-convention framework. Right now you
-                    have to integrate them yourself (for example with the Ant tasks for those tools).
-                </para>
-            </listitem>
-            <listitem>
-                <para>Integration of Jetty in our build-by-convention framework to allow easy startup of a web
-                    application.
-                </para>
-            </listitem>
-            <listitem>
-                <para>Integration of TestNG in our build-by-convention framework.
+                <para>Integration with code coverage tools, such as Emma or Cobertura, and static analysis tools, such
+                    as Checkstyle, in our build-by-convention framework. Right now you have to integrate them yourself
+                    (for example using the Ant tasks for those tools).
                 </para>
             </listitem>
         </itemizedlist>

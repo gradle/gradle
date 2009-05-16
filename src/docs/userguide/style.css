@@ -23,7 +23,7 @@ a {
     color: #444444;
     text-decoration: none;
     border-bottom: dotted 1px;
-    outline: none;
+    /*outline: none;*/
 }
 
 a:visited {
@@ -40,7 +40,7 @@ h1, h2, h3, h4, h5 {
     color: #6a915e;
     line-height: 150%;
     /* ensure paragraphs remain close to their parent heading */
-    margin-bottom: 0;
+    margin-bottom: 0.2em;
    
 }
 
@@ -100,32 +100,14 @@ pre {
     margin-bottom: 1.8em;
 }
 
-.example .title {
+.example .title, .figure .title, .table .title {
     white-space: nowrap;
     /*overflow-x: hidden;*/
     margin-top: 0;
     margin-bottom: 0.2em;
 }
 
-.figure .title {
-    white-space: nowrap;
-    /*overflow-x: hidden;*/
-    margin-top: 0;
-    margin-bottom: 0.2em;
-}
-
-.table .title {
-    white-space: nowrap;
-    /*overflow-x: hidden;*/
-    margin-top: 0;
-    margin-bottom: 0.2em;
-}
-
-.example pre {
-    margin: 0;
-}
-
-.figure pre {
+.example pre, .figure pre {
     margin: 0;
 }
 
@@ -189,7 +171,7 @@ pre {
     margin-left: 2em;
     margin-top: 1em;
     margin-bottom: 1em;
-    max-width: 25%;
+    max-width: 30%;
 }
 
 .tip .title {

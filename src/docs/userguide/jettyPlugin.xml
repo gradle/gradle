@@ -23,34 +23,52 @@
         embedded Jetty server.
     </para>
 
-    <table>
-        <title>Jetty Plugin - Properties</title>
-        <thead>
+    <section>
+        <title>Tasks</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Project Layout</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Configurations</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Convention Properties</title>
+        <table>
+            <title>Jetty Plugin - Properties</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
+                </tr>
+            </thead>
             <tr>
-                <td>Property</td>
-                <td>Type</td>
-                <td>Default Value</td>
+                <td>httpPort</td>
+                <td>Integer</td>
+                <td>8080</td>
             </tr>
-        </thead>
-        <tr>
-            <td>httpPort</td>
-            <td>Integer</td>
-            <td>8080</td>
-        </tr>
-        <tr>
-            <td>stopPort</td>
-            <td>Integer</td>
-            <td>
-                <literal>null</literal>
-            </td>
-        </tr>
-        <tr>
-            <td>stopKey</td>
-            <td>String</td>
-            <td>
-                <literal>null</literal>
-            </td>
-        </tr>
-    </table>
+            <tr>
+                <td>stopPort</td>
+                <td>Integer</td>
+                <td>
+                    <literal>null</literal>
+                </td>
+            </tr>
+            <tr>
+                <td>stopKey</td>
+                <td>String</td>
+                <td>
+                    <literal>null</literal>
+                </td>
+            </tr>
+        </table>
+    </section>
 
 </chapter>
