@@ -28,6 +28,8 @@ import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+
 /**
  * An upload task uploads files to the repositories assigned to it.  The files that get uploaded are the artifacts
  * of your project, if they belong to the configuration associated with the upload task.
@@ -37,9 +39,11 @@ import org.slf4j.LoggerFactory;
 public class Upload extends DefaultTask {
     private static Logger logger = LoggerFactory.getLogger(Upload.class);
 
-    private PublishInstruction publishInstruction;
-
     private Configuration configuration;
+
+    private boolean uploadDescriptor = false;
+
+    private File descriptorDestination = null;
 
     /**
      * The resolvers to delegate the uploads to. Usually a resolver corresponds to a repository.
@@ -58,15 +62,25 @@ public class Upload extends DefaultTask {
 
     private void upload(Task task) {
         logger.info("Publishing configurations: " + configuration);
-        configuration.publish(repositories.getResolvers(), publishInstruction);
+        configuration.publish(repositories.getResolvers(),
+                new PublishInstruction(isUploadDescriptor(),
+                        isUploadDescriptor() ? getDescriptorDestination() : null));
     }
 
-    public PublishInstruction getPublishInstruction() {
-        return publishInstruction;
+    public boolean isUploadDescriptor() {
+        return uploadDescriptor;
     }
 
-    public void setPublishInstruction(PublishInstruction publishInstruction) {
-        this.publishInstruction = publishInstruction;
+    public void setUploadDescriptor(boolean uploadDescriptor) {
+        this.uploadDescriptor = uploadDescriptor;
+    }
+
+    public File getDescriptorDestination() {
+        return descriptorDestination;
+    }
+
+    public void setDescriptorDestination(File descriptorDestination) {
+        this.descriptorDestination = descriptorDestination;
     }
 
     public RepositoryHandler getRepositories() {

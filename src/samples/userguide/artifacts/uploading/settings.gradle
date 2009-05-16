@@ -1,0 +1,2 @@
+mavenCentral()
+dependencies("jsch:jsch:0.1.29")

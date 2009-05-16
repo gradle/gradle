@@ -129,7 +129,7 @@ public class DefaultIvyService implements IvyService {
                 confs,
                 publishInstruction,
                 publishResolvers,
-                moduleDescriptorConverter.convertForPublish(configurationsToPublish, publishInstruction.isUploadModuleDescriptor(),
+                moduleDescriptorConverter.convertForPublish(configurationsToPublish, publishInstruction.isUploadDescriptor(),
                         module, ivy.getSettings()),
                 ivy.getPublishEngine());
     }

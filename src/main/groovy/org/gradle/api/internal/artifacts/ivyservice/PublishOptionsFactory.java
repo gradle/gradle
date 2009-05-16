@@ -25,5 +25,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface PublishOptionsFactory {
-    PublishOptions createPublishOptions(Set<String> configurations, PublishInstruction publishInstruction, File ivyFile);
+    PublishOptions createPublishOptions(Set<String> configurations, PublishInstruction publishInstruction);
 }

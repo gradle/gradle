@@ -127,7 +127,7 @@ public class DefaultIvyService_PublishTest {
             will(returnValue(publishEngineDummy));
 
             allowing(ivyService.getModuleDescriptorConverter()).convertForPublish(configurations,
-                    publishInstruction.isUploadModuleDescriptor(), moduleDummy, ivySettingsDummy);
+                    publishInstruction.isUploadDescriptor(), moduleDummy, ivySettingsDummy);
             will(returnValue(moduleDescriptorDummy));
         }});
     }

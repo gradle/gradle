@@ -19,7 +19,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Upload;
@@ -30,6 +29,7 @@ import org.gradle.util.GUtil;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
+import java.io.File;
 
 public class BasePlugin implements Plugin {
     public static final String CLEAN_TASK_NAME = "clean";
@@ -108,10 +108,9 @@ public class BasePlugin implements Plugin {
 
     private Upload createUploadTask(String name, final Configuration configuration, Project project) {
         Upload upload = project.getTasks().add(name, Upload.class);
-        PublishInstruction publishInstruction = new PublishInstruction();
-        publishInstruction.setIvyFileParentDir(project.getBuildDir());
         upload.setConfiguration(configuration);
-        upload.setPublishInstruction(publishInstruction);
+        upload.setUploadDescriptor(true);
+        upload.setDescriptorDestination(new File(project.getBuildDir(), "ivy.xml"));
         upload.dependsOn(configuration.getBuildArtifacts());
         upload.setDescription(String.format("Uploads all artifacts belonging to %s.", configuration));
         return upload;

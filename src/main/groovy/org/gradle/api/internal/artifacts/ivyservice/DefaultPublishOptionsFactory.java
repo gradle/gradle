@@ -18,17 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.publish.PublishOptions;
 import org.gradle.api.artifacts.PublishInstruction;
 
-import java.io.File;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultPublishOptionsFactory implements PublishOptionsFactory {
-    public PublishOptions createPublishOptions(Set<String> configurations, PublishInstruction publishInstruction, File ivyFile) {
+    public PublishOptions createPublishOptions(Set<String> configurations, PublishInstruction publishInstruction) {
         PublishOptions publishOptions = createPublishOptions(publishInstruction, configurations);
-        if (publishInstruction.isUploadModuleDescriptor()) {
-            publishOptions.setSrcIvyPattern(ivyFile.getAbsolutePath());
+        if (publishInstruction.isUploadDescriptor()) {
+            publishOptions.setSrcIvyPattern(publishInstruction.getDescriptorDestination().getAbsolutePath());
         }
         return publishOptions;
     }

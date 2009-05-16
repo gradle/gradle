@@ -28,7 +28,7 @@ dependencies {
 // END SNIPPET exclude-dependencies
     runtime 'org.gradle.test.excludes:other-api:1.0'
 // START SNIPPET classifier
-	compile "org.gradle.test.classifiers:service:1.0:jdk15"
+	compile "org.gradle.test.classifiers:service:1.0:jdk15@jar"
     otherConf group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14'
 // END SNIPPET classifier
 // START SNIPPET exclude-dependencies

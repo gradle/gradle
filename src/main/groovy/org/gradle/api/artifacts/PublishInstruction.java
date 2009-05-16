@@ -15,41 +15,77 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.InvalidUserDataException;
+
 import java.io.File;
 
 /**
- * Instruction about uploading details for artifacts produced by a project.
+ * Uploading details for artifacts produced by a project.
  *
  * @author Hans Dockter
  */
 public class PublishInstruction {
-    private File ivyFileParentDir = null;
+    private boolean uploadDescriptor;
+    private File descriptorDestination;
 
     /**
-     * Returns if an ivy.xml file is uploaded or not. This is a convenient function which returns
-     * true if the ivy file parent dir is different to null and false otherwise.
-     *
-     * @see #setIvyFileParentDir(java.io.File) 
+     * Creates a publish instruction for not uploading an module descriptor file.
      */
-    public boolean isUploadModuleDescriptor() {
-        return ivyFileParentDir != null;
+    public PublishInstruction() {
+        uploadDescriptor = false;
+        descriptorDestination = null;
     }
 
     /**
-     * Returns the directory where to find the ivy.xml file. Can be null.
+     * Creates a publish instruction. If <code>uploadDescriptor</code> is set to true and the target destination
+     * is an ivy repository, the ivy file destination needs to be specified. 
      *
-     * @see #setIvyFileParentDir(java.io.File)
+     * @param uploadDescriptor
+     * @param descriptorDestination
      */
-    public File getIvyFileParentDir() {
-        return ivyFileParentDir;
+    public PublishInstruction(boolean uploadDescriptor, File descriptorDestination) {
+        if (uploadDescriptor && descriptorDestination == null) {
+            throw new InvalidUserDataException("You must specify a module descriptor destination, if a module descriptor should be uploaded.");
+        }
+        if (!uploadDescriptor && descriptorDestination != null) {
+            throw new InvalidUserDataException("You must not specify a module descriptor destination, if a module descriptor should not be uploaded.");
+        }
+        this.uploadDescriptor = uploadDescriptor;
+        this.descriptorDestination = descriptorDestination;
     }
 
     /**
-     * Sets the directory where to find the ivy.xml file. If set to null, no ivy.xml file is uploaded.
-     *
-     * @param ivyFileParentDir the directory where to find the ivy.xml file.
+     * Returns whether an xml module descriptor file should be uploaded or not. 
      */
-    public void setIvyFileParentDir(File ivyFileParentDir) {
-        this.ivyFileParentDir = ivyFileParentDir;
+    public boolean isUploadDescriptor() {
+        return uploadDescriptor;
+    }
+
+    /**
+     * Returns the file destination where to create the ivy.xml file. Can be null.
+     */
+    public File getDescriptorDestination() {
+        return descriptorDestination;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PublishInstruction that = (PublishInstruction) o;
+
+        if (uploadDescriptor != that.uploadDescriptor) return false;
+        if (descriptorDestination != null ? !descriptorDestination.equals(that.descriptorDestination) : that.descriptorDestination != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (uploadDescriptor ? 1 : 0);
+        result = 31 * result + (descriptorDestination != null ? descriptorDestination.hashCode() : 0);
+        return result;
     }
 }

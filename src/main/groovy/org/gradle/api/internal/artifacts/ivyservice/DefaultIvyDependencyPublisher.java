@@ -23,7 +23,6 @@ import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
@@ -52,15 +51,13 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                         ModuleDescriptor moduleDescriptor,
                         PublishEngine publishEngine) {
         try {
-            File ivyFile = null;
-            if (publishInstruction.isUploadModuleDescriptor()) {
-                ivyFile = new File(publishInstruction.getIvyFileParentDir(), IVY_FILE_NAME);
-                moduleDescriptor.toIvyFile(ivyFile);
+            if (publishInstruction.isUploadDescriptor()) {
+                moduleDescriptor.toIvyFile(publishInstruction.getDescriptorDestination());
             }
             for (DependencyResolver resolver : publishResolvers) {
                 logger.info("Publishing to Resolver {}", resolver);
                 publishEngine.publish(moduleDescriptor, ARTIFACT_PATTERN, resolver,
-                        publishOptionsFactory.createPublishOptions(configurations, publishInstruction, ivyFile));
+                        publishOptionsFactory.createPublishOptions(configurations, publishInstruction));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,0 +1,28 @@
+usePlugin 'java'
+
+//START SNIPPET assign-artifact
+task myJar(type: Jar)
+
+artifacts {
+    master myJar
+}
+//END SNIPPET assign-artifact
+
+//START SNIPPET uploading
+repositories {
+    flatDir(name: 'fileRepo', dirs: "$projectDir/repo")
+}
+
+uploadMaster {
+    uploadDescriptor = false
+    repositories {
+        add project.repositories.fileRepo
+        add(new org.apache.ivy.plugins.resolver.SshResolver()) {
+            name = 'sshRepo'
+            user = 'username'
+            userPassword = 'pw'
+            host = "http://repo.mycompany.com"
+        }
+    }
+}
+//END SNIPPET uploading

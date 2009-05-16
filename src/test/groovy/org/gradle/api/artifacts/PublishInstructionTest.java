@@ -16,9 +16,10 @@
 package org.gradle.api.artifacts;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
-import org.junit.Before;
 import org.junit.Test;
+import org.gradle.api.InvalidUserDataException;
 
 import java.io.File;
 
@@ -26,28 +27,45 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class PublishInstructionTest {
-    private PublishInstruction publishInstruction;
-
-    @Before
-    public void setUp() {
-        publishInstruction = new PublishInstruction();
-    }
-
-    protected PublishInstruction getInstruction() {
-        return publishInstruction;
+    @Test
+    public void initWithNoArgs() {
+        PublishInstruction publishInstruction = new PublishInstruction();
+        assertThat(publishInstruction.isUploadDescriptor(), equalTo(false));
+        assertThat(publishInstruction.getDescriptorDestination(), equalTo(null));
     }
 
     @Test
-    public void init() {
-        assertThat(getInstruction().isUploadModuleDescriptor(), equalTo(false));
-        assertThat(getInstruction().getIvyFileParentDir(), equalTo(null));
+    public void initWithUploadTrueAndFileNotNull() {
+        File someFile = new File("somePath");
+        PublishInstruction publishInstruction = new PublishInstruction(true, someFile);
+        assertThat(publishInstruction.isUploadDescriptor(), equalTo(true));
+        assertThat(publishInstruction.getDescriptorDestination(), equalTo(someFile));
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void initWithUploadFalseAndFileNotNull_shouldThrowInvalidUserDataEx() {
+        new PublishInstruction(false, new File("somePath"));
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void initWithUploadTrueAndFileNull_shouldThrowInvalidUserDataEx() {
+        new PublishInstruction(true, null);
     }
 
     @Test
-    public void isUploadModuleDescriptor() {
-        File parentDir = new File("someParentDir");
-        getInstruction().setIvyFileParentDir(parentDir);
-        assertThat(getInstruction().isUploadModuleDescriptor(), equalTo(true));
-        assertThat(getInstruction().getIvyFileParentDir(), equalTo(parentDir));
+    public void initWithUploadFalseAndFileNull() {
+        PublishInstruction publishInstruction = new PublishInstruction(false, null);
+        assertThat(publishInstruction.isUploadDescriptor(), equalTo(false));
+        assertThat(publishInstruction.getDescriptorDestination(), nullValue());
+    }
+
+    @Test
+    public void equalityAndHash() {
+        assertThat(new PublishInstruction(false, null), equalTo(new PublishInstruction(false, null)));
+        assertThat(new PublishInstruction(true, new File("somePath")), equalTo(new PublishInstruction(true, new File("somePath"))));
+        assertThat(new PublishInstruction(true, new File("somePath")), not(equalTo(new PublishInstruction(true, new File("someOtherPath")))));
+
+        assertThat(new PublishInstruction(true, new File("somePath")).hashCode(),
+                equalTo(new PublishInstruction(true, new File("somePath")).hashCode()));
     }
 }

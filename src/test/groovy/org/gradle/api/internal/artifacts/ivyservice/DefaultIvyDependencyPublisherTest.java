@@ -68,12 +68,11 @@ public class DefaultIvyDependencyPublisherTest {
     }
 
     @Test
-    public void testPublishWithUploadModuleDescriptorTrue() throws IOException, ParseException {
-        final PublishInstruction publishInstruction = new PublishInstruction();
-        publishInstruction.setIvyFileParentDir(expectedIvyFile.getParentFile());
+    public void testPublishWithUploadModuleDescriptorTrueAndIvyFile() throws IOException, ParseException {
+        final PublishInstruction publishInstruction = new PublishInstruction(true, expectedIvyFile);
         context.checking(new Expectations() {
             {
-                allowing(publishOptionsFactoryMock).createPublishOptions(WrapUtil.toSet(expectedConf), publishInstruction, expectedIvyFile);
+                allowing(publishOptionsFactoryMock).createPublishOptions(WrapUtil.toSet(expectedConf), publishInstruction);
                 will(returnValue(expectedPublishOptions));
                 
                 one(publishEngineMock).publish(moduleDescriptorMock,
@@ -92,7 +91,7 @@ public class DefaultIvyDependencyPublisherTest {
         final PublishInstruction publishInstruction = new PublishInstruction();
         context.checking(new Expectations() {
             {
-                allowing(publishOptionsFactoryMock).createPublishOptions(WrapUtil.toSet(expectedConf), publishInstruction, null);
+                allowing(publishOptionsFactoryMock).createPublishOptions(WrapUtil.toSet(expectedConf), publishInstruction);
                 will(returnValue(expectedPublishOptions));
                 
                 one(publishEngineMock).publish(

@@ -176,10 +176,12 @@
                         </para>
                     </footnote>
                     Gradle supports this. To retrieve classified dependencies from a maven repository you can write:
-                    <sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers">
-                        <sourcefile file="build.gradle" snippet="classifier"/>
-                    </sample>
                 </para>
+                <sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers">
+                        <sourcefile file="build.gradle" snippet="classifier"/>
+                </sample>
+                <para>As you can see in the example, classifiers can be used together with setting
+                an explicit extension (artifact only notation).</para>
             </section>
         </section>
         <section id='sub:client_module_dependencies'>

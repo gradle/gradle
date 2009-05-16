@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
@@ -53,14 +53,16 @@ public class UploadTest extends AbstractTaskTest {
     }
 
     @Test public void testUpload() {
-        assertNull(upload.getPublishInstruction());
+        assertThat(upload.isUploadDescriptor(), equalTo(false));
+        assertNull(upload.getDescriptorDestination());
         assertNotNull(upload.getRepositories());
     }
 
     @Test public void testUploading() {
         final Configuration configurationMock = context.mock(Configuration.class);
-        final PublishInstruction publishInstruction = new PublishInstruction();
-        upload.setPublishInstruction(publishInstruction);
+        final PublishInstruction publishInstruction = new PublishInstruction(true, new File("somePath"));
+        upload.setUploadDescriptor(publishInstruction.isUploadDescriptor());
+        upload.setDescriptorDestination(publishInstruction.getDescriptorDestination());
         upload.setConfiguration(configurationMock);
         upload.setProject(HelperUtil.createRootProject(projectRootDir));
         final DependencyResolver repository = upload.getRepositories().mavenCentral();
@@ -70,8 +72,21 @@ public class UploadTest extends AbstractTaskTest {
         upload.execute();
     }
 
+    @Test public void testUploadingWithUploadDescriptorFalseAndDestinationSet() {
+        final Configuration configurationMock = context.mock(Configuration.class);
+        upload.setUploadDescriptor(false);
+        upload.setDescriptorDestination(new File("somePath"));
+        upload.setConfiguration(configurationMock);
+        upload.setProject(HelperUtil.createRootProject(projectRootDir));
+        final DependencyResolver repository = upload.getRepositories().mavenCentral();
+        context.checking(new Expectations() {{
+            one(configurationMock).publish(WrapUtil.toList(repository), new PublishInstruction(false, null));
+        }});
+        upload.execute();
+    }
+
     @Test public void testRepositories() {
         final DependencyResolver repository = upload.repositories(HelperUtil.toClosure("{ mavenCentral() }")).getResolvers().get(0);
-        assertThat(upload.getRepositories().getResolvers(), Matchers.equalTo(WrapUtil.toList(repository)));
+        assertThat(upload.getRepositories().getResolvers(), equalTo(WrapUtil.toList(repository)));
     }
 }

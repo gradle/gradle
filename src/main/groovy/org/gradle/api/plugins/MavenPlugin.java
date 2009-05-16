@@ -112,9 +112,6 @@ public class MavenPlugin implements Plugin {
         Configuration configuration = project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION);
         installUpload.dependsOn(configuration.getBuildArtifacts());
         installUpload.setConfiguration(configuration);
-        PublishInstruction publishInstruction = new PublishInstruction();
-        publishInstruction.setIvyFileParentDir(new File("nonNullDummy"));
-        installUpload.setPublishInstruction(publishInstruction);
         installUpload.getRepositories().mavenInstaller(WrapUtil.toMap("name", "maven-installer"));
         installUpload.setDescription("Does a maven install of the master artifacts into the local .m2 cache.");
     }
