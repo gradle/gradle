@@ -29,9 +29,9 @@ import org.gradle.build.docs.ExtractSnippetsTask
 
 defaultTasks "clean", "dists"
 
-archivesBaseName = 'gradle'
-
 usePlugin('groovy')
+
+archivesBaseName = 'gradle'
 
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
