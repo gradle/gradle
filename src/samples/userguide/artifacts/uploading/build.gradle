@@ -4,7 +4,7 @@ usePlugin 'java'
 task myJar(type: Jar)
 
 artifacts {
-    master myJar
+    archives myJar
 }
 //END SNIPPET assign-artifact
 
@@ -13,7 +13,7 @@ repositories {
     flatDir(name: 'fileRepo', dirs: "$projectDir/repo")
 }
 
-uploadMaster {
+uploadArchives {
     uploadDescriptor = false
     repositories {
         add project.repositories.fileRepo

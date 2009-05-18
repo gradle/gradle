@@ -307,14 +307,14 @@
                     <td>Additional dependencies for running tests only.</td>
                 </tr>
                 <tr>
-                    <td>master</td>
+                    <td>archives</td>
                     <td>-</td>
-                    <td>uploadMaster</td>
+                    <td>uploadArchives</td>
                     <td>Artifacts (e.g. jars) produced by this project.</td>
                 </tr>
                 <tr>
                     <td>default</td>
-                    <td>runtime, master</td>
+                    <td>runtime, archives</td>
                     <td>-</td>
                     <td>Artifacts produced and dependencies
                         <literal>and</literal>

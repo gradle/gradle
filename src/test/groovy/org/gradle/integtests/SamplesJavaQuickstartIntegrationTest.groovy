@@ -32,7 +32,7 @@ class SamplesJavaQuickstartIntegrationTest {
     public void quickstartJavaProject() {
         File javaprojectDir = new File(dist.samplesDir, 'java/quickstart')
         // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'dists', 'uploadMaster').run()
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'dists', 'uploadArchives').run()
 
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')

@@ -266,7 +266,7 @@ public class JavaPlugin implements Plugin {
 
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.setDescription("Generates a jar archive with all the compiled classes.");
-        project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
+        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
     }
 
     private void configureTest(final Project project) {
@@ -301,9 +301,9 @@ public class JavaPlugin implements Plugin {
                 setTransitive(false).setDescription("Classpath for compiling the test sources.");;
         Configuration runTestsConfiguration = configurations.add(TEST_RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(runtimeConfiguration, compileTestsConfiguration).
                 setDescription("Classpath for running the test sources.");;
-        Configuration masterConfiguration = configurations.add(Dependency.MASTER_CONFIGURATION).
+        Configuration archivesConfiguration = configurations.add(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for the default artifacts.");;
-        configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, masterConfiguration).
+        configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, archivesConfiguration).
                 setDescription("Configuration the default artifacts and its dependencies.");
         configurations.add(DISTS_TASK_NAME);
     }

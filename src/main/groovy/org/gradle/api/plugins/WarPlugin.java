@@ -66,7 +66,7 @@ public class WarPlugin implements Plugin {
         
         War war = project.getTasks().add(WAR_TASK_NAME, War.class);
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
-        project.getConfigurations().getByName(Dependency.MASTER_CONFIGURATION).addArtifact(new ArchivePublishArtifact(war));
+        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(war));
 
         configureConfigurations(project.getConfigurations());
         configureEclipse(project, war);

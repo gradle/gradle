@@ -77,11 +77,11 @@ class JavaPluginTest {
         assertTrue(configuration.transitive)
 
         configuration = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(Dependency.MASTER_CONFIGURATION, JavaPlugin.RUNTIME_CONFIGURATION_NAME)))
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(Dependency.ARCHIVES_CONFIGURATION, JavaPlugin.RUNTIME_CONFIGURATION_NAME)))
         assertTrue(configuration.visible)
         assertTrue(configuration.transitive)
 
-        configuration = project.configurations.getByName(Dependency.MASTER_CONFIGURATION)
+        configuration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertTrue(configuration.visible)
         assertTrue(configuration.transitive)
@@ -143,7 +143,7 @@ class JavaPluginTest {
         assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
 
-        task = project.tasks["buildMaster"]
+        task = project.tasks["buildArchives"]
         assertThat(task, instanceOf(DefaultTask))
         assertDependsOn(task, JavaPlugin.JAR_TASK_NAME)
     }

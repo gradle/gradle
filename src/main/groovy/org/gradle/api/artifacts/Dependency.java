@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public interface Dependency {
     String DEFAULT_CONFIGURATION = "default";
-    String MASTER_CONFIGURATION = "master";
+    String ARCHIVES_CONFIGURATION = "archives";
     String CLASSIFIER = "classifier";
 
     /**

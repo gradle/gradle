@@ -48,7 +48,7 @@ class PomGenerationIntegrationTest {
         String version = '1.0'
         String groupId = "gradle"
         long start = System.currentTimeMillis();
-        executer.inDirectory(pomProjectDir).withTasks('clean', 'uploadMaster').run()
+        executer.inDirectory(pomProjectDir).withTasks('clean', 'uploadArchives').run()
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
@@ -60,7 +60,7 @@ class PomGenerationIntegrationTest {
         long start = System.currentTimeMillis();
         String version = "1.0MVN"
         String groupId = "deployGroup"
-        executer.inDirectory(pomProjectDir).withArguments("-PcustomVersion=${version}").withTasks('clean', 'uploadMaster').run()
+        executer.inDirectory(pomProjectDir).withArguments("-PcustomVersion=${version}").withTasks('clean', 'uploadArchives').run()
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)

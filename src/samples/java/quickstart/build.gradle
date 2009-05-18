@@ -31,7 +31,7 @@ test {
 // END SNIPPET task-customisation
 
 // START SNIPPET upload
-uploadMaster {
+uploadArchives {
     repositories {
        flatDir(dirs: file('repos'))
     }

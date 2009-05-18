@@ -35,10 +35,10 @@ install.doLast {install ->
 
 }
 
-uploadMaster.dependsOn install
+uploadArchives.dependsOn install
 
 def deployer = null
-uploadMaster {
+uploadArchives {
     repositories {
       deployer = mavenDeployer {
         repository(url: "file://localhost/$projectDir/pomRepo/")

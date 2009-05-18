@@ -103,7 +103,7 @@ class DefaultSettingsTest {
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
         assertNull(settings.buildSrcStartParameter.buildFile)
-        assertEquals([BasePlugin.CLEAN_TASK_NAME, Configurations.uploadInternalTaskName(Dependency.MASTER_CONFIGURATION)],
+        assertEquals([BasePlugin.CLEAN_TASK_NAME, Configurations.uploadInternalTaskName(Dependency.ARCHIVES_CONFIGURATION)],
                 settings.buildSrcStartParameter.taskNames)
         assertTrue(settings.buildSrcStartParameter.searchUpwards)
         assertNull(settings.getRootProject().getParent())

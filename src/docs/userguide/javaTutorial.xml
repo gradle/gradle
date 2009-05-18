@@ -86,7 +86,7 @@
             <sample id="javaQuickstart" dir="java/quickstart">
                 <sourcefile file="build.gradle" snippet="upload"/>
             </sample>
-            <para>To publish the JAR file, run <userinput>gradle uploadMaster</userinput>.</para>
+            <para>To publish the JAR file, run <userinput>gradle uploadArchives</userinput>.</para>
         </section>
         
 		<section>
