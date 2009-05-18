@@ -22,6 +22,7 @@ import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 
@@ -40,6 +41,9 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     private DeployTaskFactory deployTaskFactory = new DefaultDeployTaskFactory();
 
+    private Configuration configuration;
+
+    // todo remove this property once configuration can handle normal file system dependencies
     private List<File> protocolProviderJars = new ArrayList<File>();
 
     private boolean uniqueVersion = true;
@@ -59,13 +63,17 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     private void addProtocolProvider(CustomDeployTask deployTask) {
         PlexusContainer plexusContainer = deployTask.getContainer();
-        for (File wagonProviderJar : protocolProviderJars) {
+        for (File wagonProviderJar : getJars()) {
             try {
                 plexusContainer.addJarResource(wagonProviderJar);
             } catch (PlexusContainerException e) {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private List<File> getJars() {
+        return configuration != null ? new ArrayList(configuration.resolve()) : protocolProviderJars;
     }
 
     private void addRemoteRepositories(DeployTask deployTask) {
@@ -99,6 +107,14 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     public void addProtocolProviderJars(Collection<File> jars) {
         protocolProviderJars.addAll(jars);
+    }
+
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
     }
 
     public boolean isUniqueVersion() {

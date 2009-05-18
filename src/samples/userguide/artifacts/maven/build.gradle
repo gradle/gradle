@@ -44,7 +44,7 @@ dependencies {
 uploadArchives {
     repositories.mavenDeployer {
         name = 'sshDeployer' // optional
-        addProtocolProviderJars(configurations.deployerJars.resolve())
+        configuration = configurations.deployerJars
         repository(url: "scp://repos.mycompany.com/releases") {
             authentication(userName: "me", password: "myPassword")
         }

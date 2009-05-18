@@ -21,6 +21,7 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import static org.junit.Assert.assertTrue;
@@ -31,22 +32,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
-    private static final List<File> TEST_PROTOCOL_PROVIDER_JARS = WrapUtil.toList(new File("jar1"), new File("jar1"));
 
-    private BaseMavenDeployer mavenDeployer;
+    private BaseMavenDeployer mavenDeployer = createMavenDeployer();
 
-    private DeployTaskFactory deployTaskFactoryMock;
-    private CustomDeployTask deployTaskMock;
+    private DeployTaskFactory deployTaskFactoryMock = context.mock(DeployTaskFactory.class);
+    private CustomDeployTask deployTaskMock = context.mock(CustomDeployTask.class);
 
-    private PlexusContainer plexusContainerMock;
-    private RemoteRepository testRepository;
-    private RemoteRepository testSnapshotRepository;
+    private PlexusContainer plexusContainerMock = context.mock(PlexusContainer.class);
+    private RemoteRepository testRepository = new RemoteRepository();
+    private RemoteRepository testSnapshotRepository = new RemoteRepository();
+
+    private Configuration configurationStub = context.mock(Configuration.class);
 
     protected BaseMavenDeployer createMavenDeployer() {
         return new BaseMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, configurationContainerMock);
@@ -66,34 +69,30 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
     public void setUp() {
         super.setUp();
-        deployTaskFactoryMock = context.mock(DeployTaskFactory.class);
-        deployTaskMock = context.mock(CustomDeployTask.class);
-        plexusContainerMock = context.mock(PlexusContainer.class);
-        testRepository = new RemoteRepository();
-        testSnapshotRepository = new RemoteRepository();
         mavenDeployer = createMavenDeployer();
         mavenDeployer.setDeployTaskFactory(deployTaskFactoryMock);
         mavenDeployer.setRepository(testRepository);
         mavenDeployer.setSnapshotRepository(testSnapshotRepository);
-        mavenDeployer.addProtocolProviderJars(TEST_PROTOCOL_PROVIDER_JARS);
+        mavenDeployer.setConfiguration(configurationStub);
         mavenDeployer.setUniqueVersion(false);
     }
 
     protected void checkTransaction(final Map<File, File> deployableUnits) throws IOException, PlexusContainerException {
-        context.checking(new Expectations() {
-            {
+        final Set<File> protocolJars = WrapUtil.toLinkedSet(new File("jar1"), new File("jar1"));
+        context.checking(new Expectations() {{
+                allowing(configurationStub).resolve();
+                will(returnValue(protocolJars));
                 allowing(deployTaskFactoryMock).createDeployTask();
                 will(returnValue(getInstallDeployTask()));
                 allowing(deployTaskMock).getContainer();
                 will(returnValue(plexusContainerMock));
-                for (File protocolProviderJar : TEST_PROTOCOL_PROVIDER_JARS) {
+                for (File protocolProviderJar : protocolJars) {
                     one(plexusContainerMock).addJarResource(protocolProviderJar);
                 }
                 one(deployTaskMock).setUniqueVersion(mavenDeployer.isUniqueVersion());
                 one(deployTaskMock).addRemoteRepository(testRepository);
                 one(deployTaskMock).addRemoteSnapshotRepository(testSnapshotRepository);
-            }
-        });
+        }});
         super.checkTransaction(deployableUnits);
     }
 
