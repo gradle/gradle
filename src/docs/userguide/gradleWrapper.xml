@@ -20,23 +20,26 @@
         </footnote>
         You can create such a task in your build script.
     </para>
-    <programlisting><![CDATA[
-createTask('wrapper', type: Wrapper).configure {
-    gradleVersion = '0.1'
-}	
-]]></programlisting>
-    <para>You usually explicitly execute this task (for example after a switch to a new version of Gradle). After such
-        an execution you find the following new or updated files in your project folder (if the default configuration is
+    <sample id="wrapperSimple" dir="userguide/wrapper">
+        <sourcefile file="build.gradle" snippet="wrapper-simple"/>
+    </sample>
+    <para>The build master usually explicitly executes this task. After such
+        an execution you find the following new or updated files in your project folder (in case the default configuration of the wrapper task is
         used).
     </para>
     <programlisting><![CDATA[
 project-root
   - gradle-wrapper.jar
+  - gradle-wrapper.properties
   - gradlew.exe
   - gradlew.bat
 ]]></programlisting>
-    <para>All these files should be submitted to your version control system. The <command>gradlew</command> command
+    <para>All these files must be submitted to your version control system. The <command>gradlew</command> command
         can be used <emphasis>exactly</emphasis> the same way as the <command>gradle</command> command.
+    </para>
+    <para>If you want to switch to a new version of Gradle you don't need to rerun the wrapper task. It is good enough
+        to change the respective entry in the <literal>gradle-wrapper.properties</literal> file. But if there is for example
+        an improvement in the gradle-wrapper functionality you need to regenerate the wrapper files.
     </para>
     <section id='sec:configuration'>
         <title>Configuration</title>
@@ -45,17 +48,29 @@ project-root
             command of this distribution with all the arguments passed originally to the <command>gradlew</command>
             command.
         </para>
-        <para>You can specify the download URL of the wrapper distribution. You can also specify where the wrapper
+        <para>You can specify where the wrapper files should be stored (within your project directory):</para>
+        <sample id="wrapperCustomized" dir="userguide/wrapper">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <programlisting><![CDATA[
+project-root
+  - wrapper
+    - gradle-wrapper.jar
+    - gradle-wrapper.properties
+  - gradlew.exe
+  - gradlew.bat
+]]></programlisting>
+        <para>
+            You can specify the download URL of the wrapper distribution. You can also specify where the wrapper distribution
             should be stored and unpacked (either within the project or within the gradle user home dir). If the wrapper
             is run and there is local archive of the wrapper distribution Gradle tries to download it and stores it at
             the specified place. If there is no unpacked wrapper distribution Gradle unpacks the local archive of the
-            wrapper distribution at the specified place.
+            wrapper distribution at the specified place. All the configuration options have defaults except the version of the wrapper distribution.</para>
+        <para>For the details on how to configure the wrapper, see <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
         </para>
-        <para>All the configuration options have defaults except the version of the wrapper distribution. If you don't
+        <para>If you don't
             want any download to happen when your project is build via <command>gradlew</command>, simply add the Gradle
             distribution zip to your version control at the location specified by your wrapper configuration.
-        </para>
-        <para>For the details on how to configure the wrapper, see <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
         </para>
         <para>If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
         </para>

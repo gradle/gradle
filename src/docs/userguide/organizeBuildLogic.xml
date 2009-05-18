@@ -33,17 +33,21 @@
             <literal>settings.gradle</literal>
             file.
         </para>
-        <programlisting><![CDATA[
-dependencies("commons-math:commons-math:1.1:jar")
-]]></programlisting>
+        <sample id="settingsBuildLogic" dir="userguide/organizeBuildLogic">
+            <sourcefile file="settings.gradle"/>
+        </sample>
         <para>You can pass any of the dependencies described in
             <xref linkend='sec:how_to_declare_your_dependencies'/>
             (except project dependencies). There is
             <emphasis>no</emphasis>
-            need to provide a <emphasis>dependency configuration</emphasis> (e.g. <literal>compile</literal>). For
-            multi-project builds dependencies declared in the
+            need to provide a <emphasis>dependency configuration</emphasis> (e.g. <literal>compile</literal>).
+            See the javadoc of <apilink class="org.gradle.api.initialization.Settings"/> for all methods you can use to define
+            dependencies in the <literal>settings.gradle</literal> file.
+        </para>
+        <para>
+            For multi-project builds dependencies declared in the
             <literal>settings.gradle</literal>
-            file of the root project, are available to all build scripts of the sub-projects.
+            file, are available to all build scripts of the sub-projects.
         </para>
     </section>
     <section id='sec:ant_optional_dependencies'>
@@ -58,26 +62,11 @@ dependencies("commons-math:commons-math:1.1:jar")
                 </para>
             </footnote>
         </para>
-        <programlisting><![CDATA[
-dependencies {
-    addConfiguration('ftpAntTask')
-    clientModule(['ftpAntTask'], ":ant-commons-net:1.7.0") {
-        clientModule(":commons-net:1.4.1") {
-            dependencies(":oro:2.0.8:jar")
-        }
-    }
-}
-createTask('ftp') {
-    ant {
-        taskdef(name: 'ftp',
-                classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: dependencies.antpath('ftpAntTask'))
-        ftp(server: "ftp.apache.org", userid: "anonymous", password: "me@myorg.com") {
-            fileset(dir: "htdocs/manual")
-        }
-    }
-}
-]]></programlisting>
+        <sample id="buildLogic" dir="userguide/organizeBuildLogic">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>This is also nice example for the usage of client modules. The pom.xml in maven central for the
+        ant-commons-net task does not provide the right information for this use case.</para>
     </section>
     <section id='sec:philosophy'>
         <title>Summary</title>

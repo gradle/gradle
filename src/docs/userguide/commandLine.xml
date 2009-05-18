@@ -42,6 +42,11 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>-a</option>, <option>--no-rebuild</option></term>
+            <listitem><para>Do not rebuild project dependencies.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-b</option>, <option>--build-file</option></term>
             <listitem><para>Specifies the build file.
             </para></listitem>
