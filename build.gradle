@@ -625,7 +625,7 @@ build.taskGraph.whenReady { graph ->
 }
 
 void windowsInstall() {
-    ant.unzip(src: allZip.archivePath, dest: installDir.parentFile)
+    ant.unzip(src: binZip.archivePath, dest: installDir.parentFile)
 }
 
 /**
@@ -636,7 +636,7 @@ void asternixInstall() {
         arg(value: '-q')
         arg(value: '-d')
         arg(value: installDir.parentFile)
-        arg(value: "${allZip.archivePath}")
+        arg(value: "${binZip.archivePath}")
     }
 }
 
