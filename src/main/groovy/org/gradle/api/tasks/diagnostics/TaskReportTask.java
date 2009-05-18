@@ -34,7 +34,7 @@ public class TaskReportTask extends AbstractReportTask {
         super(project, name);
     }
 
-    public TaskReportRenderer getRenderer() {
+    public ProjectReportRenderer getRenderer() {
         return renderer;
     }
 

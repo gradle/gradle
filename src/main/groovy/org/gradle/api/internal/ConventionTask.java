@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.util.GUtil;
 
 import java.util.Map;
 
@@ -36,6 +37,10 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
 
     public Task conventionMapping(Map<String, ConventionValue> mapping) {
         return (Task) conventionAwareHelper.conventionMapping(mapping);
+    }
+
+    public Task conventionMapping(String property, ConventionValue mapping) {
+        return (Task) conventionAwareHelper.conventionMapping(GUtil.map(property, mapping));
     }
 
     public Object conventionProperty(String name) {

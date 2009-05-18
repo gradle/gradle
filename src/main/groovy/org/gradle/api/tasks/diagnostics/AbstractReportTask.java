@@ -19,7 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
-import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.internal.ConventionTask;
 
 import java.io.IOException;
 import java.io.File;
@@ -29,7 +29,7 @@ import java.util.TreeSet;
 /**
  * The base class for all project report tasks.
  */
-public abstract class AbstractReportTask extends DefaultTask {
+public abstract class AbstractReportTask extends ConventionTask {
     private File outputFile;
 
     public AbstractReportTask(Project project, String name) {
@@ -44,6 +44,7 @@ public abstract class AbstractReportTask extends DefaultTask {
     private void generate() {
         try {
             ProjectReportRenderer renderer = getRenderer();
+            File outputFile = getOutputFile();
             if (outputFile != null) {
                 outputFile.getParentFile().mkdirs();
                 renderer.setOutputFile(outputFile);

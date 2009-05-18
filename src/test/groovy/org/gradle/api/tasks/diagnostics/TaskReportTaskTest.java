@@ -55,6 +55,8 @@ public class TaskReportTaskTest {
             will(returnValue(":path"));
             allowing(project).getTasks();
             will(returnValue(taskContainer));
+            allowing(project).getConvention();
+            will(returnValue(null));
         }});
 
         task = new TaskReportTask(project, "list");

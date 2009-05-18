@@ -165,12 +165,12 @@ public class JavaPlugin implements Plugin {
     private void configureEclipseWtpModule(Project project) {
         EclipseWtpModule eclipseWtpModule = project.getTasks().add(ECLIPSE_WTP_MODULE_TASK_NAME, EclipseWtpModule.class);
 
-        eclipseWtpModule.conventionMapping(GUtil.map(
+        eclipseWtpModule.conventionMapping(
                 "srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
                     }
-                }));
+                });
         eclipseWtpModule.setDescription("Generates the Eclipse Wtp files.");
     }
 

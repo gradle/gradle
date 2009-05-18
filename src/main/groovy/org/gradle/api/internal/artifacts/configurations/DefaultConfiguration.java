@@ -341,18 +341,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        return result;
+        return name != null ? name.hashCode() : 0;
     }
 
     @Override
     public String toString() {
-        return "DefaultConfiguration{" +
-                "name='" + name + '\'' +
-                ", extendsFrom=" + extendsFrom +
-                ", description='" + description + '\'' +
-                ", visibility=" + visibility +
-                '}';
+        return getDisplayName();
     }
 
     public String getDisplayName() {

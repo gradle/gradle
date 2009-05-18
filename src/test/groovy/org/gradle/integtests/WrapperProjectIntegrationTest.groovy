@@ -31,10 +31,10 @@ class WrapperProjectIntegrationTest {
     @Test
     public void wrapperSample() {
         String nl = System.properties['line.separator']
-        File waterDir = new File(dist.samplesDir, 'wrapper-project')
+        File wrapperSampleDir = new File(dist.samplesDir, 'wrapper-project')
 
-        executer.inDirectory(waterDir).withTasks('wrapper').run()
-        Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, waterDir.absolutePath, ['hello'])
+        executer.inDirectory(wrapperSampleDir).withTasks('wrapper').run()
+        Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, wrapperSampleDir.absolutePath, ['hello'])
         String compareValue =  result.output.substring(result.output.size() - 'hello'.size() - nl.size())
         assert compareValue == 'hello' + nl
     }

@@ -31,7 +31,6 @@ import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +53,8 @@ public class DependencyReportTaskTest {
         context.checking(new Expectations() {{
             allowing(project).absolutePath("list");
             will(returnValue(":path"));
+            allowing(project).getConvention();
+            will(returnValue(null));
         }});
 
         task = new DependencyReportTask(this.project, "list");

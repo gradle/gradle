@@ -45,6 +45,8 @@ public class PropertyReportTaskTest {
         context.checking(new Expectations() {{
             allowing(project).absolutePath("list");
             will(returnValue(":path"));
+            allowing(project).getConvention();
+            will(returnValue(null));
         }});
 
         task = new PropertyReportTask(project, "list");

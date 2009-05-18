@@ -45,12 +45,11 @@ public class BasePlugin implements Plugin {
 
     private void addClean(final Project project) {
         project.getTasks().add(CLEAN_TASK_NAME, Clean.class).
-                conventionMapping(GUtil.map(
-                        "dir", new ConventionValue() {
+                conventionMapping("dir", new ConventionValue() {
                             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                                 return project.getBuildDir();
                             }
-                        })).setDescription("Deletes the build directory.");
+                        }).setDescription("Deletes the build directory.");
     }
 
     private void configureBuildConfigurationRule(final Project project) {

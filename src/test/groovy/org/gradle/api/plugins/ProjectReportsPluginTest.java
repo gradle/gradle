@@ -16,26 +16,49 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-public class ProjectReportsPluginTest {
-    @Test
-    public void addsTasksToProject() {
-        Project project = HelperUtil.createRootProject();
+import java.io.File;
 
-        new ProjectReportsPlugin().apply(project, new PluginRegistry(), null);
+public class ProjectReportsPluginTest {
+    private final Project project = HelperUtil.createRootProject();
+    private final ProjectReportsPlugin plugin = new ProjectReportsPlugin();
+
+    @Test
+    public void appliesBaseReportingPluginAndAddsConventionObject() {
+        plugin.apply(project, new PluginRegistry(), null);
 
         assertTrue(project.getAppliedPlugins().contains(ReportingBasePlugin.class));
+        assertThat(project.getConvention().getPlugin(ProjectReportsPluginConvention.class), notNullValue());
+    }
 
-        assertThat(project.getTasks().getByName("taskReport"), instanceOf(TaskReportTask.class));
-        assertThat(project.getTasks().getByName("propertyReport"), instanceOf(PropertyReportTask.class));
-        assertThat(project.getTasks().getByName("dependencyReport"), instanceOf(DependencyReportTask.class));
+    @Test
+    public void addsTasksToProject() {
+        plugin.apply(project, new PluginRegistry(), null);
+
+
+        Task task = project.getTasks().getByName(ProjectReportsPlugin.TASK_REPORT);
+        assertThat(task, instanceOf(TaskReportTask.class));
+        assertThat(task.property("outputFile"), equalTo((Object) new File(project.getBuildDir(), "reports/project/tasks.txt")));
+
+        task = project.getTasks().getByName(ProjectReportsPlugin.PROPERTY_REPORT);
+        assertThat(task, instanceOf(PropertyReportTask.class));
+        assertThat(task.property("outputFile"), equalTo((Object) new File(project.getBuildDir(), "reports/project/properties.txt")));
+
+        task = project.getTasks().getByName(ProjectReportsPlugin.DEPENDENCY_REPORT);
+        assertThat(task, instanceOf(DependencyReportTask.class));
+        assertThat(task.property("outputFile"), equalTo((Object) new File(project.getBuildDir(), "reports/project/dependencies.txt")));
+
+        task = project.getTasks().getByName(ProjectReportsPlugin.PROJECT_REPORT);
+        assertThat(task.getDependsOn(), equalTo(WrapUtil.toSet((Object) ProjectReportsPlugin.TASK_REPORT, ProjectReportsPlugin.PROPERTY_REPORT, ProjectReportsPlugin.DEPENDENCY_REPORT)));
     }
 }

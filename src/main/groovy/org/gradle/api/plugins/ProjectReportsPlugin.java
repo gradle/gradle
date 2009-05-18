@@ -18,11 +18,12 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
-import static org.gradle.util.WrapUtil.*;
 
 import java.io.File;
 import java.util.Map;
@@ -31,19 +32,42 @@ import java.util.Map;
  * <p>A {@link Plugin} which adds some project visualization report tasks to a project.</p>
  */
 public class ProjectReportsPlugin implements Plugin {
+    public static final String TASK_REPORT = "taskReport";
+    public static final String PROPERTY_REPORT = "propertyReport";
+    public static final String DEPENDENCY_REPORT = "dependencyReport";
+    public static final String PROJECT_REPORT = "projectReport";
+
     public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
         pluginRegistry.apply(ReportingBasePlugin.class, project, customValues);
-        
-        TaskReportTask taskReportTask = project.getTasks().add("taskReport", TaskReportTask.class);
-        taskReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/tasks.txt"));
-        taskReportTask.setDescription("Shows a report about your tasks.");
+        project.getConvention().getPlugins().put("projectReports", new ProjectReportsPluginConvention(project));
 
-        PropertyReportTask propertyReportTask = project.getTasks().add("propertyReport", PropertyReportTask.class);
-        propertyReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/properties.txt"));
-        propertyReportTask.setDescription("Shows a report about your properties.");
+        TaskReportTask taskReportTask = project.getTasks().add(TASK_REPORT, TaskReportTask.class);
+        taskReportTask.setDescription("Generates a report about your tasks.");
+        taskReportTask.conventionMapping("outputFile", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return new File(convention.getPlugin(ProjectReportsPluginConvention.class).getProjectReportDir(), "tasks.txt");
+            }
+        });
 
-        DependencyReportTask dependencyReportTask = project.getTasks().add("dependencyReport", DependencyReportTask.class);
-        dependencyReportTask.setOutputFile(new File(project.getBuildDir(), "reports/project/dependencies.txt"));
-        dependencyReportTask.setDescription("Shows a report about your library dependencies.");
+        PropertyReportTask propertyReportTask = project.getTasks().add(PROPERTY_REPORT, PropertyReportTask.class);
+        propertyReportTask.setDescription("Generates a report about your properties.");
+        propertyReportTask.conventionMapping("outputFile", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return new File(convention.getPlugin(ProjectReportsPluginConvention.class).getProjectReportDir(), "properties.txt");
+            }
+        });
+
+        DependencyReportTask dependencyReportTask = project.getTasks().add(DEPENDENCY_REPORT,
+                DependencyReportTask.class);
+        dependencyReportTask.setDescription("Generates a report about your library dependencies.");
+        dependencyReportTask.conventionMapping("outputFile", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return new File(convention.getPlugin(ProjectReportsPluginConvention.class).getProjectReportDir(), "dependencies.txt");
+            }
+        });
+
+        Task projectReportTask = project.getTasks().add(PROJECT_REPORT);
+        projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT);
+        projectReportTask.setDescription("Generated a report about your project.");
     }
 }

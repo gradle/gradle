@@ -83,12 +83,12 @@ public class GroovyPlugin implements Plugin {
         Action<Javadoc> taskListener = new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.exclude("**/*.groovy");
-                javadoc.conventionMapping(WrapUtil.<String, ConventionValue>toMap("srcDirs", new ConventionValue() {
+                javadoc.conventionMapping("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return GUtil.addLists(convention.getPlugin(JavaPluginConvention.class).getSrcDirs(), groovy(
                                 convention).getGroovySrcDirs());
                     }
-                }));
+                });
             }
         };
         project.getTasks().withType(Javadoc.class).allTasks(taskListener);
@@ -102,23 +102,23 @@ public class GroovyPlugin implements Plugin {
                 project.getConfigurations());
         compileTests.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
         compileTests.setDescription("Compiles the Java and Groovy test source code.");
-        compileTests.conventionMapping(GUtil.map(
+        compileTests.conventionMapping(
                 "groovySourceDirs", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return groovy(convention).getGroovyTestSrcDirs();
             }
-        }));
+        });
     }
 
     private void configureCompile(final Project project) {
         project.getTasks().withType(GroovyCompile.class).allTasks(new Action<GroovyCompile>() {
             public void execute(GroovyCompile compile) {
                 compile.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
-                compile.conventionMapping(GUtil.map("groovySourceDirs", new ConventionValue() {
+                compile.conventionMapping("groovySourceDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return groovy(convention).getGroovySrcDirs();
                     }
-                }));
+                });
             }
         });
         project.getTasks().replace(COMPILE_TASK_NAME, GroovyCompile.class).setDescription("Compiles the Java and Groovy source code.");

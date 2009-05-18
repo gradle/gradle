@@ -50,6 +50,8 @@ public class BuiltInTasksBuildExecuterTest {
             will(returnValue(rootProject));
             allowing(project).absolutePath(with(notNullValue(String.class)));
             will(returnValue(":path"));
+            allowing(project).getConvention();
+            will(returnValue(null));
         }});
     }
 

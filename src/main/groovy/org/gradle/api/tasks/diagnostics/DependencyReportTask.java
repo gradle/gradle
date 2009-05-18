@@ -40,7 +40,7 @@ public class DependencyReportTask extends AbstractReportTask {
         super(project, name);
     }
 
-    public DependencyReportRenderer getRenderer() {
+    public ProjectReportRenderer getRenderer() {
         return renderer;
     }
 

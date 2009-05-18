@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * The {@code PropertyListTask} prints out the properties of a project, and its sub-projects and tasks. This task is
@@ -33,7 +32,7 @@ public class PropertyReportTask extends AbstractReportTask {
         super(project, name);
     }
 
-    public PropertyReportRenderer getRenderer() {
+    public ProjectReportRenderer getRenderer() {
         return renderer;
     }
 
