@@ -14,37 +14,78 @@
   ~ limitations under the License.
   -->
 <chapter id="project_reports_plugin" xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>The Project Reports Plugin</title>
+    <title>The Project Report Plugin</title>
 
     <note>
-        <para>The Project Reports Plugin is currently a work in progress, and at this stage doesn't do particularly
+        <para>The Project report plugin is currently a work in progress, and at this stage doesn't do particularly
             much. We plan to add much more to these reports in the next release of Gradle.
         </para>
     </note>
 
-    <para>The Project Reports Plugin adds some tasks to your project which generate reports containing useful
+    <para>The Project report plugin adds some tasks to your project which generate reports containing useful
         information about your build.
     </para>
 
     <section>
         <title>Tasks</title>
-        <para>TBD</para>
+        <para>The project report plugin defines the following tasks:</para>
+        <table>
+            <title>Project Report Plugin - Tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>dependencyReport</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.diagnostics.DependencyReportTask"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>propertyReport</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.diagnostics.PropertyReportTask"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>taskReport</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.diagnostics.TaskReportTask"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>projectReport</literal>
+                </td>
+                <td>
+                    <literal>dependencyReport</literal>, <literal>propertyReport</literal>, <literal>taskReport</literal>
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+        </table>
     </section>
 
     <section>
         <title>Project Layout</title>
-        <para>TBD</para>
+        <para>The project report plugin does not require any particular project layout.</para>
     </section>
 
     <section>
         <title>Configurations</title>
-        <para>TBD</para>
+        <para>The project report plugin does not define any dependency configurations.</para>
     </section>
 
     <section>
         <title>Convention Properties</title>
+        <para>The project report defines the following convention properties:</para>
         <table>
-            <title>Project Reports Plugin - Directory Properties</title>
+            <title>Project Report Plugin - Directory Properties</title>
             <thead>
                 <tr>
                     <td>Directory Name Property</td>
@@ -54,6 +95,12 @@
                 </tr>
             </thead>
             <xi:include href="reportingBasePluginProperties.xml"/>
+            <tr>
+                <td>projectReportDirName</td>
+                <td>projectReportDir</td>
+                <td><filename>project</filename></td>
+                <td><filename><replaceable>reportsDir</replaceable>/project</filename></td>
+            </tr>
         </table>
     </section>
     

@@ -1,9 +1,8 @@
 <chapter id='osgi_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The OSGi Plugin</title>
     <para>The Gradle OSGi plugin enables the generation of an OSGi manifest. This OSGi manifest is automatically added
-        to the jars produces by the Java plugin
-        <literal>libs</literal>
-        bundle. This plugin makes heavy use of Peter Kriens <ulink url='http://www.aqute.biz/Code/Bnd'>BND tool</ulink>.
+        to all the JAR files produced by the project.
+        This plugin makes heavy use of Peter Kriens <ulink url='http://www.aqute.biz/Code/Bnd'>BND tool</ulink>.
     </para>
 
     <section>
@@ -24,49 +23,49 @@
     <section>
         <title>Convention Properties</title>
 
-    <para>The OSGi plugin adds an <literal>osgi</literal> property to every <emphasis>jar</emphasis> task.
-        This <literal>osgi</literal> property points to an instance of
-        <apilink class="org.gradle.api.plugins.osgi.OsgiManifest"/>. Via the OsgiManifest object you can control the
-        generation of the OSGi Manifest of the respective jar. The OSGi plugin assign default values to the
-        OsgiManifest object.
-    </para>
-    <table>
-        <title>OSGi Properties</title>
-        <thead>
+        <para>The OSGi plugin adds an <literal>osgi</literal> property to every <emphasis>jar</emphasis> task.
+            This <literal>osgi</literal> property points to an instance of
+            <apilink class="org.gradle.api.plugins.osgi.OsgiManifest"/>. Via the OsgiManifest object you can control the
+            generation of the OSGi Manifest of the respective jar. The OSGi plugin assign default values to the
+            OsgiManifest object.
+        </para>
+        <table>
+            <title>OSGi Properties</title>
+            <thead>
+                <tr>
+                    <td>Task Property</td>
+                    <td>Convention Property</td>
+                </tr>
+            </thead>
             <tr>
-                <td>Task Property</td>
-                <td>Convention Property</td>
+                <td>classesDir</td>
+                <td>project.classesDir</td>
             </tr>
-        </thead>
-        <tr>
-            <td>classesDir</td>
-            <td>project.classesDir</td>
-        </tr>
-        <tr>
-            <td>version</td>
-            <td>project.version</td>
-        </tr>
-        <tr>
-            <td>name</td>
-            <td>project.archivesBaseName</td>
-        </tr>
-        <tr>
-            <td>symbolicName</td>
-            <td>transformation of the name and the group to produce a valid OSGi symbolic name</td>
-        </tr>
-        <tr>
-            <td>classpath</td>
-            <td>project.dependencies.resolve('runtime')</td>
-        </tr>
-    </table>
+            <tr>
+                <td>version</td>
+                <td>project.version</td>
+            </tr>
+            <tr>
+                <td>name</td>
+                <td>project.archivesBaseName</td>
+            </tr>
+            <tr>
+                <td>symbolicName</td>
+                <td>transformation of the name and the group to produce a valid OSGi symbolic name</td>
+            </tr>
+            <tr>
+                <td>classpath</td>
+                <td>project.dependencies.resolve('runtime')</td>
+            </tr>
+        </table>
 
-    <para>The classes in the classes dir are analyzed regarding there package dependencies and the packages they expose.
-        Based on this the <emphasis>Import-Package</emphasis> and the <emphasis>Export-Package</emphasis> values of the
-        OSGi Manifest are calculated. If the classpath contains jars with an OSGi bundle, the bundle
-        information is used to specify version information for the <emphasis>Import-Package</emphasis>
-        value. Beside the explicit properties of the <literal>OsgiManifest</literal> object you can add instructions.
-    </para>
-    <programlisting><![CDATA[
+        <para>The classes in the classes dir are analyzed regarding there package dependencies and the packages they expose.
+            Based on this the <emphasis>Import-Package</emphasis> and the <emphasis>Export-Package</emphasis> values of the
+            OSGi Manifest are calculated. If the classpath contains jars with an OSGi bundle, the bundle
+            information is used to specify version information for the <emphasis>Import-Package</emphasis>
+            value. Beside the explicit properties of the <literal>OsgiManifest</literal> object you can add instructions.
+        </para>
+        <programlisting><![CDATA[
 configure(project.archive_jar.osgi) {
     name = 'overwrittenSpecialOsgiName'
     instruction 'Private-Package',
@@ -77,11 +76,8 @@ configure(project.archive_jar.osgi) {
     instruction 'Bundle-DocURL', 'http://www.mycompany.com'
 }
 ]]></programlisting>
-    <para>The first argument of the instruction call is the key of the property. The other arguments form the value.
-        They are joined by Gradle with the
-        <literal>,</literal>
-        separator. To learn more about the available instructions have a look at the <ulink
-                url='http://www.aqute.biz/Code/Bnd'>BND tool</ulink>.
-    </para>
+        <para>The first argument of the instruction call is the key of the property. The other arguments form the value.
+            They are joined by Gradle with the <literal>,</literal> separator. To learn more about the available 
+            instructions have a look at the <ulink url='http://www.aqute.biz/Code/Bnd'>BND tool</ulink>.</para>
     </section>
 </chapter>

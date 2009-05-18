@@ -25,7 +25,42 @@
 
     <section>
         <title>Tasks</title>
-        <para>TBD</para>
+        <para>The Jetty plugin defines the following tasks:</para>
+        <table>
+            <title>Jetty Plugin - Tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>jettyRun</literal>
+                </td>
+                <td>
+                    <literal>compileTests</literal>
+                </td>
+                <td><apilink class="org.gradle.api.plugins.jetty.JettyRun"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>jettyRunWar</literal>
+                </td>
+                <td>
+                    <literal>war</literal>
+                </td>
+                <td><apilink class="org.gradle.api.plugins.jetty.JettyRunWar"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>jettyStop</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.jetty.JettyStop"/></td>
+            </tr>
+        </table>
     </section>
 
     <section>
@@ -35,11 +70,12 @@
 
     <section>
         <title>Configurations</title>
-        <para>TBD</para>
+        <para>The Jetty plugin does not define any dependency configurations.</para>
     </section>
 
     <section>
         <title>Convention Properties</title>
+        <para>The Jetty plugin defines the following convention properties:</para>
         <table>
             <title>Jetty Plugin - Properties</title>
             <thead>
