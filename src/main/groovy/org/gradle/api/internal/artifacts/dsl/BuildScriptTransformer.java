@@ -21,6 +21,7 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.ast.CodeVisitorSupport;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.GroovyCodeVisitor;
+import org.codehaus.groovy.ast.DynamicVariable;
 import org.codehaus.groovy.ast.expr.*;
 
 import java.util.List;
@@ -61,6 +62,11 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
                     // Map to: task(<name-value-pairs>, '<identifier>', <arg>?)
                     args.getExpressions().set(1, new ConstantExpression(args.getExpression(1).getText()));
                 }
+                else if (args.getExpression(0) instanceof VariableExpression) {
+                    // Matches: task <identifier>, <arg>?
+                    // Map to: task('<identifier>', <arg>?)
+                    args.getExpressions().set(0, new ConstantExpression(args.getExpression(0).getText()));
+                }
                 return;
             }
 
@@ -82,6 +88,10 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
         }
 
         private void transformVariableExpression(MethodCallExpression call, VariableExpression arg) {
+            if (!isDynamicVar(arg)) {
+                return;
+            }
+            
             // Matches: task <identifier> or task(<identifier>)
             // Map to: task('<identifier>')
             String taskName = arg.getText();
@@ -137,14 +147,22 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
             List<Expression> extraArgs = Collections.emptyList();
 
             if (nestedMethod.getArguments() instanceof NamedArgumentListExpression) {
+                // Matches: task <identifier>(<options-map>)
                 mapArg = nestedMethod.getArguments();
             } else if (nestedMethod.getArguments() instanceof ArgumentListExpression) {
                 ArgumentListExpression nestedArgs = (ArgumentListExpression) nestedMethod.getArguments();
-                if (nestedArgs.getExpressions().size() > 0 && nestedArgs.getExpression(0) instanceof MapExpression) {
+                if (nestedArgs.getExpressions().size() == 2
+                        && nestedArgs.getExpression(0) instanceof MapExpression
+                        && nestedArgs.getExpression(1) instanceof ClosureExpression) {
+                    // Matches: task <identifier>(<options-map>) <closure>
                     mapArg = nestedArgs.getExpression(0);
                     extraArgs = nestedArgs.getExpressions().subList(1, nestedArgs.getExpressions().size());
-                } else {
+                } else if (nestedArgs.getExpressions().size() == 1 && nestedArgs.getExpression(0) instanceof ClosureExpression) {
+                    // Matches: task <identifier> <closure>
                     extraArgs = nestedArgs.getExpressions();
+                }
+                else if (nestedArgs.getExpressions().size() != 0) {
+                    return false;
                 }
             }
 
@@ -182,6 +200,14 @@ public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation 
 
         private boolean isTaskIdentifier(Expression expression) {
             return expression instanceof ConstantExpression || expression instanceof GStringExpression;
+        }
+
+        private boolean isDynamicVar(Expression expression) {
+            if (!(expression instanceof VariableExpression)) {
+                return false;
+            }
+            VariableExpression variableExpression = (VariableExpression) expression;
+            return variableExpression.getAccessedVariable() instanceof DynamicVariable;
         }
     }
 }

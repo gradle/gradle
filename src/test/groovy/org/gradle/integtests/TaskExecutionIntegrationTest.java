@@ -96,6 +96,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").writelns(
                 "import org.gradle.integtests.TestTask",
                 "task withDescription { description = 'value' }",
+                "task(asMethod) { description = 'value' }",
                 "task asStatement(type: TestTask) { property = 'value' }",
                 "task \"dynamic\"(type: TestTask) { property = 'value' }",
                 "v = task(asExpression, type: TestTask) { property = 'value' }",
@@ -103,7 +104,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "[asStatement, dynamic, asExpression, postConfigure].each { ",
                 "    assertEquals('value', it.property)",
                 "}",
-                "[withDescription].each {",
+                "[withDescription, asMethod].each {",
                 "    assertEquals('value', it.description)",
                 "}",
                 "task all(dependsOn: tasks.all)"
@@ -111,17 +112,21 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks("all").run();
     }
 
-    @Test @Ignore
+    @Test
     public void doesNotHideLocalMethodsAndVariables() {
         testFile("build.gradle").writelns(
-                "task a",
-                "task b",
-                "task c",
-                "taskVar = 'a'",
-                "def taskMethod() { 'b' }",
-                "c.dependsOn task(taskVar), task(taskMethod())"
+                "String name = 'a'; task name",
+//                "taskNameVar = 'b'; task taskNameVar",
+                "def taskNameMethod(String name = 'c') { name } ",
+//                "task taskNameMethod",
+                "task taskNameMethod('d')",
+                "def method(String taskNameParam) { task taskNameParam }",
+                "method('e')",
+                "cl = { taskNameParam -> task taskNameParam }",
+                "cl.call('f')",
+                "task all(dependsOn: tasks.all)"
         );
-        inTestDirectory().withTasks("c").run().assertTasksExecuted(":a", ":b", ":c");
+        inTestDirectory().withTasks("all").run().assertTasksExecuted(":a", ":d", ":e", ":f", ":all");
     }
 
     @Test
