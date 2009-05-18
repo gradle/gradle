@@ -19,7 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.DefaultTask
+import org.gradle.api.DefaultTask
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.project.PluginRegistry
 import org.gradle.api.plugins.BasePlugin
@@ -37,6 +37,7 @@ import org.junit.Test
 import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.DefaultTask
 
 /**
  * @author Hans Dockter

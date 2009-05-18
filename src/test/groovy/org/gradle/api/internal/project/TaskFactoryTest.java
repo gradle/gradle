@@ -17,7 +17,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;

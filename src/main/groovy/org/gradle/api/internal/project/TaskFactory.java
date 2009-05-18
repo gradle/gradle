@@ -16,7 +16,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.util.GUtil;
 import org.codehaus.groovy.control.CompilationFailedException;

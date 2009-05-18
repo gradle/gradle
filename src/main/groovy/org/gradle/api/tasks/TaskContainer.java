@@ -17,10 +17,8 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
-import org.gradle.api.specs.Spec;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.List;
 
 /**
@@ -63,7 +61,7 @@ public interface TaskContainer extends TaskCollection<Task> {
      * Must be specified.</td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
-     * create.</td><td>{@link org.gradle.api.internal.DefaultTask}</td></tr>
+     * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The closure or {@link TaskAction} to
      * execute when the task executes. See {@link Task#doFirst(TaskAction)}.</td><td><code>null</code></td></tr>

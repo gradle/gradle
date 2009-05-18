@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.FileCollection
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.InternalRepository
-import org.gradle.api.internal.DefaultTask
+import org.gradle.api.DefaultTask
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory

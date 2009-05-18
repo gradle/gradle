@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests;
 
-import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 
 public class TestTask extends DefaultTask {

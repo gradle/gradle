@@ -22,7 +22,7 @@ import org.gradle.api.TaskAction;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import static org.gradle.util.HelperUtil.*;

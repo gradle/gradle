@@ -3,7 +3,7 @@ package org.gradle.integtests;
 import org.gradle.api.TaskAction;
 import org.gradle.api.Task;
 import org.gradle.api.Project;
-import org.gradle.api.internal.DefaultTask;
+import org.gradle.api.DefaultTask;
 
 public class BrokenTask extends DefaultTask {
     public BrokenTask(Project project, String name) {
