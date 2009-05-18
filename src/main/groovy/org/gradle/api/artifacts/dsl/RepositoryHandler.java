@@ -29,8 +29,8 @@ import groovy.lang.Closure;
  * @author Hans Dockter
  */
 public interface RepositoryHandler extends ResolverContainer {
-    final String DEFAULT_MAVEN_DEPLOYER_NAME = "maven-deployer";
-    final String DEFAULT_MAVEN_INSTALLER_NAME = "maven-installer";
+    final String DEFAULT_MAVEN_DEPLOYER_NAME = "mavenDeployer";
+    final String DEFAULT_MAVEN_INSTALLER_NAME = "mavenInstaller";
 
     /**
      * Adds a resolver that looks into a number of directories for artifacts. The artifacts are expected to be located in the
@@ -174,7 +174,7 @@ public interface RepositoryHandler extends ResolverContainer {
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
-     *     <td><em>(optional)</em> The name of the repository. The default is <em>maven-deployer-{SOME_ID}</em>.
+     *     <td><em>(optional)</em> The name of the repository. The default is <em>mavenDeployer-{SOME_ID}</em>.
      * The name is used in the console output,
      * to point to information related to a particular repository. A name must be unique amongst a repository group.
      * </td></tr>
@@ -205,7 +205,7 @@ public interface RepositoryHandler extends ResolverContainer {
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
-     *     <td><em>(optional)</em> The name of the repository. The default is <em>maven-installer-{SOME_ID}</em>.
+     *     <td><em>(optional)</em> The name of the repository. The default is <em>mavenInstaller-{SOME_ID}</em>.
      * The name is used in the console output,
      * to point to information related to a particular repository. A name must be unique amongst a repository group.
      * </td></tr>

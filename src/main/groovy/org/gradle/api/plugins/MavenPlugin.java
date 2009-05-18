@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.PluginRegistry;
@@ -111,7 +112,7 @@ public class MavenPlugin implements Plugin {
         Configuration configuration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         installUpload.dependsOn(configuration.getBuildArtifacts());
         installUpload.setConfiguration(configuration);
-        installUpload.getRepositories().mavenInstaller(WrapUtil.toMap("name", "maven-installer"));
+        installUpload.getRepositories().mavenInstaller(WrapUtil.toMap("name", RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME));
         installUpload.setDescription("Does a maven install of the archives artifacts into the local .m2 cache.");
     }
 }

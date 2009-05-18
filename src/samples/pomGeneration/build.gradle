@@ -27,7 +27,7 @@ dependencies {
     testRuntime "group6:testRuntime:1.0"
 }
 
-installer = install.repositories["maven-installer"]
+installer = install.repositories.mavenInstaller
 
 install.doLast {install ->
     Settings settings = installer.settings
