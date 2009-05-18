@@ -18,8 +18,11 @@
             <sourcefile file="build.gradle" snippet="assign-artifact"/>
         </sample>
         <para>What do you gain by assigning an artifact to a configuration? For each configuration (also for the custom
-        ones added by you) the Java plugin provides the tasks <code>upload[ConfigurationName]</code> and
-        <code>build[ConfigurationName]</code>. Executing those tasks will build or upload the artifacts belonging to
+        ones added by you) Gradle provides the tasks <code>upload[ConfigurationName]</code> and
+        <code>build[ConfigurationName]</code>.
+        <footnote>To be exact, the Base plugin provides those tasks. The BasePlugin is automatically applied, if you use
+        the Java plugin.</footnote>
+        Executing those tasks will build or upload the artifacts belonging to
         the respective configuration.
         </para>
         <para>Table <xref linkend="tab:configurations"/> shows the configurations added by the Java plugin. Two of the
@@ -56,9 +59,10 @@
             existing configurations extends from other configurations. You might have different group of artifacts which have
             a different set of dependencies. This mechanism is very powerful and flexible.
             </para>
-        <para>If someone wants to use your project as a library, she simply needs to declare the configuration to depend on.
-            A Gradle dependency offers the <code>dependencyConfiguration</code> property for this. If such a
-            configuration is not specified, the <code>default</code> configuration is used. Using your project as a library
+        <para>If someone wants to use your project as a library, she simply needs to declare on which configuration of
+            the dependency to depend on.
+            A Gradle dependency offers the <code>dependencyConfiguration</code> property to declare this. If this
+            is not specified, the <code>default</code> configuration is used. Using your project as a library
             can either happen from within a multi-project build or by retrieving your project from a repository. In
             the latter case, an ivy.xml descriptor in the repository is supposed to contain all the neccesary information. If you
             work with Maven repositories you don't have the flexibility as described above. For how to publish to a Maven
@@ -74,7 +78,7 @@
                 100 percent Maven compatible as we use the native Maven Ant tasks under the hood.
             </para>
             <para>Deploying to a Maven repository is only half the fun if you don't have a pom. Fortunately Gradle can
-                generate this pom for your, from the dependency information it has.
+                generate this pom for your out of the dependency information it has.
             </para>
         </section>
         <section id='sec:deploying_to_a_maven_repository'>

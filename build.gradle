@@ -115,6 +115,10 @@ dependencies {
                 "org.mortbay.jetty:jetty-naming:6.1.14@jar",
                 "org.mortbay.jetty:jetty-annotations:6.1.14@jar")
     }
+
+    compile module("org.apache.ivy:ivy:2.1.0-rc1") {
+        dependencies("jsch:jsch:0.1.31")
+    }
     
     compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",
             "org.apache.ant:ant:1.7.0@jar",
@@ -125,7 +129,6 @@ dependencies {
             "commons-lang:commons-lang:2.3@jar",
             "slide:webdavlib:2.0@jar",
             "biz.aQute:bndlib:0.0.255@jar",
-            "org.apache.ivy:ivy:2.1.0-rc1@jar",
             "org.apache.maven:maven-ant-tasks:2.0.9@jar"
 
     runtime "org.apache.ant:ant-junit:1.7.0@jar",
