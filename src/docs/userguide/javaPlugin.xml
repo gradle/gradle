@@ -695,7 +695,7 @@
         </para>
         <para>
             In case you don't want to use the test class detection, you can disable it by setting scanForTestClasses to false.
-            This will make the test task to only use the includes / excludes to find test classes.
+            This will make the test task only use the includes / excludes to find test classes.
 
             The default include is
             <literal>**/*Tests.class", "**/*Test.class</literal>
