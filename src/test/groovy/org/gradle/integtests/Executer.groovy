@@ -47,6 +47,7 @@ class Executer {
         builder.standardOutput(outStream)
         builder.errorOutput(errStream)
         builder.inheritEnvironment()
+        builder.environment("GRADLE_HOME", gradleHome)
         builder.environment(envs)
         builder.execDirectory(new File(currentDirName))
 
