@@ -10,6 +10,3 @@ repositories {
 dependencies {
     compile ":somestuff:1.0@tar.gz"
 }
-
-
- 

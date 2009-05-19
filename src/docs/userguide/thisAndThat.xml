@@ -194,12 +194,15 @@
             <xref linkend='sec:gradle_properties_and_system_properties'/>. Your gradle.properties file could look like
             this:
         </para>
-        <programlisting><![CDATA[
+        <example>
+            <title><filename>gradle.properties</filename></title>
+            <programlisting><![CDATA[
 systemProp.http.proxyHost=http://www.somehost.org
 systemProp.http.proxyPort=8080
 systemProp.http.proxyUser=userid
 systemProp.http.proxyPassword=password	
 ]]></programlisting>
+        </example>
         <para>We could not find a good overview for all possible proxy settings. The best we can offer are the constants
             in a file from the ant project. Here a
             <ulink url='http://svn.apache.org/viewvc/ant/core/trunk/src/main/org/apache/tools/ant/util/ProxySetup.java?view=markup&amp;pathrev=556977'>

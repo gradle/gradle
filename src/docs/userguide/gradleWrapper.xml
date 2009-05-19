@@ -27,19 +27,19 @@
         an execution you find the following new or updated files in your project folder (in case the default configuration of the wrapper task is
         used).
     </para>
-    <programlisting><![CDATA[
-project-root
-  - gradle-wrapper.jar
-  - gradle-wrapper.properties
-  - gradlew.exe
-  - gradlew.bat
-]]></programlisting>
+    <screen><![CDATA[
+project-root/
+  gradlew
+  gradlew.bat
+  gradle-wrapper.jar
+  gradle-wrapper.properties
+]]></screen>
     <para>All these files must be submitted to your version control system. The <command>gradlew</command> command
         can be used <emphasis>exactly</emphasis> the same way as the <command>gradle</command> command.
     </para>
     <para>If you want to switch to a new version of Gradle you don't need to rerun the wrapper task. It is good enough
-        to change the respective entry in the <literal>gradle-wrapper.properties</literal> file. But if there is for example
-        an improvement in the gradle-wrapper functionality you need to regenerate the wrapper files.
+        to change the respective entry in the <literal>gradle-wrapper.properties</literal> file. But if there is for
+        example an improvement in the gradle-wrapper functionality you need to regenerate the wrapper files.
     </para>
     <section id='sec:configuration'>
         <title>Configuration</title>
@@ -52,14 +52,14 @@ project-root
         <sample id="wrapperCustomized" dir="userguide/wrapper">
             <sourcefile file="build.gradle"/>
         </sample>
-        <programlisting><![CDATA[
-project-root
-  - wrapper
-    - gradle-wrapper.jar
-    - gradle-wrapper.properties
-  - gradlew.exe
-  - gradlew.bat
-]]></programlisting>
+        <screen><![CDATA[
+project-root/
+  gradlew
+  gradlew.bat
+  wrapper/
+    gradle-wrapper.jar
+    gradle-wrapper.properties
+]]></screen>
         <para>
             You can specify the download URL of the wrapper distribution. You can also specify where the wrapper distribution
             should be stored and unpacked (either within the project or within the gradle user home dir). If the wrapper

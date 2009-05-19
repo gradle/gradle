@@ -102,9 +102,9 @@
         </para>
         <para>If you want to enable the generation of the default jar archive additional to the war archive just type:
         </para>
-        <programlisting><![CDATA[
-jar.enabled = true
-]]></programlisting>
+        <sample id="customisedWebApplication" dir="webApplication/customised">
+            <sourcefile file="build.gradle" snippet="enable-jar"/>
+        </sample>
     </section>
     <section id='sec:eclipse_wtp'>
         <title>Eclipse WTP</title>

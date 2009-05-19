@@ -208,7 +208,7 @@ public class UserGuideTransformTask extends DefaultTask {
                             Element figureElement = doc.createElement('figure')
                             Element titleElement = doc.createElement('title')
                             figureElement.appendChild(titleElement)
-                            titleElement.appendChild(doc.createTextNode('Project layout'))
+                            titleElement.appendChild(doc.createTextNode('Build layout'))
                             Element programListingElement = doc.createElement('programlisting')
                             figureElement.appendChild(programListingElement)
                             StringBuilder content = new StringBuilder()

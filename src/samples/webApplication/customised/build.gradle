@@ -32,6 +32,10 @@ war {
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
 
+// START SNIPPET enable-jar
+jar.enabled = true
+// END SNIPPET enable-jar
+
 [jettyRun, jettyRunWar]*.daemon = true
 stopKey = 'foo'
 stopPort = 9451

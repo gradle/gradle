@@ -65,19 +65,11 @@
             information is used to specify version information for the <emphasis>Import-Package</emphasis>
             value. Beside the explicit properties of the <literal>OsgiManifest</literal> object you can add instructions.
         </para>
-        <programlisting><![CDATA[
-configure(project.archive_jar.osgi) {
-    name = 'overwrittenSpecialOsgiName'
-    instruction 'Private-Package',
-            'org.mycomp.package1',
-            'org.mycomp.package2'
-    instruction 'Bundle-Vendor', 'MyCompany'
-    instruction 'Bundle-Description', 'Platform2: Metrics 2 Measures Framework'
-    instruction 'Bundle-DocURL', 'http://www.mycompany.com'
-}
-]]></programlisting>
+        <sample id="osgi" dir="userguide/tutorial/osgi">
+            <sourcefile file="build.gradle" snippet="configure-jar"/>
+        </sample>
         <para>The first argument of the instruction call is the key of the property. The other arguments form the value.
-            They are joined by Gradle with the <literal>,</literal> separator. To learn more about the available 
+            They are joined by Gradle with the <literal>,</literal> separator. To learn more about the available
             instructions have a look at the <ulink url='http://www.aqute.biz/Code/Bnd'>BND tool</ulink>.</para>
     </section>
 </chapter>

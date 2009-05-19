@@ -1,0 +1,13 @@
+usePlugin 'osgi'
+
+// START SNIPPET configure-jar
+configure(jar.osgi) {
+    name = 'overwrittenSpecialOsgiName'
+    instruction 'Private-Package',
+            'org.mycomp.package1',
+            'org.mycomp.package2'
+    instruction 'Bundle-Vendor', 'MyCompany'
+    instruction 'Bundle-Description', 'Platform2: Metrics 2 Measures Framework'
+    instruction 'Bundle-DocURL', 'http://www.mycompany.com'
+}
+// END SNIPPET configure-jar

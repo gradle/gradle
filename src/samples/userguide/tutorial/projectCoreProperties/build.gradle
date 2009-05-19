@@ -1,0 +1,9 @@
+task check << {
+    allprojects {
+        println "project path $path"
+        println "  project name = $name"
+        println "  project dir = '${rootProject.relativePath(projectDir.path)}'"
+        println "  build file = '${rootProject.relativePath(buildFile.path)}'"
+        println "  build dir = '${rootProject.relativePath(buildDir)}'"
+    }
+}

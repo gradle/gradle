@@ -2,52 +2,124 @@
     <title>The Project and Task API</title>
     <section id='sec:project_api'>
         <title>Project API</title>
-        <para>In the tutorial in <xref linkend='tutorial_using_tasks'/>
-            we have called for example the method <literal>createTask</literal>. Where does this method come from? We
-            said earlier that the directory containing the build script defines a project for Gradle. For Gradle this
-            means, that it creates an instance of
-            <apilink class='org.gradle.api.Project'/>
-            and associates it with the build script. With the build script you can configure this project object.
+        <para>In the tutorial in <xref linkend='tutorial_using_tasks'/> we used, for example, the
+            <literal>task()</literal> method. Where does this method come from? We said earlier that the build script
+            defines a project in Gradle. For Gradle, this means that it creates an instance of
+            <apilink class='org.gradle.api.Project'/> and associates this <classname>Project</classname> object with
+            the build script. As the build script executes, it configures this <classname>Project</classname> object.
         </para>
         <itemizedlist>
             <listitem>
-                <para>Any method you call in your build script, which
-                    <emphasis>is not defined</emphasis>
-                    in the build script, is delegated to the project object.
+                <para>Any method you call in your build script, which <emphasis>is not defined</emphasis>
+                    in the build script, is delegated to the <classname>Project</classname> object.
                 </para>
             </listitem>
             <listitem>
-                <para>Any property you access in your build script, which
-                    <emphasis>is not defined</emphasis>
-                    in the build script, is delegated to the project object.
+                <para>Any property you access in your build script, which <emphasis>is not defined</emphasis>
+                    in the build script, is delegated to the <classname>Project</classname> object.
                 </para>
             </listitem>
         </itemizedlist>
-        <para>Let's try this out and try to access the
-            <literal>name</literal>
-            property of the Project object.
+        <para>Let's try this out and try to access the <literal>name</literal> property of the
+            <classname>Project</classname> object.
         </para>
         <sample id="projectApi" dir="userguide/tutorial/projectApi">
             <sourcefile file="build.gradle"/>
             <output args="-q check"/>
         </sample>
-        <para>Both
-            <literal>println</literal>
-            statements print out the same property. One uses the auto delegation to the project object, for properties
-            not defined in the build script. The other statement uses the
-            <literal>project</literal>
-            property available to any build script, which provides an instance of the associated project object. Only if
-            you define a property or a method which has the same name as a member of the project object, you need to use
-            the
-            <literal>project</literal>
-            property. Look here to learn more about <apilink class='org.gradle.api.Project'/>.
+        <para>Both <literal>println</literal> statements print out the same property. The first uses auto-delegation to
+            the <classname>Project</classname> object, for properties not defined in the build script. The other
+            statement uses the <literal>project</literal> property available to any build script, which returns the
+            associated <classname>Project</classname> object. Only if you define a property or a method which has the
+            same name as a member of the <classname>Project</classname> object, you need to use the <literal>project</literal>
+            property.
         </para>
+        <para>Have a look at the <apilink class='org.gradle.api.Project'/> API to find out more about project
+            properties and methods.</para>
+        <section>
+            <title>Standard project properties</title>
+            <para>The <classname>Project</classname> object provides some standard properties, which are available in
+                your build script. The following table lists a few of the commonly used ones.
+            </para>
+            <table>
+                <title>Project Properties</title>
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Type</td>
+                        <td>Default Value</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><literal>project</literal></td>
+                    <td><apilink class='org.gradle.api.Project'/></td>
+                    <td>The <classname>Project</classname> instance</td>
+                </tr>
+                <tr>
+                    <td><literal>name</literal></td>
+                    <td><classname>String</classname></td>
+                    <td>The name of the directory containing the build script.</td>
+                </tr>
+                <tr>
+                    <td><literal>path</literal></td>
+                    <td><classname>String</classname></td>
+                    <td>The absolute path of the project.</td>
+                </tr>
+                <tr>
+                    <td><literal>buildFile</literal></td>
+                    <td><classname>File</classname></td>
+                    <td>The build script.</td>
+                </tr>
+                <tr>
+                    <td><literal>projectDir</literal></td>
+                    <td><classname>File</classname></td>
+                    <td>The directory containing the build script.</td>
+                </tr>
+                <tr>
+                    <td><literal>buildDirName</literal></td>
+                    <td><classname>String</classname></td>
+                    <td><filename>build</filename></td>
+                </tr>
+                <tr>
+                    <td><literal>buildDir</literal></td>
+                    <td><classname>File</classname></td>
+                    <td><filename><replaceable>projectDir</replaceable>/build</filename></td>
+                </tr>
+                <tr>
+                    <td><literal>group</literal></td>
+                    <td><classname>Object</classname></td>
+                    <td><literal>unspecified</literal></td>
+                </tr>
+                <tr>
+                    <td><literal>version</literal></td>
+                    <td><classname>Object</classname></td>
+                    <td><literal>unspecified</literal></td>
+                </tr>
+                <tr>
+                    <td><literal>ant</literal></td>
+                    <td><classname>AntBuilder</classname></td>
+                    <td>An <classname>AntBuilder</classname> instance</td>
+                </tr>
+            </table>
+
+            <para>Below is a sample build which demonstrates some of these properties.</para>
+            <sample id="projectCoreProperties" dir="userguide/tutorial/projectCoreProperties">
+                <layout>
+                    build.gradle
+                    subProject
+                    subProject/build.gradle
+                </layout>
+                <sourcefile file="build.gradle"/>
+                <output args="-q check"/>
+            </sample>
+        </section>
     </section>
+    
     <section id='sec:task_api'>
         <title>Task API</title>
-        <para>Many of the methods of the project object return task objects. We have already seen some ways on how to
-            use the task objects in <xref linkend='tutorial_using_tasks'/>. Look here to learn more about
-            <apilink class="org.gradle.api.Task"/>.
+        <para>Many of the methods of the <classname>Project</classname> instance return task objects. We have already seen some ways that you can
+            use task objects in <xref linkend='tutorial_using_tasks'/>.
+            Look here to learn more about <apilink class="org.gradle.api.Task"/>.
         </para>
     </section>
     <section>
@@ -73,10 +145,9 @@
                 </para>
             </footnote>
             We think that one thing that makes Gradle special compared to the other tools, is its strong support for
-            applying dependency based programming on
-            <literal>multiproject</literal>
-            builds. We also think that just Gradle's core layer (together with its integration of the Ant tasks),
-            provides a more convenient build system than Ant's core layer.
+            applying dependency based programming on <emphasis>multi-project</emphasis> builds. We also think that just
+            Gradle's core layer (together with its integration of the Ant tasks), provides a more convenient build
+            system than Ant's core layer.
         </para>
     </section>
 </chapter>
