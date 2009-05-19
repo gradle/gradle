@@ -19,19 +19,21 @@ package org.gradle.api.tasks.testing;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
+import org.gradle.api.testing.TestFramework;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.compile.ClasspathConverter;
-import org.gradle.api.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.tasks.testing.testng.TestNGTestFramework;
+import org.gradle.external.junit.JUnitTestFramework;
+import org.gradle.external.testng.TestNGTestFramework;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * A task for executing Junit 3.8.x and Junit 4 tests.
@@ -39,6 +41,7 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class Test extends ConventionTask {
+    private static final Logger logger = LoggerFactory.getLogger(Test.class);
     public static final String FAILURES_OR_ERRORS_PROPERTY = "org.gradle.api.tasks.testing.failuresOrErrors";
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
@@ -69,6 +72,8 @@ public class Test extends ConventionTask {
 
     private boolean testReport = true;
 
+    private boolean scanForTestClasses = true;
+
     public Test(Project project, String name) {
         super(project, name);
         doFirst(new TaskAction() {
@@ -79,16 +84,44 @@ public class Test extends ConventionTask {
     }
 
     protected void executeTests() {
-        if (getTestClassesDir() == null)
+        final File testClassesDir = getTestClassesDir();
+
+        if (testClassesDir == null)
             throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!");
         if (getTestResultsDir() == null)
             throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!");
 
-        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(getTestClassesDir());
+        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(testClassesDir);
 
         final TestFramework testFramework = getTestFramework();
 
-        testFramework.execute(getProject(), this);
+        testFramework.prepare(getProject(), this);
+
+        final List<String> includes = getIncludes();
+        final List<String> excludes = getExcludes();
+
+        final TestClassScanner testClassScanner = new TestClassScanner(
+                testClassesDir,
+                includes, excludes,
+                testFramework,
+                getProject().getAnt() ,
+                scanForTestClasses
+        );
+
+        final Set<String> testClassNames = testClassScanner.getTestClassNames();
+
+        Collection<String> toUseIncludes = null;
+        Collection<String> toUseExcludes = null;
+        if ( testClassNames.isEmpty() ) {
+            toUseIncludes = includes;
+            toUseExcludes = excludes;
+        }
+        else {
+            toUseIncludes = testClassNames;
+            toUseExcludes = new ArrayList<String>();
+        }
+        
+        testFramework.execute(getProject(), this, toUseIncludes, toUseExcludes);
 
         if (testReport) {
             testFramework.report(getProject(), this);
@@ -191,7 +224,7 @@ public class Test extends ConventionTask {
      *
      * @see #include(String[])
      */
-    public List getIncludes() {
+    public List<String> getIncludes() {
         return includes;
     }
 
@@ -201,7 +234,7 @@ public class Test extends ConventionTask {
      * @param includes The patterns list
      * @see #include(String[])
      */
-    public void setIncludes(List includes) {
+    public void setIncludes(List<String> includes) {
         this.includes = includes;
     }
 
@@ -210,7 +243,7 @@ public class Test extends ConventionTask {
      *
      * @see #include(String[])
      */
-    public List getExcludes() {
+    public List<String> getExcludes() {
         return excludes;
     }
 
@@ -220,7 +253,7 @@ public class Test extends ConventionTask {
      * @param excludes The patterns list
      * @see #exclude(String[])
      */
-    public void setExcludes(List excludes) {
+    public void setExcludes(List<String> excludes) {
         this.excludes = excludes;
     }
 
@@ -381,5 +414,13 @@ public class Test extends ConventionTask {
 
     public void setTestSrcDirs(List testSrcDir) {
         this.testSrcDirs = testSrcDir;
+    }
+
+    public boolean isScanForTestClasses() {
+        return scanForTestClasses;
+    }
+
+    public void setScanForTestClasses(boolean scanForTestClasses) {
+        this.scanForTestClasses = scanForTestClasses;
     }
 }

@@ -1,21 +1,17 @@
-package org.gradle.api.tasks.testing.junit;
+package org.gradle.external.junit;
 
 import org.junit.Before;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.JunitForkOptions;
 import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkTest;
-import org.gradle.api.Project;
-import org.gradle.api.Plugin;
+import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
+import org.gradle.api.tasks.testing.junit.AntJUnitReport;
+import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.GroovyPlugin;
+import org.gradle.external.junit.JUnitTestFramework;
 import static junit.framework.Assert.*;
 
-import java.io.File;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -93,7 +89,7 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
             );
         }});
 
-        jUnitTestFramework.execute(projectMock, testMock);
+        jUnitTestFramework.execute(projectMock, testMock, null, null);
     }
 
     @org.junit.Test

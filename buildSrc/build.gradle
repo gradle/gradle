@@ -19,8 +19,6 @@ compile.groovyClasspath = files(org.gradle.util.BootstrapUtil.groovyFiles)
 compileTests.groovyClasspath = files(org.gradle.util.BootstrapUtil.groovyFiles)
 compile.unmanagedClasspath(org.gradle.util.BootstrapUtil.gradleClasspath as File[])
 test {
-    include '**/*Test.class'
-    exclude '**/Abstract*'
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
     options.fork(forkMode: org.gradle.api.tasks.testing.ForkMode.ONCE)
 }

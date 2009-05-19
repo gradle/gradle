@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.testing.junit;
+package org.gradle.external.junit;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -22,16 +22,26 @@ import org.gradle.api.tasks.testing.AbstractTestFramework;
 import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.testing.JunitForkOptions;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
+import org.gradle.api.tasks.testing.junit.AntJUnitReport;
+import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.Set;
+import java.util.Collection;
+import java.io.File;
 
 /**
  * @author Tom Eyckmans
  */
 public class JUnitTestFramework extends AbstractTestFramework {
+    private static final Logger logger = LoggerFactory.getLogger(JUnitTestFramework.class);
+
     private AntJUnitExecute antJUnitExecute = null;
     private AntJUnitReport antJUnitReport = null;
     private JUnitOptions options = null;
+    private JUnitDetector detector = null;
 
     public JUnitTestFramework() {
         super("JUnit");
@@ -57,12 +67,12 @@ public class JUnitTestFramework extends AbstractTestFramework {
         }
     }
 
-    public void execute(Project project, Test testTask) {
-        configureDefaultIncludesExcludes(project, testTask);
+    public void prepare(Project project, Test testTask) {
+        detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
+    }
 
-        antJUnitExecute.execute(testTask.getTestClassesDir(), testTask.getClasspath(), testTask.getTestResultsDir(), testTask.getIncludes(),
-                testTask.getExcludes(), options, project.getAnt());
-
+    public void execute(Project project, Test testTask, Collection<String> includes, Collection<String> excludes) {
+        antJUnitExecute.execute(testTask.getTestClassesDir(), testTask.getClasspath(), testTask.getTestResultsDir(), includes, excludes, options, project.getAnt());
     }
 
     public void report(Project project, Test testTask)
@@ -94,5 +104,12 @@ public class JUnitTestFramework extends AbstractTestFramework {
         this.antJUnitReport = antJUnitReport;
     }
 
+    public boolean isTestClass(File testClassFile) {
+        logger.debug("test-class-scan [scanning] : {} ", testClassFile);
+        return detector.processPossibleTestClass(testClassFile);
+    }
 
+    public Set<String> getTestClassNames() {
+        return detector.getTestClassNames();
+    }
 }

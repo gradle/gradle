@@ -1,13 +1,11 @@
-package org.gradle.api.tasks.testing.testng;
+package org.gradle.external.testng;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
-import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.api.Project;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkTest;
+import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
+import org.gradle.api.tasks.testing.testng.TestNGOptions;
+import org.gradle.external.testng.TestNGTestFramework;
 import org.junit.Before;
 import static org.junit.Assert.*;
 import groovy.util.AntBuilder;
@@ -81,7 +79,7 @@ public class TestNGTestFrameworkTest extends AbstractTestFrameworkTest {
             );
         }});
 
-        testNGTestFramework.execute(projectMock, testMock);
+        testNGTestFramework.execute(projectMock, testMock, null, null);
     }
 
     private void setMocks()

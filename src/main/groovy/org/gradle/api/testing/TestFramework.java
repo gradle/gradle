@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.testing;
+package org.gradle.api.testing;
 
 import org.gradle.api.Project;
+import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions;
+
+import java.io.File;
+import java.util.List;
+import java.util.Set;
+import java.util.Collection;
 
 /**
  * @author Tom Eyckmans
@@ -23,9 +30,15 @@ import org.gradle.api.Project;
 public interface TestFramework {
     void initialize(Project project, Test testTask);
 
-    void execute(Project project, Test testTask);
+    void prepare(Project project, Test testTask);
+
+    void execute(Project project, Test testTask, Collection<String> includes, Collection<String> excludes);
 
     void report(Project project, Test testTask);
 
     AbstractTestFrameworkOptions getOptions();
+
+    boolean isTestClass(File testClassFile);
+
+    Set<String> getTestClassNames();
 }

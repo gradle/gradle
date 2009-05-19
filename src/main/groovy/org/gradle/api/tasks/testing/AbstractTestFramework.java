@@ -1,6 +1,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Project;
+import org.gradle.api.testing.TestFramework;
 
 import java.util.List;
 
@@ -22,17 +23,5 @@ public abstract class AbstractTestFramework implements TestFramework {
 
     public String getName() {
         return name;
-    }
-
-    protected void configureDefaultIncludesExcludes(Project project, Test testTask) {
-        final List includes = testTask.getIncludes();
-        if ( includes == null || includes.isEmpty() ) {
-            testTask.include("**/*Tests.class", "**/*Test.class");
-
-        }
-        final List excludes = testTask.getExcludes();
-        if ( excludes == null || excludes.isEmpty() ) {
-            testTask.exclude("**/Abstract*.class");
-        }
     }
 }

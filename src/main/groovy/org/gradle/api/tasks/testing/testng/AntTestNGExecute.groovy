@@ -29,7 +29,7 @@ public class AntTestNGExecute {
 
     public static final String TESTNG_JARS_PATH = 'org.gradle.api.tasks.testing.testng.jars.path'
 
-    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, File testReportDir, List includes, List excludes, TestNGOptions options, AntBuilder ant, boolean testReport) {
+    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, File testReportDir, Collection<String> includes, Collection<String> excludes, TestNGOptions options, AntBuilder ant, boolean testReport) {
         ant.mkdir(dir: testResultsDir.absolutePath)
 
         testngTaskDef(classPath, ant, options)

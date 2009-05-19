@@ -129,7 +129,8 @@ dependencies {
             "commons-lang:commons-lang:2.3@jar",
             "slide:webdavlib:2.0@jar",
             "biz.aQute:bndlib:0.0.255@jar",
-            "org.apache.maven:maven-ant-tasks:2.0.9@jar"
+            "org.apache.maven:maven-ant-tasks:2.0.9@jar",
+            "asm:asm-all:2.2@jar"
 
     runtime "org.apache.ant:ant-junit:1.7.0@jar",
             "org.apache.ant:ant-launcher:1.7.0@jar",
@@ -185,8 +186,6 @@ test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'])
 
-    include '**/*Test.*'
-    exclude '**/Abstract*.*'
     exclude 'org/gradle/integtests/**/*IntegrationTest.*'
 }
 

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.testing.TestFramework;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
@@ -34,11 +35,12 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.After;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 
 
 /**
@@ -49,16 +51,18 @@ public class TestTest extends AbstractConventionTaskTest {
     static final String TEST_PATTERN_2 = "pattern2";
     static final String TEST_PATTERN_3 = "pattern3";
 
-    static final File TEST_TEST_CLASSES_DIR = new File("/testClassesDir");
-    static final File TEST_TEST_RESULTS_DIR = new File("/resultDir");
-    static final File TEST_TEST_REPORT_DIR = new File("/report/tests");
-    static final File TEST_ROOT_DIR = new File("/ROOTDir");
+    static final File TEST_ROOT_DIR = new File("ROOTDir");
+    static final File TEST_TEST_CLASSES_DIR = new File(TEST_ROOT_DIR, "testClassesDir");
+    static final File TEST_TEST_RESULTS_DIR = new File(TEST_ROOT_DIR, "resultDir");
+    static final File TEST_TEST_REPORT_DIR = new File(TEST_ROOT_DIR, "report/tests");
 
     static final Set TEST_DEPENDENCY_MANAGER_CLASSPATH = WrapUtil.toSet(new File("jar1"));
     static final List TEST_CONVERTED_UNMANAGED_CLASSPATH = WrapUtil.toList(new File("jar2"));
     static final List TEST_UNMANAGED_CLASSPATH = WrapUtil.toList("jar2");
     static final List TEST_CONVERTED_CLASSPATH = GUtil.addLists(WrapUtil.toList(TEST_TEST_CLASSES_DIR),
             TEST_CONVERTED_UNMANAGED_CLASSPATH, TEST_DEPENDENCY_MANAGER_CLASSPATH);
+
+    static final Set<String> okTestClassNames = new HashSet<String>(Arrays.asList("test.HumanTest", "test.CarTest"));
 
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
@@ -80,6 +84,9 @@ public class TestTest extends AbstractConventionTaskTest {
             one(testFrameworkMock).initialize(getProject(), test);
         }});
         test.useTestFramework(testFrameworkMock);
+        
+        if ( !TEST_TEST_CLASSES_DIR.exists() )
+            assertTrue(TEST_TEST_CLASSES_DIR.mkdirs());
     }
 
     public AbstractTask getTask() {
@@ -105,7 +112,9 @@ public class TestTest extends AbstractConventionTaskTest {
         setUpMocks(test);
         setExistingDirsFilter();
         context.checking(new Expectations() {{
-            one(testFrameworkMock).execute(getProject(), test);
+            one(testFrameworkMock).prepare(getProject(), test);
+            one(testFrameworkMock).getTestClassNames();will(returnValue(okTestClassNames));
+            one(testFrameworkMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
             one(testFrameworkMock).report(getProject(), test);
         }});
 
@@ -118,7 +127,9 @@ public class TestTest extends AbstractConventionTaskTest {
         setExistingDirsFilter();
         test.setTestReport(false);
         context.checking(new Expectations() {{
-            one(testFrameworkMock).execute(getProject(), test);
+            one(testFrameworkMock).prepare(getProject(), test);
+            one(testFrameworkMock).getTestClassNames();will(returnValue(okTestClassNames));
+            one(testFrameworkMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
         }});
 
         test.execute();
@@ -129,7 +140,9 @@ public class TestTest extends AbstractConventionTaskTest {
         setUpMocks(test);
         setExistingDirsFilter();
         context.checking(new Expectations() {{
-            one(testFrameworkMock).execute(getProject(), test);
+            one(testFrameworkMock).prepare(getProject(), test);
+            one(testFrameworkMock).getTestClassNames();will(returnValue(okTestClassNames));
+            one(testFrameworkMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
         }});
         test.execute();
     }
@@ -139,7 +152,9 @@ public class TestTest extends AbstractConventionTaskTest {
         setExistingDirsFilter();
         test.setStopAtFailuresOrErrors(false);
         context.checking(new Expectations() {{
-            one(testFrameworkMock).execute(getProject(), test);
+            one(testFrameworkMock).prepare(getProject(), test);
+            one(testFrameworkMock).getTestClassNames();will(returnValue(okTestClassNames));
+            one(testFrameworkMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
             one(testFrameworkMock).report(getProject(), test);
         }});
         test.execute();
@@ -229,5 +244,10 @@ public class TestTest extends AbstractConventionTaskTest {
             allowing(existentDirsFilterMock).checkExistenceAndThrowStopActionIfNot(TEST_TEST_CLASSES_DIR);
         }});
         test.existingDirsFilter = existentDirsFilterMock;
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        FileUtils.deleteDirectory(TEST_ROOT_DIR);
     }
 }

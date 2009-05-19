@@ -5,7 +5,8 @@ import org.junit.Test
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest
-import org.gradle.api.JavaVersion;
+import org.gradle.api.JavaVersion
+import org.gradle.external.testng.TestNGTestFramework;
 
 /**
  * @author Tom Eyckmans

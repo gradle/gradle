@@ -33,7 +33,7 @@ class AntJUnitExecute {
 
     private static final String CLASSPATH_ID = 'runtests.classpath'
 
-    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, List includes, List excludes, JUnitOptions junitOptions, AntBuilder ant) {
+    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, Collection<String> includes, Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant) {
         ant.mkdir(dir: testResultsDir.absolutePath)
         createAntClassPath(ant, classPath + BootstrapUtil.antJunitJarFiles)
         Map otherArgs = [
@@ -58,7 +58,7 @@ class AntJUnitExecute {
                         include(name: it)
                     }
                     excludes.each {
-                        exclude(name: it)
+                        exclude(name : it)
                     }
                 }
             }

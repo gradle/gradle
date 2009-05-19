@@ -20,6 +20,7 @@ import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
 import org.gradle.util.GFileUtils
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
+import org.gradle.external.testng.TestNGTestFramework
 
 /**
  * @author Tom Eyckmans

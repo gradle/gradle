@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.JunitForkOptions
 import org.gradle.api.tasks.testing.AbstractTestFramework
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
+import org.gradle.external.junit.JUnitTestFramework
 
 /**
  * @author Hans Dockter
