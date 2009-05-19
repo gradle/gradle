@@ -34,7 +34,8 @@ class WrapperProjectIntegrationTest {
         File wrapperSampleDir = new File(dist.samplesDir, 'wrapper-project')
 
         executer.inDirectory(wrapperSampleDir).withTasks('wrapper').run()
-        Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, wrapperSampleDir.absolutePath, ['hello'])
+        Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, wrapperSampleDir.absolutePath, ['hello'],
+            [:], 'build.gradle', Executer.QUIET, false)
         String compareValue =  result.output.substring(result.output.size() - 'hello'.size() - nl.size())
         assert compareValue == 'hello' + nl
     }
