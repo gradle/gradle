@@ -1,12 +1,12 @@
 package org.gradle.build.docs
 
-import org.gradle.api.internal.DefaultTask
 import org.gradle.api.Project
 import org.apache.tools.ant.types.FileSet
 import java.util.regex.Pattern
 import java.util.regex.Matcher
 import org.gradle.api.GradleException
 import org.apache.tools.ant.DirectoryScanner
+import org.gradle.api.DefaultTask
 
 public class ExtractSnippetsTask extends DefaultTask {
     FileSet sourceFiles

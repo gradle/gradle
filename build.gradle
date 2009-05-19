@@ -3,7 +3,7 @@ import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.Task
-import org.gradle.api.internal.artifacts.publish.ivycomponents.WebdavResolver
+import org.gradle.api.artifacts.repositories.WebdavResolver
 import org.gradle.api.tasks.testing.ForkMode
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.build.release.Svn
