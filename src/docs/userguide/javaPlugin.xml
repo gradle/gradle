@@ -688,9 +688,7 @@
             <literal>**/*Tests.class", "**/*Test.class</literal>
             and the default exclude is <literal>**/Abstract*.class</literal>.
         </para>
-        <para>The test task delegates to Ants junit task. TestNG is not supported yet. You can expect TestNG support in
-            one of our next releases.
-        </para>
+        <para>The test task delegates to Ants junit task. TestNG is also supported through it's Ant task.</para>
     </section>
 
     <section id='sec:bundles'>
