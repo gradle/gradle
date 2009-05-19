@@ -28,7 +28,6 @@ import java.util.HashSet;
 public class Dependencies {
     public static void copy(Dependency source, AbstractDependency target) {
         target.setArtifacts(new HashSet<DependencyArtifact>(source.getArtifacts()));
-        target.setDependencyConfiguration(source.getDependencyConfiguration());
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(source.getExcludeRules()));
         target.setTransitive(source.isTransitive());
     }

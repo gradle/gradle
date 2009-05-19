@@ -59,16 +59,6 @@ abstract public class AbstractDependencyTest {
 //        assertThat(getDependency().getState(), equalTo(Dependency.State.UNRESOLVED));
     }
     
-    @Test(expected = InvalidUserDataException.class)
-    public void setDependencyConfigurationWithEmptyString_shouldThrowInvalidUserDataEx() {
-        getDependency().setDependencyConfiguration("");
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void setDependencyConfigurationWithNull_shouldThrowInvalidUserDataEx() {
-        getDependency().setDependencyConfiguration(null); 
-    }
-
     @Test
     public void exclude() {
         Map<String,String> excludeArgs1 = WrapUtil.toMap("key", "value");

@@ -37,9 +37,10 @@ class MapModuleNotationParser {
         String group = getAndRemove(args, "group");
         String name = getAndRemove(args, "name");
         String version = getAndRemove(args, "version");
+        String configuration = getAndRemove(args, "configuration");
         try {
-            ExternalDependency dependency = dependencyType.getConstructor(String.class, String.class, String.class).
-                    newInstance(group, name, version);
+            ExternalDependency dependency = dependencyType.getConstructor(String.class, String.class, String.class, String.class).
+                    newInstance(group, name, version, configuration);
             ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args, "classifier"));
             GradleUtil.setFromMap(dependency, args);
             return dependency;

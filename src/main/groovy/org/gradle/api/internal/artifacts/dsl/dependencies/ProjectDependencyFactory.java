@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
-import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.Project;
+import org.gradle.api.artifacts.ProjectDependency;
 
 /**
  * @author Hans Dockter
  */
-public class ProjectDependencyFactory implements IDependencyImplementationFactory {
-    public Dependency createDependency(Object notation) {
-        assert notation != null;
-        if (notation instanceof Project) {
-            return new DefaultProjectDependency((Project) notation);
-        }
-        throw new IllegalDependencyNotation();
-    }
+public interface ProjectDependencyFactory {
+    ProjectDependency createProject(ProjectFinder projectFinder, Object notation);
+
 }

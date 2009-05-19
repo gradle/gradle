@@ -56,6 +56,7 @@ import org.gradle.util.GradleUtil
 import org.gradle.util.WrapUtil
 import org.gradle.api.internal.project.*
 import org.gradle.configuration.DefaultProjectEvaluator
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultProjectDependencyFactory
 
 /**
  * @author Hans Dockter
@@ -98,7 +99,7 @@ class HelperUtil {
       IProjectFactory projectFactory = new ProjectFactory(
                 new TaskFactory(),
                 new DefaultConfigurationContainerFactory(),
-                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory()),
+                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory()),
                 new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
                 new DefaultPublishArtifactFactory(),
                 [:] as InternalRepository,
@@ -126,7 +127,7 @@ class HelperUtil {
                 parentProject.buildScriptClassLoader,
                 new TaskFactory(),
                 parentProject.configurationContainerFactory,
-                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory()),
+                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory()),
                 new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
                 new DefaultPublishArtifactFactory(),
                 null,

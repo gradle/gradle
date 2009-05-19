@@ -53,9 +53,7 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
     }
 
     protected AbstractDependency createDependency(String group, String name, String version, String dependencyConfiguration) {
-        DefaultModuleDependency moduleDependency = (DefaultModuleDependency) createDependency(group, name, version);
-        moduleDependency.setDependencyConfiguration(dependencyConfiguration);
-        return moduleDependency;
+        return (DefaultModuleDependency) new DefaultModuleDependency(group, name, version, dependencyConfiguration);
     }
 
     @Before public void setUp() {

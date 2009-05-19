@@ -21,13 +21,17 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory;
+import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -47,7 +51,7 @@ public class DefaultDependencyFactoryTest {
 
     private IDependencyImplementationFactory testImplPointFactoryStub = context.mock(IDependencyImplementationFactory.class, "Point");
     private DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(
-            WrapUtil.toSet(testImplPointFactoryStub), null);
+            WrapUtil.toSet(testImplPointFactoryStub), null, null);
 
     @Test
     public void testCreateDependencyWithValidDescription() {
@@ -86,11 +90,26 @@ public class DefaultDependencyFactoryTest {
             allowing(testImplStringFactoryStub).createDependency(with(not(instanceOf(String.class))));
             will(throwException(new IllegalDependencyNotation()));
         }});
-        dependencyFactory.createDependency(createAnonynousInteger());
+        dependencyFactory.createDependency(createAnonymousInteger());
     }
 
-    private Integer createAnonynousInteger() {
+    private Integer createAnonymousInteger() {
         return new Integer(5);
+    }
+
+    @Test
+    public void createProject() {
+        final ProjectDependencyFactory projectDependencyFactoryStub = context.mock(ProjectDependencyFactory.class);
+        final ProjectDependency projectDependency = context.mock(ProjectDependency.class);
+        final ProjectFinder projectFinderDummy = context.mock(ProjectFinder.class);
+        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(null, null, projectDependencyFactoryStub);
+        context.checking(new Expectations() {{
+            allowing(projectDependencyFactoryStub).createProject(projectFinderDummy, "notation");
+            will(returnValue(projectDependency));
+            one(projectDependency).setTransitive(false);
+        }});
+        Closure configureClosure = HelperUtil.toClosure("{ transitive = false }");
+        assertThat(dependencyFactory.createProject(projectFinderDummy, "notation", configureClosure), sameInstance(projectDependency));
     }
 
     @Test
@@ -98,7 +117,7 @@ public class DefaultDependencyFactoryTest {
         final IDependencyImplementationFactory testImplStringFactoryStub = context.mock(IDependencyImplementationFactory.class, "String");
         final ClientModuleFactory clientModuleFactoryStub = context.mock(ClientModuleFactory.class);
         final ClientModule clientModuleMock = context.mock(ClientModule.class);
-        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(WrapUtil.toSet(testImplStringFactoryStub), clientModuleFactoryStub);
+        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(WrapUtil.toSet(testImplStringFactoryStub), clientModuleFactoryStub, null);
         final String someNotation1 = "someNotation1";
         final String someNotation2 = "someNotation2";
         final String someNotation3 = "someNotation3";
@@ -128,7 +147,7 @@ public class DefaultDependencyFactoryTest {
         Closure configureClosure = HelperUtil.toClosure(String.format(
                 "{dependency('%s'); dependencies('%s', '%s'); dependency('%s') { transitive = true }}",
                 someNotation1, someNotation2, someNotation3, someNotation4));
-        assertThat(dependencyFactory.createModule(someModuleNotation, configureClosure), Matchers.equalTo(clientModuleMock));
+        assertThat(dependencyFactory.createModule(someModuleNotation, configureClosure), equalTo(clientModuleMock));
     }
 
 }

@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.not;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.Expectations;
 import static org.junit.Assert.*;
@@ -54,9 +55,11 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         DefaultProject dependencyProject = HelperUtil.createRootProject(new File(name));
         dependencyProject.setGroup(group);
         dependencyProject.setVersion(version);
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProject);
+        DefaultProjectDependency projectDependency;
         if (dependencyConfiguration != null) {
-            projectDependency.setDependencyConfiguration(dependencyConfiguration);
+            projectDependency = new DefaultProjectDependency(dependencyProject, dependencyConfiguration);
+        } else {
+            projectDependency = new DefaultProjectDependency(dependencyProject); 
         }
         return projectDependency;
     }
@@ -87,8 +90,7 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
             allowing(configurationHandlerStub).getByName("conf1");
             will(returnValue(configurationDummy));
         }});
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(projectStub);
-        projectDependency.setDependencyConfiguration("conf1");
+        DefaultProjectDependency projectDependency = new DefaultProjectDependency(projectStub, "conf1");
         assertThat(projectDependency.getConfiguration(), sameInstance(configurationDummy));
     }
 
@@ -119,6 +121,17 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         ProjectDependency projectDependency = new DefaultProjectDependency(HelperUtil.createRootProject());
         projectDependency.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"));
         return projectDependency;
+    }
+
+    @Test
+    @Override
+    public void equality() {
+        assertThat(new DefaultProjectDependency(dependencyProject), equalTo(new DefaultProjectDependency(dependencyProject)));
+        assertThat(new DefaultProjectDependency(dependencyProject).hashCode(), equalTo(new DefaultProjectDependency(dependencyProject).hashCode()));
+        assertThat(new DefaultProjectDependency(dependencyProject, "conf1"), equalTo(new DefaultProjectDependency(dependencyProject, "conf1")));
+        assertThat(new DefaultProjectDependency(dependencyProject, "conf1").hashCode(), equalTo(new DefaultProjectDependency(dependencyProject, "conf1").hashCode()));
+        assertThat(new DefaultProjectDependency(dependencyProject, "conf1"), not(equalTo(new DefaultProjectDependency(dependencyProject, "conf2"))));
+        assertThat(new DefaultProjectDependency(dependencyProject), not(equalTo(new DefaultProjectDependency(context.mock(Project.class, "otherProject")))));
     }
 
 

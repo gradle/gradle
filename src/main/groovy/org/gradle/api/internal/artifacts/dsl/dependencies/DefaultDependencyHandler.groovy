@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.util.GUtil
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.project.IProjectRegistry
 
 /**
  * @author Hans Dockter
@@ -30,10 +31,13 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 class DefaultDependencyHandler implements DependencyHandler {
     ConfigurationContainer configurationContainer
     DependencyFactory dependencyFactory
+    ProjectFinder projectFinder
 
-    def DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory) {
+    def DefaultDependencyHandler(ConfigurationContainer configurationContainer, DependencyFactory dependencyFactory,
+                                 ProjectFinder projectFinder) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
+        this.projectFinder = projectFinder;
     }
 
 
@@ -50,6 +54,14 @@ class DefaultDependencyHandler implements DependencyHandler {
 
     public Dependency module(Object notation) {
         module(notation, null)
+    }
+
+    public Dependency project(Object notation, Closure configureClosure) {
+        return dependencyFactory.createProject(projectFinder, notation, configureClosure)
+    }
+
+    public Dependency project(Object notation) {
+        project(notation, null)
     }
 
     public Dependency module(Object notation, Closure configureClosure) {

@@ -15,19 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import groovy.lang.Closure;
-import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.Project;
 
 /**
  * @author Hans Dockter
- */
-public interface DependencyFactory {
-    Dependency createDependency(Object dependencyNotation, Closure closure);
-    Dependency createDependency(Object dependencyNotation);
-
-    ClientModule createModule(Object dependencyNotation, Closure configureClosure);
-    ProjectDependency createProject(ProjectFinder projectFinder, Object dependencyNotation, Closure configureClosure);
+*/
+public interface ProjectFinder {
+    /**
+     *
+     * @param path Can be relative or absolute
+     * @return The project belonging to the path
+     */
+    Project getProject(String path);
 }

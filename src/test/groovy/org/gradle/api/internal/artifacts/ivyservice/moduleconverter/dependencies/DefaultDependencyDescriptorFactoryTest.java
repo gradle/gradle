@@ -79,7 +79,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         final ModuleRevisionId testModuleRevisionId = ModuleRevisionId.newInstance(
                 Project.DEFAULT_GROUP, dependencyProjectName, Project.DEFAULT_VERSION, new HashMap());
         final AbstractProject dependencyProject = HelperUtil.createRootProject(new File(dependencyProjectName));
-        DefaultProjectDependency projectDependency = (DefaultProjectDependency) setUpDependency(new DefaultProjectDependency(dependencyProject));
+        DefaultProjectDependency projectDependency = (DefaultProjectDependency) setUpDependency(new DefaultProjectDependency(dependencyProject, TEST_DEP_CONF));
 
         DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor)
                 dependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, TEST_PARENT, projectDependency, DUMMY_MODULE_REGISTRY);
@@ -96,7 +96,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         dependencyDescriptorFactory.setClientModuleDescriptorFactory(context.mock(ClientModuleDescriptorFactory.class));
         final HashMap testModuleRegistry = new HashMap();
         final DefaultClientModule clientModule = (DefaultClientModule) setUpExternalDependency(
-                new DefaultClientModule("org.gradle", "gradle-core", "1.0"));
+                new DefaultClientModule("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF));
 
         final Dependency dependencyDependency = context.mock(Dependency.class, "dependencyDependency"); 
         clientModule.addDependency(dependencyDependency);
@@ -119,7 +119,7 @@ public class DefaultDependencyDescriptorFactoryTest {
     @Test
     public void testCreateFromModuleDependency() {
         DefaultModuleDependency moduleDependency = ((DefaultModuleDependency)
-                setUpExternalDependency(new DefaultModuleDependency("org.gradle", "gradle-core", "1.0"))).setChanging(true);
+                setUpExternalDependency(new DefaultModuleDependency("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF))).setChanging(true);
 
         DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor)
                 dependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, TEST_PARENT, moduleDependency, DUMMY_MODULE_REGISTRY);
@@ -136,7 +136,6 @@ public class DefaultDependencyDescriptorFactoryTest {
         return dependency.addArtifact(artifact).
                 addArtifact(artifactWithClassifiers).
                 exclude(TEST_EXCLUDE_RULE.getExcludeArgs()).
-                setDependencyConfiguration(TEST_DEP_CONF).
                 setTransitive(true);
     }
 

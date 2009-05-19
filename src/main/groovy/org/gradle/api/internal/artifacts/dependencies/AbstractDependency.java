@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.HashSet;
@@ -37,10 +38,12 @@ import java.util.Set;
 public abstract class AbstractDependency implements Dependency {
     private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
 
-    private String dependencyConfiguration = Dependency.DEFAULT_CONFIGURATION;
+    protected  String dependencyConfiguration = Dependency.DEFAULT_CONFIGURATION;
+    
     private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
 
-    protected AbstractDependency() {
+    protected AbstractDependency(String configuration) {
+        dependencyConfiguration = GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
     }
 
     public Dependency exclude(Map<String, String> excludeProperties) {
@@ -77,14 +80,6 @@ public abstract class AbstractDependency implements Dependency {
 
     public String getDependencyConfiguration() {
         return dependencyConfiguration;
-    }
-
-    public AbstractDependency setDependencyConfiguration(String dependencyConfiguration) {
-        if (dependencyConfiguration == null || dependencyConfiguration.length() == 0) {
-            throw new InvalidUserDataException("The dependency configuration can't be empty or null!");
-        }
-        this.dependencyConfiguration = dependencyConfiguration;
-        return this;
     }
 
     @Override

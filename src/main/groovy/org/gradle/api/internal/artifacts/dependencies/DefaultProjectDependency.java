@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.GUtil;
 
 /**
 * @author Hans Dockter
@@ -31,6 +32,11 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
     private boolean transitive = true;
 
     public DefaultProjectDependency(Project dependencyProject) {
+        this(dependencyProject, null);
+    }
+
+    public DefaultProjectDependency(Project dependencyProject, String configuration) {
+        super(configuration);
         this.dependencyProject = dependencyProject;
     }
 
@@ -85,8 +91,9 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
         if (o == null || getClass() != o.getClass()) return false;
 
         ProjectDependency that = (ProjectDependency) o;
-
-        return Dependencies.isKeyEquals(this, that);
+        if (!this.getDependencyProject().equals(that.getDependencyProject())) return false;
+        if (!this.getDependencyConfiguration().equals(that.getDependencyConfiguration())) return false;
+        return true;
     }
 
     @Override

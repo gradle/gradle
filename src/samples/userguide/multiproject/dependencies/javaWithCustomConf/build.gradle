@@ -23,9 +23,7 @@ project(':api') {
 project(':services:personService') {
     dependencies {
         compile project(':shared')
-        compile project(':api') {
-            dependencyConfiguration = 'spi'
-        }
+        compile project(path: ':api', configuration: 'spi')
         testCompile "junit:junit:3.8.2", project(':api')
     }
 }

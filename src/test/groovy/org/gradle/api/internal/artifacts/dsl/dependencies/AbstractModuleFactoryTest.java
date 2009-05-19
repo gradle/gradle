@@ -26,6 +26,7 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import org.hamcrest.Matchers;
 
 import java.awt.*;
@@ -37,6 +38,7 @@ public abstract class AbstractModuleFactoryTest {
     protected static final String TEST_GROUP = "org.gradle";
     protected static final String TEST_NAME = "gradle-core";
     protected static final String TEST_VERSION = "4.4-beta2";
+    protected static final String TEST_CONFIGURATION = "testConf";
     protected static final String TEST_TYPE = "mytype";
     protected static final String TEST_CLASSIFIER = "jdk-1.4";
     protected static final String TEST_MODULE_DESCRIPTOR = String.format("%s:%s:%s", TEST_GROUP, TEST_NAME, TEST_VERSION);
@@ -129,11 +131,20 @@ public abstract class AbstractModuleFactoryTest {
     }
 
     @Test
+    public void mapNotationWithConfiguration() {
+        ExternalDependency moduleDependency = createDependency(GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version", TEST_VERSION,
+                "configuration", TEST_CONFIGURATION));
+        checkCommonModuleProperties(moduleDependency);
+        assertTrue(moduleDependency.isTransitive());
+        assertThat(moduleDependency.getDependencyConfiguration(), equalTo(TEST_CONFIGURATION));
+    }
+
+    @Test
     public void mapNotationWithProperty() {
         ExternalDependency moduleDependency = createDependency(
-                GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version", TEST_VERSION, "dependencyConfiguration", "conf"));
+                GUtil.map("group", TEST_GROUP, "name", TEST_NAME, "version", TEST_VERSION, "transitive", false));
         checkCommonModuleProperties(moduleDependency);
-        assertThat(moduleDependency.getDependencyConfiguration(), Matchers.equalTo("conf"));
+        assertThat(moduleDependency.isTransitive(), equalTo(false));
     }
 
     protected void checkCommonModuleProperties(ExternalDependency moduleDependency) {

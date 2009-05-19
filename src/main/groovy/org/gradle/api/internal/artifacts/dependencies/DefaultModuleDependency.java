@@ -39,6 +39,11 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
     private boolean transitive = true;
 
     public DefaultModuleDependency(String group, String name, String version) {
+        this(group, name, version, null);
+    }
+
+    public DefaultModuleDependency(String group, String name, String version, String configuration) {
+        super(configuration);
         if (name == null) {
             throw new InvalidUserDataException("Name must not be null!");
         }

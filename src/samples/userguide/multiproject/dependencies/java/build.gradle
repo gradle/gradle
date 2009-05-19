@@ -5,7 +5,9 @@ subprojects {
 }
 
 project(':api') {
-    dependencies.compile project(':shared')
+    dependencies {
+        compile project(':shared')
+    }
 }
 
 project(':services:personService') {

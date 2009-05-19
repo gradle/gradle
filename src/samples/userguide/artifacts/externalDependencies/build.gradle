@@ -47,6 +47,12 @@ dependencies {
 }
 //END SNIPPET dependencies-with-empty-attributes
 
+//START SNIPPET dependency-configurations
+dependencies {
+    runtime group: 'org.somegroup', name: 'somedependency', version: '1.0', configuration: 'someConfiguration'
+}
+//END SNIPPET dependency-configurations
+
 
 //START SNIPPET artifact-only
 dependencies {

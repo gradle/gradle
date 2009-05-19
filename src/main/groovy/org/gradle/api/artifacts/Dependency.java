@@ -105,20 +105,11 @@ public interface Dependency {
 
     /**
      * Returns the configuration of this dependency. Never returns null.
-     *
-     * @see #setDependencyConfiguration(String) 
+     * The default value for the configuration is {@link #DEFAULT_CONFIGURATION}.
+     * A dependency source might have multiple configuration. Every configuration
+     * represents a different set of artifacts and dependencies for this dependency module.
      */
     String getDependencyConfiguration();
-
-    /**
-     * Sets the configuration of this dependency. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}.
-     * A dependency source might have multiple configuration (one is usually always default). Every configuration
-     * represents a different set of artifacts and dependencies of thi artifacts.
-     * 
-     * @param dependencyConfiguration
-     * @return this
-     */
-    Dependency setDependencyConfiguration(String dependencyConfiguration);
 
     /**
      * Returns whether two dependencies have identical values for there properties.

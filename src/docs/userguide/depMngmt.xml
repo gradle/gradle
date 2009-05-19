@@ -24,7 +24,7 @@
                 </para>
             </listitem>
             <listitem>
-                <para>It has to be clear what are the first level dependencies and what are the transitive ones. There
+                <para>It hopas to be clear what are the first level dependencies and what are the transitive ones. There
                     are different ways to achieve this. We will look at this later.
                 </para>
             </listitem>
@@ -257,6 +257,20 @@
             </para>
             <sample id="listGrouping" dir="userguide/artifacts/externalDependencies">
                 <sourcefile file="build.gradle" snippet="list-grouping"/>
+            </sample>
+        </section>
+        <section>
+            <title>Dependency Configurations</title>
+            In Gradle a dependency can have different configurations (as your project can have different configurations). If you
+            don't specify anything explicitly, Gradle uses the default configuration of the dependency. For dependencies
+            from a Maven repository, the default configuration is the only available one anyway. If you work with Ivy repositories and
+            want to declare a non-default configuration for your dependency you have to use the map notation and declare:
+            <sample id="dependencyConfigurations" dir="userguide/artifacts/externalDependencies">
+                <sourcefile file="build.gradle" snippet="dependency-configurations"/>
+            </sample>
+            <para>To do the same for project dependencies you need to declare:</para>
+            <sample id="dependencyConfigurationsProjects" dir="/java/multiproject/services/webservice">
+                <sourcefile file="build.gradle" snippet="dependency-configurations"/>
             </sample>
         </section>
         <section>

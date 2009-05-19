@@ -22,9 +22,12 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
+import org.gradle.api.internal.project.ProjectFactory;
+import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.Set;
@@ -35,10 +38,13 @@ import java.util.Set;
 public class DefaultDependencyFactory implements DependencyFactory {
     private Set<IDependencyImplementationFactory> dependencyFactories;
     private ClientModuleFactory clientModuleFactory;
+    private ProjectDependencyFactory projectDependencyFactory;
 
-    public DefaultDependencyFactory(Set<IDependencyImplementationFactory> dependencyFactories, ClientModuleFactory clientModuleFactory) {
+    public DefaultDependencyFactory(Set<IDependencyImplementationFactory> dependencyFactories, ClientModuleFactory clientModuleFactory,
+                                    ProjectDependencyFactory projectDependencyFactory) {
         this.dependencyFactories = dependencyFactories;
         this.clientModuleFactory = clientModuleFactory;
+        this.projectDependencyFactory = projectDependencyFactory;
     }
 
     public Dependency createDependency(Object dependencyNotation, Closure configureClosure) {
@@ -81,5 +87,10 @@ public class DefaultDependencyFactory implements DependencyFactory {
         moduleFactoryDelegate.prepareDelegation(configureClosure);
         configureClosure.call();
         return clientModule;
+    }
+
+    public ProjectDependency createProject(ProjectFinder projectFinder, Object dependencyNotation, Closure configureClosure) {
+        ProjectDependency projectDependency = projectDependencyFactory.createProject(projectFinder, dependencyNotation);
+        return (ProjectDependency) ConfigureUtil.configure(configureClosure, projectDependency);
     }
 }

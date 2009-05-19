@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.invocation.Build;
@@ -178,7 +179,11 @@ public abstract class AbstractProject implements ProjectInternal {
         this.repositoryHandlerFactory = repositoryHandlerFactory;
         this.repositoryHandlerFactory.setConvention(convention);
         this.repositoryHandler = repositoryHandlerFactory.createRepositoryHandler();
-        this.dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory);
+        this.dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory, new ProjectFinder() {
+            public Project getProject(String path) {
+                return project(path);
+            }
+        });
         this.publishArtifactFactory = publishArtifactFactory;
         this.artifactHandler = new DefaultArtifactHandler(configurationContainer, publishArtifactFactory);
         this.antBuilderFactory = antBuilderFactory;

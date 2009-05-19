@@ -30,6 +30,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.assertThat
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.project.IProjectRegistry
 
 /**
  * @author Hans Dockter
@@ -43,8 +45,10 @@ class DefaultDependencyHandlerTest {
   private ConfigurationContainer configurationContainerStub = context.mock(ConfigurationContainer)
   private DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory)
   private Configuration configurationMock = context.mock(Configuration)
+  private ProjectFinder projectFinderDummy = context.mock(ProjectFinder)
 
-  private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainerStub, dependencyFactoryStub)
+  private DefaultDependencyHandler dependencyHandler = new DefaultDependencyHandler(
+          configurationContainerStub, dependencyFactoryStub, projectFinderDummy)
 
   @Before
   void setUp() {
@@ -108,6 +112,37 @@ class DefaultDependencyHandlerTest {
     }
 
     dependencyHandler."$TEST_CONF_NAME"([[someNotation1, someNotation2]])
+  }
+
+  @Test
+  void pushProject() {
+    ProjectDependency projectDependency = context.mock(ProjectDependency)
+    Map someMapNotation = [:]
+    Closure projectDependencyClosure = {
+      assertThat("$TEST_CONF_NAME"(project(someMapNotation)), Matchers.equalTo(projectDependency))
+    }
+    context.checking {
+      allowing(dependencyFactoryStub).createProject(projectFinderDummy, someMapNotation, null); will(returnValue(projectDependency))
+      one(configurationMock).addDependency(projectDependency);
+    }
+
+    ConfigureUtil.configure(projectDependencyClosure, dependencyHandler)
+  }
+
+  @Test
+  void pushProjectWithConfigureClosure() {
+    ProjectDependency projectDependency = context.mock(ProjectDependency)
+    Map someMapNotation = [:]
+    Closure configureClosure = {}
+    Closure projectDependencyClosure = {
+      assertThat("$TEST_CONF_NAME"(project(someMapNotation, configureClosure)), Matchers.equalTo(projectDependency))
+    }
+    context.checking {
+      allowing(dependencyFactoryStub).createProject(projectFinderDummy, someMapNotation, configureClosure); will(returnValue(projectDependency))
+      one(configurationMock).addDependency(projectDependency);
+    }
+
+    ConfigureUtil.configure(projectDependencyClosure, dependencyHandler)
   }
 
   @Test

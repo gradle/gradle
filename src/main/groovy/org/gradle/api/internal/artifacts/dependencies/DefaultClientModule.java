@@ -42,6 +42,11 @@ public class DefaultClientModule extends AbstractDependency implements ClientMod
     private Set<Dependency> dependencies = new HashSet<Dependency>();
 
     public DefaultClientModule(String group, String name, String version) {
+        this(group, name, version, null);
+    }
+
+    public DefaultClientModule(String group, String name, String version, String configuration) {
+        super(configuration);
         if (name == null) {
             throw new InvalidUserDataException("Name must not be null!");
         }
