@@ -681,14 +681,27 @@
         <para>Per default the tests are run in a forked JVM and the fork is done per test. You can modify this behavior
             by setting forking to false or set the forkmode to once.
         </para>
-        <para>The test task tries to run all classes as tests, that have been compiled from the test source dirs. The
-            Java plugin defines default exclude pattern for the
-            <emphasis>.class</emphasis>
-            files. The default include is
+        <para>The Test task detects which classes are test classes by inspecting the compiled test classes.
+            By Default it scans all <emphasis>.class</emphasis> files. You can set custom includes / excludes, only those
+            classes will be scanned.Depending on the Test framework used (JUnit / TestNG) the test class detection uses different criteria.
+        </para>
+        <para>
+            When using JUnit, we scan for both JUnit 3 and 4 test classes. If any of the following criteria match the
+            class is considered to be a JUnit test class. Extend TestCase or GroovyTestCase, Class annotated with RunWith or
+            contain a method annotated with Test (inherited test methods are detected).
+        </para>
+        <para>
+            When using TestNG, we scan for methods annotated with Test (inherited test methods are detected).
+        </para>
+        <para>
+            In case you don't want to use the test class detection, you can disable it by setting scanForTestClasses to false.
+            This will make the test task to only use the includes / excludes to find test classes.
+
+            The default include is
             <literal>**/*Tests.class", "**/*Test.class</literal>
             and the default exclude is <literal>**/Abstract*.class</literal>.
         </para>
-        <para>The test task delegates to Ants junit task. TestNG is also supported through it's Ant task.</para>
+        <para>Both JUnit and TestNG are supported through their Ant tasks.</para>
     </section>
 
     <section id='sec:bundles'>

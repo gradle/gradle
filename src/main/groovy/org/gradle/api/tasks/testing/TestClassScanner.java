@@ -47,11 +47,6 @@ public class TestClassScanner {
                 excludePatterns.add("**/Abstract*.class");
             }
         }
-        else {
-            if ( includePatterns.isEmpty() ) {
-                includePatterns.add("**/*.class");
-            }
-        }
 
         if ( includePatterns != null && !includePatterns.isEmpty() )
             testClassFileSet.appendIncludes(includePatterns.toArray(new String[includePatterns.size()]));
@@ -64,16 +59,17 @@ public class TestClassScanner {
         while ( testClassFilesIterator.hasNext() ) {
             final FileResource fileResource = (FileResource)testClassFilesIterator.next();
 
-            if ( !fileResource.isDirectory() ) {
-                logger.debug("test-class-scan : scanning " + fileResource.getName() );
+            if ( !fileResource.isDirectory() && fileResource.getFile().getAbsolutePath().endsWith(".class")) {
+                final String fileResourceName = fileResource.getName();
+                logger.debug("test-class-scan : scanning {}", fileResourceName );
 
                 if ( scanForTestClasses ) {
                     if (!testFramework.isTestClass(fileResource.getFile()) ) {
-                        logger.debug("test-class-scan : discarded " + fileResource.getName() + " not a test class");
+                        logger.debug("test-class-scan : discarded {} not a test class", fileResourceName);
                     }
                 }
                 else
-                    testClassNames.add(fileResource.getName());
+                    testClassNames.add(fileResourceName);
             }
         }
 
