@@ -85,7 +85,7 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     private File createTmpDir() {
-        File tmpFile = null;
+        File tmpFile;
         try {
             tmpFile = File.createTempFile("gradle_ivy_cache", "");
         } catch (IOException e) {

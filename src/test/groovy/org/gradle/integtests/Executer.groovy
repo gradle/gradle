@@ -28,12 +28,12 @@ class Executer {
     public static final int INFO = 2
     public static final int DEBUG = 3
     
-    static Map execute(String gradleHome, String currentDirName, List tasknames, Map envs = [:], String buildFileName = '', int outputType = QUIET, boolean expectFailure = false) {
+    static Map execute(String gradleHome, String currentDirName, List tasknames, Map envs, String buildFileName, int outputType, boolean expectFailure) {
         executeInternal('gradle', "${gradleHome}/bin/gradle", gradleHome, envs,
                 currentDirName, tasknames, buildFileName, outputType, expectFailure)
     }
 
-    static Map executeWrapper(String gradleHome, String currentDirName, List tasknames, Map envs = [:], String buildFileName = '', int outputType = QUIET, boolean expectFailure = false) {
+    static Map executeWrapper(String gradleHome, String currentDirName, List tasknames, Map envs, String buildFileName, int outputType, boolean expectFailure) {
         executeInternal('gradlew', "${currentDirName}/gradlew", gradleHome, envs, currentDirName, tasknames, buildFileName, outputType, expectFailure)
     }
 

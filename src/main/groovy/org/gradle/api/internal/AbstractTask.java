@@ -177,8 +177,7 @@ public abstract class AbstractTask implements TaskInternal {
                     break;
                 } catch (StopActionException e) {
                     logger.debug("Action stopped by some action with message: {}", e.getMessage());
-                    continue;
-                } catch (Throwable t) {
+                    } catch (Throwable t) {
                     executing = false;
                     standardOutputCapture.stop();
                     throw new GradleScriptException(String.format("Execution failed for %s.", this), t, project.getBuildScriptSource());

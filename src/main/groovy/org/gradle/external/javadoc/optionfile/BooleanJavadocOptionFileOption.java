@@ -15,7 +15,7 @@ public class BooleanJavadocOptionFileOption extends AbstractJavadocOptionFileOpt
     }
 
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
-        if ( value != null && value.booleanValue()) {
+        if ( value != null && value) {
             writerContext.writeOption(option);
         }
     }

@@ -24,7 +24,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public class HashUtil {
     public static String createHash(String scriptText) {
-        MessageDigest messageDigest = null;
+        MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {

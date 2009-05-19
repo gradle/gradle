@@ -96,6 +96,10 @@ public class InProcessGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withLogLevel(int logLevel) {
+        throw new UnsupportedOperationException();
+    }
+
     public GradleExecuter withArguments(String... args) {
         throw new UnsupportedOperationException();
     }

@@ -125,8 +125,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private ClientModuleResolver createClientModuleResolver(Map clientModuleRegistry, ChainResolver userResolverChain) {
-        ClientModuleResolver clientModuleResolver = new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
-        return clientModuleResolver;
+        return new ClientModuleResolver(CLIENT_MODULE_NAME, clientModuleRegistry, userResolverChain);
     }
 
     private ChainResolver createUserResolverChain(List<DependencyResolver> classpathResolvers, DependencyResolver internalRepository) {

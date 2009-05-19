@@ -90,6 +90,11 @@ public class ForkingGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withLogLevel(int logLevel) {
+        this.logLevel = logLevel;
+        return this;
+    }
+
     public ExecutionResult run() {
         Map result = Executer.execute(distribution.getGradleHomeDir().getAbsolutePath(), workingDir.getAbsolutePath(),
                 GUtil.addLists(args, tasks), new HashMap(), "", logLevel, false);

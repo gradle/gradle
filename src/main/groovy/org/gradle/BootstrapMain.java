@@ -49,7 +49,7 @@ public class BootstrapMain {
         URLClassLoader libClassLoader = new URLClassLoader(nonLoggingJars.toArray(new URL[nonLoggingJars.size()]), loggingClassLoader);
         Thread.currentThread().setContextClassLoader(libClassLoader);
         Class mainClass = libClassLoader.loadClass("org.gradle.Main");
-        Method mainMethod = mainClass.getMethod("main", new Class[]{String[].class});
+        Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, new Object[]{args});
     }
 

@@ -97,7 +97,7 @@ public class StandardOutputLoggingAdapter extends OutputStream {
         logger = log;
         buf = new byte[bufferLength];
         count = 0;
-        lineSeparator = System.getProperty("line.separator").toString().getBytes();
+        lineSeparator = System.getProperty("line.separator").getBytes();
     }
 
     /**

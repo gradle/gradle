@@ -25,10 +25,10 @@ import java.io.File;
  */
 public interface PublishFilter {
     PublishFilter ALWAYS_ACCEPT = new PublishFilter() {
-    public boolean accept(Artifact artifact, File src) {
-        return true;
-    }
-};
+        public boolean accept(Artifact artifact, File src) {
+            return true;
+        }
+    };
 
     boolean accept(Artifact artifact, File src);
 }

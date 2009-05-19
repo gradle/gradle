@@ -128,7 +128,7 @@ public class JettyPluginWebAppContext extends WebAppContext
     {
         setShutdown(true);
         //just wait a little while to ensure no requests are still being processed
-        Thread.currentThread().sleep(500L);
+        Thread.sleep(500L);
         super.doStop();
     }
 }

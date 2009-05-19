@@ -47,13 +47,12 @@ public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToM
         if (GUtil.isTrue(publishArtifact.getClassifier())) {
             extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
         }
-        DefaultArtifact artifact = new DefaultArtifact(
+        return new DefaultArtifact(
                 moduleRevisionId,
                 publishArtifact.getDate(),
                 publishArtifact.getName(),
                 publishArtifact.getType(),
                 publishArtifact.getExtension(),
                 extraAttributes);
-        return artifact;
     }
 }

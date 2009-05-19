@@ -13,8 +13,8 @@ public class ContainedVersionAnalyzer extends Analyzer {
         Map classSpace = super.analyzeBundleClasspath(dot, bundleClasspath, contained, referred, uses);
         String bundleVersion = getProperties().getProperty(BUNDLE_VERSION);
 
-        for (Iterator it = contained.entrySet().iterator(); it.hasNext();) {
-            Map.Entry entry = (Map.Entry) it.next();
+        for (Object o : contained.entrySet()) {
+            Map.Entry entry = (Map.Entry) o;
             if (bundleVersion != null) {
                 Map values = (Map) entry.getValue();
                 values.put("version", bundleVersion);

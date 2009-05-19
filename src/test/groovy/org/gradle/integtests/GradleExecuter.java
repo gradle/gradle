@@ -30,6 +30,8 @@ public interface GradleExecuter {
 
     GradleExecuter withQuietLogging();
 
+    GradleExecuter withLogLevel(int logLevel);
+
     GradleExecuter withArguments(String... args);
 
     GradleExecuter usingSettingsFile(TestFile settingsFile);

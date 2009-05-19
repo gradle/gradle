@@ -296,13 +296,13 @@ public class JavaPlugin implements Plugin {
         Configuration compileConfiguration = configurations.add(COMPILE_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
                 setDescription("Classpath for compiling the sources.");
         Configuration runtimeConfiguration = configurations.add(RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).
-                setDescription("Classpath for running the compiled sources.");;
+                setDescription("Classpath for running the compiled sources.");
         Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).
-                setTransitive(false).setDescription("Classpath for compiling the test sources.");;
-        Configuration runTestsConfiguration = configurations.add(TEST_RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(runtimeConfiguration, compileTestsConfiguration).
-                setDescription("Classpath for running the test sources.");;
+                setTransitive(false).setDescription("Classpath for compiling the test sources.");
+        configurations.add(TEST_RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(runtimeConfiguration, compileTestsConfiguration).
+                setDescription("Classpath for running the test sources.");
         Configuration archivesConfiguration = configurations.add(Dependency.ARCHIVES_CONFIGURATION).
-                setDescription("Configuration for the default artifacts.");;
+                setDescription("Configuration for the default artifacts.");
         configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, archivesConfiguration).
                 setDescription("Configuration the default artifacts and its dependencies.");
         configurations.add(DISTS_TASK_NAME);

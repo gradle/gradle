@@ -36,6 +36,6 @@ public class IvyUtil {
     }
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {
-        return new ModuleRevisionId(new ModuleId(module.getGroup().toString(), module.getName()), module.getVersion().toString());
+        return new ModuleRevisionId(new ModuleId(module.getGroup(), module.getName()), module.getVersion().toString());
     }
 }

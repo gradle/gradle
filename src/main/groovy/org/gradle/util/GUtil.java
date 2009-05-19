@@ -65,8 +65,7 @@ public class GUtil {
 
         if (separator == null) separator = "";
 
-        for (Iterator iter = self.iterator(); iter.hasNext();) {
-            Object value = iter.next();
+        for (Object value : self) {
             if (first) {
                 first = false;
             } else {

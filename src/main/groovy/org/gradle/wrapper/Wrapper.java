@@ -35,7 +35,7 @@ public class Wrapper {
     public static final String DISTRIBUTION_NAME_PROPERTY = "distributionName";
     public static final String DISTRIBUTION_CLASSIFIER_PROPERTY = "distributionClassifier";
 
-    public void execute(String[] args, Install install, BootstrapMainStarter bootstrapMainStarter) throws Exception, InterruptedException {
+    public void execute(String[] args, Install install, BootstrapMainStarter bootstrapMainStarter) throws Exception {
         Properties wrapperProperties = new Properties();
         wrapperProperties.load(new FileInputStream(new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY))));
         if (WrapperMain.isDebug()) {

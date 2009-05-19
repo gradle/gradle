@@ -238,14 +238,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public Set<ProjectDependency> getProjectDependencies() {
         Set<Dependency> dependencies = Configurations.getDependencies(WrapUtil.<Configuration>toList(this), DependencySpecs.type(Type.PROJECT));
-        Set<ProjectDependency> result = createSetWithGenericProjectDependencyType(dependencies);
-        return result;
+        return createSetWithGenericProjectDependencyType(dependencies);
     }
 
     public Set<ProjectDependency> getAllProjectDependencies() {
         Set<Dependency> dependencies = Specs.filterIterable(getAllDependencies(), DependencySpecs.type(Type.PROJECT));
-        Set<ProjectDependency> result = createSetWithGenericProjectDependencyType(dependencies);
-        return result;
+        return createSetWithGenericProjectDependencyType(dependencies);
     }
 
     private Set<ProjectDependency> createSetWithGenericProjectDependencyType(Set<Dependency> dependencies) {

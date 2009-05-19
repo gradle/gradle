@@ -43,12 +43,12 @@ public class Clean extends ConventionTask {
         super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
-                clean(task);
+                clean();
             }
         });
     }
 
-    private void clean(Task task) {
+    private void clean() {
         if (getDir() == null) {
             throw new InvalidUserDataException("The dir property must be specified!");
         }

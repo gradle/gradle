@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,48 +32,41 @@ class Download implements IDownload {
             return;
         }
         destination.getParentFile().mkdirs();
-        
+
         downloadInternal(address, destination);
     }
 
     private void downloadInternal(String address, File destination) throws Exception {
-            OutputStream out = null;
-            URLConnection conn = null;
-            InputStream  in = null;
-            try {
-                URL url = new URL(address);
-                out = new BufferedOutputStream(
+        OutputStream out = null;
+        URLConnection conn;
+        InputStream in = null;
+        try {
+            URL url = new URL(address);
+            out = new BufferedOutputStream(
                     new FileOutputStream(destination));
-                conn = url.openConnection();
-                in = conn.getInputStream();
-                byte[] buffer = new byte[BUFFER_SIZE];
-                int numRead;
-                long progressCounter = 0;
-                while ((numRead = in.read(buffer)) != -1) {
-                    progressCounter += numRead;
-                    if (progressCounter / PROGRESS_CHUNK > 0) {
-                        System.out.print(".");
-                        progressCounter = progressCounter - PROGRESS_CHUNK;
-                    }
-                    out.write(buffer, 0, numRead);
+            conn = url.openConnection();
+            in = conn.getInputStream();
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int numRead;
+            long progressCounter = 0;
+            while ((numRead = in.read(buffer)) != -1) {
+                progressCounter += numRead;
+                if (progressCounter / PROGRESS_CHUNK > 0) {
+                    System.out.print(".");
+                    progressCounter = progressCounter - PROGRESS_CHUNK;
                 }
-            } catch (Exception e) {
-                throw e;
-            } finally {
-                System.out.println("");
-                try {
-                    if (in != null) {
-                        in.close();
-                    }
-                    if (out != null) {
-                        out.close();
-                    }
-                } catch (IOException ioe) {
-                    throw ioe;
-                }
+                out.write(buffer, 0, numRead);
+            }
+        } finally {
+            System.out.println("");
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
             }
         }
+    }
 
 
-    
 }

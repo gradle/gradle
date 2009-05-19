@@ -91,12 +91,12 @@ public class Compile extends ConventionTask {
         super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
-                compile(task);
+                compile();
             }
         });
     }
 
-    protected void compile(Task task) {
+    protected void compile() {
         if (antCompile == null) {
             throw new InvalidUserDataException("The ant compile command must be set!");
         }
@@ -113,9 +113,8 @@ public class Compile extends ConventionTask {
     }
 
     public List getClasspath() {
-        List classpath = GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(), getUnmanagedClasspath()),
+        return GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(), getUnmanagedClasspath()),
                 configuration);
-        return classpath;
     }
 
     /**

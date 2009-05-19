@@ -49,7 +49,7 @@ public class Dependencies {
     public static boolean isCommonContentEquals(Dependency dependencyLhs, Dependency dependencyRhs) {
         if (!isKeyEquals(dependencyLhs, dependencyRhs)) {
             return false;
-        };
+        }
         if (dependencyLhs.isTransitive() != dependencyRhs.isTransitive()) return false;
         if (dependencyLhs.getArtifacts() != null ?
                 !dependencyLhs.getArtifacts().equals(dependencyRhs.getArtifacts()) : dependencyRhs.getArtifacts() != null) return false;
@@ -61,7 +61,7 @@ public class Dependencies {
     public static boolean isContentEqualsForExternal(ExternalDependency dependencyLhs, ExternalDependency dependencyRhs) {
         if (!isKeyEquals(dependencyLhs, dependencyRhs) || !isCommonContentEquals(dependencyLhs, dependencyRhs)) {
             return false;
-        };
+        }
         if (dependencyLhs.isForce() != dependencyRhs.isForce()) return false;
         return true;
     }

@@ -24,8 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
  */
 public class DefaultModuleDescriptorFactory implements ModuleDescriptorFactory {
     public DefaultModuleDescriptor createModuleDescriptor(Module module) {
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(module),
+        return new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(module),
                 module.getStatus(), null);
-        return moduleDescriptor;
     }
 }

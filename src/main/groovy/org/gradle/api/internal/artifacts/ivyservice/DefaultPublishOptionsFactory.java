@@ -25,14 +25,14 @@ import java.util.Set;
  */
 public class DefaultPublishOptionsFactory implements PublishOptionsFactory {
     public PublishOptions createPublishOptions(Set<String> configurations, PublishInstruction publishInstruction) {
-        PublishOptions publishOptions = createPublishOptions(publishInstruction, configurations);
+        PublishOptions publishOptions = createPublishOptions(configurations);
         if (publishInstruction.isUploadDescriptor()) {
             publishOptions.setSrcIvyPattern(publishInstruction.getDescriptorDestination().getAbsolutePath());
         }
         return publishOptions;
     }
 
-    private PublishOptions createPublishOptions(PublishInstruction publishInstruction, Set<String> configuration) {
+    private PublishOptions createPublishOptions(Set<String> configuration) {
         PublishOptions publishOptions = new PublishOptions();
         publishOptions.setOverwrite(true);
         publishOptions.setConfs(configuration.toArray(new String[configuration.size()]));

@@ -91,7 +91,7 @@ public class JettyConfiguration extends Configuration
     
 
     
-    protected URL findWebXml () throws IOException, MalformedURLException
+    protected URL findWebXml () throws IOException
     {
         //if an explicit web.xml file has been set (eg for jetty:run) then use it
         if (webXmlFile != null && webXmlFile.exists())
@@ -125,7 +125,7 @@ public class JettyConfiguration extends Configuration
             //able to use annotations on on jdk1.5 and above
             Class annotationParserClass = Thread.currentThread().getContextClassLoader().loadClass("org.mortbay.jetty.annotations.AnnotationParser");
             Method parseAnnotationsMethod = 
-                annotationParserClass.getMethod("parseAnnotations", new Class[] {WebAppContext.class, Class.class, RunAsCollection.class, InjectionCollection.class, LifeCycleCallbackCollection.class });
+                annotationParserClass.getMethod("parseAnnotations", WebAppContext.class, Class.class, RunAsCollection.class, InjectionCollection.class, LifeCycleCallbackCollection.class);
 
             //look thru _servlets
             Iterator itor = LazyList.iterator(_servlets);
@@ -133,7 +133,7 @@ public class JettyConfiguration extends Configuration
             {
                 ServletHolder holder = (ServletHolder)itor.next();
                 Class servlet = getWebAppContext().loadClass(holder.getClassName());
-                parseAnnotationsMethod.invoke(null, new Object[] {getWebAppContext(), servlet, _runAsCollection,  _injections, _callbacks});
+                parseAnnotationsMethod.invoke(null, getWebAppContext(), servlet, _runAsCollection,  _injections, _callbacks);
             }
 
             //look thru _filters
@@ -142,7 +142,7 @@ public class JettyConfiguration extends Configuration
             {
                 FilterHolder holder = (FilterHolder)itor.next();
                 Class filter = getWebAppContext().loadClass(holder.getClassName());
-                parseAnnotationsMethod.invoke(null, new Object[] {getWebAppContext(), filter, null, _injections, _callbacks});
+                parseAnnotationsMethod.invoke(null, getWebAppContext(), filter, null, _injections, _callbacks);
             }
 
             //look thru _listeners
@@ -150,7 +150,7 @@ public class JettyConfiguration extends Configuration
             while (itor.hasNext())
             {
                 Object listener = itor.next();
-                parseAnnotationsMethod.invoke(null, new Object[] {getWebAppContext(), listener.getClass(), null, _injections, _callbacks});
+                parseAnnotationsMethod.invoke(null, getWebAppContext(), listener.getClass(), null, _injections, _callbacks);
             }
         }
         else

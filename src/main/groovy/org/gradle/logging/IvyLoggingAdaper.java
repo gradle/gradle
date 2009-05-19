@@ -37,9 +37,7 @@ public class IvyLoggingAdaper extends AbstractMessageLogger {
         log(msg, level);
     }
 
-    public void doProgress() {
-        ;
-    }
+    public void doProgress() { }
 
     public void doEndProgress(String msg) {
         LogLevel.INFO.log(msg);

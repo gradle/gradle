@@ -223,8 +223,8 @@ public class Main {
             startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(null));
         } else if (options.has(PROJECT_DEPENDENCY_TASK_NAMES)) {
             List<String> normalizedTaskNames = new ArrayList<String>();
-            for (Iterator iterator = options.valuesOf(PROJECT_DEPENDENCY_TASK_NAMES).iterator(); iterator.hasNext();) {
-                String taskName = (String) iterator.next();
+            for (Object o : options.valuesOf(PROJECT_DEPENDENCY_TASK_NAMES)) {
+                String taskName = (String) o;
                 normalizedTaskNames.add(taskName.trim());
             }
             startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(

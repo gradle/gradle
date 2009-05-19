@@ -56,15 +56,14 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
     }
 
     private Set<Conf2ScopeMapping> getMappingsWithHighestPriority(Configuration[] configurations) {
-        Set<Conf2ScopeMapping> result = findHighestPriorityMappingsForMappedConfigurations(configurations);
-        return result;
+        return findHighestPriorityMappingsForMappedConfigurations(configurations);
     }
 
     private Set<Conf2ScopeMapping> findHighestPriorityMappingsForMappedConfigurations(Configuration[] configurations) {
         Integer lastPriority = null;
         Set<Conf2ScopeMapping> result = new HashSet<Conf2ScopeMapping>();
         for (Conf2ScopeMapping conf2ScopeMapping : getMappingsForConfigurations(configurations)) {
-            if (lastPriority == conf2ScopeMapping.getPriority()) {
+            if (lastPriority != null && lastPriority.equals(conf2ScopeMapping.getPriority())) {
                 result.add(conf2ScopeMapping);
             } else if (lastPriority == null || lastPriority < conf2ScopeMapping.getPriority()) {
                 lastPriority = conf2ScopeMapping.getPriority();

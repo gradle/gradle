@@ -109,7 +109,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
 
     private void addArtifacts(String configuration, Set<DependencyArtifact> artifacts, DefaultDependencyDescriptor dependencyDescriptor) {
         for (DependencyArtifact artifact : artifacts) {
-            DefaultDependencyArtifactDescriptor artifactDescriptor = null;
+            DefaultDependencyArtifactDescriptor artifactDescriptor;
             try {
                 artifactDescriptor = new DefaultDependencyArtifactDescriptor(
                         dependencyDescriptor,

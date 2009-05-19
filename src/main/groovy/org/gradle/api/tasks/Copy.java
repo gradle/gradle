@@ -101,12 +101,12 @@ public class Copy extends ConventionTask {
         copyInstructionFactory = new CopyInstructionFactory(project.getAnt());
         doLast(new TaskAction() {
             public void execute(Task task) {
-                copyResources(task);
+                copyResources();
             }
         });
     }
 
-    private void copyResources(Task task) {
+    private void copyResources() {
         List<File> existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
                 getDestinationDir(), getSrcDirs());
 

@@ -68,7 +68,7 @@ public class AntLoggingAdapter implements BuildLogger {
     public void messageLogged(BuildEvent event) {
         StringBuffer message = new StringBuffer();
         if (event.getTask() != null) {
-            message.append("[ant:" + event.getTask().getTaskName() + "] ");
+            message.append("[ant:").append(event.getTask().getTaskName()).append("] ");
         }
         message.append(event.getMessage());
         if (event.getException() != null) {

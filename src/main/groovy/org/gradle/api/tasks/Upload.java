@@ -55,12 +55,12 @@ public class Upload extends DefaultTask {
         repositories = project.createRepositoryHandler();
         doFirst(new TaskAction() {
             public void execute(Task task) {
-                upload(task);
+                upload();
             }
         });
     }
 
-    private void upload(Task task) {
+    private void upload() {
         logger.info("Publishing configurations: " + configuration);
         configuration.publish(repositories.getResolvers(),
                 new PublishInstruction(isUploadDescriptor(),

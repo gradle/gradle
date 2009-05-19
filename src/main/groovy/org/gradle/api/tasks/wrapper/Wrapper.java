@@ -72,7 +72,7 @@ public class Wrapper extends DefaultTask {
         super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
-                generate(task);
+                generate();
             }
         });
         scriptDestinationPath = "";
@@ -84,7 +84,7 @@ public class Wrapper extends DefaultTask {
         urlRoot = DEFAULT_URL_ROOT;
     }
 
-    private void generate(Task task) {
+    private void generate() {
         if (scriptDestinationPath == null) {
             throw new InvalidUserDataException("The scriptDestinationPath property must be specified!");
         }
@@ -127,7 +127,7 @@ public class Wrapper extends DefaultTask {
      * @see #setScriptDestinationPath(String) 
      */
     public String getScriptDestinationPath() {
-        return scriptDestinationPath.toString();
+        return scriptDestinationPath;
     }
 
     /**
@@ -168,7 +168,7 @@ public class Wrapper extends DefaultTask {
      * @see #setDistributionPath(String) 
      */
     public String getDistributionPath() {
-        return distributionPath.toString();
+        return distributionPath;
     }
 
     /**

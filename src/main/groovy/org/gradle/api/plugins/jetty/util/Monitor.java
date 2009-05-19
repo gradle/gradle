@@ -48,7 +48,7 @@ public class Monitor extends Thread {
     boolean _kill;
 
     public Monitor(int port, String key, Server[] servers, boolean kill)
-            throws UnknownHostException, IOException {
+            throws IOException {
         if (port <= 0)
             throw new IllegalStateException("Bad stop port");
         if (key == null)

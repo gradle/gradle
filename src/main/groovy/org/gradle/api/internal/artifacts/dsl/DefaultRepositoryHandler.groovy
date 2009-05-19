@@ -58,7 +58,7 @@ class DefaultRepositoryHandler extends DefaultResolverContainer implements Repos
     private List<String> createStringifiedListFromMapArg(Map args, String argName) {
         Object dirs = args[argName];
         if (dirs == null) { return null }
-        Iterable<Object> iterable = null;
+        Iterable<Object> iterable;
         if (dirs instanceof Iterable) {
             iterable = (Iterable<Object>) dirs;
         } else {

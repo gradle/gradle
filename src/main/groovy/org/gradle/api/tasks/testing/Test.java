@@ -73,12 +73,12 @@ public class Test extends ConventionTask {
         super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
-                executeTests(task);
+                executeTests();
             }
         });
     }
 
-    protected void executeTests(Task task) {
+    protected void executeTests() {
         if (getTestClassesDir() == null)
             throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!");
         if (getTestResultsDir() == null)
@@ -100,9 +100,8 @@ public class Test extends ConventionTask {
     }
 
     public List getClasspath() {
-        List classpath = classpathConverter.createFileClasspath(getProject().getRootDir(),
+        return classpathConverter.createFileClasspath(getProject().getRootDir(),
                 GUtil.addLists(WrapUtil.toList(getTestClassesDir()), getUnmanagedClasspath(), configuration));
-        return classpath;
     }
 
     /**

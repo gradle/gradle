@@ -53,12 +53,12 @@ public class Groovydoc extends ConventionTask {
         captureStandardOutput(LogLevel.INFO);
         doFirst(new TaskAction() {
             public void execute(Task task) {
-                generate(task);
+                generate();
             }
         });
     }
 
-    private void generate(Task task) {
+    private void generate() {
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
                 getDestinationDir(), getSrcDirs());
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
