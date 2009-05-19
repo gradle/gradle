@@ -16,15 +16,9 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.util.WrapUtil;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author Hans Dockter
@@ -129,7 +123,7 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
                 "group='" + group + '\'' +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
-                ", dependencyConfiguration" + getDependencyConfiguration() + '\'' +
+                ", configuration" + getConfiguration() + '\'' +
                 '}';
     }
 }

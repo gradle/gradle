@@ -259,12 +259,13 @@
                 <sourcefile file="build.gradle" snippet="list-grouping"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:dependency_configurations">
             <title>Dependency Configurations</title>
-            In Gradle a dependency can have different configurations (as your project can have different configurations). If you
+            <para>In Gradle a dependency can have different configurations (as your project can have different configurations). If you
             don't specify anything explicitly, Gradle uses the default configuration of the dependency. For dependencies
             from a Maven repository, the default configuration is the only available one anyway. If you work with Ivy repositories and
             want to declare a non-default configuration for your dependency you have to use the map notation and declare:
+            </para>
             <sample id="dependencyConfigurations" dir="userguide/artifacts/externalDependencies">
                 <sourcefile file="build.gradle" snippet="dependency-configurations"/>
             </sample>

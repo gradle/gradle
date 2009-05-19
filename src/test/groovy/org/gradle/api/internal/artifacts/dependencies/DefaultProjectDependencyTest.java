@@ -51,13 +51,13 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
         return createDependency(group, name, version, null);    
     }
 
-    protected AbstractDependency createDependency(String group, String name, String version, String dependencyConfiguration) {
+    protected AbstractDependency createDependency(String group, String name, String version, String configuration) {
         DefaultProject dependencyProject = HelperUtil.createRootProject(new File(name));
         dependencyProject.setGroup(group);
         dependencyProject.setVersion(version);
         DefaultProjectDependency projectDependency;
-        if (dependencyConfiguration != null) {
-            projectDependency = new DefaultProjectDependency(dependencyProject, dependencyConfiguration);
+        if (configuration != null) {
+            projectDependency = new DefaultProjectDependency(dependencyProject, configuration);
         } else {
             projectDependency = new DefaultProjectDependency(dependencyProject); 
         }
@@ -91,7 +91,7 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
             will(returnValue(configurationDummy));
         }});
         DefaultProjectDependency projectDependency = new DefaultProjectDependency(projectStub, "conf1");
-        assertThat(projectDependency.getConfiguration(), sameInstance(configurationDummy));
+        assertThat(projectDependency.getProjectConfiguration(), sameInstance(configurationDummy));
     }
 
     @Test

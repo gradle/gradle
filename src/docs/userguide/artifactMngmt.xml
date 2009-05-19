@@ -61,8 +61,9 @@
             </para>
         <para>If someone wants to use your project as a library, she simply needs to declare on which configuration of
             the dependency to depend on.
-            A Gradle dependency offers the <code>dependencyConfiguration</code> property to declare this. If this
-            is not specified, the <code>default</code> configuration is used. Using your project as a library
+            A Gradle dependency offers the <code>configuration</code> property to declare this. If this
+            is not specified, the <code>default</code> configuration is used (see <xref linkend="sec:dependency_configurations"/>).
+            Using your project as a library
             can either happen from within a multi-project build or by retrieving your project from a repository. In
             the latter case, an ivy.xml descriptor in the repository is supposed to contain all the neccesary information. If you
             work with Maven repositories you don't have the flexibility as described above. For how to publish to a Maven

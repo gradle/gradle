@@ -34,5 +34,5 @@ public interface ProjectDependency extends Dependency {
      *
      * @see #getDependencyProject() 
      */
-    Configuration getConfiguration();
+    Configuration getProjectConfiguration();
 }

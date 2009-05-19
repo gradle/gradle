@@ -15,23 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.Project;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
-import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.GUtil;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
 
-import java.io.File;
 import java.awt.*;
 import java.util.Map;
 
@@ -69,7 +64,7 @@ public class DefaultProjectDependencyFactoryTest {
         DefaultProjectDependency projectDependency = (DefaultProjectDependency)
                 projectDependencyFactory.createProject(projectFinder, mapNotation);
         assertThat((ProjectInternal) projectDependency.getDependencyProject(), equalTo(projectDummy));
-        assertThat(projectDependency.getDependencyConfiguration(), equalTo(mapNotation.get("configuration")));
+        assertThat(projectDependency.getConfiguration(), equalTo(mapNotation.get("configuration")));
         assertThat(projectDependency.isTransitive(), equalTo(expectedTransitive));
     }
 

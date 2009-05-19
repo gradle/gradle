@@ -126,7 +126,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
     }
 
     private void addDependencyConfiguration(String configuration, Dependency dependency, DefaultDependencyDescriptor dependencyDescriptor) {
-        dependencyDescriptor.addDependencyConfiguration(configuration, dependency.getDependencyConfiguration());
+        dependencyDescriptor.addDependencyConfiguration(configuration, dependency.getConfiguration());
     }
 
     private void addExcludes(String configuration, Set<ExcludeRule> excludeRules, DefaultDependencyDescriptor dependencyDescriptor) {

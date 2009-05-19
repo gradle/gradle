@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -26,9 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
-import java.io.File;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,12 +35,12 @@ import java.util.Set;
 public abstract class AbstractDependency implements Dependency {
     private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
 
-    protected  String dependencyConfiguration = Dependency.DEFAULT_CONFIGURATION;
+    protected String configuration = Dependency.DEFAULT_CONFIGURATION;
     
     private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
 
     protected AbstractDependency(String configuration) {
-        dependencyConfiguration = GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
+        this.configuration = GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
     }
 
     public Dependency exclude(Map<String, String> excludeProperties) {
@@ -78,8 +75,8 @@ public abstract class AbstractDependency implements Dependency {
         return artifact;
     }
 
-    public String getDependencyConfiguration() {
-        return dependencyConfiguration;
+    public String getConfiguration() {
+        return configuration;
     }
 
     @Override

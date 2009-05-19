@@ -53,8 +53,8 @@ public class DefaultClientModuleTest extends AbstractDependencyTest {
         return new DefaultClientModule(group, name, version);
     }
 
-    protected AbstractDependency createDependency(String group, String name, String version, String dependencyConfiguration) {
-        return (DefaultClientModule) new DefaultClientModule(group, name, version, dependencyConfiguration);
+    protected AbstractDependency createDependency(String group, String name, String version, String configuration) {
+        return (DefaultClientModule) new DefaultClientModule(group, name, version, configuration);
     }
 
     @Before

@@ -191,7 +191,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void addUploadTaskAndAdditionalTasksFromProjectDependencies(DefaultTaskDependency taskDependency) {
         for (ProjectDependency projectDependency : getProjectDependencies()) {
-            Configuration configuration = projectDependency.getConfiguration();
+            Configuration configuration = projectDependency.getProjectConfiguration();
             for (String taskName : projectDependenciesBuildInstruction.getTaskNames()) {
                 taskDependency.add(projectDependency.getDependencyProject().getTasks().getByName(taskName));
             }

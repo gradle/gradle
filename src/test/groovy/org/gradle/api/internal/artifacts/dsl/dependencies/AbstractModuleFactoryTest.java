@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.GUtil;
@@ -27,7 +26,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.*;
-import org.hamcrest.Matchers;
 
 import java.awt.*;
 
@@ -136,7 +134,7 @@ public abstract class AbstractModuleFactoryTest {
                 "configuration", TEST_CONFIGURATION));
         checkCommonModuleProperties(moduleDependency);
         assertTrue(moduleDependency.isTransitive());
-        assertThat(moduleDependency.getDependencyConfiguration(), equalTo(TEST_CONFIGURATION));
+        assertThat(moduleDependency.getConfiguration(), equalTo(TEST_CONFIGURATION));
     }
 
     @Test

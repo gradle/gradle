@@ -428,7 +428,7 @@ public class DefaultConfigurationTest {
             allowing(projectDependencyStub).getDependencyProject();
             will(returnValue(dependencyProjectStub));
 
-            allowing(projectDependencyStub).getConfiguration();
+            allowing(projectDependencyStub).getProjectConfiguration();
             will(returnValue(dependencyProjectConfStub));
 
             allowing(dependencyProjectConfStub).getUploadInternalTaskName();

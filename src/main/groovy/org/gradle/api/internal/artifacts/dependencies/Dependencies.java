@@ -40,7 +40,7 @@ public class Dependencies {
     public static boolean isKeyEquals(Dependency dependencyLhs, Dependency dependencyRhs) {
         if (dependencyLhs.getGroup() != null ? !dependencyLhs.getGroup().equals(dependencyRhs.getGroup()) : dependencyRhs.getGroup() != null) return false;
         if (!dependencyLhs.getName().equals(dependencyRhs.getName())) return false;
-        if (!dependencyLhs.getDependencyConfiguration().equals(dependencyRhs.getDependencyConfiguration())) return false;
+        if (!dependencyLhs.getConfiguration().equals(dependencyRhs.getConfiguration())) return false;
         if (dependencyLhs.getVersion() != null ? !dependencyLhs.getVersion().equals(dependencyRhs.getVersion()) : dependencyRhs.getVersion() != null) return false;
         return true;
     }

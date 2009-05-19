@@ -104,12 +104,12 @@ public interface Dependency {
     Dependency addArtifact(DependencyArtifact artifact);
 
     /**
-     * Returns the configuration of this dependency. Never returns null.
-     * The default value for the configuration is {@link #DEFAULT_CONFIGURATION}.
+     * Returns the configuration of this dependency module (not the configurations this dependency belongs too).
+     * Never returns null. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}.
      * A dependency source might have multiple configuration. Every configuration
      * represents a different set of artifacts and dependencies for this dependency module.
      */
-    String getDependencyConfiguration();
+    String getConfiguration();
 
     /**
      * Returns whether two dependencies have identical values for there properties.

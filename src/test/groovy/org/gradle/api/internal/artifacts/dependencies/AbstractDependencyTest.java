@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
@@ -47,7 +46,7 @@ abstract public class AbstractDependencyTest {
 
     protected abstract AbstractDependency createDependency(String group, String name, String version);
 
-    protected abstract AbstractDependency createDependency(String group, String name, String version, String dependencyConfiguration);
+    protected abstract AbstractDependency createDependency(String group, String name, String version, String configuration);
 
     protected JUnit4Mockery context = new JUnit4GroovyMockery();
 
@@ -55,7 +54,7 @@ abstract public class AbstractDependencyTest {
     public void testGenericInit() {
         assertTrue(getDependency().getArtifacts().isEmpty());
         assertTrue(getDependency().getExcludeRules().isEmpty());
-        assertThat(getDependency().getDependencyConfiguration(), equalTo(Dependency.DEFAULT_CONFIGURATION));
+        assertThat(getDependency().getConfiguration(), equalTo(Dependency.DEFAULT_CONFIGURATION));
 //        assertThat(getDependency().getState(), equalTo(Dependency.State.UNRESOLVED));
     }
     
@@ -123,7 +122,7 @@ abstract public class AbstractDependencyTest {
         assertThat(copiedDependency, not(sameInstance(dependency)));
         assertThat(copiedDependency.getArtifacts(), not(sameInstance(dependency.getArtifacts())));
         assertThat(copiedDependency.getExcludeRules(), not(sameInstance(dependency.getExcludeRules())));
-        assertThat(copiedDependency.getDependencyConfiguration(), equalTo(dependency.getDependencyConfiguration()));
+        assertThat(copiedDependency.getConfiguration(), equalTo(dependency.getConfiguration()));
     }
 
 //    @Test(expected = InvalidUserDataException.class)

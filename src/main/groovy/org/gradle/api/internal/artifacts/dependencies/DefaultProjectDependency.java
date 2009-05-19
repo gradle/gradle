@@ -20,8 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.GUtil;
 
 /**
 * @author Hans Dockter
@@ -65,8 +63,8 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
         return dependencyProject.getVersion().toString();
     }
 
-    public Configuration getConfiguration() {
-        return dependencyProject.getConfigurations().getByName(getDependencyConfiguration());
+    public Configuration getProjectConfiguration() {
+        return dependencyProject.getConfigurations().getByName(getConfiguration());
     }
 
     public Dependency copy() {
@@ -92,7 +90,7 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
 
         ProjectDependency that = (ProjectDependency) o;
         if (!this.getDependencyProject().equals(that.getDependencyProject())) return false;
-        if (!this.getDependencyConfiguration().equals(that.getDependencyConfiguration())) return false;
+        if (!this.getConfiguration().equals(that.getConfiguration())) return false;
         return true;
     }
 
@@ -100,7 +98,7 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
     public String toString() {
         return "DefaultProjectDependency{" +
                 "dependencyProject='" + dependencyProject + '\'' +
-                ", dependencyConfiguration" + getDependencyConfiguration() + '\'' +
+                ", configuration" + getConfiguration() + '\'' +
                 '}';
     }
 }
