@@ -368,6 +368,7 @@ artifacts {
 groovydoc.destinationDir = explodedDistGroovydocsDir
 
 javadoc {
+    dependsOn compile
     destinationDir = explodedDistJavadocsDir
     // todo: include only the public packages
     options.subPackages 'org.gradle'

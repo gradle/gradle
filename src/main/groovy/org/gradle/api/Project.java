@@ -468,7 +468,7 @@ public interface Project extends Comparable<Project> {
      * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
-     * create.</td><td>{@link DefaultTask}</td></tr>
+     * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
      * task?</td><td><code>false</code></td></tr>
