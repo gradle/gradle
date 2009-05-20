@@ -107,7 +107,7 @@
         </para>
         <para>You can also use a configuration closure when you define a task.</para>
         <sample id="defineAndConfigure" dir="userguide/tasks/defineAndConfigure">
-            <sourcefile file="build.gradle"/>
+            <sourcefile file="build.gradle" snippet="no-description"/>
         </sample>
     </section>
     <section id='sec:adding_dependencies_to_tasks'>
@@ -146,6 +146,15 @@
         <para>For more information about task dependencies, see the <apilink class="org.gradle.api.Task"/> API.</para>
     </section>
     <section>
+        <title>Adding a description to a task</title>
+        <para>You can add a description to your task. This description is for example displayed when executing
+            <code>gradle -t</code>.
+        </para>
+        <sample id="describeTask" dir="userguide/tasks/defineAndConfigure">
+            <sourcefile file="build.gradle"/>
+        </sample>
+    </section>
+    <section>
         <title>Replacing Tasks</title>
         <para>Sometimes you want to replace a task. For example if you want to exchange a task added by the Java Plugin
             with a custom task of a different type. You can achieve this with:
@@ -158,6 +167,26 @@
             task, you have to set the <literal>overwrite</literal> property to true. Otherwise Gradle throws an
             exception, saying that a task with such a name already exists.
         </para>
+    </section>
+    <section>
+        <title>Task Rules</title>
+        <para>Sometimes you want to have a task which behavior depends on a large or infinite number value range
+            of parameters. A very nice and expressive way to provide such tasks are task rules: 
+        </para>
+        <sample id="taskRule" dir="userguide/tasks/addRules">
+            <sourcefile file="build.gradle" snippet="task-rule"/>
+            <output args="-q pingServer1"/>
+        </sample>
+        <para>The String parameter is used as a description for the rule. This description is shown when doing
+            for example <code>gradle -t</code>.
+        </para>
+        <para>Rules not just work for calling tasks from the command line. You can also create dependsOn relations
+            on rule based tasks:
+        </para>
+        <sample id="taskRuleDependsOn" dir="userguide/tasks/addRules">
+            <sourcefile file="build.gradle"/>
+            <output args="-q groupPing"/>
+        </sample>
     </section>
     <section id='sec:the_idea_behind_gradle_tasks'>
         <title>Summary</title>

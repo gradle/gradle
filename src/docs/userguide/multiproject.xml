@@ -574,6 +574,12 @@
             <literal>api</literal>
             interfaces but tested with all classes from <literal>api</literal>.
         </para>
+        <section id="disable_dependency_projects">
+            <title>Disable the build of dependency projects.</title>
+            <para>Sometimes you don't want that dependeny projects get rebuild when doing a partial build.
+                To disable the build of the dependency projects you can start gradle with the <code>-a</code> option.
+            </para>
+        </section>
     </section>
     <section id='sec:property_and_method_inheritance'>
         <title>Property and Method Inheritance</title>

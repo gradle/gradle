@@ -832,11 +832,6 @@
                 <output args="-q init"/>
             </sample>
         </section>
-        <section id='sub:configuration_action'>
-            <title>Configuration Action</title>
-            <para>t.b.d.
-            </para>
-        </section>
     </section>
     <section id='sec:archive_tasks'>
         <title>Archive Tasks</title>
@@ -1069,19 +1064,8 @@ metaInf << new FileSet(someDir)
     </section>
 
     <section id='sec:upload'>
-        <title>Upload</title>
-        <para>The
-            <emphasis>Upload</emphasis>
-            task has two instances,
-            <literal>uploadLibs</literal>
-            and <literal>uploadDists</literal>. An easy way of describing there behavior, is that all archives added to
-            the
-            <literal>libs</literal>
-            and
-            <literal>dists</literal>
-            bundle are uploaded by the corresponding upload task. An upload task uploads to the repositories assigned to
-            it. If needed you have more control on what files get uploaded. Have a look at
-            <apilink class="org.gradle.api.tasks.Upload"/> to learn more.
+        <title>Uploading</title>
+        <para>How to upload your archives is described in <xref linkend="artifact_management"/>.
         </para>
     </section>
     

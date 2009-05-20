@@ -1,5 +1,10 @@
+// START SNIPPET no-description
 task copy(type: Copy) {
+// END SNIPPET no-description
+   description = 'Copies the resource directory to the target directory.'
+// START SNIPPET no-description
    from(file('resources'))
    into(file('target'))
    includes('**/*.txt', '**/*.xml', '**/*.properties')
 }
+// END SNIPPET no-description

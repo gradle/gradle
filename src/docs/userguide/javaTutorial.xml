@@ -166,6 +166,7 @@
             <sample id="javaMultiProject" dir="java/multiproject">
                 <sourcefile file="api/build.gradle" snippet="dependencies"/>
             </sample>
+            See <xref linkend="disable_dependency_projects"/> for how to disable this functionality.
         </section>
 
         <section>

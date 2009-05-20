@@ -93,6 +93,20 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
         return rule;
     }
 
+    public Rule addRule(final String description, final Closure ruleAction) {
+        Rule rule = new Rule() {
+            public String getDescription() {
+                return description;
+            }
+
+            public void apply(String taskName) {
+                ruleAction.call(taskName);
+            }
+        };
+        rules.add(rule);
+        return rule;
+    }
+
     public List<Rule> getRules() {
         return Collections.unmodifiableList(rules);
     }

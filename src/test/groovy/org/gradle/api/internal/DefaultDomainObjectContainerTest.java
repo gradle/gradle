@@ -527,5 +527,16 @@ public class DefaultDomainObjectContainerTest {
             this.beanProperty = beanProperty;
         }
     }
-    
+
+    @Test
+    public void addRuleByClosure() {
+        String testPropertyKey = "org.gradle.test.addRuleByClosure";
+        String expectedTaskName = "someTaskName";
+        Closure ruleClosure = HelperUtil.toClosure(String.format(
+                "{ taskName -> System.setProperty('%s', '%s') }", testPropertyKey, expectedTaskName));
+        container.addRule("description", ruleClosure);
+        container.getRules().get(0).apply(expectedTaskName);
+        assertThat(System.getProperty(testPropertyKey), equalTo(expectedTaskName));
+        System.getProperties().remove(testPropertyKey);
+    }
 }
