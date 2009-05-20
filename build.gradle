@@ -249,7 +249,7 @@ task retroTranslateLibs(dependsOn: explodedDist) << {
     distsRetroLibsFolder.mkdirs()
     ant {
         taskdef(name: "retrotranslator", classname: "net.sf.retrotranslator.transformer.RetrotranslatorTask",
-                classpath: dependencies.antpath('retrotranslatorAntTask'))
+                classpath: configurations.retrotranslatorAntTask.asPath)
         List libFiles = explodedDistLibDir.listFiles()
         File logbackCore = libFiles.find { it.name.startsWith('logback-core') }
         File logbackClassic = libFiles.find { it.name.startsWith('logback-classic') }
@@ -351,7 +351,7 @@ jdk14AllZip.doFirst {Task task ->
             exclude 'lib/logback*.jar'
         }
         zipFileSet(dir: distsRetroLibsFolder, prefix: "$zipRootFolder/lib")
-        dependencies.retrotranslatorAntTask.each {File file ->
+        configurations.retrotranslatorAntTask.each {File file ->
             zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
                 include file.name
             }
