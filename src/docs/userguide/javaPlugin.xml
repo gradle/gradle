@@ -721,9 +721,10 @@
     <section>
         <title>Jar</title>
         <para>The <literal>jar</literal> task creates a JAR file containing the class files and resources of the
-            project. The JAR file is declared as an artifact in the <literal>artifacts</literal> dependency
+            project. The JAR file is declared as an artifact in the <literal>archives</literal> dependency
             configuration. This means that the JAR is available in the classpath of a dependent project. If you upload
-            your project into a repository, this JAR is declared as part of the dependency descriptor.
+            your project into a repository, this JAR is declared as part of the dependency descriptor. To learn
+            more about how to work with archives and artifact configurations see <xref linkend="artifact_management"/>.
         </para>
     </section>
 
