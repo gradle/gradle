@@ -8,14 +8,16 @@ println(prefix + 'quietOut')
 captureStandardOutput(LogLevel.INFO)
 println(prefix + 'infoOut')
 
-createTask('logLifecycle') {
+task logLifecycle << {
     println(prefix + 'lifecycleTaskOut')
-}.captureStandardOutput(LogLevel.LIFECYCLE)
+}
+logLifecycle.captureStandardOutput(LogLevel.LIFECYCLE)
 
-createTask('logInfo') {
+task logInfo << {
     println(prefix + 'infoTaskOut')
-}.captureStandardOutput(LogLevel.INFO)
+}
+logInfo.captureStandardOutput(LogLevel.INFO)
 
-createTask('log', dependsOn: [logInfo, logLifecycle]) {
+task log(dependsOn: [logInfo, logLifecycle]) << {
     println(prefix + 'quietTaskOut')
 }

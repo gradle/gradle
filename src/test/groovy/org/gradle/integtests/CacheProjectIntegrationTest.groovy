@@ -65,7 +65,7 @@ class CacheProjectIntegrationTest {
         File buildFile = new File(parentDir, 'build.gradle')
         String content = ""
         50.times {i ->
-            content += """createTask('hello$i') {
+            content += """task 'hello$i' << {
     File file = file('$TEST_FILE')
     file.parentFile.mkdirs()
     file.write('Hello $i')
@@ -83,7 +83,7 @@ void someMethod$i() {
     static void modifyLargeBuildScript(File parentDir) {
         File buildFile = new File(parentDir, 'build.gradle')
         String newContent = buildFile.text + """
-createTask('newTask') {
+task newTask << {
     File file = file('$TEST_FILE')
     file.parentFile.mkdirs()
     file.write('I am new')

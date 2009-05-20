@@ -2,9 +2,9 @@ import org.gradle.api.Rule
 
 defaultTasks 'dists'
 
-createTask('clean', description: "Deletes the build directory ($buildDirName)")
+task clean(description: "Deletes the build directory ($buildDirName)")
 
-createTask('dists', dependsOn: {subprojects.collect{project -> project.libs}})
+task dists(dependsOn: { subprojects*.libs })
 
 subprojects {
     configurations {
@@ -16,7 +16,7 @@ subprojects {
     dependencies {
         compile "commons-io:commons-io:1.2"
     }
-    createTask('libs')
+    task libs
     tasks.addRule(new TestRule())
 }
 

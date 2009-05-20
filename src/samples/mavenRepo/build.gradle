@@ -75,7 +75,7 @@ dependencies {
     test "$sillyexceptions:$sillyexceptions:1.0.1@jar", "$repotest:$repotest:1.0", "$repotest:classifier:1.0:jdk15", "jaronly:jaronly:1.0"
 }
 
-createTask('retrieve') {
+task retrieve << {
     GradleUtil.deleteDir(buildDir)
     GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/$sillyexceptions"))
     GradleUtil.deleteDir(new File(build.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/$repotest"))

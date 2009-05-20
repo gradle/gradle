@@ -47,7 +47,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         File rootDir = getTestDir();
         testFile("settings.gradle").write("throw new RuntimeException()");
         testFile("build.gradle").write("throw new RuntimeException()");
-        inDirectory(rootDir).usingBuildScript("Task task = createTask('do-stuff')").withTasks("do-stuff").run();
+        inDirectory(rootDir).usingBuildScript("Task task = task('do-stuff')").withTasks("do-stuff").run();
     }
 
     @Test
@@ -56,8 +56,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         File childDir = new File(rootDir, "child");
 
         testFile("settings.gradle").write("include('child')");
-        testFile("build.gradle").write("createTask('do-stuff')");
-        testFile("child/build.gradle").write("createTask('do-stuff')");
+        testFile("build.gradle").write("task('do-stuff')");
+        testFile("child/build.gradle").write("task('do-stuff')");
 
         inDirectory(rootDir).withSearchUpwards().withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
         inDirectory(rootDir).withSearchUpwards().withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
@@ -72,8 +72,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         File childDir = new File(rootDir, "child");
 
         testFile("settings.gradle").write("include('child')");
-        testFile("build.gradle").write("createTask('do-stuff')");
-        testFile("child/build.gradle").write("createTask('do-stuff')");
+        testFile("build.gradle").write("task('do-stuff')");
+        testFile("child/build.gradle").write("task('do-stuff')");
 
         usingProjectDir(rootDir).withSearchUpwards().withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
         usingProjectDir(rootDir).withSearchUpwards().withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
@@ -87,10 +87,10 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("settings.gradle").write("include('child')");
 
         TestFile rootBuildFile = testFile("build.gradle");
-        rootBuildFile.write("createTask('do-stuff')");
+        rootBuildFile.write("task('do-stuff')");
 
         TestFile childBuildFile = testFile("child/build.gradle");
-        childBuildFile.write("createTask('do-stuff')");
+        childBuildFile.write("task('do-stuff')");
 
         usingBuildFile(rootBuildFile).withSearchUpwards().withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
         usingBuildFile(rootBuildFile).withSearchUpwards().withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
@@ -152,7 +152,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void settingsFileTakesPrecedenceOverBuildFileInSameDirectory() {
         testFile("settings.gradle").write("rootProject.buildFileName = 'root.gradle'");
-        testFile("root.gradle").write("createTask('do-stuff')");
+        testFile("root.gradle").write("task('do-stuff')");
         
         TestFile buildFile = testFile("build.gradle");
         buildFile.write("throw new RuntimeException()");
@@ -170,7 +170,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
         File subDirectory = new File(getTestDir(), "child");
         testFile(subDirectory, "build.gradle").write("throw new RuntimeException()");
-        testFile(subDirectory, "child.gradle").write("createTask('do-stuff')");
+        testFile(subDirectory, "child.gradle").write("task('do-stuff')");
 
         inDirectory(subDirectory).withSearchUpwards().withTasks("do-stuff").run();
         usingProjectDir(subDirectory).withSearchUpwards().withTasks("do-stuff").run();
@@ -182,7 +182,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("root.gradle").write("throw new RuntimeException()");
 
         TestFile buildFile = testFile("build.gradle");
-        buildFile.write("createTask('do-stuff')");
+        buildFile.write("task('do-stuff')");
 
         usingBuildFile(buildFile).withTasks("do-stuff").run();
     }
@@ -194,7 +194,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
         File subDirectory = new File(getTestDir(), "subdirectory");
         TestFile buildFile = testFile(subDirectory, "build.gradle");
-        buildFile.writelns("createTask('do-stuff') {",
+        buildFile.writelns("task('do-stuff') << {",
                 "assertThat(prop, equalTo('value'))",
                 "assertTrue(!project.hasProperty('otherProp'))",
                 "}");
@@ -212,7 +212,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
             "project(':child1').projectDir = new File(settingsDir, 'shared')",
             "project(':child2').projectDir = new File(settingsDir, 'shared')"
         );
-        testFile("shared/build.gradle").write("createTask('do-stuff')");
+        testFile("shared/build.gradle").write("task('do-stuff')");
 
         inTestDirectory().withTasks("do-stuff").run().assertTasksExecuted(":child1:do-stuff", ":child2:do-stuff");
     }
@@ -224,7 +224,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
             "project(':child1').buildFileName = '../child.gradle'",
             "project(':child2').buildFileName = '../child.gradle'"
         );
-        testFile("child.gradle").write("createTask('do-stuff')");
+        testFile("child.gradle").write("task('do-stuff')");
 
         inTestDirectory().withTasks("do-stuff").run().assertTasksExecuted(":child1:do-stuff", ":child2:do-stuff");
     }
@@ -240,13 +240,10 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         );
 
         TestFile rootBuildFile = testFile(buildFilesDir, "build.gradle");
-        rootBuildFile.write("createTask('do-stuff', dependsOn: ':child:task')");
+        rootBuildFile.write("task('do-stuff', dependsOn: ':child:task')");
 
         TestFile childBuildFile = testFile("child/build.gradle");
-        childBuildFile.writelns(
-            "createTask('do-stuff')",
-            "createTask('task')"
-        );
+        childBuildFile.writelns("task('do-stuff')", "task('task')");
 
         usingProjectDir(getTestDir()).usingSettingsFile(settingsFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff");
         usingBuildFile(rootBuildFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff");

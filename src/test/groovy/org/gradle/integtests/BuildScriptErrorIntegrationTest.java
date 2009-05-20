@@ -49,7 +49,9 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         testFile("settings.gradle").write("include 'child'");
 
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns("dependsOn 'child'", "createTask('t')");
+        buildFile.writelns(
+                "dependsOn 'child'",
+                "task t");
 
         TestFile childBuildFile = testFile("child/build.gradle");
         childBuildFile.writelns(
@@ -67,7 +69,11 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsTaskActionExecutionFailsWithError() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns("createTask('do-stuff')", "{", "1/0", "}");
+        buildFile.writelns(
+                "task('do-stuff').doFirst",
+                "{",
+                "1/0",
+                "}");
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("do-stuff").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
@@ -102,7 +108,11 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsTaskGraphReadyEventFailsWithRuntimeException() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns("build.taskGraph.whenReady {", "throw new RuntimeException('broken closure')", "}", "createTask('a')");
+        buildFile.writelns(
+                "build.taskGraph.whenReady {",
+                "throw new RuntimeException('broken closure')",
+                "}",
+                "task a");
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("a").runWithFailure();
 
@@ -115,7 +125,11 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test @Ignore
     public void reportsTaskDependencyClosureFailsWithRuntimeException() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns("createTask('a')", "a.dependsOn {", "throw new RuntimeException('broken')", "}");
+        buildFile.writelns(
+                "task a",
+                "a.dependsOn {",
+                "throw new RuntimeException('broken')",
+                "}");
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("a").runWithFailure();
 

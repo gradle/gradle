@@ -23,7 +23,7 @@ test {
     options.fork(forkMode: org.gradle.api.tasks.testing.ForkMode.ONCE)
 }
 
-createTask('ide') {
+task ide << {
     def libDir = file('lib')
     ant.delete(dir: libDir)
     [dependencies.runtime, dependencies.testRuntime].each {config ->

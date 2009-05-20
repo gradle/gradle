@@ -1,5 +1,5 @@
 usePlugin('java')
 
-createTask('check') {
+task check << {
     println(compile.destinationDir.name)
 }

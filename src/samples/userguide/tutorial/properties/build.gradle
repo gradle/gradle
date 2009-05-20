@@ -1,4 +1,4 @@
-createTask('printProps') {
+task printProps << {
     println commandLineProjectProp
     println gradlePropertiesProp
     println systemProjectProp

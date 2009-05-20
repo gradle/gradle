@@ -35,13 +35,13 @@ public class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
                 "rootProperty = 'root'",
                 "sharedProperty = 'ignore me'",
                 "convention.plugins.test = new " + ConventionBean.class.getName() + "()",
-                "createTask('rootTask')",
-                "createTask('testTask')"
+                "task rootTask",
+                "task testTask"
         );
         testFile("child/build.gradle").writelns(
                 "childProperty = 'child'",
                 "sharedProperty = 'shared'",
-                "createTask('testTask') {",
+                "task testTask << {",
                 DynamicObjectIntegrationTestHelper.class.getName() + ".reportProperties(project)",
                 "}"
         );
@@ -58,13 +58,13 @@ public class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
                 "def rootMethod(p) { 'root' + p }",
                 "def sharedMethod(p) { 'ignore me' }",
                 "convention.plugins.test = new " + ConventionBean.class.getName() + "()",
-                "createTask('rootTask')",
-                "createTask('testTask')"
+                "task rootTask",
+                "task testTask"
         );
         testFile("child/build.gradle").writelns(
                 "def childMethod(p) { 'child' + p }",
                 "def sharedMethod(p) { 'shared' + p }",
-                "createTask('testTask') {",
+                "task testTask << {",
                 DynamicObjectIntegrationTestHelper.class.getName() + ".reportMethods(project)",
                 "}"
         );

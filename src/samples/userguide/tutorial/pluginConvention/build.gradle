@@ -1,6 +1,6 @@
 usePlugin('java')
 
-createTask('check') {
+task check << {
     classesDirName = 'output'
     println(processResources.destinationDir.name)
     println(compile.destinationDir.name)

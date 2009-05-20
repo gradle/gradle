@@ -1,3 +1,4 @@
-createTask('disableMe') {
-            println 'This should not be printed if the task is disabled.'
-        }.enabled = false
+task disableMe << {
+    println 'This should not be printed if the task is disabled.'
+}
+disableMe.enabled = false

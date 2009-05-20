@@ -1,6 +1,6 @@
 usePlugin('java')
 
-createTask('check') {
+task check << {
     processResources.destinationDir = new File(buildDir, 'output')
     println(processResources.destinationDir.name)
     println(compile.destinationDir.name)

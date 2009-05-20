@@ -1,11 +1,11 @@
-createTask('compile') {
+task compile << {
     println 'compiling source'
 }
 
-createTask('test', dependsOn: 'compile') {
+task test(dependsOn: compile) << {
     println 'running tests'
 }
 
-createTask('libs', dependsOn: 'compile') {
+task libs(dependsOn: compile) << {
     println 'building libs'
 }

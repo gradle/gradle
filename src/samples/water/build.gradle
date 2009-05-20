@@ -1,7 +1,9 @@
 childrenDependOnMe()
 
-allprojects*.createTask('hello') { Task task ->
-    println "Hello, I'm $task.project.name"
+allprojects {
+    task hello << {Task task ->
+        println "Hello, I'm $task.project.name"
+    }
 }
 
 subprojects*.hello*.doLast {

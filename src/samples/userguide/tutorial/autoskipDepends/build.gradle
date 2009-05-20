@@ -1,6 +1,7 @@
-createTask('autoskip') {
+task autoskip << {
     println 'This should not be printed if the skip.autoskip system property is set.'
 }
-createTask('depends', dependsOn: 'autoskip') {
+task depends(dependsOn: autoskip) << {
     println "This should not be printed if the skip.autoskip system property is set."
-}.skipProperties << 'skip.autoskip'
+}
+depends.skipProperties << 'skip.autoskip'

@@ -1,5 +1,5 @@
-createTask('copy', type: Copy)
+task copy(type: Copy)
 
-createTask('copy', overwrite: true) {
+task copy(overwrite: true) << {
     println('I am the new one.')
 }
