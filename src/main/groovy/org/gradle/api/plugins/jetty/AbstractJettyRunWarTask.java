@@ -33,7 +33,7 @@ public abstract class AbstractJettyRunWarTask extends AbstractJettyRunTask {
             return;
 
         logger.info("Configuring Jetty from xml configuration file = {}", getJettyConfig());
-        XmlConfiguration xmlConfiguration = new XmlConfiguration(getJettyConfig().toURL());
+        XmlConfiguration xmlConfiguration = new XmlConfiguration(getJettyConfig().toURI().toURL());
         xmlConfiguration.configure(getServer().getProxiedObject());
     }
 

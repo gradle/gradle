@@ -86,7 +86,7 @@ public class JettyPluginWebAppContext extends WebAppContext
         try
         {
             if (this.jettyEnvXmlFile != null)
-                envConfig.setJettyEnvXml(this.jettyEnvXmlFile.toURL());
+                envConfig.setJettyEnvXml(this.jettyEnvXmlFile.toURI().toURL());
         }
         catch (Exception e)
         {

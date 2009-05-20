@@ -95,7 +95,7 @@ public class JettyConfiguration extends Configuration
     {
         //if an explicit web.xml file has been set (eg for jetty:run) then use it
         if (webXmlFile != null && webXmlFile.exists())
-            return webXmlFile.toURL();
+            return webXmlFile.toURI().toURL();
         
         //if we haven't overridden location of web.xml file, use the
         //standard way of finding it
