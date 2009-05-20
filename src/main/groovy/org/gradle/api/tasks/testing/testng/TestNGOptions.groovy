@@ -366,7 +366,7 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
             return suiteXmlBuilder.getMetaClass()."${name}"
         }
         else {
-            super.propertyMissing(name)
+            return super.propertyMissing(name)
         }
     }
 
@@ -375,7 +375,7 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
             return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args);
         }
         else {
-            super.methodMissing(name, args)
+            return super.methodMissing(name, args)
         }
     }
 }
