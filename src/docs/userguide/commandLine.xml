@@ -72,7 +72,7 @@
         </varlistentry>
         <varlistentry>
             <term><option>-g</option>, <option>--gradle-user-home</option></term>
-            <listitem><para>Specifies the gradle user home directory.
+            <listitem><para>Specifies the Gradle user home directory.
             </para></listitem>
         </varlistentry>
         <varlistentry>

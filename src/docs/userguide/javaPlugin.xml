@@ -88,6 +88,13 @@
             </tr>
             <tr>
                 <td>
+                    <literal>jar</literal>
+                </td>
+                <td><literal>test</literal></td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/></td>
+            </tr>
+            <tr>
+                <td>
                     <literal>libs</literal>
                 </td>
                 <td>
@@ -399,6 +406,11 @@
                 </td>
             </tr>
             <tr>
+                <td>archivesBaseName</td>
+                <td>String</td>
+                <td><literal><replaceable>projectName</replaceable></literal></td>
+            </tr>
+            <tr>
                 <td>manifest</td>
                 <td><apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/></td>
                 <td>empty</td>
@@ -706,133 +718,47 @@
         <para>Both JUnit and TestNG are supported through their Ant tasks.</para>
     </section>
 
-    <section id='sec:bundles'>
-        <title>Bundles</title>
-        <para>The
-            <emphasis>Bundle</emphasis>
-            task has two instances,
-            <literal>libs</literal>
-            and <literal>dists</literal>. The Bundle task is a special animal. It is a container for archive tasks (jar,
-            zip, ...).
+    <section>
+        <title>Jar</title>
+        <para>The <literal>jar</literal> task creates a JAR file containing the class files and resources of the
+            project. The JAR file is declared as an artifact in the <literal>artifacts</literal> dependency
+            configuration. This means that the JAR is available in the classpath of a dependent project. If you upload
+            your project into a repository, this JAR is declared as part of the dependency descriptor.
         </para>
-        <table>
-            <title>Java Convention Object - Bundle Properties</title>
-            <thead>
-                <tr>
-                    <td>Task Instance</td>
-                    <td>Task Property</td>
-                    <td>Convention Property</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>libs</td>
-                <td>tasksBaseName</td>
-                <td>
-                    <literal>project.archivesBaseName</literal>
-                </td>
-            </tr>
-            <tr>
-                <td>dists</td>
-                <td>tasksBaseName</td>
-                <td>
-                    <literal>project.archivesBaseName</literal>
-                </td>
-            </tr>
-
-        </table>
-        <section id='sub:the_libs_task'>
-            <title>The libs Task</title>
-            <para>The
-                <literal>libs</literal>
-                task contains all the archive tasks which constitute the libraries needed to use your project as a
-                library. Executing the libs task leads to the execution of all the contained archive tasks. In a
-                multi-project build the archives which are produced by the
-                <literal>libs</literal>
-                task are available in the classpath of a dependent project. If you upload your project into a
-                repository, those archives are part of the dependency descriptor. If you come from Maven you can have
-                only one library jar per project. With Ivy you can have as many as you want. The Java plugin adds by
-                default one jar archive to the
-                <literal>libs</literal>
-                task. The task name is by default
-                <literal>archive_jar</literal>
-                and can of course be manipulated by this name. This jar contains the content of the <literal>
-                    classesDir</literal>. This is the behavior your are used from Maven. If you are happy with that you
-                usually don't have to touch this task. Except if you want to change the names of the generated archives.
-            </para>
-            <para>The
-                <literal>libs</literal>
-                task depends on the
-                <literal>test</literal>
-                task and its archive tasks. The archive tasks assigned to the
-                <literal>libs</literal>
-                task depend by default on the
-                <literal>test</literal>
-                task as well. You can change this via the
-                <literal>childrenDependsOn</literal>
-                property of the
-                <literal>libs</literal>
-                task.
-            </para>
-        </section>
-        <section id='sub:the_dists_task'>
-            <title>The dists Task</title>
-            <para>The
-                <literal>dists</literal>
-                task contains all the archive task that make up your distributions. For example a binary and a source
-                distribution. The
-                <literal>dists</literal>
-                task has two purposes. One is providing a hook for distributions in the lifecycle. The other is for
-                uploading distribution archives (the same is also true for the
-                <literal>libs</literal>
-                task.) The
-                <literal>dists</literal>
-                task depends on its archive tasks and the
-                <literal>libs</literal>
-                task. The contained archive tasks depend by default on the
-                <literal>libs</literal>
-                task as well. You can change this via the
-                <literal>childrenDependsOn</literal>
-                property of the
-                <literal>dists</literal>
-                task.
-            </para>
-        </section>
-        <section id='sub:adding_archives'>
-            <title>Adding Archives</title>
-            <para>The Bundle task has a couple of convenience methods for adding new archive tasks to it. Right now
-                there are the methods (<literal>jar</literal>, <literal>war</literal>, <literal>zip</literal>, <literal>
-                    tar</literal>, <literal>tarGz</literal>, <literal>tarBzip2</literal>). They all behave in the same
-                way.
-            </para>
-            <sample id="zip" dir="userguide/tutorial/zip">
-                <sourcefile file="build.gradle"/>
-                <output args="-q init"/>
-            </sample>
-            <para>This adds an archive task with the name <literal>archive_zip</literal>. It is important to distinguish
-                between the name of the archive task and the name of the archive generated by the archive task. The name
-                of the generated archive file is by default the name of the project. The default for naming generated
-                archives can be changed with the
-                <literal>archivesBaseName</literal>
-                project property. The name of the archive can be changed at any time later on. You can pass a closure to
-                the
-                <literal>zip()</literal>
-                method, which statements are applied against the newly created archive task object. In
-                <xref linkend='sec:archive_tasks'/>
-                you will learn more about which statements you can apply against a particular archive task. You could
-                for example change the name of the archive directly in the closure:
-            </para>
-            <sample id="zipWithCustomName" dir="userguide/tutorial/zipWithCustomName">
-                <sourcefile file="build.gradle"/>
-                <output args="-q init"/>
-            </sample>
-            <para>You can further customize the names by passing arguments to archive method of the bundle task:
-            </para>
-            <sample id="zipWithArguments" dir="userguide/tutorial/zipWithArguments">
-                <sourcefile file="build.gradle"/>
-                <output args="-q init"/>
-            </sample>
-        </section>
     </section>
+
+    <section>
+        <title>Adding archives</title>
+        <para>If you come from Maven you can have only one library JAR per project. With Gradle you can have as many as
+            you want. You can also add WAR, ZIP and TAR archives to your project. They are all added the same way, so
+            let's look at how you add a ZIP file.
+        </para>
+        <sample id="zip" dir="userguide/tutorial/zipProject">
+            <sourcefile file="build.gradle"/>
+            <output args="-q init"/>
+        </sample>
+        <para>This adds a Zip archive task with the name <literal>myZip</literal> which produces ZIP file
+            <filename>zipProject-1.0.zip</filename>. It is important to distinguish between the name of the archive task
+            and the name of the archive generated by the archive task. The name of the generated archive file is by
+            default the name of the project with the project version appended. The default name for archives can be
+            changed with the <literal>archivesBaseName</literal> project property. The name of the archive can also be
+            changed at any time later on.</para>
+        <para>There are a number of properties which you can set on an archive task. You can, for example, change the
+            name of the archive:
+        </para>
+        <sample id="zipWithCustomName" dir="userguide/tutorial/zipWithCustomName">
+            <sourcefile file="build.gradle"/>
+            <output args="-q init"/>
+        </sample>
+        <para>You can further customize the archive names:</para>
+        <sample id="zipWithArguments" dir="userguide/tutorial/zipWithArguments">
+            <sourcefile file="build.gradle"/>
+            <output args="-q init"/>
+        </sample>
+        <para>Often you will want to publish an archive, so that it is usable from another project. This process is
+            described in <xref linkend="artifact_management"/>
+        </para>
+
     <section id='sec:archive_tasks'>
         <title>Archive Tasks</title>
         <para>An archive task is a task which produces an archive at execution time. The following archives tasks are
@@ -912,7 +838,8 @@
                 <td>An arbitrary collection of files to include in the archive. In contrast to a
                     <literal>FileSet</literal> they don't need to have a common basedir. There are a number of ways
                     of creating a <literal>FileCollection</literal>. For example, the <literal>Configuration</literal>
-                    objects of a project implement <literal>FileCollection</literal>.
+                    objects of a project implement <literal>FileCollection</literal>. You can also obtain a
+                    <literal>FileCollection</literal> using the <literal>Project.files()</literal> method.
                 </td>
             </tr>
             <tr>
@@ -929,11 +856,11 @@
         <section id='sub:common_properties'>
             <title>Common Properties</title>
             <para>The name of the generated archive is assembled from the task properties <literal>baseName</literal>,
-                <literal>classifier</literal> and <literal>extension</literal> to:
-                <literal>baseName-project.version-classifier.extension</literal>.
+                <literal>appendix</literal>, <literal>version</literal>, <literal>classifier</literal> and
+                <literal>extension</literal> into
+                <literal><replaceable>baseName</replaceable>-<replaceable>appendix</replaceable>-<replaceable>version</replaceable>-<replaceable>classifier</replaceable>.<replaceable>extension</replaceable></literal>.
                 <footnote>
-                    <para>If the classifier is empty the trailing <literal>-</literal> is not added to the name. The
-                        same is true for the <literal>project.version</literal> property.
+                    <para>If any of these properties is empty the trailing <literal>-</literal> is not added to the name.
                     </para>
                 </footnote>
                 The assembled name is accessible via the <literal>archiveName</literal> property. The
@@ -949,37 +876,26 @@
         </section>
         <section id='sub:adding_content'>
             <title>Adding Content</title>
-            <para>To add content to an archive you must add file container to an archive (see <xref
-                    linkend='filecontainer'/>). You can add as many file containers as you like. They behave pretty much
+            <para>To add content to an archive you must add file container to an archive (see
+                <xref linkend='filecontainer'/>). You can add as many file containers as you like. They behave pretty much
                 the same as the Ant resources with similar names.
             </para>
-            <programlisting><![CDATA[
-myZipTask.fileSet(dir: 'contentDir') {
-	include('**/*.txt')
-	exclude('**/*.gif')
-}
-]]></programlisting>
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent">
+                <sourcefile file="build.gradle" snippet="file-set"/>
+            </sample>
             <para>You can add arbitrary files to an archive:
             </para>
-            <programlisting><![CDATA[
-myZipTask.files('path_to_file1', 'path_to_file2')
-]]></programlisting>
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent">
+                <sourcefile file="build.gradle" snippet="files"/>
+            </sample>
             <para>Other examples:
             </para>
-            <programlisting><![CDATA[
-myZipTask.zipFileSet(dir: 'contentDir') {
-	include('**/*.txt')
-	exclude('**/*.gif')
-	prefix = 'myprefix'
-}
-]]></programlisting>
-            <programlisting><![CDATA[
-myTarTask.tarFileSet(dir: 'contentDir') {
-	include('**/*.txt')
-	exclude('**/*.gif')
-	uid = 'myuid'
-}
-]]></programlisting>
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent">
+                <sourcefile file="build.gradle" snippet="zip-file-set"/>
+            </sample>
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent">
+                <sourcefile file="build.gradle" snippet="tar-file-set"/>
+            </sample>
             <para>There is also the option to add an arbitrary Ant expression describing an Ant resource.
             </para>
             <programlisting><![CDATA[
@@ -1025,8 +941,7 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
             <para>With this method you can assign a set of archives to be merged. Those archives have to be located
                 under the directory you pass as an argument. You can define filters what archives should be included.
                 They are always included fully and you can't specify a path. If you need this features, you must use the
-                <literal>merge</literal>
-                method.
+                <literal>merge</literal> method.
             </para>
         </section>
         <section id='sub:manifest'>
@@ -1055,12 +970,13 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
             <title>MetaInf</title>
             <para>The convention object of the Java Plugin has a <literal>metaInf</literal> property pointing to a list of
                 <classname>FileSet</classname> objects. With this file sets you can define which files should be in the
-                <filename>META-INF</filename> directory of a jar or a war archive.
+                <filename>META-INF</filename> directory of a JAR or a WAR archive.
             </para>
             <programlisting><![CDATA[
 metaInf << new FileSet(someDir)
 ]]></programlisting>
         </section>
+    </section>
     </section>
 
     <section id='sec:upload'>

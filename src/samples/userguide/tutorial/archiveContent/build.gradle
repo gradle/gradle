@@ -1,0 +1,36 @@
+usePlugin 'java'
+
+// START SNIPPET file-set
+task zipWithFileSet(type: Zip) {
+    fileSet(dir: 'contentDir') {
+        include('**/*.txt')
+        exclude('**/*.gif')
+    }
+}
+// END SNIPPET file-set
+
+// START SNIPPET files
+task zipWithFiles(type: Zip) {
+    files('path_to_file1', 'path_to_file2')
+}
+// END SNIPPET files
+
+// START SNIPPET zip-file-set
+task zipWithZipFileSet(type: Zip) {
+    zipFileSet(dir: 'contentDir') {
+        include('**/*.txt')
+        exclude('**/*.gif')
+        prefix = 'myprefix'
+    }
+}
+// END SNIPPET zip-file-set
+
+// START SNIPPET tar-file-set
+task tarWithFileSet(type: Tar) {
+    tarFileSet(dir: 'contentDir') {
+        include('**/*.txt')
+        exclude('**/*.gif')
+        uid = 'myuid'
+    }
+}
+// END SNIPPET tar-file-set
