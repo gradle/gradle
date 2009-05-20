@@ -10,8 +10,17 @@
     <section>
         <title>Defining Tasks</title>
         <para>We have already seen how to define tasks using a keyword style in <xref linkend="tutorial_using_tasks"/>.
-            There is an alternate syntax for defining tasks:
+            There are a few variations on this style, which you may need to use in certain situations. For example,
+            the keyword style does not work in expressions.
         </para>
+        <sample id="defineAsExpression" dir="userguide/tasks/defineAsExpression">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>You can also use strings for the task names:</para>
+        <sample id="defineUsingStringTaskNames" dir="userguide/tasks/defineUsingStringTaskNames">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>There is an alternate syntax for defining tasks, which you may prefer to use:</para>
         <sample id="addToTaskContainer" dir="userguide/tasks/addToTaskContainer">
             <sourcefile file="build.gradle"/>
         </sample>
@@ -32,12 +41,12 @@
         <sample id="accessFromTaskContainer" dir="userguide/tasks/accessFromTaskContainer">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>You can access tasks from any project using the task's path with the <literal>tasks.getByName()</literal>
-            or <literal>tasks.getByPath()</literal> methods. You can call the <literal>getByName()</literal> method
-            with a task name. You can call the <literal>getByPath()</literal> method with a task name, or a relative
-            path, or an absolute path.</para>
+        <para>You can access tasks from any project using the task's path using the <literal>tasks.getByPath()</literal>
+            method. You can call the <literal>getByPath()</literal> method with a task name, or a relative path, or an
+            absolute path.</para>
         <sample id="accessUsingPath" dir="userguide/tasks/accessUsingPath">
             <sourcefile file="build.gradle"/>
+            <output args="-q hello"/>
         </sample>
         <para>Have a look at <apilink class="org.gradle.api.tasks.TaskContainer"/> for more options for locating tasks.</para>
     </section>
@@ -66,7 +75,7 @@
             <sourcefile file="build.gradle"/>
         </sample>
         <para>This is similar to the way we would normally configure objects in Java. You have to repeat the context
-            (<literal>copyTask</literal>) in the configuration statement every time. This is a redundancy and not very
+            (<literal>copy</literal>) in the configuration statement every time. This is a redundancy and not very
             nice to read.
         </para>
         <para>There is a more convenient way of doing this.
@@ -85,7 +94,7 @@
         <sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>This works for <emphasis>any</emphasis> task. Line 2 of the example is just a shortcut for the
+        <para>This works for <emphasis>any</emphasis> task. Line 3 of the example is just a shortcut for the
             <literal>tasks.getByName()</literal> method. It is important to note that if you pass a closure to the
             <literal>getByName()</literal> method, this closure is applied to <emphasis>configure</emphasis> the task.
         </para>
@@ -96,6 +105,10 @@
         <para>Every task has a <literal>configure()</literal> method, which you can pass a closure for configuring the task.
             Gradle uses this style for configuring objects in many places, not just for tasks.
         </para>
+        <para>You can also use a configuration closure when you define a task.</para>
+        <sample id="configureUsingClosure" dir="userguide/tasks/defineAndConfigure">
+            <sourcefile file="build.gradle"/>
+        </sample>
     </section>
     <section id='sec:adding_dependencies_to_tasks'>
         <title>Adding Dependencies to Tasks</title>

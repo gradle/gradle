@@ -438,6 +438,7 @@ public interface Project extends Comparable<Project> {
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
+    @Deprecated
     Task createTask(String name) throws InvalidUserDataException;
 
     /**
@@ -455,6 +456,7 @@ public interface Project extends Comparable<Project> {
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
+    @Deprecated
     Task createTask(String name, TaskAction action) throws InvalidUserDataException;
 
     /**
@@ -487,6 +489,7 @@ public interface Project extends Comparable<Project> {
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
+    @Deprecated
     Task createTask(Map<String, ?> args, String name) throws InvalidUserDataException;
 
     /**
@@ -507,6 +510,7 @@ public interface Project extends Comparable<Project> {
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
+    @Deprecated
     Task createTask(Map<String, ?> args, String name, TaskAction action) throws InvalidUserDataException;
 
     /**
@@ -524,6 +528,7 @@ public interface Project extends Comparable<Project> {
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
+    @Deprecated
     Task createTask(String name, Closure action);
 
     /**
@@ -544,6 +549,7 @@ public interface Project extends Comparable<Project> {
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
+    @Deprecated
     Task createTask(Map<String, ?> args, String name, Closure action);
 
     /**

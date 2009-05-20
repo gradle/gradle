@@ -89,45 +89,31 @@ public interface TaskContainer extends TaskCollection<Task> {
     /**
      * <p>Creates a {@link Task} adds it to this container. A map of creation options can be passed to this method to
      * control how the task is created. See {@link #add(java.util.Map)} for the list of options available. The given
-     * closure is also added to the task as an action.</p>
+     * closure is used to configure the task before it is returned by this method.</p>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
      * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>
      *
      * @param options The task creation options.
-     * @param taskAction The action to add to the task.
+     * @param configureClosure The closure to use to configure the task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
-    Task add(Map<String, ?> options, Closure taskAction) throws InvalidUserDataException;
+    Task add(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException;
 
     /**
-     * <p>Creates a {@link Task} with the given name adds it to this container. The given action is added to the
-     * task.</p>
+     * <p>Creates a {@link Task} with the given name adds it to this container. The given closure is used to configure
+     * the task before it is returned by this method.</p>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
      * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>
      *
      * @param name The name of the task to be created
-     * @param taskAction The action to add to the task.
+     * @param configureClosure The closure to use to configure the task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
-    Task add(String name, TaskAction taskAction) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name adds it to this container. The given closure is added to the task
-     * as an action.</p>
-     *
-     * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
-     * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>
-     *
-     * @param name The name of the task to be created
-     * @param taskAction The action to add to the task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exsists in this project.
-     */
-    Task add(String name, Closure taskAction) throws InvalidUserDataException;
+    Task add(String name, Closure configureClosure) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this container.</p>

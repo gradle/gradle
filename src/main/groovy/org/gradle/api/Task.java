@@ -31,9 +31,17 @@ import java.util.Set;
 /**
  * <p>A <code>Task</code> represents a single step of a build, such as compiling classes or generating javadoc.</p>
  *
- * <p>Each task belongs to a {@link Project}. You can use the various methods on {@link Project} or {@link
+ * <p>Each task belongs to a {@link Project}. You can use the various methods on {@link
  * org.gradle.api.tasks.TaskContainer} to create and lookup task instances. For example, {@link
- * Project#createTask(String)} creates an empty task with the given name.</p>
+ * org.gradle.api.tasks.TaskContainer#add(String)} creates an empty task with the given name. You can also use the
+ * {@code task} keyword in your build file: </p>
+ * <pre>
+ * task myTask
+ * task myTask { configure closure }
+ * task myType &lt;&lt; { task action }
+ * task myTask(type: SomeType)
+ * task myTask(type: SomeType) { configure closure }
+ * </pre>
  *
  * <p>Each task has a name, which can be used to refer to the task within its owning project, and a fully qualified
  * path, which is unique across all tasks in all projects. The path is the concatenation of the owning project's path

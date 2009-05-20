@@ -83,7 +83,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "a = task('stringWithOptionsAndAction', description: 'description') << { }",
                 "a = task(withOptions, description: 'description')",
                 "a = task(withOptionsAndAction, description: 'description') << { }",
-                "a = task(anotherWithAction).doFirst {}",
+                "a = task(anotherWithAction).doFirst\n{}",
                 "task all(dependsOn: tasks.all)"
         );
         inTestDirectory().withTasks("all").run().assertTasksExecuted(":anotherWithAction", ":dynamic", ":emptyOptions",
@@ -96,7 +96,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").writelns(
                 "import org.gradle.integtests.TestTask",
                 "task withDescription { description = 'value' }",
-                "task(asMethod) { description = 'value' }",
+                "task(asMethod)\n{ description = 'value' }",
                 "task asStatement(type: TestTask) { property = 'value' }",
                 "task \"dynamic\"(type: TestTask) { property = 'value' }",
                 "v = task(asExpression, type: TestTask) { property = 'value' }",

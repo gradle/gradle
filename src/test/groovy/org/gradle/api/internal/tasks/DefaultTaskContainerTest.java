@@ -77,26 +77,15 @@ public class DefaultTaskContainerTest {
     }
 
     @Test
-    public void addsTaskWithNameAndAction() {
-        TaskAction action = context.mock(TaskAction.class);
-        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task", Task.TASK_ACTION, action);
+    public void addsTaskWithNameAndConfigureClosure() {
+        final Closure action = HelperUtil.toClosure("{ description = 'description' }");
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
         final Task task = task("task");
 
         context.checking(new Expectations(){{
             one(taskFactory).createTask(project, options);
             will(returnValue(task));
-        }});
-        assertThat(container.add("task", action), sameInstance(task));
-    }
-
-    @Test
-    public void addsTaskWithNameAndActionClosure() {
-        Closure action = HelperUtil.TEST_CLOSURE;
-        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task", Task.TASK_ACTION, action);
-        final Task task = task("task");
-
-        context.checking(new Expectations(){{
-            one(taskFactory).createTask(project, options);
+            one(task).configure(action);
             will(returnValue(task));
         }});
         assertThat(container.add("task", action), sameInstance(task));

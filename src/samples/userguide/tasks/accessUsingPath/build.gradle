@@ -4,8 +4,6 @@ project(':projectA') {
 
 task hello
 
-println tasks.getByName('hello').path
-
 println tasks.getByPath('hello').path
 println tasks.getByPath(':hello').path
 println tasks.getByPath('projectA:hello').path

@@ -1,6 +1,7 @@
 // START SNIPPET declare-task
 task copy(type: Copy)
 // END SNIPPET declare-task
+
 copy {
    from(file('resources'))
    into(file('target'))

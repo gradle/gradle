@@ -59,8 +59,8 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
         return task;
     }
 
-    public Task add(Map<String, ?> options, Closure taskAction) throws InvalidUserDataException {
-        return add(GUtil.addMaps(options, GUtil.map(Task.TASK_ACTION, taskAction)));
+    public Task add(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
+        return add(options).configure(configureClosure);
     }
 
     public <T extends Task> T add(String name, Class<T> type) {
@@ -75,12 +75,8 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
         return add(GUtil.map(Task.TASK_NAME, name, Task.TASK_OVERWRITE, true));
     }
 
-    public Task add(String name, TaskAction taskAction) {
-        return add(GUtil.map(Task.TASK_NAME, name, Task.TASK_ACTION, taskAction));
-    }
-
-    public Task add(String name, Closure taskAction) {
-        return add(GUtil.map(Task.TASK_NAME, name, Task.TASK_ACTION, taskAction));
+    public Task add(String name, Closure configureClosure) {
+        return add(GUtil.map(Task.TASK_NAME, name)).configure(configureClosure);
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {

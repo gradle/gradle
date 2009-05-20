@@ -1,5 +1,8 @@
-tasks.add(name: 'hello') {
+tasks.add(name: 'hello') << {
     println "hello"
 }
 
-tasks.add(name: 'copy', type: Copy)
+tasks.add(name: 'copy', type: Copy) {
+    from('srcDir')
+    to(buildDir)
+}

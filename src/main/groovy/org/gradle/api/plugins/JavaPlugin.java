@@ -70,6 +70,7 @@ public class JavaPlugin implements Plugin {
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
+    public static final String DISTS_CONFIGURATION_NAME = "dists";
 
     public void apply(Project project, PluginRegistry pluginRegistry) {
         apply(project, pluginRegistry, new HashMap<String, Object>());
@@ -305,7 +306,7 @@ public class JavaPlugin implements Plugin {
                 setDescription("Configuration for the default artifacts.");
         configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, archivesConfiguration).
                 setDescription("Configuration the default artifacts and its dependencies.");
-        configurations.add(DISTS_TASK_NAME);
+        configurations.add(DISTS_CONFIGURATION_NAME);
     }
 
     protected Compile configureCompileTests(Compile compileTests, final Compile compile, Map propertyMapping, ConfigurationContainer configurations) {
