@@ -148,22 +148,23 @@ dependencies {
 }
 
 distributionUploadUrl = null
-userguideRemoteDirRoot = 'userguide/'
-userguideRemoteDir = ''
-javadocRemoteDirRoot = 'api/'
+docsRemoteDir = ''
 javadocRemoteDir = ''
+groovydocRemoteDir = ''
 build.taskGraph.whenReady {graph ->
+    String prefix = ''
     if (graph.hasTask(':release')) {
         versionModifier = ''
         distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
-        userguideRemoteDir = userguideRemoteDirRoot + version
-        javadocRemoteDir = javadocRemoteDirRoot + version
+        prefix = version as String
     } else {
         versionModifier = new SimpleDateFormat('yyyyMMddHHmmssZ').format(buildTime)
         distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
-        userguideRemoteDir = userguideRemoteDirRoot + 'latest'
-        javadocRemoteDir = javadocRemoteDirRoot + "latest"
+        prefix = 'latest'
     }
+    docsRemoteDir = prefix + '/docs'
+    javadocRemoteDir = docsRemoteDir + '/javadoc'
+    groovydocRemoteDir = docsRemoteDir + '/groovydoc'
     manifest.mainAttributes([
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
             (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
@@ -376,21 +377,9 @@ javadoc {
     // todo: make this true
     failOnError = false
 }
-javadoc << {
+javadoc.doFirst {
     javadoc.title = "Gradle API $version"
     javadoc.options.docTitle = javadoc.title
-}
-
-task uploadJavadoc(dependsOn: javadoc) << {
-    ftp(action: 'mkdir', remotedir: javadocRemoteDir)
-    ftp(action: 'delete', remotedir: javadocRemoteDir) {
-        fileset() {include(name: '**/*')}
-    }
-    // todo: Ant ftp hangs sometimes. We might switch to platform ftp.
-    // The passive = true is an attempt to improve this. Yet it sometimes takes
-    ftp(action: 'send', remotedir: javadocRemoteDir, passive: true, binary: "no") {
-        fileset(dir: javadoc.destinationDir)
-    }
 }
 
 srcDocsDir = file('src/docs')
@@ -429,6 +418,7 @@ task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
 }
 userguideSrc.doFirst {
     userguideSrc.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+    userguideSrc.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
 }
 userguideSrc.skipProperties << 'skip.userguide'
 
@@ -511,25 +501,28 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
 }
 userguidePdf.skipProperties << 'skip.userguide'
 
-task uploadUserguide(dependsOn: [userguide]) << {
-    ftp(action: 'mkdir', remotedir: userguideRemoteDir)
-    ftp(action: 'delete', remotedir: userguideRemoteDir) {
+task uploadDocs(dependsOn: [userguide, javadoc, groovydoc]) << {
+    ftp(action: 'mkdir', remotedir: docsRemoteDir)
+    ftp(action: 'delete', remotedir: docsRemoteDir) {
         fileset() {
             include(name: '**/*')
         }
     }
-    ftp(action: 'send', remotedir: userguideRemoteDir) {
-        fileset(dir: userguideHtmlDir)
+    ftp(action: 'send', remotedir: docsRemoteDir) {
+        fileset(dir: explodedDistDocsDir)
     }
 }
 
 task distDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) {
-    javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
     standalone = true
     sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
     destFile = new File(docbookSrc, 'gettingStarted.xml')
     snippetsDir = project.snippetsDir
     classpath = configurations.userGuideTask
+}
+distDocs.doFirst {
+    distDocs.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+    distDocs.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
 }
 distDocs << {
     explodedDistDir.mkdirs()
@@ -550,12 +543,15 @@ distDocs << {
 }
 
 task websiteDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) {
-    javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
     standalone = true
     sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
     destFile = new File(docbookSrc, 'gettingStarted.xml')
     snippetsDir = project.snippetsDir
     classpath = configurations.userGuideTask
+}
+websiteDocs.doFirst {
+    websiteDocs.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+    websiteDocs.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
 }
 websiteDocs << {
     File websiteDocs = new File(buildDir, 'docs')
@@ -596,7 +592,7 @@ integTest.doFirst {
     }
 }
 
-task nightlyBuild(dependsOn: [integTest, uploadJavadoc, uploadUserguide])
+task nightlyBuild(dependsOn: [integTest, uploadDocs])
 
 task install(dependsOn: integTest, description: 'Installs the distribution into directory $gradle_installPath') << {
     ant.delete(dir: installDir)
@@ -663,7 +659,7 @@ task ide << {
     }
 }
 
-task release(dependsOn: [uploadDists, uploadUserguide, uploadJavadoc]) << {
+task release(dependsOn: [uploadDists, uploadDocs]) << {
     svn.release()
 }
 

@@ -31,8 +31,6 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     def transform() {
-        // todo - fix this url
-        groovydocUrl = 'fixme'
         version = project.version.toString()
 
         ['sourceFile', 'destFile', 'classpath', 'javadocUrl', 'groovydocUrl', 'snippetsDir'].each {
