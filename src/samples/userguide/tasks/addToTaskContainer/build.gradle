@@ -3,6 +3,6 @@ tasks.add(name: 'hello') << {
 }
 
 tasks.add(name: 'copy', type: Copy) {
-    from('srcDir')
-    to(buildDir)
+    from('srcDir' as File)
+    into(buildDir)
 }

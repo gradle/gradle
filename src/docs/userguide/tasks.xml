@@ -59,7 +59,7 @@
                 </para>
             </footnote>
         </para>
-        <sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure">
+        <sample id="declareTask" dir="userguide/tasks/configureUsingClosure">
             <sourcefile file="build.gradle" snippet="declare-task"/>
         </sample>
         <para>The copy task provides an API to configure it (see <apilink class="org.gradle.api.tasks.Copy"/>).
@@ -106,7 +106,7 @@
             Gradle uses this style for configuring objects in many places, not just for tasks.
         </para>
         <para>You can also use a configuration closure when you define a task.</para>
-        <sample id="configureUsingClosure" dir="userguide/tasks/defineAndConfigure">
+        <sample id="defineAndConfigure" dir="userguide/tasks/defineAndConfigure">
             <sourcefile file="build.gradle"/>
         </sample>
     </section>

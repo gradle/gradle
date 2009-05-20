@@ -4,5 +4,5 @@ task(hello) << {
 
 task(copy, type: Copy) {
     from(file('srcDir'))
-    to(buildDir)
+    into(buildDir)
 }
