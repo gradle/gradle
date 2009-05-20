@@ -15,7 +15,11 @@
   -->
 <xsl:stylesheet
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-    <xsl:import href="standaloneHtml.xsl"/>
+    <xsl:import href="html/docbook.xsl"/>
+    <xsl:import href="userGuideHtmlCommon.xsl"/>
+
+    <xsl:param name="section.autolabel">0</xsl:param>
+    <xsl:param name="chapter.autolabel">0</xsl:param>
 
     <xsl:template match="/">
         <xsl:apply-templates select="*"/>

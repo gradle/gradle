@@ -527,6 +527,7 @@ distDocs.doFirst {
 distDocs << {
     explodedDistDir.mkdirs()
 
+    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: docbookDir)
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
         arg(value: new File(docbookSrc , 'gettingStarted.xml'))
@@ -539,7 +540,6 @@ distDocs << {
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
-    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: explodedDistDir)
 }
 
 task websiteDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) {
