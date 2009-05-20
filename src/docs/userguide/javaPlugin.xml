@@ -118,7 +118,7 @@
                     <literal>upload<replaceable>ConfigurationName</replaceable></literal>
                 </td>
                 <td>
-                    The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
+                    The tasks which uploads the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
             </tr>
@@ -169,12 +169,14 @@
 
     <section>
         <title>Configurations</title>
-        <para>TBD</para>
+        <para>The Java plugin adds a number of configurations to your project, as shown in
+            <xref linkend="sec:java_plugin_and_dependency_management"/>.
+        To learn more about configurations see <xref linkend="sub:configurations"/> and
+        <xref linkend="artifacts_and_configurations"/></para>
     </section>
 
     <section>
         <title>Convention Properties</title>
-
         <para>
             The Java plugin adds the convention properties shown in <xref linkend='javaconventionDir'/> and
             <xref linkend='javaconventionNonDir'/>.
@@ -622,20 +624,20 @@
         </table>
         <para>The classpath of the compile task is derived from two sources. One is the
             <emphasis>configuration</emphasis>
-            assigned to the task by the dependency manager. The other classpath source is the
+            assigned to the task by the Java plugin. The other classpath source is the
             <literal>unmanagedClasspath</literal>
-            property: a list of files denoting a jar or a directory. Usually you create your classpath with the
-            dependency manager. The
+            property: a list of files denoting a jar or a directory. Usually you create your classpath via the
+            configuration. The
             <literal>unmanagedClasspath</literal>
             is used internally by Gradle. This classpath is not shared between projects in a multi-project build. Nor is
             it part of a dependency descriptor if you choose to upload your library to a repository. See
             <xref linkend='sec:java_plugin_and_dependency_management'/>
-            how the Java Plugin glues the tasks with the dependency manager and see the whole <xref linkend='dependency_management'/>
-            how to use the dependency manager.
+            how the Java plugin maps the configurations to the tasks. See also the whole chapter <xref linkend='dependency_management'/>
+            on dependency management.
         </para>
         <para>Have a look at <apilink class="org.gradle.api.tasks.compile.Compile"/>
-            to learn about the details. The compile task delegates to Ants javac task to do the compile. Via the compile
-            task you can set most of the properties of Ants javac task.
+            to learn about the details. The compile task delegates to Ants javac task to do the compile. You can set most
+            of the properties of Ants javac task.
         </para>
     </section>
 
@@ -670,7 +672,7 @@
 
         </table>
         <para>Have a look at <apilink class="org.gradle.api.tasks.testing.Test"/>
-            to learn more. Right now the test results are always in XML-format. The task has a
+            for its complete API. Right now the test results are always in XML-format. The task has a
             <literal>stopAtFailuresOrErrors</literal>
             property to control the behavior when tests are failing. Test
             <emphasis>always</emphasis>
@@ -697,9 +699,9 @@
             In case you don't want to use the test class detection, you can disable it by setting scanForTestClasses to false.
             This will make the test task only use the includes / excludes to find test classes.
 
-            The default include is
-            <literal>**/*Tests.class", "**/*Test.class</literal>
-            and the default exclude is <literal>**/Abstract*.class</literal>.
+            If <code>scanForTestClasses</code> is disabled and no include or exclude patterns are specified, the
+            respective defaults are used. For include this is <literal>**/*Tests.class", "**/*Test.class</literal>
+            and the for exclude it is <literal>**/Abstract*.class</literal>.
         </para>
         <para>Both JUnit and TestNG are supported through their Ant tasks.</para>
     </section>

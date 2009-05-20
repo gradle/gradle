@@ -9,7 +9,7 @@
             a project can provide as many artifacts as its like.
         </para>
     </section>
-    <section>
+    <section id="artifacts_and_configurations">
         <title>Artifacts and Configurations</title>
         <para>Like dependencies, artifacts are grouped by configurations. In fact, a configuration can contain
             both, artifacts and dependencies, at the same time. To assign an artifact to a configuration, you can write:
