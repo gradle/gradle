@@ -19,17 +19,31 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.FrameworkMethod;
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runner.Description;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.List;
+import java.util.ArrayList;
 
 public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
     private static GradleDistribution dist;
 
     public DistributionIntegrationTestRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
+    }
+
+    @Override
+    public void run(final RunNotifier notifier) {
+        if (System.getProperty("org.gradle.integtest.ignore") != null) {
+            notifier.fireTestIgnored(Description.createTestDescription(getTestClass().getJavaClass(),
+                    "System property to ignore integration tests is set."));
+        } else {
+            super.run(notifier);
+        }
     }
 
     @Override
