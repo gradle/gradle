@@ -49,13 +49,13 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
         if (!isTest) {
             final String superClassName = classVisitor.getSuperClassName();
 
-            if ( !"java/lang/Object".equals(superClassName) && !"groovy.lang.GroovyObject".equals(superClassName) ) {
+            if ( !"java/lang/Object".equals(superClassName) && !"groovy/lang/GroovyObject".equals(superClassName) ) {
                 final File superClassFile = getSuperTestClassFile(superClassName);
                 if ( superClassFile != null ) {
                     isTest = processPossibleTestClass(superClassFile);
                 }
                 else
-                    logger.warn("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
+                    logger.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
             }
         }
 

@@ -45,16 +45,16 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
 
         if (!isTest) {
             final String superClassName = classVisitor.getSuperClassName();
-            if ( "junit.framework.TestCase".equals(superClassName) || "groovy.util.GroovyTestCase".equals(superClassName) ) {
+            if ( "junit/framework/TestCase".equals(superClassName) || "groovy/util/GroovyTestCase".equals(superClassName) ) {
                 isTest = true;
             }
-            else if ( !"java/lang/Object".equals(superClassName) && !"groovy.lang.GroovyObject".equals(superClassName) ) {
+            else if ( !"java/lang/Object".equals(superClassName) && !"groovy/lang/GroovyObject".equals(superClassName) ) {
                 final File superClassFile = getSuperTestClassFile(superClassName);
                 if ( superClassFile != null ) {
                     isTest = processPossibleTestClass(superClassFile);
                 }
                 else
-                    logger.warn("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
+                    logger.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
             }
         }
 
