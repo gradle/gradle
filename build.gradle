@@ -360,7 +360,7 @@ jdk14AllZip.doFirst {Task task ->
 }
 
 artifacts {
-    tasks.findAll { task -> task.class == Zip }.each {
+    tasks.findAll {task -> task.name.matches('.*Zip') }.each {
         dists it
     }
 }
