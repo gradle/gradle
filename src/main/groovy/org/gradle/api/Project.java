@@ -413,19 +413,6 @@ public interface Project extends Comparable<Project> {
     Project usePlugin(Class<? extends Plugin> pluginClass);
 
     /**
-     * <p>Returns the {@link Task} from the project which has the given path. Relative paths are interpreted relative to
-     * this project. If no such task exists, an exception is thrown.</p>
-     *
-     * <p>You can also call this method in your build file using the task name. See <a href="#properties">here</a> for
-     * more details.</p>
-     *
-     * @param path the path of the task to be returned
-     * @return The task. Never returns null.
-     * @throws UnknownTaskException If no task with the given path exists.
-     */
-    Task task(String path) throws UnknownTaskException;
-
-    /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to
      * calling {@link #createTask(java.util.Map, String)} with an empty options map.</p>
      *
