@@ -24,7 +24,7 @@
                 </para>
             </listitem>
             <listitem>
-                <para>It hopas to be clear what are the first level dependencies and what are the transitive ones. There
+                <para>It hopes to be clear what are the first level dependencies and what are the transitive ones. There
                     are different ways to achieve this. We will look at this later.
                 </para>
             </listitem>
@@ -504,7 +504,7 @@ someroot/[artifact]-[revision].[ext]
         </para>
         <itemizedlist>
             <listitem>
-                <para>The IBibilio repository is can be down or has a very long response time.
+                <para>The IBibilio repository can be down or has a very long response time.
                 </para>
             </listitem>
             <listitem>

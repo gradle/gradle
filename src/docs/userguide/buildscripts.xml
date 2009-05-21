@@ -141,7 +141,7 @@
             </footnote>
         </para>
         <para>The second layer of Ant is its wealth of Ant tasks and types, like <literal>javac</literal>,
-            <literal>copy</literal> or<literal>jar</literal>. For this layer Gradle provides excellent integration
+            <literal>copy</literal> or <literal>jar</literal>. For this layer Gradle provides excellent integration
             simply by relying on Groovy. Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant
             tasks from Gradle is as convenient and more powerful than using Ant tasks from a
             <filename>build.xml</filename> file. Let's look at an example:

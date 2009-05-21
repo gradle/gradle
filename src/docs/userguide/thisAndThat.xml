@@ -189,7 +189,7 @@
         <title>Accessing the web via a proxy</title>
         <para>Setting a proxy for web access (for example for downloading dependencies) is easy. Gradle does not need to
             provide special functionality for this. The JVM can be instructed to go via proxy by setting certain system
-            properties. You could set this system properties directly in your build script with <literal>
+            properties. You could set these system properties directly in your build script with <literal>
                 System.properties['proxy.proxyUser'] = 'userid'</literal>. An arguably nicer way is shown in
             <xref linkend='sec:gradle_properties_and_system_properties'/>. Your gradle.properties file could look like
             this:
