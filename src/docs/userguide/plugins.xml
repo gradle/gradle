@@ -129,9 +129,9 @@ println convention.plugins.java.classesDir
             <para>A plugin is only called once for a given project, even if you have multiple
                 <literal>usePlugin()</literal>
                 statements. An additional call after the first call has no effect but doesn't hurt either. This can be
-                important if you use plugins which extends other plugins. For example
+                important if you use plugins which extend other plugins. For example
                 <literal>usePlugin('groovy')</literal>
-                calls also the Java Plugin. We say the Groovy plugin extend the Java plugin. But you might as well
+                calls also the Java Plugin. We say the Groovy plugin extends the Java plugin. But you might as well
                 write:
             </para>
             <programlisting><![CDATA[

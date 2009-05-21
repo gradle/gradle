@@ -37,7 +37,7 @@
             transitively. Let's say you add <literal>commons-httpclient:commons-httpclient:3.0</literal> to any of the
             provided configurations. This dependency has a dependency on <literal>commons-codec</literal>.
             This means neither <literal>httpclient</literal> nor <literal>commons-codec</literal> is added to your
-            WAR, even if <literal>commons-code</literal> were an explicit dependency of your <literal>compile</literal>
+            WAR, even if <literal>commons-codec</literal> were an explicit dependency of your <literal>compile</literal>
             configuration. If you don't want this transitive behavior, simply declare your <literal>provided</literal>
             dependencies like <literal>commons-httpclient:commons-httpclient:3.0@jar</literal>.
         </para>

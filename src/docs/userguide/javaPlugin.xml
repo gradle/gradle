@@ -696,8 +696,8 @@
             by setting forking to false or set the forkmode to once.
         </para>
         <para>The Test task detects which classes are test classes by inspecting the compiled test classes.
-            By Default it scans all <emphasis>.class</emphasis> files. You can set custom includes / excludes, only those
-            classes will be scanned.Depending on the Test framework used (JUnit / TestNG) the test class detection uses different criteria.
+            By default it scans all <emphasis>.class</emphasis> files. You can set custom includes / excludes, only those
+            classes will be scanned. Depending on the Test framework used (JUnit / TestNG) the test class detection uses different criteria.
         </para>
         <para>
             When using JUnit, we scan for both JUnit 3 and 4 test classes. If any of the following criteria match the
