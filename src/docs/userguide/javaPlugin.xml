@@ -708,6 +708,10 @@
             When using TestNG, we scan for methods annotated with Test (inherited test methods are detected).
         </para>
         <para>
+            The test class detection has 1 limitation:
+            It doesn't scan into jar files. This is something that we plan to add in an upcoming release. 
+        </para>
+        <para>
             In case you don't want to use the test class detection, you can disable it by setting scanForTestClasses to false.
             This will make the test task only use the includes / excludes to find test classes.
 
