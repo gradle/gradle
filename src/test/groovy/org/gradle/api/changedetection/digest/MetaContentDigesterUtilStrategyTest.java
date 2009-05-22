@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
-import static org.testng.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.security.MessageDigest;
 import java.io.IOException;

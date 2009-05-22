@@ -6,7 +6,7 @@ import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.HelperUtil;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
-import static org.testng.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
