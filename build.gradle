@@ -127,6 +127,7 @@ dependencies {
             "ch.qos.logback:logback-core:0.9.9@jar",
             "commons-io:commons-io:1.4@jar",
             "commons-lang:commons-lang:2.3@jar",
+            "commons-codec:commons-codec:1.2@jar",
             "slide:webdavlib:2.0@jar",
             "biz.aQute:bndlib:0.0.255@jar",
             "org.apache.maven:maven-ant-tasks:2.0.9@jar",

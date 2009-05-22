@@ -21,10 +21,7 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Date;
+import java.util.*;
 import java.util.zip.Checksum;
 import java.net.URL;
 
@@ -448,5 +445,62 @@ public class GFileUtils {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static List<File> getSubDirectories(File directory) {
+        final List<File> subDirectories = new ArrayList<File>();
+
+        addSubDirectories(directory, subDirectories);
+
+        return subDirectories;
+    }
+
+    public static void addSubDirectories(final File directory, final Collection<File> subDirectories) {
+        final File[] subFiles = directory.listFiles();
+
+        if ( subFiles != null && subFiles.length > 0 ) {
+            for ( final File subFile : subFiles ) {
+                if ( subFile.isDirectory() ) {
+                    subDirectories.add(subFile);
+                    addSubDirectories(subFile, subDirectories);
+                }
+                // ignore files
+            }
+        }
+    }
+
+    public static List<File> getSubFiles(File directory) {
+        final List<File> subFilesList = new ArrayList<File>();
+
+        final File[] subFiles = directory.listFiles();
+        if ( subFiles != null && subFiles.length > 0 ) {
+            for ( final File subFile : subFiles ) {
+                if ( subFile.isFile() ) {
+                    subFilesList.add(subFile);
+                }
+            }
+        }
+
+        return subFilesList;
+    }
+
+    public static boolean createDirectoriesWhenNotExistent(File ... directories) {
+        if ( directories != null && directories.length > 0 ) {
+            boolean directoriesCreated = true;
+            int directoriesIndex = 0;
+
+            while ( directoriesCreated && directoriesIndex < directories.length ) {
+                final File currentDirectory = directories[directoriesIndex];
+
+                if ( !currentDirectory.exists() )
+                    directoriesCreated = currentDirectory.mkdirs();
+
+                directoriesIndex++;
+            }
+
+            return directoriesCreated;
+        }
+        else
+            return true;
     }
 }

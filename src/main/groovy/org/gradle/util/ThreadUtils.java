@@ -2,11 +2,22 @@ package org.gradle.util;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 
 /**
  * @author Tom Eyckmans
  */
 public class ThreadUtils {
+
+    public static int threadPoolSize(int minimalSize) {
+        int threadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
+        if ( threadPoolSize < minimalSize ) threadPoolSize = minimalSize;
+        return threadPoolSize;
+    }
+
+    public static ExecutorService newFixedThreadPool(int minimalSize) {
+        return Executors.newFixedThreadPool(threadPoolSize(minimalSize));
+    }
 
     public static <T extends Thread> void join(T threadToJoinWith) {
         join(threadToJoinWith, new IgnoreInterruptHandler<T>());
