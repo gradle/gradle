@@ -105,7 +105,6 @@ public class JUnitTestFramework extends AbstractTestFramework {
     }
 
     public boolean isTestClass(File testClassFile) {
-        logger.debug("test-class-scan [scanning] : {} ", testClassFile);
         return detector.processPossibleTestClass(testClassFile);
     }
 
