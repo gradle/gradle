@@ -4,31 +4,35 @@
         <title>Skipping Tasks</title>
         <para>Gradle offers multiple ways to skip the execution of a task.
         </para>
-        <sample id="skipProperties" dir="userguide/tutorial/skipProperties">
-            <sourcefile file="build.gradle"/>
-            <output args="-DmySkipProperty skipMe"/>
-        </sample>
-        <para>The <option>-D</option> option of the <command>gradle</command> command has the same effect as the
-            <option>-D</option> option of the <command>java</command> command. This way you can set system properties
-            of the JVM that runs Gradle. You can use this to add one or more <emphasis>skip properties</emphasis>
-            to any task. If the corresponding system property is set to any value
-                <footnote><para>The statement <option>-Dprop</option> sets the property to empty string, thus you
-                don't need to type more to skip a task.</para></footnote>
-            except false (case does not matter), the actions of the task don't get executed. But often you don't even
-            need to set the skip properties. If you set a system property according to the pattern
-            <literal>skip.<emphasis>taskname</emphasis></literal>, the actions of the task don't get executed.
-        </para>
+        <para>You can set system property named <literal>skip.<emphasis>taskname</emphasis></literal> or pass such property as a parameter to the <command>gradle</command> command using <option>-D</option> option (see <xref linkend='sec:gradle_properties_and_system_properties' />).</para>
         <sample id="autoskip" dir="userguide/tutorial/autoskip">
             <sourcefile file="build.gradle"/>
             <output args="-Dskip.autoskip autoskip"/>
         </sample>
-        <para>If you want tasks to be skipped, that depends on a skipped task, you have to declare this explicitly via
-            the skip properties
+        <para>You can also choose another another property that can be used to skip a task.</para>
+        <sample id="skipProperties" dir="userguide/tutorial/skipProperties">
+            <sourcefile file="build.gradle"/>
+            <output args="-DmySkipProperty skipMe"/>
+        </sample>
+        <para>You can use this to add one or more <emphasis>skip properties</emphasis>
+            to any task.</para>
+            <para>In both cases if the corresponding system property is set to any value
+                <footnote><para>The statement <option>-Dprop</option> sets the property to empty string, thus you
+                don't need to type more to skip a task.</para></footnote>
+            except false (case does not matter), the actions of the task don't get executed.
+        </para>
+        <section>
+        <title>Skipping depending tasks</title>
+        <para>By default tasks that depends on skipped task get executed. If you want to skip them, you have to declare this explicitly via
+            the skip properties.
         </para>
         <sample id="autoskipDepends" dir="userguide/tutorial/autoskipDepends">
             <sourcefile file="build.gradle"/>
             <output args="-Dskip.autoskip depends"/>
         </sample>
+        </section>
+        <section>
+        <title>Using StopExecutionException</title>
         <para>If the rules for skipping a task can't be expressed with a simple property, you can use the
             <apilink class="org.gradle.api.tasks.StopExecutionException"/>. If this exception is thrown by an action,
             the further execution of this action as well as the execution of
@@ -46,14 +50,18 @@
             nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports
             to your script. These imports are customizable (see <xref linkend='ide_support'/>).
         </para>
+        </section>
+        <section>
+        <title>Enabling and disabling tasks</title>
         <para>Every task has also a <literal>enabled</literal>
-            flag which defaults to <literal>true</literal>. Setting it to false prevents the execution of any of the
-            tasks actions.
+            flag which defaults to <literal>true</literal>. Setting it to <literal>false</literal> prevents the execution of any of the
+            task's actions.
         </para>
         <sample id="disableTask" dir="userguide/tutorial/disableTask">
             <sourcefile file="build.gradle"/>
             <output args="disableMe"/>
         </sample>
+        </section>
     </section>
     <section>
         <title>Obtaining Information About Your Build</title>
@@ -125,8 +133,9 @@
     <section id='sec:gradle_properties_and_system_properties'>
         <title>Gradle Properties and System Properties</title>
         <para>Gradle offers a variety of ways to add properties to your build. With the
-            <literal>-D</literal>
-            command line option you can pass a system property to the JVM which runs Gradle.
+            <option>-D</option>
+            command line option you can pass a system property to the JVM which runs Gradle. The <option>-D</option> option of the <command>gradle</command> command has the same effect as the
+            <option>-D</option> option of the <command>java</command> command.
         </para>
         <para>There is also the possibility to directly add properties to your project objects. You can place a
             <filename>gradle.properties</filename>
