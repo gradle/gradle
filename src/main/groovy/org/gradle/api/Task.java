@@ -378,7 +378,7 @@ public interface Task extends Comparable<Task> {
      * @param name The name of the property
      * @param value The value of the property
      */
-    void defineProperty(String name, Object value); // We can't call this method setProperty as this lead to polymorphism problems with Groovy.;
+    void setProperty(String name, Object value);
 
     /**
      * <p>Returns the {@link Convention} object for this task. A {@link Plugin} can use the convention object to

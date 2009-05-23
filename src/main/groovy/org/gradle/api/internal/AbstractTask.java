@@ -319,7 +319,11 @@ public abstract class AbstractTask implements TaskInternal {
         return dynamicObjectHelper.hasProperty(propertyName);
     }
 
-    public void defineProperty(String name, Object value) {
+    public void setProperty(String name, Object value) {
+        dynamicObjectHelper.setProperty(name, value);
+    }
+
+    protected void defineProperty(String name, Object value) {
         dynamicObjectHelper.setProperty(name, value);
     }
 
