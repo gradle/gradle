@@ -24,9 +24,8 @@ import java.io.File;
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesSimilarlyNamedBuildFilesInSameDirectory() {
-        File buildFile1 = getTestBuildFile("similarly-named build.gradle");
-        File buildFile2 = getTestBuildFile("similarly_named_build_gradle");
-        assertEquals(buildFile1.getParentFile(), buildFile2.getParentFile());
+        TestFile buildFile1 = testFile("similarly-named build.gradle").write("task build");
+        TestFile buildFile2 = testFile("similarly_named_build_gradle").write("task 'other-build'");
 
         usingBuildFile(buildFile1).withTasks("build").run();
 

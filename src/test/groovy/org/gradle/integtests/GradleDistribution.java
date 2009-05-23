@@ -10,4 +10,9 @@ public interface GradleDistribution {
     File getUserGuideInfoDir();
 
     File getUserGuideOutputDir();
+
+    /**
+     * Returns a scratch-pad directory for the current test.
+     */
+    TestFile getTestDir();
 }

@@ -1,5 +1,5 @@
 usePlugin 'java'
-task myZipTask
+task myZipTask(type: Zip)
 
 // START SNIPPET main-attributes
 // START SNIPPET custom-manifest

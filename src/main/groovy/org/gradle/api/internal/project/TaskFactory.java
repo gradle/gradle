@@ -72,10 +72,6 @@ public class TaskFactory implements ITaskFactory {
                     type.getSimpleName()));
         }
 
-        if (generateGetters && ConventionTask.class.isAssignableFrom(type)) {
-            type = generateSubclass(type);
-        }
-
         Constructor constructor;
         try {
             constructor = type.getDeclaredConstructor(Project.class, String.class);
@@ -83,6 +79,15 @@ public class TaskFactory implements ITaskFactory {
             throw new GradleException(String.format(
                     "Cannot create task of type '%s' as it does not have an appropriate public constructor.",
                     type.getSimpleName()));
+        }
+
+        if (generateGetters && ConventionTask.class.isAssignableFrom(type)) {
+            Class<?> generatedType = generateSubclass(type);
+            try {
+                constructor = generatedType.getDeclaredConstructor(Project.class, String.class);
+            } catch (NoSuchMethodException e) {
+                throw new GradleException(e);
+            }
         }
 
         try {
@@ -104,7 +109,9 @@ public class TaskFactory implements ITaskFactory {
         String className = type.getSimpleName() + "_WithConventionMapping";
 
         Formatter src = new Formatter();
-        src.format("package %s;%n", type.getPackage().getName());
+        if (type.getPackage() != null) {
+            src.format("package %s;%n", type.getPackage().getName());
+        }
         src.format("public class %s extends %s {%n", className, type.getName().replaceAll("\\$", "."));
         src.format("public %s(org.gradle.api.Project project, String name) { super(project, name); }%n", className);
         MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
@@ -123,6 +130,8 @@ public class TaskFactory implements ITaskFactory {
                 }
             }
         }
+        src.format("void setProperty(String name, Object value) { defineProperty(name, value); }%n");
+        src.format("def propertyMissing(String name) { property(name); }%n");
         src.format("}");
 
         GroovyClassLoader classLoader = new GroovyClassLoader(type.getClassLoader());

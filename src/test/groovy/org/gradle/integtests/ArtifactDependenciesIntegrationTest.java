@@ -16,14 +16,13 @@
 package org.gradle.integtests;
 
 import org.junit.Test;
-import org.junit.Assert;
 
 import java.io.File;
 
 public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void dependencyReportWithConflicts() {
-        File buildFile = getTestBuildFile("project-with-conflicts.gradle");
+        File buildFile = getTestBuildFile("projectWithConflicts.gradle");
         getTestBuildFile("projectA-1.2-ivy.xml");
         getTestBuildFile("projectB-1.5-ivy.xml");
         getTestBuildFile("projectB-2.1.5-ivy.xml");
@@ -36,7 +35,7 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
 
     @Test
     public void nestedModules() {
-        File buildFile = getTestBuildFile("project-with-nested-modules.gradle");
+        File buildFile = getTestBuildFile("projectWithNestedModules.gradle");
         testFile("projectA-1.2.jar").touch();
         testFile("projectB-1.5.jar").touch();
         testFile("projectC-2.0.jar").touch();
