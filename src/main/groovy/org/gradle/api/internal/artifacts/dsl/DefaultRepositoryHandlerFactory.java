@@ -15,45 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
+import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultRepositoryHandlerFactory implements RepositoryHandlerFactory {
     private ResolverFactory repositoryFactory;
-    private Convention convention;
-    private Map<String, ConventionValue> conventionMapping = new HashMap<String, ConventionValue>();
 
     public DefaultRepositoryHandlerFactory(ResolverFactory repositoryFactory) {
         this.repositoryFactory = repositoryFactory;
     }
 
-    public DefaultRepositoryHandler createRepositoryHandler() {
-        DefaultRepositoryHandler repositoryHandler = new DefaultRepositoryHandler(repositoryFactory, convention);
-        repositoryHandler.setConventionMapping(conventionMapping);
-        return repositoryHandler;
-    }
-
-    public Map<String, ConventionValue> getConventionMapping() {
-        return conventionMapping;
-    }
-
-    public void setConventionMapping(Map<String, ConventionValue> conventionMapping) {
-        this.conventionMapping = conventionMapping;
-    }
-
-    public Convention getConvention() {
-        return convention;
-    }
-
-    public void setConvention(Convention convention) {
-        this.convention = convention;
+    public DefaultRepositoryHandler createRepositoryHandler(Convention convention) {
+        return new DefaultRepositoryHandler(repositoryFactory, convention);
     }
 }

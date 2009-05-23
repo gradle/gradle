@@ -177,8 +177,7 @@ public abstract class AbstractProject implements ProjectInternal {
                 createDependencyMetaDataProvider(),
                 build.getStartParameter().getProjectDependenciesBuildInstruction());
         this.repositoryHandlerFactory = repositoryHandlerFactory;
-        this.repositoryHandlerFactory.setConvention(convention);
-        this.repositoryHandler = repositoryHandlerFactory.createRepositoryHandler();
+        this.repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(convention);
         this.dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory, new ProjectFinder() {
             public Project getProject(String path) {
                 return project(path);
@@ -260,7 +259,9 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public RepositoryHandler createRepositoryHandler() {
-        return repositoryHandlerFactory.createRepositoryHandler();
+        RepositoryHandler handler = repositoryHandlerFactory.createRepositoryHandler(getConvention());
+        handler.setConventionMapping(repositoryHandler.getConventionMapping());
+        return handler;
     }
 
     public Project getRootProject() {

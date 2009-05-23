@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.ConventionAwareHelper;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
@@ -42,7 +43,7 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultResolverContainer extends DefaultDomainObjectContainer<DependencyResolver>
-        implements ResolverContainer {
+        implements ResolverContainer, IConventionAware {
     private ConventionAwareHelper conventionAwareHelper;
 
     private ResolverFactory resolverFactory;
@@ -207,8 +208,8 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
         return resolverFactory.createMavenInstaller(name, getMavenPomDir(), getConfigurationContainer(), getMavenScopeMappings());
     }
 
-    public Task conventionMapping(Map<String, ConventionValue> mapping) {
-        return (Task) conventionAwareHelper.conventionMapping(mapping);
+    public Object conventionMapping(Map<String, ConventionValue> mapping) {
+        return conventionAwareHelper.conventionMapping(mapping);
     }
 
     public Object conventionProperty(String name) {

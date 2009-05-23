@@ -57,7 +57,7 @@ import java.util.Set;
  *
  * @author Hans Dockter
  */
-public interface ResolverContainer extends IConventionAware, Iterable<DependencyResolver> {
+public interface ResolverContainer extends Iterable<DependencyResolver> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
     String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";

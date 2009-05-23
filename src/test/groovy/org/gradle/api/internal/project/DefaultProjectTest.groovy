@@ -137,8 +137,7 @@ class DefaultProjectTest {
             configurationContainerMock}] as ConfigurationContainerFactory
         repositoryHandlerMock =  context.mock(RepositoryHandler.class);
         context.checking {
-          allowing(repositoryHandlerFactoryMock).setConvention(withParam(any(Convention)))
-          allowing(repositoryHandlerFactoryMock).createRepositoryHandler(); will(returnValue(repositoryHandlerMock))
+          allowing(repositoryHandlerFactoryMock).createRepositoryHandler(withParam(any(Convention))); will(returnValue(repositoryHandlerMock))
         }
         script = context.mock(ScriptSource.class)
         context.checking {
@@ -180,7 +179,12 @@ class DefaultProjectTest {
     }
 
   @Test void testRepositories() {
-        assertThat(project.createRepositoryHandler(), sameInstance(repositoryHandlerMock))
+      context.checking {
+        allowing(repositoryHandlerFactoryMock).createRepositoryHandler(withParam(any(Convention))); will(returnValue(repositoryHandlerMock))
+        one(repositoryHandlerMock).getConventionMapping(); will(returnValue([:]))
+        one(repositoryHandlerMock).setConventionMapping([:])
+      }
+      assertThat(project.createRepositoryHandler(), sameInstance(repositoryHandlerMock))
   }
 
   @Ignore void testArtifacts() {

@@ -72,7 +72,7 @@ public class MavenPlugin implements Plugin {
                         return ((MavenPluginConvention) convention.getPlugins().get("maven")).getConf2ScopeMappings();
                     }
                 });
-        project.getRepositoryHandlerFactory().getConventionMapping().putAll(mapping);
+        project.getRepositories().conventionMapping(mapping);
     }
 
     private void addConventionObject(Project project, Map<String, ?> customValues) {

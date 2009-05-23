@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.groovy.scripts.FileScriptSource;
@@ -79,9 +78,8 @@ public class ProjectFactoryTest {
     @Before
     public void setUp() throws Exception {
         context.checking(new Expectations() {{
-            allowing(repositoryHandlerFactory).createRepositoryHandler();
+            allowing(repositoryHandlerFactory).createRepositoryHandler(with(any(Convention.class)));
             will(returnValue(repositoryHandler));
-            allowing(repositoryHandlerFactory).setConvention(with(any(Convention.class)));
         }});
         context.checking(new Expectations() {{
             allowing(build).getStartParameter();
