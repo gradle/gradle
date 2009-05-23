@@ -15,23 +15,21 @@
  */
 package org.gradle.integtests;
 
+import org.gradle.api.UncheckedIOException;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.HelperUtil;
+import org.junit.runner.Description;
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
+import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runner.notification.RunNotifier;
-import org.junit.runner.Description;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.List;
-import java.util.ArrayList;
 
 public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
-    private static GradleDistribution dist;
-
     public DistributionIntegrationTestRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
     }
@@ -75,33 +73,35 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         }
     }
 
-    private static GradleDistribution getDist() throws IOException {
-        if (dist == null) {
-            final File gradleHomeDir = file("integTest.gradleHomeDir", new File("build/distributions/exploded"));
-            final File samplesDir = new File(gradleHomeDir, "samples");
-            File srcDir = file("integTest.srcDir", new File("src"));
-            final File userGuideOutputDir = new File(srcDir, "samples/userguideOutput");
-            final File userGuideInfoDir = file("integTest.userGuideInfoDir", new File("build/docbook/src"));
+    private GradleDistribution getDist() throws IOException {
+        final File gradleHomeDir = file("integTest.gradleHomeDir", new File("build/distributions/exploded"));
+        final File samplesDir = new File(gradleHomeDir, "samples");
+        File srcDir = file("integTest.srcDir", new File("src"));
+        final File userGuideOutputDir = new File(srcDir, "samples/userguideOutput");
+        final File userGuideInfoDir = file("integTest.userGuideInfoDir", new File("build/docbook/src"));
+        final TestFile testDir = new TestFile(GFileUtils.canonicalise(HelperUtil.makeNewTestDir()));
 
-            dist = new GradleDistribution() {
-                public File getGradleHomeDir() {
-                    return gradleHomeDir;
-                }
+        return new GradleDistribution() {
+            public File getGradleHomeDir() {
+                return gradleHomeDir;
+            }
 
-                public File getSamplesDir() {
-                    return samplesDir;
-                }
+            public File getSamplesDir() {
+                return samplesDir;
+            }
 
-                public File getUserGuideInfoDir() {
-                    return userGuideInfoDir;
-                }
+            public File getUserGuideInfoDir() {
+                return userGuideInfoDir;
+            }
 
-                public File getUserGuideOutputDir() {
-                    return userGuideOutputDir;
-                }
-            };
-        }
-        return dist;
+            public File getUserGuideOutputDir() {
+                return userGuideOutputDir;
+            }
+
+            public TestFile getTestDir() {
+                return testDir;
+            }
+        };
     }
 
     private static File file(String propertyName, File defaultFile) {

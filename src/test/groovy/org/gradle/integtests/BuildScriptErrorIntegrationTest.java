@@ -84,7 +84,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void reportsTaskActionExecutionFailsWithRuntimeException() {
-        File buildFile = getTestBuildFile("task-action-execution-failure.gradle");
+        File buildFile = getTestBuildFile("taskActionExecutionFailure.gradle");
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenClosure").runWithFailure();
 
@@ -96,7 +96,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void reportsTaskActionExecutionFailsFromJavaWithRuntimeException() {
-        File buildFile = getTestBuildFile("task-action-execution-failure.gradle");
+        File buildFile = getTestBuildFile("taskActionExecutionFailure.gradle");
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenJavaTask").runWithFailure();
 

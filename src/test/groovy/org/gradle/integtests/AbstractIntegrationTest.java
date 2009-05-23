@@ -50,7 +50,7 @@ public class AbstractIntegrationTest {
 
     protected File getTestBuildFile(String name) {
         URL resource = getClass().getResource("testProjects/" + name);
-        assertThat(resource, notNullValue());
+        assertThat(String.format("Could not find resource '%s'", name), resource, notNullValue());
         assertThat(resource.getProtocol(), equalTo("file"));
         File sourceFile;
         try {

@@ -15,63 +15,106 @@
  */
 package org.gradle.integtests;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-public class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
-    public static String result;
+import java.io.File;
 
-    @Before
-    public void setUp() {
-        result = null;
-    }
+@RunWith(DistributionIntegrationTestRunner.class)
+public class DynamicObjectIntegrationTest {
+    // Injected by test runner
+    private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void canAddDynamicPropertiesToProject() {
-        testFile("settings.gradle").writelns("include 'child'");
-        testFile("build.gradle").writelns(
+        TestFile testDir = dist.getTestDir();
+        testDir.file("settings.gradle").writelns("include 'child'");
+        testDir.file("build.gradle").writelns(
                 "rootProperty = 'root'",
                 "sharedProperty = 'ignore me'",
-                "convention.plugins.test = new " + ConventionBean.class.getName() + "()",
+                "convention.plugins.test = new ConventionBean()",
                 "task rootTask",
-                "task testTask"
+                "task testTask",
+                "class ConventionBean { def getConventionProperty() { 'convention' } }"
         );
-        testFile("child/build.gradle").writelns(
+        testDir.file("child/build.gradle").writelns(
+                "import static org.junit.Assert.*",
                 "childProperty = 'child'",
                 "sharedProperty = 'shared'",
                 "task testTask << {",
-                DynamicObjectIntegrationTestHelper.class.getName() + ".reportProperties(project)",
+                "  new Reporter().checkProperties(project)",
+                "}",
+                // Use a separate class, to isolate Project from the script
+                "class Reporter {",
+                "  def checkProperties(object) {",
+                "    assertEquals('root', object.rootProperty)",
+                "    assertEquals('child', object.childProperty)",
+                "    assertEquals('shared', object.sharedProperty)",
+                "    assertEquals('convention', object.conventionProperty)",
+                "    assertEquals(':child:testTask', object.testTask.path)",
+                "    try { object.rootTask; fail() } catch (MissingPropertyException e) { }",
+                "  }",
                 "}"
         );
 
-        inTestDirectory().withTasks("testTask").run();
-
-        assertThat(result, equalTo("root,child,shared,convention,task ':child:testTask'"));
+        executer.inDirectory(testDir.asFile()).withTasks("testTask").run();
     }
 
     @Test
     public void canAddDynamicMethodsToProject() {
-        testFile("settings.gradle").writelns("include 'child'");
-        testFile("build.gradle").writelns(
+        TestFile testDir = dist.getTestDir();
+        testDir.file("settings.gradle").writelns("include 'child'");
+        testDir.file("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
                 "def sharedMethod(p) { 'ignore me' }",
-                "convention.plugins.test = new " + ConventionBean.class.getName() + "()",
+                "convention.plugins.test = new ConventionBean()",
                 "task rootTask",
-                "task testTask"
+                "task testTask",
+                "class ConventionBean { def conventionMethod(name) { 'convention' + name } }"
         );
-        testFile("child/build.gradle").writelns(
+        testDir.file("child/build.gradle").writelns(
+                "import static org.junit.Assert.*",
                 "def childMethod(p) { 'child' + p }",
                 "def sharedMethod(p) { 'shared' + p }",
                 "task testTask << {",
-                DynamicObjectIntegrationTestHelper.class.getName() + ".reportMethods(project)",
+                "  new Reporter().checkMethods(project)",
+                "}",
+                // Use a separate class, to isolate Project from the script
+                "class Reporter {",
+                "  def checkMethods(object) {",
+                "    assertEquals('rootMethod', object.rootMethod('Method'))",
+                "    assertEquals('childMethod', object.childMethod('Method'))",
+                "    assertEquals('sharedMethod', object.sharedMethod('Method'))",
+                "    assertEquals('conventionMethod', object.conventionMethod('Method'))",
+                "    object.testTask { assertEquals(':child:testTask', delegate.path) }",
+                "    try { object.rootTask { }; fail() } catch (MissingMethodException e) { }",
+                "  }",
                 "}"
         );
 
-        inTestDirectory().withTasks("testTask").run();
-
-        assertThat(result, equalTo("rootMethod,childMethod,sharedMethod,conventionMethod,task ':child:testTask'"));
+        executer.inDirectory(testDir.asFile()).withTasks("testTask").run();
     }
 
+    @Test
+    public void canAddDynamicPropertiesToTasks() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("build.gradle").writelns(
+                "task defaultTask {",
+                "    custom = 'value'",
+                "}",
+                "task javaTask(type: Copy) {",
+                "    custom = 'value'",
+                "}",
+                "task groovyTask(type: Zip) {",
+                "    custom = 'value'",
+                "}",
+                "defaultTask.custom = 'another value'",
+                "javaTask.custom = 'another value'",
+                "groovyTask.custom = 'another value'"
+        );
+
+        executer.inDirectory(testDir.asFile()).withTasks("defaultTask").run();
+    }
 }
