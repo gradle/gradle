@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.dsl;
+package org.gradle.integtests;
 
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.junit.Test;
 
-import java.util.Map;
-
-/**
- * @author Hans Dockter
- */
-public interface RepositoryHandlerFactory {
-    RepositoryHandler createRepositoryHandler(Convention convention);
+public class MavenProjectIntegrationTest extends AbstractIntegrationTest {
+    @Test
+    public void handlesSubProjectsWithoutTheMavenPluginApplied() {
+        testFile("settings.gradle").write("include 'subProject'");
+        testFile("build.gradle").writelns(
+                "usePlugin 'java'",
+                "usePlugin 'maven'"
+        );
+        inTestDirectory().withTaskList().run();
+    }
 }
