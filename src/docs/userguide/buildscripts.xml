@@ -136,7 +136,7 @@
             <literal>"ant clean compile".execute()</literal>.
             <footnote>
                 <para>In Groovy you can execute Strings. To learn more about executing external processes with Groovy
-                    have a look in GINA 9.3.2 or at the Groovy wiki
+                    have a look in 'Groovy in Action' 9.3.2 or at the Groovy wiki
                 </para>
             </footnote>
         </para>
@@ -168,7 +168,7 @@
                 </para>
             </listitem>
         </itemizedlist>
-        <para>To learn more about the Ant Builder have a look in GINA 8.4 or at the Groovy Wiki
+        <para>To learn more about the Ant Builder have a look in 'Groovy in Action' 8.4 or at the Groovy Wiki
         </para>
     </section>
     <section>
