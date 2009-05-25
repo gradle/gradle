@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleC
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.GUtil;
 import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -128,6 +129,18 @@ public class DefaultDependencyDescriptorFactoryTest {
         checkModuleDependency(dependencyDescriptor, moduleDependency);
     }
 
+    @Test
+    public void testCreateFromModuleDependencyWithNullGroupAndNullVersion() {
+        DefaultModuleDependency moduleDependency = ((DefaultModuleDependency)
+                setUpExternalDependency(new DefaultModuleDependency(null, "gradle-core", null, TEST_DEP_CONF))).setChanging(true);
+
+        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor)
+                dependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, TEST_PARENT, moduleDependency, DUMMY_MODULE_REGISTRY);
+
+        assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
+        checkModuleDependency(dependencyDescriptor, moduleDependency);
+    }
+
     private ExternalDependency setUpExternalDependency(ExternalDependency dependency) {
         return ((ExternalDependency) setUpDependency(dependency)).setForce(true);
     }
@@ -201,7 +214,8 @@ public class DefaultDependencyDescriptorFactoryTest {
     }
 
     private ModuleRevisionId createModuleRevisionIdFromDependency(Dependency dependency, Map extraAttributes) {
-        return ModuleRevisionId.newInstance(dependency.getGroup(), dependency.getName(), dependency.getVersion(), extraAttributes);
+        return ModuleRevisionId.newInstance(GUtil.elvis(dependency.getGroup(), ""), dependency.getName(), GUtil.elvis(dependency.getVersion(), "")
+                , extraAttributes);
     }
 }
 

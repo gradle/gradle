@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.GUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -102,9 +103,13 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
     }
 
     private ModuleRevisionId createModuleRevisionIdFromDependency(Dependency dependency) {
-        return ModuleRevisionId.newInstance(dependency.getGroup(),
+        return ModuleRevisionId.newInstance(emptyStringIfNull(dependency.getGroup()),
                 dependency.getName(),
-                dependency.getVersion());
+                emptyStringIfNull(dependency.getVersion()));
+    }
+
+    private String emptyStringIfNull(String value) {
+        return GUtil.elvis(value, "");
     }
 
     private void addArtifacts(String configuration, Set<DependencyArtifact> artifacts, DefaultDependencyDescriptor dependencyDescriptor) {
