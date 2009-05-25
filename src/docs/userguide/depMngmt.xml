@@ -514,7 +514,7 @@ someroot/[artifact]-[revision].[ext]
                 <sourcefile file="build.gradle" snippet="file-system-resolver"/>
             </sample>
             <para>An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found
-                <ulink url='http://ant.apache.org/ivy/latest-milestone/configuration/resolvers.html'>here</ulink>. With
+                <ulink url='http://ant.apache.org/ivy/history/latest-milestone/settings/resolvers.html'>here</ulink>. With
                 Gradle you just don't configure them via XML but directly via their API.
             </para>
         </section>
