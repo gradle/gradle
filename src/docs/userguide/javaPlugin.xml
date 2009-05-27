@@ -18,7 +18,7 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
-                </tr>
+                </tr>                                                                   te
             </thead>
             <tr>
                 <td>
@@ -285,8 +285,8 @@
                 </td>
             </tr>
             <tr>
-                <td>testResultsDir</td>
                 <td>testResultsDirName</td>
+                <td>testResultsDir</td>
                 <td>
                     <literal>test-results</literal>
                 </td>
@@ -295,8 +295,8 @@
                 </td>
             </tr>
             <tr>
-                <td>testReportDir</td>
                 <td>testReportDirName</td>
+                <td>testReportDir</td>
                 <td>
                     <literal>tests</literal>
                 </td>
