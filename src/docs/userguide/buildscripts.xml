@@ -74,10 +74,11 @@
             <literal>taskY</literal> is defined. This is very important for multi-project builds. Task dependencies are
             discussed in more detail in <xref linkend='sec:adding_dependencies_to_tasks'/>.
         </para>
+        <para>Please notice, that you can't use a shortcut notation (see <xref linkend='sec:shortcut_notations' />) when referring to task, which is not defined yet.</para>
     </section>
     <section>
         <title>Dynamic tasks</title>
-        <para>The power of Groovy be used for more than definining what a task does. For example, you can also use it
+        <para>The power of Groovy be used for more than defining what a task does. For example, you can also use it
             to dynamically create tasks.
         </para>
         <sample id="dynamic" dir="userguide/tutorial/dynamic">
@@ -105,7 +106,7 @@
             alias for <literal>doLast</literal>.
         </para>
     </section>
-    <section>
+    <section id='sec:shortcut_notations'>
         <title>Shortcut notations</title>
         <para>As you might have noticed in the previous examples, there is a convenient notation for accessing an
             <emphasis>existing</emphasis> task. Each task is available as a property of the build script:
