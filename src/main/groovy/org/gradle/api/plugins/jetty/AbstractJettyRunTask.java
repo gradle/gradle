@@ -278,7 +278,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
             logger.info("Started Jetty Server");
 
-            if (getStopPort() > 0 && getStopKey() != null) {
+            if (getStopPort() != null && getStopPort() > 0 && getStopKey() != null) {
                 Monitor monitor = new Monitor(getStopPort(), getStopKey(), new Server[]{(Server) server.getProxiedObject()}, !daemon);
                 monitor.start();
             }
