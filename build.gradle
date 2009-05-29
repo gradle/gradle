@@ -173,13 +173,14 @@ build.taskGraph.whenReady {graph ->
 }
 
 processResources.doLast {
-    logger.info('Write version properties')
+    File versionPropertiesDestination = new File(classesDir, GradleVersion.FILE_NAME)
+    logger.info('Write version properties to: {}', versionPropertiesDestination.absoluteFile)
     Properties versionProperties = new Properties()
     versionProperties.putAll([
             (GradleVersion.VERSION): version.toString(),
             (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime)
     ])
-    versionProperties.store(new FileOutputStream(new File(classesDir, GradleVersion.FILE_NAME)), '')
+    versionProperties.store(new FileOutputStream(versionPropertiesDestination), '')
 }
 
 [compile, compileTests]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
@@ -574,7 +575,7 @@ websiteDocs << {
 
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
-integTestDistDir = new File(buildDir, 'integ test')
+integTestDistDir = new File(buildDir, 'integtest')
 task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc]) {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
