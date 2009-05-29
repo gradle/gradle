@@ -48,8 +48,11 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
 
         if (!isTest) {
             final String superClassName = classVisitor.getSuperClassName();
-
-            if ( !"java/lang/Object".equals(superClassName) && !"groovy/lang/GroovyObject".equals(superClassName) ) {
+            if ( superClassName.startsWith("java/lang") ||
+                 superClassName.startsWith("groovy/lang") ) {
+                isTest = false;
+            }
+            else {
                 final File superClassFile = getSuperTestClassFile(superClassName);
                 if ( superClassFile != null ) {
                     isTest = processPossibleTestClass(superClassFile);
