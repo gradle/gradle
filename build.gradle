@@ -172,13 +172,14 @@ build.taskGraph.whenReady {graph ->
 }
 
 processResources.doLast {
-    logger.info('Write version properties')
+    File versionPropertiesDestination = new File(classesDir, GradleVersion.FILE_NAME)
+    logger.info('Write version properties to: {}', versionPropertiesDestination.absoluteFile)
     Properties versionProperties = new Properties()
     versionProperties.putAll([
             (GradleVersion.VERSION): version.toString(),
             (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime)
     ])
-    versionProperties.store(new FileOutputStream(new File(classesDir, GradleVersion.FILE_NAME)), '')
+    versionProperties.store(new FileOutputStream(versionPropertiesDestination), '')
 }
 
 [compile, compileTests]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
