@@ -64,7 +64,7 @@ public class DefaultGradleFactory implements GradleFactory {
                         new MasterDirSettingsFinderStrategy(),
                         new ParentDirSettingsFinderStrategy()))
         );
-        ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory();
+        ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory(startParameter.getProjectDependenciesBuildInstruction());
         DefaultInternalRepository internalRepository = new DefaultInternalRepository();
         DependencyFactory dependencyFactory = new DefaultDependencyFactory(
                 WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory()),
@@ -106,15 +106,14 @@ public class DefaultGradleFactory implements GradleFactory {
                 )),
                 new BuildLoader(
                         new ProjectFactory(
-                                new TaskFactory(),
-                                configurationContainerFactory,
-                                dependencyFactory,
+                                new DefaultProjectServiceRegistryFactory(
+                                        new DefaultRepositoryHandlerFactory(resolverFactory),
+                                        configurationContainerFactory,
+                                        new DefaultPublishArtifactFactory(),
+                                        dependencyFactory),
                                 new DefaultRepositoryHandlerFactory(resolverFactory),
-                                new DefaultPublishArtifactFactory(),
-                                internalRepository,
                                 projectEvaluator,
-                                new PluginRegistry(
-                                        startParameter.getPluginPropertiesFile()),
+                                new PluginRegistry(startParameter.getPluginPropertiesFile()),
                                 startParameter.getBuildScriptSource(),
                                 new DefaultAntBuilderFactory(new AntLoggingAdapter())),
                         internalRepository),

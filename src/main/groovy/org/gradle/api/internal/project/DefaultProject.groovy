@@ -19,16 +19,10 @@ package org.gradle.api.internal.project
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
-import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.BuildInternal
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-import org.gradle.api.plugins.Convention
 import org.gradle.configuration.ProjectEvaluator
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.project.*
 
 /**
  * @author Hans Dockter
@@ -39,21 +33,23 @@ class DefaultProject extends AbstractProject {
         super(name);
     }
 
-    public DefaultProject(String name, ProjectInternal parent, File projectDir, File buildFile,
-                           ScriptSource buildScriptSource, ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
-                           ConfigurationContainerFactory configurationContainerFactory,
-                           DependencyFactory dependencyFactory,
-                           RepositoryHandlerFactory repositoryHandlerFactory,
-                           PublishArtifactFactory publishArtifactFactory,
-                           InternalRepository internalRepository,
-                           AntBuilderFactory antBuilderFactory,
-                           ProjectEvaluator projectEvaluator,
-                           PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
-                           BuildInternal build, Convention convention) {
-        super(name, parent, projectDir, buildFile, buildScriptSource, buildScriptClassLoader, taskFactory, configurationContainerFactory,
-                dependencyFactory, repositoryHandlerFactory, publishArtifactFactory,
-                internalRepository, antBuilderFactory, projectEvaluator, pluginRegistry,
-                projectRegistry, build, convention);
+    public DefaultProject(String name,
+                          ProjectInternal parent,
+                          File projectDir,
+                          File buildFile,
+                          ScriptSource buildScriptSource,
+                          ClassLoader buildScriptClassLoader,
+                          RepositoryHandlerFactory repositoryHandlerFactory,
+                          AntBuilderFactory antBuilderFactory,
+                          ProjectEvaluator projectEvaluator,
+                          PluginRegistry pluginRegistry,
+                          IProjectRegistry projectRegistry,
+                          BuildInternal build,
+                          ProjectServiceRegistryFactory serviceRegistryFactory
+    ) {
+        super(name, parent, projectDir, buildFile, buildScriptSource, buildScriptClassLoader,
+                repositoryHandlerFactory, antBuilderFactory, projectEvaluator, pluginRegistry, projectRegistry, build,
+                serviceRegistryFactory);
     }
 
     def propertyMissing(String name) {

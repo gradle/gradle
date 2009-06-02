@@ -133,8 +133,7 @@ public class BaseSettings implements SettingsInternal {
                 return repositoryHandler.getResolvers();
             }
         };
-        return configurationContainerFactory.createConfigurationContainer(resolverProvider, metaDataProvider,
-                startParameter.getProjectDependenciesBuildInstruction()).add(BUILD_CONFIGURATION);
+        return configurationContainerFactory.createConfigurationContainer(resolverProvider, metaDataProvider).add(BUILD_CONFIGURATION);
     }
 
     private void assignBuildSrcStartParameter(StartParameter startParameter) {

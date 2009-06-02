@@ -23,23 +23,25 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.gradle.api.DefaultTask
+import org.gradle.api.Task
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
  */
 class ProjectDependencies2TaskResolverTest {
-    DefaultProject root
-    DefaultProject child
-    DefaultTask rootTask
-    DefaultTask childTask
+    Project root
+    Project child
+    Task rootTask
+    Task childTask
     ProjectDependencies2TaskResolver resolver
 
     @Before public void setUp()  {
         resolver = new ProjectDependencies2TaskResolver()
         root = HelperUtil.createRootProject(new File('rootDir'))
         child = HelperUtil.createChildProject(root, "child")
-        rootTask = root.createTask('compile')
-        childTask = child.createTask('compile')
+        rootTask = root.tasks.add('compile')
+        childTask = child.tasks.add('compile')
     }
 
     @Test public void testResolve() {

@@ -27,12 +27,16 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
  * @author Hans Dockter
  */
 public class DefaultConfigurationContainerFactory implements ConfigurationContainerFactory {
+    private final ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction;
+
+    public DefaultConfigurationContainerFactory(ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
+    }
+
     public ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider,
-                                                             DependencyMetaDataProvider dependencyMetaDataProvider,
-                                                             ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
-        DefaultIvyService ivyService = new DefaultIvyService(
-                dependencyMetaDataProvider.getInternalRepository()
-        );
-        return new DefaultConfigurationHandler(ivyService, resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction);
+                                                             DependencyMetaDataProvider dependencyMetaDataProvider) {
+        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProvider.getInternalRepository());
+        return new DefaultConfigurationHandler(ivyService, resolverProvider, dependencyMetaDataProvider,
+                projectDependenciesBuildInstruction);
     }
 }

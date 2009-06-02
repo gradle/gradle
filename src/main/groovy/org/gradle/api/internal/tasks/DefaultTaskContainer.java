@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.AbstractDomainObjectCollection;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
@@ -23,14 +24,12 @@ import org.gradle.api.internal.project.ITaskFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.util.GUtil;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> implements TaskContainer {
+public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> implements TaskContainerInternal {
     private final Project project;
     private final ITaskFactory taskFactory;
 

@@ -25,7 +25,6 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.InternalRepository
@@ -55,7 +54,7 @@ import static org.junit.Assert.*
 /**
  * @author Hans Dockter
  */
-@RunWith (org.jmock.integration.junit4.JMock)
+@RunWith (JMock)
 class DefaultSettingsTest {
     File settingsDir
     StartParameter startParameter
@@ -85,8 +84,7 @@ class DefaultSettingsTest {
         context.checking {
             one(configurationContainerFactoryStub).createConfigurationContainer(
                     withParam(any(ResolverProvider)),
-                    withParam(any(DependencyMetaDataProvider)),
-                    withParam(any(ProjectDependenciesBuildInstruction)))
+                    withParam(any(DependencyMetaDataProvider)))
             will(returnValue(configurationContainerStub))
             one(configurationContainerStub).add("build")
             will(returnValue(configurationStub))

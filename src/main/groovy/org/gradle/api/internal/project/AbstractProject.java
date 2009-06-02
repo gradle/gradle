@@ -19,28 +19,17 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.FileCollection;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.*;
-import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectHelper;
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.internal.tasks.DefaultTaskContainer;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
@@ -119,19 +108,13 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private int depth = 0;
 
-    private DefaultTaskContainer taskContainer;
+    private TaskContainerInternal taskContainer;
 
     private IProjectRegistry<ProjectInternal> projectRegistry;
-
-    private InternalRepository internalRepository;
-
-    private ConfigurationContainerFactory configurationContainerFactory;
 
     private DependencyHandler dependencyHandler;
 
     private ConfigurationHandler configurationContainer;
-
-    private PublishArtifactFactory publishArtifactFactory;
 
     private ArtifactHandler artifactHandler;
 
@@ -153,17 +136,19 @@ public abstract class AbstractProject implements ProjectInternal {
         taskContainer = null;
     }
 
-    public AbstractProject(String name, ProjectInternal parent, File projectDir, File buildFile,
-                           ScriptSource buildScriptSource, ClassLoader buildScriptClassLoader, ITaskFactory taskFactory,
-                           ConfigurationContainerFactory configurationContainerFactory,
-                           DependencyFactory dependencyFactory,
+    public AbstractProject(String name,
+                           ProjectInternal parent,
+                           File projectDir,
+                           File buildFile,
+                           ScriptSource buildScriptSource,
+                           ClassLoader buildScriptClassLoader,
                            RepositoryHandlerFactory repositoryHandlerFactory,
-                           PublishArtifactFactory publishArtifactFactory,
-                           InternalRepository internalRepository,
                            AntBuilderFactory antBuilderFactory,
                            ProjectEvaluator projectEvaluator,
-                           PluginRegistry pluginRegistry, IProjectRegistry projectRegistry,
-                           BuildInternal build, Convention convention) {
+                           PluginRegistry pluginRegistry,
+                           IProjectRegistry projectRegistry,
+                           BuildInternal build,
+                           ProjectServiceRegistryFactory serviceRegistryFactory) {
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -171,20 +156,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.name = name;
         this.buildFile = buildFile;
         this.buildScriptClassLoader = buildScriptClassLoader;
-        this.internalRepository = internalRepository;
-        this.configurationContainerFactory = configurationContainerFactory;
-        this.configurationContainer = configurationContainerFactory.createConfigurationContainer(createResolverProvider(),
-                createDependencyMetaDataProvider(),
-                build.getStartParameter().getProjectDependenciesBuildInstruction());
         this.repositoryHandlerFactory = repositoryHandlerFactory;
-        this.repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(convention);
-        this.dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory, new ProjectFinder() {
-            public Project getProject(String path) {
-                return project(path);
-            }
-        });
-        this.publishArtifactFactory = publishArtifactFactory;
-        this.artifactHandler = new DefaultArtifactHandler(configurationContainer, publishArtifactFactory);
         this.antBuilderFactory = antBuilderFactory;
         this.projectEvaluator = projectEvaluator;
         this.pluginRegistry = pluginRegistry;
@@ -192,7 +164,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.state = State.CREATED;
         this.buildScriptSource = buildScriptSource;
         this.build = build;
-        taskContainer = new DefaultTaskContainer(this, taskFactory);
 
         if (parent == null) {
             path = Project.PATH_SEPARATOR;
@@ -200,8 +171,15 @@ public abstract class AbstractProject implements ProjectInternal {
             path = parent.absolutePath(name);
         }
 
+        ProjectServiceRegistry serviceRegistry = serviceRegistryFactory.create(this);
+        taskContainer = serviceRegistry.get(TaskContainerInternal.class);
+        repositoryHandler = serviceRegistry.get(RepositoryHandler.class);
+        configurationContainer = serviceRegistry.get(ConfigurationHandler.class);
+        this.artifactHandler = serviceRegistry.get(ArtifactHandler.class);
+        this.dependencyHandler = serviceRegistry.get(DependencyHandler.class);
+
         dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(convention);
+        dynamicObjectHelper.setConvention(serviceRegistry.get(Convention.class));
         if (parent != null) {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }
@@ -210,52 +188,6 @@ public abstract class AbstractProject implements ProjectInternal {
         if (parent != null) {
             depth = parent.getDepth() + 1;
         }
-
-        projectRegistry.addProject(this);
-    }
-
-    private ResolverProvider createResolverProvider() {
-        return new ResolverProvider() {
-            public List<DependencyResolver> getResolvers() {
-                return repositoryHandler.getResolvers();
-            }
-        };
-    }
-
-    private DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new DependencyMetaDataProvider() {
-            public InternalRepository getInternalRepository() {
-                return internalRepository;
-            }
-
-            public File getGradleUserHomeDir() {
-                return build.getGradleUserHomeDir();
-            }
-
-            public Map getClientModuleRegistry() {
-                return new HashMap();
-            }
-
-            public Module getModule() {
-                return new Module() {
-                    public String getGroup() {
-                        return group.toString();
-                    }
-
-                    public String getName() {
-                        return name;
-                    }
-
-                    public String getVersion() {
-                        return version.toString();
-                    }
-
-                    public String getStatus() {
-                        return status.toString();
-                    }
-                };
-            }
-        };
     }
 
     public RepositoryHandler createRepositoryHandler() {
@@ -472,10 +404,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public ConfigurationHandler getConfigurations() {
         return configurationContainer;
-    }
-
-    public void setInternalRepository(InternalRepository internalRepository) {
-        this.internalRepository = internalRepository;
     }
 
     public void setConfigurationContainer(ConfigurationHandler configurationContainer) {
@@ -854,23 +782,25 @@ public abstract class AbstractProject implements ProjectInternal {
         return loopFile == null ? null : new File(relativePath);
     }
 
-    public Task dir(String path) {
+    public Directory dir(String path) {
         String[] pathElements = path.split("/");
         String name = "";
+        Directory dirTask = null;
         for (String pathElement : pathElements) {
             name += name.length() != 0 ? "/" + pathElement : pathElement;
-            if (taskContainer.findByName(name) != null) {
-                if (!(taskContainer.findByName(name) instanceof Directory)) {
-                    throw new InvalidUserDataException("A non directory task with this name already exsists.");
-                }
+            Task task = taskContainer.findByName(name);
+            if (task instanceof Directory) {
+                dirTask = (Directory) task;
+            } else if (task != null) {
+                throw new InvalidUserDataException(String.format("Cannot add directory task '%s' as a non-directory task with this name already exists.", name));
             } else {
-                taskContainer.add(name, Directory.class);
+                dirTask = taskContainer.add(name, Directory.class);
             }
         }
-        return taskContainer.getByName(path);
+        return dirTask;
     }
 
-    public void setTaskContainer(DefaultTaskContainer taskContainer) {
+    public void setTaskContainer(TaskContainerInternal taskContainer) {
         this.taskContainer = taskContainer;
     }
 
@@ -888,22 +818,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setDependencyHandler(DependencyHandler dependencyHandler) {
         this.dependencyHandler = dependencyHandler;
-    }
-
-    public ConfigurationContainerFactory getConfigurationContainerFactory() {
-        return configurationContainerFactory;
-    }
-
-    public void setConfigurationContainerFactory(ConfigurationContainerFactory configurationContainerFactory) {
-        this.configurationContainerFactory = configurationContainerFactory;
-    }
-
-    public PublishArtifactFactory getPublishArtifactFactory() {
-        return publishArtifactFactory;
-    }
-
-    public void setPublishArtifactFactory(PublishArtifactFactory publishArtifactFactory) {
-        this.publishArtifactFactory = publishArtifactFactory;
     }
 
     public void beforeEvaluate(Action<? super Project> action) {

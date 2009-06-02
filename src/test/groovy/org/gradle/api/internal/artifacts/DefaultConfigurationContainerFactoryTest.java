@@ -48,10 +48,9 @@ public class DefaultConfigurationContainerFactoryTest {
         }});
 
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
-                new DefaultConfigurationContainerFactory().createConfigurationContainer(
+                new DefaultConfigurationContainerFactory(projectDependenciesBuildInstructionDummy).createConfigurationContainer(
                         resolverProviderDummy,
-                        dependencyMetaDataProviderStub,
-                        projectDependenciesBuildInstructionDummy);
+                        dependencyMetaDataProviderStub);
 
         assertThat(configurationContainer.getIvyService(), IsNull.notNullValue());
         assertThat(configurationContainer.getIvyService().getInternalRepository(), sameInstance(internalRepository));

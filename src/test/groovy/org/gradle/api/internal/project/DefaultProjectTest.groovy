@@ -20,20 +20,20 @@ import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.FileCollection
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.artifacts.repositories.InternalRepository
-import org.gradle.api.DefaultTask
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
-import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.api.internal.project.AbstractProject.State
+import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Build
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
@@ -49,7 +49,6 @@ import org.gradle.invocation.DefaultBuild
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
-import org.gradle.util.WrapUtil
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
@@ -57,13 +56,10 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.*
-import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
-import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
+import org.gradle.api.internal.BeanDynamicObject
+import org.gradle.api.artifacts.dsl.DependencyHandler
 
 /**
  * @author Hans Dockter
@@ -96,8 +92,10 @@ class DefaultProjectTest {
 
     ScriptSource script;
 
-    ITaskFactory taskFactoryMock;
-    AntBuilderFactory antBuilderFactoryMock;
+    ProjectServiceRegistry serviceRegistryMock
+    ProjectServiceRegistryFactory projectServiceRegistryFactoryMock
+    TaskContainerInternal taskContainerMock
+    AntBuilderFactory antBuilderFactoryMock
     AntBuilder testAntBuilder
 
     ConfigurationContainerFactory configurationContainerFactoryMock;
@@ -119,9 +117,9 @@ class DefaultProjectTest {
     void setUp() {
         context.imposteriser = ClassImposteriser.INSTANCE
         dependencyFactoryMock = context.mock(DependencyFactory)
-        outputRedirectorMock = context.mock(StandardOutputRedirector.class)
-        outputRedirectorOtherProjectsMock = context.mock(StandardOutputRedirector.class, "otherProjects")
-        taskFactoryMock = context.mock(ITaskFactory.class);
+        outputRedirectorMock = context.mock(StandardOutputRedirector)
+        outputRedirectorOtherProjectsMock = context.mock(StandardOutputRedirector, "otherProjects")
+        taskContainerMock = context.mock(TaskContainerInternal);
         antBuilderFactoryMock = context.mock(AntBuilderFactory)
         testAntBuilder = new AntBuilder()
         context.checking {
@@ -149,30 +147,43 @@ class DefaultProjectTest {
         buildScriptClassLoader = new URLClassLoader([] as URL[])
         build = new DefaultBuild(new StartParameter(), buildScriptClassLoader, null)
 
+        testTask = new DefaultTask()
+
+        projectServiceRegistryFactoryMock = context.mock(ProjectServiceRegistryFactory)
+        serviceRegistryMock = context.mock(ProjectServiceRegistry)
+        context.checking {
+            allowing(projectServiceRegistryFactoryMock).create(withParam(any(Project))); will(returnValue(serviceRegistryMock))
+            allowing(serviceRegistryMock).get(TaskContainerInternal); will(returnValue(taskContainerMock))
+            allowing(taskContainerMock).getAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
+            allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
+            allowing(serviceRegistryMock).get(ConfigurationHandler); will(returnValue(configurationContainerMock))
+            allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
+            allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(context.mock(DependencyHandler)))
+            allowing(serviceRegistryMock).get(Convention); will(returnValue(convention))
+        }
+
         rootDir = new File("/path/root").absoluteFile
         pluginRegistry = new PluginRegistry(new File('somepath'))
         projectRegistry = build.projectRegistry
         projectEvaluator = context.mock(ProjectEvaluator)
         project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
-                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
-                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator, pluginRegistry, projectRegistry,
-                build, convention);
+                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator, pluginRegistry, projectRegistry,
+                build, projectServiceRegistryFactoryMock);
         child1 = new DefaultProject("child1", project, new File("child1"), null, script, buildScriptClassLoader,
-                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
-                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator,
-                pluginRegistry, projectRegistry, build, convention)
+                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator,
+                pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child1)
         childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script, buildScriptClassLoader,
-                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
-                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator,
-                pluginRegistry, projectRegistry, build, convention)
+                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator,
+                pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock)
         child1.addChildProject(childchild)
         child2 = new DefaultProject("child2", project, new File("child2"), null, script, buildScriptClassLoader,
-                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
-                repositoryHandlerFactoryMock, publishArtifactFactoryMock, internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator,
-                pluginRegistry, projectRegistry, build, convention)
+                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator,
+                pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child2)
-        testTask = new DefaultTask(project, TEST_TASK_NAME)
+        [project, child1, childchild, child2].each {
+            projectRegistry.addProject(it)
+        }
         project.standardOutputRedirector = outputRedirectorMock
         listWithAllChildProjects*.standardOutputRedirector = outputRedirectorOtherProjectsMock
         StandardOutputLogging.off()
@@ -223,10 +234,8 @@ class DefaultProjectTest {
         checkProject(project, null, 'root', rootDir)
 
         assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
-                taskFactoryMock, configurationContainerFactoryMock, dependencyFactoryMock,
-                repositoryHandlerFactoryMock, publishArtifactFactoryMock,
-                internalRepositoryDummy, antBuilderFactoryMock, projectEvaluator, pluginRegistry, new DefaultProjectRegistry(),
-                build, convention).standardOutputRedirector)
+                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator, pluginRegistry, new DefaultProjectRegistry(),
+                build, projectServiceRegistryFactoryMock).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 
@@ -247,7 +256,6 @@ class DefaultProjectTest {
         assertNotNull(project.ant)
         assertNotNull(project.convention)
         assertEquals([], project.getDefaultTasks())
-        assert project.configurationContainerFactory.is(configurationContainerFactoryMock)
         assert project.configurations.is(configurationContainerMock)
         assert project.repositoryHandlerFactory.is(repositoryHandlerFactoryMock)
         assert project.repositories.is(repositoryHandlerMock)
@@ -491,7 +499,7 @@ class DefaultProjectTest {
 
     @Test public void testCreateTaskWithName() {
         context.checking {
-            one(taskFactoryMock).createTask(project, [name: TEST_TASK_NAME]); will(returnValue(testTask))
+            one(taskContainerMock).add([name: TEST_TASK_NAME]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(TEST_TASK_NAME));
     }
@@ -499,7 +507,7 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndArgs() {
         Map testArgs = [a: 'b']
         context.checking {
-            one(taskFactoryMock).createTask(project, testArgs + [name: TEST_TASK_NAME]); will(returnValue(testTask))
+            one(taskContainerMock).add(testArgs + [name: TEST_TASK_NAME]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME));
     }
@@ -507,7 +515,7 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndAction() {
         TaskAction testAction = {} as TaskAction
         context.checking {
-            one(taskFactoryMock).createTask(project, [name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
+            one(taskContainerMock).add([name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
     }
@@ -515,7 +523,7 @@ class DefaultProjectTest {
     @Test public void testCreateTaskWithNameAndClosureAction() {
         Closure testAction = {}
         context.checking {
-            one(taskFactoryMock).createTask(project, [name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
+            one(taskContainerMock).add([name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(TEST_TASK_NAME, testAction));
     }
@@ -524,14 +532,13 @@ class DefaultProjectTest {
         Map testArgs = [a: 'b']
         TaskAction testAction = {} as TaskAction
         context.checking {
-            one(taskFactoryMock).createTask(project, testArgs + [name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
+            one(taskContainerMock).add(testArgs + [name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
         }
         assertSame(testTask, project.createTask(testArgs, TEST_TASK_NAME, testAction));
     }
 
     @Test void testCanAccessTaskAsAProjectProperty() {
-        Task task = addTestTask(project, TEST_TASK_NAME)
-        assertThat(project."$TEST_TASK_NAME", sameInstance(task))
+        assertThat(project.someTask, sameInstance(testTask))
     }
 
     @Test (expected = MissingPropertyException) void testPropertyShortCutForTaskCallWithNonExistingTask() {
@@ -618,31 +625,62 @@ class DefaultProjectTest {
         assertEquals(child1.newProp, newPropValue)
     }
 
-    @Test void testGetAllTasks() {
-        List tasksClean = addTestTaskToAllProjects('clean')
-        List tasksCompile = addTestTaskToAllProjects('compile')
-        SortedMap expectedMap = new TreeMap()
-        (tasksClean + tasksCompile).each {Task task ->
-            if (!expectedMap[task.project]) {
-                expectedMap[task.project] = new TreeSet()
-            }
-            expectedMap[task.project].add(task)
+    @Test void testGetAllTasksRecursive() {
+        Task projectTask = new DefaultTask(project, 'task')
+        Task child1Task = new DefaultTask(child1, 'task')
+        Task child2Task = new DefaultTask(child2, 'task')
+
+        Map expectedMap = new TreeMap()
+        expectedMap[project] = [projectTask] as TreeSet
+        expectedMap[child1] = [child1Task] as TreeSet
+        expectedMap[child2] = [child2Task] as TreeSet
+        expectedMap[childchild] = [] as TreeSet
+
+        context.checking {
+            one(taskContainerMock).getAll(); will(returnValue([projectTask] as Set))
+            one(taskContainerMock).getAll(); will(returnValue([child1Task] as Set))
+            one(taskContainerMock).getAll(); will(returnValue([child2Task] as Set))
+            one(taskContainerMock).getAll(); will(returnValue([] as Set))
         }
+        
         assertEquals(expectedMap, project.getAllTasks(true))
-        assertEquals(expectedMap.subMap([project]), project.getAllTasks(false))
     }
 
-    @Test void testGetTasksByName() {
-        Set tasksClean = addTestTaskToAllProjects('clean')
-        addTestTaskToAllProjects('compile')
-        assertEquals(tasksClean, project.getTasksByName('clean', true))
-        assertEquals([project.tasks['clean']] as Set, project.getTasksByName('clean', false))
+    @Test void testGetAllTasksNonRecursive() {
+        Task projectTask = new DefaultTask(project, 'task')
+
+        Map expectedMap = new TreeMap()
+        expectedMap[project] = [projectTask] as TreeSet
+
+        context.checking {
+            one(taskContainerMock).getAll(); will(returnValue([projectTask] as Set))
+        }
+
+        assertEquals(expectedMap, project.getAllTasks(false))
     }
 
-    @Test void testGetTasksByNameWithSingularTask() {
-        Task child1Task = addTestTask(child1, 'child1Task')
-        assertEquals([child1Task] as Set, project.getTasksByName(child1Task.name, true))
-        assertEquals(0, project.getTasksByName(child1Task.name, false).size())
+    @Test void testGetTasksByNameRecursive() {
+        Task projectTask = new DefaultTask(project, 'task')
+        Task child1Task = new DefaultTask(project, 'task')
+
+        context.checking {
+            one(taskContainerMock).findByName('task'); will(returnValue(projectTask))
+            one(taskContainerMock).findByName('task'); will(returnValue(child1Task))
+            one(taskContainerMock).findByName('task'); will(returnValue(null))
+            one(taskContainerMock).findByName('task'); will(returnValue(null))
+        }
+
+        assertEquals([projectTask, child1Task] as Set, project.getTasksByName('task', true))
+    }
+    
+    @Test void testGetTasksByNameNonRecursive() {
+        Task projectTask = new DefaultTask(project, 'task')
+
+        context.checking {
+            one(taskContainerMock).findByName('task'); will(returnValue(projectTask))
+        }
+
+        assertEquals([projectTask] as Set, project.getTasksByName('task', false))
     }
 
     @Test (expected = InvalidUserDataException) void testGetTasksWithEmptyName() {
@@ -654,9 +692,12 @@ class DefaultProjectTest {
     }
 
     @Test void testGetTasksWithUnknownName() {
-        addTestTaskToAllProjects('clean')
-        assertEquals(0, project.getTasksByName('cleanXXX', true).size())
-        assertEquals(0, project.getTasksByName('cleanXXX', false).size())
+        context.checking {
+            allowing(taskContainerMock).findByName('task'); will(returnValue(null))
+        }
+
+        assertEquals([] as Set, project.getTasksByName('task', true))
+        assertEquals([] as Set, project.getTasksByName('task', false))
     }
 
     private List addTestTaskToAllProjects(String name) {
@@ -668,10 +709,7 @@ class DefaultProjectTest {
     }
     
     private Task addTestTask(Project project, String name) {
-        context.checking {
-            one(taskFactoryMock).createTask(project, [name: name]); will(returnValue(new DefaultTask(project, name)))
-        }
-        project.createTask(name)
+        new DefaultTask(project, name)
     }
 
     @Test void testMethodMissing() {
@@ -682,8 +720,7 @@ class DefaultProjectTest {
         boolean closureCalled = false
         Closure testConfigureClosure = {closureCalled = true}
         assertEquals('parent', project.scriptMethod(testConfigureClosure))
-        addTestTask(project, 'scriptMethod')
-        project.scriptMethod(testConfigureClosure)
+        project.someTask(testConfigureClosure)
         assert closureCalled
         project.convention.plugins.test = new TestConvention()
         assertEquals(TestConvention.METHOD_RESULT, project.scriptMethod(testConfigureClosure))
@@ -770,13 +807,12 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testProperties() {
-        Task task = addTestTask(project, 'testTask')
         project.additional = 'additional'
 
         Map properties = project.properties
         assertEquals(properties.name, 'root')
         assertEquals(properties.additional, 'additional')
-        assertEquals(properties['testTask'], task)
+        assertSame(properties['someTask'], testTask)
     }
 
     @Test void testAdditionalProperty() {
@@ -850,40 +886,50 @@ def scriptMethod(Closure closure) {
         Task dirTask1 = new Directory(project, 'dir1')
         Task dirTask12 = new Directory(project, 'dir1/dir2')
         Task dirTask123 = new Directory(project, 'dir1/dir2/dir3')
-        Map expectedArgMap = [type: Directory]
         context.checking {
-            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1']); will(returnValue(dirTask1))
-            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1/dir2']); will(returnValue(dirTask12))
-            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1/dir2/dir3']); will(returnValue(dirTask123))
+            one(taskContainerMock).findByName('dir1'); will(returnValue(null))
+            one(taskContainerMock).add('dir1', Directory); will(returnValue(dirTask1))
+            one(taskContainerMock).findByName('dir1/dir2'); will(returnValue(null))
+            one(taskContainerMock).add('dir1/dir2', Directory); will(returnValue(dirTask12))
+            one(taskContainerMock).findByName('dir1/dir2/dir3'); will(returnValue(null))
+            one(taskContainerMock).add('dir1/dir2/dir3', Directory); will(returnValue(dirTask123))
         }
         assertSame(dirTask123, project.dir('dir1/dir2/dir3'));
     }
 
     @Test public void testDirWithExistingParentDirTask() {
-        Map expectedArgMap = [type: Directory]
-
         Task dirTask1 = new Directory(project, 'dir1')
         context.checking {
-            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1']); will(returnValue(dirTask1))
+            one(taskContainerMock).findByName('dir1'); will(returnValue(null))
+            one(taskContainerMock).add('dir1', Directory); will(returnValue(dirTask1))
         }
         project.dir('dir1')
 
         Task dirTask14 = new Directory(project, 'dir1/dir4')
         context.checking {
-            one(taskFactoryMock).createTask(project, expectedArgMap + [name: 'dir1/dir4']); will(returnValue(dirTask14))
+            one(taskContainerMock).findByName('dir1'); will(returnValue(dirTask1))
+            one(taskContainerMock).findByName('dir1/dir4'); will(returnValue(null))
+            one(taskContainerMock).add('dir1/dir4', Directory); will(returnValue(dirTask14))
         }
-        project.dir('dir1/dir4');
+        assertSame(dirTask14, project.dir('dir1/dir4'))
     }
 
-    @Test (expected = InvalidUserDataException) public void testDirWithConflictingNonDirTask() {
-        addTestTask(project, 'dir1/dir4')
+    @Test public void testDirWithConflictingNonDirTask() {
+        Task dirTask14 = new DefaultTask(project, 'dir1/dir4')
 
-        Task dirTask14 = new Directory(project, 'dir1')
+        Task dirTask1 = new Directory(project, 'dir1')
         context.checking {
-            one(taskFactoryMock).createTask(project, [type: Directory, name: 'dir1']); will(returnValue(dirTask14))
+            one(taskContainerMock).findByName('dir1'); will(returnValue(null))
+            one(taskContainerMock).add('dir1', Directory); will(returnValue(dirTask1))
+            one(taskContainerMock).findByName('dir1/dir4'); will(returnValue(dirTask14))
         }
 
-        project.dir('dir1/dir4')
+        try {
+            project.dir('dir1/dir4')
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo("Cannot add directory task 'dir1/dir4' as a non-directory task with this name already exists."))
+        }
     }
 
     @Test void testCachingOfAnt() {
@@ -1016,6 +1062,14 @@ def scriptMethod(Closure closure) {
 
     @Test(expected = ReadOnlyPropertyException) void setName() {
         project.name = "someNewName" 
+    }
+}
+
+class TaskContainerDynamicObject {
+    Task someTask
+    
+    def someTask(Closure closure) {
+        closure.call()
     }
 }
 

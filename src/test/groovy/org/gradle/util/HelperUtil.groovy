@@ -29,8 +29,6 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.StartParameter
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency
@@ -38,12 +36,12 @@ import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.api.plugins.Convention
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
+import org.gradle.configuration.DefaultProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.ScriptWithSource
@@ -55,8 +53,6 @@ import org.gradle.logging.AntLoggingAdapter
 import org.gradle.util.GradleUtil
 import org.gradle.util.WrapUtil
 import org.gradle.api.internal.project.*
-import org.gradle.configuration.DefaultProjectEvaluator
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultProjectDependencyFactory
 
 /**
  * @author Hans Dockter
@@ -68,41 +64,22 @@ class HelperUtil {
     public static final String TMP_DIR_FOR_TEST = 'tmpTest'
     public static final Spec TEST_SEPC  = new AndSpec()
 
-    static DefaultProject createProjectMock(Map closureMap, String projectName, DefaultProject parent) {
-      Convention convention = new DefaultConvention()
-      return ProxyGenerator.instantiateAggregate(closureMap, null, DefaultProject, [
-                projectName,
-                parent,
-                new File("projectDir"),
-                "build.gradle",
-                new StringScriptSource("test build file", null),
-                null,
-                new TaskFactory(),
-                new DefaultConfigurationContainerFactory(new File('root')),
-                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory()),
-                new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), convention),
-                new DefaultPublishArtifactFactory(),
-                new DefaultAntBuilderFactory(new AntLoggingAdapter()),
-                null,
-                null,
-                parent.projectRegistry,
-                null,
-                null,
-                convention] as Object[])
-    }
-
     static DefaultProject createRootProject() {
         createRootProject(makeNewTestDir())
     }
 
     static DefaultProject createRootProject(File rootDir) {
-      IProjectFactory projectFactory = new ProjectFactory(
-                new TaskFactory(),
-                new DefaultConfigurationContainerFactory(),
-                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory()),
-                new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
+        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory())
+        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory())
+        DefaultProjectServiceRegistryFactory serviceRegistryFactory = new DefaultProjectServiceRegistryFactory(
+                repositoryHandlerFactory,
+                new DefaultConfigurationContainerFactory(new StartParameter().projectDependenciesBuildInstruction),
                 new DefaultPublishArtifactFactory(),
-                [:] as InternalRepository,
+                dependencyFactory
+        )
+        IProjectFactory projectFactory = new ProjectFactory(
+                serviceRegistryFactory,
+                repositoryHandlerFactory,
                 new DefaultProjectEvaluator(null, null, null),
                 new PluginRegistry(),
                 new StringScriptSource("embedded build file", "embedded"),
@@ -113,11 +90,11 @@ class HelperUtil {
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)
         project.setBuildScript(new EmptyScript())
+        project."_service_registry_factory_" = serviceRegistryFactory
         return project;
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name) {
-        Convention convention = new DefaultConvention()
         DefaultProject project = new DefaultProject(
                 name,
                 parentProject,
@@ -125,19 +102,16 @@ class HelperUtil {
                 parentProject.buildFile,
                 new StringScriptSource("test build file", null),
                 parentProject.buildScriptClassLoader,
-                new TaskFactory(),
-                parentProject.configurationContainerFactory,
-                new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory()),
                 new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
-                new DefaultPublishArtifactFactory(),
-                null,
-                parentProject.getAntBuilderFactory(),
+                parentProject.antBuilderFactory,
                 parentProject.projectEvaluator,
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,
                 parentProject.build,
-                convention)
+                parentProject."_service_registry_factory_"
+        )
         parentProject.addChildProject project
+        parentProject.projectRegistry.addProject project
         return project
     }
 

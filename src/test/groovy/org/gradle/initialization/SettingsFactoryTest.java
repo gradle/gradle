@@ -61,8 +61,7 @@ public class SettingsFactoryTest {
         context.checking(new Expectations() {{
             one(configurationContainerFactory).createConfigurationContainer(
                     with(any(ResolverProvider.class)),
-                    with(any(DependencyMetaDataProvider.class)),
-                    with(any(ProjectDependenciesBuildInstruction.class)));
+                    with(any(DependencyMetaDataProvider.class)));
             will(returnValue(configurationContainer));
             one(configurationContainer).add(with(any(String.class)));
             will(returnValue(configuration));
