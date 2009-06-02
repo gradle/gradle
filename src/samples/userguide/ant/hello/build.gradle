@@ -1,0 +1,2 @@
+usePlugin 'ant'
+importAntBuild 'build.xml'

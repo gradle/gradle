@@ -1,0 +1,6 @@
+usePlugin 'ant'
+importAntBuild 'build.xml'
+
+task intro << {
+    println 'Hello, from Gradle'
+}

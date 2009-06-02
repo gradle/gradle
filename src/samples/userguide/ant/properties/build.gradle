@@ -1,0 +1,19 @@
+usePlugin 'ant'
+
+//START SNIPPET set-property
+ant.project.setProperty('buildDir', buildDir.absolutePath)
+//END SNIPPET set-property
+
+importAntBuild 'build.xml'
+
+//START SNIPPET get-property
+println "antProp = $ant.project.properties.antProp"
+//END SNIPPET get-property
+
+//START SNIPPET set-reference
+ant.path(id: 'classpath', location: 'libs')
+//END SNIPPET set-reference
+
+//START SNIPPET get-reference
+println "antPath = $ant.project.references.antPath"
+//END SNIPPET get-reference

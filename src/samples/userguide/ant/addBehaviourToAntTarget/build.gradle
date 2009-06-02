@@ -1,0 +1,6 @@
+usePlugin 'ant'
+importAntBuild 'build.xml'
+
+hello << {
+    println 'Hello, from Gradle'
+}

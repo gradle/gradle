@@ -1,0 +1,8 @@
+:hello
+[ant:echo] Hello, from Ant
+:intro
+Hello, from Gradle
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

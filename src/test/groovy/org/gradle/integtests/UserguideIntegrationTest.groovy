@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
 import org.junit.Assert
 import org.junit.runner.RunWith
 import org.junit.Test
+import junit.framework.AssertionFailedError
 
 /**
  * @author Hans Dockter
@@ -70,7 +71,7 @@ class UserguideIntegrationTest {
                     String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.outputFile).text)
                     try {
                         compareStrings(expectedResult, result.output)
-                    } catch (AssertionError e) {
+                    } catch (AssertionFailedError e) {
                         println 'Expected Result:'
                         println expectedResult
                         println 'Actual Result:'
@@ -79,7 +80,7 @@ class UserguideIntegrationTest {
                         throw e
                     }
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 throw new AssertionError("Integration test for sample '$run.id' failed: $e.message").initCause(e)
             }
         }

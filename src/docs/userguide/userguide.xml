@@ -34,11 +34,14 @@
     <xi:include href='projectTaskApi.xml'/>
     <xi:include href='tasks.xml'/>
     <xi:include href='logging.xml'/>
+    <xi:include href='ant.xml'/>
     <xi:include href='plugins.xml'/>
     <xi:include href='javaPlugin.xml'/>
     <xi:include href='groovyPlugin.xml'/>
     <xi:include href='warPlugin.xml'/>
     <xi:include href='jettyPlugin.xml'/>
+    <xi:include href='mavenPlugin.xml'/>
+    <xi:include href='antPlugin.xml'/>
     <xi:include href='osgi.xml'/>
     <xi:include href='projectReports.xml'/>
     <xi:include href='depMngmt.xml'/>

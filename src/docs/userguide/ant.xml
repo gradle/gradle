@@ -1,0 +1,80 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id="ant">
+    <title>Using Ant from Gradle</title>
+    <note>
+        <para>This chapter is a work in progress.</para>
+    </note>
+
+    <section>
+        <title>Using Ant tasks in your build</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Ant properties and references</title>
+
+        <para>To set an Ant property</para>
+        <sample id="antProperties" dir="userguide/ant/properties">
+            <sourcefile file="build.gradle" snippet="set-property"/>
+            <sourcefile file="build.xml" snippet="set-property"/>
+        </sample>
+        <para>To get an Ant property</para>
+        <sample id="antProperties" dir="userguide/ant/properties">
+            <sourcefile file="build.xml" snippet="get-property"/>
+            <sourcefile file="build.gradle" snippet="get-property"/>
+        </sample>
+        <para>To set an Ant reference</para>
+        <sample id="antProperties" dir="userguide/ant/properties">
+            <sourcefile file="build.gradle" snippet="set-reference"/>
+            <sourcefile file="build.xml" snippet="set-reference"/>
+        </sample>
+        <para>To get an Ant reference</para>
+        <sample id="antProperties" dir="userguide/ant/properties">
+            <sourcefile file="build.xml" snippet="get-reference"/>
+            <sourcefile file="build.gradle" snippet="get-reference"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>Importing an Ant build</title>
+        <para>You can use the <firstterm>Ant Plugin</firstterm> to import an Ant build into your Gradle project.
+        </para>
+        <sample id="antHello" dir="userguide/ant/hello">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="build.xml"/>
+            <output args="hello"/>
+        </sample>
+        <para>Each Ant target is treated as a Gradle task. This means you can manipulate and execute the Ant targets in
+            exactly the same way as Gradle tasks. For example, you can add a task which depends on an Ant target:
+        </para>
+        <sample id="dependsOnAntTarget" dir="userguide/ant/dependsOnAntTarget">
+            <sourcefile file="build.gradle"/>
+            <output args="intro"/>
+        </sample>
+        <para>Or, you can add behaviour to an Ant target:</para>
+        <sample id="addBehaviourToAntTarget" dir="userguide/ant/addBehaviourToAntTarget">
+            <sourcefile file="build.gradle"/>
+            <output args="hello"/>
+        </sample>
+        <para>It is also possible for an Ant target to depend on a Gradle task</para>
+        <sample id="dependsOnTask" dir="userguide/ant/dependsOnTask">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="build.xml"/>
+            <output args="hello"/>
+        </sample>
+    </section>
+</chapter>
