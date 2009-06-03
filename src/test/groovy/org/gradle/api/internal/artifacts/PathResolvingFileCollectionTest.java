@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.List;
 
 @RunWith(JMock.class)
 public class PathResolvingFileCollectionTest {
@@ -54,18 +55,23 @@ public class PathResolvingFileCollectionTest {
 
     @Test
     public void canUseAClosureToSpecifyTheContentsOfTheCollection() {
-        Closure closure = HelperUtil.returns(toList('a', 'b'));
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        FileCollection collection = new PathResolvingFileCollection(project, closure);
-
         context.checking(new Expectations() {{
-            one(project).file('a');
+            allowing(project).file('a');
             will(returnValue(file1));
-            one(project).file('b');
+            allowing(project).file('b');
             will(returnValue(file2));
         }});
+
+        List<Character> files = toList('a');
+        Closure closure = HelperUtil.returns(files);
+        FileCollection collection = new PathResolvingFileCollection(project, closure);
+
+        assertThat(collection.getFiles(), equalTo(toLinkedSet(file1)));
+
+        files.add('b');
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
     }
@@ -86,30 +92,42 @@ public class PathResolvingFileCollectionTest {
     }
 
     @Test
-    public void canUseACollectionToSpecifyTheContentsOfTheColleciton() {
+    public void canUseACollectionToSpecifyTheContentsOfTheCollection() {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        FileCollection collection = new PathResolvingFileCollection(project, toList("src1", "src2"));
-
         context.checking(new Expectations() {{
-            one(project).file("src1");
+            allowing(project).file("src1");
             will(returnValue(file1));
-            one(project).file("src2");
+            allowing(project).file("src2");
             will(returnValue(file2));
         }});
+
+        List<String> files = toList("src1");
+        FileCollection collection = new PathResolvingFileCollection(project, files);
+
+        assertThat(collection.getFiles(), equalTo(toLinkedSet(file1)));
+
+        files.add("src2");
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
     }
 
     @Test
-    public void canUseAFileCollectionToSpecifyTheContentsOfTheColleciton() {
+    public void canUseAFileCollectionToSpecifyTheContentsOfTheCollection() {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
         final FileCollection src = context.mock(FileCollection.class);
 
         FileCollection collection = new PathResolvingFileCollection(project, toList((Object) src));
+
+        context.checking(new Expectations() {{
+            one(src).getFiles();
+            will(returnValue(toLinkedSet(file1)));
+        }});
+
+        assertThat(collection.getFiles(), equalTo(toLinkedSet(file1)));
 
         context.checking(new Expectations() {{
             one(src).getFiles();

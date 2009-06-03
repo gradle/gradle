@@ -33,8 +33,7 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
 
     public PathResolvingFileCollection(Project project, Object... files) {
         this.project = project;
-        this.files = new ArrayList<Object>();
-        GUtil.flatten(files, this.files);
+        this.files = Arrays.asList(files);
     }
 
     public String getDisplayName() {
@@ -43,7 +42,9 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
 
     public Set<File> getFiles() {
         Set<File> result = new LinkedHashSet<File>();
-        for (Object element : files) {
+        List<Object> flattened = new ArrayList<Object>();
+        GUtil.flatten(files, flattened);
+        for (Object element : flattened) {
             if (element instanceof Closure) {
                 Closure closure = (Closure) element;
                 Object closureResult = closure.call();

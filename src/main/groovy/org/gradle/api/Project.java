@@ -704,23 +704,29 @@ public interface Project extends Comparable<Project> {
     File relativePath(Object path);
 
     /**
-     * Returns a {@link FileCollection} containing the given files. You can pass any of the following types to this
-     * method:
+     * <p>Returns a {@link FileCollection} containing the given files. You can pass any of the following types to this
+     * method:</p>
      *
      * <ul>
      *
-     * <li>A String. Interpreted relative to the project directory.</li>
+     * <li>A {@code String}. Interpreted relative to the project directory, as a call to {@link #file(Object)}.</li>
      *
-     * <li>A Collection. Flattened and recursively converted to files.</li>
+     * <li>A {@code Collection}. Flattened and recursively converted to files.</li>
      *
-     * <li>A {@code FileCollection}.</li>
+     * <li>A {@link FileCollection}. The result of its {@link FileCollection#getFiles()} is included in the returned
+     * collection.</li>
      *
-     * <li>A Closure. Should return an Object or Collection, which are then converted to files.</li>
+     * <li>A Closure. Should return an {@code Object} or {@code Collection}, which are then converted to files.</li>
      *
-     * <li>An Object. Its toString() value is treated the same way as a String.<li>
+     * <li>An Object. Its {@code toString()} value is treated the same way as a String.<li>
+     *
+     * </ul>
+     *
+     * <p>The returned {@code FileCollection} is 'live', in that it evaluates the above each time the contents of the
+     * collection is queried.</p>
      *
      * @param paths The paths to the files. May be empty.
-     * @return The file collection.
+     * @return The file collection. Never returns null.
      */
     FileCollection files(Object... paths);
 
