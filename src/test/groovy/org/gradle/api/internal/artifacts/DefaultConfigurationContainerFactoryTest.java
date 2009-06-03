@@ -16,17 +16,15 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import static org.hamcrest.Matchers.sameInstance;
-import org.hamcrest.core.IsNull;
-import org.jmock.Expectations;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
+import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -41,20 +39,15 @@ public class DefaultConfigurationContainerFactoryTest {
     public void testCreate() {
         ResolverProvider resolverProviderDummy = context.mock(ResolverProvider.class);
         final DependencyMetaDataProvider dependencyMetaDataProviderStub = context.mock(DependencyMetaDataProvider.class);
-        final InternalRepository internalRepository = context.mock(InternalRepository.class);
         ProjectDependenciesBuildInstruction projectDependenciesBuildInstructionDummy = new ProjectDependenciesBuildInstruction(null);
-        context.checking(new Expectations() {{
-            allowing(dependencyMetaDataProviderStub).getInternalRepository(); will(returnValue(internalRepository));
-        }});
 
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
                 new DefaultConfigurationContainerFactory(projectDependenciesBuildInstructionDummy).createConfigurationContainer(
                         resolverProviderDummy,
                         dependencyMetaDataProviderStub);
 
-        assertThat(configurationContainer.getIvyService(), IsNull.notNullValue());
-        assertThat(configurationContainer.getIvyService().getInternalRepository(), sameInstance(internalRepository));
-        assertThat(configurationContainer.getDependencyMetaDataProvider(), sameInstance(dependencyMetaDataProviderStub));
+        assertThat(configurationContainer.getIvyService(), instanceOf(DefaultIvyService.class));
+        assertThat(((DefaultIvyService) configurationContainer.getIvyService()).getMetaDataProvider(), sameInstance(dependencyMetaDataProviderStub));
         assertThat(configurationContainer.getResolverProvider(), sameInstance(resolverProviderDummy));
         assertThat(configurationContainer.getProjectDependenciesBuildInstruction(), sameInstance(projectDependenciesBuildInstructionDummy));
     }

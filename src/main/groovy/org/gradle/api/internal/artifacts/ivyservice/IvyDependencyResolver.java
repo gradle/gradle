@@ -29,8 +29,6 @@ import java.util.Set;
 public interface IvyDependencyResolver {
     ResolveReport resolveAsReport(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor, boolean isFailOnError);
 
-    ResolveReport getLastResolveReport();
-
     Set<File> resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor);
 
     Set<File> resolveFromReport(Configuration configuration, ResolveReport resolveReport);

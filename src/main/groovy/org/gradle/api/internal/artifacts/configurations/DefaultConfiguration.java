@@ -34,8 +34,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private IvyService ivyService;
 
-    private DependencyMetaDataProvider dependencyMetaDataProvider;
-
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction;
 
     private Set<Dependency> dependencies = new HashSet<Dependency>();
@@ -51,13 +49,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolveReport cachedResolveReport = null;
 
     public DefaultConfiguration(String name, ConfigurationsProvider configurationsProvider, IvyService ivyService,
-                                ResolverProvider resolverProvider, DependencyMetaDataProvider dependencyMetaDataProvider,
+                                ResolverProvider resolverProvider,
                                 ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.ivyService = ivyService;
         this.resolverProvider = resolverProvider;
-        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
@@ -153,7 +150,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public ResolveReport resolveAsReport() {
         if (state == State.UNRESOLVED) {
-            cachedResolveReport = ivyService.resolveAsReport(this, dependencyMetaDataProvider.getModule(), dependencyMetaDataProvider.getGradleUserHomeDir(), dependencyMetaDataProvider.getClientModuleRegistry());
+            cachedResolveReport = ivyService.resolveAsReport(this);
             if (cachedResolveReport.hasError()) {
                 state = State.RESOLVED_WITH_FAILURES;
             } else {
@@ -164,11 +161,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void publish(List<DependencyResolver> publishResolvers, PublishInstruction publishInstruction) {
-        ivyService.publish(new HashSet(getHierarchy()),
-                publishInstruction,
-                publishResolvers,
-                dependencyMetaDataProvider.getModule(),
-                dependencyMetaDataProvider.getGradleUserHomeDir());
+        ivyService.publish(new HashSet<Configuration>(getHierarchy()), publishInstruction, publishResolvers);
     }
 
     public Set<File> getFiles() {
@@ -274,10 +267,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Configurations.getArtifacts(this.getHierarchy(), Specs.SATISFIES_ALL);
     }
 
-    public DependencyMetaDataProvider getDependencyMetaDataProvider() {
-        return dependencyMetaDataProvider;
-    }
-
     public List<DependencyResolver> getDependencyResolvers() {
         return resolverProvider.getResolvers();
     }
@@ -379,7 +368,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration("copyOf" + getName(),
-                configurationsProvider, ivyService, resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction);
+                configurationsProvider, ivyService, resolverProvider, projectDependenciesBuildInstruction);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolveReport, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved

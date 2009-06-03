@@ -18,38 +18,23 @@ package org.gradle.api.internal.artifacts;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishInstruction;
-import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.internal.artifacts.ivyservice.IvyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.SettingsConverter;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public interface IvyService {
-    SettingsConverter getSettingsConverter();
 
-    ModuleDescriptorConverter getModuleDescriptorConverter();
+    Set<File> resolve(Configuration configuration);
 
-    IvyFactory getIvyFactory();
-    
-    ResolveReport getLastResolveReport();
-
-    Set<File> resolve(Configuration configuration, Module module, File cacheParentDir, Map clientModuleRegistry);
-
-    ResolveReport resolveAsReport(Configuration configurationResolver, Module module, File cacheParentDir, Map clientModuleRegistry);
+    ResolveReport resolveAsReport(Configuration configuration);
 
     void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,
-                         List<DependencyResolver> publishResolvers, Module module, File cacheParentDir);
+                 List<DependencyResolver> publishResolvers);
 
-    Set<File> resolveFromReport(Configuration configurationResolver, ResolveReport resolveReport);
-
-    InternalRepository getInternalRepository();
+    Set<File> resolveFromReport(Configuration configuration, ResolveReport resolveReport);
 }

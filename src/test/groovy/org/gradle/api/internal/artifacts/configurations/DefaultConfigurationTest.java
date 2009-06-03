@@ -15,23 +15,22 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import groovy.lang.Closure;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.Project;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
-import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import static org.gradle.util.WrapUtil.toSet;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -45,8 +44,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.*;
 
-import groovy.lang.Closure;
-
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
     private static final String CONF_NAME = "confName";
@@ -57,7 +54,6 @@ public class DefaultConfigurationTest {
 
     private IvyService ivyServiceStub = context.mock(IvyService.class);
     private ResolverProvider resolverProvider;
-    private DependencyMetaDataProvider dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider.class);
     private DefaultConfigurationContainer configurationContainer;
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction =
             new ProjectDependenciesBuildInstruction(null);
@@ -67,35 +63,9 @@ public class DefaultConfigurationTest {
     @Before
     public void setUp() {
         resolverProvider = createResolverProvider();
-        dependencyMetaDataProvider = createDependencyMetaDataProvider();
         configurationContainer = new DefaultConfigurationContainer(ivyServiceStub, resolverProvider,
-                dependencyMetaDataProvider, projectDependenciesBuildInstruction);
+                projectDependenciesBuildInstruction);
         configuration = (DefaultConfiguration) configurationContainer.add(CONF_NAME);
-    }
-
-    private DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new DependencyMetaDataProvider() {
-            private Map clientModuleRegistry = WrapUtil.toMap("key", "value");
-            private File gradleUserHomeDir = new File("somePath");
-            private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
-            private Module module = new DefaultModule("group", "name", "version");
-
-            public Map getClientModuleRegistry() {
-                return clientModuleRegistry;
-            }
-
-            public File getGradleUserHomeDir() {
-                return gradleUserHomeDir;
-            }
-
-            public InternalRepository getInternalRepository() {
-                return internalRepositoryDummy;
-            }
-
-            public Module getModule() {
-                return module;
-            }
-        };
     }
 
     private ResolverProvider createResolverProvider() {
@@ -111,7 +81,7 @@ public class DefaultConfigurationTest {
     @Test
     public void defaultValues() {
         DefaultConfiguration configuration = new DefaultConfiguration(CONF_NAME, configurationContainer, ivyServiceStub,
-                resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction);
+                resolverProvider, projectDependenciesBuildInstruction);
         assertThat(configuration.getName(), equalTo(CONF_NAME));
         assertThat(configuration.isVisible(), equalTo(true));
         assertThat(configuration.getExtendsFrom().size(), equalTo(0));
@@ -253,7 +223,6 @@ public class DefaultConfigurationTest {
 
     private void prepareForResolveWithErrors() {
         final ResolveReport resolveReport = context.mock(ResolveReport.class);
-        final Set<File> fileSet = WrapUtil.toSet(new File("somePath"));
         prepareResolveAsReport(resolveReport, true);
     }
 
@@ -276,8 +245,7 @@ public class DefaultConfigurationTest {
 
     private void prepareResolveAsReport(final ResolveReport resolveReport, final boolean withErrors) {
         context.checking(new Expectations() {{
-            allowing(ivyServiceStub).resolveAsReport(configuration, dependencyMetaDataProvider.getModule(),
-                    dependencyMetaDataProvider.getGradleUserHomeDir(), dependencyMetaDataProvider.getClientModuleRegistry());
+            allowing(ivyServiceStub).resolveAsReport(configuration);
             will(returnValue(resolveReport));
             allowing(resolveReport).hasError();
             will(returnValue(withErrors));
@@ -288,8 +256,7 @@ public class DefaultConfigurationTest {
     public void multipleResolvesShouldUseCachedResult() {
         final ResolveReport resolveReport = context.mock(ResolveReport.class);
         context.checking(new Expectations() {{
-            one(ivyServiceStub).resolveAsReport(configuration, dependencyMetaDataProvider.getModule(),
-                    dependencyMetaDataProvider.getGradleUserHomeDir(), dependencyMetaDataProvider.getClientModuleRegistry());
+            one(ivyServiceStub).resolveAsReport(configuration);
             will(returnValue(resolveReport));
             allowing(resolveReport).hasError();
             will(returnValue(false));
@@ -303,8 +270,7 @@ public class DefaultConfigurationTest {
         final PublishInstruction publishInstruction = createAnonymousPublishInstruction();
         final List<DependencyResolver> dependencyResolvers = WrapUtil.toList(context.mock(DependencyResolver.class, "publish"));
         context.checking(new Expectations() {{
-            allowing(ivyServiceStub).publish(new LinkedHashSet(otherConfiguration.getHierarchy()), publishInstruction, dependencyResolvers, dependencyMetaDataProvider.getModule(),
-                    dependencyMetaDataProvider.getGradleUserHomeDir());
+            allowing(ivyServiceStub).publish(new LinkedHashSet(otherConfiguration.getHierarchy()), publishInstruction, dependencyResolvers);
         }});
         otherConfiguration.publish(dependencyResolvers, publishInstruction);
     }
@@ -339,7 +305,7 @@ public class DefaultConfigurationTest {
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
         return new DefaultConfiguration(confName, configurationContainer, ivyServiceStub, resolverProvider,
-                dependencyMetaDataProvider, projectDependenciesBuildInstruction);
+                projectDependenciesBuildInstruction);
     }
 
     @Test

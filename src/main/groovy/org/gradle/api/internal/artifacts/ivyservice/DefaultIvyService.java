@@ -22,9 +22,9 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishInstruction;
-import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter;
 
 import java.io.File;
@@ -39,12 +39,12 @@ public class DefaultIvyService implements IvyService {
     private SettingsConverter settingsConverter = new DefaultSettingsConverter();
     private ModuleDescriptorConverter moduleDescriptorConverter = new DefaultModuleDescriptorConverter();
     private IvyFactory ivyFactory = new DefaultIvyFactory();
-    private InternalRepository internalRepository;
     private IvyDependencyResolver dependencyResolver = new DefaultIvyDependencyResolver(new Report2Classpath());
     private IvyDependencyPublisher dependencyPublisher = new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory());
+    private final DependencyMetaDataProvider metaDataProvider;
 
-    public DefaultIvyService(InternalRepository internalRepository) {
-        this.internalRepository = internalRepository;
+    public DefaultIvyService(DependencyMetaDataProvider metaDataProvider) {
+        this.metaDataProvider = metaDataProvider;
     }
 
     private Ivy ivyForResolve(List<DependencyResolver> dependencyResolvers, File cacheParentDir,
@@ -53,7 +53,7 @@ public class DefaultIvyService implements IvyService {
                 settingsConverter.convertForResolve(
                         dependencyResolvers,
                         cacheParentDir,
-                        internalRepository,
+                        metaDataProvider.getInternalRepository(),
                         clientModuleRegistry
                 )
         );
@@ -64,7 +64,7 @@ public class DefaultIvyService implements IvyService {
                 settingsConverter.convertForPublish(
                         publishResolvers,
                         cacheParentDir,
-                        internalRepository
+                        metaDataProvider.getInternalRepository()
                 )
         );
     }
@@ -81,8 +81,8 @@ public class DefaultIvyService implements IvyService {
         return ivyFactory;
     }
 
-    public InternalRepository getInternalRepository() {
-        return internalRepository;
+    public DependencyMetaDataProvider getMetaDataProvider() {
+        return metaDataProvider;
     }
 
     public IvyDependencyResolver getDependencyResolver() {
@@ -93,12 +93,8 @@ public class DefaultIvyService implements IvyService {
         return dependencyPublisher;
     }
 
-    public ResolveReport getLastResolveReport() {
-        return dependencyResolver.getLastResolveReport();
-    }
-
-    public Set<File> resolve(Configuration configuration, Module module, File cacheParentDir, Map clientModuleRegistry) {
-        ResolveReport resolveReport = resolveAsReportInternal(configuration, true, module, cacheParentDir, clientModuleRegistry);
+    public Set<File> resolve(Configuration configuration) {
+        ResolveReport resolveReport = resolveAsReportInternal(configuration, true, metaDataProvider.getModule(), metaDataProvider.getGradleUserHomeDir(), metaDataProvider.getClientModuleRegistry());
         return dependencyResolver.resolveFromReport(configuration, resolveReport);
     }
 
@@ -106,12 +102,12 @@ public class DefaultIvyService implements IvyService {
         return dependencyResolver.resolveFromReport(configuration, resolveReport);
     }
 
-    public ResolveReport resolveAsReport(Configuration configuration, Module module, File cacheParentDir, Map clientModuleRegistry) {
-        return resolveAsReportInternal(configuration, false, module, cacheParentDir, clientModuleRegistry);
+    public ResolveReport resolveAsReport(Configuration configuration) {
+        return resolveAsReportInternal(configuration, false, metaDataProvider.getModule(), metaDataProvider.getGradleUserHomeDir(), metaDataProvider.getClientModuleRegistry());
     }
 
     private ResolveReport resolveAsReportInternal(Configuration configuration, boolean failOnError,
-                                                  Module module, File cacheParentDir, Map clientModuleRegistry) {
+                                                  Module module, File cacheParentDir, Map<String, ModuleDescriptor> clientModuleRegistry) {
         Ivy ivy = ivyForResolve(configuration.getDependencyResolvers(),
                 cacheParentDir,
                 clientModuleRegistry);
@@ -121,16 +117,16 @@ public class DefaultIvyService implements IvyService {
     }
 
     public void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,
-                        List<DependencyResolver> publishResolvers, Module module, File cacheParentDir) {
+                        List<DependencyResolver> publishResolvers) {
         assert configurationsToPublish.size() > 0;
-        Ivy ivy = ivyForPublish(publishResolvers, cacheParentDir);
+        Ivy ivy = ivyForPublish(publishResolvers, metaDataProvider.getGradleUserHomeDir());
         Set<String> confs = Configurations.getNames(configurationsToPublish, false);
         dependencyPublisher.publish(
                 confs,
                 publishInstruction,
                 publishResolvers,
                 moduleDescriptorConverter.convertForPublish(configurationsToPublish, publishInstruction.isUploadDescriptor(),
-                        module, ivy.getSettings()),
+                        metaDataProvider.getModule(), ivy.getSettings()),
                 ivy.getPublishEngine());
     }
 
@@ -144,10 +140,6 @@ public class DefaultIvyService implements IvyService {
 
     public void setIvyFactory(IvyFactory ivyFactory) {
         this.ivyFactory = ivyFactory;
-    }
-
-    public void setInternalRepository(InternalRepository internalRepository) {
-        this.internalRepository = internalRepository;
     }
 
     public void setDependencyResolver(IvyDependencyResolver dependencyResolver) {

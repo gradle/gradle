@@ -33,9 +33,8 @@ class DefaultConfigurationHandler extends DefaultConfigurationContainer implemen
     private boolean configuring
 
     def DefaultConfigurationHandler(IvyService ivyService, ResolverProvider resolverProvider,
-                                    DependencyMetaDataProvider dependencyMetaDataProvider,
                                     ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
-        super(ivyService, resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction)
+        super(ivyService, resolverProvider, projectDependenciesBuildInstruction)
         addRule([apply: {String name ->
             if (configuring) {
                 add(name)

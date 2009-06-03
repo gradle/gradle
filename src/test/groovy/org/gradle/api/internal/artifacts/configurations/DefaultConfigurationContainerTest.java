@@ -44,18 +44,16 @@ public class DefaultConfigurationContainerTest {
 
     IvyService ivyServiceDummy = context.mock(IvyService.class);
     ResolverProvider resolverProviderDummy = context.mock(ResolverProvider.class);
-    DependencyMetaDataProvider dependencyMetaDataProviderDummy = context.mock(DependencyMetaDataProvider.class);
     ProjectDependenciesBuildInstruction projectDependenciesBuildInstructionDummy = new ProjectDependenciesBuildInstruction(
             Collections.<String>emptyList());
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
-            ivyServiceDummy, resolverProviderDummy, dependencyMetaDataProviderDummy, projectDependenciesBuildInstructionDummy);
+            ivyServiceDummy, resolverProviderDummy, projectDependenciesBuildInstructionDummy);
 
     @Test
     public void init() {
         assertThat(configurationContainer.getIvyService(), sameInstance(ivyServiceDummy));
         assertThat(configurationContainer.getResolverProvider(), sameInstance(resolverProviderDummy));
-        assertThat(configurationContainer.getDependencyMetaDataProvider(), sameInstance(dependencyMetaDataProviderDummy));
         assertThat(configurationContainer.getProjectDependenciesBuildInstruction(),
                 sameInstance(projectDependenciesBuildInstructionDummy));
     }
@@ -78,7 +76,6 @@ public class DefaultConfigurationContainerTest {
 
     private Configuration checkAddGetWithName(DefaultConfiguration configuration) {
         assertThat(configuration, equalTo(configurationContainer.getByName(TEST_NAME)));
-        assertThat(configuration.getDependencyMetaDataProvider(), sameInstance(dependencyMetaDataProviderDummy));
         assertThat(configuration.getIvyService(), sameInstance(ivyServiceDummy));
         assertThat(configuration.getResolverProvider(), sameInstance(resolverProviderDummy));
         assertThat((DefaultConfigurationContainer) configuration.getConfigurationsProvider(),

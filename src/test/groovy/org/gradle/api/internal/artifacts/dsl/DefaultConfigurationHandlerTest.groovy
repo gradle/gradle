@@ -37,11 +37,10 @@ class DefaultConfigurationHandlerTest {
 
     private IvyService ivyService = context.mock(IvyService)
     private ResolverProvider resolverProvider = context.mock(ResolverProvider)
-    private DependencyMetaDataProvider dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider)
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(null)
 
     private DefaultConfigurationHandler configurationHandler = new DefaultConfigurationHandler(ivyService,
-            resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction)
+            resolverProvider, projectDependenciesBuildInstruction)
 
     @Test void addsNewConfigurationWhenConfiguringSelf() {
         configurationHandler.configure {

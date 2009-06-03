@@ -134,7 +134,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
-     * the resulting list of files.
+     * the resulting set of files.
      *
      * @return The files of this configuration.
      */

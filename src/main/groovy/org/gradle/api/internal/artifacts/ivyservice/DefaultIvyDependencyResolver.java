@@ -37,8 +37,6 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
 
     private Report2Classpath report2Classpath;
 
-    private ResolveReport lastResolveReport = null;
-
     public DefaultIvyDependencyResolver(Report2Classpath report2Classpath) {
         this.report2Classpath = report2Classpath;
     }
@@ -63,11 +61,10 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
                                          boolean isFailOnError) {
         Clock clock = new Clock();
         ResolveOptions resolveOptions = createResolveOptions(configuration);
-        ResolveReport resolveReport = null;
+        ResolveReport resolveReport;
         try {
             resolveReport = ivy.resolve(
                     moduleDescriptor, resolveOptions);
-            lastResolveReport = resolveReport;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -83,9 +80,5 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         ResolveOptions resolveOptions = new ResolveOptions();
         resolveOptions.setConfs(WrapUtil.toArray(configuration.getName()));
         return resolveOptions;
-    }
-
-    public ResolveReport getLastResolveReport() {
-        return lastResolveReport;
     }
 }

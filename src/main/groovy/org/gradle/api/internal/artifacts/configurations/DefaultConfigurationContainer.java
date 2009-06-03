@@ -38,19 +38,15 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
 
     private ResolverProvider resolverProvider;
 
-    private DependencyMetaDataProvider dependencyMetaDataProvider;
-
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
     public DefaultConfigurationContainer(IvyService ivyService, ResolverProvider resolverProvider,
-                                         DependencyMetaDataProvider dependencyMetaDataProvider,
                                          ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         super(Configuration.class);
         this.ivyService = ivyService;
         this.resolverProvider = resolverProvider;
-        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
@@ -60,7 +56,7 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
                     name));
         }
         DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyService, resolverProvider,
-                dependencyMetaDataProvider, projectDependenciesBuildInstruction);
+                projectDependenciesBuildInstruction);
         addObject(name, configuration);
         ConfigureUtil.configure(configureClosure, configuration);
         return configuration;
@@ -91,38 +87,18 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
         return ivyService;
     }
 
-    public void setIvyService(IvyService ivyService) {
-        this.ivyService = ivyService;
-    }
-
-    public DependencyMetaDataProvider getDependencyMetaDataProvider() {
-        return dependencyMetaDataProvider;
-    }
-
-    public void setDependencyMetaDataProvider(DependencyMetaDataProvider dependencyMetaDataProvider) {
-        this.dependencyMetaDataProvider = dependencyMetaDataProvider;
-    }
-
     public ResolverProvider getResolverProvider() {
         return resolverProvider;
-    }
-
-    public void setResolverProvider(ResolverProvider resolverProvider) {
-        this.resolverProvider = resolverProvider;
     }
 
     public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
         return projectDependenciesBuildInstruction;
     }
 
-    public void setProjectDependenciesBuildInstruction(ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
-        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
-    }
-
     public Configuration detachedConfiguration(Dependency... dependencies) {
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++,
-                detachedConfigurationsProvider, ivyService, resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction);
+                detachedConfigurationsProvider, ivyService, resolverProvider, projectDependenciesBuildInstruction);
         for (Dependency dependency : dependencies) {
             detachedConfiguration.addDependency(dependency.copy());
         }
