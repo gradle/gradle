@@ -51,4 +51,16 @@ public class AntTask extends ConventionTask {
             dependsOn(name);
         }
     }
+
+    @Override
+    public String getDescription() {
+        return target == null ? null : target.getDescription();
+    }
+
+    @Override
+    public void setDescription(String description) {
+        if (target != null) {
+            target.setDescription(description);
+        }
+    }
 }

@@ -3,6 +3,7 @@ package org.gradle.api.plugins.ant
 import org.gradle.api.Project
 import org.apache.tools.ant.ProjectHelper
 import org.apache.tools.ant.Target
+import org.apache.tools.ant.MagicNames
 
 public class AntPluginConvention {
     private final Project project
@@ -16,8 +17,12 @@ public class AntPluginConvention {
     }
     
     def importAntBuild(File file) {
+        file = file.canonicalFile
         org.apache.tools.ant.Project antProject = project.ant.project
         antProject.basedir = file.parentFile
+
+        antProject.setUserProperty(MagicNames.ANT_FILE, file.getAbsolutePath());
+
         ProjectHelper.configureProject(antProject, file)
         
         antProject.targets.each {name, Target target ->

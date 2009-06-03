@@ -49,8 +49,6 @@ import java.util.HashMap;
 public abstract class AbstractTaskTest {
     public static final String TEST_TASK_NAME = "taskname";
 
-    public static final String TEST_PROJECT_NAME = "/projectTestName";
-
     private AbstractProject project;
 
     private JUnit4Mockery context = new JUnit4Mockery();

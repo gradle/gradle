@@ -45,11 +45,6 @@ task ant(dependsOn: target1)
     }
 
     @Test @Ignore
-    public void targetDescriptionIsImported() {
-        Assert.fail()
-    }
-
-    @Test @Ignore
     public void reportsAntBuildParseFailure() {
         Assert.fail()
     }
