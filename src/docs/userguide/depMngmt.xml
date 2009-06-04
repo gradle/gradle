@@ -251,9 +251,7 @@
             <sample id="exclude-dependencies" dir="userguide/artifacts/excludesAndClassifiers">
                 <sourcefile file="build.gradle" snippet="exclude-dependencies"/>
             </sample>
-            <para>The <emphasis>junit</emphasis> dependency will only be excluded from
-                <emphasis>groovy</emphasis>. If another dependency has a transitive dependency on
-                <emphasis>junit</emphasis>, the latter will make it into your classpath. If you define
+            <para>If you define
                 an exclude for a particular configuration, the excluded transitive dependency will be filtered for all
                 dependencies when resolving this configuration or any inheriting configuration.
                 If you want to exclude a transitive dependency from all your
