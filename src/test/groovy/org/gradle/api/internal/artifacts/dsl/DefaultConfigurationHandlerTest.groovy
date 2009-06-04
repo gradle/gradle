@@ -36,11 +36,10 @@ class DefaultConfigurationHandlerTest {
     private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     private IvyService ivyService = context.mock(IvyService)
-    private ResolverProvider resolverProvider = context.mock(ResolverProvider)
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(null)
 
     private DefaultConfigurationHandler configurationHandler = new DefaultConfigurationHandler(ivyService,
-            resolverProvider, projectDependenciesBuildInstruction)
+            projectDependenciesBuildInstruction)
 
     @Test void addsNewConfigurationWhenConfiguringSelf() {
         configurationHandler.configure {

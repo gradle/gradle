@@ -36,17 +36,13 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
     
     private IvyService ivyService;
 
-    private ResolverProvider resolverProvider;
-
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyService ivyService, ResolverProvider resolverProvider,
-                                         ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+    public DefaultConfigurationContainer(IvyService ivyService, ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         super(Configuration.class);
         this.ivyService = ivyService;
-        this.resolverProvider = resolverProvider;
         this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
@@ -55,7 +51,7 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
             throw new InvalidUserDataException(String.format("Cannot add configuration '%s' as a configuration with that name already exists.",
                     name));
         }
-        DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyService, resolverProvider,
+        DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyService,
                 projectDependenciesBuildInstruction);
         addObject(name, configuration);
         ConfigureUtil.configure(configureClosure, configuration);
@@ -87,10 +83,6 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
         return ivyService;
     }
 
-    public ResolverProvider getResolverProvider() {
-        return resolverProvider;
-    }
-
     public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
         return projectDependenciesBuildInstruction;
     }
@@ -98,7 +90,7 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
     public Configuration detachedConfiguration(Dependency... dependencies) {
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++,
-                detachedConfigurationsProvider, ivyService, resolverProvider, projectDependenciesBuildInstruction);
+                detachedConfigurationsProvider, ivyService, projectDependenciesBuildInstruction);
         for (Dependency dependency : dependencies) {
             detachedConfiguration.addDependency(dependency.copy());
         }

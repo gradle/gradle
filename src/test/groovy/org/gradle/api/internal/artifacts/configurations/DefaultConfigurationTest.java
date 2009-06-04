@@ -24,6 +24,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
@@ -53,7 +54,6 @@ public class DefaultConfigurationTest {
     }};
 
     private IvyService ivyServiceStub = context.mock(IvyService.class);
-    private ResolverProvider resolverProvider;
     private DefaultConfigurationContainer configurationContainer;
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction =
             new ProjectDependenciesBuildInstruction(null);
@@ -62,26 +62,14 @@ public class DefaultConfigurationTest {
 
     @Before
     public void setUp() {
-        resolverProvider = createResolverProvider();
-        configurationContainer = new DefaultConfigurationContainer(ivyServiceStub, resolverProvider,
-                projectDependenciesBuildInstruction);
+        configurationContainer = new DefaultConfigurationContainer(ivyServiceStub, projectDependenciesBuildInstruction);
         configuration = (DefaultConfiguration) configurationContainer.add(CONF_NAME);
-    }
-
-    private ResolverProvider createResolverProvider() {
-        return new ResolverProvider() {
-            private List<DependencyResolver> resolvers = WrapUtil.toList(context.mock(DependencyResolver.class, "resolverProvider"));
-
-            public List<DependencyResolver> getResolvers() {
-                return resolvers;
-            }
-        };
     }
 
     @Test
     public void defaultValues() {
         DefaultConfiguration configuration = new DefaultConfiguration(CONF_NAME, configurationContainer, ivyServiceStub,
-                resolverProvider, projectDependenciesBuildInstruction);
+                projectDependenciesBuildInstruction);
         assertThat(configuration.getName(), equalTo(CONF_NAME));
         assertThat(configuration.isVisible(), equalTo(true));
         assertThat(configuration.getExtendsFrom().size(), equalTo(0));
@@ -222,45 +210,48 @@ public class DefaultConfigurationTest {
     }
 
     private void prepareForResolveWithErrors() {
-        final ResolveReport resolveReport = context.mock(ResolveReport.class);
-        prepareResolveAsReport(resolveReport, true);
+        ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
+        prepareResolve(resolvedConfiguration, true);
     }
 
     private void makeResolveReturnFileSet(final Set<File> fileSet) {
-        final ResolveReport resolveReport = context.mock(ResolveReport.class);
+        final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         context.checking(new Expectations() {{
-            prepareResolveAsReport(resolveReport, false);
-            allowing(ivyServiceStub).resolveFromReport(configuration, resolveReport);
+            prepareResolve(resolvedConfiguration, false);
+            one(resolvedConfiguration).getFiles();
             will(returnValue(fileSet));
         }});
     }
 
     @Test
     public void resolveSuccessfullyAsReport() {
-        final ResolveReport resolveReport = context.mock(ResolveReport.class);
-        prepareResolveAsReport(resolveReport, false);
+        ResolveReport resolveReport = context.mock(ResolveReport.class);
+        prepareResolve(resolveReport);
         assertThat(configuration.resolveAsReport(), equalTo(resolveReport));
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
     }
 
-    private void prepareResolveAsReport(final ResolveReport resolveReport, final boolean withErrors) {
+    private void prepareResolve(final ResolveReport resolveReport) {
+        final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
+        prepareResolve(resolvedConfiguration, false);
         context.checking(new Expectations() {{
-            allowing(ivyServiceStub).resolveAsReport(configuration);
+            allowing(resolvedConfiguration).getResolveReport();
             will(returnValue(resolveReport));
-            allowing(resolveReport).hasError();
+        }});
+    }
+
+    private void prepareResolve(final ResolvedConfiguration resolvedConfiguration, final boolean withErrors) {
+        context.checking(new Expectations() {{
+            allowing(ivyServiceStub).resolve(configuration);
+            will(returnValue(resolvedConfiguration));
+            allowing(resolvedConfiguration).hasError();
             will(returnValue(withErrors));
         }});
     }
 
     @Test
     public void multipleResolvesShouldUseCachedResult() {
-        final ResolveReport resolveReport = context.mock(ResolveReport.class);
-        context.checking(new Expectations() {{
-            one(ivyServiceStub).resolveAsReport(configuration);
-            will(returnValue(resolveReport));
-            allowing(resolveReport).hasError();
-            will(returnValue(false));
-        }});
+        prepareResolve(context.mock(ResolveReport.class));
         assertThat(configuration.resolveAsReport(), sameInstance(configuration.resolveAsReport()));
     }
 
@@ -273,11 +264,6 @@ public class DefaultConfigurationTest {
             allowing(ivyServiceStub).publish(new LinkedHashSet(otherConfiguration.getHierarchy()), publishInstruction, dependencyResolvers);
         }});
         otherConfiguration.publish(dependencyResolvers, publishInstruction);
-    }
-
-    @Test
-    public void getDependencyResolver() {
-        assertThat(configuration.getDependencyResolvers(), equalTo(resolverProvider.getResolvers()));
     }
 
     @Test
@@ -304,7 +290,7 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, configurationContainer, ivyServiceStub, resolverProvider,
+        return new DefaultConfiguration(confName, configurationContainer, ivyServiceStub,
                 projectDependenciesBuildInstruction);
     }
 

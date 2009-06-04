@@ -35,7 +35,7 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
 
     public ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider,
                                                              DependencyMetaDataProvider dependencyMetaDataProvider) {
-        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProvider);
-        return new DefaultConfigurationHandler(ivyService, resolverProvider, projectDependenciesBuildInstruction);
+        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProvider, resolverProvider);
+        return new DefaultConfigurationHandler(ivyService, projectDependenciesBuildInstruction);
     }
 }

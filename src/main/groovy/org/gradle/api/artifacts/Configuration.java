@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
+import groovy.lang.Closure;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.specs.Spec;
@@ -22,10 +23,8 @@ import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
-
-import groovy.lang.Closure;
+import java.util.Set;
 
 /**
  * <p>A {@code Configuration} represents a group of artifacts and their dependencies.</p>
@@ -239,11 +238,6 @@ public interface Configuration extends FileCollection {
      * Returns the artifacts of this configuration including the artifacts of extended configurations.
      */
     Set<PublishArtifact> getAllArtifacts();
-
-    /**
-     * Returns the repositories used for resolving the dependencies of the configuration.
-     */
-    List<DependencyResolver> getDependencyResolvers();
 
     /**
      * Returns the exclude rules applied for resolving any dependency of this configuration.

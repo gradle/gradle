@@ -11,6 +11,7 @@ import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.artifacts.AbstractFileCollection;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -40,21 +41,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
 
-    private ResolverProvider resolverProvider;
-
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
     private State state = State.UNRESOLVED;
 
-    private ResolveReport cachedResolveReport = null;
+    private ResolvedConfiguration cachedResolvedConfiguration = null;
 
     public DefaultConfiguration(String name, ConfigurationsProvider configurationsProvider, IvyService ivyService,
-                                ResolverProvider resolverProvider,
                                 ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.ivyService = ivyService;
-        this.resolverProvider = resolverProvider;
         this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
@@ -141,23 +138,27 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> resolve() {
-        ResolveReport report = resolveAsReport();
+        ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
         if (state == State.RESOLVED_WITH_FAILURES) {
             throw new InvalidUserDataException("Not all dependencies could be resolved!");
         }
-        return ivyService.resolveFromReport(this, report);
+        return resolvedConfiguration.getFiles();
     }
 
     public ResolveReport resolveAsReport() {
+        return getResolvedConfiguration().getResolveReport();
+    }
+
+    private ResolvedConfiguration getResolvedConfiguration() {
         if (state == State.UNRESOLVED) {
-            cachedResolveReport = ivyService.resolveAsReport(this);
-            if (cachedResolveReport.hasError()) {
+            cachedResolvedConfiguration = ivyService.resolve(this);
+            if (cachedResolvedConfiguration.hasError()) {
                 state = State.RESOLVED_WITH_FAILURES;
             } else {
                 state = State.RESOLVED;
             }
         }
-        return cachedResolveReport;
+        return cachedResolvedConfiguration;
     }
 
     public void publish(List<DependencyResolver> publishResolvers, PublishInstruction publishInstruction) {
@@ -267,10 +268,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Configurations.getArtifacts(this.getHierarchy(), Specs.SATISFIES_ALL);
     }
 
-    public List<DependencyResolver> getDependencyResolvers() {
-        return resolverProvider.getResolvers();
-    }
-
     public Set<ExcludeRule> getExcludeRules() {
         return excludeRules;
     }
@@ -304,10 +301,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public IvyService getIvyService() {
         return ivyService;
-    }
-
-    public ResolverProvider getResolverProvider() {
-        return resolverProvider;
     }
 
     public ConfigurationsProvider getConfigurationsProvider() {
@@ -368,9 +361,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration("copyOf" + getName(),
-                configurationsProvider, ivyService, resolverProvider, projectDependenciesBuildInstruction);
+                configurationsProvider, ivyService, projectDependenciesBuildInstruction);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
-        // state, cachedResolveReport, and extendsFrom intentionally not copied - must re-resolve copy
+        // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
 
         copiedConfiguration.visibility = visibility;

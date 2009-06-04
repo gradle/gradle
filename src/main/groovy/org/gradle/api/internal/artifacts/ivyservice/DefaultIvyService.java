@@ -20,11 +20,12 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter;
 
 import java.io.File;
@@ -42,9 +43,11 @@ public class DefaultIvyService implements IvyService {
     private IvyDependencyResolver dependencyResolver = new DefaultIvyDependencyResolver(new Report2Classpath());
     private IvyDependencyPublisher dependencyPublisher = new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory());
     private final DependencyMetaDataProvider metaDataProvider;
+    private final ResolverProvider resolverProvider;
 
-    public DefaultIvyService(DependencyMetaDataProvider metaDataProvider) {
+    public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider) {
         this.metaDataProvider = metaDataProvider;
+        this.resolverProvider = resolverProvider;
     }
 
     private Ivy ivyForResolve(List<DependencyResolver> dependencyResolvers, File cacheParentDir,
@@ -85,6 +88,10 @@ public class DefaultIvyService implements IvyService {
         return metaDataProvider;
     }
 
+    public ResolverProvider getResolverProvider() {
+        return resolverProvider;
+    }
+
     public IvyDependencyResolver getDependencyResolver() {
         return dependencyResolver;
     }
@@ -93,27 +100,28 @@ public class DefaultIvyService implements IvyService {
         return dependencyPublisher;
     }
 
-    public Set<File> resolve(Configuration configuration) {
-        ResolveReport resolveReport = resolveAsReportInternal(configuration, true, metaDataProvider.getModule(), metaDataProvider.getGradleUserHomeDir(), metaDataProvider.getClientModuleRegistry());
-        return dependencyResolver.resolveFromReport(configuration, resolveReport);
-    }
-
-    public Set<File> resolveFromReport(Configuration configuration, ResolveReport resolveReport) {
-        return dependencyResolver.resolveFromReport(configuration, resolveReport);
-    }
-
-    public ResolveReport resolveAsReport(Configuration configuration) {
-        return resolveAsReportInternal(configuration, false, metaDataProvider.getModule(), metaDataProvider.getGradleUserHomeDir(), metaDataProvider.getClientModuleRegistry());
-    }
-
-    private ResolveReport resolveAsReportInternal(Configuration configuration, boolean failOnError,
-                                                  Module module, File cacheParentDir, Map<String, ModuleDescriptor> clientModuleRegistry) {
-        Ivy ivy = ivyForResolve(configuration.getDependencyResolvers(),
-                cacheParentDir,
+    public ResolvedConfiguration resolve(final Configuration configuration) {
+        Map<String, ModuleDescriptor> clientModuleRegistry = metaDataProvider.getClientModuleRegistry();
+        Ivy ivy = ivyForResolve(resolverProvider.getResolvers(), metaDataProvider.getGradleUserHomeDir(),
                 clientModuleRegistry);
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForResolve(configuration,
-                module, clientModuleRegistry, ivy.getSettings());
-        return dependencyResolver.resolveAsReport(configuration, ivy, moduleDescriptor, failOnError);
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForResolve(configuration, metaDataProvider.getModule(),
+                clientModuleRegistry, ivy.getSettings());
+        final ResolveReport resolveReport = dependencyResolver.resolveAsReport(configuration, ivy, moduleDescriptor,
+                false);
+
+        return new ResolvedConfiguration() {
+            public ResolveReport getResolveReport() {
+                return resolveReport;
+            }
+
+            public boolean hasError() {
+                return resolveReport.hasError();
+            }
+
+            public Set<File> getFiles() {
+                return dependencyResolver.resolveFromReport(configuration, resolveReport);
+            }
+        };
     }
 
     public void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,

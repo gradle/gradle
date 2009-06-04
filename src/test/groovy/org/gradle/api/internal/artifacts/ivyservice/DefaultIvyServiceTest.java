@@ -15,13 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.report.ResolveReport;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter;
-import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
-import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -29,9 +26,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -49,7 +43,7 @@ public class DefaultIvyServiceTest {
     @Before
     public void setUp() {
         dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider.class);
-        ivyService = new DefaultIvyService(dependencyMetaDataProvider);
+        ivyService = new DefaultIvyService(dependencyMetaDataProvider, context.mock(ResolverProvider.class));
     }
 
     @Test
@@ -60,20 +54,5 @@ public class DefaultIvyServiceTest {
         assertThat(ivyService.getIvyFactory(), instanceOf(DefaultIvyFactory.class));
         assertThat(ivyService.getDependencyResolver(), instanceOf(DefaultIvyDependencyResolver.class));
         assertThat(ivyService.getDependencyPublisher(), instanceOf(DefaultIvyDependencyPublisher.class));
-    }
-
-    @Test
-    public void testResolveFromReport() {
-        final IvyDependencyResolver ivyDependencyResolverMock = context.mock(IvyDependencyResolver.class);
-        ivyService.setDependencyResolver(ivyDependencyResolverMock);
-
-        final Configuration configurationDummy = context.mock(Configuration.class);
-        final ResolveReport resolveReportDummy = context.mock(ResolveReport.class);
-        final Set<File> classpathDummy = WrapUtil.toSet(new File("cp"));
-        context.checking(new Expectations() {{
-            allowing(ivyDependencyResolverMock).resolveFromReport(configurationDummy, resolveReportDummy);
-            will(returnValue(classpathDummy));
-        }});
-        assertThat(ivyService.resolveFromReport(configurationDummy, resolveReportDummy), equalTo(classpathDummy));
     }
 }

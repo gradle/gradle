@@ -48,7 +48,7 @@ public class DefaultConfigurationContainerFactoryTest {
 
         assertThat(configurationContainer.getIvyService(), instanceOf(DefaultIvyService.class));
         assertThat(((DefaultIvyService) configurationContainer.getIvyService()).getMetaDataProvider(), sameInstance(dependencyMetaDataProviderStub));
-        assertThat(configurationContainer.getResolverProvider(), sameInstance(resolverProviderDummy));
+        assertThat(((DefaultIvyService) configurationContainer.getIvyService()).getResolverProvider(), sameInstance(resolverProviderDummy));
         assertThat(configurationContainer.getProjectDependenciesBuildInstruction(), sameInstance(projectDependenciesBuildInstructionDummy));
     }
 }

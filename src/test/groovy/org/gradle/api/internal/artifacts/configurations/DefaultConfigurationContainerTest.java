@@ -18,19 +18,19 @@ package org.gradle.api.internal.artifacts.configurations;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
-import java.util.Set;
 import java.util.Collections;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -43,17 +43,15 @@ public class DefaultConfigurationContainerTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     IvyService ivyServiceDummy = context.mock(IvyService.class);
-    ResolverProvider resolverProviderDummy = context.mock(ResolverProvider.class);
     ProjectDependenciesBuildInstruction projectDependenciesBuildInstructionDummy = new ProjectDependenciesBuildInstruction(
             Collections.<String>emptyList());
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
-            ivyServiceDummy, resolverProviderDummy, projectDependenciesBuildInstructionDummy);
+            ivyServiceDummy, projectDependenciesBuildInstructionDummy);
 
     @Test
     public void init() {
         assertThat(configurationContainer.getIvyService(), sameInstance(ivyServiceDummy));
-        assertThat(configurationContainer.getResolverProvider(), sameInstance(resolverProviderDummy));
         assertThat(configurationContainer.getProjectDependenciesBuildInstruction(),
                 sameInstance(projectDependenciesBuildInstructionDummy));
     }
@@ -77,7 +75,6 @@ public class DefaultConfigurationContainerTest {
     private Configuration checkAddGetWithName(DefaultConfiguration configuration) {
         assertThat(configuration, equalTo(configurationContainer.getByName(TEST_NAME)));
         assertThat(configuration.getIvyService(), sameInstance(ivyServiceDummy));
-        assertThat(configuration.getResolverProvider(), sameInstance(resolverProviderDummy));
         assertThat((DefaultConfigurationContainer) configuration.getConfigurationsProvider(),
                 sameInstance(configurationContainer));
         return configuration;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,15 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.PublishInstruction;
+import org.apache.ivy.core.report.ResolveReport;
 
-import java.util.List;
+import java.io.File;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
-public interface IvyService {
-    ResolvedConfiguration resolve(Configuration configuration);
+public interface ResolvedConfiguration {
+    ResolveReport getResolveReport();
 
-    void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,
-                 List<DependencyResolver> publishResolvers);
+    Set<File> getFiles();
+
+    boolean hasError();
 }

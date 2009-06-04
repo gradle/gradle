@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -78,8 +79,9 @@ public class DefaultIvyService_PublishTest {
         SettingsConverter settingsConverterStub = context.mock(SettingsConverter.class);
         ModuleDescriptorConverter moduleDescriptorConverterStub = context.mock(ModuleDescriptorConverter.class);
         IvyDependencyPublisher ivyDependencyPublisherMock = context.mock(IvyDependencyPublisher.class);
+        ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
 
-        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProviderMock);
+        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider);
         ivyService.setModuleDescriptorConverter(moduleDescriptorConverterStub);
         ivyService.setSettingsConverter(settingsConverterStub);
         ivyService.setDependencyPublisher(ivyDependencyPublisherMock);
