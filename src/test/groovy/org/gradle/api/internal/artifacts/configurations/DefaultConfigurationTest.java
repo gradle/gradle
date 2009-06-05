@@ -32,6 +32,9 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.Matchers;
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -93,8 +96,8 @@ public class DefaultConfigurationTest {
 
     @Test
     public void exclude() {
-        Map<String, String> excludeArgs1 = WrapUtil.toMap("org", "value");
-        Map<String, String> excludeArgs2 = WrapUtil.toMap("org2", "value2");
+        Map<String, String> excludeArgs1 = toMap("org", "value");
+        Map<String, String> excludeArgs2 = toMap("org2", "value2");
         assertThat(configuration.exclude(excludeArgs1), sameInstance(configuration));
         configuration.exclude(excludeArgs2);
         assertThat(configuration.getExcludeRules(), equalTo(WrapUtil.<ExcludeRule>toSet(
@@ -103,7 +106,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void setExclude() {
-        Set<ExcludeRule> excludeRules = WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule(WrapUtil.toMap("org", "value")));
+        Set<ExcludeRule> excludeRules = WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule(toMap("org", "value")));
         configuration.setExcludeRules(excludeRules);
         assertThat(configuration.getExcludeRules(), equalTo(excludeRules));
     }
@@ -129,11 +132,11 @@ public class DefaultConfigurationTest {
     public void setExtendsFrom() {
         Configuration configuration1 = configurationContainer.add("otherConf1");
 
-        configuration.setExtendsFrom(WrapUtil.toSet(configuration1));
+        configuration.setExtendsFrom(toSet(configuration1));
         assertThat(configuration.getExtendsFrom(), equalTo(toSet(configuration1)));
 
         Configuration configuration2 = configurationContainer.add("otherConf2");
-        configuration.setExtendsFrom(WrapUtil.toSet(configuration2));
+        configuration.setExtendsFrom(toSet(configuration2));
         assertThat(configuration.getExtendsFrom(), equalTo(toSet(configuration2)));
     }
 
@@ -157,7 +160,7 @@ public class DefaultConfigurationTest {
     public void setExtendsFromWithCycle_shouldThrowInvalidUserDataEx() {
         Configuration otherConfiguration = configurationContainer.add("otherConf");
         otherConfiguration.extendsFrom(configuration);
-        configuration.setExtendsFrom(WrapUtil.toSet(otherConfiguration));
+        configuration.setExtendsFrom(toSet(otherConfiguration));
     }
 
     @Test
@@ -187,7 +190,7 @@ public class DefaultConfigurationTest {
         String testConf2 = "testConf2";
         configurationContainer.add(testConf1);
         configurationContainer.add(testConf2);
-        assertThat(Configurations.getNames(configuration.getAll()), equalTo(WrapUtil.toSet(CONF_NAME, testConf1, testConf2)));
+        assertThat(Configurations.getNames(configuration.getAll()), equalTo(toSet(CONF_NAME, testConf1, testConf2)));
     }
 
     @Test(expected = GradleException.class)
@@ -198,7 +201,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void resolve() {
-        final Set<File> fileSet = WrapUtil.toSet(new File("somePath"));
+        final Set<File> fileSet = toSet(new File("somePath"));
         makeResolveReturnFileSet(fileSet);
         assertThat(configuration.resolve(), equalTo(fileSet));
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
@@ -264,7 +267,7 @@ public class DefaultConfigurationTest {
     public void publish() {
         final Configuration otherConfiguration = configurationContainer.add("testConf").extendsFrom(configuration);
         final PublishInstruction publishInstruction = createAnonymousPublishInstruction();
-        final List<DependencyResolver> dependencyResolvers = WrapUtil.toList(context.mock(DependencyResolver.class, "publish"));
+        final List<DependencyResolver> dependencyResolvers = toList(context.mock(DependencyResolver.class, "publish"));
         context.checking(new Expectations() {{
             allowing(ivyServiceStub).publish(new LinkedHashSet(otherConfiguration.getHierarchy()), publishInstruction, dependencyResolvers);
         }});
@@ -315,19 +318,18 @@ public class DefaultConfigurationTest {
             will(returnValue(otherConfTaskDependencyMock));
 
             allowing(otherConfiguration).getHierarchy();
-            will(returnValue(WrapUtil.toList()));
+            will(returnValue(toList()));
 
             allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
-            will(returnValue(WrapUtil.toSet(otherConfTaskMock)));
+            will(returnValue(toSet(otherConfTaskMock)));
 
             allowing(artifactTaskDependencyMock).getDependencies(with(any(Task.class)));
-            will(returnValue(WrapUtil.toSet(artifactTaskMock)));
+            will(returnValue(toSet(artifactTaskMock)));
         }});
-        configuration.setExtendsFrom(WrapUtil.toSet(otherConfiguration));
+        configuration.setExtendsFrom(toSet(otherConfiguration));
         assertThat((Set<Task>) configuration.getBuildArtifacts().getDependencies(context.mock(Task.class, "caller")),
-                equalTo(WrapUtil.toSet(artifactTaskMock, otherConfTaskMock)));
+                equalTo(toSet(artifactTaskMock, otherConfTaskMock)));
     }
-
 
     @Test
     public void buildDependencies() {
@@ -336,7 +338,7 @@ public class DefaultConfigurationTest {
         prepareBuildDependenciesTest(dependencyProjectUploadTaskStub, otherConfTaskMock,
                 new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()), new HashMap<String, Task>());
         assertThat((Set<Task>) configuration.getBuildDependencies().getDependencies(dependencyProjectUploadTaskStub),
-                equalTo(WrapUtil.toSet(otherConfTaskMock, dependencyProjectUploadTaskStub)));
+                equalTo(toSet(otherConfTaskMock, dependencyProjectUploadTaskStub)));
     }
 
     @Test
@@ -356,10 +358,10 @@ public class DefaultConfigurationTest {
         final Task projectDependencyTaskMock = context.mock(Task.class, "projectDependencyTask");
         String projectDependencyTaskName = "projectDepTask";
         prepareBuildDependenciesTest(dependencyProjectUploadTaskStub, otherConfTaskMock,
-                new ProjectDependenciesBuildInstruction(WrapUtil.toList(projectDependencyTaskName)),
-                WrapUtil.toMap(projectDependencyTaskName, projectDependencyTaskMock));
+                new ProjectDependenciesBuildInstruction(toList(projectDependencyTaskName)),
+                toMap(projectDependencyTaskName, projectDependencyTaskMock));
         assertThat((Set<Task>) configuration.getBuildDependencies().getDependencies(dependencyProjectUploadTaskStub),
-                equalTo(WrapUtil.toSet(otherConfTaskMock, dependencyProjectUploadTaskStub, projectDependencyTaskMock)));
+                equalTo(toSet(otherConfTaskMock, dependencyProjectUploadTaskStub, projectDependencyTaskMock)));
     }
 
     private void prepareBuildDependenciesTest(final Task dependencyProjectUploadTaskStub, final Task otherConfTaskMock,
@@ -380,7 +382,7 @@ public class DefaultConfigurationTest {
             will(returnValue(otherConfTaskDependencyMock));
 
             allowing(otherConfiguration).getHierarchy();
-            will(returnValue(WrapUtil.toList()));
+            will(returnValue(toList()));
 
             allowing(projectDependencyStub).getDependencyProject();
             will(returnValue(dependencyProjectStub));
@@ -403,25 +405,31 @@ public class DefaultConfigurationTest {
             }
 
             allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
-            will(returnValue(WrapUtil.toSet(otherConfTaskMock)));
+            will(returnValue(toSet(otherConfTaskMock)));
         }});
         configuration.addDependency(projectDependencyStub);
-        configuration.setExtendsFrom(WrapUtil.toSet(otherConfiguration));
+        configuration.setExtendsFrom(toSet(otherConfiguration));
     }
 
     @Test
     public void getDependencies() {
         Dependency dependency = context.mock(Dependency.class);
         configuration.addDependency(dependency);
-        assertThat(configuration.getDependencies(), equalTo(WrapUtil.toSet(dependency)));
+        assertThat(configuration.getDependencies(), equalTo(toSet(dependency)));
     }
 
     @Test
-    public void getProjectDependencies() {
+    public void getTypedDependencies() {
         ProjectDependency projectDependency = context.mock(ProjectDependency.class);
         configuration.addDependency(context.mock(Dependency.class));
         configuration.addDependency(projectDependency);
-        assertThat(configuration.getProjectDependencies(), equalTo(WrapUtil.toSet(projectDependency)));
+        assertThat(configuration.getDependencies(ProjectDependency.class), equalTo(toSet(projectDependency)));
+    }
+
+    @Test
+    public void getTypedDependenciesReturnsEmptySetWhenNoMatches() {
+        configuration.addDependency(context.mock(Dependency.class));
+        assertThat(configuration.getDependencies(ProjectDependency.class), isEmpty());
     }
 
     @Test
@@ -435,12 +443,12 @@ public class DefaultConfigurationTest {
         otherConf.addDependency(dependencyOtherConf1);
         otherConf.addDependency(dependencyOtherConf2);
 
-        assertThat(configuration.getAllDependencies(), equalTo(WrapUtil.toSet(dependencyConf, dependencyOtherConf2)));
+        assertThat(configuration.getAllDependencies(), equalTo(toSet(dependencyConf, dependencyOtherConf2)));
         assertCorrectInstanceInAllDependencies(configuration.getAllDependencies(), dependencyConf);
     }
 
     @Test
-    public void getAllProjectDependencies() {
+    public void getAllTypedDependencies() {
         ProjectDependency projectDependencyCurrentConf = context.mock(ProjectDependency.class, "projectDepCurrentConf");
         configuration.addDependency(context.mock(Dependency.class, "depCurrentConf"));
         configuration.addDependency(projectDependencyCurrentConf);
@@ -450,7 +458,17 @@ public class DefaultConfigurationTest {
         otherConf.addDependency(context.mock(Dependency.class, "depExtendedConf"));
         otherConf.addDependency(projectDependencyExtendedConf);
 
-        assertThat(configuration.getAllProjectDependencies(), equalTo(WrapUtil.toSet(projectDependencyCurrentConf, projectDependencyExtendedConf)));
+        assertThat(configuration.getAllDependencies(ProjectDependency.class), equalTo(toSet(projectDependencyCurrentConf, projectDependencyExtendedConf)));
+    }
+
+    @Test
+    public void getAllTypedDependenciesReturnsEmptySetWhenNoMatches() {
+        configuration.addDependency(context.mock(Dependency.class, "depCurrentConf"));
+        Configuration otherConf = configurationContainer.add("otherConf");
+        configuration.extendsFrom(otherConf);
+        otherConf.addDependency(context.mock(Dependency.class, "depExtendedConf"));
+
+        assertThat(configuration.getAllDependencies(ProjectDependency.class), isEmpty());
     }
 
     @Test
@@ -461,7 +479,7 @@ public class DefaultConfigurationTest {
         configuration.addArtifact(artifactConf);
         configuration.extendsFrom(otherConf);
         otherConf.addArtifact(artifactOtherConf2);
-        assertThat(configuration.getAllArtifacts(), equalTo(WrapUtil.toSet(artifactConf, artifactOtherConf2)));
+        assertThat(configuration.getAllArtifacts(), equalTo(toSet(artifactConf, artifactOtherConf2)));
     }
 
     private void assertCorrectInstanceInAllDependencies(Set<Dependency> allDependencies, Dependency correctInstance) {
@@ -534,8 +552,8 @@ public class DefaultConfigurationTest {
         configuration.setVisible(false);
         configuration.setTransitive(false);
         configuration.setDescription("descript");
-        configuration.exclude(WrapUtil.toMap("org", "value"));
-        configuration.exclude(WrapUtil.toMap("org2", "value2"));
+        configuration.exclude(toMap("org", "value"));
+        configuration.exclude(toMap("org2", "value2"));
         configuration.addArtifact(HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1"));
         configuration.addArtifact(HelperUtil.createPublishArtifact("name2", "ext2", "type2", "classifier2"));
         configuration.addDependency(HelperUtil.createDependency("group1", "name1", "version1"));

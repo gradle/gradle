@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.ConventionTask;
@@ -206,7 +207,8 @@ public class JavaPlugin implements Plugin {
                 },
                 "projectDependencies", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new ArrayList(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME).getAllProjectDependencies());
+                        return new ArrayList(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME).getAllDependencies(
+                                ProjectDependency.class));
                     }
                 }));
         eclipseClasspath.setDescription("Generates an Eclipse .classpath file.");

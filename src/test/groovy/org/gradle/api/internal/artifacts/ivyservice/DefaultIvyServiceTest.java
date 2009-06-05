@@ -52,7 +52,9 @@ public class DefaultIvyServiceTest {
         assertThat(ivyService.getSettingsConverter(), instanceOf(DefaultSettingsConverter.class));
         assertThat(ivyService.getModuleDescriptorConverter(), instanceOf(DefaultModuleDescriptorConverter.class));
         assertThat(ivyService.getIvyFactory(), instanceOf(DefaultIvyFactory.class));
-        assertThat(ivyService.getDependencyResolver(), instanceOf(DefaultIvyDependencyResolver.class));
+        assertThat(ivyService.getDependencyResolver(), instanceOf(SelfResolvingDependencyResolver.class));
+        SelfResolvingDependencyResolver resolver = (SelfResolvingDependencyResolver) ivyService.getDependencyResolver();
+        assertThat(resolver.getResolver(), instanceOf(DefaultIvyDependencyResolver.class));
         assertThat(ivyService.getDependencyPublisher(), instanceOf(DefaultIvyDependencyPublisher.class));
     }
 }

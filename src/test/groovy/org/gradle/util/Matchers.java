@@ -32,11 +32,26 @@ public class Matchers {
     public static Matcher<String> containsLine(final String line) {
         return new BaseMatcher<String>() {
             public boolean matches(Object o) {
-                return Pattern.compile(String.format("^%s$", Pattern.quote(line)), Pattern.MULTILINE).matcher(o.toString()).find();
+                return Pattern.compile(String.format("^%s$", Pattern.quote(line)), Pattern.MULTILINE).matcher(
+                        o.toString()).find();
             }
 
             public void describeTo(Description description) {
                 description.appendText("contains line ").appendValue(line);
+            }
+        };
+    }
+
+    @Factory
+    public static Matcher<Iterable<?>> isEmpty() {
+        return new BaseMatcher<Iterable<?>>() {
+            public boolean matches(Object o) {
+                Iterable<?> iterable = (Iterable<?>) o;
+                return !iterable.iterator().hasNext();
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("is empty");
             }
         };
     }

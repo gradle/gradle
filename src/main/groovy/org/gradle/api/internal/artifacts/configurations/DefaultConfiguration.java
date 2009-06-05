@@ -6,8 +6,6 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.specs.DependencySpecs;
-import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.artifacts.AbstractFileCollection;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
@@ -184,7 +182,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void addUploadTaskAndAdditionalTasksFromProjectDependencies(DefaultTaskDependency taskDependency) {
-        for (ProjectDependency projectDependency : getProjectDependencies()) {
+        for (ProjectDependency projectDependency : getDependencies(ProjectDependency.class)) {
             Configuration configuration = projectDependency.getProjectConfiguration();
             for (String taskName : projectDependenciesBuildInstruction.getTaskNames()) {
                 taskDependency.add(projectDependency.getDependencyProject().getTasks().getByName(taskName));
@@ -230,23 +228,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Configurations.getDependencies(this.getHierarchy(), Specs.SATISFIES_ALL);
     }
 
-    public Set<ProjectDependency> getProjectDependencies() {
-        Set<Dependency> dependencies = Configurations.getDependencies(WrapUtil.<Configuration>toList(this), DependencySpecs.type(Type.PROJECT));
-        return createSetWithGenericProjectDependencyType(dependencies);
+    public <T extends Dependency> Set<T> getDependencies(Class<T> type) {
+        return filter(type, getDependencies());
     }
 
-    public Set<ProjectDependency> getAllProjectDependencies() {
-        Set<Dependency> dependencies = Specs.filterIterable(getAllDependencies(), DependencySpecs.type(Type.PROJECT));
-        return createSetWithGenericProjectDependencyType(dependencies);
-    }
-
-    private Set<ProjectDependency> createSetWithGenericProjectDependencyType(Set<Dependency> dependencies) {
-        // todo There must be a nicer way of doing this
-        Set<ProjectDependency> result = new HashSet<ProjectDependency>();
-        for (Dependency dependency : dependencies) {
-            result.add((ProjectDependency) dependency);
+    private <T extends Dependency> Set<T> filter(Class<T> type, Set<Dependency> dependencySet) {
+        Set<T> matches = new LinkedHashSet<T>();
+        for (Dependency dependency : dependencySet) {
+            if (type.isInstance(dependency)) {
+                matches.add(type.cast(dependency));
+            }
         }
-        return result;
+        return matches;
+    }
+
+    public <T extends Dependency> Set<T> getAllDependencies(Class<T> type) {
+        return filter(type, getAllDependencies());
     }
 
     public void addDependency(Dependency dependency) {

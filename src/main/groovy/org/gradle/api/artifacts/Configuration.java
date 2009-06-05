@@ -207,20 +207,22 @@ public interface Configuration extends FileCollection {
     Set<Dependency> getAllDependencies();
 
     /**
-     * Gets the set of Project Dependencies directly contained in this configuration
-     * (ignoring superconfigurations).
+     * Gets the set of dependencies of type T directly contained in this configuration (ignoring superconfigurations).
      *
-     * @return the set of Project Dependencies
+     * @param type the dependency type
+     * @param <T> the dependency type
+     * @return The set. Returns an empty set if there are no such dependencies.
      */
-    Set<ProjectDependency> getProjectDependencies();
+    <T extends Dependency> Set<T> getDependencies(Class<T> type);
 
     /**
-     * Gets the complete set of Project Dependencies including those contributed by
-     * superconfigurations.
+     * Gets the set of dependencies of type T for this configuration including thos contributed by superconfigurations.
      *
-     * @return the set of Project Dependencies
+     * @param type the dependency type
+     * @param <T> the dependency type
+     * @return The set. Returns an empty set if there are no such dependencies.
      */
-    Set<ProjectDependency> getAllProjectDependencies();
+    <T extends Dependency> Set<T> getAllDependencies(Class<T> type);
 
     /**
      * Adds a dependency to this configuration
