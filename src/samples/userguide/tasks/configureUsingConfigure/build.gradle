@@ -1,6 +1,6 @@
-task copy(type: Copy)
+task myCopy(type: Copy)
 
-copy.configure {
+myCopy.configure {
    from(file('source'))
    into(file('target'))
    includes('**/*.txt', '**/*.xml', '**/*.properties')

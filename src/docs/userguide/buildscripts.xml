@@ -35,7 +35,7 @@
             closure containing some Groovy code to execute.
         </para>
         <para>If you think this looks similar to Ant's targets, well, you are right. Gradle tasks are the equivalent to
-            Ant targets. But as you will see, they are much more powerful. We have used a different terminology to Ant
+            Ant targets. But as you will see, they are much more powerful. We have used a different terminology than Ant
             as we think the word <emphasis>task</emphasis> is more expressive than the word <emphasis>target</emphasis>.
             Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands, such as
             <literal>javac</literal> or <literal>copy</literal>, tasks. So when we talk about tasks,
@@ -78,7 +78,7 @@
     </section>
     <section>
         <title>Dynamic tasks</title>
-        <para>The power of Groovy be used for more than defining what a task does. For example, you can also use it
+        <para>The power of Groovy can be used for more than defining what a task does. For example, you can also use it
             to dynamically create tasks.
         </para>
         <sample id="dynamic" dir="userguide/tutorial/dynamic">
@@ -157,19 +157,19 @@
         </para>
         <itemizedlist>
             <listitem>
-                <para>Ant task names corresponds to AntBuilder method names.
+                <para>Ant task names correspond to AntBuilder method names.
                 </para>
             </listitem>
             <listitem>
-                <para>Ant tasks attributes are arguments for this methods. The arguments are passed in from of a map.
+                <para>Ant task attributes correspond to arguments to these methods. The arguments are passed to the method using a map.
                 </para>
             </listitem>
             <listitem>
-                <para>Nested Ant tasks corresponds to method calls of the passed closure.
+                <para>Nested Ant tasks correspond to method calls of the passed closure.
                 </para>
             </listitem>
         </itemizedlist>
-        <para>To learn more about the Ant Builder have a look in 'Groovy in Action' 8.4 or at the Groovy Wiki
+        <para>More information about Ant Builder can be found in 'Groovy in Action' 8.4 or at the Groovy Wiki
         </para>
     </section>
     <section>

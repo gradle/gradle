@@ -1,7 +1,7 @@
 <chapter id='multi_project_builds' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Multi-project Builds</title>
     <para>The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the
-        intellectually most challenging.
+        most intellectually challenging.
     </para>
     <section id='sec:cross_project_configuration'>
         <title>Cross Project Configuration</title>
@@ -343,7 +343,7 @@
                     <sourcefile file="producer/build.gradle"/>
                     <output args="-q consume"/>
                 </sample>
-                <para>Uhps. Why does this not work? The
+                <para>Oops. Why does this not work? The
                     <literal>dependsOn</literal>
                     command is created for projects with a common lifecycle. Provided you have two Java projects were
                     one depends on the other. If you trigger a compile for for the dependent project you don't want that

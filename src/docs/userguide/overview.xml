@@ -102,8 +102,8 @@
                 <term>Partial Builds</term>
                 <listitem>
                     <para>With Maven multi-project builds only work if executed from the root project and thus requiring
-                        a complete build. If you build from a subproject, only the subproject is build, not the projects
-                        the subproject depends on. Gradle offers partial builds. The subproject is build plus the
+                        a complete build. If you build from a subproject, only the subproject is built, not the projects
+                        the subproject depends on. Gradle offers partial builds. The subproject is built plus the
                         projects it depends on. This is very convenient for larger builds.
                     </para>
                 </listitem>

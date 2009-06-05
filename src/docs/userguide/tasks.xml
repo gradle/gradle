@@ -62,20 +62,15 @@
         <sample id="declareTask" dir="userguide/tasks/configureUsingClosure">
             <sourcefile file="build.gradle" snippet="declare-task"/>
         </sample>
-        <para>The copy task provides an API to configure it (see <apilink class="org.gradle.api.tasks.Copy"/>).
-            If you create the copy task like this, it has no default behavior.
-            <footnote>
-                <para>This is different when added by the Java Plugin where it is used for resource processing.
-                </para>
-            </footnote>
-            We want now use the copy task to learn about different ways to configure tasks. The examples below all
-            show different ways to achieve the same configuration.
+        <para>This creates a copy task with no default behavior.
+            The task can be configured using its API (see <apilink class="org.gradle.api.tasks.Copy"/>).
+			The following examples show several different ways to achieve the same configuration.
         </para>
         <sample id="configureUsingVar" dir="userguide/tasks/configureUsingVar">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>This is similar to the way we would normally configure objects in Java. You have to repeat the context
-            (<literal>copy</literal>) in the configuration statement every time. This is a redundancy and not very
+            (<literal>myCopy</literal>) in the configuration statement every time. This is a redundancy and not very
             nice to read.
         </para>
         <para>There is a more convenient way of doing this.

@@ -86,8 +86,8 @@
     </section>
     <section id='sec:external_tools'>
         <title>External Tools and Standard Output</title>
-        <para>Gradle uses internally Ant and Ivy a lot. Both have their own logging system. Gradle injects an adapter
-            into there logging system to redirect there logging output into the Gradle logging system. There is a 1:1
+        <para>Internally, Gradle uses Ant and Ivy. Both have their own logging system. Gradle injects an adapter
+            into the Ant and Ivy logging systems to redirect their logging output into the Gradle logging system. There is a 1:1
             mapping from the Ant/Ivy log levels to the Gradle log levels, except the Ant/Ivy <emphasis>TRACE</emphasis> level, which is
             mapped to Gradle <emphasis>DEBUG</emphasis>. This means the default Gradle log level does not show any Ant/Ivy output unless it
             is an error or a warning.

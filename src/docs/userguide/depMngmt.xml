@@ -65,17 +65,17 @@
         <section id='sub:transitive_dependency_management'>
             <title>Transitive dependency management</title>
             <para>Why is transitive dependency management so important? If you don't know which dependencies are first
-                level dependencies and which ones are transitive you are loosing very soon control over your build. Even
+                level dependencies and which ones are transitive you will soon lose control over your build. Even
                 Gradle has already 20+ jars. An enterprise project using Spring, Hibernate, etc. easily ends up with
-                100+ jars. There is no way to memorize where all these jars belong to. If you want to get rid of a first
-                level dependency you can't be sure which other jars you should remove. Because a dependency of your
+                100+ jars. There is no way to memorize where all these jars come from. If you want to get rid of a first
+                level dependency you can't be sure which other jars you should remove. Because a dependency of a
                 first level dependency might also be a first level dependency itself. Or it might be a transitive
-                dependency of another of your first level dependency. Many first level dependencies are runtime
+                dependency of another of your first level dependencies. Many first level dependencies are runtime
                 dependencies and the transitive dependencies are of course all runtime dependencies. So the compiler
-                won't help you much here. The end of the story is, as we have seen very often, nobody dares to remove
-                any jar any longer. The project classpath is a complete mess and if a classpath problems arises, hell on
-                earth invites you for a ride. In one of my former projects, I've found some ldap related jar in the
-                classpath, which sheer presence, as I've found out after much research, accelerated LDAP access. So
+                won't help you much here. The end of the story is, as we have seen very often, no one dares to remove
+                any jar any longer. The project classpath is a complete mess and if a classpath problem arises, hell on
+                earth invites you for a ride. In one of my former projects, I found some ldap related jar in the
+                classpath, whose sheer presence, as I found out after much research, accelerated LDAP access. So
                 removing this jar would not have led to any errors at compile or runtime.
             </para>
             <para>Gradle offers you different ways to express what are first level and what are transitive dependencies.
@@ -87,7 +87,7 @@
         <section id='sub:version_conflicts'>
             <title>Version conflicts</title>
             <para>In your dependency description you tell Gradle which version of a dependency is needed by another
-                dependency. This leads frequently to conflicts. Different dependencies rely on different versions of
+                dependency. This frequently leads to conflicts. Different dependencies rely on different versions of
                 another dependency. The JVM unfortunately does not offer yet any easy way, to have different versions of
                 the same jar in the classpath (see <xref linkend='sub:dependency_management_and_java'/>). What Gradle
                 offers you is a resolution strategy, by default the newest version is used. To deal with problems due to
@@ -127,7 +127,7 @@
     </section>
     <section id='sec:how_to_declare_your_dependencies'>
         <title>How to declare your dependencies</title>
-        <para>People who know Ivy have come across most the concepts we are going to introduce now. But Gradle does not
+        <para>People who know Ivy have come across most of the concepts we are going to introduce now. But Gradle does not
             use any XML for declaring the dependencies (e.g. no
             <literal>ivy.xml</literal>
             file). It has its own notations which is part of the Gradle build file.
@@ -239,7 +239,7 @@
             <sample id="project-dependencies" dir="java/multiproject/api">
                 <sourcefile file="build.gradle" snippet="project-dependencies"/>
             </sample>
-            <para>Have also a look at the javadoc: <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
+            <para>For more information see the javadoc: <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
             </para>
             <para>Multi-project builds are discussed in <xref linkend='multi_project_builds'/>.
             </para>
@@ -487,8 +487,8 @@
             <para>Let's say, you declare a dependency on the 
                 <literal>junit:junit:3.8.2</literal> library.
                 Now how does Gradle find it in the repositories? Somehow the dependency information has to be mapped to a
-                path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern how this path
-                should look like. Here are some examples:
+                path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern that defines
+                what the path will look like. Here are some examples:
                 <footnote>
                     <para>At
                         <ulink url='http://ant.apache.org/ivy/history/latest-milestone/concept.html'/>
@@ -518,7 +518,7 @@ someroot/[artifact]-[revision].[ext]
         </section>
     </section>
     <section id='sec:strategies_of_transitive_dependency_management'>
-        <title>Strategies of transitive dependency management</title>
+        <title>Strategies for transitive dependency management</title>
         <para>Many projects rely on the <ulink url='http://repo1.maven.org/maven2'>Maven2 repository</ulink>. This is not
             without problems.
         </para>

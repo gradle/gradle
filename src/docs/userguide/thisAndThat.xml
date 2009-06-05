@@ -53,7 +53,7 @@
         </section>
         <section>
         <title>Enabling and disabling tasks</title>
-        <para>Every task has also a <literal>enabled</literal>
+        <para>Every task has also an <literal>enabled</literal>
             flag which defaults to <literal>true</literal>. Setting it to <literal>false</literal> prevents the execution of any of the
             task's actions.
         </para>
@@ -119,7 +119,7 @@
             <output args="-q otherResources"/>
         </sample>
         <para>A <emphasis>Directory Task</emphasis>
-            is a simple task which name is a relative path to the project dir
+            is a simple task whose name is a relative path to the project dir
             <footnote>
                 <para>The notation <literal>dir('/somepath')</literal> is a convenience method for
                     <literal>tasks.add('somepath', type: Directory)</literal>
@@ -183,7 +183,7 @@
         </sample>
         <section id='sub:checking_for_project_properties'>
             <title>Checking for Project Properties</title>
-            <para>You can access a project property in your build script simply by using it name as you would use a
+            <para>You can access a project property in your build script simply by using its name as you would use a
                 variable. In case this property does not exists, an exception is thrown and the build fails. If your
                 build script relies on optional properties the user might set for example in a gradle.properties file,
                 you need to check for existence before you can access them. You can do this by using the method

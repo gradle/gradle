@@ -30,7 +30,7 @@
 
     <section>
         <title>Configurations</title>
-        <para>The War plugin add two dependency configurations: <literal>providedCompile</literal> and
+        <para>The War plugin adds two dependency configurations: <literal>providedCompile</literal> and
             <literal>providedRuntime</literal>. Those configurations have the same scope as the respective
             <literal>compile</literal> and <literal>runtime</literal> configurations, except that they are not added to
             the WAR archive. It is important to note that those <literal>provided</literal> configurations work
@@ -93,7 +93,7 @@
     </section>
     <section id='sec:customizing'>
         <title>Customizing</title>
-        <para>Here an example with the most important customization options:
+        <para>Here is an example with the most important customization options:
         </para>
         <sample id="webproject" dir="webApplication/customised">
             <sourcefile file="build.gradle"/>

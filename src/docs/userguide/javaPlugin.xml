@@ -766,7 +766,7 @@
 
     <section id='sec:archive_tasks'>
         <title>Archive Tasks</title>
-        <para>An archive task is a task which produces an archive at execution time. The following archives tasks are
+        <para>An archive task is a task which produces an archive at execution time. The following archive tasks are
             available:
         </para>
         <table>
@@ -954,7 +954,7 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
             <para>The convention object of the Java Plugin has a <literal>manifest</literal>
                 property pointing to an instance of <apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/>.
                 With this <classname>GradleManifest</classname> object you can define the content of the
-                <filename>MANIFEST.MF</filename> file of all the jar or a war archives in your project.
+                <filename>MANIFEST.MF</filename> file for all the jar or a war archives in your project.
             </para>
             <sample id="manifest" dir="userguide/tutorial/manifest">
                 <sourcefile file="build.gradle" snippet="main-attributes"/>
@@ -974,7 +974,7 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
         <section id='sub:metainf'>
             <title>MetaInf</title>
             <para>The convention object of the Java Plugin has a <literal>metaInf</literal> property pointing to a list of
-                <classname>FileSet</classname> objects. With this file sets you can define which files should be in the
+                <classname>FileSet</classname> objects. With these file sets you can define which files should be in the
                 <filename>META-INF</filename> directory of a JAR or a WAR archive.
             </para>
             <programlisting><![CDATA[
