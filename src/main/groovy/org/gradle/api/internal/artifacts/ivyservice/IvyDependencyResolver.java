@@ -19,6 +19,7 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 
 import java.io.File;
 import java.util.Set;
@@ -27,9 +28,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface IvyDependencyResolver {
-    ResolveReport resolveAsReport(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor, boolean isFailOnError);
-
-    Set<File> resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor);
-
-    Set<File> resolveFromReport(Configuration configuration, ResolveReport resolveReport);
+    ResolvedConfiguration resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor);
 }

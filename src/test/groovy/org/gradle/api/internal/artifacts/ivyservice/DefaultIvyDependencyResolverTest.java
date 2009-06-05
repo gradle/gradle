@@ -23,14 +23,17 @@ import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.util.WrapUtil;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
+import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,13 +48,13 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock.class)
+@RunWith(JMock.class)
 public class DefaultIvyDependencyResolverTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
             setImposteriser(ClassImposteriser.INSTANCE);
     }};
 
-    private Configuration configurationStub = context.mock(Configuration.class);
+    private Configuration configurationStub = context.mock(Configuration.class, "<configuration>");
     private Ivy ivyStub = context.mock(Ivy.class);
     private Report2Classpath report2ClasspathStub = context.mock(Report2Classpath.class);
     private ResolveReport resolveReportMock = context.mock(ResolveReport.class);
@@ -67,69 +70,77 @@ public class DefaultIvyDependencyResolverTest {
     }
 
     @Test
-    public void testResolve() throws IOException, ParseException {
-        prepareResolveReport(false);
-        Set<File> expectedClasspath = WrapUtil.toSet(new File(""));
-        prepareTestThatReturnClasspath(expectedClasspath);
-        ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
-        prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        
-        assertSame(expectedClasspath, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor));
-    }
-
-    @Test
-    public void testResolveFromReport() throws IOException, ParseException {
-        prepareResolveReport(false);
-        Set<File> expectedClasspath = WrapUtil.toSet(new File(""));
-        prepareTestThatReturnClasspath(expectedClasspath);
-        
-        assertSame(expectedClasspath, ivyDependencyResolver.resolveFromReport(configurationStub, resolveReportMock));
-    }
-
-    private void prepareTestThatReturnClasspath(final Set<File> expectedClasspath) throws IOException, ParseException {
+    public void testResolveAndGetFiles() throws IOException, ParseException {
+        prepareResolveReport();
+        final Set<File> expectedClasspath = toSet(new File(""));
         final String configurationName = configurationStub.getName();
         context.checking(new Expectations() {{
             allowing(report2ClasspathStub).getClasspath(configurationName, resolveReportMock);
             will(returnValue(expectedClasspath));
         }});
-    }
-
-    @Test(expected = GradleException.class)
-    public void testResolveWithMissingDependencies_shouldThrowGradleEx() throws IOException, ParseException {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        prepareResolveReport(true);
-        ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
-    }
-
-    @Test(expected = GradleException.class)
-    public void testResolveFromReportWithMissingDependencies_shouldThrowGradleEx() throws IOException, ParseException {
-        prepareResolveReport(true);
-        ivyDependencyResolver.resolveFromReport(configurationStub, resolveReportMock);
+        
+        assertSame(expectedClasspath, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getFiles());
     }
 
     @Test
-    public void testResolveAsReport() throws IOException, ParseException {
-        prepareResolveReport(false);
+    public void testResolveAndGetFilesWithMissingDependencies_shouldThrowGradleEx() throws IOException, ParseException {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        assertSame(resolveReportMock, ivyDependencyResolver.resolveAsReport(configurationStub, ivyStub, moduleDescriptor, false));
+        prepareResolveReportWithError();
+        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
+        try {
+            configuration.getFiles();
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), startsWith("Could not resolve all dependencies for <configuration>"));
+        }
     }
 
     @Test
-    public void testResolveAsReportWithMissingDependenciesAndFailFalse() throws IOException, ParseException {
-        prepareResolveReport(true);
+    public void testResolveAndRethrowFailureWithMissingDependencies_shouldThrowGradleEx() throws IOException, ParseException {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        assertSame(resolveReportMock, ivyDependencyResolver.resolveAsReport(configurationStub, ivyStub, moduleDescriptor, false));
+        prepareResolveReportWithError();
+        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub,
+                moduleDescriptor);
+
+        assertTrue(configuration.hasError());
+        try {
+            configuration.rethrowFailure();
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), startsWith("Could not resolve all dependencies for <configuration>"));
+        }
     }
 
-    @Test(expected = GradleException.class)
-    public void testResolveAsReportWithMissingDependenciesAndFailTrue_shouldThrowGradleEx() throws IOException, ParseException {
-        prepareResolveReport(true);
+    @Test
+    public void testResolveAndRethrowFailureWithNoMissingDependencies_shouldDoNothing() throws IOException, ParseException {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        ivyDependencyResolver.resolveAsReport(configurationStub, ivyStub, moduleDescriptor, true);
+        prepareResolveReport();
+        ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub,
+                moduleDescriptor);
+
+        assertFalse(configuration.hasError());
+        configuration.rethrowFailure();
+    }
+
+    @Test
+    public void testResolveAndGetReport() throws IOException, ParseException {
+        prepareResolveReport();
+        ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
+        prepareTestsThatRetrieveDependencies(moduleDescriptor);
+        assertSame(resolveReportMock, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getResolveReport());
+    }
+
+    @Test
+    public void testResolveAndGetReportWithMissingDependenciesAndFailFalse() throws IOException, ParseException {
+        prepareResolveReportWithError();
+        ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
+        prepareTestsThatRetrieveDependencies(moduleDescriptor);
+        assertSame(resolveReportMock, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getResolveReport());
     }
 
     private ModuleDescriptor createAnonymousModuleDescriptor() {
@@ -137,11 +148,22 @@ public class DefaultIvyDependencyResolverTest {
                 ModuleRevisionId.newInstance("org", "name", "1.0", new HashMap()));
     }
 
-    private void prepareResolveReport(final boolean hasError) throws IOException, ParseException {
+    private void prepareResolveReport() throws IOException, ParseException {
         context.checking(new Expectations() {
             {
                 allowing(resolveReportMock).hasError();
-                will(returnValue(hasError));
+                will(returnValue(false));
+            }
+        });
+    }
+
+    private void prepareResolveReportWithError() throws IOException, ParseException {
+        context.checking(new Expectations() {
+            {
+                allowing(resolveReportMock).hasError();
+                will(returnValue(true));
+                allowing(resolveReportMock).getAllProblemMessages();
+                will(returnValue(toList("a problem")));
             }
         });
     }

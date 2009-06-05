@@ -17,13 +17,12 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.util.HelperUtil;
@@ -41,7 +40,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -57,8 +55,8 @@ public class DefaultIvyService_ResolveFromRepoTest {
     private Module moduleDummy = context.mock(Module.class);
     private File cacheParentDirDummy = new File("cacheParentDirDummy");
     private Map<String, ModuleDescriptor> clientModuleRegistryDummy = WrapUtil.toMap("a", context.mock(ModuleDescriptor.class));
+    private List<DependencyResolver> dependencyResolversDummy = WrapUtil.toList(context.mock(DependencyResolver.class, "dependencies"));
 
-    private ResolveReport resolveReportDummy = context.mock(ResolveReport.class);;
     private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
     private ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
@@ -71,36 +69,7 @@ public class DefaultIvyService_ResolveFromRepoTest {
         SettingsConverter settingsConverterMock = context.mock(SettingsConverter.class);
         ModuleDescriptorConverter moduleDescriptorConverterMock = context.mock(ModuleDescriptorConverter.class);
         IvyDependencyResolver ivyDependencyResolverMock = context.mock(IvyDependencyResolver.class);
-        ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider);
-        ivyService.setSettingsConverter(settingsConverterMock);
-        ivyService.setModuleDescriptorConverter(moduleDescriptorConverterMock);
-        ivyService.setDependencyResolver(ivyDependencyResolverMock);
-    }
 
-    @Test
-    public void testResolveAndGetFiles() {
-        setUp(false);
-        final Set<File> classpathDummy = WrapUtil.toSet(new File("cp"));
-        context.checking(new Expectations() {{
-            allowing(ivyService.getDependencyResolver()).resolveFromReport(configurationDummy, resolveReportDummy);
-            will(returnValue(classpathDummy));
-        }});
-        assertThat(ivyService.resolve(configurationDummy).getFiles(), equalTo(classpathDummy));
-    }
-
-    @Test
-    public void testResolveAndGetReport() {
-        setUp(false);
-        assertThat(ivyService.resolve(configurationDummy).getResolveReport(), equalTo(resolveReportDummy));
-    }
-
-    private void setUp(final boolean resolveFailOnError) {
-        final ModuleDescriptor moduleDescriptorDummy = HelperUtil.createModuleDescriptor(WrapUtil.toSet("someConf"));
-        final IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
-        final Ivy ivyStub = context.mock(Ivy.class);
-        final Set<Dependency> dependenciesDummy = WrapUtil.toSet(context.mock(Dependency.class));
-        final List<DependencyResolver> dependencyResolversDummy = WrapUtil.toList(context.mock(DependencyResolver.class, "dependencies"));
-        final IvySettings ivySettingsDummy = new IvySettings();
         context.checking(new Expectations() {{
             allowing(dependencyMetaDataProviderMock).getInternalRepository();
             will(returnValue(internalRepositoryDummy));
@@ -114,29 +83,44 @@ public class DefaultIvyService_ResolveFromRepoTest {
             allowing(dependencyMetaDataProviderMock).getClientModuleRegistry();
             will(returnValue(clientModuleRegistryDummy));
 
+            allowing(resolverProvider).getResolvers();
+            will(returnValue(dependencyResolversDummy));
+        }});
+
+        ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider);
+        ivyService.setSettingsConverter(settingsConverterMock);
+        ivyService.setModuleDescriptorConverter(moduleDescriptorConverterMock);
+        ivyService.setDependencyResolver(ivyDependencyResolverMock);
+    }
+
+    @Test
+    public void testResolve() {
+        final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
+        final ModuleDescriptor moduleDescriptorDummy = HelperUtil.createModuleDescriptor(WrapUtil.toSet("someConf"));
+        final IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
+        final Ivy ivyStub = context.mock(Ivy.class);
+        final IvySettings ivySettingsDummy = new IvySettings();
+
+        context.checking(new Expectations() {{
             allowing(ivyFactoryStub).createIvy(ivySettingsDummy);
             will(returnValue(ivyStub));
 
             allowing(ivyStub).getSettings();
             will(returnValue(ivySettingsDummy));
 
-            allowing(ivyService.getDependencyResolver()).resolveAsReport(configurationDummy, ivyStub, moduleDescriptorDummy, resolveFailOnError);
-            will(returnValue(resolveReportDummy));
+            allowing(ivyService.getDependencyResolver()).resolve(configurationDummy, ivyStub, moduleDescriptorDummy);
+            will(returnValue(resolvedConfiguration));
 
-            allowing(configurationDummy).getDependencies();
-            will(returnValue(dependenciesDummy));
-
-            allowing(resolverProvider).getResolvers();
-            will(returnValue(dependencyResolversDummy));
-
-            allowing(ivyService.getModuleDescriptorConverter()).convertForResolve(configurationDummy, moduleDummy, clientModuleRegistryDummy,
-                    ivySettingsDummy);
+            allowing(ivyService.getModuleDescriptorConverter()).convertForResolve(configurationDummy, moduleDummy,
+                    clientModuleRegistryDummy, ivySettingsDummy);
             will(returnValue(moduleDescriptorDummy));
 
-            allowing(ivyService.getSettingsConverter()).convertForResolve(dependencyResolversDummy, cacheParentDirDummy, internalRepositoryDummy,
-                    clientModuleRegistryDummy);
+            allowing(ivyService.getSettingsConverter()).convertForResolve(dependencyResolversDummy, cacheParentDirDummy,
+                    internalRepositoryDummy, clientModuleRegistryDummy);
             will(returnValue(ivySettingsDummy));
         }});
+
         ivyService.setIvyFactory(ivyFactoryStub);
+        assertThat(ivyService.resolve(configurationDummy), sameInstance(resolvedConfiguration));
     }
 }

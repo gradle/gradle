@@ -140,7 +140,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public Set<File> resolve() {
         ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
         if (state == State.RESOLVED_WITH_FAILURES) {
-            throw new InvalidUserDataException("Not all dependencies could be resolved!");
+            resolvedConfiguration.rethrowFailure();
         }
         return resolvedConfiguration.getFiles();
     }

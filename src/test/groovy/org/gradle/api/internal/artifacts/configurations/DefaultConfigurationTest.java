@@ -21,6 +21,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
@@ -189,8 +190,8 @@ public class DefaultConfigurationTest {
         assertThat(Configurations.getNames(configuration.getAll()), equalTo(WrapUtil.toSet(CONF_NAME, testConf1, testConf2)));
     }
 
-    @Test(expected = InvalidUserDataException.class)
-    public void getAsPathWithFailure_shouldThrowInvalidUserDataEx() {
+    @Test(expected = GradleException.class)
+    public void getAsPathShouldRethrownFailure() {
         prepareForResolveWithErrors();
         configuration.resolve();
     }
@@ -203,15 +204,19 @@ public class DefaultConfigurationTest {
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
     }
 
-    @Test(expected = InvalidUserDataException.class)
-    public void resolveWithFailure_shouldThrowInvalidUserDataEx() {
+    @Test(expected = GradleException.class)
+    public void resolveShouldRethrowFailure() {
         prepareForResolveWithErrors();
         configuration.resolve();
     }
 
     private void prepareForResolveWithErrors() {
-        ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
+        final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         prepareResolve(resolvedConfiguration, true);
+        context.checking(new Expectations(){{
+            one(resolvedConfiguration).rethrowFailure();
+            will(throwException(new GradleException()));
+        }});
     }
 
     private void makeResolveReturnFileSet(final Set<File> fileSet) {

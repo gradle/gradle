@@ -45,25 +45,6 @@ public class ClasspathUtil {
         }
     }
 
-    public static boolean isToolsJarInClasspath() {
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        // first check if the tools jar is already in the classpath
-        boolean toolsJarAvailable = false;
-        try {
-            // just check whether this throws an exception
-            classLoader.loadClass("com.sun.tools.javac.Main");
-            toolsJarAvailable = true;
-        } catch (Exception e) {
-            try {
-                classLoader.loadClass("sun.tools.javac.Main");
-                toolsJarAvailable = true;
-            } catch (Exception e2) {
-                // ignore
-            }
-        }
-        return toolsJarAvailable;
-    }
-
     public static File getToolsJar() {
         String javaHome = System.getProperty("java.home");
         File toolsJar = new File(javaHome + "/lib/tools.jar");

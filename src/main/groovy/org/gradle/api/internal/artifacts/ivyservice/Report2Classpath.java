@@ -34,7 +34,7 @@ import java.util.Set;
 public class Report2Classpath {
     private static Logger logger = LoggerFactory.getLogger(Report2Classpath.class);
 
-    public Set getClasspath(String configuration, ResolveReport resolveReport) {
+    public Set<File> getClasspath(String configuration, ResolveReport resolveReport) {
         Set<File> classpath = new LinkedHashSet<File>();
         for (ArtifactDownloadReport artifactDownloadReport : getAllArtifactReports(resolveReport, configuration)) {
             classpath.add(artifactDownloadReport.getLocalFile());

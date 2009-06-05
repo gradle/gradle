@@ -29,6 +29,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
 import org.hamcrest.Matcher;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.util.List;
@@ -150,13 +151,13 @@ public class InProcessGradleExecuter implements GradleExecuter {
         private Task current;
 
         public void beforeExecute(Task task) {
-            assertThat(current, org.hamcrest.Matchers.nullValue());
+            assertThat(current, nullValue());
             assertTrue(planned.contains(task));
             current = task;
         }
 
         public void afterExecute(Task task, Throwable failure) {
-            assertThat(task, org.hamcrest.Matchers.sameInstance(current));
+            assertThat(task, sameInstance(current));
             current = null;
             tasks.add(task.getPath());
         }
@@ -179,7 +180,7 @@ public class InProcessGradleExecuter implements GradleExecuter {
 
         public void assertTasksExecuted(String... taskPaths) {
             List<String> expected = Arrays.asList(taskPaths);
-            assertThat(plannedTasks, org.hamcrest.Matchers.equalTo(expected));
+            assertThat(plannedTasks, equalTo(expected));
         }
     }
 
@@ -200,15 +201,15 @@ public class InProcessGradleExecuter implements GradleExecuter {
         }
 
         public void assertHasLineNumber(int lineNumber) {
-            assertThat(failure.getMessage(), org.hamcrest.Matchers.containsString(String.format(" line: %d", lineNumber)));
+            assertThat(failure.getMessage(), containsString(String.format(" line: %d", lineNumber)));
         }
 
         public void assertHasFileName(String filename) {
-            assertThat(failure.getMessage(), org.hamcrest.Matchers.startsWith(String.format("%s", filename)));
+            assertThat(failure.getMessage(), startsWith(String.format("%s", filename)));
         }
 
         public void assertHasDescription(String description) {
-            assertThat(failure.getCause().getMessage(), org.hamcrest.Matchers.endsWith(description));
+            assertThat(failure.getCause().getMessage(), endsWith(description));
         }
 
         public void assertDescription(Matcher<String> matcher) {
@@ -216,7 +217,7 @@ public class InProcessGradleExecuter implements GradleExecuter {
         }
 
         public void assertHasContext(String context) {
-            assertThat(failure.getMessage(), org.hamcrest.Matchers.containsString(context));
+            assertThat(failure.getMessage(), containsString(context));
         }
 
         public void assertContext(Matcher<String> matcher) {

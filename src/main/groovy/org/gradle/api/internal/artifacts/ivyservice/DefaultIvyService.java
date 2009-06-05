@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishInstruction;
@@ -104,24 +103,9 @@ public class DefaultIvyService implements IvyService {
         Map<String, ModuleDescriptor> clientModuleRegistry = metaDataProvider.getClientModuleRegistry();
         Ivy ivy = ivyForResolve(resolverProvider.getResolvers(), metaDataProvider.getGradleUserHomeDir(),
                 clientModuleRegistry);
-        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForResolve(configuration, metaDataProvider.getModule(),
-                clientModuleRegistry, ivy.getSettings());
-        final ResolveReport resolveReport = dependencyResolver.resolveAsReport(configuration, ivy, moduleDescriptor,
-                false);
-
-        return new ResolvedConfiguration() {
-            public ResolveReport getResolveReport() {
-                return resolveReport;
-            }
-
-            public boolean hasError() {
-                return resolveReport.hasError();
-            }
-
-            public Set<File> getFiles() {
-                return dependencyResolver.resolveFromReport(configuration, resolveReport);
-            }
-        };
+        ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForResolve(configuration,
+                metaDataProvider.getModule(), clientModuleRegistry, ivy.getSettings());
+        return dependencyResolver.resolve(configuration, ivy, moduleDescriptor);
     }
 
     public void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,

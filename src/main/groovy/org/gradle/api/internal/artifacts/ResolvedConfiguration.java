@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.report.ResolveReport;
+import org.gradle.api.GradleException;
 
 import java.io.File;
 import java.util.Set;
@@ -26,4 +27,6 @@ public interface ResolvedConfiguration {
     Set<File> getFiles();
 
     boolean hasError();
+
+    void rethrowFailure() throws GradleException;
 }

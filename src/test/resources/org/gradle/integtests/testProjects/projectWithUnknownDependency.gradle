@@ -1,0 +1,14 @@
+configurations {
+    compile
+}
+dependencies {
+    compile 'test:projectA:1.2'
+    compile 'test:projectB:2.1.5'
+}
+
+defaultTasks 'listJars'
+
+task listJars << {
+    configurations.compile.resolve()
+    Assert.fail()
+}

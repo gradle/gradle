@@ -16,6 +16,8 @@
 package org.gradle.integtests;
 
 import org.junit.Test;
+import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 
@@ -34,12 +36,23 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    public void nestedModules() {
+    public void canNestModules() {
         File buildFile = getTestBuildFile("projectWithNestedModules.gradle");
         testFile("projectA-1.2.jar").touch();
         testFile("projectB-1.5.jar").touch();
         testFile("projectC-2.0.jar").touch();
 
         usingBuildFile(buildFile).run();
+    }
+
+    @Test
+    public void reportsUnknownDependency() {
+        File buildFile = getTestBuildFile("projectWithUnknownDependency.gradle");
+        ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
+        failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
+        failure.assertHasContext("Execution failed for task ':listJars'");
+        failure.assertDescription(startsWith("Could not resolve all dependencies for configuration 'compile'"));
+        failure.assertDescription(containsString("unresolved dependency: test#projectA;1.2: not found"));
+        failure.assertDescription(containsString("unresolved dependency: test#projectB;2.1.5: not found"));
     }
 }
