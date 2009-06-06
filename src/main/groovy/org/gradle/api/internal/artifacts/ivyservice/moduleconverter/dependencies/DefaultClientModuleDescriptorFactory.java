@@ -31,7 +31,7 @@ import java.util.Set;
 public class DefaultClientModuleDescriptorFactory implements ClientModuleDescriptorFactory {
     public ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<Dependency> dependencies,
                                                    DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                   Map clientModuleRegistry) {
+                                                   Map<String, ModuleDescriptor> clientModuleRegistry) {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId,
                 "release", null);
         moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION));
@@ -43,10 +43,10 @@ public class DefaultClientModuleDescriptorFactory implements ClientModuleDescrip
 
     private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<Dependency> dependencies,
                                           DependencyDescriptorFactory dependencyDescriptorFactory,
-                                          Map clientModuleRegistry) {
+                                          Map<String, ModuleDescriptor> clientModuleRegistry) {
         for (Dependency dependency : dependencies) {
-            moduleDescriptor.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(Dependency.DEFAULT_CONFIGURATION,
-                    moduleDescriptor, dependency, clientModuleRegistry));
+            dependencyDescriptorFactory.addDependencyDescriptor(Dependency.DEFAULT_CONFIGURATION, moduleDescriptor,
+                    dependency, clientModuleRegistry);
         }
     }
 }

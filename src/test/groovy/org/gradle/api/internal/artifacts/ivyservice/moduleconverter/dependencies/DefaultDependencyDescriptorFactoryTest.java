@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
@@ -31,6 +31,7 @@ import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
+import org.gradle.util.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -55,11 +56,11 @@ public class DefaultDependencyDescriptorFactoryTest {
     private static final Map DUMMY_MODULE_REGISTRY = Collections.unmodifiableMap(new HashMap());
     private static final String TEST_CONF = "conf";
     private static final String TEST_DEP_CONF = "depconf1";
-    private static final ModuleDescriptor TEST_PARENT = HelperUtil.createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
     private static final ExcludeRule TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule(WrapUtil.toMap("org", "testOrg"));
     private static final org.apache.ivy.core.module.descriptor.ExcludeRule TEST_IVY_EXCLUDE_RULE = HelperUtil.getTestExcludeRule();
-
     private ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
+
+    private final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
     private DefaultDependencyDescriptorFactory dependencyDescriptorFactory;
     private DefaultDependencyArtifact artifact = new DefaultDependencyArtifact("name", "type", null, null, null);
     private DefaultDependencyArtifact artifactWithClassifiers = new DefaultDependencyArtifact("name2", "type2", "ext2", "classifier2", "http://www.url2.com");
@@ -82,8 +83,8 @@ public class DefaultDependencyDescriptorFactoryTest {
         final AbstractProject dependencyProject = HelperUtil.createRootProject(new File(dependencyProjectName));
         DefaultProjectDependency projectDependency = (DefaultProjectDependency) setUpDependency(new DefaultProjectDependency(dependencyProject, TEST_DEP_CONF));
 
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor)
-                dependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, TEST_PARENT, projectDependency, DUMMY_MODULE_REGISTRY);
+        dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, projectDependency, DUMMY_MODULE_REGISTRY);
+        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
 
         assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
         assertTrue(dependencyDescriptor.isChanging());
@@ -111,8 +112,8 @@ public class DefaultDependencyDescriptorFactoryTest {
             );
         }});
 
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor)
-                dependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, TEST_PARENT, clientModule, testModuleRegistry);
+        dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, clientModule, testModuleRegistry);
+        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
         assertDependencyDescriptorHasFixtureValuesForExternalDependencies(dependencyDescriptor, testModuleRevisionId);
         assertFalse(dependencyDescriptor.isChanging());
     }
@@ -122,8 +123,8 @@ public class DefaultDependencyDescriptorFactoryTest {
         DefaultModuleDependency moduleDependency = ((DefaultModuleDependency)
                 setUpExternalDependency(new DefaultModuleDependency("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF))).setChanging(true);
 
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor)
-                dependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, TEST_PARENT, moduleDependency, DUMMY_MODULE_REGISTRY);
+        dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, moduleDependency, DUMMY_MODULE_REGISTRY);
+        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
 
         assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
         checkModuleDependency(dependencyDescriptor, moduleDependency);
@@ -134,11 +135,20 @@ public class DefaultDependencyDescriptorFactoryTest {
         DefaultModuleDependency moduleDependency = ((DefaultModuleDependency)
                 setUpExternalDependency(new DefaultModuleDependency(null, "gradle-core", null, TEST_DEP_CONF))).setChanging(true);
 
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor)
-                dependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, TEST_PARENT, moduleDependency, DUMMY_MODULE_REGISTRY);
+        dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, moduleDependency, DUMMY_MODULE_REGISTRY);
+        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
 
         assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
         checkModuleDependency(dependencyDescriptor, moduleDependency);
+    }
+
+    @Test
+    public void testCreateFromSelfResolvingDependency() {
+        SelfResolvingDependency dependency = context.mock(SelfResolvingDependency.class);
+
+        dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, dependency,
+                DUMMY_MODULE_REGISTRY);
+        assertThat(moduleDescriptor.getDependencies(), Matchers.isEmptyArray());
     }
 
     private ExternalDependency setUpExternalDependency(ExternalDependency dependency) {
@@ -158,7 +168,7 @@ public class DefaultDependencyDescriptorFactoryTest {
     }
 
     private void assertDependencyDescriptorHasCommonFixtureValues(DefaultDependencyDescriptor dependencyDescriptor) {
-        assertThat(dependencyDescriptor.getParentRevisionId(), equalTo(TEST_PARENT.getModuleRevisionId()));
+        assertThat(dependencyDescriptor.getParentRevisionId(), equalTo(moduleDescriptor.getModuleRevisionId()));
         assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyDescriptor.getExcludeRules(TEST_CONF)[0]);
         assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF), equalTo(WrapUtil.toArray(TEST_DEP_CONF)));
         assertThat(dependencyDescriptor.isTransitive(), equalTo(true));

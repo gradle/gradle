@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.util.WrapUtil;
@@ -41,21 +39,30 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
     private ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
     private ClientModuleDescriptorFactory clientModuleDescriptorFactory = new DefaultClientModuleDescriptorFactory();
 
-    public DependencyDescriptor createDependencyDescriptor(String configuration, ModuleDescriptor parent,
-                                                           Dependency dependency, Map clientModuleRegistry) {
+    public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
+                                                           Dependency dependency,
+                                                           Map<String, ModuleDescriptor> clientModuleRegistry) {
         // todo Make this object oriented and enhancable
         if (dependency instanceof ClientModule) {
-            return createFromClientModule(configuration, parent, (ClientModule) dependency, clientModuleRegistry);
+            moduleDescriptor.addDependency(createFromClientModule(configuration, moduleDescriptor,
+                    (ClientModule) dependency, clientModuleRegistry));
         } else if (dependency instanceof ProjectDependency) {
-            return createFromProjectDependency(configuration, parent, (ProjectDependency) dependency);
+            moduleDescriptor.addDependency(createFromProjectDependency(configuration, moduleDescriptor,
+                    (ProjectDependency) dependency));
         } else if (dependency instanceof ModuleDependency) {
-            return createFromModuleDependency(configuration, parent, (ModuleDependency) dependency);
+            moduleDescriptor.addDependency(createFromModuleDependency(configuration, moduleDescriptor,
+                    (ModuleDependency) dependency));
+        } else if (dependency instanceof SelfResolvingDependency) {
+            // do nothing
         }
-        throw new GradleException("Can't map dependency of type: " + dependency.getClass());
+        else {
+            throw new GradleException("Can't map dependency of type: " + dependency.getClass());
+        }
     }
 
     private DependencyDescriptor createFromClientModule(String configuration, ModuleDescriptor parent,
-                                                        ClientModule clientModule, Map clientModuleRegistry) {
+                                                        ClientModule clientModule,
+                                                        Map<String, ModuleDescriptor> clientModuleRegistry) {
         DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(
                 parent,
                 ModuleRevisionId.newInstance(clientModule.getGroup(),
@@ -70,7 +77,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         ModuleDescriptor moduleDescriptor = clientModuleDescriptorFactory.createModuleDescriptor(
                 dependencyDescriptor.getDependencyRevisionId(), clientModule.getDependencies(), this, clientModuleRegistry);
         clientModuleRegistry.put(clientModule.getId(), moduleDescriptor);
-        
+
         return dependencyDescriptor;
     }
 

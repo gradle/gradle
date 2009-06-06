@@ -15,18 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -53,7 +52,6 @@ public class DefaultClientModuleDescriptorFactoryTest {
 
         assertThat(moduleDescriptor.getModuleRevisionId(), equalTo(TEST_MODULE_REVISION_ID));
         assertThatDescriptorHasOnlyDefaultConfiguration(moduleDescriptor);
-        assertThat(Arrays.asList(moduleDescriptor.getDependencies()), equalTo(WrapUtil.toList(dependencyDescriptorDummy)));
         assertCorrectCallToDependencyDescriptorFactory(dependencyDescriptorFactorySpy, Dependency.DEFAULT_CONFIGURATION, moduleDescriptor, dependencyMock, clientModuleRegistryDummy);
     }
 
@@ -85,13 +83,12 @@ public class DefaultClientModuleDescriptorFactoryTest {
             this.dependencyDescriptor = dependencyDescriptor;
         }
 
-        public DependencyDescriptor createDependencyDescriptor(String configuration, ModuleDescriptor parent,
-                                                               Dependency dependency, Map clientModuleRegistry) {
+        public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
+                                            Dependency dependency, Map<String, ModuleDescriptor> clientModuleRegistry) {
             this.configuration = configuration;
-            this.parent = parent;
+            this.parent = moduleDescriptor;
             this.dependency = dependency;
             this.clientModuleRegistry = clientModuleRegistry;
-            return dependencyDescriptor;
         }
     }
 }

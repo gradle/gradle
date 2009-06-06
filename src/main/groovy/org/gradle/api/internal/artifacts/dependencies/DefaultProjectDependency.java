@@ -27,8 +27,6 @@ import org.gradle.api.artifacts.Configuration;
 public class DefaultProjectDependency extends AbstractDependency implements ProjectDependency {
     private Project dependencyProject;
 
-    private boolean transitive = true;
-
     public DefaultProjectDependency(Project dependencyProject) {
         this(dependencyProject, null);
     }
@@ -42,15 +40,6 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
         return dependencyProject;
     }
     
-    public boolean isTransitive() {
-        return transitive;
-    }
-
-    public DefaultProjectDependency setTransitive(boolean transitive) {
-        this.transitive = transitive;
-        return this;
-    }
-
     public String getGroup() {
         return dependencyProject.getGroup().toString();
     }

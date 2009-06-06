@@ -67,7 +67,7 @@ public class DefaultGradleFactory implements GradleFactory {
         ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory(startParameter.getProjectDependenciesBuildInstruction());
         DefaultInternalRepository internalRepository = new DefaultInternalRepository();
         DependencyFactory dependencyFactory = new DefaultDependencyFactory(
-                WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory()),
+                WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(), new SelfResolvingDependencyFactory()),
                 new DefaultClientModuleFactory(),
                 new DefaultProjectDependencyFactory());
         ResolverFactory resolverFactory = new DefaultResolverFactory();

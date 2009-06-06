@@ -19,6 +19,7 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.util.regex.Pattern;
 
@@ -48,6 +49,19 @@ public class Matchers {
             public boolean matches(Object o) {
                 Iterable<?> iterable = (Iterable<?>) o;
                 return !iterable.iterator().hasNext();
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("is empty");
+            }
+        };
+    }
+
+    public static Matcher<Object[]> isEmptyArray() {
+        return new BaseMatcher<Object[]>() {
+            public boolean matches(Object o) {
+                Object[] array = (Object[]) o;
+                return array.length == 0;
             }
 
             public void describeTo(Description description) {

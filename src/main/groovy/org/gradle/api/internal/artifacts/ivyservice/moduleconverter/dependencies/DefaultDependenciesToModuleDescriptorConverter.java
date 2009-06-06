@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
@@ -37,18 +38,19 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     private ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
 
     public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations,
-                                         Map clientModuleRegistry, IvySettings ivySettings) {
+                                         Map<String, ModuleDescriptor> clientModuleRegistry, IvySettings ivySettings) {
         assert !configurations.isEmpty();
         addDependencies(moduleDescriptor, configurations, clientModuleRegistry);
         addExcludeRules(moduleDescriptor, configurations);
         addConflictManager(moduleDescriptor, ivySettings);
     }
 
-    private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations, Map clientModuleRegistry) {
+    private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations,
+                                 Map<String, ModuleDescriptor> clientModuleRegistry) {
         for (Configuration configuration : configurations) {
             for (Dependency dependency : configuration.getDependencies()) {
-                moduleDescriptor.addDependency(dependencyDescriptorFactory.createDependencyDescriptor(
-                    configuration.getName(), moduleDescriptor, dependency, clientModuleRegistry));    
+                dependencyDescriptorFactory.addDependencyDescriptor(configuration.getName(), moduleDescriptor,
+                        dependency, clientModuleRegistry);
             }
         }
     }
@@ -85,25 +87,5 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
 
     public void setExcludeRuleConverter(ExcludeRuleConverter excludeRuleConverter) {
         this.excludeRuleConverter = excludeRuleConverter;
-    }
-
-    public class ReverseIterator<E> implements Iterator<E> {
-        private ListIterator<E> iter;
-        
-        public ReverseIterator(List list) {
-            iter = list.listIterator(list.size());
-        }
-
-        public boolean hasNext() {
-            return iter.hasPrevious();
-        }
-
-        public E next() {
-            return iter.previous();
-        }
-
-        public void remove() {
-            iter.remove();
-        }
     }
 }

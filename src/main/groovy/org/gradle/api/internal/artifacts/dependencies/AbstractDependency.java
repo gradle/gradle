@@ -36,8 +36,9 @@ public abstract class AbstractDependency implements Dependency {
     private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
 
     protected String configuration = Dependency.DEFAULT_CONFIGURATION;
-    
+
     private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
+    private boolean transitive = true;
 
     protected AbstractDependency(String configuration) {
         this.configuration = GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
@@ -73,6 +74,15 @@ public abstract class AbstractDependency implements Dependency {
         DependencyArtifact artifact =  (DependencyArtifact) ConfigureUtil.configure(configureClosure, new DefaultDependencyArtifact());
         artifacts.add(artifact);
         return artifact;
+    }
+
+    public boolean isTransitive() {
+        return transitive;
+    }
+
+    public Dependency setTransitive(boolean transitive) {
+        this.transitive = transitive;
+        return this;
     }
 
     public String getConfiguration() {

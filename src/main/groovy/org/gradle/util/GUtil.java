@@ -108,7 +108,7 @@ public class GUtil {
         return newList;
     }
 
-    private static <T> Collection<T> addToCollection(Collection<T> dest, Iterable<? extends T>... srcs) {
+    public static <T> Collection<T> addToCollection(Collection<T> dest, Iterable<? extends T>... srcs) {
         for (Iterable<? extends T> src : srcs) {
             for (T t : src) {
                 dest.add(t);

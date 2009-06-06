@@ -28,5 +28,5 @@ import java.util.Set;
 public interface ClientModuleDescriptorFactory {
     ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<Dependency> dependencies,
                                                    DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                   Map clientModuleRegistry);
+                                                   Map<String, ModuleDescriptor> clientModuleRegistry);
 }

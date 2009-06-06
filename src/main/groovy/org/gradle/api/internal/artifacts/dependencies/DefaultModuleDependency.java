@@ -30,7 +30,6 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
 
     private boolean force = false;
     private boolean changing = false;
-    private boolean transitive = true;
 
     public DefaultModuleDependency(String group, String name, String version) {
         this(group, name, version, null);
@@ -61,15 +60,6 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
 
     public String getVersion() {
         return version;
-    }
-
-    public boolean isTransitive() {
-        return transitive;
-    }
-
-    public DefaultModuleDependency setTransitive(boolean transitive) {
-        this.transitive = transitive;
-        return this;
     }
 
     public boolean isForce() {

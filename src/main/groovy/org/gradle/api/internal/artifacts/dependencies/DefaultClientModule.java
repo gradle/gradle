@@ -37,8 +37,6 @@ public class DefaultClientModule extends AbstractDependency implements ClientMod
 
     private boolean force = false;
 
-    private boolean transitive = true;
-
     private Set<Dependency> dependencies = new HashSet<Dependency>();
 
     public DefaultClientModule(String group, String name, String version) {
@@ -100,15 +98,6 @@ public class DefaultClientModule extends AbstractDependency implements ClientMod
 
     public ClientModule setForce(boolean force) {
         this.force = force;
-        return this;
-    }
-
-    public boolean isTransitive() {
-        return transitive;
-    }
-
-    public ClientModule setTransitive(boolean transitive) {
-        this.transitive = transitive;
         return this;
     }
 

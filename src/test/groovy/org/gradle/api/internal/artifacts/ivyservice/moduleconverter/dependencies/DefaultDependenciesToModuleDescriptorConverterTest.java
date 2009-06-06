@@ -16,12 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.settings.IvySettings;
-import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.conflict.ConflictManager;
+import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -32,12 +30,11 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.IvyConverter
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.*;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -60,11 +57,6 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
     private Dependency similarDependency1 = HelperUtil.createDependency("group", "name", "version");
     private Dependency similarDependency2 = HelperUtil.createDependency("group", "name", "version");
     private Dependency similarDependency3 = HelperUtil.createDependency("group", "name", "version");
-    private DependencyDescriptor dependencyDescriptorDummy1 = context.mock(DependencyDescriptor.class, "descr1");
-    private DependencyDescriptor dependencyDescriptorDummy2 = context.mock(DependencyDescriptor.class, "descr2");
-    private DependencyDescriptor dependencyDescriptorDummySimilarDependency1 = context.mock(DependencyDescriptor.class, "descrSimilarDependency1");
-    private DependencyDescriptor dependencyDescriptorDummySimilarDependency2 = context.mock(DependencyDescriptor.class, "descrSimilarDependency2");
-    private DependencyDescriptor dependencyDescriptorDummySimilarDependency3 = context.mock(DependencyDescriptor.class, "descrSimilarDependency3");
     private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub_1 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule1");
     private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub_2 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule2");
 
@@ -82,23 +74,17 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         Configuration configurationStub3 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf3", null, similarDependency3);
         DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(toSet(configurationStub1.getName(),
                 configurationStub2.getName()));
-        associateDependencyWithDescriptor(dependencyDummy1, dependencyDescriptorDummy1, moduleDescriptor, configurationStub1);
-        associateDependencyWithDescriptor(dependencyDummy2, dependencyDescriptorDummy2, moduleDescriptor, configurationStub2);
-        associateDependencyWithDescriptor(similarDependency1, dependencyDescriptorDummySimilarDependency1, moduleDescriptor, configurationStub1);
-        associateDependencyWithDescriptor(similarDependency2, dependencyDescriptorDummySimilarDependency2, moduleDescriptor, configurationStub2);
-        associateDependencyWithDescriptor(similarDependency3, dependencyDescriptorDummySimilarDependency3, moduleDescriptor, configurationStub3);
+        associateDependencyWithDescriptor(dependencyDummy1, moduleDescriptor, configurationStub1);
+        associateDependencyWithDescriptor(dependencyDummy2, moduleDescriptor, configurationStub2);
+        associateDependencyWithDescriptor(similarDependency1, moduleDescriptor, configurationStub1);
+        associateDependencyWithDescriptor(similarDependency2, moduleDescriptor, configurationStub2);
+        associateDependencyWithDescriptor(similarDependency3, moduleDescriptor, configurationStub3);
         associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_1, ivyExcludeRuleStub_1, configurationStub1);
         associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_2, ivyExcludeRuleStub_2, configurationStub2);
 
         converter.addDependencyDescriptors(moduleDescriptor, toSet(configurationStub1, configurationStub2, configurationStub3),
                 CLIENT_MODULE_REGISTRY_DUMMY, ivySettingsDummy);
                 
-        assertThat(moduleDescriptor.getDependencies().length, equalTo(5));
-        assertThat(moduleDescriptor.getDependencies(), Matchers.hasItemInArray(sameInstance(dependencyDescriptorDummy1)));
-        assertThat(moduleDescriptor.getDependencies(), Matchers.hasItemInArray(sameInstance(dependencyDescriptorDummy2)));
-        assertThat(moduleDescriptor.getDependencies(), Matchers.hasItemInArray(sameInstance(dependencyDescriptorDummySimilarDependency1)));
-        assertThat(moduleDescriptor.getDependencies(), Matchers.hasItemInArray(sameInstance(dependencyDescriptorDummySimilarDependency2)));
-        assertThat(moduleDescriptor.getDependencies(), Matchers.hasItemInArray(sameInstance(dependencyDescriptorDummySimilarDependency3)));
         assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub1.getName())), equalTo(toArray(ivyExcludeRuleStub_1)));
         assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub2.getName())), equalTo(toArray(ivyExcludeRuleStub_2)));
         assertIsCorrectConflictResolver(moduleDescriptor);
@@ -125,13 +111,12 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         }});
     }
 
-    private void associateDependencyWithDescriptor(final Dependency dependency, final DependencyDescriptor dependencyDescriptor,
-                                                   final ModuleDescriptor parent, final Configuration configuration) {
+    private void associateDependencyWithDescriptor(final Dependency dependency, final DefaultModuleDescriptor parent,
+                                                   final Configuration configuration) {
         final String configurationName = configuration.getName();
         context.checking(new Expectations() {{
-            allowing(dependencyDescriptorFactoryStub).createDependencyDescriptor(with(equal(configurationName)),
+            allowing(dependencyDescriptorFactoryStub).addDependencyDescriptor(with(equal(configurationName)),
                     with(equal(parent)), with(sameInstance(dependency)), with(equal(CLIENT_MODULE_REGISTRY_DUMMY)));
-            will(returnValue(dependencyDescriptor));
         }});
     }
     
