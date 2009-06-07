@@ -749,7 +749,7 @@ public interface Project extends Comparable<Project> {
     AntBuilder getAnt();
 
     /**
-     * <p>Creates and additional <code>AntBuilder</code> for this project. You can use this in your build file to
+     * <p>Creates an additional <code>AntBuilder</code> for this project. You can use this in your build file to
      * execute ant tasks.</p>
      *
      * @return Creates an <code>AntBuilder</code> for this project. Never returns null.

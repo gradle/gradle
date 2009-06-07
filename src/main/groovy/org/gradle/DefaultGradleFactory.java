@@ -15,25 +15,26 @@
  */
 package org.gradle;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
-import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.DefaultProjectServiceRegistryFactory;
+import org.gradle.api.internal.project.ImportsReader;
+import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultProjectEvaluator;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
-import org.gradle.logging.AntLoggingAdapter;
 import org.gradle.util.WrapUtil;
 
 /**
@@ -110,12 +111,10 @@ public class DefaultGradleFactory implements GradleFactory {
                                         new DefaultRepositoryHandlerFactory(resolverFactory),
                                         configurationContainerFactory,
                                         new DefaultPublishArtifactFactory(),
-                                        dependencyFactory),
-                                new DefaultRepositoryHandlerFactory(resolverFactory),
-                                projectEvaluator,
+                                        dependencyFactory,
+                                        projectEvaluator),
                                 new PluginRegistry(startParameter.getPluginPropertiesFile()),
-                                startParameter.getBuildScriptSource(),
-                                new DefaultAntBuilderFactory(new AntLoggingAdapter())),
+                                startParameter.getBuildScriptSource()),
                         internalRepository),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()));
         gradle.addBuildListener(internalRepository);

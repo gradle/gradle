@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.BuildInternal;
-import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -31,27 +29,18 @@ import java.io.File;
  */
 public class ProjectFactory implements IProjectFactory {
     private ProjectServiceRegistryFactory serviceRegistryFactory;
-    private ProjectEvaluator projectEvaluator;
     private PluginRegistry pluginRegistry;
     private ScriptSource embeddedScript;
-    private AntBuilderFactory antBuilderFactory;
-    private RepositoryHandlerFactory repositoryHandlerFactory;
 
     public ProjectFactory() {
     }
 
     public ProjectFactory(ProjectServiceRegistryFactory serviceRegistryFactory,
-                          RepositoryHandlerFactory repositoryHandlerFactory,
-                          ProjectEvaluator projectEvaluator,
                           PluginRegistry pluginRegistry,
-                          ScriptSource embeddedScript,
-                          AntBuilderFactory antBuilderFactory) {
+                          ScriptSource embeddedScript) {
         this.serviceRegistryFactory = serviceRegistryFactory;
-        this.repositoryHandlerFactory = repositoryHandlerFactory;
-        this.projectEvaluator = projectEvaluator;
         this.pluginRegistry = pluginRegistry;
         this.embeddedScript = embeddedScript;
-        this.antBuilderFactory = antBuilderFactory;
     }
 
     public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, BuildInternal build) {
@@ -72,9 +61,6 @@ public class ProjectFactory implements IProjectFactory {
                 projectDescriptor.getBuildFile(),
                 source,
                 build.getBuildScriptClassLoader(),
-                repositoryHandlerFactory,
-                antBuilderFactory,
-                projectEvaluator,
                 pluginRegistry,
                 build.getProjectRegistry(),
                 build,

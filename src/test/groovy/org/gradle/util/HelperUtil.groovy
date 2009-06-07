@@ -76,15 +76,13 @@ class HelperUtil {
                 repositoryHandlerFactory,
                 new DefaultConfigurationContainerFactory(new StartParameter().projectDependenciesBuildInstruction),
                 new DefaultPublishArtifactFactory(),
-                dependencyFactory
+                dependencyFactory,
+                new DefaultProjectEvaluator(null, null, null)
         )
         IProjectFactory projectFactory = new ProjectFactory(
                 serviceRegistryFactory,
-                repositoryHandlerFactory,
-                new DefaultProjectEvaluator(null, null, null),
                 new PluginRegistry(),
-                new StringScriptSource("embedded build file", "embedded"),
-                new DefaultAntBuilderFactory(new AntLoggingAdapter()))
+                new StringScriptSource("embedded build file", "embedded"))
 
         DefaultBuild build = new DefaultBuild(new StartParameter(), null, null)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
@@ -99,13 +97,10 @@ class HelperUtil {
         DefaultProject project = new DefaultProject(
                 name,
                 parentProject,
-                new File("projectDir" + name),
+                new File(parentProject.getProjectDir(), name),
                 parentProject.buildFile,
                 new StringScriptSource("test build file", null),
                 parentProject.buildScriptClassLoader,
-                new DefaultRepositoryHandlerFactory(new DefaultResolverFactory()),
-                parentProject.antBuilderFactory,
-                parentProject.projectEvaluator,
                 parentProject.pluginRegistry,
                 parentProject.projectRegistry,
                 parentProject.build,

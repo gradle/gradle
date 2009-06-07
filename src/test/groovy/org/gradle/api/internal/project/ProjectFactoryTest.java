@@ -65,13 +65,13 @@ public class ProjectFactoryTest {
     private RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
     private PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory.class);
-    private ProjectServiceRegistryFactory serviceRegistryFactory
-            = new DefaultProjectServiceRegistryFactory(repositoryHandlerFactory, configurationContainerFactory, publishArtifactFactoryMock, dependencyFactoryMock);
     private ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
+    private ProjectServiceRegistryFactory serviceRegistryFactory = new DefaultProjectServiceRegistryFactory(
+            repositoryHandlerFactory, configurationContainerFactory, publishArtifactFactoryMock, dependencyFactoryMock,
+            projectEvaluator);
     private PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private IProjectRegistry projectRegistry = new DefaultProjectRegistry();
     private BuildInternal build = context.mock(BuildInternal.class);
-    private AntBuilderFactory antBuilderFactory = context.mock(AntBuilderFactory.class);
 
     private ProjectFactory projectFactory;
     private StartParameter startParameterStub = new StartParameter();
@@ -95,8 +95,7 @@ public class ProjectFactoryTest {
             will(returnValue(new File("gradleUserHomeDir")));
         }});
 
-        projectFactory = new ProjectFactory(serviceRegistryFactory, repositoryHandlerFactory,
-                projectEvaluator, pluginRegistry, null, antBuilderFactory);
+        projectFactory = new ProjectFactory(serviceRegistryFactory, pluginRegistry, null);
     }
 
     @Test
@@ -171,12 +170,7 @@ public class ProjectFactoryTest {
     public void testConstructsRootProjectWithEmbeddedBuildScript() {
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
 
-        ProjectFactory projectFactory = new ProjectFactory(serviceRegistryFactory,
-                repositoryHandlerFactory,
-                projectEvaluator,
-                pluginRegistry,
-                expectedScriptSource,
-                antBuilderFactory);
+        ProjectFactory projectFactory = new ProjectFactory(serviceRegistryFactory, pluginRegistry, expectedScriptSource);
 
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, build);
 
@@ -217,10 +211,8 @@ public class ProjectFactoryTest {
 
     private void checkProjectResources(DefaultProject project) {
         assertSame(buildScriptClassLoader, project.getBuildScriptClassLoader());
-        assertSame(projectEvaluator, project.getProjectEvaluator());
         assertSame(pluginRegistry, project.getPluginRegistry());
         assertSame(projectRegistry, project.getProjectRegistry());
-        assertSame(antBuilderFactory, project.getAntBuilderFactory());
         assertSame(repositoryHandler, project.getRepositories());
         assertSame(build, project.getBuild());
     }

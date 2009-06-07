@@ -39,17 +39,13 @@ class DefaultProject extends AbstractProject {
                           File buildFile,
                           ScriptSource buildScriptSource,
                           ClassLoader buildScriptClassLoader,
-                          RepositoryHandlerFactory repositoryHandlerFactory,
-                          AntBuilderFactory antBuilderFactory,
-                          ProjectEvaluator projectEvaluator,
                           PluginRegistry pluginRegistry,
                           IProjectRegistry projectRegistry,
                           BuildInternal build,
                           ProjectServiceRegistryFactory serviceRegistryFactory
     ) {
-        super(name, parent, projectDir, buildFile, buildScriptSource, buildScriptClassLoader,
-                repositoryHandlerFactory, antBuilderFactory, projectEvaluator, pluginRegistry, projectRegistry, build,
-                serviceRegistryFactory);
+        super(name, parent, projectDir, buildFile, buildScriptSource, buildScriptClassLoader, pluginRegistry,
+                projectRegistry, build, serviceRegistryFactory);
     }
 
     def propertyMissing(String name) {

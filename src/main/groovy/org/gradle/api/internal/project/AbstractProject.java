@@ -142,9 +142,6 @@ public abstract class AbstractProject implements ProjectInternal {
                            File buildFile,
                            ScriptSource buildScriptSource,
                            ClassLoader buildScriptClassLoader,
-                           RepositoryHandlerFactory repositoryHandlerFactory,
-                           AntBuilderFactory antBuilderFactory,
-                           ProjectEvaluator projectEvaluator,
                            PluginRegistry pluginRegistry,
                            IProjectRegistry projectRegistry,
                            BuildInternal build,
@@ -156,9 +153,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.name = name;
         this.buildFile = buildFile;
         this.buildScriptClassLoader = buildScriptClassLoader;
-        this.repositoryHandlerFactory = repositoryHandlerFactory;
-        this.antBuilderFactory = antBuilderFactory;
-        this.projectEvaluator = projectEvaluator;
         this.pluginRegistry = pluginRegistry;
         this.projectRegistry = projectRegistry;
         this.state = State.CREATED;
@@ -172,7 +166,10 @@ public abstract class AbstractProject implements ProjectInternal {
         }
 
         ProjectServiceRegistry serviceRegistry = serviceRegistryFactory.create(this);
+        antBuilderFactory = serviceRegistry.get(AntBuilderFactory.class);
         taskContainer = serviceRegistry.get(TaskContainerInternal.class);
+        repositoryHandlerFactory = serviceRegistry.get(RepositoryHandlerFactory.class);
+        projectEvaluator = serviceRegistry.get(ProjectEvaluator.class);
         repositoryHandler = serviceRegistry.get(RepositoryHandler.class);
         configurationContainer = serviceRegistry.get(ConfigurationHandler.class);
         this.artifactHandler = serviceRegistry.get(ArtifactHandler.class);

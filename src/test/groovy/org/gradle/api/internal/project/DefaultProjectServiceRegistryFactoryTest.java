@@ -15,22 +15,20 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
+import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.invocation.Build;
-import org.gradle.util.WrapUtil;
+import org.gradle.configuration.DefaultProjectEvaluator;
+import org.gradle.configuration.ProjectEvaluator;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -46,10 +44,11 @@ public class DefaultProjectServiceRegistryFactoryTest {
     private final RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
     private final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
     private final PublishArtifactFactory publishArtifactFactory = context.mock(PublishArtifactFactory.class);
-    private final ProjectDependenciesBuildInstruction instruction = new ProjectDependenciesBuildInstruction(WrapUtil.toList("task"));
+    private final ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
 
     private final DefaultProjectServiceRegistryFactory factory = new DefaultProjectServiceRegistryFactory(
-            repositoryHandlerFactory, configurationContainerFactory, publishArtifactFactory, dependencyFactory);
+            repositoryHandlerFactory, configurationContainerFactory, publishArtifactFactory, dependencyFactory,
+            projectEvaluator);
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ConfigurationHandler configurationHandler = context.mock(ConfigurationHandler.class);
 
@@ -82,6 +81,13 @@ public class DefaultProjectServiceRegistryFactoryTest {
     }
 
     @Test
+    public void providesARepositoryHandlerFactory() {
+        ProjectServiceRegistry registry = factory.create(project);
+        assertThat(registry.get(RepositoryHandlerFactory.class), sameInstance(repositoryHandlerFactory));
+        assertThat(registry.get(RepositoryHandlerFactory.class), sameInstance(registry.get(RepositoryHandlerFactory.class)));
+    }
+
+    @Test
     public void providesAConfigurationHandler() {
         ProjectServiceRegistry registry = factory.create(project);
 
@@ -109,6 +115,22 @@ public class DefaultProjectServiceRegistryFactoryTest {
         
         assertThat(registry.get(DependencyHandler.class), instanceOf(DefaultDependencyHandler.class));
         assertThat(registry.get(DependencyHandler.class), sameInstance(registry.get(DependencyHandler.class)));
+    }
+
+    @Test
+    public void providesAnAntBuilderFactory() {
+        ProjectServiceRegistry registry = factory.create(project);
+
+        assertThat(registry.get(AntBuilderFactory.class), instanceOf(DefaultAntBuilderFactory.class));
+        assertThat(registry.get(AntBuilderFactory.class), sameInstance(registry.get(AntBuilderFactory.class)));
+    }
+
+    @Test
+    public void providesAProjectEvaluator() {
+        ProjectServiceRegistry registry = factory.create(project);
+
+        assertThat(registry.get(ProjectEvaluator.class), sameInstance(projectEvaluator));
+        assertThat(registry.get(ProjectEvaluator.class), sameInstance(registry.get(ProjectEvaluator.class)));
     }
 
     @Test

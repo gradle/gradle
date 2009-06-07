@@ -33,27 +33,33 @@ import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.Convention;
+import org.gradle.configuration.ProjectEvaluator;
+import org.gradle.logging.AntLoggingAdapter;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// todo - compose this
 public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegistryFactory {
     private final ITaskFactory taskFactory = new TaskFactory();
     private final RepositoryHandlerFactory repositoryHandlerFactory;
     private final ConfigurationContainerFactory configurationContainerFactory;
     private final PublishArtifactFactory publishArtifactFactory;
     private final DependencyFactory dependencyFactory;
+    private final ProjectEvaluator projectEvaluator;
 
     public DefaultProjectServiceRegistryFactory(RepositoryHandlerFactory repositoryHandlerFactory,
                                                 ConfigurationContainerFactory configurationContainerFactory,
                                                 PublishArtifactFactory publishArtifactFactory,
-                                                DependencyFactory dependencyFactory) {
+                                                DependencyFactory dependencyFactory,
+                                                ProjectEvaluator projectEvaluator) {
         this.repositoryHandlerFactory = repositoryHandlerFactory;
         this.configurationContainerFactory = configurationContainerFactory;
         this.publishArtifactFactory = publishArtifactFactory;
         this.dependencyFactory = dependencyFactory;
+        this.projectEvaluator = projectEvaluator;
     }
 
     public ProjectServiceRegistry create(ProjectInternal project) {
@@ -68,9 +74,11 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
         private ConfigurationContainer configurationContainer;
         private ArtifactHandler artifactHandler;
         private DependencyHandler dependencyHandler;
+        private final DefaultAntBuilderFactory antBuilderFactory;
 
         public ProjectServiceRegistryImpl(ProjectInternal project) {
             this.project = project;
+            antBuilderFactory = new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
         }
 
         public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
@@ -116,6 +124,15 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
                     dependencyHandler = new DefaultDependencyHandler(get(ConfigurationContainer.class), dependencyFactory, projectFinder);
                 }
                 return serviceType.cast(dependencyHandler);
+            }
+            if (serviceType.isAssignableFrom(AntBuilderFactory.class)) {
+                return serviceType.cast(antBuilderFactory);
+            }
+            if (serviceType.isAssignableFrom(ProjectEvaluator.class)) {
+                return serviceType.cast(projectEvaluator);
+            }
+            if (serviceType.isAssignableFrom(RepositoryHandlerFactory.class)) {
+                return serviceType.cast(repositoryHandlerFactory);
             }
             throw new IllegalArgumentException(String.format("No project service of type %s available.",
                     serviceType.getSimpleName()));

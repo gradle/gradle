@@ -27,6 +27,8 @@ import static org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.Task
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter

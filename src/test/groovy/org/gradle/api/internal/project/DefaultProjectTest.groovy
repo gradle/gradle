@@ -148,6 +148,8 @@ class DefaultProjectTest {
         build = new DefaultBuild(new StartParameter(), buildScriptClassLoader, null)
 
         testTask = new DefaultTask()
+        
+        projectEvaluator = context.mock(ProjectEvaluator)
 
         projectServiceRegistryFactoryMock = context.mock(ProjectServiceRegistryFactory)
         serviceRegistryMock = context.mock(ProjectServiceRegistry)
@@ -156,29 +158,27 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(TaskContainerInternal); will(returnValue(taskContainerMock))
             allowing(taskContainerMock).getAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
             allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
+            allowing(serviceRegistryMock).get(RepositoryHandlerFactory); will(returnValue(repositoryHandlerFactoryMock))
             allowing(serviceRegistryMock).get(ConfigurationHandler); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(context.mock(DependencyHandler)))
             allowing(serviceRegistryMock).get(Convention); will(returnValue(convention))
+            allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
+            allowing(serviceRegistryMock).get(AntBuilderFactory); will(returnValue(antBuilderFactoryMock))
         }
 
         rootDir = new File("/path/root").absoluteFile
         pluginRegistry = new PluginRegistry(new File('somepath'))
         projectRegistry = build.projectRegistry
-        projectEvaluator = context.mock(ProjectEvaluator)
         project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
-                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator, pluginRegistry, projectRegistry,
-                build, projectServiceRegistryFactoryMock);
+                pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock);
         child1 = new DefaultProject("child1", project, new File("child1"), null, script, buildScriptClassLoader,
-                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator,
                 pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child1)
         childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script, buildScriptClassLoader,
-                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator,
                 pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock)
         child1.addChildProject(childchild)
         child2 = new DefaultProject("child2", project, new File("child2"), null, script, buildScriptClassLoader,
-                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator,
                 pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
@@ -234,8 +234,7 @@ class DefaultProjectTest {
         checkProject(project, null, 'root', rootDir)
 
         assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
-                repositoryHandlerFactoryMock, antBuilderFactoryMock, projectEvaluator, pluginRegistry, new DefaultProjectRegistry(),
-                build, projectServiceRegistryFactoryMock).standardOutputRedirector)
+                pluginRegistry, new DefaultProjectRegistry(), build, projectServiceRegistryFactoryMock).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 
@@ -938,10 +937,10 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testAnt() {
-        Closure configureClosure = {fileset(dir: 'dir')}
+        Closure configureClosure = {fileset(dir: 'dir', id: 'fileset')}
         project.ant(configureClosure)
         assertEquals(Closure.OWNER_FIRST, configureClosure.@resolveStrategy)
-        assertTrue(project.ant.collectorTarget.children[0].realThing instanceof FileSet)
+        assertThat(project.ant.project.getReference('fileset'), instanceOf(FileSet))
     }
 
     @Test void testCreateAntBuilder() {

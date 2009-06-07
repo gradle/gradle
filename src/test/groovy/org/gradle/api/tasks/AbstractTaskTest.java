@@ -56,7 +56,7 @@ public abstract class AbstractTaskTest {
 
     @Before
     public void setUp() {
-        project = HelperUtil.createRootProject(new File(HelperUtil.TMP_DIR_FOR_TEST).getAbsoluteFile());
+        project = HelperUtil.createRootProject();
     }
 
     public abstract AbstractTask getTask();
@@ -84,9 +84,11 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testPath() {
-        DefaultProject rootProject = HelperUtil.createRootProject(new File("parent", "root"));
+        DefaultProject rootProject = HelperUtil.createRootProject();
         DefaultProject childProject = HelperUtil.createChildProject(rootProject, "child");
+        childProject.getProjectDir().mkdirs();
         DefaultProject childchildProject = HelperUtil.createChildProject(childProject, "childchild");
+        childchildProject.getProjectDir().mkdirs();
 
         Task task = createTask(rootProject, TEST_TASK_NAME);
         assertEquals(Project.PATH_SEPARATOR + TEST_TASK_NAME, task.getPath());

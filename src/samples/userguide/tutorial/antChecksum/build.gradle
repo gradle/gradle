@@ -3,7 +3,7 @@ task checksum << {
     Arrays.sort(files)
     files.each { File file ->
         ant.checksum(file: file.canonicalPath, property: file.name)
-        println "$file.name Checksum: ${ant.antProject.properties[file.name]}"
+        println "$file.name Checksum: ${ant.properties[file.name]}"
     }
 }
         

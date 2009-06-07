@@ -15,21 +15,24 @@
  */
 package org.gradle.api.internal.project;
 
-import groovy.util.AntBuilder;
 import org.apache.tools.ant.BuildListener;
+import org.gradle.api.Project;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultAntBuilderFactory implements AntBuilderFactory {
-    private BuildListener buildListener;
+    private final BuildListener buildListener;
+    private final Project project;
 
-    public DefaultAntBuilderFactory(BuildListener buildListener) {
+    public DefaultAntBuilderFactory(BuildListener buildListener, Project project) {
         this.buildListener = buildListener;
+        this.project = project;
     }
 
-    public AntBuilder createAntBuilder() {
+    public groovy.util.AntBuilder createAntBuilder() {
         AntBuilder antBuilder = new AntBuilder();
+        antBuilder.getProject().setBaseDir(project.getProjectDir());
         antBuilder.getProject().removeBuildListener((BuildListener) antBuilder.getProject().getBuildListeners().get(0));
         antBuilder.getProject().addBuildListener(buildListener);
         return antBuilder;

@@ -35,7 +35,6 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final String TEST_PATTERN_3 = 'pattern3'
 
     public static final File TEST_TARGET_DIR = '/targetDir' as File
-    public static final File TEST_ROOT_DIR = '/ROOTDir' as File
 
     public static final List TEST_DEPENDENCY_MANAGER_CLASSPATH = ['jar1' as File]
     public static final List TEST_INCLUDES = ['incl']
