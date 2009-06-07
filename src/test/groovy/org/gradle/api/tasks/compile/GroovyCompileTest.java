@@ -79,7 +79,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
             {
                 one(antGroovycCompileMock).execute(testObj.getProject().getAnt(), testObj.getGroovySourceDirs(), testObj.getGroovyIncludes(), testObj.getGroovyExcludes(),
                         testObj.getGroovyJavaIncludes(), testObj.getGroovyJavaExcludes(), testObj.getDestinationDir(),
-                        GUtil.addLists(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH, AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
+                        GUtil.addLists(AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
                         testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getGroovyOptions(), testObj.getOptions(),
                         TEST_GROOVY_CLASSPATH);
             }
@@ -115,7 +115,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         context.checking(new Expectations() {
             {
                 one(antJavacCompileMock).execute(testObj.getSrcDirs(), testObj.getIncludes(), testObj.getExcludes(), testObj.getDestinationDir(),
-                        GUtil.addLists(AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH, AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
+                        GUtil.addLists(AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
                         testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getOptions(), testObj.getProject().getAnt());
             }
         });

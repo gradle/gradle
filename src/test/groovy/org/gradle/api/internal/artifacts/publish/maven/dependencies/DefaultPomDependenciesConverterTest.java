@@ -17,19 +17,24 @@ package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
 import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.Matchers.*;
 import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,8 +84,8 @@ public class DefaultPomDependenciesConverterTest {
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).getMapping(testCompileConfStub, compileConfStub); will(returnValue(createMapping(testCompileConfStub, "test")));
             allowing(conf2ScopeMappingContainerMock).getMapping(compileConfStub, testCompileConfStub); will(returnValue(createMapping(testCompileConfStub, "test")));
-            allowing(conf2ScopeMappingContainerMock).getMapping(WrapUtil.toArray(testCompileConfStub)); will(returnValue(createMapping(testCompileConfStub, "test")));
-            allowing(conf2ScopeMappingContainerMock).getMapping(WrapUtil.toArray(compileConfStub)); will(returnValue(createMapping(compileConfStub, "compile")));
+            allowing(conf2ScopeMappingContainerMock).getMapping(toArray(testCompileConfStub)); will(returnValue(createMapping(testCompileConfStub, "test")));
+            allowing(conf2ScopeMappingContainerMock).getMapping(toArray(compileConfStub)); will(returnValue(createMapping(compileConfStub, "compile")));
         }});
     }
 
@@ -94,7 +99,7 @@ public class DefaultPomDependenciesConverterTest {
             allowing(configurationStub).getName();
             will(returnValue(confName));
             allowing(configurationStub).getDependencies();
-            will(returnValue(WrapUtil.toSet(dependencies)));
+            will(returnValue(toSet(dependencies)));
         }});
         return configurationStub;
     }
@@ -110,7 +115,7 @@ public class DefaultPomDependenciesConverterTest {
 
     @Test
     public void convert() {
-        Set<Configuration> configurations = WrapUtil.toSet(compileConfStub, testCompileConfStub);
+        Set<Configuration> configurations = toSet(compileConfStub, testCompileConfStub);
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(false));
         }});
@@ -126,13 +131,13 @@ public class DefaultPomDependenciesConverterTest {
         final Configuration unmappedConfigurationStub = createNamedConfigurationStubWithDependencies("unmappedConf");
         context.checking(new Expectations() {{
             allowing(unmappedConfigurationStub).getDependencies();
-            will(returnValue(WrapUtil.toSet(dependency4)));
+            will(returnValue(toSet(dependency4)));
         }});
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(true));
             allowing(conf2ScopeMappingContainerMock).getMapping(unmappedConfigurationStub); will(returnValue(null));
         }});
-        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, WrapUtil.toSet(
+        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, toSet(
                 compileConfStub, testCompileConfStub, unmappedConfigurationStub));
         assertEquals(3, actualMavenDependencies.size());
         checkCommonMavenDependencies(actualMavenDependencies);
@@ -146,21 +151,29 @@ public class DefaultPomDependenciesConverterTest {
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(false));
             allowing(conf2ScopeMappingContainerMock).getMapping(unmappedConfigurationStub); will(returnValue(new Conf2ScopeMapping(null, unmappedConfigurationStub, null)));
         }});
-        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, WrapUtil.toSet(
+        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, toSet(
                 compileConfStub, testCompileConfStub, unmappedConfigurationStub));
         assertEquals(4, actualMavenDependencies.size());
         checkCommonMavenDependencies(actualMavenDependencies);
-        Assert.assertThat(actualMavenDependencies,
-                Matchers.hasItem((MavenDependency) DefaultMavenDependency.newInstance("org4", "name4", "rev4", null, null)));
+        assertThat(actualMavenDependencies,
+                hasItem((MavenDependency) DefaultMavenDependency.newInstance("org4", "name4", "rev4", null, null)));
+    }
+
+    @Test
+    public void convertIgnoresSelfResolvingDependencies() {
+        Configuration configuration = createNamedConfigurationStubWithDependencies("self-resolve", context.mock(
+                SelfResolvingDependency.class));
+        List<MavenDependency> mavenDependencies = dependenciesConverter.convert(pomMock, toSet(configuration));
+        assertThat(mavenDependencies, isEmpty());
     }
 
     private void checkCommonMavenDependencies(List<MavenDependency> actualMavenDependencies) {
-        Assert.assertThat(actualMavenDependencies,
-                Matchers.hasItem((MavenDependency) DefaultMavenDependency.newInstance("org1", "name1", "rev1", null, "compile")));
-        Assert.assertThat(actualMavenDependencies,
-                Matchers.hasItem((MavenDependency) DefaultMavenDependency.newInstance("org2", "name2", "rev2", null, "test")));
-        Assert.assertThat(actualMavenDependencies,
-                Matchers.hasItem((MavenDependency) new DefaultMavenDependency("org3", "artifactName32", "rev3", "type32", "test",
+        assertThat(actualMavenDependencies,
+                hasItem((MavenDependency) DefaultMavenDependency.newInstance("org1", "name1", "rev1", null, "compile")));
+        assertThat(actualMavenDependencies,
+                hasItem((MavenDependency) DefaultMavenDependency.newInstance("org2", "name2", "rev2", null, "test")));
+        assertThat(actualMavenDependencies,
+                hasItem((MavenDependency) new DefaultMavenDependency("org3", "artifactName32", "rev3", "type32", "test",
                         Collections.<MavenExclude>emptyList(), false, "classifier32")));
     }
 
@@ -168,16 +181,16 @@ public class DefaultPomDependenciesConverterTest {
     public void convertWithConvertableExcludes() {
         final Configuration someConfigurationStub = createNamedConfigurationStubWithDependencies("someConfiguration", dependency1);
         final DefaultMavenExclude mavenExclude = new DefaultMavenExclude("a", "b");
-        dependency1.exclude(WrapUtil.toMap("key", "value"));
+        dependency1.exclude(toMap("key", "value"));
         context.checking(new Expectations() {{
            allowing(conf2ScopeMappingContainerMock).getMapping(someConfigurationStub); will(returnValue(createMapping(compileConfStub, "compile")));
            allowing(excludeRuleConverterMock).convert(dependency1.getExcludeRules().iterator().next()); will(returnValue(mavenExclude));
         }});
-        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, WrapUtil.toSet(someConfigurationStub));
+        List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, toSet(someConfigurationStub));
         assertEquals(1, actualMavenDependencies.size());
-        Assert.assertThat(actualMavenDependencies,
-                Matchers.hasItem((MavenDependency) DefaultMavenDependency.newInstance("org1", "name1", "rev1", null, "compile")));
-        assertEquals(actualMavenDependencies.get(0).getMavenExcludes(), WrapUtil.toList(mavenExclude));
+        assertThat(actualMavenDependencies,
+                hasItem((MavenDependency) DefaultMavenDependency.newInstance("org1", "name1", "rev1", null, "compile")));
+        assertEquals(actualMavenDependencies.get(0).getMavenExcludes(), toList(mavenExclude));
         assertEquals(actualMavenDependencies.get(0).getScope(), "compile");
 
     }

@@ -16,27 +16,26 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.testing.TestFramework;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.StopActionException;
-import org.gradle.api.tasks.compile.ClasspathConverter;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.api.testing.TestFramework;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.After;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,10 +56,8 @@ public class TestTest extends AbstractConventionTaskTest {
     static final File TEST_TEST_REPORT_DIR = new File(TEST_ROOT_DIR, "report/tests");
 
     static final Set TEST_DEPENDENCY_MANAGER_CLASSPATH = WrapUtil.toSet(new File("jar1"));
-    static final List TEST_CONVERTED_UNMANAGED_CLASSPATH = WrapUtil.toList(new File("jar2"));
-    static final List TEST_UNMANAGED_CLASSPATH = WrapUtil.toList("jar2");
     static final List TEST_CONVERTED_CLASSPATH = GUtil.addLists(WrapUtil.toList(TEST_TEST_CLASSES_DIR),
-            TEST_CONVERTED_UNMANAGED_CLASSPATH, TEST_DEPENDENCY_MANAGER_CLASSPATH);
+            TEST_DEPENDENCY_MANAGER_CLASSPATH);
 
     static final Set<String> okTestClassNames = new HashSet<String>(Arrays.asList("test.HumanTest", "test.CarTest"));
 
@@ -70,7 +67,6 @@ public class TestTest extends AbstractConventionTaskTest {
 
     TestFramework testFrameworkMock = context.mock(TestFramework.class);
 
-    private ClasspathConverter classpathConverterMock = context.mock(ClasspathConverter.class);
     private ExistingDirsFilter existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
     private FileCollection configurationMock = context.mock(FileCollection.class);
 
@@ -96,14 +92,12 @@ public class TestTest extends AbstractConventionTaskTest {
     @org.junit.Test public void testInit() {
         assertNotNull(test.getTestFramework());
         assertNotNull(test.existingDirsFilter);
-        assertNotNull(test.classpathConverter);
         assertNull(test.getTestClassesDir());
         assertNull(test.getConfiguration());
         assertNull(test.getTestResultsDir());
         assertNull(test.getTestReportDir());
         assertNull(test.getIncludes());
         assertNull(test.getExcludes());
-        assertNull(test.getUnmanagedClasspath());
         assert test.isStopAtFailuresOrErrors();
     }
 
@@ -190,7 +184,6 @@ public class TestTest extends AbstractConventionTaskTest {
 
     @org.junit.Test public void testExecuteWithNonExistingCompiledTestsDir() {
         setUpMocks(test);
-        test.setUnmanagedClasspath(null);
         context.checking(new Expectations() {{
             allowing(existentDirsFilterMock).checkExistenceAndThrowStopActionIfNot(TEST_TEST_CLASSES_DIR); will(throwException(new StopActionException()));
         }});
@@ -203,16 +196,11 @@ public class TestTest extends AbstractConventionTaskTest {
         test.setTestClassesDir(TEST_TEST_CLASSES_DIR);
         test.setTestResultsDir(TEST_TEST_RESULTS_DIR);
         test.setTestReportDir(TEST_TEST_REPORT_DIR);
-        test.setUnmanagedClasspath(TEST_UNMANAGED_CLASSPATH);
         test.setConfiguration(configurationMock);
-        test.classpathConverter = classpathConverterMock;
 
         context.checking(new Expectations() {{
             allowing(configurationMock).iterator();
             will(returnIterator(TEST_DEPENDENCY_MANAGER_CLASSPATH));
-            allowing(classpathConverterMock).createFileClasspath(TEST_ROOT_DIR, GUtil.addLists(WrapUtil.toList(
-                    TEST_TEST_CLASSES_DIR), TEST_UNMANAGED_CLASSPATH, TEST_DEPENDENCY_MANAGER_CLASSPATH));
-            will(returnValue(TEST_CONVERTED_CLASSPATH));
         }});
     }
 
@@ -228,15 +216,6 @@ public class TestTest extends AbstractConventionTaskTest {
         assertEquals(WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2), test.getExcludes());
         test.exclude(TEST_PATTERN_3);
         assertEquals(WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getExcludes());
-    }
-
-    @org.junit.Test public void testUnmanagedClasspath() {
-        List<Object> list1 = WrapUtil.toList("a", new Object());
-        assertSame(test, test.unmanagedClasspath(list1.toArray(new Object[list1.size()])));
-        assertEquals(list1, test.getUnmanagedClasspath());
-        List list2 = WrapUtil.toList(WrapUtil.toList("b", "c"));
-        test.unmanagedClasspath(list2.toArray(new Object[list2.size()]));
-        assertEquals(GUtil.addLists(list1, GUtil.flatten(list2)), test.getUnmanagedClasspath());
     }
 
     private void setExistingDirsFilter() {

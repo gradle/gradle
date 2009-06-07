@@ -53,6 +53,7 @@ import org.gradle.logging.AntLoggingAdapter
 import org.gradle.util.GradleUtil
 import org.gradle.util.WrapUtil
 import org.gradle.api.internal.project.*
+import org.gradle.api.internal.artifacts.dsl.dependencies.SelfResolvingDependencyFactory
 
 /**
  * @author Hans Dockter
@@ -70,7 +71,7 @@ class HelperUtil {
 
     static DefaultProject createRootProject(File rootDir) {
         DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory())
-        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory([] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory())
+        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory([new SelfResolvingDependencyFactory()] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory())
         DefaultProjectServiceRegistryFactory serviceRegistryFactory = new DefaultProjectServiceRegistryFactory(
                 repositoryHandlerFactory,
                 new DefaultConfigurationContainerFactory(new StartParameter().projectDependenciesBuildInstruction),

@@ -27,7 +27,7 @@ class AntJavac {
 
     static final String CLASSPATH_ID = 'compile.classpath'
 
-    void execute(List sourceDirs, List includes, List excludes, File targetDir, List classpath, String sourceCompatibility,
+    void execute(List sourceDirs, List includes, List excludes, File targetDir, Iterable classpath, String sourceCompatibility,
                  String targetCompatibility, CompileOptions compileOptions, AntBuilder ant) {
         createAntClassPath(ant, classpath)
         Map otherArgs = [
@@ -54,7 +54,7 @@ class AntJavac {
         }
     }
 
-    private void createAntClassPath(AntBuilder ant, List classpath) {
+    private void createAntClassPath(AntBuilder ant, Iterable classpath) {
         ant.path(id: CLASSPATH_ID) {
             classpath.each {
                 logger.debug("Add {} to Ant classpath!", it)

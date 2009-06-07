@@ -19,18 +19,15 @@ package org.gradle.api.tasks.testing;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
-import org.gradle.api.testing.TestFramework;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.compile.ClasspathConverter;
+import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.api.testing.TestFramework;
 import org.gradle.external.junit.JUnitTestFramework;
 import org.gradle.external.testng.TestNGTestFramework;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.*;
@@ -41,7 +38,6 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class Test extends ConventionTask {
-    private static final Logger logger = LoggerFactory.getLogger(Test.class);
     public static final String FAILURES_OR_ERRORS_PROPERTY = "org.gradle.api.tasks.testing.failuresOrErrors";
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
@@ -60,13 +56,9 @@ public class Test extends ConventionTask {
 
     private boolean stopAtFailuresOrErrors = true;
 
-    private List unmanagedClasspath = null;
-
     private FileCollection configuration;
 
     protected ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
-
-    protected ClasspathConverter classpathConverter = new ClasspathConverter();
 
     private TestFramework testFramework = null;
 
@@ -132,9 +124,8 @@ public class Test extends ConventionTask {
         }
     }
 
-    public List getClasspath() {
-        return classpathConverter.createFileClasspath(getProject().getRootDir(),
-                GUtil.addLists(WrapUtil.toList(getTestClassesDir()), getUnmanagedClasspath(), configuration));
+    public List<File> getClasspath() {
+        return GUtil.addLists(WrapUtil.toList(getTestClassesDir()), configuration);
     }
 
     /**
@@ -154,20 +145,6 @@ public class Test extends ConventionTask {
     public Test exclude(String... excludes) {
         this.excludes = GUtil.chooseCollection(this.excludes, getExcludes());
         this.excludes.addAll(Arrays.asList(excludes));
-        return this;
-    }
-
-    /**
-     * This methode is usually used only internally by Gradle.
-     * A list of files are added to the compile classpath. The files should point to jars or directories containing
-     * class files. The files added here are not shared in a multi-project build and are not listed in
-     * a dependency descriptor if you upload your library to a repository.
-     * @param elements The elements to be added
-     * @return this
-     */
-    public Test unmanagedClasspath(Object... elements) {
-        this.unmanagedClasspath = GUtil.chooseCollection(this.unmanagedClasspath, getUnmanagedClasspath());
-        unmanagedClasspath.addAll(GUtil.flatten(Arrays.asList(elements)));
         return this;
     }
 
@@ -269,24 +246,6 @@ public class Test extends ConventionTask {
      */
     public void setStopAtFailuresOrErrors(boolean stopAtFailuresOrErrors) {
         this.stopAtFailuresOrErrors = stopAtFailuresOrErrors;
-    }
-
-    /**
-     * Returns the unmanaged classpath.
-     *
-     * @see #unmanagedClasspath(Object[])
-     */
-    public List getUnmanagedClasspath() {
-        return unmanagedClasspath;
-    }
-
-    /**
-     * Sets the unmanaged classpath.
-     *
-     * @see #unmanagedClasspath(Object[])
-     */
-    public void setUnmanagedClasspath(List unmanagedClasspath) {
-        this.unmanagedClasspath = unmanagedClasspath;
     }
 
     public TestFramework getTestFramework() {

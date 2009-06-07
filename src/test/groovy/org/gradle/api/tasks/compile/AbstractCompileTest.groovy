@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.GradleScriptException
 import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.api.tasks.compile.ClasspathConverter
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.util.ExistingDirsFilter
 import org.junit.Before
@@ -39,8 +38,6 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final File TEST_ROOT_DIR = '/ROOTDir' as File
 
     public static final List TEST_DEPENDENCY_MANAGER_CLASSPATH = ['jar1' as File]
-    public static final List TEST_CONVERTED_UNMANAGED_CLASSPATH = ['jar2' as File]
-    public static final List TEST_UNMANAGED_CLASSPATH = ['jar2']
     public static final List TEST_INCLUDES = ['incl']
     public static final List TEST_EXCLUDES = ['excl']
 
@@ -55,16 +52,12 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     @Test public void testCompile() {
         assertNotNull(compile.options)
         assertNotNull(compile.existentDirsFilter)
-        assertNotNull(compile.classpathConverter)
         assertNotNull(compile.antCompile)
         assertNull(compile.destinationDir)
         assertNull(compile.sourceCompatibility)
         assertNull(compile.targetCompatibility)
         assertNull(compile.srcDirs)
-        assertNull(compile.unmanagedClasspath)
     }
-
-
 
     @Test (expected = GradleScriptException) public void testExecuteWithUnspecifiedSourceCompatibility() {
         setUpMocksAndAttributes(compile)
@@ -86,16 +79,7 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
     @Test public void testGetClasspath() {
         setUpMocksAndAttributes(compile)
-        assertEquals(TEST_CONVERTED_UNMANAGED_CLASSPATH + TEST_DEPENDENCY_MANAGER_CLASSPATH, compile.getClasspath())
-    }
-
-    @Test public void testUnmanagedClasspath() {
-        List list1 = ['a', new Object()]
-        assert compile.unmanagedClasspath(list1 as Object[]).is(compile)
-        assertEquals(list1, compile.unmanagedClasspath)
-        List list2 = [['b', 'c']]
-        compile.unmanagedClasspath(list2)
-        assertEquals(list1 + list2.flatten(), compile.unmanagedClasspath)
+        assertEquals(TEST_DEPENDENCY_MANAGER_CLASSPATH, compile.getClasspath())
     }
 
     protected void setUpMocksAndAttributes(Compile compile) {
@@ -107,7 +91,6 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
             assert srcDirs.is(compile.srcDirs)
             compile.srcDirs
         }] as ExistingDirsFilter
-        compile.unmanagedClasspath = AbstractCompileTest.TEST_UNMANAGED_CLASSPATH
         compile.sourceCompatibility = "1.5"
         compile.targetCompatibility = '1.5'
         compile.destinationDir = AbstractCompileTest.TEST_TARGET_DIR
@@ -115,13 +98,6 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.configuration = [
             iterator: { -> AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH.iterator()}
         ] as FileCollection
-
-        compile.classpathConverter = [createFileClasspath: {File baseDir, List pathElements ->
-            assertEquals(AbstractCompileTest.TEST_ROOT_DIR, baseDir)
-            assertEquals(AbstractCompileTest.TEST_UNMANAGED_CLASSPATH, pathElements as List)
-            AbstractCompileTest.TEST_CONVERTED_UNMANAGED_CLASSPATH
-        }] as ClasspathConverter
-
     }
 
     protected ExistingDirsFilter getGroovyCompileExistingDirsFilterMock() {

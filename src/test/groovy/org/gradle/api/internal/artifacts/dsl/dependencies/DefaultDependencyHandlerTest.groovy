@@ -57,6 +57,33 @@ class DefaultDependencyHandlerTest {
     }
   }
 
+    @Test
+    void add() {
+        String someNotation = "someNotation"
+        Dependency dependencyDummy = context.mock(Dependency)
+        context.checking {
+            allowing(configurationContainerStub).getAt(TEST_CONF_NAME); will(returnValue(configurationMock))
+            allowing(dependencyFactoryStub).createDependency(someNotation, null); will(returnValue(dependencyDummy))
+            one(configurationMock).addDependency(dependencyDummy);
+        }
+
+        assertThat(dependencyHandler.add(TEST_CONF_NAME,someNotation), Matchers.equalTo(dependencyDummy))
+    }
+
+    @Test
+    void addWithClosure() {
+        String someNotation = "someNotation"
+        def closure = { }
+        Dependency dependencyDummy = context.mock(Dependency)
+        context.checking {
+            allowing(configurationContainerStub).getAt(TEST_CONF_NAME); will(returnValue(configurationMock))
+            allowing(dependencyFactoryStub).createDependency(someNotation, closure); will(returnValue(dependencyDummy))
+            one(configurationMock).addDependency(dependencyDummy);
+        }
+
+        assertThat(dependencyHandler.add(TEST_CONF_NAME, someNotation, closure), Matchers.equalTo(dependencyDummy))
+    }
+    
   @Test
   void pushOneDependency() {
     String someNotation = "someNotation"

@@ -1,3 +1,5 @@
 usePlugin 'java'
 
-compile.unmanagedClasspath(BootstrapUtil.gradleClasspath as File[])
+dependencies {
+    compile files(BootstrapUtil.gradleClasspath)
+}

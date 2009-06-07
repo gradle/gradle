@@ -15,9 +15,12 @@
  */
 package org.gradle.api.artifacts.dsl;
 
+import org.gradle.api.artifacts.Dependency;
+import groovy.lang.Closure;
+
 /**
- * This class is for creating dependencies and adding them to configurations. The dependencies
- * that should be created can be described in a String or Map notation.
+ * This class is for creating dependencies and adding them to configurations. The dependencies that should be created
+ * can be described in a String or Map notation.
  *
  * <p>To create and add a specific dependency to a configuration you can use the following syntax:</p>
  *
@@ -27,12 +30,13 @@ package org.gradle.api.artifacts.dsl;
  *
  * <code>"&lt;group>:&lt;name>:&lt;version>:&lt;classifier>"</code>
  *
- * <p>The other is a map notation:</p>
- * <code>group: &lt;group>, name: &lt;name> version: &lt;version>, classifier: &lt;classifier></code>
- * 
+ * <p>The other is a map notation:</p> <code>group: &lt;group>, name: &lt;name> version: &lt;version>, classifier:
+ * &lt;classifier></code>
+ *
  * <p>In both notations, all properties, except name, are optional.</p>
  *
- * <p>To add a module (see {@link org.gradle.api.artifacts.ClientModule} to a configuration you can use the notation:</p>
+ * <p>To add a module (see {@link org.gradle.api.artifacts.ClientModule}) to a configuration you can use the
+ * notation:</p>
  *
  * <code>&lt;DependencyHandler>.&lt;configurationName> module(moduleNotation)</code>
  *
@@ -40,7 +44,11 @@ package org.gradle.api.artifacts.dsl;
  * not available.
  *
  * <p>To add a project dependency, you use the following notation</p>
- * <code>&lt;DependencyHandler>.&lt;configurationName> <projectInstance></code>
+ *
+ * <code>&lt;DependencyHandler>.&lt;configurationName> project(':someProject')</code>
+ *
+ * <p>You can also add a dependency using a {@link org.gradle.api.artifacts.FileCollection}:</p>
+ * <code>&lt;DependencyHandler>.&lt;configurationName> files('a file')</code>
  *
  * <p>To configure dependencies, you can additonally pass a configuration closure.</p>
  * <pre>&lt;DependencyHandler>.&lt;configurationName> <anyDependencyType> {
@@ -49,8 +57,26 @@ package org.gradle.api.artifacts.dsl;
  * }
  *
  * </pre>
- * 
+ *
  * @author Hans Dockter
  */
 public interface DependencyHandler {
+    /**
+     * Adds a dependency to the given configuration.
+     *
+     * @param configurationName The name of the configuration.
+     * @param dependencyNotation The dependency notation, in one of the notations decribed above.
+     * @return The dependency.
+     */
+    Dependency add(String configurationName, Object dependencyNotation);
+
+    /**
+     * Adds a dependency to the given configuration, and configures the dependency using the given closure/
+     *
+     * @param configurationName The name of the configuration.
+     * @param dependencyNotation The dependency notation, in one of the notations decribed above.
+     * @param configureClosure The closure to use to configure the dependency.
+     * @return The dependency.
+     */
+    Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
 }

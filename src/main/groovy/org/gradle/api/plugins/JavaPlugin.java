@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.AbstractFileCollection;
 import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ConventionValue;
@@ -43,6 +44,7 @@ import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.util.*;
+import java.io.File;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -279,31 +281,34 @@ public class JavaPlugin implements Plugin {
                 test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
                 test.setConfiguration(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME));
                 addDependsOnProjectDependencies(test, TEST_RUNTIME_CONFIGURATION_NAME);
-                test.doFirst(new TaskAction() {
-                    public void execute(Task task) {
-                        Test test = (Test) task;
-                        List unmanagedClasspathFromTestCompile = ((Compile) test.getProject().getTasks().getByName(COMPILE_TESTS_TASK_NAME))
-                                .getUnmanagedClasspath();
-                        test.unmanagedClasspath(unmanagedClasspathFromTestCompile.toArray(
-                                new Object[unmanagedClasspathFromTestCompile.size()]));
-                    }
-                });
             }
         });
         project.getTasks().add(TEST_TASK_NAME, Test.class).setDescription("Runs the tests.");
     }
 
-    void configureConfigurations(Project project) {
+    void configureConfigurations(final Project project) {
         project.setProperty("status", "integration");
         ConfigurationContainer configurations = project.getConfigurations();
         Configuration compileConfiguration = configurations.add(COMPILE_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
                 setDescription("Classpath for compiling the sources.");
         Configuration runtimeConfiguration = configurations.add(RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).
                 setDescription("Classpath for running the compiled sources.");
+
         Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).
                 setTransitive(false).setDescription("Classpath for compiling the test sources.");
+        project.getDependencies().add(TEST_COMPILE_CONFIGURATION_NAME, new AbstractFileCollection() {
+            public String getDisplayName() {
+                return "classes dir";
+            }
+            public Set<File> getFiles() {
+                File classesDir = project.getConvention().getPlugin(JavaPluginConvention.class).getClassesDir();
+                return Collections.singleton(classesDir);
+            }
+        });
+        
         configurations.add(TEST_RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(runtimeConfiguration, compileTestsConfiguration).
                 setDescription("Classpath for running the test sources.");
+        
         Configuration archivesConfiguration = configurations.add(Dependency.ARCHIVES_CONFIGURATION).
                 setDescription("Configuration for the default artifacts.");
         configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, archivesConfiguration).
@@ -317,15 +322,7 @@ public class JavaPlugin implements Plugin {
         configureCompileInternal(compileTests, propertyMapping);
         compileTests.setConfiguration(configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME));
         addDependsOnProjectDependencies(compileTests, TEST_COMPILE_CONFIGURATION_NAME);
-        return (Compile) compileTests.doFirst(new TaskAction() {
-            public void execute(Task task) {
-                Compile compileTests = (Compile) task;
-                if (compile.getUnmanagedClasspath() != null) {
-                    compileTests.unmanagedClasspath((Object[]) compile.getUnmanagedClasspath().toArray(
-                            new Object[compile.getUnmanagedClasspath().size()]));
-                }
-            }
-        });
+        return compileTests;
     }
 
     protected Compile configureCompileInternal(Compile compile, Map propertyMapping) {

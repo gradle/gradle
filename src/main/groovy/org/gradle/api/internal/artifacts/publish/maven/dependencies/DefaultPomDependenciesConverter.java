@@ -15,17 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.GradleException;
 
 import java.util.*;
-import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -54,12 +49,16 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         Map<Dependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
         Map<Dependency, String> dependencyToScope = new HashMap<Dependency, String>();
         for (Dependency dependency : dependencyToConfigurations.keySet()) {
-            Conf2ScopeMapping conf2ScopeMapping = pom.getScopeMappings().getMapping(
-                    dependencyToConfigurations.get(dependency).toArray(new Configuration[dependencyToConfigurations.get(dependency).size()]));
+            if (dependency instanceof SelfResolvingDependency) {
+                continue;
+            }
+            Conf2ScopeMapping conf2ScopeMapping = pom.getScopeMappings().getMapping(dependencyToConfigurations.get(
+                    dependency).toArray(new Configuration[dependencyToConfigurations.get(dependency).size()]));
             if (!useScope(pom, conf2ScopeMapping)) {
                 continue;
             }
-            dependencyToScope.put(findDependency(dependency, conf2ScopeMapping.getConfiguration()), conf2ScopeMapping.getScope());
+            dependencyToScope.put(findDependency(dependency, conf2ScopeMapping.getConfiguration()),
+                    conf2ScopeMapping.getScope());
         }
         return dependencyToScope;
     }

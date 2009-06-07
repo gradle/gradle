@@ -1,7 +1,8 @@
 usePlugin('groovy')
-compile.groovyClasspath = files(org.gradle.util.BootstrapUtil.groovyFiles)
-compileTests.groovyClasspath = files(org.gradle.util.BootstrapUtil.groovyFiles)
-compile.unmanagedClasspath(org.gradle.util.BootstrapUtil.gradleClasspath as File[])
+dependencies {
+    compile files(org.gradle.util.BootstrapUtil.gradleClasspath)
+    groovy files(org.gradle.util.BootstrapUtil.groovyFiles)
+}
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
     options.fork(forkMode: org.gradle.api.tasks.testing.ForkMode.ONCE)

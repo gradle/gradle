@@ -115,11 +115,6 @@ public class DefaultConventionsToPropertiesMapping {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
             return convention.getPlugin(JavaPluginConvention.class).getTargetCompatibility().toString();
         }
-    },
-            "unmanagedClasspath", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return (WrapUtil.toList(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
-        }
     });
 
     public final static Map TEST = GUtil.map(

@@ -58,14 +58,6 @@ public class Compile extends ConventionTask {
     private FileCollection configuration;
 
     /**
-     * This property is used internally by Gradle. It is usually not used by build scripts.
-     * A list of files added to the compile classpath. The files should point to jars or directories containing
-     * class files. The files added here are not shared in a multi-project build and are not mentioned in
-     * a dependency descriptor if you upload your library to a repository.
-     */
-    private List unmanagedClasspath;
-
-    /**
      * Options for the compiler. The compile is delegated to the ant javac task. This property contains almost
      * all of the properties available for the ant javac task.
      */
@@ -84,8 +76,6 @@ public class Compile extends ConventionTask {
     protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
     protected AntJavac antCompile = new AntJavac();
-
-    protected ClasspathConverter classpathConverter = new ClasspathConverter();
 
     public Compile(Project project, String name) {
         super(project, name);
@@ -108,29 +98,12 @@ public class Compile extends ConventionTask {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
         }
 
-        antCompile.execute(existingSourceDirs, includes, excludes, getDestinationDir(), getClasspath(), getSourceCompatibility(),
-                getTargetCompatibility(), options, getProject().getAnt());
+        antCompile.execute(existingSourceDirs, includes, excludes, getDestinationDir(), getClasspath(),
+                getSourceCompatibility(), getTargetCompatibility(), options, getProject().getAnt());
     }
 
-    public List getClasspath() {
-        return GUtil.addLists(classpathConverter.createFileClasspath(getProject().getRootDir(), getUnmanagedClasspath()),
-                configuration);
-    }
-
-    /**
-     * Add the elements to the unmanaged classpath.
-     */
-    public Compile unmanagedClasspath(Object... elements) {
-        if (unmanagedClasspath == null) {
-            List conventionPath = getUnmanagedClasspath();
-            if (conventionPath != null) {
-                unmanagedClasspath = conventionPath;
-            } else {
-                unmanagedClasspath = new ArrayList();
-            }
-        }
-        GUtil.flatten(Arrays.asList(elements), unmanagedClasspath);
-        return this;
+    public Iterable<File> getClasspath() {
+        return GUtil.addLists(configuration);
     }
 
     public Compile include(String[] includes) {
@@ -173,14 +146,6 @@ public class Compile extends ConventionTask {
 
     public void setTargetCompatibility(String targetCompatibility) {
         this.targetCompatibility = targetCompatibility;
-    }
-
-    public List getUnmanagedClasspath() {
-        return unmanagedClasspath;
-    }
-
-    public void setUnmanagedClasspath(List unmanagedClasspath) {
-        this.unmanagedClasspath = unmanagedClasspath;
     }
 
     public CompileOptions getOptions() {

@@ -40,6 +40,13 @@ class DefaultDependencyHandler implements DependencyHandler {
         this.projectFinder = projectFinder;
     }
 
+    public Dependency add(String configurationName, Object dependencyNotation) {
+        pushDependency(configurationContainer[configurationName], dependencyNotation, null)
+    }
+
+    public Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure) {
+        pushDependency(configurationContainer[configurationName], dependencyNotation, configureClosure)
+    }
 
     private Dependency pushDependency(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
         Dependency dependency
