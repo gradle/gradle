@@ -19,14 +19,11 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
-import org.jmock.integration.junit4.JMock;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -102,7 +99,7 @@ public class DefaultClientModuleTest extends AbstractDependencyTest {
     }
 
     private DefaultClientModule createModule() {
-        DefaultClientModule clientModule =  new DefaultClientModule("group", "name", "version");
+        DefaultClientModule clientModule =  new DefaultClientModule("group", "name", "version", "conf");
         clientModule.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"));
         clientModule.addDependency(new DefaultModuleDependency("org", "name", "version"));
         return clientModule;

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.Configuration;
 
 /**
 * @author Hans Dockter
@@ -57,7 +57,7 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
     }
 
     public Dependency copy() {
-        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject);
+        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, getConfiguration());
         Dependencies.copy(this, copiedProjectDependency);
         return copiedProjectDependency;
     }

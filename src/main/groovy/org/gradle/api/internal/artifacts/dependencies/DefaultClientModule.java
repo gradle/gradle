@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyArtifact;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -106,7 +105,7 @@ public class DefaultClientModule extends AbstractDependency implements ClientMod
     }
 
     public Dependency copy() {
-        DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion());
+        DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(), getConfiguration());
         Dependencies.copyExternal(this, copiedClientModule);
         for (Dependency dependency : dependencies) {
             copiedClientModule.addDependency(dependency.copy());

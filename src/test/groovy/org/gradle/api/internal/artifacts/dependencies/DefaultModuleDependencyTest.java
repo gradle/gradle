@@ -23,7 +23,7 @@ import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.equalTo;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -102,7 +102,7 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
     }
 
     private DefaultModuleDependency createModuleDependency() {
-        DefaultModuleDependency moduleDependency = new DefaultModuleDependency("group", "name", "version");
+        DefaultModuleDependency moduleDependency = new DefaultModuleDependency("group", "name", "version", "conf");
         moduleDependency.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"));
         return moduleDependency;
     }

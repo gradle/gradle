@@ -81,7 +81,7 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
     }
 
     public DefaultModuleDependency copy() {
-        DefaultModuleDependency copiedModuleDependency = new DefaultModuleDependency(getGroup(), getName(), getVersion());
+        DefaultModuleDependency copiedModuleDependency = new DefaultModuleDependency(getGroup(), getName(), getVersion(), getConfiguration());
         Dependencies.copyExternal(this, copiedModuleDependency);
         copiedModuleDependency.setChanging(isChanging());
         return copiedModuleDependency;

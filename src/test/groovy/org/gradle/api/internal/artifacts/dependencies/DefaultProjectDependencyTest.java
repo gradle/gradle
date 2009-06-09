@@ -17,17 +17,14 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.sameInstance;
-import static org.hamcrest.Matchers.not;
-import org.jmock.integration.junit4.JMock;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -118,7 +115,7 @@ public class DefaultProjectDependencyTest extends AbstractDependencyTest {
     }
 
     private ProjectDependency createProjectDependency() {
-        ProjectDependency projectDependency = new DefaultProjectDependency(HelperUtil.createRootProject());
+        ProjectDependency projectDependency = new DefaultProjectDependency(HelperUtil.createRootProject(), "conf");
         projectDependency.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"));
         return projectDependency;
     }
