@@ -149,7 +149,7 @@
             </para>
         </section>
         <section id='sub:module_dependencies'>
-            <title>Module Dependencies</title>
+            <title>Module dependencies</title>
             <para>Module dependencies are the most common dependencies. They correspond to a dependency in an external
                 repository.
             </para>
@@ -207,7 +207,7 @@
             </section>
         </section>
         <section id='sub:client_module_dependencies'>
-            <title>Client Module Dependencies</title>
+            <title>Client module dependencies</title>
             <para>Client module dependencies enable you to declare
                 <emphasis>transitive</emphasis>
                 dependencies directly in your build script. They are a replacement for a module descriptor XML file in
@@ -263,7 +263,7 @@
             </para>
         </section>
         <section>
-            <title>Optional Attributes</title>
+            <title>Optional attributes</title>
             <para id="para:dependencies_with_empty_attributes">All attributes for a dependency are optional, except the name. It depends on the repository type,
                 which information is need for actually finding the dependencies in the repository.
                 See <xref linkend='sec:repositories'/>. If you work for example with Maven repositories, you need to define the
@@ -280,7 +280,7 @@
             </sample>
         </section>
         <section id="sec:dependency_configurations">
-            <title>Dependency Configurations</title>
+            <title>Dependency configurations</title>
             <para>In Gradle a dependency can have different configurations (as your project can have different configurations). If you
             don't specify anything explicitly, Gradle uses the default configuration of the dependency. For dependencies
             from a Maven repository, the default configuration is the only available one anyway. If you work with Ivy repositories and
@@ -295,20 +295,20 @@
             </sample>
         </section>
         <section>
-            <title>Dependency Reports</title>
+            <title>Dependency reports</title>
             <para>You can generate dependency reports from the command line (see <xref linkend="para:commandline_dependency_report"/>).
                 With the help of the Project report plugin (see <xref linkend="project_reports_plugin"/>) such a report can be created by your build.
             </para>
         </section>
         <section id='sec:java_plugin_and_dependency_management'>
-            <title>Java Plugin and Dependency Management</title>
+            <title>Java plugin and dependency management</title>
             <para>The Java Plugin preconfigures the dependency management. It adds a set of configurations and
                 assign those configurations to tasks like <literal>compile</literal> and <literal>test</literal>.
                 <xref linkend='tab:configurations'/>
                 shows the details.
             </para>
             <table id='tab:configurations'>
-                <title>Java/Groovy Configurations</title>
+                <title>Java/Groovy configurations</title>
                 <thead>
                     <tr>
                         <td>Name</td>
@@ -405,7 +405,7 @@
             </para>
         </section>
         <section id='sub:maven_repo'>
-            <title>Maven Repositories</title>
+            <title>Maven repositories</title>
             <para>To add the central Maven2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply
                 type:
             </para>
@@ -438,7 +438,7 @@
             </para>
         </section>
         <section id='sec:flat_dir_resolver'>
-            <title>Flat Directory Resolver</title>
+            <title>Flat directory resolver</title>
             <para>If you want to use a (flat) filesytem directory as a repository, simply type:
             </para>
             <sample id="flatDirMulti" dir="userguide/artifacts/defineRepository">

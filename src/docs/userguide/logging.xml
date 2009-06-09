@@ -20,7 +20,7 @@
             logging.
         </para>
         <table id='loglevels'>
-            <title>Log Level Command-Line Options</title>
+            <title>Log level command-line options</title>
             <thead>
                 <tr>
                     <td>Option</td>
@@ -52,7 +52,7 @@
 
         </table>
         <table id='stacktraces'>
-            <title>Stacktrace Command-Line Options</title>
+            <title>Stacktrace command-line options</title>
             <thead>
                 <tr>
                     <td>Option</td>
@@ -85,7 +85,7 @@
         </table>
     </section>
     <section id='sec:external_tools'>
-        <title>External Tools and Standard Output</title>
+        <title>External tools and standard output</title>
         <para>Internally, Gradle uses Ant and Ivy. Both have their own logging system. Gradle injects an adapter
             into the Ant and Ivy logging systems to redirect their logging output into the Gradle logging system. There is a 1:1
             mapping from the Ant/Ivy log levels to the Gradle log levels, except the Ant/Ivy <emphasis>TRACE</emphasis> level, which is

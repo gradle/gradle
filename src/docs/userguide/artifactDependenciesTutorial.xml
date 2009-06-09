@@ -24,7 +24,7 @@
     <para>This chapter introduces some of the basics of artifact handling in Gradle.</para>
 
     <section id="sec:artifact_configurations">
-        <title>Artifact Configurations</title>
+        <title>Artifact configurations</title>
         <para>Artifacts are grouped into <firstterm>configurations</firstterm>. A configuration is simply a set of files
             with a name. You can use them to declare the external dependencies your project has, or to declare the
             artifacts which your project publishes.</para>
@@ -65,7 +65,7 @@
     </section>
 
     <section>
-        <title>External Dependencies</title>
+        <title>External dependencies</title>
         <para>To define an external dependency, you add a dependency to a configuration:</para>
         <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies">
             <sourcefile file="build.gradle" snippet="define-dependency"/>
@@ -80,7 +80,7 @@
     </section>
 
     <section>
-        <title>Artifact Publishing</title>
+        <title>Artifact publishing</title>
         <para>TBD</para>
     </section>
 

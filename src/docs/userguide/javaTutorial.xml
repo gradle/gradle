@@ -9,7 +9,7 @@
     </para>
 
     <section>
-        <title>A Basic Java Project</title>
+        <title>A basic Java project</title>
         <para>Let's look at a simple example. To use the Java plugin, add the following to your build file:</para>
         <sample id="javaQuickstart" dir="java/quickstart" includeLocation="true">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
@@ -17,7 +17,7 @@
         <para>This is all you need to define a Java project. This will apply the Java plugin to your project, which adds
             a number of tasks to your project.</para>
         <tip>
-            <title>What Tasks Are Available?</title>
+            <title>What tasks are available?</title>
             <para>You can use <userinput>gradle -t</userinput> to list the tasks of a project. This will let you see
             the tasks that the Java plugin has added to your project.
         </para></tip>
@@ -32,7 +32,7 @@
         </para>
 
         <section>
-            <title>External Dependencies</title>
+            <title>External dependencies</title>
 
             <para>Usually, a Java project will have some dependencies on external JAR files. To reference these JAR
                 files in the project, you need to tell Gradle where to find them. In Gradle, artifacts such as JAR
@@ -52,7 +52,7 @@
         </section>
 
         <section>
-            <title>Customising the Project</title>
+            <title>Customising the project</title>
             <para>The Java plugin adds a number of properties to your project. These properties have default values
                 which are usually sufficient to get started. It's easy to change these values if they don't suit. Let's
                 look at this for our sample. Here we will specify the version number for our Java project, along
@@ -77,7 +77,7 @@
         </section>
 
         <section>
-            <title>Publishing the JAR File</title>
+            <title>Publishing the JAR file</title>
             <para>Usually the JAR file needs to be published somewhere. To do this, you need to tell Gradle where to
                 publish the JAR file. In Gradle, artifacts such as JAR files are published to repositories. In our
                 sample, we will publish to a local directory. You can also publish to a remote location, or multiple
@@ -107,7 +107,7 @@
     </section>
 
     <section id='sec:examples'>
-        <title>Multi-project Java Build</title>
+        <title>Multi-project Java build</title>
         <para>Now let's look at a typical multi-project build. Below is the layout for the project:
         </para>
         <sample id="javaMultiProject" dir="java/multiproject" includeLocation="true">
@@ -125,7 +125,7 @@
         </para>
 
         <section>
-            <title>Defining a Multi-Project Build</title>
+            <title>Defining a multi-project build</title>
             <para>To define a multi-project build, you need to create a <firstterm>settings file</firstterm>. The settings
                 file lives in the root directory of the source tree, and specifies which projects to include in the
                 build. It must be called <filename>settings.gradle</filename>. For this example, we are using a simple
@@ -138,7 +138,7 @@
         </section>
 
         <section>
-            <title>Common Configuration</title>
+            <title>Common configuration</title>
             <para>For most multi-project builds, there is some configuration which is common to all projects.
                 In our sample, we will define this common configuration in the root project, using a technique called
                 <firstterm>configuration injection</firstterm>. Here, the root project is like a container and the
@@ -157,7 +157,7 @@
         </section>
 
         <section>
-            <title>Dependencies Between Projects</title>
+            <title>Dependencies between projects</title>
             <para>You can add dependencies between projects in the same build, so that, for example, the JAR file of one
                 project is used to compile another project. In the <literal>api</literal> build file we will add a dependency
                 on the JAR produced by the <literal>shared</literal> project. Due to this dependency, Gradle will
@@ -170,7 +170,7 @@
         </section>
 
         <section>
-            <title>Creating a Distribution</title>
+            <title>Creating a distribution</title>
             <para>
                 We also add a distribution, that gets shipped to the client:
             </para>

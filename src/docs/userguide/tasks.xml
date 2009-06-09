@@ -8,7 +8,7 @@
         either provided by you or are provided by Gradle.
     </para>
     <section>
-        <title>Defining Tasks</title>
+        <title>Defining tasks</title>
         <para>We have already seen how to define tasks using a keyword style in <xref linkend="tutorial_using_tasks"/>.
             There are a few variations on this style, which you may need to use in certain situations. For example,
             the keyword style does not work in expressions.
@@ -29,7 +29,7 @@
             method.</para>
     </section>
     <section>
-        <title>Locating Tasks</title>
+        <title>Locating tasks</title>
         <para>You often need to locate the tasks that you have defined in the build file, for example, to configure them
             or use them for dependencies. There are a number of ways you can do this. Firstly, each task is available as
             a property of the project, using the task name as the property name:
@@ -51,7 +51,7 @@
         <para>Have a look at <apilink class="org.gradle.api.tasks.TaskContainer"/> for more options for locating tasks.</para>
     </section>
     <section id='sec:configuring_tasks'>
-        <title>Configuring Tasks</title>
+        <title>Configuring tasks</title>
         <para>As an example, let's look at the <classname>Copy</classname> task provided by Gradle. To create a
             <classname>Copy</classname> task for your build, you can declare in your build script:
             <footnote>
@@ -106,7 +106,7 @@
         </sample>
     </section>
     <section id='sec:adding_dependencies_to_tasks'>
-        <title>Adding Dependencies to Tasks</title>
+        <title>Adding dependencies to a task</title>
         <para>There are several ways you can define the dependencies of a task. In
             <xref linkend='sec:task_dependencies'/>
             you were introduced to defining dependencies using task names. Task names can refer to tasks in the same
@@ -150,7 +150,7 @@
         </sample>
     </section>
     <section>
-        <title>Replacing Tasks</title>
+        <title>Replacing tasks</title>
         <para>Sometimes you want to replace a task. For example if you want to exchange a task added by the Java Plugin
             with a custom task of a different type. You can achieve this with:
         </para>
@@ -164,7 +164,7 @@
         </para>
     </section>
     <section>
-        <title>Task Rules</title>
+        <title>Task rules</title>
         <para>Sometimes you want to have a task which behavior depends on a large or infinite number value range
             of parameters. A very nice and expressive way to provide such tasks are task rules: 
         </para>

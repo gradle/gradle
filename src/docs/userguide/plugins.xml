@@ -10,7 +10,7 @@
         this as there is another build tool with a plugin system which behaves differently.
     </para>
     <section id='sec:using_plugins'>
-        <title>Declaring Plugins</title>
+        <title>Declaring plugins</title>
         <para>If you want to use the plugin for building a Java project, simply type
         </para>
         <programlisting><![CDATA[
@@ -125,7 +125,7 @@ println convention.plugins.java.classesDir
             </para>
         </section>
         <section id='sub:declaring_plugins_multiple_times'>
-            <title>Declaring Plugins Multiple Times</title>
+            <title>Declaring plugins multiple times</title>
             <para>A plugin is only called once for a given project, even if you have multiple
                 <literal>usePlugin()</literal>
                 statements. An additional call after the first call has no effect but doesn't hurt either. This can be

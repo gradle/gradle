@@ -8,7 +8,7 @@
         of the directory containing the build script is used as the name of the project.
     </para>
     <section>
-        <title>Hello World</title>
+        <title>Hello world</title>
         <para>In Gradle the most basic building block is the <firstterm>task</firstterm>. The tasks for your build are
             defined in the build script. To try this out, create the following build script named <filename>build.gradle</filename>.
         </para>
@@ -119,7 +119,7 @@
             (e.g. <literal>compile</literal>).</para>
     </section>
     <section id='sec:dynamic_properties'>
-        <title>Dynamic Task Properties</title>
+        <title>Dynamic task properties</title>
         <para>You can assign arbitrary <emphasis>new</emphasis> properties to any task.
         </para>
         <sample id="dynamicProperties" dir="userguide/tutorial/dynamicProperties">
@@ -187,7 +187,7 @@
         </para>
     </section>
     <section id='sec:default_tasks'>
-        <title>Default Tasks</title>
+        <title>Default tasks</title>
         <para>Gradle allows you to define one or more default tasks for your build.
         </para>
         <sample id="defaultTasks" dir="userguide/tutorial/defaultTasks">
@@ -200,7 +200,7 @@
         </para>
     </section>
     <section id="configure-by-dag">
-        <title>Configure By DAG</title>
+        <title>Configure by DAG</title>
         <para>As we describe in full detail later (See <xref linkend='build_lifecycle'/>) Gradle has a
             configuration phase and an execution phase. After the configuration phase Gradle knows all tasks that should
             be executed. Gradle offers you a hook to make use of this information. A use-case for this would be to check

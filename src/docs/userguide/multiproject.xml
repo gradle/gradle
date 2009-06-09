@@ -4,12 +4,12 @@
         most intellectually challenging.
     </para>
     <section id='sec:cross_project_configuration'>
-        <title>Cross Project Configuration</title>
+        <title>Cross project configuration</title>
         <para>Let's start with a very simple multi-project build. After all Gradle is a general purpose build tool at
             its core, so the projects don't have to be java projects. Our first examples are about marine life.
         </para>
         <section>
-            <title>Defining Common Behavior</title>
+            <title>Defining common behavior</title>
             <para>We have the following project tree. This is a multi-project build with a root project
                 <literal>water</literal> and a subproject <literal>bluewhale</literal>.
             </para>
@@ -70,18 +70,18 @@
         </section>
     </section>
     <section id='sec:subproject_configuration'>
-        <title>Subproject Configuration</title>
+        <title>Subproject configuration</title>
         <para>The Project API also provides a property for accessing the subprojects only.
         </para>
         <section>
-            <title>Defining Common Behavior</title>
+            <title>Defining common behavior</title>
             <sample id="multiprojectUseSubprojects" dir="userguide/multiproject/useSubprojects/water">
                 <sourcefile file="build.gradle"/>
                 <output args="-q hello"/>
             </sample>
         </section>
         <section id='sub:adding_specific_behavior'>
-            <title>Adding Specific Behavior</title>
+            <title>Adding specific behavior</title>
             <para>You can add specific behavior on top of the common behavior. Usually we put the project specific
                 behavior in the build script of the project where we want to apply this specific behavior. But as we
                 have already seen, we don't have to do it this way. We could add project specific behavior for the
@@ -112,13 +112,13 @@
             </sample>
         </section>
         <section id='sub:project_filtering'>
-            <title>Project Filtering</title>
+            <title>Project filtering</title>
             <para>To show more of the power of configuration injection, let's add another project
                 called <literal>tropicalFish</literal> and add more behavior to the build via the build script of the
                 <literal>water</literal> project.
             </para>
             <section id='ssub:filtering_by_name'>
-                <title>Filtering By Name</title>
+                <title>Filtering by name</title>
                 <sample id="multiprojectAddTropical" dir="userguide/multiproject/addTropical/water" includeLocation="true">
                     <layout>
                         build.gradle
@@ -138,7 +138,7 @@
                 </para>
             </section>
             <section id='ssub:filtering_by_properties'>
-                <title>Filtering By Properties</title>
+                <title>Filtering by properties</title>
                 <para>Using the project name for filtering is one option. Using dynamic project properties is another.
                 </para>
                 <sample id="multiprojectTropicalWithProperties" dir="userguide/multiproject/tropicalWithProperties/water" includeLocation="true">
@@ -206,7 +206,7 @@
         </para>
     </section>
     <section id='sec:running_partial_build_from_the_root'>
-        <title>Running Tasks by their Absolute Path</title>
+        <title>Running tasks by their absolute path</title>
         <para>As we have seen, you can run a multi-project build by entering any subproject dir and execute the build
             from there. All matching task names of the project hierarchy starting with the current dir are executed. But
             Gradle also offers to execute tasks by their absolute path (see also <xref linkend='sec:project_and_task_paths'/>):
@@ -221,7 +221,7 @@
         </para>
     </section>
     <section id='sec:project_and_task_paths'>
-        <title>Project and Task Paths</title>
+        <title>Project and task paths</title>
         <para>A project path has the following pattern: It starts always with a colon, which denotes the root project.
             The root project is the only project in a path that is not specified by its name. The path
             <literal>:bluewhale</literal>
@@ -249,9 +249,9 @@
             where this is different:
         </para>
         <section id='sub:execution_time_dependencies'>
-            <title>Execution Dependencies</title>
+            <title>Execution dependencies</title>
             <section id='ssub:dependencies_and_execution_order'>
-                <title>Dependencies and Execution Order</title>
+                <title>Dependencies and execution order</title>
                 <sample id="multiprojectFirstMessages" dir="userguide/multiproject/dependencies/firstMessages/messages" includeLocation="true">
                     <layout>
                         settings.gradle
@@ -302,7 +302,7 @@
                 </para>
             </section>
             <section id='ssub:declaring_dependencies'>
-                <title>Declaring Dependencies</title>
+                <title>Declaring dependencies</title>
                 <sample id="multiprojectMessagesDependencies" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages" includeLocation="true">
                     <layout>
                         settings.gradle
@@ -335,7 +335,7 @@
                 </para>
             </section>
             <section id='ssub:the_nature_of_project_dependencies'>
-                <title>The Nature of Project Dependencies</title>
+                <title>The nature of project dependencies</title>
                 <para>Let's change the naming of our tasks and execute the build.
                 </para>
                 <sample id="multiprojectMessagesDifferentTaskNames" dir="userguide/multiproject/dependencies/messagesDifferentTaskNames/messages">
@@ -361,7 +361,7 @@
             </section>
         </section>
         <section id='sub:configuration_time_dependencies'>
-            <title>Configuration Time Dependencies</title>
+            <title>Configuration time dependencies</title>
             <para>Let's have one more example with our producer-consumer build before we enter
                 <emphasis>Java</emphasis>
                 land. We add a property to the producer project and create now a configuration time dependency from
@@ -424,7 +424,7 @@
             </para>
         </section>
         <section id='sub:real_life_examples'>
-            <title>Real Life examples</title>
+            <title>Real life examples</title>
             <para>Gradle's multi-project features are driven by real life use cases. The first example for describing
                 such a use case, consists of two webapplication projects and a parent project that creates a
                 distribution out of them.
@@ -500,7 +500,7 @@
         </section>
     </section>
     <section id='sec:project_jar_dependencies'>
-        <title>Project Lib Dependencies</title>
+        <title>Project lib dependencies</title>
         <para>What if one projects needs the jar produced by another project in its compile path. And not just the jar
             but also the transitive dependencies of this jar. Obviously this is a very common use case for Java
             multi-project builds. As already mentioned in <xref linkend='sub:project_dependencies'/>, Gradle
@@ -582,7 +582,7 @@
         </section>
     </section>
     <section id='sec:property_and_method_inheritance'>
-        <title>Property and Method Inheritance</title>
+        <title>Property and method inheritance</title>
         <para>Properties and methods declared in a project are inherited to all its subprojects. This is an alternative
             to configuration injection. But we think that the model of inheritance does not reflect the problem space of
             multi-project builds very well. In a future edition of this user guide we might write more about this.

@@ -30,7 +30,7 @@
         <title>Tasks</title>
         <para>The project report plugin defines the following tasks:</para>
         <table>
-            <title>Project Report Plugin - Tasks</title>
+            <title>Project report plugin - tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -72,7 +72,7 @@
     </section>
 
     <section>
-        <title>Project Layout</title>
+        <title>Project layout</title>
         <para>The project report plugin does not require any particular project layout.</para>
     </section>
 
@@ -82,10 +82,10 @@
     </section>
 
     <section>
-        <title>Convention Properties</title>
+        <title>Convention properties</title>
         <para>The project report defines the following convention properties:</para>
         <table>
-            <title>Project Report Plugin - Directory Properties</title>
+            <title>Project report plugin - directory properties</title>
             <thead>
                 <tr>
                     <td>Directory Name Property</td>

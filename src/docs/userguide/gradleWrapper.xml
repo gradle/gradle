@@ -92,7 +92,7 @@ project-root/
             solution via environment variables.
         </para>
         <table>
-            <title>Gradle Wrapper Environment Variables</title>
+            <title>Gradle wrapper environment variables</title>
             <thead>
                 <tr>
                     <td>Variable Name</td>

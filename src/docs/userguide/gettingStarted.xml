@@ -94,7 +94,7 @@ OS Name: Mac OS X
 </section>
 
 <section>
-<title>JVM Options</title>
+<title>JVM options</title>
 
 <para>JVM options for running Gradle can be set via environment variables. You can use <envar>GRADLE_OPTS</envar>
 or <envar>JAVA_OPTS</envar>. Those variables can be used together. <envar>JAVA_OPTS</envar> is by convention an environment
@@ -107,7 +107,7 @@ of the <command>gradle</command> or <command>gradlew</command> script.
 
 <standalonedocument>
 <section>
-<title>Getting Help</title>
+<title>Getting help</title>
 
 <para>You might check the user guide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.
 Typing <command>gradle -h</command> prints the command line help. Typing <command>gradle -t</command> shows all the

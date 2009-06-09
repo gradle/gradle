@@ -11,7 +11,7 @@
     </section>
 
     <section>
-        <title>Project Layout</title>
+        <title>Project layout</title>
         <para>TBD</para>
     </section>
 
@@ -21,7 +21,7 @@
     </section>
 
     <section>
-        <title>Convention Properties</title>
+        <title>Convention properties</title>
 
         <para>The OSGi plugin adds an <literal>osgi</literal> property to every <emphasis>jar</emphasis> task.
             This <literal>osgi</literal> property points to an instance of
@@ -30,7 +30,7 @@
             OsgiManifest object.
         </para>
         <table>
-            <title>OSGi Properties</title>
+            <title>OSGi properties</title>
             <thead>
                 <tr>
                     <td>Task Property</td>

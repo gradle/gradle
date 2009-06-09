@@ -1,7 +1,7 @@
 <chapter id='tutorial_this_and_that' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Tutorial - 'This and That'</title>
     <section>
-        <title>Skipping Tasks</title>
+        <title>Skipping tasks</title>
         <para>Gradle offers multiple ways to skip the execution of a task.
         </para>
         <para>You can set system property named <literal>skip.<emphasis>taskname</emphasis></literal> or pass such property as a parameter to the <command>gradle</command> command using <option>-D</option> option (see <xref linkend='sec:gradle_properties_and_system_properties' />).</para>
@@ -64,7 +64,7 @@
         </section>
     </section>
     <section>
-        <title>Obtaining Information About Your Build</title>
+        <title>Obtaining information about your build</title>
         <para>Gradle provides several ways you can find out many details of your build. This can be useful for
             understanding the structure and dependencies of your build, and for debugging problems. Firstly, Gradle
             provides several command-line options which show particular details of your build. And secondly, Gradle
@@ -100,7 +100,7 @@
         </para>
     </section>
     <section id='sec:directory_creation'>
-        <title>Directory Creation</title>
+        <title>Directory creation</title>
         <para>There is a common situation, that multiple tasks depend on the existence of a directory. Of course you can
             deal with this by adding a
             <literal>mkdir</literal>
@@ -131,7 +131,7 @@
         </para>
     </section>
     <section id='sec:gradle_properties_and_system_properties'>
-        <title>Gradle Properties and System Properties</title>
+        <title>Gradle properties and system properties</title>
         <para>Gradle offers a variety of ways to add properties to your build. With the
             <option>-D</option>
             command line option you can pass a system property to the JVM which runs Gradle. The <option>-D</option> option of the <command>gradle</command> command has the same effect as the
@@ -182,7 +182,7 @@
             <output args="-q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps"/>
         </sample>
         <section id='sub:checking_for_project_properties'>
-            <title>Checking for Project Properties</title>
+            <title>Checking for project properties</title>
             <para>You can access a project property in your build script simply by using its name as you would use a
                 variable. In case this property does not exists, an exception is thrown and the build fails. If your
                 build script relies on optional properties the user might set for example in a gradle.properties file,
@@ -239,7 +239,7 @@ systemProp.http.proxyPassword=password
         </para>
     </section>
     <section id='sec:configuring_arbitrary_objects'>
-        <title>Configuring Arbitrary Objects</title>
+        <title>Configuring arbitrary objects</title>
         <para>You can configure arbitrary objects in the following very readable way.
         </para>
         <sample id="configureObject" dir="userguide/tutorial/configureObject">

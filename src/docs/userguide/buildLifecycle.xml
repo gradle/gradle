@@ -12,7 +12,7 @@
         configuration scripts</emphasis>.
     </para>
     <section id='sec:build_phases'>
-        <title>Build Phases</title>
+        <title>Build phases</title>
         <para>A Gradle build has three distinct phases.
         </para>
         <variablelist>
@@ -46,7 +46,7 @@
         </variablelist>
     </section>
     <section id='sec:settings_file'>
-        <title>Settings File</title>
+        <title>Settings file</title>
         <para>Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle
             via a naming convention. The default name for this file is <filename>settings.gradle</filename>. Later in
             this chapter we explain, how Gradle looks for a settings file.
@@ -71,14 +71,14 @@
         </para>
     </section>
     <section id='sec:multi_project_builds'>
-        <title>Multi-Project Builds</title>
+        <title>Multi-project builds</title>
         <para>A multi-project build is a build where you build more than one project during a single execution of
             Gradle. You have to declare the projects taking part in the multiproject build in the settings file. There
             is much more to say about multi-project builds in the chapter dedicated to this topic (see <xref
                     linkend='multi_project_builds'/>).
         </para>
         <section id='sub:project_locations'>
-            <title>Project Locations</title>
+            <title>Project locations</title>
             <para>Multi-project builds are always represented by a tree with a single root. Each element in the tree
                 represent a project. A project has a virtual and a physical path. The virtual path denotes the position
                 of the project in the multi-project build tree. The project tree is created in the
@@ -93,7 +93,7 @@
                 physical layouts get special support.
             </para>
             <section>
-                <title>Hierarchical Layouts</title>
+                <title>Hierarchical layouts</title>
                 <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts">
                     <sourcefile file="settings.gradle" snippet="hierarchical-layout"/>
                 </sample>
@@ -105,7 +105,7 @@
                 </para>
             </section>
             <section>
-                <title>Flat Layouts</title>
+                <title>Flat layouts</title>
                 <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts">
                     <sourcefile file="settings.gradle" snippet="flat-layout"/>
                 </sample>
@@ -116,7 +116,7 @@
             </section>
         </section>
         <section id='sub:modifying_element_of_the_project_tree'>
-            <title>Modifying Elements of the Project Tree</title>
+            <title>Modifying elements of the project tree</title>
             <para>The multi-project tree created in the settings file is made up of so called <firstterm>project descriptors</firstterm>.
                 You can modify these descriptors in the settings file at any time. To access a descriptor you can do:
             </para>
@@ -196,7 +196,7 @@
         </para>
     </section>
     <section id='sec:configuration_and_execution_of_a_single_project_build'>
-        <title>Configuration and Execution of a Single Project Build</title>
+        <title>Configuration and execution of a single project build</title>
         <para>For a single project build, the workflow of the <emphasis>after initialization</emphasis>
             phases are pretty simple. The build script is executed against the project object that was created during
             the initialization phase. Then Gradle looks for tasks with names equal to those passed as command line
@@ -205,7 +205,7 @@
         </para>
     </section>
     <section id="build_lifecycle_events">
-        <title>Responding to the Lifecycle in the Build Script</title>
+        <title>Responding to the lifecycle in the build script</title>
 
         <para>Your build script can receive notifications as the build progresses through its lifecyle. These
             notifications generally take 2 forms: You can either implement a particular listener interface, or you can

@@ -16,7 +16,7 @@
     </section>
 
     <section>
-        <title>Project Layout</title>
+        <title>Project layout</title>
         <para>The Groovy plugin assumes the project layout shown in <xref linkend='groovylayout'/>. All the Groovy s
             ource directories can contain Groovy <emphasis>and</emphasis> Java code. The Java source directories may
             only contain Java source code (and can of course be empty).
@@ -28,7 +28,7 @@
         </para>
 
         <table id='groovylayout'>
-            <title>Groovy Plugin - Project Layout</title>
+            <title>Groovy plugin - project layout</title>
             <thead>
                 <tr>
                     <td>Directory</td>
@@ -73,12 +73,12 @@
     </section>
 
     <section>
-        <title>Convention Properties</title>
+        <title>Convention properties</title>
         <para>The Groovy plugin adds the convention properties shown in <xref linkend='groovyconvention'/>
         and <xref linkend='groovyconventionFloatingDir'/>.</para>
 
         <table id='groovyconvention'>
-            <title>Groovy Plugin - Directory Properties</title>
+            <title>Groovy plugin - directory properties</title>
             <thead>
                 <tr>
                     <td>Dir Name</td>
@@ -120,7 +120,7 @@
 
         </table>
         <table id='groovyconventionFloatingDir'>
-            <title>Groovy Plugin - Floating Directory Properties</title>
+            <title>Groovy Plugin - floating directory properties</title>
             <thead>
                 <tr>
                     <td>Property</td>
@@ -152,7 +152,7 @@
             task (see <xref linkend='sec:compile'/>)
         </para>
         <table>
-            <title>Groovy Convention Object - Source Directory Properties</title>
+            <title>Groovy Convention Object - source directory properties</title>
             <thead>
                 <tr>
                     <td>Task Instance</td>

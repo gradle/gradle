@@ -12,7 +12,7 @@
         </para>
 
         <table id='javatasks'>
-            <title>Java Plugin - Tasks</title>
+            <title>Java plugin - tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -133,13 +133,13 @@
     </section>
 
     <section>
-        <title>Project Layout</title>
+        <title>Project layout</title>
         <para>The Java plugin assumes the project layout shown in <xref linkend='javalayout'/>. This is configurable
             using the convention properties listed in the next section.
         </para>
 
         <table id='javalayout'>
-            <title>Java Plugin - Default Project Layout</title>
+            <title>Java plugin - default project layout</title>
             <thead>
                 <tr>
                     <td>Directory</td>
@@ -183,7 +183,7 @@
     </section>
 
     <section>
-        <title>Convention Properties</title>
+        <title>Convention properties</title>
         <para>
             The Java plugin adds the convention properties shown in <xref linkend='javaconventionDir'/> and
             <xref linkend='javaconventionNonDir'/>.
@@ -205,7 +205,7 @@
         </para>
 
         <table id='javaconventionDir'>
-            <title>Java Plugin - Directory Properties</title>
+            <title>Java plugin - directory properties</title>
             <thead>
                 <tr>
                     <td>Directory Name Property</td>
@@ -348,7 +348,7 @@
         </table>
 
         <table id='javaconventionFloatingDir'>
-            <title>Java Plugin - Floating Directory Properties</title>
+            <title>Java plugin - floating directory properties</title>
             <thead>
                 <tr>
                     <td>Property</td>
@@ -379,7 +379,7 @@
         </table>
 
         <table id='javaconventionNonDir'>
-            <title>Java Plugin - Other Properties</title>
+            <title>Java plugin - other properties</title>
             <thead>
                 <tr>
                     <td>Property</td>
@@ -454,7 +454,7 @@
             alwaysAppendDefaultClasspath toggles).
         </para>
         <table>
-            <title>Javadoc Options</title>
+            <title>Javadoc options</title>
             <thead>
                 <tr>
                     <td>Javadoc option</td>
@@ -493,7 +493,7 @@
             <apilink class="org.gradle.external.javadoc.CoreJavadocOptions"/> and <apilink class="org.gradle.external.javadoc.StandardJavadocDocletOptions"/>. 
         </para>
         <table>
-            <title>Java Convention Object - Javadoc Properties</title>
+            <title>Java plugin - Javadoc properties</title>
             <thead>
                 <tr>
                     <td>Task Property</td>
@@ -538,7 +538,7 @@
             and <literal>processTestResources</literal>.
         </para>
         <table>
-            <title>Java Convention Object - Resource Properties</title>
+            <title>Java plugin - processResource properties</title>
             <thead>
                 <tr>
                     <td>Task Instance</td>
@@ -584,7 +584,7 @@
             and <literal>compileTests</literal>.
         </para>
         <table>
-            <title>Java Convention Object - Compile Properties</title>
+            <title>Java plugin - compile properties</title>
             <thead>
                 <tr>
                     <td>Task Instance</td>
@@ -662,7 +662,7 @@
             task.
         </para>
         <table>
-            <title>Java Convention Object - Test Properties</title>
+            <title>Java plugin - test properties</title>
             <thead>
                 <tr>
                     <td>Task Property</td>
@@ -765,12 +765,12 @@
         </para>
 
     <section id='sec:archive_tasks'>
-        <title>Archive Tasks</title>
+        <title>Archive tasks</title>
         <para>An archive task is a task which produces an archive at execution time. The following archive tasks are
             available:
         </para>
         <table>
-            <title>Archive Tasks</title>
+            <title>Archive tasks</title>
             <thead>
                 <tr>
                     <td>Type</td>
@@ -811,7 +811,7 @@
         <para>The following file containers are available:
         </para>
         <table id='filecontainer'>
-            <title>Filecontainer for Archives</title>
+            <title>File container for archives</title>
             <thead>
                 <tr>
                     <td>Type</td>
@@ -859,7 +859,7 @@
             class itself.
         </para>
         <section id='sub:common_properties'>
-            <title>Common Properties</title>
+            <title>Common properties</title>
             <para>The name of the generated archive is assembled from the task properties <literal>baseName</literal>,
                 <literal>appendix</literal>, <literal>version</literal>, <literal>classifier</literal> and
                 <literal>extension</literal> into
@@ -880,7 +880,7 @@
             </para>
         </section>
         <section id='sub:adding_content'>
-            <title>Adding Content</title>
+            <title>Adding content</title>
             <para>To add content to an archive you must add file container to an archive (see
                 <xref linkend='filecontainer'/>). You can add as many file containers as you like. They behave pretty much
                 the same as the Ant resources with similar names.
@@ -995,14 +995,14 @@ metaInf << new FileSet(someDir)
         <para>Gradle comes with a number of tasks for generating eclipse files for your projects.
         </para>
         <section id='sub:eclipse_classpath'>
-            <title>Eclipse Classpath</title>
+            <title>Eclipse classpath</title>
             <para>
                 <apilink class="org.gradle.api.tasks.ide.eclipse.EclipseClasspath"/>
                 has a default instance with the name <literal>eclipseCp</literal>. It generates a
                 <literal>.classpath</literal> file.
             </para>
             <table>
-                <title>Java Convention Object - Eclipse Properties</title>
+                <title>Java plugin - Eclipse properties</title>
                 <thead>
                     <tr>
                         <td>Task Property</td>
@@ -1035,14 +1035,14 @@ metaInf << new FileSet(someDir)
             </table>
         </section>
         <section id='sub:eclipse_project'>
-            <title>Eclipse Project</title>
+            <title>Eclipse project</title>
             <para>
                 <apilink class="org.gradle.api.tasks.ide.eclipse.EclipseProject"/>
                 has a default instance with the name <literal>eclipseProject</literal>. It generates a
                 <literal>.project</literal> file.
             </para>
             <table>
-                <title>Java Convention Object - Eclipse Project Properties</title>
+                <title>Java plugin - Eclipse project properties</title>
                 <thead>
                     <tr>
                         <td>Task Property</td>
