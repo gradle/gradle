@@ -89,13 +89,15 @@ public class ProjectFactoryTest {
                     with(any(DependencyMetaDataProvider.class)));
             allowing(build).getProjectRegistry();
             will(returnValue(projectRegistry));
+            allowing(build).getPluginRegistry();
+            will(returnValue(pluginRegistry));
             allowing(build).getBuildScriptClassLoader();
             will(returnValue(buildScriptClassLoader));
             allowing(build).getGradleUserHomeDir();
             will(returnValue(new File("gradleUserHomeDir")));
         }});
 
-        projectFactory = new ProjectFactory(serviceRegistryFactory, pluginRegistry, null);
+        projectFactory = new ProjectFactory(serviceRegistryFactory, null);
     }
 
     @Test
@@ -170,7 +172,7 @@ public class ProjectFactoryTest {
     public void testConstructsRootProjectWithEmbeddedBuildScript() {
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
 
-        ProjectFactory projectFactory = new ProjectFactory(serviceRegistryFactory, pluginRegistry, expectedScriptSource);
+        ProjectFactory projectFactory = new ProjectFactory(serviceRegistryFactory, expectedScriptSource);
 
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, build);
 

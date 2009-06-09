@@ -27,12 +27,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.project.DefaultProjectServiceRegistryFactory;
 import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.configuration.BuildConfigurer;
-import org.gradle.configuration.DefaultProjectEvaluator;
-import org.gradle.configuration.ProjectDependencies2TaskResolver;
+import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.util.WrapUtil;
@@ -72,13 +69,16 @@ public class DefaultGradleFactory implements GradleFactory {
                 new DefaultClientModuleFactory(),
                 new DefaultProjectDependencyFactory());
         ResolverFactory resolverFactory = new DefaultResolverFactory();
-        DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(importsReader,
-                new DefaultScriptProcessor(
+        DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(
+                new BuildScriptCompiler(
+                        importsReader,
+                        new DefaultScriptProcessor(
                         new DefaultScriptCompilationHandler(
                                 cachePropertiesHandler,
                                 new BuildScriptTransformer()),
                         startParameter.getCacheUsage()),
-                new DefaultProjectScriptMetaData());
+                        new DefaultProjectScriptMetaData()),
+                new BuildScriptEvaluator());
         Gradle gradle = new Gradle(
                 startParameter,
                 settingsFinder,
@@ -113,7 +113,6 @@ public class DefaultGradleFactory implements GradleFactory {
                                         new DefaultPublishArtifactFactory(),
                                         dependencyFactory,
                                         projectEvaluator),
-                                new PluginRegistry(startParameter.getPluginPropertiesFile()),
                                 startParameter.getBuildScriptSource()),
                         internalRepository),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()));

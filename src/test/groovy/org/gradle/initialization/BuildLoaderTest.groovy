@@ -68,6 +68,7 @@ class BuildLoaderTest {
         (rootProjectDir = new File(testDir, 'root')).mkdirs()
         (childProjectDir = new File(rootProjectDir, 'child')).mkdirs()
         startParameter.currentDir = rootProjectDir
+        startParameter.pluginPropertiesFile = new File('plugin.properties')
         rootDescriptor = descriptor('root', null, rootProjectDir)
         rootProject = project(rootDescriptor, null)
         childDescriptor = descriptor('child', rootDescriptor, childProjectDir)

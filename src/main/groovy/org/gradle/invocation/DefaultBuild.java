@@ -7,6 +7,7 @@ import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.util.GradleVersion;
@@ -24,6 +25,7 @@ public class DefaultBuild implements BuildInternal {
     private ClassLoader buildScriptClassLoader;
     private InternalRepository internalRepository;
     private DefaultProjectRegistry<ProjectInternal> projectRegistry;
+    private PluginRegistry pluginRegistry;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast
             = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
 
@@ -32,6 +34,7 @@ public class DefaultBuild implements BuildInternal {
         this.buildScriptClassLoader = buildScriptClassLoader;
         this.internalRepository = internalRepository;
         this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
+        this.pluginRegistry = new PluginRegistry(startParameter.getPluginPropertiesFile());
         this.taskGraph = new DefaultTaskExecuter();
     }
 
@@ -89,6 +92,10 @@ public class DefaultBuild implements BuildInternal {
 
     public void setInternalRepository(InternalRepository internalRepository) {
         this.internalRepository = internalRepository;
+    }
+
+    public PluginRegistry getPluginRegistry() {
+        return pluginRegistry;
     }
 
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {

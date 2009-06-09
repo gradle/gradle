@@ -24,5 +24,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier {
 
     void setBuildScript(Script buildScript);
 
+    Script getBuildScript();
+
     StandardOutputRedirector getStandardOutputRedirector();
 }

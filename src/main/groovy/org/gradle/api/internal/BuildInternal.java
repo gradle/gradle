@@ -18,8 +18,8 @@ package org.gradle.api.internal;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.StartParameter;
 import org.gradle.execution.TaskExecuter;
 
 public interface BuildInternal extends Build {
@@ -39,6 +39,8 @@ public interface BuildInternal extends Build {
     ProjectInternal getDefaultProject();
 
     IProjectRegistry<ProjectInternal> getProjectRegistry();
+
+    PluginRegistry getPluginRegistry();
 
     /**
      * Returns the classloader to use for the build files of this build.

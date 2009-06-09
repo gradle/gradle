@@ -16,9 +16,10 @@
 package org.gradle.configuration;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectScript;
+import org.gradle.api.internal.project.StandardOutputRedirector;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.ScriptSource;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -31,73 +32,70 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
-public class DefaultProjectEvaluatorTest {
+public class BuildScriptEvaluatorTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
-    private final ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener.class);
-    private final ProjectEvaluator delegate = context.mock(ProjectEvaluator.class, "delegate");
-    private final ProjectEvaluator delegate2 = context.mock(ProjectEvaluator.class, "delegate2");
-    private final DefaultProjectEvaluator evaluator = new DefaultProjectEvaluator(delegate, delegate2);
-    private final BuildInternal build = context.mock(BuildInternal.class);
+    private final ProjectScript buildScript = context.mock(ProjectScript.class);
+    private final StandardOutputRedirector standardOutputRedirector = context.mock(StandardOutputRedirector.class);
+    private final BuildScriptEvaluator evaluator = new BuildScriptEvaluator();
 
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
             allowing(project).getBuildScriptSource();
             will(returnValue(scriptSource));
+
+            allowing(project).getStandardOutputRedirector();
+            will(returnValue(standardOutputRedirector));
+
+            allowing(scriptSource).getClassName();
+            will(returnValue("script class"));
+
+            allowing(scriptSource).getDisplayName();
+            will(returnValue("script display name"));
         }});
     }
 
     @Test
     public void createsAndExecutesScriptAndNotifiesListener() {
-        context.checking(new Expectations(){{
-            allowing(build).getProjectEvaluationBroadcaster();
-            will(returnValue(listener));
-        }});
-        evaluator.projectsLoaded(build);
-
         context.checking(new Expectations() {{
-            one(listener).beforeEvaluate(project);
+            one(project).getBuildScript();
+            will(returnValue(buildScript));
 
-            one(delegate).evaluate(project);
+            one(standardOutputRedirector).on(LogLevel.QUIET);
 
-            one(delegate2).evaluate(project);
+            one(buildScript).run();
 
-            one(listener).afterEvaluate(project, null);
+            one(standardOutputRedirector).flush();
         }});
 
         evaluator.evaluate(project);
     }
 
     @Test
-    public void wrapsEvaluationFailure() {
+    public void flushesOnEvaluationFailure() {
         final Throwable failure = new RuntimeException();
 
-        context.checking(new Expectations(){{
-            allowing(build).getProjectEvaluationBroadcaster();
-            will(returnValue(listener));
-        }});
-        evaluator.projectsLoaded(build);
-
         context.checking(new Expectations() {{
-            one(listener).beforeEvaluate(project);
+            one(project).getBuildScript();
+            will(returnValue(buildScript));
 
-            one(delegate).evaluate(project);
+            one(standardOutputRedirector).on(LogLevel.QUIET);
+
+            one(buildScript).run();
             will(throwException(failure));
 
-            one(listener).afterEvaluate(with(sameInstance(project)), with(notNullValue(Throwable.class)));
+            one(standardOutputRedirector).flush();
         }});
 
         try {
             evaluator.evaluate(project);
             fail();
-        } catch (GradleScriptException e) {
-            assertThat(e.getOriginalMessage(), equalTo("A problem occurred evaluating " + project + "."));
-            assertThat(e.getScriptSource(), sameInstance(scriptSource));
-            assertThat(e.getCause(), sameInstance(failure));
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure));
         }
     }
 }

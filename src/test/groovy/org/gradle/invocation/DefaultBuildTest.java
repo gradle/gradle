@@ -3,6 +3,7 @@ package org.gradle.invocation;
 import org.gradle.StartParameter;
 import org.gradle.execution.DefaultTaskExecuter;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
+import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.Project;
 import org.gradle.util.GradleVersion;
@@ -22,7 +23,9 @@ import java.io.IOException;
 @RunWith(JUnit4.class)
 public class DefaultBuildTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final StartParameter parameter = new StartParameter();
+    private final StartParameter parameter = new StartParameter(){{
+        setPluginPropertiesFile(new File("plugin.properties"));   
+    }};
     private final DefaultBuild build = new DefaultBuild(parameter, null, null);
 
     @Test
@@ -47,6 +50,11 @@ public class DefaultBuildTest {
     @Test
     public void createsATaskGraph() {
         assertTrue(build.getTaskGraph().getClass().equals(DefaultTaskExecuter.class));
+    }
+
+    @Test
+    public void createsAPluginRegistry() {
+        assertTrue(build.getPluginRegistry().getClass().equals(PluginRegistry.class));
     }
 
     @Test

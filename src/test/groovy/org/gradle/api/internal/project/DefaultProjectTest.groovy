@@ -145,7 +145,9 @@ class DefaultProjectTest {
 
         testScript = new EmptyScript()
         buildScriptClassLoader = new URLClassLoader([] as URL[])
-        build = new DefaultBuild(new StartParameter(), buildScriptClassLoader, null)
+        StartParameter parameter = new StartParameter()
+        parameter.pluginPropertiesFile = new File('plugin.properties')
+        build = new DefaultBuild(parameter, buildScriptClassLoader, null)
 
         testTask = new DefaultTask()
         

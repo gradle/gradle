@@ -29,17 +29,13 @@ import java.io.File;
  */
 public class ProjectFactory implements IProjectFactory {
     private ProjectServiceRegistryFactory serviceRegistryFactory;
-    private PluginRegistry pluginRegistry;
     private ScriptSource embeddedScript;
 
     public ProjectFactory() {
     }
 
-    public ProjectFactory(ProjectServiceRegistryFactory serviceRegistryFactory,
-                          PluginRegistry pluginRegistry,
-                          ScriptSource embeddedScript) {
+    public ProjectFactory(ProjectServiceRegistryFactory serviceRegistryFactory, ScriptSource embeddedScript) {
         this.serviceRegistryFactory = serviceRegistryFactory;
-        this.pluginRegistry = pluginRegistry;
         this.embeddedScript = embeddedScript;
     }
 
@@ -61,7 +57,7 @@ public class ProjectFactory implements IProjectFactory {
                 projectDescriptor.getBuildFile(),
                 source,
                 build.getBuildScriptClassLoader(),
-                pluginRegistry,
+                build.getPluginRegistry(),
                 build.getProjectRegistry(),
                 build,
                 serviceRegistryFactory);

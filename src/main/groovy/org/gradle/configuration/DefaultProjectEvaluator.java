@@ -15,52 +15,31 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectScript;
-import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.api.internal.BuildInternal;
-import org.gradle.api.logging.LogLevel;
+import org.gradle.BuildListener;
+import org.gradle.BuildResult;
+import org.gradle.StartParameter;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.ImportsScriptSource;
-import org.gradle.groovy.scripts.IScriptProcessor;
-import org.gradle.groovy.scripts.IProjectScriptMetaData;
-import org.gradle.BuildListener;
-import org.gradle.StartParameter;
-import org.gradle.BuildResult;
-import groovy.lang.Script;
+import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.invocation.Build;
 
 public class DefaultProjectEvaluator implements ProjectEvaluator, BuildListener {
-    private final ImportsReader importsReader;
-    private final IScriptProcessor scriptProcessor;
-    private final IProjectScriptMetaData projectScriptMetaData;
     private ProjectEvaluationListener listener;
+    private final ProjectEvaluator[] evaluators;
 
-    public DefaultProjectEvaluator(ImportsReader importsReader, IScriptProcessor scriptProcessor,
-                                   IProjectScriptMetaData projectScriptMetaData) {
-        this.importsReader = importsReader;
-        this.scriptProcessor = scriptProcessor;
-        this.projectScriptMetaData = projectScriptMetaData;
+    public DefaultProjectEvaluator(ProjectEvaluator... evaluators) {
+        this.evaluators = evaluators;
     }
 
     public void evaluate(ProjectInternal project) {
         listener.beforeEvaluate(project);
         GradleScriptException failure = null;
         try {
-            ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader, project.getRootDir());
-            Script buildScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(), ProjectScript.class);
-            projectScriptMetaData.applyMetaData(buildScript, project);
-
-            project.setBuildScript(buildScript);
-            project.getStandardOutputRedirector().on(LogLevel.QUIET);
-            try {
-                buildScript.run();
-            } finally {
-                project.getStandardOutputRedirector().flush();
+            for (ProjectEvaluator evaluator : evaluators) {
+                evaluator.evaluate(project);
             }
         } catch (Throwable t) {
             failure = new GradleScriptException(String.format("A problem occurred evaluating %s.", project), t,

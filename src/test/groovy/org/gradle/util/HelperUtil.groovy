@@ -72,19 +72,20 @@ class HelperUtil {
     static DefaultProject createRootProject(File rootDir) {
         DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory())
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory([new SelfResolvingDependencyFactory()] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory())
+        StartParameter startParameter = new StartParameter()
+        startParameter.pluginPropertiesFile = new File('plugin.properties')
         DefaultProjectServiceRegistryFactory serviceRegistryFactory = new DefaultProjectServiceRegistryFactory(
                 repositoryHandlerFactory,
-                new DefaultConfigurationContainerFactory(new StartParameter().projectDependenciesBuildInstruction),
+                new DefaultConfigurationContainerFactory(startParameter.projectDependenciesBuildInstruction),
                 new DefaultPublishArtifactFactory(),
                 dependencyFactory,
-                new DefaultProjectEvaluator(null, null, null)
+                new DefaultProjectEvaluator()
         )
         IProjectFactory projectFactory = new ProjectFactory(
                 serviceRegistryFactory,
-                new PluginRegistry(),
                 new StringScriptSource("embedded build file", "embedded"))
 
-        DefaultBuild build = new DefaultBuild(new StartParameter(), null, null)
+        DefaultBuild build = new DefaultBuild(startParameter, null, null)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)
