@@ -68,16 +68,16 @@ public class GroovyCompile extends Compile {
         }
 
         List existingSourceDirs = existentDirsFilter.findExistingDirs(getSrcDirs());
-        Iterable<File> classpath = null;
+        List<File> classpath = null;
         if (existingSourceDirs.size() > 0) {
-            classpath = getClasspath();
-            antCompile.execute(existingSourceDirs, getIncludes(), getExcludes(), getDestinationDir(), classpath, getSourceCompatibility(),
-                    getTargetCompatibility(), getOptions(), getProject().getAnt());
+            classpath = GUtil.addLists(getClasspath());
+            antCompile.execute(existingSourceDirs, getIncludes(), getExcludes(), getDestinationDir(), classpath,
+                    getSourceCompatibility(), getTargetCompatibility(), getOptions(), getProject().getAnt());
         }
         List existingGroovySourceDirs = existentDirsFilter.findExistingDirs(getGroovySourceDirs());
         if (existingGroovySourceDirs.size() > 0) {
             if (classpath == null) {
-                classpath = getClasspath();
+                classpath = GUtil.addLists(getClasspath());
             }
             // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
             List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());

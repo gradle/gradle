@@ -76,11 +76,11 @@ public class GroovyCompileTest extends AbstractCompileTest {
         setUpMocksAndAttributes(testObj, TEST_GROOVY_CLASSPATH);
         context.checking(new Expectations() {
             {
-                one(antGroovycCompileMock).execute(testObj.getProject().getAnt(), testObj.getGroovySourceDirs(), testObj.getGroovyIncludes(), testObj.getGroovyExcludes(),
-                        testObj.getGroovyJavaIncludes(), testObj.getGroovyJavaExcludes(), testObj.getDestinationDir(),
-                        GUtil.addLists(AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
-                        testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getGroovyOptions(), testObj.getOptions(),
-                        TEST_GROOVY_CLASSPATH);
+                one(antGroovycCompileMock).execute(testObj.getProject().getAnt(), testObj.getGroovySourceDirs(),
+                        testObj.getGroovyIncludes(), testObj.getGroovyExcludes(), testObj.getGroovyJavaIncludes(),
+                        testObj.getGroovyJavaExcludes(), testObj.getDestinationDir(), TEST_DEPENDENCY_MANAGER_CLASSPATH, 
+                        testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getGroovyOptions(),
+                        testObj.getOptions(), TEST_GROOVY_CLASSPATH);
             }
         });
         testObj.execute();
@@ -113,9 +113,9 @@ public class GroovyCompileTest extends AbstractCompileTest {
         
         context.checking(new Expectations() {
             {
-                one(antJavacCompileMock).execute(testObj.getSrcDirs(), testObj.getIncludes(), testObj.getExcludes(), testObj.getDestinationDir(),
-                        GUtil.addLists(AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH),
-                        testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getOptions(), testObj.getProject().getAnt());
+                one(antJavacCompileMock).execute(testObj.getSrcDirs(), testObj.getIncludes(), testObj.getExcludes(),
+                        testObj.getDestinationDir(), TEST_DEPENDENCY_MANAGER_CLASSPATH, testObj.getSourceCompatibility(),
+                        testObj.getTargetCompatibility(), testObj.getOptions(), testObj.getProject().getAnt());
             }
         });
     }

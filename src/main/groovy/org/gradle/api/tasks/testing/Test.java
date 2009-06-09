@@ -42,7 +42,7 @@ public class Test extends ConventionTask {
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
 
-    private List testSrcDirs = null;
+    private List<File> testSrcDirs = null;
 
     private File testClassesDir = null;
 
@@ -367,11 +367,11 @@ public class Test extends ConventionTask {
         this.testReport = false;
     }
 
-    public List getTestSrcDirs() {
+    public List<File> getTestSrcDirs() {
         return testSrcDirs;
     }
 
-    public void setTestSrcDirs(List testSrcDir) {
+    public void setTestSrcDirs(List<File> testSrcDir) {
         this.testSrcDirs = testSrcDir;
     }
 

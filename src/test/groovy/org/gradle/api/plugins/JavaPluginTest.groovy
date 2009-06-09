@@ -104,7 +104,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertDependsOn(task, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
-        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))
 
         task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
@@ -115,7 +115,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.COMPILE_TESTS_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertDependsOn(task, JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME)
-        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.testClassesDir))
 
         task = project.tasks[JavaPlugin.TEST_TASK_NAME]
@@ -154,7 +154,7 @@ class JavaPluginTest {
 
         def task = project.createTask('customCompile', type: Compile)
         assertDependsOn(task, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
-        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))
 
         task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)

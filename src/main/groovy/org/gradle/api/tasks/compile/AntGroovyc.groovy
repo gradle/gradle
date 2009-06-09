@@ -34,7 +34,7 @@ class AntGroovyc {
     List nonGroovycJavacOptions = ['verbose', 'deprecation', 'includeJavaRuntime', 'includeAntRuntime', 'optimize', 'fork', 'failonerror', 'listfiles', 'nowarn', 'depend']
 
     public void execute(antNode, List sourceDirs, List groovyIncludes, List groovyExcludes, List groovyJavaIncludes,
-                        List groovyJavaExcludes, File targetDir, Iterable classpath, String sourceCompatibility,
+                        List groovyJavaExcludes, File targetDir, List classpath, String sourceCompatibility,
                         String targetCompatibility, GroovyCompileOptions groovyOptions, CompileOptions compileOptions, List taskClasspath) {
 
         String groovyc = """taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')

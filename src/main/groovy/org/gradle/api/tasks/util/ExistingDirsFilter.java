@@ -43,7 +43,7 @@ public class ExistingDirsFilter {
         return existingDirs;
     }
 
-    public List<File> findExistingDirsAndLogExitMessage(Collection dirFiles) {
+    public List<File> findExistingDirsAndLogExitMessage(Collection<File> dirFiles) {
         logger.debug("Looking for existing folders: {}", dirFiles);
         List result = findExistingDirs(dirFiles);
         if (result.size() == 0) {
@@ -52,7 +52,7 @@ public class ExistingDirsFilter {
         return result;
     }
 
-    public List<File> findExistingDirsAndThrowStopActionIfNone(Collection dirFiles) {
+    public List<File> findExistingDirsAndThrowStopActionIfNone(Collection<File> dirFiles) {
         List result = findExistingDirsAndLogExitMessage(dirFiles);
         if (result.size() == 0) {
             throw new StopActionException();
@@ -60,7 +60,7 @@ public class ExistingDirsFilter {
         return result;
     }
 
-    public List<File> checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir, Collection dirFiles) {
+    public List<File> checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir, Collection<File> dirFiles) {
         if (destDir == null) {
             throw new InvalidUserDataException("The destination dir is not set!");
         }

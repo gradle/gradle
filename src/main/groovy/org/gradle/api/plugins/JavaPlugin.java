@@ -121,7 +121,7 @@ public class JavaPlugin implements Plugin {
         project.getTasks().withType(Compile.class).allTasks(new Action<Compile>() {
             public void execute(Compile compile) {
                 compile.dependsOn(PROCESS_RESOURCES_TASK_NAME);
-                compile.setConfiguration(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
+                compile.setClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
                 compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
                 addDependsOnProjectDependencies(compile, COMPILE_CONFIGURATION_NAME);
             }
@@ -320,7 +320,7 @@ public class JavaPlugin implements Plugin {
         compileTests.setDependsOn(WrapUtil.toSet(PROCESS_TEST_RESOURCES_TASK_NAME));
         compileTests.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         configureCompileInternal(compileTests, propertyMapping);
-        compileTests.setConfiguration(configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME));
+        compileTests.setClasspath(configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME));
         addDependsOnProjectDependencies(compileTests, TEST_COMPILE_CONFIGURATION_NAME);
         return compileTests;
     }

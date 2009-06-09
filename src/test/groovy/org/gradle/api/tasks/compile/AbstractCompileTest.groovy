@@ -76,11 +76,6 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.execute()
     }
 
-    @Test public void testGetClasspath() {
-        setUpMocksAndAttributes(compile)
-        assertEquals(TEST_DEPENDENCY_MANAGER_CLASSPATH, compile.getClasspath())
-    }
-
     protected void setUpMocksAndAttributes(Compile compile) {
         compile.srcDirs = ['sourceDir1' as File, 'sourceDir2' as File]
         compile.includes = TEST_INCLUDES
@@ -94,7 +89,7 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.targetCompatibility = '1.5'
         compile.destinationDir = AbstractCompileTest.TEST_TARGET_DIR
 
-        compile.configuration = [
+        compile.classpath = [
             iterator: { -> AbstractCompileTest.TEST_DEPENDENCY_MANAGER_CLASSPATH.iterator()}
         ] as FileCollection
     }

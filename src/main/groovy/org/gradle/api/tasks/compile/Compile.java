@@ -38,7 +38,7 @@ public class Compile extends ConventionTask {
     /**
      * The directories with the sources to compile
      */
-    private List srcDirs;
+    private List<File> srcDirs;
 
     /**
      * The directory where to put the compiled classes (.class files)
@@ -55,7 +55,7 @@ public class Compile extends ConventionTask {
      */
     private String targetCompatibility;
 
-    private FileCollection configuration;
+    private FileCollection classpath;
 
     /**
      * Options for the compiler. The compile is delegated to the ant javac task. This property contains almost
@@ -66,12 +66,12 @@ public class Compile extends ConventionTask {
     /**
      * Include pattern for which files should be compiled (e.g. '**&#2F;org/gradle/package1/')).
      */
-    private List includes = new ArrayList();
+    private List<String> includes = new ArrayList<String>();
 
     /**
      * Exclude pattern for which files should be compiled (e.g. '**&#2F;org/gradle/package2/A*.java').
      */
-    private List excludes = new ArrayList();
+    private List<String> excludes = new ArrayList<String>();
 
     protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
@@ -103,7 +103,11 @@ public class Compile extends ConventionTask {
     }
 
     public Iterable<File> getClasspath() {
-        return GUtil.addLists(configuration);
+        return classpath;
+    }
+
+    public void setClasspath(FileCollection configuration) {
+        this.classpath = configuration;
     }
 
     public Compile include(String[] includes) {
@@ -116,11 +120,11 @@ public class Compile extends ConventionTask {
         return this;
     }
 
-    public List getSrcDirs() {
+    public List<File> getSrcDirs() {
         return srcDirs;
     }
 
-    public void setSrcDirs(List srcDirs) {
+    public void setSrcDirs(List<File> srcDirs) {
         this.srcDirs = srcDirs;
     }
 
@@ -156,27 +160,19 @@ public class Compile extends ConventionTask {
         this.options = options;
     }
 
-    public List getIncludes() {
+    public List<String> getIncludes() {
         return includes;
     }
 
-    public void setIncludes(List includes) {
+    public void setIncludes(List<String> includes) {
         this.includes = includes;
     }
 
-    public List getExcludes() {
+    public List<String> getExcludes() {
         return excludes;
     }
 
-    public void setExcludes(List excludes) {
+    public void setExcludes(List<String> excludes) {
         this.excludes = excludes;
-    }
-    
-    public FileCollection getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(FileCollection configuration) {
-        this.configuration = configuration;
     }
 }
