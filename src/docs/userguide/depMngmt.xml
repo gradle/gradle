@@ -153,7 +153,7 @@
             <para>Module dependencies are the most common dependencies. They correspond to a dependency in an external
                 repository.
             </para>
-            <sample id="moduleDependencies" dir="userguide/artifacts/externalDependencies">
+            <sample id="moduleDependencies" dir="userguide/artifacts/externalDependencies" title="Module dependencies">
                 <sourcefile file="build.gradle" snippet="module-dependencies"/>
             </sample>
             <para>Gradle provides different notations for module dependencies. There is a string notation and
@@ -182,7 +182,7 @@
                     </footnote>
                     And sometimes you want to download a zip from a repository, that does not have module descriptors.
                     Gradle provides an <emphasis>artifact only</emphasis> notation for those use cases - simply prefix the extension that you want to be downloaded with <literal>'@'</literal> sign:
-                    <sample id="artifactOnly" dir="userguide/artifacts/externalDependencies">
+                    <sample id="artifactOnly" dir="userguide/artifacts/externalDependencies" title="Artifact only notation">
                         <sourcefile file="build.gradle" snippet="artifact-only"/>
                     </sample>
                     An artifact only notation creates a module dependency which downloads only the artifact file with
@@ -199,7 +199,7 @@
                     </footnote>
                     Gradle supports this. To retrieve classified dependencies from a maven repository you can write:
                 </para>
-                <sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers">
+                <sample id="classifier" dir="userguide/artifacts/excludesAndClassifiers" title="Dependency with classifier">
                         <sourcefile file="build.gradle" snippet="classifier"/>
                 </sample>
                 <para>As you can see in the example, classifiers can be used together with setting
@@ -213,7 +213,7 @@
                 dependencies directly in your build script. They are a replacement for a module descriptor XML file in
                 an external repository.
             </para>
-            <sample id="client-modules" dir="userguide/artifacts/externalDependencies">
+            <sample id="client-modules" dir="userguide/artifacts/externalDependencies" title="Client module dependencies - transitive dependencies">
                 <sourcefile file="build.gradle" snippet="client-modules"/>
             </sample>
             <para>This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does
@@ -236,7 +236,7 @@
             <para>Gradle distinguishes between external dependencies and dependencies on projects which are part of the
                 same multi-project build. For the latter you can declare <emphasis>Project Dependencies</emphasis>.
             </para>
-            <sample id="project-dependencies" dir="java/multiproject/api">
+            <sample id="project-dependencies" dir="java/multiproject/api" title="Project dependencies">
                 <sourcefile file="build.gradle" snippet="project-dependencies"/>
             </sample>
             <para>For more information see the javadoc: <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
@@ -248,7 +248,7 @@
             <title>Excluding transitive dependencies</title>
             <para>You can exclude a <emphasis>transitive</emphasis> dependency either by configuration or by dependency:
             </para>
-            <sample id="exclude-dependencies" dir="userguide/artifacts/excludesAndClassifiers">
+            <sample id="exclude-dependencies" dir="userguide/artifacts/excludesAndClassifiers" title="Excluding transitive dependencies">
                 <sourcefile file="build.gradle" snippet="exclude-dependencies"/>
             </sample>
             <para>If you define
@@ -270,12 +270,12 @@
                 group, name and version. If you work with filesystem repositories you might only need the name or the name
                 and the version.
             </para>
-            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies">
+            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Optional attributes of dependencies">
                 <sourcefile file="build.gradle" snippet="dependencies-with-empty-attributes"/>
             </sample>
             <para id="para:notation_collections">You can also assign collections or arrays of dependency notations to a configuration:
             </para>
-            <sample id="listGrouping" dir="userguide/artifacts/externalDependencies">
+            <sample id="listGrouping" dir="userguide/artifacts/externalDependencies" title="Collections and arrays of dependencies">
                 <sourcefile file="build.gradle" snippet="list-grouping"/>
             </sample>
         </section>
@@ -286,11 +286,11 @@
             from a Maven repository, the default configuration is the only available one anyway. If you work with Ivy repositories and
             want to declare a non-default configuration for your dependency you have to use the map notation and declare:
             </para>
-            <sample id="dependencyConfigurations" dir="userguide/artifacts/externalDependencies">
+            <sample id="dependencyConfigurations" dir="userguide/artifacts/externalDependencies" title="Dependency configurations">
                 <sourcefile file="build.gradle" snippet="dependency-configurations"/>
             </sample>
             <para>To do the same for project dependencies you need to declare:</para>
-            <sample id="dependencyConfigurationsProjects" dir="/java/multiproject/services/webservice">
+            <sample id="dependencyConfigurationsProjects" dir="/java/multiproject/services/webservice"  title="Dependency configurations for project">
                 <sourcefile file="build.gradle" snippet="dependency-configurations"/>
             </sample>
         </section>
@@ -362,14 +362,14 @@
             <title>Working with dependencies</title>
             <para>To get the library files of the dependencies of a configuration you can do:
             </para>
-            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies">
+            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Working with dependencies">
                 <sourcefile file="build.gradle" snippet="dependencies-with-empty-attributes"/>
             </sample>
             <para>Sometimes you want the library files of a subset of the configuration dependencies (e.g. of a single dependency).
                 Gradle does not provide such a functionality in the current release (expect it to be available in the next release).
                 What you can do is to use a copy of a configuration. 
             </para>
-            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies">
+            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Working with dependencies">
                 <sourcefile file="build.gradle" snippet="configuration-copy"/>
             </sample>
             <para>Now you can resolve this copied configuration. You must be aware that the resolve of the copied configuration is often
@@ -384,7 +384,7 @@
             </para>
             <para>You can use the configuration to access the declared dependencies or a subset of those:
             </para>
-            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies">
+            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Accessing declared dependencies">
                 <sourcefile file="build.gradle" snippet="configuration-get-dependencies"/>
             </sample>
             <para><code>dependencies</code> returns only the dependencies belonging explicitly to the configuration.
@@ -409,7 +409,7 @@
             <para>To add the central Maven2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply
                 type:
             </para>
-            <sample id="mavenCentral" dir="userguide/artifacts/defineRepository">
+            <sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
                 <sourcefile file="build.gradle" snippet="maven-central"/>
             </sample>
             <para>Now Gradle looks for your dependencies in this repository.
@@ -417,7 +417,7 @@
             <para>Quite often certain jars are not in the official Maven repository for licensing reasons (e.g. JTA),
                 but its poms are.
             </para>
-            <sample id="mavenCentralJarRepo" dir="userguide/artifacts/defineRepository">
+            <sample id="mavenCentralJarRepo" dir="userguide/artifacts/defineRepository" title="Adding many Maven repositories">
                 <sourcefile file="build.gradle" snippet="maven-central-jar-repo"/>
             </sample>
             <para>Gradle looks first in the central Maven repository for the pom and the jar. If the jar can't be
@@ -425,13 +425,13 @@
             </para>
             <para>For adding a custom Maven repository you can say:
             </para>
-            <sample id="mavenLikeRepo" dir="userguide/artifacts/defineRepository">
+            <sample id="mavenLikeRepo" dir="userguide/artifacts/defineRepository" title="Adding custom Maven repository">
                 <sourcefile file="build.gradle" snippet="maven-like-repo"/>
             </sample>
             <para>To declare additional repositories to look for jars (like above in the example
                 for the central Maven repository), you can say:
             </para>
-            <sample id="mavenLikeRepoWithJarRepo" dir="userguide/artifacts/defineRepository">
+            <sample id="mavenLikeRepoWithJarRepo" dir="userguide/artifacts/defineRepository" title="Adding additional Maven repositories for JAR files">
                 <sourcefile file="build.gradle" snippet="maven-like-repo-with-jar-repo"/>
             </sample>
             <para>The first URL is used to look for poms and jars. The subsequent URLs are used to look for jars.
@@ -441,7 +441,7 @@
             <title>Flat directory resolver</title>
             <para>If you want to use a (flat) filesytem directory as a repository, simply type:
             </para>
-            <sample id="flatDirMulti" dir="userguide/artifacts/defineRepository">
+            <sample id="flatDirMulti" dir="userguide/artifacts/defineRepository" title="Flat repository resolver">
                 <sourcefile file="build.gradle" snippet="flat-dir-multi"/>
             </sample>
             <para>This adds repositories which look into one or more directories for finding dependencies. If you only
@@ -508,7 +508,7 @@ someroot/[artifact]-[revision].[ext]
 ]]></programlisting>
             <para>To add any kind of repository (you can pretty easy write your own ones) you can do:
             </para>
-            <sample id="fileSystemResolver" dir="userguide/artifacts/excludesAndClassifiers">
+            <sample id="fileSystemResolver" dir="userguide/artifacts/excludesAndClassifiers" title="Definition of a custom repository">
                 <sourcefile file="build.gradle" snippet="file-system-resolver"/>
             </sample>
             <para>An overview of which Resolvers are offered by Ivy and thus also by Gradle can be found

@@ -11,7 +11,7 @@
     <section>
         <title>A basic Java project</title>
         <para>Let's look at a simple example. To use the Java plugin, add the following to your build file:</para>
-        <sample id="javaQuickstart" dir="java/quickstart" includeLocation="true">
+        <sample id="javaQuickstart" dir="java/quickstart" includeLocation="true" title="Java plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>This is all you need to define a Java project. This will apply the Java plugin to your project, which adds
@@ -39,13 +39,13 @@
                 files, are located in a <firstterm>repository</firstterm>. A repository can be used for fetching the
                 dependencies of a project, or for publishing the artifacts of a project, or both. For this example,
                 we will use the public Maven repository:</para>
-            <sample id="javaQuickstart" dir="java/quickstart">
+            <sample id="javaQuickstart" dir="java/quickstart" title="Adding Maven repository">
                 <sourcefile file="build.gradle" snippet="repo"/>
             </sample>
 
             <para>Let's add some dependencies. Here, we will declare that our production classes have a compile-time
                 dependency on commons collections, and that our test classes have a compile-time dependency on junit:</para>
-            <sample id="javaQuickstart" dir="java/quickstart">
+            <sample id="javaQuickstart" dir="java/quickstart" title="Adding dependencies">
                 <sourcefile file="build.gradle" snippet="dependencies"/>
             </sample>
             <para>You can find out more in <xref linkend="dependency_management"/>.</para>
@@ -58,7 +58,7 @@
                 look at this for our sample. Here we will specify the version number for our Java project, along
                 with the Java version our source is written in. We also add some attributes to the JAR manifest.
             </para>
-            <sample id="javaQuickstart" dir="java/quickstart">
+            <sample id="javaQuickstart" dir="java/quickstart" title="Customization of MANIFEST.MF">
                 <sourcefile file="build.gradle" snippet="customisation"/>
             </sample>
             <tip>
@@ -71,7 +71,7 @@
                 dependencies of a task, or replace a task entirely. In our sample, we will configure the
                 <literal>test</literal> task, which is of type<apilink class="org.gradle.api.tasks.testing.Test"/>, to
                 add a system property when the tests are executed: </para>
-            <sample id="javaQuickstart" dir="java/quickstart">
+            <sample id="javaQuickstart" dir="java/quickstart" title="Adding system property">
                 <sourcefile file="build.gradle" snippet="task-customisation"/>
             </sample>
         </section>
@@ -83,7 +83,7 @@
                 sample, we will publish to a local directory. You can also publish to a remote location, or multiple
                 location.
             </para>
-            <sample id="javaQuickstart" dir="java/quickstart">
+            <sample id="javaQuickstart" dir="java/quickstart" title="Publishing the JAR file">
                 <sourcefile file="build.gradle" snippet="upload"/>
             </sample>
             <para>To publish the JAR file, run <userinput>gradle uploadArchives</userinput>.</para>
@@ -100,7 +100,7 @@
         <section>
             <title>Summary</title>
             <para>Here's the complete build file for our sample:</para>
-            <sample id="javaQuickstart" dir="java/quickstart">
+            <sample id="javaQuickstart" dir="java/quickstart" title="Java example - complete build file">
                 <sourcefile file="build.gradle"/>
             </sample>
         </section>
@@ -110,7 +110,7 @@
         <title>Multi-project Java build</title>
         <para>Now let's look at a typical multi-project build. Below is the layout for the project:
         </para>
-        <sample id="javaMultiProject" dir="java/multiproject" includeLocation="true">
+        <sample id="javaMultiProject" dir="java/multiproject" includeLocation="true" title="Multi-project build - hierarchical layout">
             <layout>
                 api
                 services
@@ -131,7 +131,7 @@
                 build. It must be called <filename>settings.gradle</filename>. For this example, we are using a simple
                 hierarchical layout. Here is the corresponding settings file:
             </para>
-            <sample id="javaMultiProject" dir="java/multiproject">
+            <sample id="javaMultiProject" dir="java/multiproject" title="Multi-project build - settings.gradle file">
                 <sourcefile file="settings.gradle" snippet="include-projects"/>
             </sample>
             <para>You can find out more about the settings file in <xref linkend="multi_project_builds"/>.</para>
@@ -146,7 +146,7 @@
                 this instance - and injects the specified configuration. This way we can easily define the manifest
                 content for all archives, and some common dependencies:
             </para>
-            <sample id="javaMultiProject" dir="java/multiproject">
+            <sample id="javaMultiProject" dir="java/multiproject" title="Multi-project build - common configuration">
                 <sourcefile file="build.gradle"/>
             </sample>
 
@@ -163,7 +163,7 @@
                 on the JAR produced by the <literal>shared</literal> project. Due to this dependency, Gradle will
                 ensure that project <literal>shared</literal> always gets built before project <literal>api</literal>.
             </para>
-            <sample id="javaMultiProject" dir="java/multiproject">
+            <sample id="javaMultiProject" dir="java/multiproject" title="Multi-project build - dependencies between projects">
                 <sourcefile file="api/build.gradle" snippet="dependencies"/>
             </sample>
             See <xref linkend="disable_dependency_projects"/> for how to disable this functionality.
@@ -174,7 +174,7 @@
             <para>
                 We also add a distribution, that gets shipped to the client:
             </para>
-            <sample id="javaMultiProject" dir="java/multiproject">
+            <sample id="javaMultiProject" dir="java/multiproject" title="Multi-project build - distribution file">
                 <sourcefile file="api/build.gradle" snippet="dists"/>
             </sample>
         </section>

@@ -20,7 +20,7 @@
         </footnote>
         You can create such a task in your build script.
     </para>
-    <sample id="wrapperSimple" dir="userguide/wrapper">
+    <sample id="wrapperSimple" dir="userguide/wrapper" title="Wrapper task">
         <sourcefile file="build.gradle" snippet="wrapper-simple"/>
     </sample>
     <para>The build master usually explicitly executes this task. After such
@@ -49,7 +49,7 @@ project-root/
             command.
         </para>
         <para>You can specify where the wrapper files should be stored (within your project directory):</para>
-        <sample id="wrapperCustomized" dir="userguide/wrapper">
+        <sample id="wrapperCustomized" dir="userguide/wrapper" title="Configuration of wrapper task">
             <sourcefile file="build.gradle"/>
         </sample>
         <screen><![CDATA[

@@ -95,14 +95,14 @@
         <title>Customizing</title>
         <para>Here is an example with the most important customization options:
         </para>
-        <sample id="webproject" dir="webApplication/customised">
+        <sample id="webproject" dir="webApplication/customised" title="Customization of war plugin">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>Of course one can configure the different file-sets with a closure to define excludes and includes.
         </para>
         <para>If you want to enable the generation of the default jar archive additional to the war archive just type:
         </para>
-        <sample id="customisedWebApplication" dir="webApplication/customised">
+        <sample id="customisedWebApplication" dir="webApplication/customised" title="Generation of JAR archive in addition to WAR archive">
             <sourcefile file="build.gradle" snippet="enable-jar"/>
         </sample>
     </section>

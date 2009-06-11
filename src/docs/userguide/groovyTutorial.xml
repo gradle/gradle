@@ -26,7 +26,7 @@
         <title>A basic Groovy project</title>
 
         <para>Let's look at an example. To use the Groovy plugin, add the following to your build file:</para>
-        <sample id="groovyQuickstart" dir="groovy/quickstart" includeLocation="true">
+        <sample id="groovyQuickstart" dir="groovy/quickstart" includeLocation="true" title="Groovy plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>This will also apply the Java plugin to the project, if it has not already been applied. The Groovy plugin
@@ -40,11 +40,11 @@
             The <literal>compile</literal> configuration inherits this dependency, so the groovy libraries will
             be included in classpath when compiling Groovy and Java source.  For our sample, we will use Groovy 1.6.0
             from the public Maven repository:</para>
-        <sample id="groovyQuickstart" dir="groovy/quickstart">
+        <sample id="groovyQuickstart" dir="groovy/quickstart" title="Dependency on Groovy 1.6.0">
             <sourcefile file="build.gradle" snippet="groovy-dependency"/>
         </sample>
-        <para>Here is our completed build file:</para>
-        <sample id="groovyQuickstart" dir="groovy/quickstart">
+        <para>Here is our complete build file:</para>
+        <sample id="groovyQuickstart" dir="groovy/quickstart" title="Groovy example - complete build file">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>Running <userinput>gradle libs</userinput> will compile, test and JAR your project.</para>
@@ -54,7 +54,7 @@
         <title>Summary</title>
         <para>This chapter describes a very simple Groovy project. Usually, a real project will require more than this.
             Because a Groovy project <emphasis>is</emphasis> a Java project, whatever you can do with a Java project,
-            you can also do with a Groovy project.  You can find out more about the Groovy Plugin in <xref linkend="groovy_plugin"/>.
+            you can also do with a Groovy project.
         </para>
         <para>
             You can find out more about the Groovy plugin in <xref linkend="groovy_plugin"/>, and you can find more

@@ -22,7 +22,7 @@
     <xsl:param name="css.decoration">0</xsl:param>
 
     <xsl:param name="generate.toc">
-        book toc,title
+        book toc,title,example
     </xsl:param>
 
     <xsl:param name="formal.title.placement">

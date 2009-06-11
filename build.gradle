@@ -14,6 +14,7 @@ import org.gradle.util.GradleVersion
 import org.apache.ivy.plugins.resolver.*
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
+import org.gradle.build.docs.SampleElementValidator
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -417,6 +418,7 @@ task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
     destFile = new File(docbookSrc, 'userguide.xml')
     snippetsDir = project.snippetsDir
     classpath = configurations.userGuideTask
+    validator = new SampleElementValidator()
 }
 userguideSrc.doFirst {
     userguideSrc.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"

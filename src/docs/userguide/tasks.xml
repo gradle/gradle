@@ -13,15 +13,15 @@
             There are a few variations on this style, which you may need to use in certain situations. For example,
             the keyword style does not work in expressions.
         </para>
-        <sample id="defineAsExpression" dir="userguide/tasks/defineAsExpression">
+        <sample id="defineAsExpression" dir="userguide/tasks/defineAsExpression" title="Defining tasks">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>You can also use strings for the task names:</para>
-        <sample id="defineUsingStringTaskNames" dir="userguide/tasks/defineUsingStringTaskNames">
+        <sample id="defineUsingStringTaskNames" dir="userguide/tasks/defineUsingStringTaskNames" title="Defining tasks - using strings">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>There is an alternate syntax for defining tasks, which you may prefer to use:</para>
-        <sample id="addToTaskContainer" dir="userguide/tasks/addToTaskContainer">
+        <para>There is an alternative syntax for defining tasks, which you may prefer to use:</para>
+        <sample id="addToTaskContainer" dir="userguide/tasks/addToTaskContainer" title="Defining tasks with alternative syntax">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>Here we add tasks to the <literal>tasks</literal> collection. Have a look at
@@ -34,17 +34,17 @@
             or use them for dependencies. There are a number of ways you can do this. Firstly, each task is available as
             a property of the project, using the task name as the property name:
         </para>
-        <sample id="accessAsProperty" dir="userguide/tasks/accessAsProperty">
+        <sample id="accessAsProperty" dir="userguide/tasks/accessAsProperty" title="Accessing tasks as properties">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>Tasks are also available through the <literal>tasks</literal> collection.</para>
-        <sample id="accessFromTaskContainer" dir="userguide/tasks/accessFromTaskContainer">
+        <sample id="accessFromTaskContainer" dir="userguide/tasks/accessFromTaskContainer" title="Accessing tasks via tasks collection">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>You can access tasks from any project using the task's path using the <literal>tasks.getByPath()</literal>
             method. You can call the <literal>getByPath()</literal> method with a task name, or a relative path, or an
             absolute path.</para>
-        <sample id="accessUsingPath" dir="userguide/tasks/accessUsingPath">
+        <sample id="accessUsingPath" dir="userguide/tasks/accessUsingPath" title="Accessing tasks by path">
             <sourcefile file="build.gradle"/>
             <output args="-q hello"/>
         </sample>
@@ -59,14 +59,14 @@
                 </para>
             </footnote>
         </para>
-        <sample id="declareTask" dir="userguide/tasks/configureUsingClosure">
+        <sample id="declareTask" dir="userguide/tasks/configureUsingClosure" title="Creating a copy task">
             <sourcefile file="build.gradle" snippet="declare-task"/>
         </sample>
         <para>This creates a copy task with no default behavior.
             The task can be configured using its API (see <apilink class="org.gradle.api.tasks.Copy"/>).
 			The following examples show several different ways to achieve the same configuration.
         </para>
-        <sample id="configureUsingVar" dir="userguide/tasks/configureUsingVar">
+        <sample id="configureUsingVar" dir="userguide/tasks/configureUsingVar" title="Configuring a task - various ways">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>This is similar to the way we would normally configure objects in Java. You have to repeat the context
@@ -75,7 +75,7 @@
         </para>
         <para>There is a more convenient way of doing this.
         </para>
-        <sample id="configureUsingLiterateStyle" dir="userguide/tasks/configureUsingLiterateStyle">
+        <sample id="configureUsingLiterateStyle" dir="userguide/tasks/configureUsingLiterateStyle" title="Configuring a task - fluent interface">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task
@@ -86,7 +86,7 @@
         <para>But there is yet another way of configuring a task. It also preserves the context and it is arguably the
             most readable. It is usually our favorite.
         </para>
-        <sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure">
+        <sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure" title="Configuring a task - with closure">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>This works for <emphasis>any</emphasis> task. Line 3 of the example is just a shortcut for the
@@ -94,14 +94,14 @@
             <literal>getByName()</literal> method, this closure is applied to <emphasis>configure</emphasis> the task.
         </para>
         <para>There is a slightly different ways of doing this.</para>
-        <sample id="configureUsingConfigure" dir="userguide/tasks/configureUsingConfigure">
+        <sample id="configureUsingConfigure" dir="userguide/tasks/configureUsingConfigure" title="Configuring a task - with configure() method">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>Every task has a <literal>configure()</literal> method, which you can pass a closure for configuring the task.
             Gradle uses this style for configuring objects in many places, not just for tasks.
         </para>
         <para>You can also use a configuration closure when you define a task.</para>
-        <sample id="defineAndConfigure" dir="userguide/tasks/defineAndConfigure">
+        <sample id="defineAndConfigure" dir="userguide/tasks/defineAndConfigure" title="Defining a task with closure">
             <sourcefile file="build.gradle" snippet="no-description"/>
         </sample>
     </section>
@@ -117,14 +117,14 @@
             to
             <literal>projectB:taskY</literal>:
         </para>
-        <sample id="addDependencyUsingPath" dir="userguide/tasks/addDependencyUsingPath">
+        <sample id="addDependencyUsingPath" dir="userguide/tasks/addDependencyUsingPath" title="Adding dependency on task from another project">
             <sourcefile file="build.gradle"/>
             <output args="-q taskX"/>
         </sample>
         <para>Instead of using a task name, you can define a dependency using a
             <classname>Task</classname> object, as shown in this example:
         </para>
-        <sample id="addDependencyUsingTask" dir="userguide/tasks/addDependencyUsingTask">
+        <sample id="addDependencyUsingTask" dir="userguide/tasks/addDependencyUsingTask" title="Adding dependency using task object">
             <sourcefile file="build.gradle"/>
             <output args="-q taskX"/>
         </sample>
@@ -134,7 +134,7 @@
             as dependencies of the task. The following example adds a dependency from <literal>taskX</literal>
             to all the tasks in the project whose name starts with <literal>lib</literal>:
         </para>
-        <sample id="addDependencyUsingClosure" dir="userguide/tasks/addDependencyUsingClosure">
+        <sample id="addDependencyUsingClosure" dir="userguide/tasks/addDependencyUsingClosure" title="Adding dependency using closure">
             <sourcefile file="build.gradle"/>
             <output args="-q taskX"/>
         </sample>
@@ -145,7 +145,7 @@
         <para>You can add a description to your task. This description is for example displayed when executing
             <code>gradle -t</code>.
         </para>
-        <sample id="describeTask" dir="userguide/tasks/defineAndConfigure">
+        <sample id="describeTask" dir="userguide/tasks/defineAndConfigure" title="Adding a description to a task">
             <sourcefile file="build.gradle"/>
         </sample>
     </section>
@@ -154,7 +154,7 @@
         <para>Sometimes you want to replace a task. For example if you want to exchange a task added by the Java Plugin
             with a custom task of a different type. You can achieve this with:
         </para>
-        <sample id="replaceTask" dir="userguide/tutorial/replaceTask">
+        <sample id="replaceTask" dir="userguide/tutorial/replaceTask" title="Overwriting a task">
             <sourcefile file="build.gradle"/>
             <output args="-q copy"/>
         </sample>
@@ -168,7 +168,7 @@
         <para>Sometimes you want to have a task which behavior depends on a large or infinite number value range
             of parameters. A very nice and expressive way to provide such tasks are task rules: 
         </para>
-        <sample id="taskRule" dir="userguide/tasks/addRules">
+        <sample id="taskRule" dir="userguide/tasks/addRules" title="Task rule">
             <sourcefile file="build.gradle" snippet="task-rule"/>
             <output args="-q pingServer1"/>
         </sample>
@@ -178,7 +178,7 @@
         <para>Rules not just work for calling tasks from the command line. You can also create dependsOn relations
             on rule based tasks:
         </para>
-        <sample id="taskRuleDependsOn" dir="userguide/tasks/addRules">
+        <sample id="taskRuleDependsOn" dir="userguide/tasks/addRules" title="Dependency on rule based tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q groupPing"/>
         </sample>

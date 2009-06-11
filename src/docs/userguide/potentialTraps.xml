@@ -5,7 +5,7 @@
         <para>For Gradle users it is important to understand how Groovy deals with script variables. Groovy has two types
             of script variables. One with a local scope and one with a script wide scope.
         </para>
-        <sample id="scope" dir="userguide/tutorial">
+        <sample id="scope" dir="userguide/tutorial" title="Variables scope: local and script wide">
             <sourcefile file="scope.groovy"/>
             <output args=""/>
         </sample>
@@ -23,7 +23,7 @@
         <para>It is important to keep in mind that Gradle has a distinct configuration and execution phase (see 
             <xref linkend='build_lifecycle'/>).
         </para>
-        <sample id="mkdirTrap" dir="userguide/tutorial/mkdirTrap">
+        <sample id="mkdirTrap" dir="userguide/tutorial/mkdirTrap" title="Distinct configuration and execution phase">
             <sourcefile file="build.gradle"/>
             <output args="-q compile"/>
         </sample>

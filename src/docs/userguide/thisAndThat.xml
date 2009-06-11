@@ -5,12 +5,12 @@
         <para>Gradle offers multiple ways to skip the execution of a task.
         </para>
         <para>You can set system property named <literal>skip.<emphasis>taskname</emphasis></literal> or pass such property as a parameter to the <command>gradle</command> command using <option>-D</option> option (see <xref linkend='sec:gradle_properties_and_system_properties' />).</para>
-        <sample id="autoskip" dir="userguide/tutorial/autoskip">
+        <sample id="autoskip" dir="userguide/tutorial/autoskip" title="Skipping tasks using default property name">
             <sourcefile file="build.gradle"/>
             <output args="-Dskip.autoskip autoskip"/>
         </sample>
         <para>You can also choose another another property that can be used to skip a task.</para>
-        <sample id="skipProperties" dir="userguide/tutorial/skipProperties">
+        <sample id="skipProperties" dir="userguide/tutorial/skipProperties" title="Skipping tasks using custom property">
             <sourcefile file="build.gradle"/>
             <output args="-DmySkipProperty skipMe"/>
         </sample>
@@ -26,7 +26,7 @@
         <para>By default tasks that depends on skipped task get executed. If you want to skip them, you have to declare this explicitly via
             the skip properties.
         </para>
-        <sample id="autoskipDepends" dir="userguide/tutorial/autoskipDepends">
+        <sample id="autoskipDepends" dir="userguide/tutorial/autoskipDepends" title="Skipping depending tasks">
             <sourcefile file="build.gradle"/>
             <output args="-Dskip.autoskip depends"/>
         </sample>
@@ -38,7 +38,7 @@
             the further execution of this action as well as the execution of
             any following action of this task is skipped. The build continues with executing the next task.
         </para>
-        <sample id="stopExecutionException" dir="userguide/tutorial/stopExecutionException">
+        <sample id="stopExecutionException" dir="userguide/tutorial/stopExecutionException" title="Skipping tasks with StopExecutionException">
             <sourcefile file="build.gradle"/>
             <output args="-q myTask"/>
         </sample>
@@ -57,7 +57,7 @@
             flag which defaults to <literal>true</literal>. Setting it to <literal>false</literal> prevents the execution of any of the
             task's actions.
         </para>
-        <sample id="disableTask" dir="userguide/tutorial/disableTask">
+        <sample id="disableTask" dir="userguide/tutorial/disableTask" title="Enabling and disabling tasks">
             <sourcefile file="build.gradle"/>
             <output args="disableMe"/>
         </sample>
@@ -77,7 +77,7 @@
             tasks, if any, of each project, and the description and dependencies of each task. Below is an example of
             this report:
         </para>
-        <sample id="taskListReport" dir="userguide/tutorial/projectReports">
+        <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
             <output args="-q --tasks"/>
         </sample>
         <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>
@@ -85,14 +85,14 @@
             configurations of each project. For each configuration, the direct and transitive dependencies of that
             configuration are shown. Below is an example of this report:
         </para>
-        <sample id="dependencyListReport" dir="userguide/tutorial/projectReports">
+        <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
             <output args="-q --dependencies"/>
         </sample>
         <para>Running
             <userinput>gradle --properties</userinput>
             gives you a list of the properties of each project in the build.
         </para>
-        <!--<sample id="propertyListReport" dir="userguide/tutorial/projectReports">-->
+        <!--<sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">-->
             <!--<output args="-q - -properties"/>-->
         <!--</sample>-->
         <para>Finally, you can use the <literal>project-reports</literal> plugin to add a number of reporting tasks to
@@ -109,12 +109,12 @@
             <emphasis>dependsOn</emphasis>
             relationship):
         </para>
-        <sample id="makeDirectory" dir="userguide/tutorial/makeDirectory">
+        <sample id="makeDirectory" dir="userguide/tutorial/makeDirectory" title="Directory creation with mkdir">
             <sourcefile file="build.gradle"/>
             <output args="-q compile"/>
         </sample>
         <para>But Gradle offers you also <emphasis>Directory Tasks</emphasis> to deal with this.</para>
-        <sample id="directoryTask" dir="userguide/tutorial/directoryTask">
+        <sample id="directoryTask" dir="userguide/tutorial/directoryTask" title="Directory creation with Directory tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q otherResources"/>
         </sample>
@@ -176,7 +176,7 @@
             <literal>systemProp.</literal>
             the property and its value are added to the system properties (without the prefix).
         </para>
-        <sample id="properties" dir="userguide/tutorial/properties">
+        <sample id="properties" dir="userguide/tutorial/properties" title="Setting propertis with settings.gradle file">
             <sourcefile file="gradle.properties"/>
             <sourcefile file="build.gradle"/>
             <output args="-q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps"/>
@@ -204,7 +204,8 @@
             this:
         </para>
         <example>
-            <title><filename>gradle.properties</filename></title>
+            <title>Accessing the web via a proxy</title>
+            <para><filename>gradle.properties</filename></para>
             <programlisting><![CDATA[
 systemProp.http.proxyHost=http://www.somehost.org
 systemProp.http.proxyPort=8080
@@ -242,7 +243,7 @@ systemProp.http.proxyPassword=password
         <title>Configuring arbitrary objects</title>
         <para>You can configure arbitrary objects in the following very readable way.
         </para>
-        <sample id="configureObject" dir="userguide/tutorial/configureObject">
+        <sample id="configureObject" dir="userguide/tutorial/configureObject" title="Configuring arbitrary objects">
             <sourcefile file="build.gradle"/>
             <output args="-q configure"/>
         </sample>

@@ -33,7 +33,7 @@
             <literal>settings.gradle</literal>
             file.
         </para>
-        <sample id="settingsBuildLogic" dir="userguide/organizeBuildLogic">
+        <sample id="settingsBuildLogic" dir="userguide/organizeBuildLogic" title="Configuring external dependencies in settings.gradle file">
             <sourcefile file="settings.gradle"/>
         </sample>
         <para>You can pass any of the dependencies described in
@@ -62,7 +62,7 @@
                 </para>
             </footnote>
         </para>
-        <sample id="buildLogic" dir="userguide/organizeBuildLogic">
+        <sample id="buildLogic" dir="userguide/organizeBuildLogic" title="Ant optional dependencies">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>This is also nice example for the usage of client modules. The pom.xml in maven central for the

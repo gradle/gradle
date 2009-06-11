@@ -62,12 +62,12 @@
             assigned to the <literal>groovy</literal> dependency configuration. Here is an example using the public Maven
             repository:
         </para>
-        <sample id="quickstartGroovyDependency" dir="groovy/quickstart">
+        <sample id="quickstartGroovyDependency" dir="groovy/quickstart" title="Configuration of Groovy plugin">
             <sourcefile file="build.gradle" snippet="groovy-dependency"/>
         </sample>
         <para>And here is an example using the Groovy JARs checked into the <filename>lib</filename> directory of the source
             tree:</para>
-        <sample id="flatDirGroovyDependency" dir="userguide/tutorial/groovyWithFlatDir">
+        <sample id="flatDirGroovyDependency" dir="userguide/tutorial/groovyWithFlatDir" title="Configuration of Groovy plugin">
             <sourcefile file="build.gradle" snippet="groovy-dependency"/>
         </sample>
     </section>

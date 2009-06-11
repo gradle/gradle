@@ -738,7 +738,7 @@
             you want. You can also add WAR, ZIP and TAR archives to your project. They are all added the same way, so
             let's look at how you add a ZIP file.
         </para>
-        <sample id="zip" dir="userguide/tutorial/zipProject">
+        <sample id="zip" dir="userguide/tutorial/zipProject" title="Creation of ZIP archive">
             <sourcefile file="build.gradle"/>
             <output args="-q init"/>
         </sample>
@@ -751,12 +751,12 @@
         <para>There are a number of properties which you can set on an archive task. You can, for example, change the
             name of the archive:
         </para>
-        <sample id="zipWithCustomName" dir="userguide/tutorial/zipWithCustomName">
+        <sample id="zipWithCustomName" dir="userguide/tutorial/zipWithCustomName" title="Configuration of archive task - custom archive name">
             <sourcefile file="build.gradle"/>
             <output args="-q init"/>
         </sample>
         <para>You can further customize the archive names:</para>
-        <sample id="zipWithArguments" dir="userguide/tutorial/zipWithArguments">
+        <sample id="zipWithArguments" dir="userguide/tutorial/zipWithArguments" title="Configuration of archive task - appendix &amp; classifier">
             <sourcefile file="build.gradle"/>
             <output args="-q init"/>
         </sample>
@@ -885,20 +885,20 @@
                 <xref linkend='filecontainer'/>). You can add as many file containers as you like. They behave pretty much
                 the same as the Ant resources with similar names.
             </para>
-            <sample id="archiveContent" dir="userguide/tutorial/archiveContent">
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent" title="Adding content to archive - include &amp; exclude">
                 <sourcefile file="build.gradle" snippet="file-set"/>
             </sample>
             <para>You can add arbitrary files to an archive:
             </para>
-            <sample id="archiveContent" dir="userguide/tutorial/archiveContent">
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent" title="Adding content to archive - arbitrary files">
                 <sourcefile file="build.gradle" snippet="files"/>
             </sample>
             <para>Other examples:
             </para>
-            <sample id="archiveContent" dir="userguide/tutorial/archiveContent">
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent" title="Adding content to archive - zipFileSet">
                 <sourcefile file="build.gradle" snippet="zip-file-set"/>
             </sample>
-            <sample id="archiveContent" dir="userguide/tutorial/archiveContent">
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent" title="Creation of TAR archive">
                 <sourcefile file="build.gradle" snippet="tar-file-set"/>
             </sample>
             <para>There is also the option to add an arbitrary Ant expression describing an Ant resource.
@@ -956,7 +956,7 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
                 With this <classname>GradleManifest</classname> object you can define the content of the
                 <filename>MANIFEST.MF</filename> file for all the jar or a war archives in your project.
             </para>
-            <sample id="manifest" dir="userguide/tutorial/manifest">
+            <sample id="manifest" dir="userguide/tutorial/manifest" title="Customization of MANIFEST.MF">
                 <sourcefile file="build.gradle" snippet="main-attributes"/>
             </sample>
             <para>You can also define sections of a manifest file.
@@ -964,7 +964,7 @@ myZipTask.mergeGroup('path_to_dir_with_archives') {
             <para>If a particular archive needs unique entries in its manifest you have to create your own
                 <classname>GradleManifest</classname> instance for it.
             </para>
-            <sample id="manifest" dir="userguide/tutorial/manifest">
+            <sample id="manifest" dir="userguide/tutorial/manifest" title="Customization of MANIFEST.MF for a particular archive">
                 <sourcefile file="build.gradle" snippet="custom-manifest"/>
             </sample>
             <para>Passing the common manifest object to the constructor of <classname>GradleManifest</classname>

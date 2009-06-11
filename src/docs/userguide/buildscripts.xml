@@ -12,7 +12,7 @@
         <para>In Gradle the most basic building block is the <firstterm>task</firstterm>. The tasks for your build are
             defined in the build script. To try this out, create the following build script named <filename>build.gradle</filename>.
         </para>
-        <sample id="hello" dir="userguide/tutorial/hello">
+        <sample id="hello" dir="userguide/tutorial/hello" title="The first build script">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>In a command-line shell, enter into the containing directory and execute the build script by running
@@ -26,7 +26,7 @@
                 options which affect Gradle's output.
             </para>
         </tip>
-        <sample id="hello" dir="userguide/tutorial/hello">
+        <sample id="hello" dir="userguide/tutorial/hello" title="Execution of a build script">
             <output args="-q hello"/>
         </sample>
         <para>What's going on here? This build file defines a single task, called <literal>hello</literal>, and
@@ -47,12 +47,12 @@
         <title>Build scripts are code</title>
         <para>Gradle's build scripts expose to you the full power of Groovy. As an appetizer, have a look at this:
         </para>
-        <sample id="upper" dir="userguide/tutorial/upper">
+        <sample id="upper" dir="userguide/tutorial/upper" title="Using Groovy in Gradle's tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q upper"/>
         </sample>
         <para>or</para>
-        <sample id="count" dir="userguide/tutorial/count">
+        <sample id="count" dir="userguide/tutorial/count" title="Using Groovy in Gradle's tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q count"/>
         </sample>
@@ -61,12 +61,12 @@
         <title>Task dependencies</title>
         <para>As you probably have guessed, you can declare dependencies between your tasks.
         </para>
-        <sample id="intro" dir="userguide/tutorial/intro">
+        <sample id="intro" dir="userguide/tutorial/intro" title="Declaration of dependencies between tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q intro"/>
         </sample>
         <para>To add a dependency, the corresponding task does not need to exist.</para>
-        <sample id="lazyDependsOn" dir="userguide/tutorial/lazyDependsOn">
+        <sample id="lazyDependsOn" dir="userguide/tutorial/lazyDependsOn" title="Lazy dependsOn - the other task does not exist (yet)">
             <sourcefile file="build.gradle"/>
             <output args="-q taskX"/>
         </sample>
@@ -81,7 +81,7 @@
         <para>The power of Groovy can be used for more than defining what a task does. For example, you can also use it
             to dynamically create tasks.
         </para>
-        <sample id="dynamic" dir="userguide/tutorial/dynamic">
+        <sample id="dynamic" dir="userguide/tutorial/dynamic" title="Dynamic creation of a task">
             <sourcefile file="build.gradle"/>
             <output args="-q task_1"/>
         </sample>
@@ -91,12 +91,12 @@
         <para>Once tasks are created they can be accessed via an <emphasis>API</emphasis>. This is different to Ant. For
             example you can create additional dependencies.
         </para>
-        <sample id="dynamicDepends" dir="userguide/tutorial/dynamicDepends">
+        <sample id="dynamicDepends" dir="userguide/tutorial/dynamicDepends" title="Accessing a task via API - adding a dependency">
             <sourcefile file="build.gradle"/>
             <output args="-q task_0"/>
         </sample>
         <para>Or you can add behavior to an existing task.</para>
-        <sample id="helloEnhanced" dir="userguide/tutorial/helloEnhanced">
+        <sample id="helloEnhanced" dir="userguide/tutorial/helloEnhanced" title="Accessing a task via API - adding behaviour">
             <sourcefile file="build.gradle"/>
             <output args="-q hello"/>
         </sample>
@@ -111,7 +111,7 @@
         <para>As you might have noticed in the previous examples, there is a convenient notation for accessing an
             <emphasis>existing</emphasis> task. Each task is available as a property of the build script:
         </para>
-        <sample id="helloWithShortCut" dir="userguide/tutorial/helloWithShortCut">
+        <sample id="helloWithShortCut" dir="userguide/tutorial/helloWithShortCut" title="Accessing task as a property of the build script">
             <sourcefile file="build.gradle"/>
             <output args="-q hello"/>
         </sample>
@@ -122,7 +122,7 @@
         <title>Dynamic task properties</title>
         <para>You can assign arbitrary <emphasis>new</emphasis> properties to any task.
         </para>
-        <sample id="dynamicProperties" dir="userguide/tutorial/dynamicProperties">
+        <sample id="dynamicProperties" dir="userguide/tutorial/dynamicProperties" title="Assigning properties to a task">
             <sourcefile file="build.gradle"/>
             <output args="-q showProps"/>
         </sample>
@@ -147,7 +147,7 @@
             tasks from Gradle is as convenient and more powerful than using Ant tasks from a
             <filename>build.xml</filename> file. Let's look at an example:
         </para>
-        <sample id="antChecksum" dir="userguide/tutorial/antChecksum">
+        <sample id="antChecksum" dir="userguide/tutorial/antChecksum" title="Using AntBuilder to execute ant.checksum target">
             <sourcefile file="build.gradle"/>
             <output args="-q checksum"/>
         </sample>
@@ -177,7 +177,7 @@
         <para>Gradle scales in how you can organize your build logic. The first level of organizing your build logic for
             the example above, is extracting a method.
         </para>
-        <sample id="antChecksumWithMethod" dir="userguide/tutorial/antChecksumWithMethod">
+        <sample id="antChecksumWithMethod" dir="userguide/tutorial/antChecksumWithMethod" title="Using methods to organize your build logic">
             <sourcefile file="build.gradle"/>
             <output args="-q checksum"/>
         </sample>
@@ -190,7 +190,7 @@
         <title>Default tasks</title>
         <para>Gradle allows you to define one or more default tasks for your build.
         </para>
-        <sample id="defaultTasks" dir="userguide/tutorial/defaultTasks">
+        <sample id="defaultTasks" dir="userguide/tutorial/defaultTasks" title="Defining a default tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q"/>
         </sample>
@@ -207,15 +207,16 @@
             if the release task is part of the tasks to be executed. Depending on this you can assign different values
             to some variables.
         </para>
-        <sample id="configByDagNoRelease" dir="userguide/tutorial/configByDag">
+        <para>In the following example, execution of <literal>distribution</literal> and <literal>release</literal> tasks results in different value of <literal>version</literal> variable.</para>
+        <sample id="configByDagNoRelease" dir="userguide/tutorial/configByDag" title="Different outcomes of build depending on chosen tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q distribution"/>
         </sample>
-        <para>Now let's try running the <literal>release</literal> task:</para>
-        <sample id="configByDag" dir="userguide/tutorial/configByDag">
+        <!-- TODO - merge these samples -->
+        <sample id="configByDag" dir="userguide/tutorial/configByDag" title="Different outcomes of build depending on chosen tasks">
             <output args="-q release"/>
         </sample>
-        <para>The important thing is, that the fact that the release task has been choosen, has an effect
+        <para>The important thing is, that the fact that the release task has been chosen, has an effect
             <emphasis>before</emphasis> the release task gets executed. Nor has the release task to be the
             <emphasis>primary</emphasis> task (i.e. the task passed to the <command>gradle</command> command).
         </para>

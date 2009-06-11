@@ -24,6 +24,7 @@ public class UserGuideTransformTask extends DefaultTask {
     File snippetsDir
     boolean standalone
     FileCollection classpath;
+    SampleElementValidator validator;
 
     def UserGuideTransformTask(Project project, String name) {
         super(project, name);
@@ -134,14 +135,9 @@ public class UserGuideTransformTask extends DefaultTask {
             MarkupBuilder xml = new MarkupBuilder(writer)
             xml.samples {
                 doc.documentElement.depthFirst().findAll { it.name() == 'sample' }.each {Element element ->
+                	validator.validate(element)
                     String id = element.'@id'
-                    if (!id) {
-                        throw new RuntimeException("No id attribute specified for sample.")
-                    }
                     String srcDir = element.'@dir'
-                    if (!srcDir) {
-                        throw new RuntimeException("No dir attribute specified for sample '$id'.")
-                    }
 
                     // This class handles the responsibility of adding the location tips to the first child of first
                     // example defined in the sample.
@@ -149,21 +145,23 @@ public class UserGuideTransformTask extends DefaultTask {
                    
                     xml.sample(id: id, dir: srcDir)
 
+                    String title = element.'@title' 
+
+                    Element exampleElement = doc.createElement('example')
+                    Element titleElement = doc.createElement('title')
+               	   	titleElement.appendChild(doc.createTextNode(title))
+               	   	exampleElement.appendChild(titleElement);
+                    
                     element.children().each {Element child ->
                         if (child.name() == 'sourcefile') {
                             String file = child.'@file'
-                            if (!file) {
-                                throw new RuntimeException("No file attribute specified for source file in sample '$id'.")
-                            }
-
-                            Element exampleElement = doc.createElement('example')
-
-                            Element titleElement = doc.createElement('title')
-                            Element filenameElement = doc.createElement('filename')
-                            filenameElement.appendChild(doc.createTextNode(file))
-                            titleElement.appendChild(filenameElement)
-                            exampleElement.appendChild(titleElement)
-
+                           
+                            Element sourcefileTitle = doc.createElement("para")
+                    		Element commandElement = doc.createElement('filename')
+                        	commandElement.appendChild(doc.createTextNode(file))
+                        	sourcefileTitle.appendChild(commandElement)
+                        	exampleElement.appendChild(sourcefileTitle);
+                            
                             Element programListingElement = doc.createElement('programlisting')
                             File srcFile
                             String snippet = child.'@snippet'
@@ -176,24 +174,18 @@ public class UserGuideTransformTask extends DefaultTask {
                             exampleElement.appendChild(programListingElement)
 
                             locationHandler.processSampleLocation(exampleElement)
-                            element.parentNode.insertBefore(exampleElement, element)
                            
                         } else if (child.name() == 'output') {
                             String args = child.'@args'
-                            if (args == null) {
-                                throw new RuntimeException("No args attribute specified for output for sample '$id'.")
-                            }
-
+                           
                             xml.sample(id: id, dir: srcDir, args: args)
 
-                            Element exampleElement = doc.createElement('example')
-
-                            Element titleElement = doc.createElement('title')
-                            titleElement.appendChild(doc.createTextNode("Output of "))
+                            Element outputTitle = doc.createElement("para")
+                            outputTitle.appendChild(doc.createTextNode("Output of "))
                             Element commandElement = doc.createElement('userinput')
                             commandElement.appendChild(doc.createTextNode("gradle $args"))
-                            titleElement.appendChild(commandElement)
-                            exampleElement.appendChild(titleElement)
+                            outputTitle.appendChild(commandElement)
+                            exampleElement.appendChild(outputTitle)
 
                             Element screenElement = doc.createElement('screen')
                             File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${id}.out")
@@ -201,14 +193,13 @@ public class UserGuideTransformTask extends DefaultTask {
                             exampleElement.appendChild(screenElement)
 
                             locationHandler.processSampleLocation(exampleElement)
-                            element.parentNode.insertBefore(exampleElement, element)
                         } else if (child.name() == 'layout') {
-                            Element figureElement = doc.createElement('figure')
-                            Element titleElement = doc.createElement('title')
-                            figureElement.appendChild(titleElement)
-                            titleElement.appendChild(doc.createTextNode('Build layout'))
+                        	Element outputTitle = doc.createElement("para")
+                    		outputTitle.appendChild(doc.createTextNode("Build layout"))
+                    		exampleElement.appendChild(outputTitle)
+                    		
                             Element programListingElement = doc.createElement('programlisting')
-                            figureElement.appendChild(programListingElement)
+                            exampleElement.appendChild(programListingElement)
                             StringBuilder content = new StringBuilder()
                             content.append("${srcDir.tokenize('/').last()}/\n")
                             List stack = []
@@ -219,7 +210,7 @@ public class UserGuideTransformTask extends DefaultTask {
                                 }
                                 File file = new File(snippetsDir, "$srcDir/$fileName")
                                 if (!file.exists()) {
-                                    throw new RuntimeException("Sample file $file does not exist.")
+                                    throw new RuntimeException("Sample file $file does not exist for sample ${id}.")
                                 }
                                 List context = fileName.tokenize('/')
 
@@ -235,14 +226,10 @@ public class UserGuideTransformTask extends DefaultTask {
                             }
                             programListingElement.appendChild(doc.createTextNode(content.toString()))
                            
-                            locationHandler.processSampleLocation(figureElement)
-                            element.parentNode.insertBefore(figureElement, element)
-                           
-                        } else {
-                            throw new RuntimeException("Unrecognised sample type ${child.name()} found.")
+                            locationHandler.processSampleLocation(exampleElement)
                         }
                     }
-
+                    element.parentNode.insertBefore(exampleElement, element)
                     element.parentNode.removeChild(element)
                 }
             }

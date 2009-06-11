@@ -23,7 +23,7 @@
         <para>Let's try this out and try to access the <literal>name</literal> property of the
             <classname>Project</classname> object.
         </para>
-        <sample id="projectApi" dir="userguide/tutorial/projectApi">
+        <sample id="projectApi" dir="userguide/tutorial/projectApi" title="Accessing property of the Project object">
             <sourcefile file="build.gradle"/>
             <output args="-q check"/>
         </sample>
@@ -103,7 +103,7 @@
             </table>
 
             <para>Below is a sample build which demonstrates some of these properties.</para>
-            <sample id="projectCoreProperties" dir="userguide/tutorial/projectCoreProperties">
+            <sample id="projectCoreProperties" dir="userguide/tutorial/projectCoreProperties" title="Project properties">
                 <layout>
                     build.gradle
                     subProject

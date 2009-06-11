@@ -28,22 +28,22 @@
         <title>Ant properties and references</title>
 
         <para>To set an Ant property</para>
-        <sample id="antProperties" dir="userguide/ant/properties">
+        <sample id="antProperties" dir="userguide/ant/properties" title="Setting an Ant property">
             <sourcefile file="build.gradle" snippet="set-property"/>
             <sourcefile file="build.xml" snippet="set-property"/>
         </sample>
         <para>To get an Ant property</para>
-        <sample id="antProperties" dir="userguide/ant/properties">
+        <sample id="antProperties" dir="userguide/ant/properties" title="Getting an Ant property">
             <sourcefile file="build.xml" snippet="get-property"/>
             <sourcefile file="build.gradle" snippet="get-property"/>
         </sample>
         <para>To set an Ant reference</para>
-        <sample id="antProperties" dir="userguide/ant/properties">
+        <sample id="antProperties" dir="userguide/ant/properties" title="Setting an Ant reference">
             <sourcefile file="build.gradle" snippet="set-reference"/>
             <sourcefile file="build.xml" snippet="set-reference"/>
         </sample>
         <para>To get an Ant reference</para>
-        <sample id="antProperties" dir="userguide/ant/properties">
+        <sample id="antProperties" dir="userguide/ant/properties" title="Getting an Ant reference">
             <sourcefile file="build.xml" snippet="get-reference"/>
             <sourcefile file="build.gradle" snippet="get-reference"/>
         </sample>
@@ -53,7 +53,7 @@
         <title>Importing an Ant build</title>
         <para>You can use the <firstterm>Ant Plugin</firstterm> to import an Ant build into your Gradle project.
         </para>
-        <sample id="antHello" dir="userguide/ant/hello">
+        <sample id="antHello" dir="userguide/ant/hello" title="Importing an Ant build">
             <sourcefile file="build.gradle"/>
             <sourcefile file="build.xml"/>
             <output args="hello"/>
@@ -61,17 +61,17 @@
         <para>Each Ant target is treated as a Gradle task. This means you can manipulate and execute the Ant targets in
             exactly the same way as Gradle tasks. For example, you can add a task which depends on an Ant target:
         </para>
-        <sample id="dependsOnAntTarget" dir="userguide/ant/dependsOnAntTarget">
+        <sample id="dependsOnAntTarget" dir="userguide/ant/dependsOnAntTarget" title="Task that depends on Ant target">
             <sourcefile file="build.gradle"/>
             <output args="intro"/>
         </sample>
         <para>Or, you can add behaviour to an Ant target:</para>
-        <sample id="addBehaviourToAntTarget" dir="userguide/ant/addBehaviourToAntTarget">
+        <sample id="addBehaviourToAntTarget" dir="userguide/ant/addBehaviourToAntTarget" title="Adding behaviour to an Ant target">
             <sourcefile file="build.gradle"/>
             <output args="hello"/>
         </sample>
-        <para>It is also possible for an Ant target to depend on a Gradle task</para>
-        <sample id="dependsOnTask" dir="userguide/ant/dependsOnTask">
+        <para>It is also possible for an Ant target to depend on a Gradle task:</para>
+        <sample id="dependsOnTask" dir="userguide/ant/dependsOnTask" title="Ant target that depends on Gradle task">
             <sourcefile file="build.gradle"/>
             <sourcefile file="build.xml"/>
             <output args="hello"/>

@@ -38,7 +38,7 @@ usePlugin('java')
         </itemizedlist>
         <para>Let's check this out:
         </para>
-        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro">
+        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Using plugin">
             <sourcefile file="build.gradle"/>
             <output args="-q check"/>
         </sample>
@@ -77,7 +77,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
             code). The default location for the output of those tasks is the directory <literal>build/classes</literal>.
             What if you want to change this? Let's try:
         </para>
-        <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig">
+        <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig" title="Configuring a plugin">
             <sourcefile file="build.gradle"/>
             <output args="-q check"/>
         </sample>
@@ -90,7 +90,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         <para>Gradles tasks are usually <emphasis>convention aware</emphasis>. A plugin can add a convention object to
             your build. It can also map certain values of this convention object to task properties.
         </para>
-        <sample id="pluginConvention" dir="userguide/tutorial/pluginConvention">
+        <sample id="pluginConvention" dir="userguide/tutorial/pluginConvention" title="Plugin convention object">
             <sourcefile file="build.gradle"/>
             <output args="-q check"/>
         </sample>

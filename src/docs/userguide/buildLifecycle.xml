@@ -60,7 +60,7 @@
                     linkend='organizing_build_logic'/>). Let's first do some introspection with a single project
             build:
         </para>
-        <sample id="buildlifecycle" dir="userguide/buildlifecycle/basic">
+        <sample id="buildlifecycle" dir="userguide/buildlifecycle/basic" title="Single project build">
             <sourcefile file="settings.gradle"/>
             <sourcefile file="build.gradle"/>
             <output args="test"/>
@@ -94,7 +94,7 @@
             </para>
             <section>
                 <title>Hierarchical layouts</title>
-                <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts">
+                <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts" title="Hierarchical layout">
                     <sourcefile file="settings.gradle" snippet="hierarchical-layout"/>
                 </sample>
                 <para>The <literal>include</literal> method takes as an argument a relative virtual path to the root
@@ -106,7 +106,7 @@
             </section>
             <section>
                 <title>Flat layouts</title>
-                <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts">
+                <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts" title="Flat layout">
                     <sourcefile file="settings.gradle" snippet="flat-layout"/>
                 </sample>
                 <para>The <literal>includeFlat</literal> method takes directory names as an argument. Those directories
@@ -120,12 +120,12 @@
             <para>The multi-project tree created in the settings file is made up of so called <firstterm>project descriptors</firstterm>.
                 You can modify these descriptors in the settings file at any time. To access a descriptor you can do:
             </para>
-            <sample id="customLayout" dir="userguide/multiproject/customLayout">
+            <sample id="customLayout" dir="userguide/multiproject/customLayout" title="Modification of elements of the project tree">
                 <sourcefile file="settings.gradle" snippet="lookup-project"/>
             </sample>
             <para>Using this descriptor you can change the name, project directory and build file of a project.
             </para>
-            <sample id="customLayout" dir="userguide/multiproject/customLayout">
+            <sample id="customLayout" dir="userguide/multiproject/customLayout" title="Modification of elements of the project tree">
                 <sourcefile file="settings.gradle" snippet="change-project"/>
             </sample>
             <para>Have a look at <apilink class="org.gradle.api.initialization.ProjectDescriptor"/> for more details.</para>
@@ -222,7 +222,7 @@
             <para>Below is an example which adds a <literal>test</literal> task to each project with the
                 <literal>hasTests</literal> property set to true.
             </para>
-            <sample id="projectEvaluateEvents" dir="userguide/buildlifecycle/projectEvaluateEvents">
+            <sample id="projectEvaluateEvents" dir="userguide/buildlifecycle/projectEvaluateEvents" title="Adding of test task to each project which has certain property set">
                 <sourcefile file="build.gradle" snippet="after-evaluate"/>
                 <sourcefile file="projectA.gradle"/>
                 <output args="-q test"/>
@@ -233,7 +233,7 @@
                 some custom logging of project evaluation. Notice that the <literal>afterProject</literal> notification
                 is received regardless of whether the project evaluates successfully or fails with an exception.
             </para>
-            <sample id="buildProjectEvaluateEvents" dir="userguide/buildlifecycle/buildProjectEvaluateEvents">
+            <sample id="buildProjectEvaluateEvents" dir="userguide/buildlifecycle/buildProjectEvaluateEvents" title="Notifications">
                 <sourcefile file="build.gradle" snippet="evaluate-events"/>
                 <output args="-q test"/>
             </sample>
@@ -247,7 +247,7 @@
             <para>You can receive a notification immediately after a task is added to a project. This can be used
                 to set some default values or add behaviour before the task is made available in the build file.</para>
             <para>The following example sets the <literal>srcDir</literal> property of each task as it is created.</para>
-            <sample id="taskCreationEvents" dir="userguide/buildlifecycle/taskCreationEvents">
+            <sample id="taskCreationEvents" dir="userguide/buildlifecycle/taskCreationEvents" title="Setting of certain property to all tasks">
                 <sourcefile file="build.gradle"/>
                 <output args="-q a"/>
             </sample>
@@ -271,7 +271,7 @@
             <para>The following example logs the start and end of each task execution. Notice that the
                 <literal>afterTask</literal> notification is received regardless of whether the task completes
                 successfully or fails with an exception.</para>
-            <sample id="taskExecutionEvents" dir="userguide/buildlifecycle/taskExecutionEvents">
+            <sample id="taskExecutionEvents" dir="userguide/buildlifecycle/taskExecutionEvents" title="Logging of start and end of each task execution">
                 <sourcefile file="build.gradle"/>
                 <output args="-q broken"/>
             </sample>

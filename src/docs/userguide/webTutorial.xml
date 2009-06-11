@@ -29,7 +29,7 @@
     <section>
         <title>Building a WAR file</title>
         <para>To build a WAR file, you apply the War plugin to your project:</para>
-        <sample id="webQuickstart" dir="webApplication/quickstart" includeLocation="true">
+        <sample id="webQuickstart" dir="webApplication/quickstart" includeLocation="true" title="War plugin">
             <sourcefile file="build.gradle" snippet="use-war-plugin"/>
         </sample>
         <para>This also applies the Java plugin to your project. Running <userinput>gradle libs</userinput> will compile,
@@ -45,7 +45,7 @@
     <section>
         <title>Running your web application</title>
         <para>To run your web application, you apply the Jetty plugin to your project:</para>
-        <sample id="webQuickstart" dir="webApplication/quickstart">
+        <sample id="webQuickstart" dir="webApplication/quickstart" title="Running web application with Jetty plugin">
             <sourcefile file="build.gradle" snippet="use-jetty-plugin"/>
         </sample>
         <para>This also applies the War plugin to your project. Running <userinput>gradle jettyRun</userinput> will

@@ -16,7 +16,7 @@
 <chapter id="tutorial_gradle_command_line">
     <title>Using the Gradle Command-Line</title>
     <para>This chapter introduces the basics of the Gradle command-line. You run a build using the
-        <command>gradle</command> command, which you have already seen this in action in previous chapters.</para>
+        <command>gradle</command> command, which you have already seen in action in previous chapters.</para>
     <section>
         <title>Executing multiple tasks</title>
         <para>You can execute multiple tasks in a single build by listing each of the tasks on the command-line. For example,
@@ -24,14 +24,12 @@
             <literal>test</literal> tasks. Gradle will execute the tasks in the order that they are listed on the
             command-line, and will also execute the dependencies for each task. Each task is executed once only,
             regardless of why it is included in the build: whether it was specified on the command-line, or it a
-            dependency of another task, or both. Let's look at an example:</para>
-        <sample id="multipleTasksFromCommandLine" dir="userguide/tutorial/multipleTasksFromCommandLine">
+            dependency of another task, or both. Let's look at an example.</para>
+            <para>Below three tasks are defined. Both <literal>libs</literal> and <literal>test</literal> depend on <literal>compile</literal>
+            task. Execution of <userinput>gradle -q libs test</userinput> command for this build script results in <literal>compile</literal>
+            task being executed only once.</para> 
+        <sample id="multipleTasksFromCommandLine" dir="userguide/tutorial/multipleTasksFromCommandLine" title="Executing multiple tasks">
             <sourcefile file="build.gradle"/>
-        </sample>
-        <para>Below is the result of executing <userinput>gradle -q libs test</userinput> for this build script. Notice that
-            the <literal>compile</literal> task is executed once, even though it is a dependency of both
-            <literal>libs</literal> and <literal>test</literal>.</para>
-        <sample id="multipleTasksFromCommandLine" dir="userguide/tutorial/multipleTasksFromCommandLine">
             <output args="-q libs test"/>
         </sample>
         <para>Because each task is executed once only, executing <userinput>gradle libs libs</userinput> is exactly the same

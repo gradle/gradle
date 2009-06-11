@@ -29,15 +29,15 @@
             with a name. You can use them to declare the external dependencies your project has, or to declare the
             artifacts which your project publishes.</para>
         <para>To define a configuration:</para>
-        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration">
+        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Definition of a configuration">
             <sourcefile file="build.gradle" snippet="define-configuration"/>
         </sample>
         <para>To access a configuration:</para>
-        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration">
+        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Accessing a configuration">
             <sourcefile file="build.gradle" snippet="lookup-configuration"/>
         </sample>
         <para>To configure a configuration:</para>
-        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration">
+        <sample id="defineConfiguration" dir="userguide/artifacts/defineConfiguration" title="Configuration of a configuration">
             <sourcefile file="build.gradle" snippet="configure-configuration"/>
         </sample>
     </section>
@@ -46,20 +46,20 @@
         <title>Repositories</title>
         <para>Artifacts are stored in <firstterm>repositories</firstterm>.</para>
         <para>To use maven central repository:</para>
-        <sample id="defineRepository" dir="userguide/artifacts/defineRepository">
+        <sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Usage of Maven central repository">
             <sourcefile file="build.gradle" snippet="maven-central"/>
         </sample>
         <para>To use a local directory:</para>
-        <sample id="defineRepository" dir="userguide/artifacts/defineRepository">
+        <sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Usage of a local directory">
             <sourcefile file="build.gradle" snippet="flat-dir"/>
         </sample>
         <para>You can also use any Ivy resolver. You can have multiple repositories.</para>
         <para>To access a repository:</para>
-        <sample id="defineRepository" dir="userguide/artifacts/defineRepository">
+        <sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Accessing a repository">
             <sourcefile file="build.gradle" snippet="lookup-resolver"/>
         </sample>
         <para>To configure a repository:</para>
-        <sample id="defineRepository" dir="userguide/artifacts/defineRepository">
+        <sample id="defineRepository" dir="userguide/artifacts/defineRepository" title="Configuration of a repository">
             <sourcefile file="build.gradle" snippet="configure-resolver"/>
         </sample>
     </section>
@@ -67,13 +67,13 @@
     <section>
         <title>External dependencies</title>
         <para>To define an external dependency, you add a dependency to a configuration:</para>
-        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies">
+        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies" title="Definition of an external dependency">
             <sourcefile file="build.gradle" snippet="define-dependency"/>
         </sample>
         <para><literal>group</literal> and <literal>version</literal> are optional</para>
         <para>TBD - configuring an external dependency</para>
         <para>To use the external dependencies of a configuration:</para>
-        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies">
+        <sample id="externalDependencies" dir="userguide/artifacts/externalDependencies"  title="Usage of external dependency of a configuration">
             <sourcefile file="build.gradle" snippet="use-configuration"/>
             <output args="-q listJars"/>
         </sample>
