@@ -15,18 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
-import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
-import org.gradle.api.artifacts.ExternalDependency;
-import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.util.ReflectionUtil;
-import org.gradle.util.GradleUtil;
 
-import java.util.Map;
-import java.util.HashMap;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -42,7 +37,7 @@ class MapModuleNotationParser {
             ExternalDependency dependency = dependencyType.getConstructor(String.class, String.class, String.class, String.class).
                     newInstance(group, name, version, configuration);
             ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args, "classifier"));
-            GradleUtil.setFromMap(dependency, args);
+            ReflectionUtil.setFromMap(dependency, args);
             return dependency;
         } catch (InstantiationException e) {
             throw new GradleException(e);

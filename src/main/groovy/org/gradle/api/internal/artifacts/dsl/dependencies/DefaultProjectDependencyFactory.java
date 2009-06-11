@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import groovy.lang.GString;
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
-import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.util.GradleUtil;
-import groovy.lang.GString;
+import org.gradle.util.ReflectionUtil;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -43,7 +43,7 @@ public class DefaultProjectDependencyFactory implements ProjectDependencyFactory
         String path = getAndRemove(args, "path");
         String configuration = getAndRemove(args, "configuration");
         ProjectDependency dependency = new DefaultProjectDependency(projectFinder.getProject(path), configuration);
-        GradleUtil.setFromMap(dependency, args);
+        ReflectionUtil.setFromMap(dependency, args);
         return dependency;
     }
 
