@@ -17,10 +17,10 @@ package org.gradle;
 
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
+import org.gradle.api.internal.artifacts.dsl.TaskDefinitionScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
@@ -73,10 +73,9 @@ public class DefaultGradleFactory implements GradleFactory {
                 new BuildScriptCompiler(
                         importsReader,
                         new DefaultScriptProcessor(
-                        new DefaultScriptCompilationHandler(
-                                cachePropertiesHandler,
-                                new BuildScriptTransformer()),
-                        startParameter.getCacheUsage()),
+                                new DefaultScriptCompilationHandler(
+                                        cachePropertiesHandler),
+                                startParameter.getCacheUsage()),
                         new DefaultProjectScriptMetaData()),
                 new BuildScriptEvaluator());
         Gradle gradle = new Gradle(

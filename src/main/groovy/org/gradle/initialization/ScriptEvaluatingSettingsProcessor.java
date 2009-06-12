@@ -72,10 +72,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         ScriptSource source = new ImportsScriptSource(settingsFinder.getSettingsScriptSource(), importsReader,
                 settingsFinder.getSettingsDir());
         try {
-            Script settingsScript = scriptProcessor.createScript(
-                    source,
-                    Thread.currentThread().getContextClassLoader(),
-                    ScriptWithSource.class);
+            Script settingsScript = scriptProcessor.createProcessor(source).process(ScriptWithSource.class);
             settingsScriptMetaData.applyMetaData(settingsScript, settings);
             Clock clock = new Clock();
             settingsScript.run();

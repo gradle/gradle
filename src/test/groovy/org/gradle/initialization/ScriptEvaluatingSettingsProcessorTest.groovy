@@ -19,18 +19,17 @@ package org.gradle.initialization
 import groovy.mock.interceptor.MockFor
 import org.gradle.StartParameter
 import org.gradle.api.internal.project.ImportsReader
-import org.gradle.groovy.scripts.*
-import org.gradle.initialization.DefaultSettings
-import org.gradle.initialization.ScriptEvaluatingSettingsProcessor
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
-import static org.gradle.util.Matchers.*
-import org.hamcrest.Matchers
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
-import static org.junit.Assert.assertSame
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import org.gradle.groovy.scripts.*
+import org.gradle.initialization.*
+import static org.gradle.util.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -115,12 +114,14 @@ class ScriptEvaluatingSettingsProcessorTest {
     private void prepareScriptProcessorMock() {
         ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSourceMock, importsReader, TEST_ROOT_DIR);
         Script expectedScript = new EmptyScript()
+        ScriptProcessor processor = context.mock(ScriptProcessor)
         context.checking {
-            one(scriptProcessorMock).createScript(
-                    withParam(reflectionEquals(expectedScriptSource)),
-                    withParam(Matchers.sameInstance(Thread.currentThread().contextClassLoader)),
-                    withParam(Matchers.equalTo(ScriptWithSource.class)))
+            one(scriptProcessorMock).createProcessor(withParam(reflectionEquals(expectedScriptSource)))
+            will(returnValue(processor))
+
+            one(processor).process(ScriptWithSource.class)
             will(returnValue(expectedScript))
+
             one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
         }
     }

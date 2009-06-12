@@ -103,7 +103,7 @@ public class DefaultScriptCompilationHandlerTest {
             one(cachePropertiesHandlerMock).writeProperties(testScript, scriptCacheDir);
             one(cachePropertiesHandlerMock).getCacheState(testScript, scriptCacheDir); will(returnValue(CachePropertiesHandler.CacheState.VALID));
         }});
-        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, expectedScriptClass);
+        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
@@ -120,7 +120,7 @@ public class DefaultScriptCompilationHandlerTest {
             one(cachePropertiesHandlerMock).writeProperties(emptyScript, scriptCacheDir);
         }});
 
-        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, expectedScriptClass);
+        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
@@ -137,7 +137,7 @@ public class DefaultScriptCompilationHandlerTest {
             one(cachePropertiesHandlerMock).writeProperties(emptyScript, scriptCacheDir);
         }});
 
-        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, expectedScriptClass);
+        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
@@ -146,7 +146,7 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test public void testCreateScriptOnTheFly() {
-        Script script = scriptCompilationHandler.createScriptOnTheFly(scriptSource, classLoader, expectedScriptClass);
+        Script script = scriptCompilationHandler.createScriptOnTheFly(scriptSource, classLoader, null, expectedScriptClass);
 
         checkScriptClassesNotInCache();
 
@@ -154,7 +154,7 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test public void testCreateScriptOnTheFlyWithWhitespaceOnlyScript() {
-        Script script = scriptCompilationHandler.createScriptOnTheFly(new StringScriptSource("script", "// ignore me\n"), classLoader, expectedScriptClass);
+        Script script = scriptCompilationHandler.createScriptOnTheFly(new StringScriptSource("script", "// ignore me\n"), classLoader, null, expectedScriptClass);
 
         checkScriptClassesNotInCache();
 
@@ -162,7 +162,7 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test public void testCreateScriptOnTheFlyWithEmptyScript() {
-        Script script = scriptCompilationHandler.createScriptOnTheFly(new StringScriptSource("script", ""), classLoader, expectedScriptClass);
+        Script script = scriptCompilationHandler.createScriptOnTheFly(new StringScriptSource("script", ""), classLoader, null, expectedScriptClass);
 
         checkScriptClassesNotInCache();
 
@@ -181,14 +181,14 @@ public class DefaultScriptCompilationHandlerTest {
             one(cachePropertiesHandlerMock).writeProperties(testScript, scriptCacheDir);
             allowing(cachePropertiesHandlerMock).getCacheState(testScript, scriptCacheDir); will(returnValue(CachePropertiesHandler.CacheState.VALID));
         }});
-        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, Script.class);
+        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, Script.class);
         assertNull(scriptCompilationHandler.loadFromCache(scriptSource, classLoader, scriptCacheDir, expectedScriptClass));
     }
 
     @Test public void testWriteToCacheWithException() {
         ScriptSource source = new StringScriptSource("script", "\n\nnew HHHHJSJSJ jsj");
         try {
-            scriptCompilationHandler.writeToCache(source, classLoader, scriptCacheDir, expectedScriptClass);
+            scriptCompilationHandler.writeToCache(source, classLoader, scriptCacheDir, null, expectedScriptClass);
             fail();
         } catch (GradleScriptException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
@@ -199,7 +199,7 @@ public class DefaultScriptCompilationHandlerTest {
     @Test public void testCreateScriptWithException() {
         ScriptSource source = new StringScriptSource("script", "\n\nnew HHHHJSJSJ jsj");
         try {
-            scriptCompilationHandler.createScriptOnTheFly(source, classLoader, expectedScriptClass);
+            scriptCompilationHandler.createScriptOnTheFly(source, classLoader, null, expectedScriptClass);
             fail();
         } catch (GradleScriptException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
@@ -224,9 +224,7 @@ public class DefaultScriptCompilationHandlerTest {
             }
         };
 
-        DefaultScriptCompilationHandler handler = new DefaultScriptCompilationHandler(cachePropertiesHandlerMock,
-                visitor);
-        Script script = handler.createScriptOnTheFly(new StringScriptSource("source", "transformMe()"), classLoader, expectedScriptClass);
+        Script script = scriptCompilationHandler.createScriptOnTheFly(new StringScriptSource("source", "transformMe()"), classLoader, visitor, expectedScriptClass);
         evaluateScript(script);
     }
 

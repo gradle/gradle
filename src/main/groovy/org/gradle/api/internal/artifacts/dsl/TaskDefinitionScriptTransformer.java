@@ -27,7 +27,7 @@ import org.codehaus.groovy.ast.expr.*;
 import java.util.List;
 import java.util.Collections;
 
-public class BuildScriptTransformer extends CompilationUnit.SourceUnitOperation {
+public class TaskDefinitionScriptTransformer extends CompilationUnit.SourceUnitOperation {
     public void call(SourceUnit source) throws CompilationFailedException {
         GroovyCodeVisitor transformer = new TaskDefinitionTransformer();
         source.getAST().getStatementBlock().visit(transformer);

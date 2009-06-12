@@ -29,7 +29,11 @@ import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
+import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.control.CompilationFailedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,10 +46,7 @@ import java.net.URLClassLoader;
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultScriptProcessorTest {
     static final String TEST_BUILD_FILE_NAME = "mybuild.craidle";
-    static final String TEST_SCRIPT_NAME = "mybuild_craidle";
     static final String TEST_SCRIPT_TEXT = "sometext";
-    static final String TEST_IN_MEMORY_SCRIPT_TEXT = "someInMemoryText";
-    static final String TEST_SCRIPT_ATACHEMENT = "import org.gradle.api.*";
 
     DefaultScriptProcessor scriptProcessor;
 
@@ -54,6 +55,7 @@ public class DefaultScriptProcessorTest {
     File testScriptFile;
 
     ClassLoader testClassLoader;
+    ClassLoader originalClassLoader;
 
     ScriptCompilationHandler scriptCompilationHandlerMock;
 
@@ -77,15 +79,21 @@ public class DefaultScriptProcessorTest {
         scriptProcessor = new DefaultScriptProcessor(scriptCompilationHandlerMock, CacheUsage.ON);
         source = context.mock(ScriptSource.class);
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(source).getDisplayName();
             will(returnValue("[script source]"));
+
             allowing(expectedScript).setScriptSource(source);
         }});
+
+        originalClassLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(testClassLoader);
     }
 
     @After
     public void tearDown() {
+        Thread.currentThread().setContextClassLoader(originalClassLoader);
+
         HelperUtil.deleteTestDir();
     }
 
@@ -104,11 +112,12 @@ public class DefaultScriptProcessorTest {
             one(scriptCompilationHandlerMock).createScriptOnTheFly(
                     source,
                     testClassLoader,
+                    null,
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
         }});
 
-        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
+        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 
     @Test
@@ -121,12 +130,13 @@ public class DefaultScriptProcessorTest {
                 one(scriptCompilationHandlerMock).createScriptOnTheFly(
                         source,
                         testClassLoader,
+                        null,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }
         });
 
-        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
+        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 
     @Test
@@ -144,15 +154,16 @@ public class DefaultScriptProcessorTest {
                         source,
                         testClassLoader,
                         testCacheDir,
-                        expectedScriptBaseClass
-                );
+                        null,
+                        expectedScriptBaseClass);
 
                 one(scriptCompilationHandlerMock).loadFromCache(source, testClassLoader, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(expectedScript));
 
             }
         });
-        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
+
+        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 
     @Test
@@ -168,7 +179,7 @@ public class DefaultScriptProcessorTest {
             }
         });
 
-        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
+        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 
     @Test
@@ -183,8 +194,8 @@ public class DefaultScriptProcessorTest {
                         source,
                         testClassLoader,
                         testCacheDir,
-                        expectedScriptBaseClass
-                );
+                        null,
+                        expectedScriptBaseClass);
 
                 one(scriptCompilationHandlerMock).loadFromCache(source, testClassLoader, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(expectedScript));
@@ -192,7 +203,7 @@ public class DefaultScriptProcessorTest {
         });
 
         scriptProcessor = new DefaultScriptProcessor(scriptCompilationHandlerMock, CacheUsage.REBUILD);
-        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
+        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 
     @Test
@@ -206,13 +217,14 @@ public class DefaultScriptProcessorTest {
                 one(scriptCompilationHandlerMock).createScriptOnTheFly(
                         source,
                         testClassLoader,
+                        null,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }
         });
 
         scriptProcessor = new DefaultScriptProcessor(scriptCompilationHandlerMock, CacheUsage.OFF);
-        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
+        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 
     @Test
@@ -225,15 +237,58 @@ public class DefaultScriptProcessorTest {
                 one(scriptCompilationHandlerMock).createScriptOnTheFly(
                         source,
                         testClassLoader,
+                        null,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
             }
         });
 
         scriptProcessor = new DefaultScriptProcessor(scriptCompilationHandlerMock, CacheUsage.OFF);
-        assertSame(expectedScript, scriptProcessor.createScript(source, testClassLoader, expectedScriptBaseClass));
+        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 
+    @Test
+    public void testUsesSuppliedClassLoader() {
+        final ClassLoader classLoader = new ClassLoader() {
+        };
+
+        context.checking(new Expectations(){{
+            allowing(source).getSourceFile();
+            will(returnValue(testScriptFile));
+
+            one(scriptCompilationHandlerMock).createScriptOnTheFly(
+                    source,
+                    classLoader,
+                    null,
+                    expectedScriptBaseClass);
+            will(returnValue(expectedScript));
+        }});
+
+        assertSame(expectedScript, scriptProcessor.createProcessor(source).setClassloader(classLoader).process(expectedScriptBaseClass));
+    }
+
+    @Test
+    public void testUsesSuppliedTransformer() {
+        final CompilationUnit.SourceUnitOperation transformer = new CompilationUnit.SourceUnitOperation() {
+            public void call(SourceUnit source) throws CompilationFailedException {
+            }
+        };
+
+        context.checking(new Expectations(){{
+            allowing(source).getSourceFile();
+            will(returnValue(testScriptFile));
+
+            one(scriptCompilationHandlerMock).createScriptOnTheFly(
+                    source,
+                    testClassLoader,
+                    transformer,
+                    expectedScriptBaseClass);
+            will(returnValue(expectedScript));
+        }});
+
+        assertSame(expectedScript, scriptProcessor.createProcessor(source).setTransformer(transformer).process(expectedScriptBaseClass));
+    }
+    
     private void createBuildScriptFile() {
         try {
             FileUtils.writeStringToFile(testScriptFile, TEST_SCRIPT_TEXT);

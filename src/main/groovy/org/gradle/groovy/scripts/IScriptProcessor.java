@@ -17,19 +17,18 @@ package org.gradle.groovy.scripts;
 
 import groovy.lang.Script;
 
-import java.io.File;
-
-import org.gradle.CacheUsage;
-
 /**
  * Loads scripts from text source into a {@link Script} object.
  *
  * @author Hans Dockter
  */
 public interface IScriptProcessor {
-
     /**
-     * Loads a script from the given source, creating a class with the given base class and ClassLoader.
+     * Creates a processor for the given source. The returned processor can be used to compile the script into various
+     * different forms.
+     *
+     * @param source The script source.
+     * @return a processor which can be used to process the script.
      */
-    <T extends ScriptWithSource> T createScript(ScriptSource source, ClassLoader classLoader, Class<T> scriptBaseClass);
+    ScriptProcessor createProcessor(ScriptSource source);
 }

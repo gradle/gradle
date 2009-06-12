@@ -39,27 +39,17 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
 
     private final CachePropertiesHandler cachePropertiesHandler;
-    private final CompilationUnit.SourceUnitOperation transformer;
 
     public DefaultScriptCompilationHandler(CachePropertiesHandler cachePropertiesHandler) {
-        this(cachePropertiesHandler, new CompilationUnit.SourceUnitOperation() {
-            @Override
-            public void call(SourceUnit source) throws CompilationFailedException {
-            }
-        });
-    }
-
-    public DefaultScriptCompilationHandler(CachePropertiesHandler cachePropertiesHandler,
-                                           CompilationUnit.SourceUnitOperation transformer) {
         this.cachePropertiesHandler = cachePropertiesHandler;
-        this.transformer = transformer;
     }
 
     public <T extends Script> T createScriptOnTheFly(ScriptSource source, ClassLoader classLoader,
+                                                     CompilationUnit.SourceUnitOperation transformer,
                                                      Class<T> scriptBaseClass) {
         Clock clock = new Clock();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
-        Class scriptClass = parseScript(source, classLoader, configuration);
+        Class scriptClass = parseScript(source, classLoader, configuration, transformer);
         T script = scriptBaseClass.cast(InvokerHelper.createScript(scriptClass, new Binding()));
 
         logger.debug("Timing: Creating script took: {}", clock.getTime());
@@ -67,25 +57,28 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     public void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
-                             Class<? extends Script> scriptBaseClass) {
+                             CompilationUnit.SourceUnitOperation transformer, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(scriptCacheDir);
         scriptCacheDir.mkdirs();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(scriptCacheDir);
-        parseScript(source, classLoader, configuration);
+        parseScript(source, classLoader, configuration, transformer);
 
         cachePropertiesHandler.writeProperties(source.getText(), scriptCacheDir);
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(),
                 clock.getTime());
     }
 
-    private Class parseScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration) {
+    private Class parseScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
+                              final CompilationUnit.SourceUnitOperation transformer) {
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(CompilerConfiguration config, CodeSource source) {
                 CompilationUnit compilationUnit = super.createCompilationUnit(config, source);
-                compilationUnit.addPhaseOperation(transformer, Phases.CANONICALIZATION);
+                if (transformer != null) {
+                    compilationUnit.addPhaseOperation(transformer, Phases.CANONICALIZATION);
+                }
                 return compilationUnit;
             }
         };

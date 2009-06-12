@@ -15,14 +15,12 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.internal.artifacts.dsl.TaskDefinitionScriptTransformer;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
-import org.gradle.groovy.scripts.IProjectScriptMetaData;
-import org.gradle.groovy.scripts.IScriptProcessor;
-import org.gradle.groovy.scripts.ImportsScriptSource;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.util.Matchers;
+import org.gradle.groovy.scripts.*;
+import static org.gradle.util.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -41,6 +39,7 @@ public class BuildScriptCompilerTest {
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final IScriptProcessor scriptProcessor = context.mock(IScriptProcessor.class);
+    private final ScriptProcessor processor = context.mock(ScriptProcessor.class);
     private final IProjectScriptMetaData projectScriptMetaData = context.mock(IProjectScriptMetaData.class);
     private final ImportsReader importsReader = context.mock(ImportsReader.class);
     private final ClassLoader classLoader = context.mock(ClassLoader.class);
@@ -68,8 +67,13 @@ public class BuildScriptCompilerTest {
         final ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSource, importsReader, rootDir);
 
         context.checking(new Expectations() {{
-            one(scriptProcessor).createScript(with(Matchers.reflectionEquals(expectedScriptSource)), with(same(
-                    classLoader)), with(equal(ProjectScript.class)));
+            one(scriptProcessor).createProcessor(with(reflectionEquals(expectedScriptSource)));
+            will(returnValue(processor));
+
+            one(processor).setClassloader(classLoader);
+            one(processor).setTransformer(with(any(TaskDefinitionScriptTransformer.class)));
+
+            one(processor).process(ProjectScript.class);
             will(returnValue(buildScript));
 
             one(projectScriptMetaData).applyMetaData(buildScript, project);

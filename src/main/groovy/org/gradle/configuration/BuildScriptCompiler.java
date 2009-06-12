@@ -18,10 +18,8 @@ package org.gradle.configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.ImportsScriptSource;
-import org.gradle.groovy.scripts.IScriptProcessor;
-import org.gradle.groovy.scripts.IProjectScriptMetaData;
+import org.gradle.api.internal.artifacts.dsl.TaskDefinitionScriptTransformer;
+import org.gradle.groovy.scripts.*;
 import groovy.lang.Script;
 
 public class BuildScriptCompiler implements ProjectEvaluator {
@@ -39,8 +37,10 @@ public class BuildScriptCompiler implements ProjectEvaluator {
     public void evaluate(ProjectInternal project) {
         ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader,
                 project.getRootDir());
-        Script buildScript = scriptProcessor.createScript(source, project.getBuildScriptClassLoader(),
-                ProjectScript.class);
+        ScriptProcessor processor = scriptProcessor.createProcessor(source);
+        processor.setClassloader(project.getBuildScriptClassLoader());
+        processor.setTransformer(new TaskDefinitionScriptTransformer());
+        Script buildScript = processor.process(ProjectScript.class);
         projectScriptMetaData.applyMetaData(buildScript, project);
         project.setBuildScript(buildScript);
     }

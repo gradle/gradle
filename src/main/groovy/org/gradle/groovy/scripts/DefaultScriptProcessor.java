@@ -15,7 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
+import org.codehaus.groovy.control.CompilationUnit;
 import org.gradle.CacheUsage;
 import org.gradle.api.Project;
 
@@ -33,37 +33,10 @@ public class DefaultScriptProcessor implements IScriptProcessor {
         this.cacheUsage = cacheUsage;
     }
 
-    public <T extends ScriptWithSource> T createScript(ScriptSource source, ClassLoader classLoader,
-                                                       Class<T> scriptBaseClass) {
-        File sourceFile = source.getSourceFile();
-        T script;
-        if (isCacheable(sourceFile)) {
-            script = loadViaCache(source, classLoader, scriptBaseClass);
-        }
-        else {
-            script = loadWithoutCache(source, classLoader, scriptBaseClass);
-        }
-        script.setScriptSource(source);
-        return script;
+    public ScriptProcessor createProcessor(ScriptSource source) {
+        return new ScriptProcessorImpl(source);
     }
 
-    private <T extends ScriptWithSource> T loadWithoutCache(ScriptSource source, ClassLoader classLoader, Class<T> scriptBaseClass) {
-        return scriptCompilationHandler.createScriptOnTheFly(source, classLoader, scriptBaseClass);
-    }
-
-    private <T extends ScriptWithSource> T loadViaCache(ScriptSource source, ClassLoader classLoader, Class<T> scriptBaseClass) {
-        File sourceFile = source.getSourceFile();
-        File cacheDir = new File(sourceFile.getParentFile(), Project.CACHE_DIR_NAME);
-        File scriptCacheDir = new File(cacheDir, sourceFile.getName());
-        if (cacheUsage == CacheUsage.ON) {
-            T cachedScript = scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
-            if (cachedScript != null) {
-                return cachedScript;
-            }
-        }
-        scriptCompilationHandler.writeToCache(source, classLoader, scriptCacheDir, scriptBaseClass);
-        return scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
-    }
 
     private boolean isCacheable(File sourceFile) {
         return cacheUsage != CacheUsage.OFF && sourceFile != null && sourceFile.isFile();
@@ -75,5 +48,58 @@ public class DefaultScriptProcessor implements IScriptProcessor {
 
     public CacheUsage getCacheUsage() {
         return cacheUsage;
+    }
+
+    private class ScriptProcessorImpl implements ScriptProcessor {
+        private final ScriptSource source;
+        private ClassLoader classloader;
+        private CompilationUnit.SourceUnitOperation transformer;
+
+        public ScriptProcessorImpl(ScriptSource source) {
+            this.source = source;
+        }
+
+        public ScriptProcessor setClassloader(ClassLoader classloader) {
+            this.classloader = classloader;
+            return this;
+        }
+
+        public ScriptProcessor setTransformer(CompilationUnit.SourceUnitOperation transformer) {
+            this.transformer = transformer;
+            return this;
+        }
+
+        public <T extends ScriptWithSource> T process(Class<T> scriptType) {
+            ClassLoader classloader = this.classloader != null ? this.classloader : Thread.currentThread().getContextClassLoader();
+
+            File sourceFile = source.getSourceFile();
+            T script;
+            if (isCacheable(sourceFile)) {
+                script = loadViaCache(classloader, scriptType);
+            }
+            else {
+                script = loadWithoutCache(classloader, scriptType);
+            }
+            script.setScriptSource(source);
+            return script;
+        }
+
+        private <T extends ScriptWithSource> T loadWithoutCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
+            return scriptCompilationHandler.createScriptOnTheFly(source, classLoader, transformer, scriptBaseClass);
+        }
+
+        private <T extends ScriptWithSource> T loadViaCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
+            File sourceFile = source.getSourceFile();
+            File cacheDir = new File(sourceFile.getParentFile(), Project.CACHE_DIR_NAME);
+            File scriptCacheDir = new File(cacheDir, sourceFile.getName());
+            if (cacheUsage == CacheUsage.ON) {
+                T cachedScript = scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
+                if (cachedScript != null) {
+                    return cachedScript;
+                }
+            }
+            scriptCompilationHandler.writeToCache(source, classLoader, scriptCacheDir, transformer, scriptBaseClass);
+            return scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
+        }
     }
 }
