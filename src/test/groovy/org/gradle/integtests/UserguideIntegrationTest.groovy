@@ -59,7 +59,7 @@ class UserguideIntegrationTest {
     private static def checkSamples(File gradleHome, File samplesDir, File userguideOutputDir, File userguideInfoDir) {
         return getScriptsForSamples(userguideInfoDir).each {GradleRun run ->
             try {
-                logger.info("Test Id: $run.id")
+                logger.info("Test Id: $run.id, dir: $run.subDir, args: $run.execute")
                 Map result
                 if (run.groovyScript) {
                     result = runGroovyScript(new File(samplesDir, "userguide/$run.subDir/$run.file"))
@@ -129,34 +129,35 @@ class UserguideIntegrationTest {
 
     static Collection getScriptsForSamples(File userguideInfoDir) {
         Node samples = new XmlParser().parse(new File(userguideInfoDir, 'samples.xml'))
-        Map samplesById = new LinkedHashMap()
+        Map samplesByDir = new LinkedHashMap()
 
         samples.children().each {Node sample ->
             String id = sample.'@id'
             String dir = sample.'@dir'
             String args = sample.'@args'
-            if (samplesById[id]) {
-                if (samplesById[id].dir != dir || (samplesById[id].args && args)) {
-                    throw new RuntimeException("Duplicate sample with id '$id'.")
-                }
-                if (!args) {
-                    return
-                }
+            String outputFile = sample.'@outputFile'
+            if (!samplesByDir[dir]) {
+                samplesByDir[dir] = []
             }
-            samplesById[id] = [id: id, dir: dir, args: args, envs: [:], expectFailure: false]
+            samplesByDir[dir] << [id: id, dir: dir, args: args, envs: [:], expectFailure: false, outputFile: outputFile]
         }
 
         // Some custom values
-        samplesById['properties'].envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue'
-        samplesById['taskExecutionEvents'].expectFailure = true
-        samplesById['buildProjectEvaluateEvents'].expectFailure = true
+        samplesByDir['userguide/tutorial/properties'].each { it.envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue' }
+        samplesByDir['userguide/buildlifecycle/taskExecutionEvents']*.expectFailure = true
+        samplesByDir['userguide/buildlifecycle/buildProjectEvaluateEvents']*.expectFailure = true
 
-        return samplesById.values().collect {sample ->
-            String id = sample.id
-            String dir = sample.dir
-            List args = sample.args == null ? ['-t'] : sample.args.split('\\s+')
-            String outputFile = sample.args != null ? "${id}.out" : null
-            new GradleRun(id: id, subDir: dir, execute: args, outputFile: outputFile, debugLevel: Executer.LIFECYCLE, envs: sample.envs, expectFailure: sample.expectFailure)
-        }
+        return samplesByDir.values().collect {List dirSamples ->
+            List runs = dirSamples.findAll {it.args}
+            if (!runs) {
+                def sample = dirSamples[0]
+                return new GradleRun(id: sample.id, subDir: sample.dir, execute: ['-t'], outputFile: null, debugLevel: Executer.LIFECYCLE, envs: sample.envs, expectFailure: sample.expectFailure)
+            }
+            else {
+                return runs.collect {sample ->
+                    new GradleRun(id: sample.id, subDir: sample.dir, execute: sample.args.split('\\s+'), outputFile: sample.outputFile, debugLevel: Executer.LIFECYCLE, envs: sample.envs, expectFailure: sample.expectFailure)
+                }
+            }
+        }.flatten()
     }
 }

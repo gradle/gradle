@@ -77,7 +77,7 @@ h3 {
  * Table of Contents
  */
 
-.toc dl {
+.toc dl, .list-of-examples dl {
     margin-top: 0;
     margin-bottom: 0;
 }
@@ -85,6 +85,11 @@ h3 {
 .book .toc > dl > dt {
     margin-top: 0.6em;
 }
+
+.book .toc, .book .list-of-examples {
+    margin-top: 2em;
+}
+
 
 /*
  * Examples, Figures, Tables
@@ -120,11 +125,18 @@ pre {
     white-space: nowrap;
     /*overflow-x: hidden;*/
     margin-top: 0;
-    margin-bottom: 0.2em;
+    margin-bottom: 0.6em;
 }
 
 .example pre, .figure pre {
     margin: 0;
+    margin-bottom: 0.6em;
+}
+
+.example-contents > p {
+    display: block;
+    margin: 0;
+    margin-bottom: 0.2em;
 }
 
 .example-break, .figure-break {
@@ -200,11 +212,11 @@ pre {
 
 /* Remove top margins on headings inside notes and tips */
 .tip h1, .note h1
-.tip h2, .note  h2,
-.tip h3, .note  h3,
-.tip h4, .note  h4,
-.tip h5, .note  h5,
-.tip h6 .note  h6 
+.tip h2, .note h2,
+.tip h3, .note h3,
+.tip h4, .note h4,
+.tip h5, .note h5,
+.tip h6, .note h6
 {
    margin-top: 0;
 }

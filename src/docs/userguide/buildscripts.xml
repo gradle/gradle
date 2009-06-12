@@ -211,10 +211,7 @@
         <sample id="configByDagNoRelease" dir="userguide/tutorial/configByDag" title="Different outcomes of build depending on chosen tasks">
             <sourcefile file="build.gradle"/>
             <output args="-q distribution"/>
-        </sample>
-        <!-- TODO - merge these samples -->
-        <sample id="configByDag" dir="userguide/tutorial/configByDag" title="Different outcomes of build depending on chosen tasks">
-            <output args="-q release"/>
+            <output args="-q release" outputFile="configByDag.out"/>
         </sample>
         <para>The important thing is, that the fact that the release task has been chosen, has an effect
             <emphasis>before</emphasis> the release task gets executed. Nor has the release task to be the

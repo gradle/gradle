@@ -136,14 +136,14 @@ public class UserGuideTransformTask extends DefaultTask {
             xml.samples {
                 doc.documentElement.depthFirst().findAll { it.name() == 'sample' }.each {Element element ->
                 	validator.validate(element)
-                    String id = element.'@id'
+                    String sampleId = element.'@id'
                     String srcDir = element.'@dir'
 
                     // This class handles the responsibility of adding the location tips to the first child of first
                     // example defined in the sample.
                     SampleElementLocationHandler locationHandler = new SampleElementLocationHandler(doc, element, srcDir)
                    
-                    xml.sample(id: id, dir: srcDir)
+                    xml.sample(id: sampleId, dir: srcDir)
 
                     String title = element.'@title' 
 
@@ -177,8 +177,9 @@ public class UserGuideTransformTask extends DefaultTask {
                            
                         } else if (child.name() == 'output') {
                             String args = child.'@args'
-                           
-                            xml.sample(id: id, dir: srcDir, args: args)
+                            String outputFile = child.'@outputFile' ? child.'@outputFile' : "${sampleId}.out"
+
+                            xml.sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile)
 
                             Element outputTitle = doc.createElement("para")
                             outputTitle.appendChild(doc.createTextNode("Output of "))
@@ -188,7 +189,7 @@ public class UserGuideTransformTask extends DefaultTask {
                             exampleElement.appendChild(outputTitle)
 
                             Element screenElement = doc.createElement('screen')
-                            File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${id}.out")
+                            File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}")
                             screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
                             exampleElement.appendChild(screenElement)
 
@@ -197,7 +198,7 @@ public class UserGuideTransformTask extends DefaultTask {
                         	Element outputTitle = doc.createElement("para")
                     		outputTitle.appendChild(doc.createTextNode("Build layout"))
                     		exampleElement.appendChild(outputTitle)
-                    		
+
                             Element programListingElement = doc.createElement('programlisting')
                             exampleElement.appendChild(programListingElement)
                             StringBuilder content = new StringBuilder()
@@ -210,7 +211,7 @@ public class UserGuideTransformTask extends DefaultTask {
                                 }
                                 File file = new File(snippetsDir, "$srcDir/$fileName")
                                 if (!file.exists()) {
-                                    throw new RuntimeException("Sample file $file does not exist for sample ${id}.")
+                                    throw new RuntimeException("Sample file $file does not exist for sample ${sampleId}.")
                                 }
                                 List context = fileName.tokenize('/')
 
@@ -225,7 +226,7 @@ public class UserGuideTransformTask extends DefaultTask {
                                 }
                             }
                             programListingElement.appendChild(doc.createTextNode(content.toString()))
-                           
+
                             locationHandler.processSampleLocation(exampleElement)
                         }
                     }
