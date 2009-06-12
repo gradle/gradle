@@ -22,7 +22,7 @@ import groovy.lang.Script;
  *
  * @author Hans Dockter
  */
-public interface IScriptProcessor {
+public interface ScriptProcessorFactory {
     /**
      * Creates a processor for the given source. The returned processor can be used to compile the script into various
      * different forms.

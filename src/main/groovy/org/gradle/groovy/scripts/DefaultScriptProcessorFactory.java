@@ -24,11 +24,11 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public class DefaultScriptProcessor implements IScriptProcessor {
+public class DefaultScriptProcessorFactory implements ScriptProcessorFactory {
     private ScriptCompilationHandler scriptCompilationHandler;
     private final CacheUsage cacheUsage;
 
-    public DefaultScriptProcessor(ScriptCompilationHandler scriptCompilationHandler, CacheUsage cacheUsage) {
+    public DefaultScriptProcessorFactory(ScriptCompilationHandler scriptCompilationHandler, CacheUsage cacheUsage) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.cacheUsage = cacheUsage;
     }

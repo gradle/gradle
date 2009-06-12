@@ -24,20 +24,20 @@ import groovy.lang.Script;
 
 public class BuildScriptCompiler implements ProjectEvaluator {
     private final ImportsReader importsReader;
-    private final IScriptProcessor scriptProcessor;
+    private final ScriptProcessorFactory scriptProcessorFactory;
     private final IProjectScriptMetaData projectScriptMetaData;
 
-    public BuildScriptCompiler(ImportsReader importsReader, IScriptProcessor scriptProcessor,
+    public BuildScriptCompiler(ImportsReader importsReader, ScriptProcessorFactory scriptProcessorFactory,
                                IProjectScriptMetaData projectScriptMetaData) {
         this.importsReader = importsReader;
-        this.scriptProcessor = scriptProcessor;
+        this.scriptProcessorFactory = scriptProcessorFactory;
         this.projectScriptMetaData = projectScriptMetaData;
     }
 
     public void evaluate(ProjectInternal project) {
         ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader,
                 project.getRootDir());
-        ScriptProcessor processor = scriptProcessor.createProcessor(source);
+        ScriptProcessor processor = scriptProcessorFactory.createProcessor(source);
         processor.setClassloader(project.getBuildScriptClassLoader());
         processor.setTransformer(new TaskDefinitionScriptTransformer());
         Script buildScript = processor.process(ProjectScript.class);

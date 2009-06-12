@@ -25,11 +25,11 @@ import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.integration.junit4.JMock;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.SourceUnit;
@@ -43,12 +43,12 @@ import java.net.URLClassLoader;
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock.class)
-public class DefaultScriptProcessorTest {
+@RunWith(JMock.class)
+public class DefaultScriptProcessorFactoryTest {
     static final String TEST_BUILD_FILE_NAME = "mybuild.craidle";
     static final String TEST_SCRIPT_TEXT = "sometext";
 
-    DefaultScriptProcessor scriptProcessor;
+    DefaultScriptProcessorFactory scriptProcessor;
 
     File testCacheDir;
     File testScriptFileDir;
@@ -76,7 +76,7 @@ public class DefaultScriptProcessorTest {
         testScriptFile = new File(testScriptFileDir, TEST_BUILD_FILE_NAME);
         testCacheDir = new File(new File(testScriptFileDir, Project.CACHE_DIR_NAME), TEST_BUILD_FILE_NAME);
         expectedScript = context.mock(ScriptWithSource.class);
-        scriptProcessor = new DefaultScriptProcessor(scriptCompilationHandlerMock, CacheUsage.ON);
+        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.ON);
         source = context.mock(ScriptSource.class);
 
         context.checking(new Expectations() {{
@@ -202,7 +202,7 @@ public class DefaultScriptProcessorTest {
             }
         });
 
-        scriptProcessor = new DefaultScriptProcessor(scriptCompilationHandlerMock, CacheUsage.REBUILD);
+        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.REBUILD);
         assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 
@@ -223,7 +223,7 @@ public class DefaultScriptProcessorTest {
             }
         });
 
-        scriptProcessor = new DefaultScriptProcessor(scriptCompilationHandlerMock, CacheUsage.OFF);
+        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.OFF);
         assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 
@@ -243,7 +243,7 @@ public class DefaultScriptProcessorTest {
             }
         });
 
-        scriptProcessor = new DefaultScriptProcessor(scriptCompilationHandlerMock, CacheUsage.OFF);
+        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.OFF);
         assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
     }
 

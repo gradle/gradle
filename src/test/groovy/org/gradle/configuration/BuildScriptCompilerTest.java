@@ -38,14 +38,14 @@ public class BuildScriptCompilerTest {
     }};
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
-    private final IScriptProcessor scriptProcessor = context.mock(IScriptProcessor.class);
+    private final ScriptProcessorFactory scriptProcessorFactory = context.mock(ScriptProcessorFactory.class);
     private final ScriptProcessor processor = context.mock(ScriptProcessor.class);
     private final IProjectScriptMetaData projectScriptMetaData = context.mock(IProjectScriptMetaData.class);
     private final ImportsReader importsReader = context.mock(ImportsReader.class);
     private final ClassLoader classLoader = context.mock(ClassLoader.class);
     private final ProjectScript buildScript = context.mock(ProjectScript.class);
     private final File rootDir = new File("root dir");
-    private final BuildScriptCompiler evaluator = new BuildScriptCompiler(importsReader, scriptProcessor,
+    private final BuildScriptCompiler evaluator = new BuildScriptCompiler(importsReader, scriptProcessorFactory,
             projectScriptMetaData);
 
     @Before
@@ -67,7 +67,7 @@ public class BuildScriptCompilerTest {
         final ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSource, importsReader, rootDir);
 
         context.checking(new Expectations() {{
-            one(scriptProcessor).createProcessor(with(reflectionEquals(expectedScriptSource)));
+            one(scriptProcessorFactory).createProcessor(with(reflectionEquals(expectedScriptSource)));
             will(returnValue(processor));
 
             one(processor).setClassloader(classLoader);

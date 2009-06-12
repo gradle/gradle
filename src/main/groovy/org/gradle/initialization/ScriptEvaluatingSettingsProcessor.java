@@ -21,11 +21,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.groovy.scripts.IScriptProcessor;
-import org.gradle.groovy.scripts.ISettingsScriptMetaData;
-import org.gradle.groovy.scripts.ImportsScriptSource;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.ScriptWithSource;
+import org.gradle.groovy.scripts.ScriptProcessorFactory;
+import org.gradle.groovy.scripts.*;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +38,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     private SettingsFactory settingsFactory;
 
-    private IScriptProcessor scriptProcessor;
+    private ScriptProcessorFactory scriptProcessorFactory;
 
     private ISettingsScriptMetaData settingsScriptMetaData;
 
@@ -50,10 +47,10 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     }
 
     public ScriptEvaluatingSettingsProcessor(ISettingsScriptMetaData settingsScriptMetaData,
-                                             IScriptProcessor scriptProcessor, ImportsReader importsReader,
+                                             ScriptProcessorFactory scriptProcessorFactory, ImportsReader importsReader,
                                              SettingsFactory settingsFactory) {
         this.settingsScriptMetaData = settingsScriptMetaData;
-        this.scriptProcessor = scriptProcessor;
+        this.scriptProcessorFactory = scriptProcessorFactory;
         this.importsReader = importsReader;
         this.settingsFactory = settingsFactory;
     }
@@ -72,7 +69,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         ScriptSource source = new ImportsScriptSource(settingsFinder.getSettingsScriptSource(), importsReader,
                 settingsFinder.getSettingsDir());
         try {
-            Script settingsScript = scriptProcessor.createProcessor(source).process(ScriptWithSource.class);
+            Script settingsScript = scriptProcessorFactory.createProcessor(source).process(ScriptWithSource.class);
             settingsScriptMetaData.applyMetaData(settingsScript, settings);
             Clock clock = new Clock();
             settingsScript.run();
@@ -98,12 +95,12 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         this.settingsFactory = settingsFactory;
     }
 
-    public void setScriptProcessor(IScriptProcessor scriptProcessor) {
-        this.scriptProcessor = scriptProcessor;
+    public void setScriptProcessor(ScriptProcessorFactory scriptProcessorFactory) {
+        this.scriptProcessorFactory = scriptProcessorFactory;
     }
 
-    public IScriptProcessor getScriptProcessor() {
-        return scriptProcessor;
+    public ScriptProcessorFactory getScriptProcessor() {
+        return scriptProcessorFactory;
     }
 
     public ISettingsScriptMetaData getSettingsScriptMetaData() {

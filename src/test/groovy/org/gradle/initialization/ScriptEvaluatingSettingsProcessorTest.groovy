@@ -42,7 +42,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     ImportsReader importsReader
     SettingsFactory settingsFactory
     StartParameter expectedStartParameter
-    IScriptProcessor scriptProcessorMock
+    ScriptProcessorFactory scriptProcessorMock
     ISettingsScriptMetaData settingsScriptMetaData
     DefaultSettings expectedSettings
     MockFor settingsFactoryMocker
@@ -65,7 +65,7 @@ class ScriptEvaluatingSettingsProcessorTest {
 
     private void instantiateConstructorArgs() {
         settingsScriptMetaData = context.mock(ISettingsScriptMetaData)
-        scriptProcessorMock = context.mock(IScriptProcessor)
+        scriptProcessorMock = context.mock(ScriptProcessorFactory)
         importsReader = new ImportsReader()
         settingsFactory = context.mock(SettingsFactory)
     }

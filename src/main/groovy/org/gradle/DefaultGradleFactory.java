@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
-import org.gradle.api.internal.artifacts.dsl.TaskDefinitionScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
@@ -72,7 +71,7 @@ public class DefaultGradleFactory implements GradleFactory {
         DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(
                 new BuildScriptCompiler(
                         importsReader,
-                        new DefaultScriptProcessor(
+                        new DefaultScriptProcessorFactory(
                                 new DefaultScriptCompilationHandler(
                                         cachePropertiesHandler),
                                 startParameter.getCacheUsage()),
@@ -86,7 +85,7 @@ public class DefaultGradleFactory implements GradleFactory {
                         new PropertiesLoadingSettingsProcessor(
                                 new ScriptEvaluatingSettingsProcessor(
                                         new DefaultSettingsScriptMetaData(),
-                                        new DefaultScriptProcessor(
+                                        new DefaultScriptProcessorFactory(
                                                 new DefaultScriptCompilationHandler(cachePropertiesHandler),
                                                 startParameter.getCacheUsage()),
                                         importsReader,
