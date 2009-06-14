@@ -94,7 +94,7 @@ class DefaultRepositoryHandler extends DefaultResolverContainer implements Repos
                 urls.size() == 1 ? [] as String[] : urls[1..-1] as String[]))
     }
 
-    public GroovyMavenDeployer mavenDeployer(Map args = [:]) {
+    public GroovyMavenDeployer mavenDeployer(Map args) {
         GroovyMavenDeployer mavenDeployer = createMavenDeployer(args)
         return (GroovyMavenDeployer) add(mavenDeployer);
     }
@@ -106,17 +106,33 @@ class DefaultRepositoryHandler extends DefaultResolverContainer implements Repos
         return mavenDeployer
     }
 
-    public GroovyMavenDeployer mavenDeployer(Map args = [:], Closure configureClosure) {
+    public GroovyMavenDeployer mavenDeployer() {
+        mavenDeployer([:])
+    }
+
+    public GroovyMavenDeployer mavenDeployer(Closure configureClosure) {
+        mavenDeployer([:], configureClosure)
+    }
+
+    public GroovyMavenDeployer mavenDeployer(Map args, Closure configureClosure) {
         GroovyMavenDeployer mavenDeployer = createMavenDeployer(args)
         return (GroovyMavenDeployer) add(mavenDeployer, configureClosure);
     }
 
-    public MavenResolver mavenInstaller(Map args = [:]) {
+    public MavenResolver mavenInstaller() {
+        mavenInstaller([:])
+    }
+
+    public MavenResolver mavenInstaller(Closure configureClosure) {
+        mavenInstaller([:], configureClosure)
+    }
+
+    public MavenResolver mavenInstaller(Map args) {
         MavenResolver mavenInstaller = createMavenInstaller(args)
         return (MavenResolver) add(mavenInstaller);
     }
 
-    public MavenResolver mavenInstaller(Map args = [:], Closure configureClosure) {
+    public MavenResolver mavenInstaller(Map args, Closure configureClosure) {
         MavenResolver mavenInstaller = createMavenInstaller(args)
         return (MavenResolver) add(mavenInstaller, configureClosure);
     }
@@ -126,5 +142,23 @@ class DefaultRepositoryHandler extends DefaultResolverContainer implements Repos
         String defaultName = RepositoryHandler.DEFAULT_MAVEN_INSTALLER_NAME + "-" + System.identityHashCode(mavenInstaller);
         mavenInstaller.setName(getNameFromMap(args, defaultName))
         return mavenInstaller
+    }
+
+    // These are here to make Groovy 1.6 happy
+
+    public DependencyResolver findByName(String name) {
+        super.findByName(name)
+    }
+
+    public DependencyResolver getByName(String name) {
+        super.getByName(name)
+    }
+
+    public DependencyResolver getByName(String name, Closure configureClosure) {
+        super.getByName(name, configureClosure)
+    }
+
+    public DependencyResolver getAt(String name) {
+        super.getAt(name)
     }
 }

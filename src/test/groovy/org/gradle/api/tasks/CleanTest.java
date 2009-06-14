@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
@@ -62,7 +63,7 @@ public class CleanTest extends AbstractConventionTaskTest {
         HelperUtil.deleteTestDir();
     }
 
-    public AbstractTask getTask() {
+    public ConventionTask getTask() {
         return clean;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,24 @@
  * limitations under the License.
  */
  
-package org.gradle.api.tasks
+package org.gradle.api.tasks;
 
-import org.gradle.api.internal.ConventionTestHelper
-import org.junit.Before
-import org.junit.Test
+import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.ConventionTestHelper;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-abstract class AbstractConventionTaskTest extends AbstractTaskTest {
+public abstract class AbstractConventionTaskTest extends AbstractTaskTest {
 
-    @Before
-    public void setUp() {
-        super.setUp()
-    }
-
+    public abstract ConventionTask getTask();
+    
     @Test
     public void testConventionAwareness() {
-        ConventionTestHelper conventionTestHelper = new ConventionTestHelper()
-        getTask().setConventionAwareHelper(conventionTestHelper.conventionAwareHelperMock)
+        ConventionTestHelper conventionTestHelper = new ConventionTestHelper();
+        ConventionTask task = this.getTask();
+        task.setConventionAwareHelper(conventionTestHelper.getConventionAwareHelperMock());
     }
 }
 

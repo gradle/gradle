@@ -123,7 +123,7 @@ public class TaskFactory implements ITaskFactory {
             if (property instanceof MetaBeanProperty) {
                 MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                 MetaMethod getter = metaBeanProperty.getGetter();
-                if (getter != null && !Modifier.isFinal(getter.getModifiers()) && ConventionTask.class.isAssignableFrom(getter.getDeclaringClass().getCachedClass())) {
+                if (getter != null && !Modifier.isFinal(getter.getModifiers()) && ConventionTask.class.isAssignableFrom(getter.getDeclaringClass().getTheClass())) {
                     String returnTypeName = getter.getReturnType().getCanonicalName();
                     src.format("public %s %s() { return conv(super.%s(), '%s'); }%n", returnTypeName,
                             getter.getName(), getter.getName(), property.getName());

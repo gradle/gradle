@@ -85,7 +85,7 @@ dependencies {
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.74.3@zip'
 
-    groovy module("org.codehaus.groovy:groovy-all:1.5.6") {
+    groovy module("org.codehaus.groovy:groovy-all:1.6.3") {
         module("org.apache.ant:ant:1.7.0") {
             dependencies("org.apache.ant:ant-junit:1.7.0@jar", "org.apache.ant:ant-launcher:1.7.0@jar")
         }
@@ -146,6 +146,8 @@ dependencies {
         dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3')
         dependencies(FIRST_LEVEL_JMOCK as Object[])
     }
+    // todo - these should not be here
+    testCompile 'org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3'
     distLib "junit:junit:4.5"
 }
 

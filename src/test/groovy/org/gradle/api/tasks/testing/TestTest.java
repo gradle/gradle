@@ -20,7 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.FileCollection;
-import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.AbstractTaskTest;
@@ -85,7 +85,7 @@ public class TestTest extends AbstractConventionTaskTest {
             assertTrue(TEST_TEST_CLASSES_DIR.mkdirs());
     }
 
-    public AbstractTask getTask() {
+    public ConventionTask getTask() {
         return test;
     }
 

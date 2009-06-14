@@ -165,6 +165,10 @@ public interface RepositoryHandler extends ResolverContainer, IConventionAware {
      */
     DependencyResolver mavenRepo(Map args);
 
+    GroovyMavenDeployer mavenDeployer();
+
+    GroovyMavenDeployer mavenDeployer(Closure configureClosure);
+
     /**
      * Adds a repository for publishing to a Maven repository. This repository can not be used for reading from a Maven
      * repository.
@@ -196,6 +200,10 @@ public interface RepositoryHandler extends ResolverContainer, IConventionAware {
      * @return The added repository
      */
     GroovyMavenDeployer mavenDeployer(Map args, Closure configureClosure);
+
+    MavenResolver mavenInstaller();
+
+    MavenResolver mavenInstaller(Closure configureClosure);
 
     /**
      * Adds a repository for installing to a local Maven cache. This repository can not be used for reading.

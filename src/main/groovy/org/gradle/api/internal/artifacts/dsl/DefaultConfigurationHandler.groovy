@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.internal.artifacts.IvyService
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.artifacts.Configuration
 
 /**
  * @author Hans Dockter
@@ -46,5 +47,23 @@ class DefaultConfigurationHandler extends DefaultConfigurationContainer implemen
         } finally {
             configuring = false
         }
+    }
+
+    // These are here to make Groovy 1.6 happy
+
+    public Configuration findByName(String name) {
+        super.findByName(name)
+    }
+
+    public Configuration getByName(String name) {
+        super.getByName(name)
+    }
+
+    public Configuration getByName(String name, Closure configureClosure) {
+        super.getByName(name, configureClosure)
+    }
+
+    public Configuration getAt(String name) {
+        super.getAt(name)
     }
 }

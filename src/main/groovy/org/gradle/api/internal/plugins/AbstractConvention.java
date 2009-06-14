@@ -55,8 +55,12 @@ public class AbstractConvention implements Convention {
     }
 
     public Object getProperty(String name) throws MissingPropertyException {
+        BeanDynamicObject dynamicObject = new BeanDynamicObject(this);
+        if (dynamicObject.hasProperty(name)) {
+            return dynamicObject.getProperty(name);
+        }
         for (Object object : plugins.values()) {
-            BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
+            dynamicObject = new BeanDynamicObject(object);
             if (dynamicObject.hasProperty(name)) {
                 return dynamicObject.getProperty(name);
             }

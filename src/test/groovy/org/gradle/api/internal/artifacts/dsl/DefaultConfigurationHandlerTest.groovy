@@ -53,14 +53,14 @@ class DefaultConfigurationHandlerTest {
         configurationHandler.getByName('unknown')
     }
 
-    @Test void exisitingConfiguration() {
+    @Test void makesExisitingConfigurationAvailableAsProperty() {
         Configuration configuration = configurationHandler.add('newConf')
         assertThat(configuration, is(not(null)))
         assertThat(configurationHandler.getByName("newConf"), sameInstance(configuration))
         assertThat(configurationHandler.newConf, sameInstance(configuration))
     }
 
-    @Test void newConfigurationWithClosure() {
+    @Test void addsNewConfigurationWithClosureWhenConfiguringSelf() {
         String someDesc = 'desc1'
         configurationHandler.configure {
             newConf {
@@ -70,11 +70,22 @@ class DefaultConfigurationHandlerTest {
         assertThat(configurationHandler.newConf.getDescription(), equalTo(someDesc))
     }
 
-    @Test void existingConfigurationWithClosure() {
+    @Test void makesExistingConfigurationAvailableAsConfigureMethod() {
         String someDesc = 'desc1'
         configurationHandler.add('newConf')
         Configuration configuration = configurationHandler.newConf {
             description = someDesc
+        }
+        assertThat(configuration.getDescription(), equalTo(someDesc))
+    }
+
+    @Test void makesExistingConfigurationAvailableAsConfigureMethodWhenConfiguringSelf() {
+        String someDesc = 'desc1'
+        Configuration configuration = configurationHandler.add('newConf')
+        configurationHandler.configure {
+            newConf {
+                description = someDesc
+            }
         }
         assertThat(configuration.getDescription(), equalTo(someDesc))
     }

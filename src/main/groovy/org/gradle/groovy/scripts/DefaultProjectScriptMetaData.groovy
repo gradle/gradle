@@ -44,6 +44,9 @@ public class DefaultProjectScriptMetaData implements IProjectScriptMetaData {
             logger.debug("Project: {} Property {} set a project property.", project.path, name)
             project."$name" = value
         }
+        projectScriptExpandoMetaclass.hasProperty = {String name ->
+            project.hasProperty(name)
+        }
         projectScriptExpandoMetaclass.initialize()
         script.metaClass = projectScriptExpandoMetaclass
     }

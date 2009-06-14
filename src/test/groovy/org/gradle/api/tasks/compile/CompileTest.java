@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -45,7 +45,7 @@ public class CompileTest extends AbstractCompileTest {
         compile.antCompile = antCompileMock;
     }
            
-    public AbstractTask getTask() {
+    public ConventionTask getTask() {
         return compile;
     }
 

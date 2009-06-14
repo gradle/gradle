@@ -19,7 +19,6 @@ package org.gradle.api.tasks.bundling
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.GradleScriptException
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AntArchiveParameter
@@ -36,6 +35,7 @@ import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.*
 import org.gradle.api.artifacts.FileCollection
 import org.gradle.api.tasks.util.AntFileCollectionBuilder
+import org.gradle.api.internal.ConventionTask
 
 /**
  * @author Hans Dockter
@@ -44,7 +44,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     abstract AbstractArchiveTask getArchiveTask()
 
-    AbstractTask getTask() {
+    ConventionTask getTask() {
         archiveTask
     }
 

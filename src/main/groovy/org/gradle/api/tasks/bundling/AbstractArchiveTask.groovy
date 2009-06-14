@@ -180,8 +180,8 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * Adds an arbitrary collection of files to the archive. In contrast to a fileset they don't need to have a common
      * basedir.
      */
-    public FileCollection files(File... files) {
-        files(new DefaultFileCollection(files))
+    public FileCollection files(File... srcFiles) {
+        files(new DefaultFileCollection(srcFiles))
     }
 
     /**

@@ -66,18 +66,18 @@ class War extends Jar {
 
     public List dependencies(boolean failForMissingDependencies, boolean includeProjectDependencies) {
         List files = []
+        def filteredDependencies = {String configurationName ->
+            project.configurations.getByName(configurationName).copyRecursive(
+                    includeProjectDependencies ? Specs.SATISFIES_ALL : new DependencyTypeSpec(Type.EXTERNAL)).resolve() as List
+        }
+
         getLibConfigurations().each {String configurationName ->
-            files.addAll(this.filteredDependencies(configurationName, getProject(), includeProjectDependencies))
+            files.addAll(filteredDependencies(configurationName))
         }
         getLibExcludeConfigurations().each {String configurationName ->
-            files.removeAll(this.filteredDependencies(configurationName, getProject(), includeProjectDependencies))
+            files.removeAll(filteredDependencies(configurationName))
         }
         files
-    }
-
-    private List filteredDependencies(String configurationName, Project project, boolean includeProjectDependencies) {
-      project.configurations.getByName(configurationName).copyRecursive(
-              includeProjectDependencies ? Specs.SATISFIES_ALL : new DependencyTypeSpec(Type.EXTERNAL)).resolve() as List
     }
 
     /**

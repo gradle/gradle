@@ -203,6 +203,7 @@ class DefaultProjectTest {
   @Ignore void testArtifacts() {
         boolean called = false;
         ArtifactHandler artifactHandlerMock = [testMethod: { called = true }] as ArtifactHandler
+        project.artifactHandler = artifactHandlerMock
         project.artifacts {
             testMethod()
         }
@@ -210,16 +211,14 @@ class DefaultProjectTest {
   }
 
   @Test void testDependencies() {
-        DefaultDependencyHandler dependencyHandlerMock = context.mock(DefaultDependencyHandler)
-        context.checking {
-          one(dependencyHandlerMock).module("test")
-        }
-        project.dependencyHandler = dependencyHandlerMock
-        project.dependencies {
-          module("test")
-        }
+      boolean called = false;
+      DependencyHandler dependencyHandlerMock = [add: {String name, notation -> called = true; null}] as DependencyHandler
+      project.setDependencyHandler dependencyHandlerMock
+      project.dependencies {
+          add("test", "dep")
+      }
+      assertTrue(called)
   }
-
 
   @Test void testConfigurations() {
         Closure cl = { }

@@ -30,10 +30,12 @@ import org.gradle.api.internal.AbstractTask;
 class DefaultTask extends AbstractTask {
     DefaultTask() {
         super();
+        setMetaClass(GroovySystem.getMetaClassRegistry().getMetaClass(getClass()))
     }
 
     DefaultTask(Project project, String name) {
         super(project, name);
+        setMetaClass(GroovySystem.getMetaClassRegistry().getMetaClass(getClass()))
     }
 
     Task doFirst(Closure action) {

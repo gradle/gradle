@@ -110,12 +110,12 @@ public class Compile extends ConventionTask {
         this.classpath = configuration;
     }
 
-    public Compile include(String[] includes) {
+    public Compile include(String... includes) {
         GUtil.flatten(Arrays.asList(includes), this.includes);
         return this;
     }
 
-    public Compile exclude(String[] excludes) {
+    public Compile exclude(String... excludes) {
         GUtil.flatten(Arrays.asList(excludes), this.excludes);
         return this;
     }

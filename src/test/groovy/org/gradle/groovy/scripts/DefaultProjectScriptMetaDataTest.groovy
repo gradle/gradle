@@ -28,7 +28,8 @@ import org.junit.Test
 class DefaultProjectScriptMetaDataTest {
     @Test public void testApplyMetaData() {
         DefaultProjectScriptMetaData projectScriptMetaData = new DefaultProjectScriptMetaData()
-        DefaultProject testProject = new DefaultProject('someproject') 
+        DefaultProject testProject = new DefaultProject('someproject')
+        testProject.custom = 'true'
         Script script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
         projectScriptMetaData.applyMetaData(script, testProject)
         script.run();
@@ -47,6 +48,7 @@ class DefaultProjectScriptMetaDataTest {
         '''
 // We leave out the path to check import adding
 getName() // call a project method
+assert hasProperty('custom')
 def scriptMethod() { 'scriptMethod' }
 scriptProperty = project.path + 'mySuffix'
 String internalProp = 'a'
