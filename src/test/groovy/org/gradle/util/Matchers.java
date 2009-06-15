@@ -22,6 +22,7 @@ import org.hamcrest.Matcher;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.util.regex.Pattern;
+import java.util.Map;
 
 public class Matchers {
     @Factory
@@ -49,6 +50,20 @@ public class Matchers {
             public boolean matches(Object o) {
                 Iterable<?> iterable = (Iterable<?>) o;
                 return !iterable.iterator().hasNext();
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("is empty");
+            }
+        };
+    }
+
+    @Factory
+    public static Matcher<Map<?, ?>> isEmptyMap() {
+        return new BaseMatcher<Map<?, ?>>() {
+            public boolean matches(Object o) {
+                Map<?, ?> map = (Map<?,?>) o;
+                return map.isEmpty();
             }
 
             public void describeTo(Description description) {

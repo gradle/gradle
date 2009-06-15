@@ -96,12 +96,12 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
         booleans.keySet().each {junitOptions."$it" = true}
         Map optionMap = junitOptions.optionMap()
         booleans.values().each {
-            assertEquals("true", optionMap[it])
+            assertEquals(true, optionMap[it])
         }
         booleans.keySet().each {junitOptions."$it" = false}
         optionMap = junitOptions.optionMap()
         booleans.values().each {
-            assertEquals("false", optionMap[it])
+            assertEquals(false, optionMap[it])
         }
     }
 

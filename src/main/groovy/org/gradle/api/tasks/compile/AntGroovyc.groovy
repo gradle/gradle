@@ -44,7 +44,7 @@ class AntGroovyc {
         srcdir: '${sourceDirs.collect {GradleUtil.unbackslash(it)}.join(':')}',
         destdir: '${GradleUtil.unbackslash(targetDir)}',
         classpath: '${(classpath + BootstrapUtil.antJarFiles).collect {GradleUtil.unbackslash(it)}.join(':')}'] +
-        ${groovyOptions.optionMap()}) {
+        ${groovyOptions.quotedOptionMap()}) {
         ${groovyIncludes.collect {'include(name: \'' + it + '\')'}.join('\n')}
         ${groovyExcludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
         javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)}) {
@@ -59,7 +59,7 @@ class AntGroovyc {
     private Map filterNonGroovycOptions(CompileOptions options) {
         // todo check if groupBy allows a more concise solution
         Map result = [:]
-        options.optionMap().each {String key, String value ->
+        options.quotedOptionMap().each {String key, String value ->
             if (!nonGroovycJavacOptions.contains(key)) {
                 result[key] = value
             }

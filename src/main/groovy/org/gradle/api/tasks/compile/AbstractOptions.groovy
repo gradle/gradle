@@ -23,6 +23,7 @@ import java.lang.reflect.Modifier
  * @author Hans Dockter
  */
 abstract class AbstractOptions {
+
     void define(Map args) {
         args.each {String key, Object value ->
             this."$key" = value
@@ -31,12 +32,24 @@ abstract class AbstractOptions {
 
     Map optionMap() {
         getClass().declaredFields.findAll {Field field -> isOptionField(field)}.inject([:]) {Map optionMap, Field field ->
-            addStringifiedValueToMapIfNotNull(optionMap, field)
+            addValueToMapIfNotNull(optionMap, field)
+        }
+    }
+
+    Map quotedOptionMap() {
+        Map map = optionMap()
+        map.each {key, value ->
+            if (value instanceof String) {
+                map[key] = "'${value.replaceAll('\\\\', '\\\\\\\\').replaceAll('\'', '\\\\\'')}'".toString()
+            }
+            else {
+                map[key] = value.toString()
+            }
         }
     }
 
     // todo: change modifier to private when GROOVY-2565 is fixed.
-    protected Map addStringifiedValueToMapIfNotNull(Map map, Field field) {
+    protected Map addValueToMapIfNotNull(Map map, Field field) {
         def value = this."${field.name}"
         if (value != null) {map[antProperty(field.name)] = antValue(field.name, value)}
         map
@@ -58,11 +71,10 @@ abstract class AbstractOptions {
     }
 
     private def antValue(String fieldName, def value) {
-        String antValue = null
         if (fieldValue2AntMap().keySet().contains(fieldName)) {
-            antValue = fieldValue2AntMap()[fieldName]().toString()
+            return fieldValue2AntMap()[fieldName]()
         }
-        antValue ?: value.toString()
+        value
     }
 
     List excludedFieldsFromOptionMap() {

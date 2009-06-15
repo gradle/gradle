@@ -97,18 +97,18 @@ class CompileOptionsTest {
         Map optionMap = compileOptions.optionMap()
         booleans.values().each {
             if (it.equals('nowarn')) {
-                assertEquals("false", optionMap[it])
+                assertEquals(false, optionMap[it])
             } else {
-                assertEquals("true", optionMap[it])
+                assertEquals(true, optionMap[it])
             }
         }
         booleans.keySet().each {compileOptions."$it" = false}
         optionMap = compileOptions.optionMap()
         booleans.values().each {
             if (it.equals('nowarn')) {
-                assertEquals("true", optionMap[it])
+                assertEquals(true, optionMap[it])
             } else {
-                assertEquals("false", optionMap[it])
+                assertEquals(false, optionMap[it])
             }
         }
     }

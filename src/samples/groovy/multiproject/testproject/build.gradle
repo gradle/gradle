@@ -23,3 +23,7 @@ metaInf << new FileSet(new File(srcRoot, 'metaInfFiles'))
 test {
 	useJUnit().options.systemProperties['org.gradle.integtest.buildDir'] = buildDir.absolutePath
 }
+
+compile {
+    groovyOptions.fork(memoryMaximumSize: '128M')
+}

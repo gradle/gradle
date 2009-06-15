@@ -46,7 +46,7 @@ class JunitForkOptionsTest {
         Map optionMap = junitForkOptions.optionMap()
         assertFalse(optionMap.keySet().contains('dir'))
         junitForkOptions.dir = 'dirFile' as File
-        assertEquals('dirFile', junitForkOptions.optionMap()['dir'])
+        assertEquals(junitForkOptions.dir, junitForkOptions.optionMap()['dir'])
     }
 
     @Test public void testOptionMapWithNullables() {
@@ -79,12 +79,12 @@ class JunitForkOptionsTest {
         booleans.keySet().each {junitForkOptions."$it" = true}
         Map optionMap = junitForkOptions.optionMap()
         booleans.values().each {
-            assertEquals("true", optionMap[it])
+            assertEquals(true, optionMap[it])
         }
         booleans.keySet().each {junitForkOptions."$it" = false}
         optionMap = junitForkOptions.optionMap()
         booleans.values().each {
-            assertEquals("false", optionMap[it])
+            assertEquals(false, optionMap[it])
         }
     }
 
