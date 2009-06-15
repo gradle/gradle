@@ -45,8 +45,6 @@ group = 'org.gradle'
 buildTime = new Date()
 versionModifier = null
 
-webSrcDir = new File("$srcRoot", 'website')
-
 repositories {
     mavenCentral()
     add(new URLResolver()) {
@@ -120,7 +118,7 @@ dependencies {
     compile module("org.apache.ivy:ivy:2.1.0-rc1") {
         dependencies("jsch:jsch:0.1.31")
     }
-    
+
     compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",
             "org.apache.ant:ant:1.7.0@jar",
             "ch.qos.logback:logback-classic:0.9.9@jar",
@@ -650,6 +648,13 @@ uploadDists {
         user = codehausUserName
         userPassword = codehausUserPassword
         addArtifactPattern("$distributionUploadUrl/[artifact]-[revision](-[classifier]).[ext]" as String)
+    }
+}
+build.taskGraph.whenReady {graph ->
+    if (graph.hasTask(uploadDists)) {
+        // check properties defined and fail early
+        codehausUserName
+        codehausUserPassword
     }
 }
 
