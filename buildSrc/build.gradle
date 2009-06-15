@@ -12,12 +12,11 @@ repositories {
 
 dependencies {
     compile "com.svnkit:svnkit:1.1.6", "com.svnkit:svnkit-javahl:1.1.6", 'org.hamcrest:hamcrest-core:1.1', 'org.hamcrest:hamcrest-library:1.1'
+    compile files(org.gradle.util.BootstrapUtil.gradleClasspath)
+    // todo Actually it should be only groovy, but without junit we get a strange error. We need to understand this.
+    groovy files(org.gradle.util.BootstrapUtil.groovyFiles)
 }
 
-// todo Actually it should be only groovy, but without junit we get a strange error. We need to understand this.
-compile.groovyClasspath = files(org.gradle.util.BootstrapUtil.groovyFiles)
-compileTests.groovyClasspath = files(org.gradle.util.BootstrapUtil.groovyFiles)
-compile.unmanagedClasspath(org.gradle.util.BootstrapUtil.gradleClasspath as File[])
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
     options.fork(forkMode: org.gradle.api.tasks.testing.ForkMode.ONCE)

@@ -55,19 +55,18 @@ class VersionTest extends GroovyTestCase {
 
     DefaultProject createRootProject(File rootDir) {
         IProjectFactory projectFactory = new ProjectFactory(
-                new TaskFactory(),
-                new DefaultConfigurationContainerFactory(),
-                null,
-                new DefaultRepositoryHandlerFactory(null),
-                null,
-                null,
-                null,
-                new PluginRegistry(),
-                new StringScriptSource("embedded build file", "embedded"),
-                new DefaultAntBuilderFactory(new AntLoggingAdapter()))
+                new DefaultProjectServiceRegistryFactory(
+                        new DefaultRepositoryHandlerFactory(null),
+                        new DefaultConfigurationContainerFactory(),
+                        null,
+                        null,
+                        null),
+                new StringScriptSource("embedded build file", "embedded"))
         IProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry()
         ProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir, registry)
-        DefaultProject project = projectFactory.createProject(descriptor, null, new DefaultBuild(new StartParameter(), null, null))
+        StartParameter startParameter = new StartParameter()
+        startParameter.pluginPropertiesFile = new File('plugin.properties')
+        DefaultProject project = projectFactory.createProject(descriptor, null, new DefaultBuild(startParameter, null, null))
         return project;
     }
 
