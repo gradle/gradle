@@ -22,7 +22,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import static org.hamcrest.Matchers.*;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
-import org.jmock.States;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -34,22 +33,13 @@ import org.slf4j.Logger;
 @RunWith(JMock.class)
 public class BuildExceptionReporterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private Logger logger;
-    private BuildExceptionReporter reporter;
-    private OptionSet optionSet;
+    private Logger logger = context.mock(Logger.class);
+    private BuildExceptionReporter reporter = new BuildExceptionReporter(logger);
+    private StartParameter startParameter = new StartParameter();
 
     @Before
     public void setup() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-        logger = context.mock(Logger.class);
-        optionSet = context.mock(OptionSet.class);
-        reporter = new BuildExceptionReporter(logger);
-        reporter.setOptions(optionSet);
-
-        context.checking(new Expectations() {{
-            allowing(optionSet).has(with(aNonNull(String.class)));
-            will(returnValue(false));
-        }});
+        reporter.setStartParameter(startParameter);
     }
 
     @Test

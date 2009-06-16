@@ -89,6 +89,14 @@ public class MainTest {
                 actualStartParameter = startParameter;
                 return gradleMock;
             }
+
+            public Gradle newInstance(String[] commandLineArgs) {
+                throw new UnsupportedOperationException();
+            }
+
+            public StartParameter createStartParameter(String[] commandLineArgs) {
+                throw new UnsupportedOperationException();
+            }
         });
 
         expectedGradleImportsFile = new File(TEST_GRADLE_HOME, Main.IMPORTS_FILE_NAME).getCanonicalFile();
@@ -273,7 +281,7 @@ public class MainTest {
         checkMain("-C", "on");
     }
 
-    @Test(expected = InvalidUserDataException.class)
+    @Test(expected = CommandLineArgumentException.class)
     public void testMainWithUnknownCacheFlags() throws Throwable {
         checkMainFails("-C", "unknown");
     }
@@ -290,17 +298,17 @@ public class MainTest {
         checkMain(true, false, "-e", expectedEmbeddedScript);
     }
 
-    @Test(expected = InvalidUserDataException.class)
+    @Test(expected = CommandLineArgumentException.class)
     public void testMainWithEmbeddedScriptAndConflictingNoSearchUpwardsOption() throws Throwable {
         checkMainFails("-e", "someScript", "-u", "clean");
     }
 
-    @Test(expected = InvalidUserDataException.class)
+    @Test(expected = CommandLineArgumentException.class)
     public void testMainWithEmbeddedScriptAndConflictingSpecifyBuildFileOption() throws Throwable {
         checkMainFails("-e", "someScript", "-bsomeFile", "clean");
     }
 
-    @Test(expected = InvalidUserDataException.class)
+    @Test(expected = CommandLineArgumentException.class)
     public void testMainWithEmbeddedScriptAndConflictingSpecifySettingsFileOption() throws Throwable {
         checkMainFails("-e", "someScript", "-csomeFile", "clean");
     }
@@ -375,7 +383,7 @@ public class MainTest {
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
-    @Test(expected = InvalidUserDataException.class)
+    @Test(expected = CommandLineArgumentException.class)
     public void testMainWithShowTasksPropertiesAndDependencies() throws Throwable {
         checkMainFails("-r", "-t");
         checkMainFails("-r", "-n");
@@ -418,7 +426,7 @@ public class MainTest {
         try {
             checkMainFails("clean");
             fail();
-        } catch (InvalidUserDataException e) {
+        } catch (CommandLineArgumentException e) {
             // ignore
         }
     }

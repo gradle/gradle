@@ -50,6 +50,8 @@ import java.util.*;
  * @see Gradle
  */
 public class StartParameter {
+    public enum ShowStacktrace { INTERNAL_EXCEPTIONS, ALWAYS, ALWAYS_FULL }  
+
     private List<String> taskNames = new ArrayList<String>();
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction =
             new ProjectDependenciesBuildInstruction(Collections.<String>emptyList());
@@ -67,7 +69,10 @@ public class StartParameter {
     private BuildExecuter buildExecuter;
     private ProjectSpec defaultProjectSelector;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private File buildFile;
+    private boolean showHelp;
+    private boolean showVersion;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -101,7 +106,7 @@ public class StartParameter {
         startParameter.buildExecuter = buildExecuter;
         startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.logLevel = logLevel;
-
+        startParameter.showStacktrace = showStacktrace;
         return startParameter;
     }
 
@@ -350,6 +355,22 @@ public class StartParameter {
         this.cacheUsage = cacheUsage;
     }
 
+    public boolean isShowHelp() {
+        return showHelp;
+    }
+
+    public void setShowHelp(boolean showHelp) {
+        this.showHelp = showHelp;
+    }
+
+    public boolean isShowVersion() {
+        return showVersion;
+    }
+
+    public void setShowVersion(boolean showVersion) {
+        this.showVersion = showVersion;
+    }
+
     /**
      * Sets the settings file to use for the build. Use null to use the default settings file.
      *
@@ -371,6 +392,14 @@ public class StartParameter {
 
     public void setLogLevel(LogLevel logLevel) {
         this.logLevel = logLevel;
+    }
+
+    public ShowStacktrace getShowStacktrace() {
+        return showStacktrace;
+    }
+
+    public void setShowStacktrace(ShowStacktrace showStacktrace) {
+        this.showStacktrace = showStacktrace;
     }
 
     /**

@@ -38,9 +38,11 @@ import org.gradle.util.WrapUtil;
 */
 public class DefaultGradleFactory implements GradleFactory {
     private LoggingConfigurer loggingConfigurer;
+    private CommandLine2StartParameterConverter commandLine2StartParameterConverter;
 
-    public DefaultGradleFactory(LoggingConfigurer loggingConfigurer) {
+    public DefaultGradleFactory(LoggingConfigurer loggingConfigurer, CommandLine2StartParameterConverter commandLine2StartParameterConverter) {
         this.loggingConfigurer = loggingConfigurer;
+        this.commandLine2StartParameterConverter = commandLine2StartParameterConverter;
     }
 
     public LoggingConfigurer getLoggingConfigurer() {
@@ -49,6 +51,14 @@ public class DefaultGradleFactory implements GradleFactory {
 
     public void setLoggingConfigurer(LoggingConfigurer loggingConfigurer) {
         this.loggingConfigurer = loggingConfigurer;
+    }
+
+    public StartParameter createStartParameter(String[] commandLineArgs) {
+        return commandLine2StartParameterConverter.convert(commandLineArgs);
+    }
+
+    public Gradle newInstance(String[] commandLineArgs) {
+        return newInstance(commandLine2StartParameterConverter.convert(commandLineArgs));
     }
 
     public Gradle newInstance(StartParameter startParameter) {
@@ -100,8 +110,8 @@ public class DefaultGradleFactory implements GradleFactory {
                                                             public void configure(LogLevel logLevel) {
                                                                 // do nothing
                                                             }
-                                                        }
-                                                ), new DefaultCacheInvalidationStrategy())))
+                                                        },
+                                                        commandLine2StartParameterConverter), new DefaultCacheInvalidationStrategy())))
                 )),
                 new BuildLoader(
                         new ProjectFactory(

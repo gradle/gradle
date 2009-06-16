@@ -19,11 +19,11 @@ import org.slf4j.Logger;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
 import org.gradle.util.GUtil;
-import joptsimple.OptionSet;
 
 import java.util.Formatter;
 
@@ -32,14 +32,14 @@ import java.util.Formatter;
  */
 public class BuildExceptionReporter implements BuildListener {
     private final Logger logger;
-    private OptionSet options;
+    private StartParameter startParameter;
 
     public BuildExceptionReporter(Logger logger) {
         this.logger = logger;
     }
 
-    public void setOptions(OptionSet options) {
-        this.options = options;
+    public void setStartParameter(StartParameter startParameter) {
+        this.startParameter = startParameter;
     }
 
     public void buildStarted(StartParameter startParameter) {
@@ -75,22 +75,24 @@ public class BuildExceptionReporter implements BuildListener {
         formatter.format("%n");
         formatter.format("Build aborted because of an internal error.%n");
         formatter.format("Run with -%s option to get additonal debug info. Please file an issue at: www.gradle.org",
-                Main.DEBUG);
+                DefaultCommandLine2StartParameterConverter.DEBUG);
         formatter.format("%n");
         logger.error(formatter.toString(), failure);
     }
 
     private void reportBuildFailure(GradleException failure) {
-        boolean stacktrace = options != null && (options.has(Main.STACKTRACE) || options.has(Main.DEBUG));
-        boolean fullStacktrace = options != null && (options.has(Main.FULL_STACKTRACE));
+        boolean stacktrace = startParameter != null &&
+                (startParameter.getShowStacktrace() != StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS ||
+                        startParameter.getLogLevel() == LogLevel.DEBUG);
+        boolean fullStacktrace = startParameter != null && (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS_FULL);
 
         Formatter formatter = new Formatter();
         formatter.format("%nBuild failed with an exception.%n");
         if (!fullStacktrace) {
             if (!stacktrace) {
-                formatter.format("Run with -%s or -%s option to get more details. ", Main.STACKTRACE, Main.DEBUG);
+                formatter.format("Run with -%s or -%s option to get more details. ", DefaultCommandLine2StartParameterConverter.STACKTRACE, DefaultCommandLine2StartParameterConverter.DEBUG);
             }
-            formatter.format("Run with -%s option to get the full (very verbose) stacktrace.%n", Main.FULL_STACKTRACE);
+            formatter.format("Run with -%s option to get the full (very verbose) stacktrace.%n", DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE);
         }
         formatter.format("%n");
 

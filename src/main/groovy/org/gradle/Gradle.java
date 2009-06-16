@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
 public class Gradle {
     private static Logger logger = LoggerFactory.getLogger(Gradle.class);
 
-    private static GradleFactory factory = new DefaultGradleFactory(new DefaultLoggingConfigurer());
+    private static GradleFactory factory = new DefaultGradleFactory(new DefaultLoggingConfigurer(), new DefaultCommandLine2StartParameterConverter());
 
     private StartParameter startParameter;
     private ISettingsFinder settingsFinder;
@@ -135,8 +135,34 @@ public class Gradle {
         return settings;
     }
 
+    /**
+     * Returns a Gradle instance based on the passed start parameter.
+     *
+     * @param startParameter The start parameter object the Gradle instance is initialized with
+     */
     public static Gradle newInstance(final StartParameter startParameter) {
         return factory.newInstance(startParameter);
+    }
+
+    /**
+     * Returns a Gradle instance based on the passed command line syntax arguments. Certain command line arguments
+     * won't have any effect if you choose this method (e.g. -t, -v, -h). If you want to act upon, you better
+     * use {@link #createStartParameter(String[])} in conjunction with {@link #newInstance(String[])}.
+     *
+     * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
+     */
+    public static Gradle newInstance(final String[] commandLineArgs) {
+        return factory.newInstance(commandLineArgs);
+    }
+
+    /**
+     * Returns a StartParameter object out of command line syntax arguments. Every possible command line
+     * option has it associated field in the StartParameter object.
+     * 
+     * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
+     */
+    public static StartParameter createStartParameter(final String[] commandLineArgs) {
+        return factory.createStartParameter(commandLineArgs);
     }
 
     private void fireBuildStarted(StartParameter startParameter) {
@@ -165,7 +191,7 @@ public class Gradle {
 
     // This is used for mocking
     public static void injectCustomFactory(GradleFactory gradleFactory) {
-        factory = gradleFactory == null ? new DefaultGradleFactory(new DefaultLoggingConfigurer()) : gradleFactory;
+        factory = gradleFactory == null ? new DefaultGradleFactory(new DefaultLoggingConfigurer(), new DefaultCommandLine2StartParameterConverter()) : gradleFactory;
     }
 
     public StartParameter getStartParameter() {

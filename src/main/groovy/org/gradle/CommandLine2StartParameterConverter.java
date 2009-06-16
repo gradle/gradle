@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,8 @@
 package org.gradle;
 
 /**
- * <p>A {@code GradleFactory} is responsible for creating a {@link Gradle} instance for a build, from a {@link
- * StartParameter}.</p>
- *
  * @author Hans Dockter
  */
-public interface GradleFactory {
-    /**
-     * Creates a new {@link Gradle} instance for the given parameters.
-     *
-     * @param startParameter The parameters to use for the build.
-     * @return The new instance.
-     */
-    Gradle newInstance(StartParameter startParameter);
-
-    Gradle newInstance(final String[] commandLineArgs);
-
-    StartParameter createStartParameter(String[] commandLineArgs);
+public interface CommandLine2StartParameterConverter {
+    StartParameter convert(String[] args);
 }
