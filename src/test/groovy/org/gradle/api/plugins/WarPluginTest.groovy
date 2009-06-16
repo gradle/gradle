@@ -18,7 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.WarPluginConvention
@@ -29,6 +29,8 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.War
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 
 /**
  * @author Hans Dockter
@@ -39,14 +41,14 @@ class WarPluginTest {
     private final WarPlugin warPlugin = new WarPlugin()
 
     @Test public void appliesJavaPluginAndAddsConvention() {
-        warPlugin.apply(project, new PluginRegistry(), [:])
+        warPlugin.use(project, project.getPlugins())
 
-        assertTrue(project.appliedPlugins.contains(JavaPlugin));
+        assertTrue(project.getPlugins().hasPlugin(JavaPlugin));
         assertThat(project.convention.plugins.war, instanceOf(WarPluginConvention))
     }
     
     @Test public void createsConfigurations() {
-        warPlugin.apply(project, new PluginRegistry(), [:])
+        warPlugin.use(project, project.getPlugins())
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)))
@@ -70,7 +72,7 @@ class WarPluginTest {
     }
 
     @Test public void addsTasks() {
-        warPlugin.apply(project, new PluginRegistry(), [:])
+        warPlugin.use(project, project.getPlugins())
 
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         assertThat(task, instanceOf(War))
@@ -83,7 +85,7 @@ class WarPluginTest {
     }
 
     @Test public void appliesMappingsToArchiveTasks() {
-        warPlugin.apply(project, new PluginRegistry(), [:])
+        warPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customWar', type: War)
         assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.TEST_TASK_NAME)))

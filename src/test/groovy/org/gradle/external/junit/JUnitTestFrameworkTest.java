@@ -9,11 +9,10 @@ import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.external.junit.JUnitTestFramework;
+import org.hamcrest.Matchers;
 import static junit.framework.Assert.*;
-
-import java.util.Arrays;
-import java.util.HashSet;
 
 import groovy.util.AntBuilder;
 
@@ -31,6 +30,8 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
 
     private AntBuilder antBuilderMock;
 
+    private ProjectPluginsContainer projectPluginsHandlerMock;
+
     @Before
     public void setUp() throws Exception
     {
@@ -41,6 +42,7 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
         jUnitOptionsMock = context.mock(JUnitOptions.class);
         jUnitForkOptionsMock = context.mock(JunitForkOptions.class);
         antBuilderMock = context.mock(AntBuilder.class);
+        projectPluginsHandlerMock = context.mock(ProjectPluginsContainer.class);
 
         jUnitTestFramework = new JUnitTestFramework();
     }
@@ -51,7 +53,9 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
         setMocks();
 
         context.checking(new Expectations(){{
-            one(projectMock).getAppliedPlugins(); will(returnValue(new HashSet(Arrays.asList(JavaPlugin.class))));
+            allowing(projectMock).getPlugins(); will(returnValue(projectPluginsHandlerMock));
+            allowing(projectPluginsHandlerMock).hasPlugin(JavaPlugin.class); will(returnValue(true));
+            allowing(projectPluginsHandlerMock).hasPlugin(with(Matchers.not(JavaPlugin.class))); will(returnValue(true));
             one(jUnitOptionsMock).getForkOptions();will(returnValue(jUnitForkOptionsMock));
             one(jUnitOptionsMock).setFork(true);
             one(jUnitForkOptionsMock).setForkMode(ForkMode.PER_TEST);

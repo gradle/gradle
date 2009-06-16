@@ -15,9 +15,7 @@
  */
 package org.gradle.api;
 
-import org.gradle.api.internal.project.PluginRegistry;
-
-import java.util.Map;
+import org.gradle.api.plugins.ProjectPluginsContainer;
 
 /**
  * <p>A <code>Plugin</code> represents an extension to Gradle, which you can use to add behaviour your {@link
@@ -26,5 +24,5 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface Plugin {
-    void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues);
+    void use(Project project, ProjectPluginsContainer projectPluginsHandler);
 }

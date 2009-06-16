@@ -21,7 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.ReportingBasePlugin
@@ -40,6 +40,7 @@ import static org.junit.Assert.*
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.tasks.Upload
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 
 /**
  * @author Hans Dockter
@@ -49,13 +50,13 @@ class BasePluginTest {
     private final BasePlugin plugin = new BasePlugin()
 
     @Test public void addsConventionObject() {
-        plugin.apply(project, new PluginRegistry(), [:])
+        plugin.use(project, project.getPlugins())
 
         assertThat(project.convention.plugins.base, instanceOf(BasePluginConvention))
     }
 
     @Test public void createsTasksAndAppliesMappings() {
-        plugin.apply(project, new PluginRegistry(), [:])
+        plugin.use(project, project.getPlugins())
 
         def task = project.tasks[BasePlugin.CLEAN_TASK_NAME]
         assertThat(task, instanceOf(Clean))
@@ -64,7 +65,7 @@ class BasePluginTest {
     }
 
     @Test public void addsImplictTasksForConfiguration() {
-        plugin.apply(project, new PluginRegistry(), [:])
+        plugin.use(project, project.getPlugins())
 
         project.tasks.add('producer')
         project.configurations.add('conf').addArtifact([getTaskDependency: {-> new DefaultTaskDependency().add('producer') }] as PublishArtifact)

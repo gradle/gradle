@@ -21,7 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
@@ -38,6 +38,8 @@ import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.DefaultTask
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 
 /**
  * @author Hans Dockter
@@ -47,16 +49,16 @@ class JavaPluginTest {
     private final JavaPlugin javaPlugin = new JavaPlugin()
 
     @Test public void appliesBasePluginsAndAddsConventionObject() {
-        javaPlugin.apply(project, new PluginRegistry())
+        javaPlugin.use(project, project.getPlugins())
 
-        assertTrue(project.appliedPlugins.contains(ReportingBasePlugin))
-        assertTrue(project.appliedPlugins.contains(BasePlugin))
+        assertTrue(project.getPlugins().hasPlugin(ReportingBasePlugin))
+        assertTrue(project.getPlugins().hasPlugin(BasePlugin))
 
         assertThat(project.convention.plugins.java, instanceOf(JavaPluginConvention))
     }
 
     @Test public void createsConfigurations() {
-        javaPlugin.apply(project, new PluginRegistry())
+        javaPlugin.use(project, project.getPlugins())
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertFalse(configuration.visible)
@@ -94,7 +96,7 @@ class JavaPluginTest {
     }
 
     @Test public void createsTasksAndAppliesMappings() {
-        javaPlugin.apply(project, new PluginRegistry())
+        javaPlugin.use(project, project.getPlugins())
 
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
@@ -150,7 +152,7 @@ class JavaPluginTest {
     }
 
     @Test public void appliesMappingsToTasksDefinedByBuildScript() {
-        javaPlugin.apply(project, new PluginRegistry())
+        javaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customCompile', type: Compile)
         assertDependsOn(task, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
@@ -169,7 +171,7 @@ class JavaPluginTest {
     }
 
     @Test public void appliesMappingsToArchiveTasks() {
-        javaPlugin.apply(project, new PluginRegistry())
+        javaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customJar', type: Jar)
         assertDependsOn(task, JavaPlugin.TEST_TASK_NAME)

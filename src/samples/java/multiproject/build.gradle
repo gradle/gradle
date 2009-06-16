@@ -1,6 +1,7 @@
 
 subprojects {
     usePlugin 'java'
+    usePlugin 'eclipse'
 
     repositories {
        mavenCentral()

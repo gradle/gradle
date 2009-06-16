@@ -18,14 +18,16 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.ProjectPluginsContainer
 
 /**
 * @author Hans Dockter
 */
 class TestPlugin1 implements Plugin {
+
     int applyCounter = 0
 
-    void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+    void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         applyCounter++
     }
 

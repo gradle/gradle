@@ -6,9 +6,8 @@ import org.gradle.util.HelperUtil
 import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
-import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import groovy.xml.MarkupBuilder
-
 
 public class AntPluginTest {
     private final Project project = HelperUtil.createRootProject()
@@ -17,14 +16,14 @@ public class AntPluginTest {
 
     @Test
     public void addsConvention() {
-        antPlugin.apply(project, new PluginRegistry(), null)
+        antPlugin.use(project, project.getPlugins())
 
         assertThat(project.convention.plugins.ant, instanceOf(AntPluginConvention))
     }
 
     @Test
     public void addsTaskForEachAntTarget() {
-        antPlugin.apply(project, new PluginRegistry(), null)
+        antPlugin.use(project, project.getPlugins())
 
         File buildFile = new File(dir, 'build.xml')
         buildFile.withWriter {Writer writer ->

@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -34,7 +35,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -213,7 +214,6 @@ public class ProjectFactoryTest {
 
     private void checkProjectResources(DefaultProject project) {
         assertSame(buildScriptClassLoader, project.getBuildScriptClassLoader());
-        assertSame(pluginRegistry, project.getPluginRegistry());
         assertSame(projectRegistry, project.getProjectRegistry());
         assertSame(repositoryHandler, project.getRepositories());
         assertSame(build, project.getBuild());

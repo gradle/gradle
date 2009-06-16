@@ -18,15 +18,13 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.ProjectPluginsContainer
 
 /**
 * @author Hans Dockter
 */
 class TestPlugin2 implements Plugin {
+    void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
 
-    void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        
     }
-
-
 }

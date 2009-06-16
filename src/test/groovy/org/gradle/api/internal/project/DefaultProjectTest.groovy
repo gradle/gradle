@@ -60,6 +60,8 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.internal.BeanDynamicObject
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.plugins.ProjectPluginsContainer
+import org.gradle.api.plugins.ProjectPluginsContainer
 
 /**
  * @author Hans Dockter
@@ -83,7 +85,6 @@ class DefaultProjectTest {
 
     ClassLoader buildScriptClassLoader
 
-    PluginRegistry pluginRegistry
     IProjectRegistry projectRegistry
 
     File rootDir
@@ -105,6 +106,7 @@ class DefaultProjectTest {
     RepositoryHandlerFactory repositoryHandlerFactoryMock = context.mock(RepositoryHandlerFactory.class);
     RepositoryHandler repositoryHandlerMock
     DependencyFactory dependencyFactoryMock
+    ProjectPluginsContainer projectPluginsHandlerMock = context.mock(ProjectPluginsContainer)
     PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory)
     Build build;
     Convention convention = new DefaultConvention();
@@ -167,21 +169,21 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(Convention); will(returnValue(convention))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).get(AntBuilderFactory); will(returnValue(antBuilderFactoryMock))
+            allowing(serviceRegistryMock).get(ProjectPluginsContainer); will(returnValue(projectPluginsHandlerMock))
         }
 
         rootDir = new File("/path/root").absoluteFile
-        pluginRegistry = new PluginRegistry(new File('somepath'))
         projectRegistry = build.projectRegistry
         project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
-                pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock);
+                projectRegistry, build, projectServiceRegistryFactoryMock);
         child1 = new DefaultProject("child1", project, new File("child1"), null, script, buildScriptClassLoader,
-                pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock)
+                projectRegistry, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child1)
         childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script, buildScriptClassLoader,
-                pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock)
+                projectRegistry, build, projectServiceRegistryFactoryMock)
         child1.addChildProject(childchild)
         child2 = new DefaultProject("child2", project, new File("child2"), null, script, buildScriptClassLoader,
-                pluginRegistry, projectRegistry, build, projectServiceRegistryFactoryMock)
+                projectRegistry, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
@@ -235,7 +237,7 @@ class DefaultProjectTest {
         checkProject(project, null, 'root', rootDir)
 
         assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
-                pluginRegistry, new DefaultProjectRegistry(), build, projectServiceRegistryFactoryMock).standardOutputRedirector)
+                new DefaultProjectRegistry(), build, projectServiceRegistryFactoryMock).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 
@@ -259,9 +261,7 @@ class DefaultProjectTest {
         assert project.configurations.is(configurationContainerMock)
         assert project.repositoryHandlerFactory.is(repositoryHandlerFactoryMock)
         assert project.repositories.is(repositoryHandlerMock)
-        assert pluginRegistry.is(project.pluginRegistry)
         assert projectRegistry.is(project.projectRegistry)
-        assertEquals([] as Set, project.appliedPlugins)
         assertEquals AbstractProject.State.CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
@@ -325,30 +325,10 @@ class DefaultProjectTest {
     }
 
     private void checkUsePlugin(def usePluginArgument) {
-        Map expectedCustomValues = [:]
-        Plugin mockPlugin = [:] as JavaPlugin
-
-        PluginRegistry pluginRegistryMock = context.mock(PluginRegistry);
-        project.pluginRegistry = pluginRegistryMock
         context.checking {
-            one(pluginRegistryMock).getPlugin(usePluginArgument); will(returnValue(mockPlugin))
-            one(pluginRegistryMock).apply(mockPlugin.class, project, expectedCustomValues)
+            one(projectPluginsHandlerMock).usePlugin(usePluginArgument, project); will(returnValue([:] as Plugin))
         }
-
-        project.usePlugin(usePluginArgument, expectedCustomValues)
-
-        assert project.plugins[0].is(mockPlugin)
-        assertEquals(1, project.plugins.size())
-    }
-
-    @Test (expected = InvalidUserDataException) void testUsePluginWithNonExistentPlugin() {
-        String unknownPluginName = 'someplugin'
-        PluginRegistry pluginRegistryMock = context.mock(PluginRegistry);
-        project.pluginRegistry = pluginRegistryMock
-        context.checking {
-            one(pluginRegistryMock).getPlugin(unknownPluginName); will(returnValue(null))
-        }
-        project.usePlugin(unknownPluginName)
+        assertThat(project.usePlugin(usePluginArgument), sameInstance(project))
     }
 
     @Test void testEvaluationDependsOn() {

@@ -30,9 +30,11 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.logging.AntLoggingAdapter;
 
@@ -74,6 +76,7 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
         private ConfigurationContainer configurationContainer;
         private ArtifactHandler artifactHandler;
         private DependencyHandler dependencyHandler;
+        private ProjectPluginsContainer projectPluginsHandler;
         private final DefaultAntBuilderFactory antBuilderFactory;
 
         public ProjectServiceRegistryImpl(ProjectInternal project) {
@@ -82,6 +85,12 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
         }
 
         public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
+            if (serviceType.isAssignableFrom(ProjectPluginsContainer.class)) {
+                if (projectPluginsHandler == null) {
+                    projectPluginsHandler = new DefaultProjectsPluginContainer(project.getBuildInternal().getPluginRegistry());
+                }
+                return serviceType.cast(projectPluginsHandler);
+            }
             if (serviceType.isAssignableFrom(Convention.class)) {
                 if (convention == null) {
                     convention = new DefaultConvention();

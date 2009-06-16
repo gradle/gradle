@@ -15,22 +15,14 @@
  */
 package org.gradle.api.plugins.osgi;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
-
-import java.util.HashMap;
 
 // todo Make test stronger
 public class OsgiPluginTest {
@@ -39,14 +31,14 @@ public class OsgiPluginTest {
     
     @Test
     public void appliesTheJavaPlugin() {
-        osgiPlugin.apply(project, new PluginRegistry(), null);
+        osgiPlugin.use(project, project.getPlugins());
 
-        assertTrue(project.getAppliedPlugins().contains(JavaPlugin.class));
+        assertTrue(project.getPlugins().hasPlugin(JavaPlugin.class));
     }
 
     @Test
     public void addsAnOsgiManifestToEachJar() {
-        osgiPlugin.apply(project, new PluginRegistry(), null);
+        osgiPlugin.use(project, project.getPlugins());
 
         Task task = project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
         assertThat(task.property("osgi"), is(OsgiManifest.class));

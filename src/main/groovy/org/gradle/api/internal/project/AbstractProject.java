@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.BaseDirConverter;
@@ -70,8 +71,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ScriptSource buildScriptSource;
 
-    private PluginRegistry pluginRegistry;
-
     private File projectDir;
 
     private ProjectInternal parent;
@@ -92,8 +91,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private State state;
 
-    private List<Plugin> plugins = new ArrayList<Plugin>();
-
     private BaseDirConverter baseDirConverter = new BaseDirConverter();
 
     private AntBuilderFactory antBuilderFactory;
@@ -102,7 +99,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
 
-    private Set<Class<? extends Plugin>> appliedPlugins = new HashSet<Class<? extends Plugin>>();
+    private ProjectPluginsContainer projectPluginsHandler;
 
     private String path = null;
 
@@ -142,7 +139,6 @@ public abstract class AbstractProject implements ProjectInternal {
                            File buildFile,
                            ScriptSource buildScriptSource,
                            ClassLoader buildScriptClassLoader,
-                           PluginRegistry pluginRegistry,
                            IProjectRegistry projectRegistry,
                            BuildInternal build,
                            ProjectServiceRegistryFactory serviceRegistryFactory) {
@@ -153,7 +149,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.name = name;
         this.buildFile = buildFile;
         this.buildScriptClassLoader = buildScriptClassLoader;
-        this.pluginRegistry = pluginRegistry;
         this.projectRegistry = projectRegistry;
         this.state = State.CREATED;
         this.buildScriptSource = buildScriptSource;
@@ -172,6 +167,7 @@ public abstract class AbstractProject implements ProjectInternal {
         projectEvaluator = serviceRegistry.get(ProjectEvaluator.class);
         repositoryHandler = serviceRegistry.get(RepositoryHandler.class);
         configurationContainer = serviceRegistry.get(ConfigurationHandler.class);
+        this.projectPluginsHandler = serviceRegistry.get(ProjectPluginsContainer.class);
         this.artifactHandler = serviceRegistry.get(ArtifactHandler.class);
         this.dependencyHandler = serviceRegistry.get(DependencyHandler.class);
 
@@ -205,8 +201,20 @@ public abstract class AbstractProject implements ProjectInternal {
         return build;
     }
 
+    public BuildInternal getBuildInternal() {
+        return build;
+    }
+
     public void setBuild(BuildInternal build) {
         this.build = build;
+    }
+
+    public ProjectPluginsContainer getPlugins() {
+        return projectPluginsHandler;
+    }
+
+    public void setProjectPluginsHandler(ProjectPluginsContainer projectPluginsHandler) {
+        this.projectPluginsHandler = projectPluginsHandler;
     }
 
     public ProjectEvaluator getProjectEvaluator() {
@@ -252,14 +260,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setBuildScriptSource(ScriptSource buildScriptSource) {
         this.buildScriptSource = buildScriptSource;
-    }
-
-    public PluginRegistry getPluginRegistry() {
-        return pluginRegistry;
-    }
-
-    public void setPluginRegistry(PluginRegistry pluginRegistry) {
-        this.pluginRegistry = pluginRegistry;
     }
 
     public File getRootDir() {
@@ -355,14 +355,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.state = state;
     }
 
-    public List<Plugin> getPlugins() {
-        return plugins;
-    }
-
-    public void setPlugins(List<Plugin> plugins) {
-        this.plugins = plugins;
-    }
-
     public BaseDirConverter getBaseDirConverter() {
         return baseDirConverter;
     }
@@ -421,14 +413,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setConvention(Convention convention) {
         dynamicObjectHelper.setConvention(convention);
-    }
-
-    public Set<Class<? extends Plugin>> getAppliedPlugins() {
-        return appliedPlugins;
-    }
-
-    public void setAppliedPlugins(Set<Class<? extends Plugin>> appliedPlugins) {
-        this.appliedPlugins = appliedPlugins;
     }
 
     public String getPath() {
@@ -559,34 +543,13 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project usePlugin(String pluginName) {
-        return usePlugin(pluginName, new HashMap<String, Object>());
-    }
-
-    public Project usePlugin(String pluginName, Map<String, ?> customValues) {
-        if (usePluginInternal(pluginRegistry.getPlugin(pluginName), customValues) == null) {
-            throw new InvalidUserDataException("Plugin with id " + pluginName + " can not be found!");
-        }
+        projectPluginsHandler.usePlugin(pluginName, this);
         return this;
     }
 
     public Project usePlugin(Class<? extends Plugin> pluginClass) {
-        return usePlugin(pluginClass, new HashMap<String, Object>());
-    }
-
-    public Project usePlugin(Class<? extends Plugin> pluginClass, Map<String, ?> customValues) {
-        if (usePluginInternal(pluginRegistry.getPlugin(pluginClass), customValues) == null) {
-            throw new InvalidUserDataException("Plugin class " + pluginClass + " can not be found!");
-        }
+        projectPluginsHandler.usePlugin(pluginClass, this);
         return this;
-    }
-
-    private Plugin usePluginInternal(Plugin plugin, Map<String, ?> customValues) {
-        if (plugin == null) {
-            return null;
-        }
-        pluginRegistry.apply(plugin.getClass(), this, customValues);
-        plugins.add(plugin);
-        return plugin;
     }
 
     public TaskContainer getTasks() {

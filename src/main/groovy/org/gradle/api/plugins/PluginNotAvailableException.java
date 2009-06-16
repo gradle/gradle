@@ -13,14 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.ant;
+package org.gradle.api.plugins;
 
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.plugins.ProjectPluginsContainer;
+import org.gradle.api.InvalidUserDataException;
 
-public class AntPlugin implements Plugin {
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-        project.getConvention().getPlugins().put("ant", new AntPluginConvention(project));
+/**
+ * @author Hans Dockter
+ */
+public class PluginNotAvailableException extends InvalidUserDataException {
+    public PluginNotAvailableException() {
+        super();
+    }
+
+    public PluginNotAvailableException(String message) {
+        super(message);
+    }
+
+    public PluginNotAvailableException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public PluginNotAvailableException(Throwable cause) {
+        super(cause);
     }
 }

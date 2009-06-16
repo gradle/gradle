@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.ant;
+package org.gradle.api.plugins;
 
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.ProjectPluginsContainer;
+import org.gradle.api.Plugin;
+import org.gradle.api.internal.DomainObjectContainer;
 
-public class AntPlugin implements Plugin {
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-        project.getConvention().getPlugins().put("ant", new AntPluginConvention(project));
-    }
+/**
+ * @author Hans Dockter
+ */
+public interface ProjectPluginsContainer extends PluginContainer {
+    Plugin usePlugin(String id, Project project);
+
+    <T extends Plugin> T usePlugin(Class<T> type, Project project);
+
+    Plugin getPlugin(String id);
+
+    Plugin getPlugin(Class<? extends Plugin> type);
 }

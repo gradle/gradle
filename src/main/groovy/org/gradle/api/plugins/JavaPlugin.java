@@ -16,20 +16,17 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.specs.DependencySpecs;
-import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.AbstractFileCollection;
-import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -37,14 +34,14 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.compile.Compile;
-import org.gradle.api.tasks.ide.eclipse.*;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
-import java.util.*;
 import java.io.File;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -63,27 +60,17 @@ public class JavaPlugin implements Plugin {
     public static final String DISTS_TASK_NAME = "dists";
     public static final String JAVADOC_TASK_NAME = "javadoc";
 
-    public static final String ECLIPSE_TASK_NAME = "eclipse";
-    public static final String ECLIPSE_CLEAN_TASK_NAME = "eclipseClean";
-    public static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject";
-    public static final String ECLIPSE_CP_TASK_NAME = "eclipseCp";
-    public static final String ECLIPSE_WTP_MODULE_TASK_NAME = "eclipseWtpModule";
-
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
     public static final String DISTS_CONFIGURATION_NAME = "dists";
 
-    public void apply(Project project, PluginRegistry pluginRegistry) {
-        apply(project, pluginRegistry, new HashMap<String, Object>());
-    }
+    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
+        projectPluginsHandler.usePlugin(BasePlugin.class, project);
+        projectPluginsHandler.usePlugin(ReportingBasePlugin.class, project);
 
-    public void apply(final Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(BasePlugin.class, project, customValues);
-        pluginRegistry.apply(ReportingBasePlugin.class, project, customValues);
-
-        JavaPluginConvention javaConvention = new JavaPluginConvention(project, customValues);
+        JavaPluginConvention javaConvention = new JavaPluginConvention(project, Collections.emptyMap());
         Convention convention = project.getConvention();
         convention.getPlugins().put("java", javaConvention);
 
@@ -102,9 +89,6 @@ public class JavaPlugin implements Plugin {
         configureTestCompile(project);
 
         configureArchives(project);
-
-        configureEclipse(project);
-        configureEclipseWtpModule(project);
     }
 
     private void configureInit(Project project) {
@@ -147,74 +131,6 @@ public class JavaPlugin implements Plugin {
             }
         });
         project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class).setDescription("Generates the javadoc for the source code.");
-    }
-
-    private void configureEclipse(Project project) {
-        project.getTasks().add(ECLIPSE_TASK_NAME).dependsOn(
-                configureEclipseProject(project),
-                configureEclipseClasspath(project)
-        ).setDescription("Generates an Eclipse .project and .classpath file.");
-
-        project.getTasks().add(ECLIPSE_CLEAN_TASK_NAME, EclipseClean.class).setDescription("Deletes the Eclipse .project and .classpath files.");
-    }
-
-    private EclipseProject configureEclipseProject(Project project) {
-        EclipseProject eclipseProject = project.getTasks().add(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
-        eclipseProject.setProjectName(project.getName());
-        eclipseProject.setProjectType(ProjectType.JAVA);
-        eclipseProject.setDescription("Generates an Eclipse .project file.");
-        return eclipseProject;
-    }
-
-    private void configureEclipseWtpModule(Project project) {
-        EclipseWtpModule eclipseWtpModule = project.getTasks().add(ECLIPSE_WTP_MODULE_TASK_NAME, EclipseWtpModule.class);
-
-        eclipseWtpModule.conventionMapping(
-                "srcDirs", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
-                    }
-                });
-        eclipseWtpModule.setDescription("Generates the Eclipse Wtp files.");
-    }
-
-    private EclipseClasspath configureEclipseClasspath(final Project project) {
-        EclipseClasspath eclipseClasspath = project.getTasks().add(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class);
-        eclipseClasspath.conventionMapping(GUtil.map(
-                "srcDirs", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
-                    }
-                },
-                "testSrcDirs", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return GUtil.addLists(java(convention).getTestSrcDirs(), java(convention).getTestResourceDirs());
-                    }
-                },
-                "outputDirectory", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return java(convention).getClassesDir();
-                    }
-                },
-                "testOutputDirectory", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return java(convention).getTestClassesDir();
-                    }
-                },
-                "classpathLibs", new ConventionValue() {
-                    public Object getValue(Convention convention, final IConventionAware conventionAwareObject) {
-                        ConfigurationContainer configurationContainer = ((Task) conventionAwareObject).getProject().getConfigurations();
-                        return new ArrayList(configurationContainer.getByName(TEST_RUNTIME_CONFIGURATION_NAME).copyRecursive(DependencySpecs.type(Type.EXTERNAL)).resolve());
-                    }
-                },
-                "projectDependencies", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new ArrayList(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME).getAllDependencies(
-                                ProjectDependency.class));
-                    }
-                }));
-        eclipseClasspath.setDescription("Generates an Eclipse .classpath file.");
-        return eclipseClasspath;
     }
 
     private void configureProcessTestResources(Project project) {

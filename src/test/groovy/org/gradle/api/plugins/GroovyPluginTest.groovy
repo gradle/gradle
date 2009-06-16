@@ -18,7 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.compile.GroovyCompile
@@ -30,6 +30,7 @@ import org.junit.Test
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 
 /**
  * @author Hans Dockter
@@ -40,13 +41,13 @@ class GroovyPluginTest {
     private final GroovyPlugin groovyPlugin = new GroovyPlugin()
 
     @Test public void appliesTheJavaPluginToTheProject() {
-        groovyPlugin.apply(project, new PluginRegistry(), null)
+        groovyPlugin.use(project, project.getPlugins())
 
-        assertTrue(project.getAppliedPlugins().contains(JavaPlugin));
+        assertTrue(project.getPlugins().hasPlugin(JavaPlugin));
     }
 
     @Test public void addsGroovyConfigurationToTheProject() {
-        groovyPlugin.apply(project, new PluginRegistry(), null)
+        groovyPlugin.use(project, project.getPlugins())
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyPlugin.GROOVY_CONFIGURATION_NAME)))
@@ -60,7 +61,7 @@ class GroovyPluginTest {
     }
 
     @Test public void addsTasksToTheProject() {
-        groovyPlugin.apply(project, new PluginRegistry(), null)
+        groovyPlugin.use(project, project.getPlugins())
 
         def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(GroovyCompile.class))
@@ -86,7 +87,7 @@ class GroovyPluginTest {
     }
 
     @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
-        groovyPlugin.apply(project, new PluginRegistry(), null)
+        groovyPlugin.use(project, project.getPlugins())
         
         def task = project.createTask('otherCompile', type: GroovyCompile)
         assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))

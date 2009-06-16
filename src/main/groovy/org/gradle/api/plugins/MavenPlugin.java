@@ -15,19 +15,23 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.Plugin;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Upload;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * @author Hans Dockter
@@ -43,16 +47,20 @@ public class MavenPlugin implements Plugin {
 
     public static final String INSTALL_TASK_NAME = "install";
 
-    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+    public void use(final Project project, ProjectPluginsContainer plugins) {
         setConventionMapping(project);
-        addConventionObject(project, customValues);
-        if (isJavaPluginApplied(project)) {
-            configureJavaScopeMappings(project.getRepositories(), project.getConfigurations());
-            configureInstall(project);
-        }
-        if (isWarPluginApplied(project)) {
-            configureWarScopeMappings(project.getRepositories(), project.getConfigurations());
-        }
+        addConventionObject(project, new HashMap<String, Object>());
+        plugins.withType(JavaPlugin.class).allPlugins(new Action<JavaPlugin>() {
+            public void execute(JavaPlugin javaPlugin) {
+                configureJavaScopeMappings(project.getRepositories(), project.getConfigurations());
+                configureInstall(project);
+            }
+        });
+        plugins.withType(WarPlugin.class).allPlugins(new Action<WarPlugin>() {
+            public void execute(WarPlugin warPlugin) {
+                configureWarScopeMappings(project.getRepositories(), project.getConfigurations());
+            }
+        });
     }
 
     private void setConventionMapping(final Project project) {
@@ -82,11 +90,11 @@ public class MavenPlugin implements Plugin {
     }
 
     private boolean isJavaPluginApplied(Project project) {
-        return project.getAppliedPlugins().contains(JavaPlugin.class);
+        return project.getPlugins().hasPlugin(JavaPlugin.class);
     }
 
     private boolean isWarPluginApplied(Project project) {
-        return project.getAppliedPlugins().contains(WarPlugin.class);
+        return project.getPlugins().hasPlugin(WarPlugin.class);
     }
 
     private void configureJavaScopeMappings(ResolverContainer resolverFactory, ConfigurationContainer configurations) {

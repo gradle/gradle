@@ -16,30 +16,14 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.specs.DependencySpecs;
-import org.gradle.api.artifacts.specs.Type;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.tasks.bundling.*;
-import org.gradle.api.tasks.ide.eclipse.EclipseWtp;
-import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.gradle.api.tasks.bundling.War;
 
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add tasks which assemble a web application into a WAR
@@ -53,8 +37,8 @@ public class WarPlugin implements Plugin {
     public static final String ECLIPSE_WTP_TASK_NAME = "eclipseWtp";
     public static final String WAR_TASK_NAME = "war";
 
-    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(JavaPlugin.class, project, customValues);
+    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
+        projectPluginsHandler.usePlugin(JavaPlugin.class, project);
         project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME).setEnabled(false);
         project.getConvention().getPlugins().put("war", new WarPluginConvention(project));
 
@@ -69,7 +53,6 @@ public class WarPlugin implements Plugin {
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(war));
 
         configureConfigurations(project.getConfigurations());
-        configureEclipse(project, war);
     }
 
     public void configureConfigurations(ConfigurationContainer configurationContainer) {
@@ -81,79 +64,4 @@ public class WarPlugin implements Plugin {
         configurationContainer.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
     }
-
-    private void configureEclipse(Project project, War war) {
-        EclipseWtp eclipseWtp = configureEclipseWtp(project, war);
-        project.getTasks().getByName(JavaPlugin.ECLIPSE_TASK_NAME).dependsOn(eclipseWtp);
-    }
-
-    private EclipseWtp configureEclipseWtp(final Project project, final War war) {
-        final EclipseWtp eclipseWtp = project.getTasks().add(ECLIPSE_WTP_TASK_NAME, EclipseWtp.class);
-
-        eclipseWtp.conventionMapping(GUtil.map(
-                "warResourceMappings", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        Map resourceMappings = WrapUtil.toMap("/WEB-INF/classes", GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs()));
-                        resourceMappings.put("/", WrapUtil.toList(war(convention).getWebAppDir()));
-                        return resourceMappings;
-                    }
-                },
-                "outputDirectory", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return java(convention).getClassesDir();
-                    }
-                },
-                "deployName", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return project.getName();
-                    }
-                },
-                "warLibs", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        List warLibs = war.dependencies(eclipseWtp.isFailForMissingDependencies(), false);
-                        if (war.getAdditionalLibFileSets() != null) {
-                            warLibs.addAll(war.getAdditionalLibFileSets());
-                        }
-                        return warLibs;
-                    }
-                },
-                "projectDependencies", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        /*
-                        * todo We return all project dependencies here, not just the one for runtime. We can't use Ivy here, as we
-                        * request the project dependencies not via a resolve. We would have to filter the project dependencies
-                        * ourselfes. This is not completely trivial due to configuration inheritance.
-                        */
-                        return new ArrayList(Specs.filterIterable(
-                                ((Task) conventionAwareObject).getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getAllDependencies(),
-                                DependencySpecs.type(Type.PROJECT))
-                        );
-                    }
-                }));
-
-        // todo: When we refactor the way we resolve project dependencies this step might become obsolete
-        createDependencyOnEclipseProjectTaskOfDependentProjects(project, eclipseWtp);
-
-        return eclipseWtp;
-    }
-
-    private JavaPluginConvention java(Convention convention) {
-        return convention.getPlugin(JavaPluginConvention.class);
-    }
-
-    private WarPluginConvention war(Convention convention) {
-        return convention.getPlugin(WarPluginConvention.class);
-    }
-
-    private void createDependencyOnEclipseProjectTaskOfDependentProjects(Project project, EclipseWtp eclipseWtp) {
-        Set<Dependency> projectDependencies = Specs.filterIterable(
-                project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getDependencies(),
-                DependencySpecs.type(Type.PROJECT)
-        );
-
-        for (Dependency dependentProject : projectDependencies) {
-            eclipseWtp.dependsOn(((ProjectDependency) dependentProject).getDependencyProject().getPath() + ":eclipseProject");
-        }
-    }
-
 }

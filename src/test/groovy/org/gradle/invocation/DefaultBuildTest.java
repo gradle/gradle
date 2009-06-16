@@ -3,7 +3,7 @@ package org.gradle.invocation;
 import org.gradle.StartParameter;
 import org.gradle.execution.DefaultTaskExecuter;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
-import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.Project;
 import org.gradle.util.GradleVersion;
@@ -54,7 +54,7 @@ public class DefaultBuildTest {
 
     @Test
     public void createsAPluginRegistry() {
-        assertTrue(build.getPluginRegistry().getClass().equals(PluginRegistry.class));
+        assertTrue(build.getPluginRegistry().getClass().equals(DefaultPluginRegistry.class));
     }
 
     @Test

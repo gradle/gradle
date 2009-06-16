@@ -16,12 +16,11 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.project.PluginRegistry;
 import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.compile.Compile;
@@ -29,9 +28,8 @@ import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
 
-import java.util.Map;
+import java.util.Collections;
 
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to provide support for compiling and documenting Groovy
@@ -43,9 +41,9 @@ public class GroovyPlugin implements Plugin {
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";
     static final String GROOVY_CONFIGURATION_NAME = "groovy";
 
-    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        JavaPlugin javaPlugin = pluginRegistry.apply(JavaPlugin.class, project, customValues);
-        GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, customValues);
+    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
+        JavaPlugin javaPlugin = projectPluginsHandler.usePlugin(JavaPlugin.class, project);
+        GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, Collections.emptyMap());
         project.getConvention().getPlugins().put("groovy", groovyPluginConvention);
 
         Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).

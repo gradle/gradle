@@ -18,11 +18,13 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.internal.BuildInternal
-import org.gradle.configuration.ProjectEvaluator
+import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.project.*
+import org.gradle.api.internal.plugins.PluginRegistry
+import org.gradle.api.plugins.ProjectPluginsContainer
 
 /**
  * @author Hans Dockter
@@ -39,12 +41,11 @@ class DefaultProject extends AbstractProject {
                           File buildFile,
                           ScriptSource buildScriptSource,
                           ClassLoader buildScriptClassLoader,
-                          PluginRegistry pluginRegistry,
                           IProjectRegistry projectRegistry,
                           BuildInternal build,
                           ProjectServiceRegistryFactory serviceRegistryFactory
     ) {
-        super(name, parent, projectDir, buildFile, buildScriptSource, buildScriptClassLoader, pluginRegistry,
+        super(name, parent, projectDir, buildFile, buildScriptSource, buildScriptClassLoader,
                 projectRegistry, build, serviceRegistryFactory);
     }
 

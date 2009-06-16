@@ -52,12 +52,10 @@ public class JUnitTestFramework extends AbstractTestFramework {
         antJUnitReport = new AntJUnitReport();
         options = new JUnitOptions(this);
 
-        final Set<Class<? extends Plugin>> appliedPlugins = project.getAppliedPlugins();
-
         final JunitForkOptions forkOptions = options.getForkOptions();
 
         // only fork per test if no tests are implemented in Groovy
-        if ( appliedPlugins != null && !appliedPlugins.contains(GroovyPlugin.class) ) {
+        if (!project.getPlugins().hasPlugin(GroovyPlugin.class)) {
             options.setFork(true);
             forkOptions.setForkMode(ForkMode.PER_TEST);
             forkOptions.setDir(project.getProjectDir());

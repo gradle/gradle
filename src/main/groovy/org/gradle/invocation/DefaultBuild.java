@@ -1,21 +1,20 @@
 package org.gradle.invocation;
 
+import groovy.lang.Closure;
 import org.gradle.StartParameter;
-import org.gradle.execution.DefaultTaskExecuter;
-import org.gradle.execution.TaskExecuter;
+import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.execution.DefaultTaskExecuter;
+import org.gradle.execution.TaskExecuter;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.ListenerBroadcast;
 
 import java.io.File;
-
-import groovy.lang.Closure;
 
 public class DefaultBuild implements BuildInternal {
     private ProjectInternal rootProject;
@@ -25,7 +24,7 @@ public class DefaultBuild implements BuildInternal {
     private ClassLoader buildScriptClassLoader;
     private InternalRepository internalRepository;
     private DefaultProjectRegistry<ProjectInternal> projectRegistry;
-    private PluginRegistry pluginRegistry;
+    private DefaultPluginRegistry pluginRegistry;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast
             = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
 
@@ -34,7 +33,7 @@ public class DefaultBuild implements BuildInternal {
         this.buildScriptClassLoader = buildScriptClassLoader;
         this.internalRepository = internalRepository;
         this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
-        this.pluginRegistry = new PluginRegistry(startParameter.getPluginPropertiesFile());
+        this.pluginRegistry = new DefaultPluginRegistry(startParameter.getPluginPropertiesFile());
         this.taskGraph = new DefaultTaskExecuter();
     }
 
@@ -94,7 +93,7 @@ public class DefaultBuild implements BuildInternal {
         this.internalRepository = internalRepository;
     }
 
-    public PluginRegistry getPluginRegistry() {
+    public DefaultPluginRegistry getPluginRegistry() {
         return pluginRegistry;
     }
 

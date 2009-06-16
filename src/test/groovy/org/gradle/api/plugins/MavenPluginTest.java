@@ -18,11 +18,10 @@ package org.gradle.api.plugins;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.Task;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -35,12 +34,11 @@ import java.util.Set;
 public class MavenPluginTest {
     private final DefaultProject project = HelperUtil.createRootProject();
     private final MavenPlugin mavenPlugin = new MavenPlugin();
-    private PluginRegistry pluginRegistry = new PluginRegistry();
 
     @org.junit.Test
     public void applyWithWarPlugin() {
-        pluginRegistry.apply(WarPlugin.class, project, null);
-        mavenPlugin.apply(project, pluginRegistry, null);
+        project.usePlugin(WarPlugin.class);
+        mavenPlugin.use(project, project.getPlugins());
         assertHasConfigurationAndMapping(project, WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.PROVIDED,
                 MavenPlugin.PROVIDED_COMPILE_PRIORITY);
         assertHasConfigurationAndMapping(project, WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.PROVIDED,
@@ -62,8 +60,8 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void applyWithJavaPlugin() {
-        pluginRegistry.apply(JavaPlugin.class, project, null);
-        mavenPlugin.apply(project, pluginRegistry, null);
+        project.usePlugin(JavaPlugin.class);
+        mavenPlugin.use(project, project.getPlugins());
         assertHasConfigurationAndMapping(project, JavaPlugin.COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.COMPILE,
                 MavenPlugin.COMPILE_PRIORITY);
         assertHasConfigurationAndMapping(project, JavaPlugin.RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.RUNTIME,
@@ -80,14 +78,14 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void applyWithoutWarPlugin() {
-        mavenPlugin.apply(project, new PluginRegistry(), null);
+        mavenPlugin.use(project, project.getPlugins());
         assertThat(project.getConfigurations().findByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME),
                 nullValue());
     }
 
     @org.junit.Test
     public void applyWithoutJavaPlugin() {
-        mavenPlugin.apply(project, new PluginRegistry(), null);
+        mavenPlugin.use(project, project.getPlugins());
         assertThat(project.getConfigurations().findByName(JavaPlugin.COMPILE_CONFIGURATION_NAME),
                 nullValue());
     }

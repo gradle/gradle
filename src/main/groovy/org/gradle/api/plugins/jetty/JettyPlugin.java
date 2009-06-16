@@ -15,17 +15,15 @@
  */
 package org.gradle.api.plugins.jetty;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Action;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.project.PluginRegistry;
 import org.gradle.api.plugins.*;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.bundling.War;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * <p>A {@link Plugin} which extends the {@link WarPlugin} to add tasks which run the web application using an embedded
@@ -41,8 +39,8 @@ public class JettyPlugin implements Plugin {
     public static final String RELOAD_AUTOMATIC = "automatic";
     public static final String RELOAD_MANUAL = "manual";
 
-    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(WarPlugin.class, project, customValues);
+    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
+        projectPluginsHandler.usePlugin(WarPlugin.class, project);
         JettyPluginConvention jettyConvention = new JettyPluginConvention();
         Convention convention = project.getConvention();
         convention.getPlugins().put("jetty", jettyConvention);

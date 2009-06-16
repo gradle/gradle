@@ -17,7 +17,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
@@ -35,15 +35,15 @@ public class ProjectReportsPluginTest {
 
     @Test
     public void appliesBaseReportingPluginAndAddsConventionObject() {
-        plugin.apply(project, new PluginRegistry(), null);
+        plugin.use(project, project.getPlugins());
 
-        assertTrue(project.getAppliedPlugins().contains(ReportingBasePlugin.class));
+        assertTrue(project.getPlugins().hasPlugin(ReportingBasePlugin.class));
         assertThat(project.getConvention().getPlugin(ProjectReportsPluginConvention.class), notNullValue());
     }
 
     @Test
     public void addsTasksToProject() {
-        plugin.apply(project, new PluginRegistry(), null);
+        plugin.use(project, project.getPlugins());
 
 
         Task task = project.getTasks().getByName(ProjectReportsPlugin.TASK_REPORT);

@@ -19,22 +19,19 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Upload;
-import org.gradle.api.internal.project.PluginRegistry;
-import org.gradle.api.internal.IConventionAware;
-import org.gradle.util.GUtil;
 
-import java.util.Map;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Set;
-import java.io.File;
 
 public class BasePlugin implements Plugin {
     public static final String CLEAN_TASK_NAME = "clean";
 
-    public void apply(final Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         project.getConvention().getPlugins().put("base", new BasePluginConvention(project, new HashMap()));
 
         configureBuildConfigurationRule(project);

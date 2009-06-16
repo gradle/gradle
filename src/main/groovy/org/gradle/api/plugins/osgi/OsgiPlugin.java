@@ -18,16 +18,15 @@ package org.gradle.api.plugins.osgi;
 import org.gradle.api.*;
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest;
 import org.gradle.api.internal.plugins.osgi.OsgiHelper;
-import org.gradle.api.internal.project.PluginRegistry;
+import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.BasePluginConvention;
+import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.bundling.Jar;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,8 +35,8 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class OsgiPlugin implements Plugin {
-    public void apply(Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
-        pluginRegistry.apply(JavaPlugin.class, project, customValues);
+    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
+        projectPluginsHandler.usePlugin(JavaPlugin.class, project);
         Action<Jar> configureAction = createOsgiConfigureAction();
         project.getTasks().withType(Jar.class).allTasks(configureAction);
     }

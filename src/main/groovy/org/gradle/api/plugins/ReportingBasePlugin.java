@@ -17,9 +17,6 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.PluginRegistry;
-
-import java.util.Map;
 
 /**
  * <p>A {@link Plugin} which provides the basic skeleton for reporting.</p>
@@ -33,7 +30,7 @@ import java.util.Map;
  * </ul>
  */
 public class ReportingBasePlugin implements Plugin {
-    public void apply(final Project project, PluginRegistry pluginRegistry, Map<String, ?> customValues) {
+    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         Convention convention = project.getConvention();
         convention.getPlugins().put("reportingBase", new ReportingBasePluginConvention(project));
     }

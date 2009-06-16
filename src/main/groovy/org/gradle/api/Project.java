@@ -24,6 +24,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.slf4j.Logger;
 
@@ -158,7 +159,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface Project extends Comparable<Project> {
-    /**
+    /**                          
      * The default project build file name.
      */
     public static final String DEFAULT_BUILD_FILE = "build.gradle";
@@ -385,25 +386,7 @@ public interface Project extends Comparable<Project> {
      * @return This project.
      */
     Project usePlugin(String pluginName);
-
-    /**
-     * <p>Applies a {@link Plugin} to this project.</p>
-     *
-     * @param pluginName The name of the plugin.
-     * @param customValues Configuration parameters to use to apply the plugin to this project.
-     * @return This project.
-     */
-    Project usePlugin(String pluginName, Map<String, ?> customValues);
-
-    /**
-     * <p>Applies a {@link Plugin} to this project.</p>
-     *
-     * @param pluginClass The class of the plugin.  This class must implement the {@link Plugin} interface.
-     * @param customValues Configuration parameters to use to apply the plugin to this project.
-     * @return This project.
-     */
-    Project usePlugin(Class<? extends Plugin> pluginClass, Map<String, ?> customValues);
-
+    
     /**
      * <p>Applies a {@link Plugin} to this project.</p>
      *
@@ -816,14 +799,6 @@ public interface Project extends Comparable<Project> {
     TaskContainer getTasks();
 
     /**
-     * <p>Returns the set of plugin types which have been applied to this project.</p>
-     *
-     * @return A set with class objects of plugins applied against this project. Returns an empty set if no plugins have
-     *         been applied.
-     */
-    Set<Class<? extends Plugin>> getAppliedPlugins();
-
-    /**
      * <p>Executes the given {@link Action} against the subprojects of this project.</p>
      *
      * @param action The action to execute.
@@ -1044,4 +1019,6 @@ public interface Project extends Comparable<Project> {
      * @see #getConfigurations()
      */
     DependencyHandler getDependencies();
+
+    ProjectPluginsContainer getPlugins();
 }

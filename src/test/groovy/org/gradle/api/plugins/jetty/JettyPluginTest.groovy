@@ -16,7 +16,7 @@
 package org.gradle.api.plugins.jetty
 
 import org.gradle.api.Project
-import org.gradle.api.internal.project.PluginRegistry
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.plugins.jetty.JettyPlugin
 import org.gradle.util.HelperUtil
 import org.junit.Test
@@ -25,22 +25,23 @@ import static org.hamcrest.Matchers.*
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.util.WrapUtil
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.internal.plugins.DefaultPluginRegistry
 
 public class JettyPluginTest {
     private final Project project = HelperUtil.createRootProject()
 
     @Test
     public void appliesWarPluginAndAddsConventionToProject() {
-        new JettyPlugin().apply(project, new PluginRegistry(), [:])
+        new JettyPlugin().use(project, project.getPlugins())
 
-        assertTrue(project.appliedPlugins.contains(WarPlugin))
+        assertTrue(project.getPlugins().hasPlugin(WarPlugin))
 
         assertThat(project.convention.plugins.jetty, instanceOf(JettyPluginConvention))
     }
     
     @Test
     public void addsTasksToProject() {
-        new JettyPlugin().apply(project, new PluginRegistry(), [:])
+        new JettyPlugin().use(project, project.getPlugins())
 
         def task = project.tasks[JettyPlugin.JETTY_RUN]
         assertThat(task, instanceOf(JettyRun))
@@ -59,7 +60,7 @@ public class JettyPluginTest {
 
     @Test
     public void addsMappingToNewJettyTasks() {
-        new JettyPlugin().apply(project, new PluginRegistry(), [:])
+        new JettyPlugin().use(project, project.getPlugins())
 
         def task = project.tasks.add('customRun', JettyRun)
         assertThat(task.dependsOn, equalTo(WrapUtil.toSet(JavaPlugin.COMPILE_TESTS_TASK_NAME)))
