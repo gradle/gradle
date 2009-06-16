@@ -112,13 +112,21 @@ class BaseDirConverterTest {
 
     @Test public void testWithAbsolutePath() {
         File absoluteFile = new File('nonRelative').absoluteFile
-        assertEquals(absoluteFile,
-                baseDirConverter.baseDir(absoluteFile.path, baseDir))
+        assertEquals(absoluteFile, baseDirConverter.baseDir(absoluteFile.path, baseDir))
     }
-
 
     @Test public void testWithRelativePath() {
         String relativeFileName = "relative"
         assertEquals(new File(baseDir, relativeFileName), baseDirConverter.baseDir(relativeFileName, baseDir))
+    }
+
+    @Test public void testWithAbsoluteFile() {
+        File absoluteFile = new File('nonRelative').absoluteFile
+        assertEquals(absoluteFile, baseDirConverter.baseDir(absoluteFile, baseDir))
+    }
+
+    @Test public void testWithRelativeFile() {
+        File relativeFile = new File('relative')
+        assertEquals(new File(baseDir, 'relative'), baseDirConverter.baseDir(relativeFile, baseDir))
     }
 }

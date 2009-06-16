@@ -19,6 +19,7 @@ package org.gradle.api.tasks.util;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.util.GUtil;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
@@ -26,18 +27,19 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class BaseDirConverter {
-    public File baseDir(String path, File baseDir) {
+    public File baseDir(Object path, File baseDir) {
         return baseDir(path, baseDir, PathValidation.NONE);
     }
 
-    public File baseDir(String path, File baseDir, PathValidation validation) {
+    public File baseDir(Object path, File baseDir, PathValidation validation) {
         if (!GUtil.isTrue(path) || !GUtil.isTrue(baseDir)) {
             throw new InvalidUserDataException("Neither path nor baseDir must be null. path=$path basedir=$baseDir");
         }
-        File file = new File(path);
+        File file = new File(path.toString());
         if (!file.isAbsolute()) {
-            file = new File(baseDir, path);
+            file = new File(baseDir, path.toString());
         }
+        file = GFileUtils.canonicalise(file);
         if (validation != PathValidation.NONE) {
             String message = null;
             switch (validation) {

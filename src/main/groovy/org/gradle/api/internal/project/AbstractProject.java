@@ -747,7 +747,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File file(Object path, PathValidation validation) {
-        return GFileUtils.canonicalise(baseDirConverter.baseDir(path.toString(), getProjectDir(), validation));
+        return baseDirConverter.baseDir(path, getProjectDir(), validation);
     }
 
     public FileCollection files(Object... paths) {
