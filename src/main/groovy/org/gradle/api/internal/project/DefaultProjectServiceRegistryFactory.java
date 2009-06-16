@@ -87,7 +87,7 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
         public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
             if (serviceType.isAssignableFrom(ProjectPluginsContainer.class)) {
                 if (projectPluginsHandler == null) {
-                    projectPluginsHandler = new DefaultProjectsPluginContainer(project.getBuildInternal().getPluginRegistry());
+                    projectPluginsHandler = new DefaultProjectsPluginContainer(project.getBuild().getPluginRegistry());
                 }
                 return serviceType.cast(projectPluginsHandler);
             }

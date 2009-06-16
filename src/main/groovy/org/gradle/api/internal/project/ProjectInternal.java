@@ -27,5 +27,5 @@ public interface ProjectInternal extends Project, ProjectIdentifier {
 
     StandardOutputRedirector getStandardOutputRedirector();
 
-    BuildInternal getBuildInternal();
+    BuildInternal getBuild();
 }

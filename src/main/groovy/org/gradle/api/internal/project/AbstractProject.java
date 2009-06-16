@@ -197,11 +197,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.rootProject = rootProject;
     }
 
-    public Build getBuild() {
-        return build;
-    }
-
-    public BuildInternal getBuildInternal() {
+    public BuildInternal getBuild() {
         return build;
     }
 
