@@ -16,9 +16,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.specs.Spec;
-import org.gradle.api.UnknownTaskException;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.Plugin;
 
 import java.util.Set;
@@ -31,66 +29,66 @@ import groovy.lang.Closure;
  */
 public interface PluginCollection<T extends Plugin> extends Iterable<T> {
     /**
-     * Returns the tasks in this collection.
+     * Returns the plugins in this collection.
      *
      * @return The tasks. Returns an empty set if this collection is empty.
      */
     Set<T> getAll();
 
     /**
-     * Returns the tasks in this collection, as a map from task name to {@code Task} instance.
+     * Returns the plugins in this collection, as a map from task name to {@code Plugin} instance.
      *
-     * @return The tasks. Returns an empty map if this collection is empty.
+     * @return The plugins. Returns an empty map if this collection is empty.
      */
     Map<String, T> getAsMap();
 
     /**
-     * Returns the tasks in this collection which meet the given specification.
+     * Returns the plugins in this collection which meet the given specification.
      *
      * @param spec The specification to use.
-     * @return The matching tasks. Returns an empty set if there are no such tasks in this collection.
+     * @return The matching plugins. Returns an empty set if there are no such plugins in this collection.
      */
     Set<T> findAll(Spec<? super T> spec);
 
     /**
-     * Returns a collection which contains the tasks in this collection which meet the given specification. The returned
-     * collection is live, so that when matching tasks are added to this collection, they are also visible in the
+     * Returns a collection which contains the plugins in this collection which meet the given specification. The returned
+     * collection is live, so that when matching plugins are added to this collection, they are also visible in the
      * filtered collection.
      *
      * @param spec The specification to use.
-     * @return The collection of matching tasks. Returns an empty collection if there are no such tasks in this
+     * @return The collection of matching plugins. Returns an empty collection if there are no such plugins in this
      *         collection.
      */
     PluginCollection<T> matching(Spec<? super T> spec);
 
     /**
-     * Locates a task by name, returning null if there is no such task.
+     * Locates a plugins by name, returning null if there is no such plugin.
      *
-     * @param name The task name
-     * @return The task with the given name, or null if there is no such task in this collection.
+     * @param name The plugin name
+     * @return The plugin with the given name, or null if there is no such task in this collection.
      */
     T findByName(String name);
 
     /**
-     * Locates a task by name, failing if there is no such task.
+     * Locates a plugin by name, failing if there is no such task.
      *
-     * @param name The task name
-     * @return The task with the given name. Never returns null.
-     * @throws org.gradle.api.UnknownTaskException when there is no such task in this collection.
+     * @param name The plugin name
+     * @return The plugin with the given name. Never returns null.
+     * @throws org.gradle.api.UnknownTaskException when there is no such plugin in this collection.
      */
-    T getByName(String name) throws UnknownTaskException;
+    T getByName(String name) throws UnknownPluginException;
 
     /**
-     * Returns a collection containing the tasks in this collection of the given type.  The returned collection is live,
-     * so that when matching tasks are added to this collection, they are also visible in the filtered collection.
+     * Returns a collection containing the plugins in this collection of the given type.  The returned collection is live,
+     * so that when matching plugins are added to this collection, they are also visible in the filtered collection.
      *
-     * @param type The type of tasks to find.
-     * @return The matching tasks. Returns an empty set if there are no such tasks in this collection.
+     * @param type The type of plugins to find.
+     * @return The matching plugins. Returns an empty set if there are no such plugins in this collection.
      */
     <S extends T> PluginCollection<S> withType(Class<S> type);
 
     /**
-     * Adds an {@code Action} to be executed when a task is added to this collection.
+     * Adds an {@code Action} to be executed when a plugin is added to this collection.
      *
      * @param action The action to be executed
      * @return the supplied action
@@ -98,7 +96,7 @@ public interface PluginCollection<T extends Plugin> extends Iterable<T> {
     Action<? super T> whenPluginAdded(Action<? super T> action);
 
     /**
-     * Adds a closure to be called when a task is added to this collection. The task is passed to the closure as the
+     * Adds a closure to be called when a plugin is added to this collection. The plugin is passed to the closure as the
      * parameter.
      *
      * @param closure The closure to be called
@@ -106,7 +104,7 @@ public interface PluginCollection<T extends Plugin> extends Iterable<T> {
     void whenPluginAdded(Closure closure);
 
     /**
-     * Executes the given action against all tasks in this collection, and any tasks subsequently added to this
+     * Executes the given action against all plugins in this collection, and any plugins subsequently added to this
      * collection.
      *
      * @param action The action to be executed
@@ -114,7 +112,7 @@ public interface PluginCollection<T extends Plugin> extends Iterable<T> {
     void allPlugins(Action<? super T> action);
 
     /**
-     * Executes the given closure against all tasks in this collection, and any tasks subsequently added to this
+     * Executes the given closure against all plugins in this collection, and any plugins subsequently added to this
      * collection.
      *
      * @param closure The closure to be called
@@ -122,16 +120,16 @@ public interface PluginCollection<T extends Plugin> extends Iterable<T> {
     void allPlugins(Closure closure);
 
     /**
-     * Locates a task by name, failing if there is no such task. This method is identical to {@link #getByName(String)}.
+     * Locates a plugin by name, failing if there is no such plugin. This method is identical to {@link #getByName(String)}.
      * You can call this method in your build script by using the groovy {@code []} operator:
      *
      * <pre>
-     * tasks['some-task'].dependsOn 'another-task'
+     * plugins['some-plugin']'
      * </pre>
      *
-     * @param name The task name
-     * @return The task with the given name. Never returns null.
-     * @throws org.gradle.api.UnknownTaskException when there is no such task in this collection.
+     * @param name The plugin name
+     * @return The plugin with the given name. Never returns null.
+     * @throws UnknownPluginException when there is no such plugin in this collection.
      */
-    T getAt(String name) throws UnknownTaskException;
+    T getAt(String name) throws UnknownPluginException;
 }

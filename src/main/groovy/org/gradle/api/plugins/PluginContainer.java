@@ -24,8 +24,17 @@ import java.util.List;
  * @author Hans Dockter
  */
 public interface PluginContainer extends PluginCollection<Plugin> {
-    boolean hasPlugin(String id);
+    /**
+     * Returns true if the container has a plugin with the given name, false otherwise.
+     *
+     * @param name The name of the plugin
+     */
+    boolean hasPlugin(String name);
 
+    /**
+     * Returns true if the container has a plugin with the given type, false otherwise.
+     * @param type The type of the plugin
+     */
     boolean hasPlugin(Class<? extends Plugin> type);
 
     /**
@@ -43,7 +52,19 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      */
     List<Rule> getRules();
 
-    Plugin findPlugin(String id);
+    /**
+     * Returns the plugin for the given name.
+     *
+     * @param name The name of the plugin
+     * @return the plugin or null if no plugin for the given name exists.
+     */
+    Plugin findPlugin(String name);
 
+    /**
+     * Returns the plugin for the given type.
+     *
+     * @param type The type of the plugin
+     * @return the plugin or null if no plugin for the given type exists.
+     */
     Plugin findPlugin(Class<? extends Plugin> type);
 }

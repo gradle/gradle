@@ -16,9 +16,8 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
 import org.gradle.api.plugins.PluginInstantiationException;
-import org.gradle.api.plugins.PluginNotAvailableException;
+import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +82,7 @@ public class DefaultPluginRegistry extends AbstractPluginContainer implements Pl
 
     public Class<? extends Plugin> getTypeForId(String pluginId) {
         if (!GUtil.isTrue(properties.getProperty(pluginId))) {
-            throw new PluginNotAvailableException("The plugin with the id " + pluginId + " is not available.");
+            throw new UnknownPluginException("The plugin with the id " + pluginId + " is not available.");
         }
         try {
             return Class.forName(properties.getProperty(pluginId)).asSubclass(Plugin.class);

@@ -22,12 +22,10 @@ import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.gradle.api.plugins.PluginNotAvailableException;
+import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.Plugin;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.After;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 
 import java.util.Properties;
@@ -102,7 +100,7 @@ public class DefaultPluginRegistryTest extends AbstractPluginContainerTest {
         assertTrue(pluginRegistry.loadPlugin(TestPlugin2.class) instanceof TestPlugin2);
     }
 
-    @Test(expected = PluginNotAvailableException.class)
+    @Test(expected = UnknownPluginException.class)
     public void testWithNonExistingId() {
         new DefaultPluginRegistry().loadPlugin("unknownId");
     }

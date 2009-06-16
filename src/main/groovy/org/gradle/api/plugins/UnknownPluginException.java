@@ -20,20 +20,20 @@ import org.gradle.api.InvalidUserDataException;
 /**
  * @author Hans Dockter
  */
-public class PluginNotAvailableException extends InvalidUserDataException {
-    public PluginNotAvailableException() {
+public class UnknownPluginException extends InvalidUserDataException {
+    public UnknownPluginException() {
         super();
     }
 
-    public PluginNotAvailableException(String message) {
+    public UnknownPluginException(String message) {
         super(message);
     }
 
-    public PluginNotAvailableException(String message, Throwable cause) {
+    public UnknownPluginException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public PluginNotAvailableException(Throwable cause) {
+    public UnknownPluginException(Throwable cause) {
         super(cause);
     }
 }

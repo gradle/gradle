@@ -61,16 +61,16 @@ public abstract class AbstractPluginContainer extends DefaultDomainObjectContain
 
     protected abstract Class<? extends Plugin> getTypeForId(String id);
 
-    public boolean hasPlugin(String id) {
-        return findPlugin(id) != null;
+    public boolean hasPlugin(String name) {
+        return findPlugin(name) != null;
     }
 
     public boolean hasPlugin(Class<? extends Plugin> type) {
         return findPlugin(type) != null;   
     }
 
-    public Plugin findPlugin(String id) {
-        return findByName(id);
+    public Plugin findPlugin(String name) {
+        return findByName(name);
     }
 
     public Plugin findPlugin(Class<? extends Plugin> type) {

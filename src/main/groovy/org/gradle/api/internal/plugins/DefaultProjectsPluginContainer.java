@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.ProjectPluginsContainer;
+import org.gradle.api.plugins.UnknownPluginException;
 
 /**
  * @author Hans Dockter
@@ -39,11 +40,19 @@ public class DefaultProjectsPluginContainer extends AbstractPluginContainer impl
     }
 
     public Plugin getPlugin(String id) {
-        return findByName(id);
+        Plugin plugin = findByName(id);
+        if (plugin == null) {
+            throw new UnknownPluginException("Plugin with id " + id + " has not been used.");
+        }
+        return plugin;
     }
 
     public Plugin getPlugin(Class<? extends Plugin> type) {
-        return findByName(getNameForType(type));
+        Plugin plugin = findByName(getNameForType(type));
+        if (plugin == null) {
+            throw new UnknownPluginException("Plugin with type " + type + " has not been used.");
+        }
+        return plugin;
     }
 
     protected String getNameForType(Class<? extends Plugin> type) {

@@ -17,6 +17,7 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Project;
 import org.gradle.api.Plugin;
+import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.internal.project.TestPlugin1;
 import org.gradle.api.internal.project.TestPlugin2;
 import org.gradle.util.HelperUtil;
@@ -26,6 +27,7 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -86,5 +88,15 @@ public class DefaultProjectsPluginContainerTest extends AbstractPluginContainerT
         projectsPluginHandler.usePlugin(TestPlugin1.class, projectDummy);
         assertThat(pluginWithIdMock.getApplyCounter(), equalTo(1));
         assertThat((TestPlugin1) projectsPluginHandler.getPlugin(TestPlugin1.class), sameInstance(pluginWithIdMock));
+    }
+
+    @Test(expected = UnknownPluginException.class)
+    public void getNonUsedPluginById() {
+        projectsPluginHandler.getPlugin(pluginId);
+    }
+
+    @Test(expected = UnknownPluginException.class)
+    public void getNonUsedPluginByTyoe() {
+        projectsPluginHandler.getPlugin(TestPlugin1.class);
     }
 }
