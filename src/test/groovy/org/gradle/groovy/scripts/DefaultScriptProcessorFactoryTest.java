@@ -74,7 +74,7 @@ public class DefaultScriptProcessorFactoryTest {
         testClassLoader = new URLClassLoader(new URL[0]);
         testScriptFileDir = HelperUtil.makeNewTestDir("projectdir");
         testScriptFile = new File(testScriptFileDir, TEST_BUILD_FILE_NAME);
-        testCacheDir = new File(new File(testScriptFileDir, Project.CACHE_DIR_NAME), TEST_BUILD_FILE_NAME);
+        testCacheDir = new File(new File(new File(testScriptFileDir, Project.CACHE_DIR_NAME), TEST_BUILD_FILE_NAME), "NoTransformer");
         expectedScript = context.mock(ScriptWithSource.class);
         scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.ON);
         source = context.mock(ScriptSource.class);
@@ -268,20 +268,23 @@ public class DefaultScriptProcessorFactoryTest {
     }
 
     @Test
-    public void testUsesSuppliedTransformer() {
+    public void testUsesSuppliedTransformerToGenerateCacheDir() {
+        createBuildScriptFile();
+
         final CompilationUnit.SourceUnitOperation transformer = new CompilationUnit.SourceUnitOperation() {
             public void call(SourceUnit source) throws CompilationFailedException {
             }
         };
+        final File expectedCacheDir = new File(testCacheDir.getParentFile(), transformer.getClass().getSimpleName());
 
         context.checking(new Expectations(){{
             allowing(source).getSourceFile();
             will(returnValue(testScriptFile));
 
-            one(scriptCompilationHandlerMock).createScriptOnTheFly(
+            one(scriptCompilationHandlerMock).loadFromCache(
                     source,
                     testClassLoader,
-                    transformer,
+                    expectedCacheDir,
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
         }});

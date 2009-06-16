@@ -103,6 +103,10 @@ class DefaultProject extends AbstractProject {
         ConfigureUtil.configure(configureClosure, getArtifacts())
     }
 
+    public void buildscript(Closure configureClosure) {
+        configureClosure.call()
+    }
+
     /**
      * Adds a task with the given name. This is called by the task creation DSL.
      */

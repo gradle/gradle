@@ -92,6 +92,13 @@ public class DefaultScriptProcessorFactory implements ScriptProcessorFactory {
             File sourceFile = source.getSourceFile();
             File cacheDir = new File(sourceFile.getParentFile(), Project.CACHE_DIR_NAME);
             File scriptCacheDir = new File(cacheDir, sourceFile.getName());
+            if (transformer != null) {
+                scriptCacheDir = new File(scriptCacheDir, transformer.getClass().getSimpleName());
+            }
+            else {
+                scriptCacheDir = new File(scriptCacheDir, "NoTransformer");
+            }
+            
             if (cacheUsage == CacheUsage.ON) {
                 T cachedScript = scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
                 if (cachedScript != null) {

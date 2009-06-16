@@ -48,8 +48,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                                                      CompilationUnit.SourceUnitOperation transformer,
                                                      Class<T> scriptBaseClass) {
         Clock clock = new Clock();
+        logger.debug("Compiling script using {} with {}.", source.getDisplayName(), transformer);
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
-        Class scriptClass = parseScript(source, classLoader, configuration, transformer);
+        Class scriptClass = compileScript(source, classLoader, configuration, transformer);
         T script = scriptBaseClass.cast(InvokerHelper.createScript(scriptClass, new Binding()));
 
         logger.debug("Timing: Creating script took: {}", clock.getTime());
@@ -59,18 +60,19 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     public void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                              CompilationUnit.SourceUnitOperation transformer, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
+        logger.debug("Compiling script using {} with {}.", source.getDisplayName(), transformer);
         GFileUtils.deleteDirectory(scriptCacheDir);
         scriptCacheDir.mkdirs();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(scriptCacheDir);
-        parseScript(source, classLoader, configuration, transformer);
+        compileScript(source, classLoader, configuration, transformer);
 
         cachePropertiesHandler.writeProperties(source.getText(), scriptCacheDir);
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(),
                 clock.getTime());
     }
 
-    private Class parseScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
+    private Class compileScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
                               final CompilationUnit.SourceUnitOperation transformer) {
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override

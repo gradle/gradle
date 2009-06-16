@@ -19,6 +19,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.artifacts.dsl.TaskDefinitionScriptTransformer;
+import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.groovy.scripts.*;
 import groovy.lang.Script;
 
@@ -39,6 +40,12 @@ public class BuildScriptCompiler implements ProjectEvaluator {
                 project.getRootDir());
         ScriptProcessor processor = scriptProcessorFactory.createProcessor(source);
         processor.setClassloader(project.getBuildScriptClassLoader());
+
+        processor.setTransformer(new BuildScriptClasspathScriptTransformer());
+        Script classPathScript = processor.process(ProjectScript.class);
+        projectScriptMetaData.applyMetaData(classPathScript, project);
+        classPathScript.run();
+
         processor.setTransformer(new TaskDefinitionScriptTransformer());
         Script buildScript = processor.process(ProjectScript.class);
         projectScriptMetaData.applyMetaData(buildScript, project);

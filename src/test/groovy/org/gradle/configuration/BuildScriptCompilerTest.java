@@ -16,11 +16,13 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.artifacts.dsl.TaskDefinitionScriptTransformer;
+import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.*;
 import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -43,7 +45,8 @@ public class BuildScriptCompilerTest {
     private final IProjectScriptMetaData projectScriptMetaData = context.mock(IProjectScriptMetaData.class);
     private final ImportsReader importsReader = context.mock(ImportsReader.class);
     private final ClassLoader classLoader = context.mock(ClassLoader.class);
-    private final ProjectScript buildScript = context.mock(ProjectScript.class);
+    private final ProjectScript classpathScript = context.mock(ProjectScript.class, "classpath");
+    private final ProjectScript buildScript = context.mock(ProjectScript.class, "build");
     private final File rootDir = new File("root dir");
     private final BuildScriptCompiler evaluator = new BuildScriptCompiler(importsReader, scriptProcessorFactory,
             projectScriptMetaData);
@@ -71,7 +74,17 @@ public class BuildScriptCompilerTest {
             will(returnValue(processor));
 
             one(processor).setClassloader(classLoader);
-            one(processor).setTransformer(with(any(TaskDefinitionScriptTransformer.class)));
+
+            one(processor).setTransformer(with(notNullValue(BuildScriptClasspathScriptTransformer.class)));
+
+            one(processor).process(ProjectScript.class);
+            will(returnValue(classpathScript));
+
+            one(projectScriptMetaData).applyMetaData(classpathScript, project);
+
+            one(classpathScript).run();
+
+            one(processor).setTransformer(with(notNullValue(TaskDefinitionScriptTransformer.class)));
 
             one(processor).process(ProjectScript.class);
             will(returnValue(buildScript));

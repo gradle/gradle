@@ -15,19 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.ast.CodeVisitorSupport;
-import org.codehaus.groovy.ast.MethodNode;
-import org.codehaus.groovy.ast.GroovyCodeVisitor;
 import org.codehaus.groovy.ast.DynamicVariable;
+import org.codehaus.groovy.ast.GroovyCodeVisitor;
+import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.*;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.SourceUnit;
 
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
-public class TaskDefinitionScriptTransformer extends CompilationUnit.SourceUnitOperation {
+public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
     public void call(SourceUnit source) throws CompilationFailedException {
         GroovyCodeVisitor transformer = new TaskDefinitionTransformer();
         source.getAST().getStatementBlock().visit(transformer);
@@ -180,22 +179,12 @@ public class TaskDefinitionScriptTransformer extends CompilationUnit.SourceUnitO
         }
 
         private boolean isInstanceMethod(MethodCallExpression call, String name) {
-            boolean isTaskMethod = call.getMethod() instanceof ConstantExpression && call.getMethod().getText().equals(
-                    name);
+            boolean isTaskMethod = isMethodOnThis(call, name);
             if (!isTaskMethod) {
                 return false;
             }
 
-            if (!(call.getArguments() instanceof ArgumentListExpression)) {
-                return false;
-            }
-
-            return targetIsThis(call);
-        }
-
-        private boolean targetIsThis(MethodCallExpression call) {
-            Expression target = call.getObjectExpression();
-            return target instanceof VariableExpression && target.getText().equals("this");
+            return call.getArguments() instanceof ArgumentListExpression;
         }
 
         private boolean isTaskIdentifier(Expression expression) {

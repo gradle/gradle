@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests;
 
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Test;
 import org.junit.Ignore;
 
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
@@ -27,12 +27,12 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
         inTestDirectory().withTaskList().run();
     }
 
-    @Test @Ignore
+    @Test
     public void canDeclareClasspathInBuildScript() {
         testFile("build.gradle").writelns(
                 "println 'start evaluate'",
                 "buildscript {",
-                "    prinln 'declare build classpath'",
+                "    println 'declare build classpath'",
                 "}",
                 "task hello"
         );
@@ -41,6 +41,16 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
 
     @Test @Ignore
     public void collectsStdoutDuringClasspathDeclaration() {
+        Assert.fail("implement me");
+    }
+
+    @Test @Ignore
+    public void reportsFailureDuringClasspathDeclaration() {
+        Assert.fail("implement me");
+    }
+    
+    @Test @Ignore
+    public void canUseImportedClassesInClasspathDeclaration() {
         Assert.fail("implement me");
     }
 }

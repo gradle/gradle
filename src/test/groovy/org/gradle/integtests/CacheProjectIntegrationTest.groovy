@@ -45,11 +45,12 @@ class CacheProjectIntegrationTest {
 
     private def changeCacheVersionProperty(File cacheProjectDir) {
         Properties properties = new Properties()
-        FileInputStream propertiesInputStream = new FileInputStream(new File(cacheProjectDir, ".gradle/cache/build.gradle/cache.properties"))
+        File propertiesFile = new File(cacheProjectDir, ".gradle/cache/build.gradle/TaskDefinitionScriptTransformer/cache.properties")
+        FileInputStream propertiesInputStream = new FileInputStream(propertiesFile)
         properties.load(propertiesInputStream)
         propertiesInputStream.close()
         properties.put("version", "0.5.1")
-        FileOutputStream propertiesOutputStream = new FileOutputStream(new File(cacheProjectDir, ".gradle/cache/build.gradle/cache.properties"))
+        FileOutputStream propertiesOutputStream = new FileOutputStream(propertiesFile)
         properties.store(propertiesOutputStream, null)
         propertiesOutputStream.close()
     }
