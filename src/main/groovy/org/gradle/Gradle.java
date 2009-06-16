@@ -20,6 +20,7 @@ import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.invocation.Build;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.*;
@@ -101,7 +102,30 @@ public class Gradle {
         return buildResult;
     }
 
-    private void runInternal(SettingsInternal settings, StartParameter startParameter) {
+    /**
+     * Evaluates the settings and all the projects and returns a build object  
+     * @return
+     */
+    public BuildAnalysisResult getBuildAnalysis() {
+        fireBuildStarted(startParameter);
+
+        SettingsInternal settings = null;
+        Throwable failure = null;
+        Build build = null;
+        try {
+            settings = loadSettings(startParameter);
+            build = loadAndConfigure(settings, startParameter);
+        } catch (Throwable t) {
+            failure = t;
+        }
+
+        BuildAnalysisResult buildResult = new BuildAnalysisResult(build, settings, failure);
+        fireBuildFinished(buildResult);
+
+        return buildResult;
+    }
+
+    private BuildInternal loadAndConfigure(SettingsInternal settings, StartParameter startParameter) {
         ClassLoader classLoader = settings.createClassLoader();
 
         // Load build
@@ -112,6 +136,11 @@ public class Gradle {
         // Configure build
         buildConfigurer.process(build.getRootProject());
         fireProjectsEvaluated(build);
+        return build;
+    }
+
+    private void runInternal(SettingsInternal settings, StartParameter startParameter) {
+        BuildInternal build = loadAndConfigure(settings, startParameter);
         attachTaskGraphListener(build);
 
         // Execute build

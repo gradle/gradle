@@ -167,6 +167,55 @@ public class GradleTest {
     }
 
     @Test
+    public void testGetBuildAnalysis() {
+        expectSettingsBuilt();
+        context.checking(new Expectations() {{
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
+                        testGradleProperties);
+            will(returnValue(buildMock));
+            one(buildConfigurerMock).process(expectedRootProject);
+        }});
+        BuildAnalysisResult buildAnalysisResult = gradle.getBuildAnalysis();
+        assertThat(buildAnalysisResult.getSettings(), sameInstance((Settings) settingsMock));
+        assertThat(buildAnalysisResult.getFailure(), nullValue());
+        assertThat((BuildInternal) buildAnalysisResult.getBuild(), sameInstance(buildMock));
+    }
+
+    @Test
+    public void testGetBuildAnalysisWithFailure() {
+        final RuntimeException exception = new RuntimeException();
+        expectSettingsBuilt();
+        context.checking(new Expectations() {{
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
+                        testGradleProperties);
+            will(throwException(exception));
+        }});
+        BuildAnalysisResult buildAnalysisResult = gradle.getBuildAnalysis();
+        assertThat(buildAnalysisResult.getSettings(), sameInstance((Settings) settingsMock));
+        assertThat((RuntimeException) buildAnalysisResult.getFailure(), sameInstance(exception));
+        assertThat(buildAnalysisResult.getBuild(), nullValue());
+    }
+
+    @Test
+    public void testNotifiesListenerOfBuildAnalysisStages() {
+        expectSettingsBuilt();
+        context.checking(new Expectations() {{
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, expectedClassLoader, expectedStartParams,
+                        testGradleProperties);
+            will(returnValue(buildMock));
+            one(buildConfigurerMock).process(expectedRootProject);
+            one(buildListenerMock).buildStarted(expectedStartParams);
+            one(buildListenerMock).settingsEvaluated(settingsMock);
+            one(buildListenerMock).projectsLoaded(buildMock);
+            one(buildListenerMock).projectsEvaluated(buildMock);
+            one(buildListenerMock).buildFinished(with(result(settingsMock, nullValue(Throwable.class))));
+        }});
+
+        gradle.addBuildListener(buildListenerMock);
+        gradle.getBuildAnalysis();
+    }
+
+    @Test
     public void testNotifiesListenerOfBuildStages() {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
