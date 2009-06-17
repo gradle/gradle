@@ -186,6 +186,16 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             startParameter.useEmbeddedBuildFile(options.argumentOf(EMBEDDED_SCRIPT));
         }
 
+        if (options.has(FULL_STACKTRACE)) {
+            if (options.has(STACKTRACE)) {
+                throw new CommandLineArgumentException(String.format("Error: The -%s option can't be used together with the -%s option.",
+                        FULL_STACKTRACE, STACKTRACE));    
+            }
+            startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS_FULL);
+        } else if (options.has(STACKTRACE)) {
+            startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS);
+        }
+
         if (options.has(TASKS) && options.has(PROPERTIES)) {
             throw new CommandLineArgumentException(String.format("Error: The -%s and -%s options cannot be used together.", TASKS, PROPERTIES));
         }

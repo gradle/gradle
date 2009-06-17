@@ -234,6 +234,23 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     @Test
+    public void withShowFullStacktrace() {
+        expectedShowStackTrace = StartParameter.ShowStacktrace.ALWAYS_FULL;
+        checkConversion("-f");
+    }
+
+    @Test
+    public void withShowStacktrace() {
+        expectedShowStackTrace = StartParameter.ShowStacktrace.ALWAYS;
+        checkConversion("-s");
+    }
+
+    @Test(expected = CommandLineArgumentException.class)
+    public void withShowStacktraceAndShowFullStacktrace_shouldThrowCommandLineArgumentEx() {
+        checkConversion("-sf");
+    }
+
+    @Test
     public void withDryRunFlagSet() {
         expectedDryRun = true;
         checkConversion("-m");
