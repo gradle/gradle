@@ -150,4 +150,19 @@ public class DefaultDependencyFactoryTest {
         assertThat(dependencyFactory.createModule(someModuleNotation, configureClosure), equalTo(clientModuleMock));
     }
 
+    @Test
+    public void createModuleWithNullClosure() {
+        final IDependencyImplementationFactory testImplStringFactoryStub = context.mock(IDependencyImplementationFactory.class, "String");
+        final ClientModuleFactory clientModuleFactoryStub = context.mock(ClientModuleFactory.class);
+        final ClientModule clientModuleMock = context.mock(ClientModule.class);
+        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(WrapUtil.toSet(testImplStringFactoryStub), clientModuleFactoryStub, null);
+
+        final String someModuleNotation = "junit:junit:4.4";
+        context.checking(new Expectations() {{
+            allowing(clientModuleFactoryStub).createClientModule(someModuleNotation);
+            will(returnValue(clientModuleMock));
+        }});
+        assertThat(dependencyFactory.createModule(someModuleNotation, null), equalTo(clientModuleMock));
+    }
+
 }
