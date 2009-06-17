@@ -18,6 +18,7 @@ package org.gradle;
 
 import joptsimple.OptionException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.invocation.Build;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.logging.LogLevel;
@@ -140,7 +141,7 @@ public class MainTest {
     }
 
     private void checkMain(final boolean embedded, final boolean noTasks, String... args) throws Throwable {
-        final BuildResult testBuildResult = new BuildResult(context.mock(Settings.class), null);
+        final BuildResult testBuildResult = new BuildResult(context.mock(Settings.class), context.mock(Build.class), null);
         context.checking(new Expectations() {
             {
                 one(gradleMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));

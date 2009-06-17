@@ -54,6 +54,7 @@ import org.gradle.util.GradleUtil
 import org.gradle.util.WrapUtil
 import org.gradle.api.internal.project.*
 import org.gradle.api.internal.artifacts.dsl.dependencies.SelfResolvingDependencyFactory
+import org.gradle.BuildResult
 
 /**
  * @author Hans Dockter
@@ -155,6 +156,10 @@ class HelperUtil {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(ModuleRevisionId.newInstance('org', 'name', 'rev'), "status", null)
         confs.each { moduleDescriptor.addConfiguration(new Configuration(it)) }
         return moduleDescriptor;
+    }
+
+    static BuildResult createBuildResult(Throwable t) {
+        return new BuildResult(null, null, t);
     }
 
     static Dependency createDependency(String group, String name, String version) {

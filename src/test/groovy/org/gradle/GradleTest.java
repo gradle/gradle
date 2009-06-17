@@ -19,6 +19,7 @@ package org.gradle;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
@@ -167,6 +168,31 @@ public class GradleTest {
     }
 
     @Test
+    public void testDryRun() {
+        expectSettingsBuilt();
+        expectTasksRunWithDagRebuild();
+        context.checking(new Expectations() {{
+            one(taskExecuterMock).addTaskExecutionListener(with(any(TaskExecutionListener.class)));
+        }});
+        expectedStartParams.setDryRun(true);
+        BuildResult buildResult = gradle.run();
+        assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
+        assertThat(buildResult.getFailure(), nullValue());
+    }
+
+    @Test
+    public void testGetBuildAndRunAnalysis() {
+        expectSettingsBuilt();
+        expectTasksRunWithDagRebuild();
+        context.checking(new Expectations() {{
+            one(taskExecuterMock).addTaskExecutionListener(with(any(TaskExecutionListener.class)));
+        }});
+        BuildResult buildResult = gradle.getBuildAndRunAnalysis();
+        assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
+        assertThat(buildResult.getFailure(), nullValue());
+    }
+
+    @Test
     public void testGetBuildAnalysis() {
         expectSettingsBuilt();
         context.checking(new Expectations() {{
@@ -175,10 +201,10 @@ public class GradleTest {
             will(returnValue(buildMock));
             one(buildConfigurerMock).process(expectedRootProject);
         }});
-        BuildAnalysisResult buildAnalysisResult = gradle.getBuildAnalysis();
-        assertThat(buildAnalysisResult.getSettings(), sameInstance((Settings) settingsMock));
-        assertThat(buildAnalysisResult.getFailure(), nullValue());
-        assertThat((BuildInternal) buildAnalysisResult.getBuild(), sameInstance(buildMock));
+        BuildResult buildResult = gradle.getBuildAnalysis();
+        assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
+        assertThat(buildResult.getFailure(), nullValue());
+        assertThat((BuildInternal) buildResult.getBuild(), sameInstance(buildMock));
     }
 
     @Test
@@ -190,10 +216,10 @@ public class GradleTest {
                         testGradleProperties);
             will(throwException(exception));
         }});
-        BuildAnalysisResult buildAnalysisResult = gradle.getBuildAnalysis();
-        assertThat(buildAnalysisResult.getSettings(), sameInstance((Settings) settingsMock));
-        assertThat((RuntimeException) buildAnalysisResult.getFailure(), sameInstance(exception));
-        assertThat(buildAnalysisResult.getBuild(), nullValue());
+        BuildResult buildResult = gradle.getBuildAnalysis();
+        assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
+        assertThat((RuntimeException) buildResult.getFailure(), sameInstance(exception));
+        assertThat(buildResult.getBuild(), nullValue());
     }
 
     @Test

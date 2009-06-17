@@ -8,14 +8,14 @@ import org.junit.Test;
 public class BuildResultTest {
     @Test
     public void rethrowDoesNothingWhenNoBuildFailure() {
-        BuildResult result = new BuildResult(null, null);
+        BuildResult result = new BuildResult(null, null, null);
         result.rethrowFailure();
     }
 
     @Test
     public void rethrowsGradleException() {
         Throwable failure = new GradleException();
-        BuildResult result = new BuildResult(null, failure);
+        BuildResult result = new BuildResult(null, null, failure);
 
         try {
             result.rethrowFailure();
@@ -28,7 +28,7 @@ public class BuildResultTest {
     @Test
     public void rethrowWrapsOtherExceptions() {
         Throwable failure = new RuntimeException();
-        BuildResult result = new BuildResult(null, failure);
+        BuildResult result = new BuildResult(null, null, failure);
 
         try {
             result.rethrowFailure();

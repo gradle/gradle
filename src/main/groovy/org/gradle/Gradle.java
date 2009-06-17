@@ -16,10 +16,12 @@
 
 package org.gradle;
 
+import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.invocation.Build;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
@@ -31,23 +33,23 @@ import org.slf4j.LoggerFactory;
 /**
  * <p>{@code Gradle} is the main entry point for embedding Gradle. You use this class to manage a Gradle build, as
  * follows:</p>
- *
+ * <p/>
  * <ol>
- *
+ * <p/>
  * <li>Create a {@link StartParameter} instance and configure it with the desired properties. The properties of {@code
  * StartParameter} generally correspond to the command-line options of Gradle.</li>
- *
+ * <p/>
  * <li>Obtain a {@code Gradle} instance by calling {@link #newInstance}, passing in the {@code StartParameter}.</li>
- *
+ * <p/>
  * <li>Optionally, add one or more {@link BuildListener}s to receive events as the build executes by calling {@link
  * #addBuildListener}.</li>
- *
+ * <p/>
  * <li>Call {@link #run} to execute the build. This will return a {@link BuildResult}. Note that if the build fails, the
  * resulting exception will be contained in the {@code BuildResult}.</li>
- *
+ * <p/>
  * <li>Query the build result. You might want to call {@link BuildResult#rethrowFailure()} to rethrow any build
  * failure.</li>
- *
+ * <p/>
  * </ol>
  *
  * @author Hans Dockter
@@ -85,28 +87,55 @@ public class Gradle {
      * @return The result. Never returns null.
      */
     public BuildResult run() {
-        fireBuildStarted(startParameter);
-
-        SettingsInternal settings = null;
-        Throwable failure = null;
-        try {
-            settings = loadSettings(startParameter);
-            runInternal(settings, startParameter);
-        } catch (Throwable t) {
-            failure = t;
-        }
-
-        BuildResult buildResult = new BuildResult(settings, failure);
-        fireBuildFinished(buildResult);
-
-        return buildResult;
+        return doBuild(new RunSpecification() {
+            public BuildInternal run(SettingsInternal settings, StartParameter startParameter) {
+                return loadAndConfigureAndRun(settings, startParameter, startParameter.isDryRun());
+            }
+        });
     }
 
     /**
-     * Evaluates the settings and all the projects and returns a build object  
-     * @return
+     * Evaluates the settings and all the projects. The information about available tasks and projects is accessible
+     * via the {@link org.gradle.api.invocation.Build#getRootProject()} object.
+     *
+     * @return A BuildResult object
      */
-    public BuildAnalysisResult getBuildAnalysis() {
+    public BuildResult getBuildAnalysis() {
+        return doBuild(new RunSpecification() {
+            public BuildInternal run(SettingsInternal settings, StartParameter startParameter) {
+                return loadAndConfigure(settings, startParameter);
+            }
+        });
+    }
+
+    /**
+     * Evaluates the settings and all the projects. Evaluates the settings and all the projects.
+     * The information about available tasks and projects is accessible via the
+     * {@link org.gradle.api.invocation.Build#getRootProject()} object. Fills the execution plan without running the build.
+     * The tasks to be executed tasks are available via {@link org.gradle.api.invocation.Build#getTaskGraph()}.
+     *
+     * @return A BuildResult object
+     */
+    public BuildResult getBuildAndRunAnalysis() {
+        return doBuild(new RunSpecification() {
+            public BuildInternal run(SettingsInternal settings, StartParameter startParameter) {
+                return loadAndConfigureAndRun(settings, startParameter, true);
+            }
+        });
+    }
+
+    private TaskExecutionListener createDisableTaskListener() {
+        return new TaskExecutionListener() {
+            public void beforeExecute(Task task) {
+                task.setEnabled(false);
+            }
+
+            public void afterExecute(Task task, Throwable failure) {
+            }
+        };
+    }
+
+    private BuildResult doBuild(RunSpecification runSpecification) {
         fireBuildStarted(startParameter);
 
         SettingsInternal settings = null;
@@ -114,15 +143,30 @@ public class Gradle {
         Build build = null;
         try {
             settings = loadSettings(startParameter);
-            build = loadAndConfigure(settings, startParameter);
+            build = runSpecification.run(settings, startParameter);
         } catch (Throwable t) {
             failure = t;
         }
-
-        BuildAnalysisResult buildResult = new BuildAnalysisResult(build, settings, failure);
+        BuildResult buildResult = new BuildResult(settings, build, failure);
         fireBuildFinished(buildResult);
 
         return buildResult;
+    }
+
+    private BuildInternal loadAndConfigureAndRun(SettingsInternal settings, StartParameter startParameter, boolean disableTasks) {
+        BuildInternal build = loadAndConfigure(settings, startParameter);
+        if (disableTasks) {
+            build.getTaskGraph().addTaskExecutionListener(createDisableTaskListener());
+        }
+        attachTaskGraphListener(build);
+
+        // Execute build
+        BuildExecuter executer = startParameter.getBuildExecuter();
+
+        executer.select(build.getDefaultProject());
+        logger.info(String.format("Starting build for %s.", executer.getDisplayName()));
+        executer.execute(build.getTaskGraph());
+        return build;
     }
 
     private BuildInternal loadAndConfigure(SettingsInternal settings, StartParameter startParameter) {
@@ -137,17 +181,6 @@ public class Gradle {
         buildConfigurer.process(build.getRootProject());
         fireProjectsEvaluated(build);
         return build;
-    }
-
-    private void runInternal(SettingsInternal settings, StartParameter startParameter) {
-        BuildInternal build = loadAndConfigure(settings, startParameter);
-        attachTaskGraphListener(build);
-
-        // Execute build
-        BuildExecuter executer = startParameter.getBuildExecuter();
-        executer.select(build.getDefaultProject());
-        logger.info(String.format("Starting build for %s.", executer.getDisplayName()));
-        executer.execute(build.getTaskGraph());
     }
 
     private void attachTaskGraphListener(BuildInternal build) {
@@ -187,7 +220,7 @@ public class Gradle {
     /**
      * Returns a StartParameter object out of command line syntax arguments. Every possible command line
      * option has it associated field in the StartParameter object.
-     * 
+     *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
      */
     public static StartParameter createStartParameter(final String[] commandLineArgs) {
@@ -235,5 +268,9 @@ public class Gradle {
      */
     public void addBuildListener(BuildListener buildListener) {
         buildListeners.add(buildListener);
+    }
+
+    private static interface RunSpecification {
+        BuildInternal run(SettingsInternal settings, StartParameter startParameter);
     }
 }

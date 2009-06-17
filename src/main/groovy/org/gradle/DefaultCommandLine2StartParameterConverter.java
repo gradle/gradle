@@ -65,6 +65,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String EMBEDDED_SCRIPT = "e";
     private static final String VERSION = "v";
     private static final String CACHE = "C";
+    private static final String DRY_RUN = "m";
     private static final String HELP = "h";
 
     OptionParser parser = new OptionParser() {
@@ -77,6 +78,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(VERSION, "version"), "Print version info.");
             acceptsAll(WrapUtil.toList(DEBUG, "debug"), "Log in debug mode (includes normal stacktrace).");
             acceptsAll(WrapUtil.toList(QUIET, "quiet"), "Log errors only.");
+            acceptsAll(WrapUtil.toList(DRY_RUN, "dry-run"), "Runs the builds with all task actions disabled.");
             acceptsAll(WrapUtil.toList(INFO, "info"), "Set log level to info.");
             acceptsAll(WrapUtil.toList(STACKTRACE, "stacktrace"), "Print out the stacktrace also for user exceptions (e.g. compile error).");
             acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"), "Print out the full (very verbose) stacktrace for any exceptions.");
@@ -205,6 +207,10 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
         } else {
             startParameter.setTaskNames(options.nonOptionArguments());
+        }
+
+        if (options.has(DRY_RUN)) {
+            startParameter.setDryRun(true);
         }
 
         startParameter.setLogLevel(getLogLevel(options));

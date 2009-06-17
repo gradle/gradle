@@ -19,6 +19,7 @@ import joptsimple.OptionSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
@@ -52,7 +53,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(errorMessage));
         }});
 
-        reporter.buildFinished(new BuildResult(null, exception));
+        reporter.buildFinished(HelperUtil.createBuildResult(exception));
     }
 
     @Test
@@ -65,7 +66,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(errorMessage));
         }});
 
-        reporter.buildFinished(new BuildResult(null, exception));
+        reporter.buildFinished(HelperUtil.createBuildResult(exception));
     }
 
     @Test
@@ -89,7 +90,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(errorMessage));
         }});
 
-        reporter.buildFinished(new BuildResult(null, wrapper));
+        reporter.buildFinished(HelperUtil.createBuildResult(wrapper));
     }
 
     @Test
@@ -111,7 +112,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(errorMessage));
         }});
 
-        reporter.buildFinished(new BuildResult(null, exception));
+        reporter.buildFinished(HelperUtil.createBuildResult(exception));
     }
 
     @Test
@@ -125,7 +126,7 @@ public class BuildExceptionReporterTest {
         }});
 
         reporter = new BuildExceptionReporter(logger);
-        reporter.buildFinished(new BuildResult(null, exception));
+        reporter.buildFinished(HelperUtil.createBuildResult(exception));
     }
 
     @Test
@@ -136,7 +137,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(containsString("Build aborted because of an internal error.")), with(sameInstance(failure)));
         }});
 
-        reporter.buildFinished(new BuildResult(null, failure));
+        reporter.buildFinished(HelperUtil.createBuildResult(failure));
     }
 
     @Test
@@ -148,12 +149,12 @@ public class BuildExceptionReporterTest {
         }});
 
         reporter = new BuildExceptionReporter(logger);
-        reporter.buildFinished(new BuildResult(null, failure));
+        reporter.buildFinished(HelperUtil.createBuildResult(failure));
     }
 
     @Test
     public void doesNothingWheBuildIsSuccessful() {
-        reporter.buildFinished(new BuildResult(null, null));
+        reporter.buildFinished(HelperUtil.createBuildResult(null));
     }
 
 }

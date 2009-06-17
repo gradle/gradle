@@ -71,8 +71,9 @@ public class StartParameter {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private File buildFile;
-    private boolean showHelp;
-    private boolean showVersion;
+    private boolean showHelp = false;
+    private boolean showVersion = false;
+    private boolean dryRun = false;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -107,6 +108,9 @@ public class StartParameter {
         startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.logLevel = logLevel;
         startParameter.showStacktrace = showStacktrace;
+        startParameter.showHelp = showHelp;
+        startParameter.showVersion = showVersion;
+        startParameter.dryRun = dryRun;
         return startParameter;
     }
 
@@ -369,6 +373,14 @@ public class StartParameter {
 
     public void setShowVersion(boolean showVersion) {
         this.showVersion = showVersion;
+    }
+
+    public boolean isDryRun() {
+        return dryRun;
+    }
+
+    public void setDryRun(boolean dryRun) {
+        this.dryRun = dryRun;
     }
 
     /**
