@@ -17,7 +17,9 @@ package org.gradle;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import joptsimple.OptionException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.logging.LogLevel;
@@ -103,7 +105,12 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     public StartParameter convert(String[] args) {
         StartParameter startParameter = new StartParameter();
 
-        OptionSet options = parser.parse(args);
+        OptionSet options = null;
+        try {
+            options = parser.parse(args);
+        } catch (OptionException e) {
+            throw new CommandLineArgumentException(e.getMessage());
+        }
 
         if (options.has(HELP)) {
             startParameter.setShowHelp(true);
@@ -217,8 +224,12 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         return startParameter;
     }
 
-    public void showHelp(OutputStream out) throws IOException {
-        parser.printHelpOn(out);
+    public void showHelp(OutputStream out) {
+        try {
+            parser.printHelpOn(out);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private LogLevel getLogLevel(OptionSet options) {

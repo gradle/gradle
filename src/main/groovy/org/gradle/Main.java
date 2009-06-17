@@ -32,6 +32,7 @@ public class Main {
     
     private final String[] args;
     private BuildCompleter buildCompleter = new ProcessExitBuildCompleter();
+    private CommandLine2StartParameterConverter parameterConverter = new DefaultCommandLine2StartParameterConverter();
 
     public Main(String[] args) {
         this.args = args;
@@ -45,10 +46,13 @@ public class Main {
         this.buildCompleter = buildCompleter;
     }
 
+    public void setParameterConverter(CommandLine2StartParameterConverter parameterConverter) {
+        this.parameterConverter = parameterConverter;
+    }
+
     public void execute() throws Exception {
         StartParameter startParameter = null;
 
-        DefaultCommandLine2StartParameterConverter parameterConverter = new DefaultCommandLine2StartParameterConverter();
         try {
             startParameter = parameterConverter.convert(args);
         } catch (Exception e) {

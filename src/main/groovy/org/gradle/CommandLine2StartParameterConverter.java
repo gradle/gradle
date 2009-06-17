@@ -15,9 +15,13 @@
  */
 package org.gradle;
 
+import java.io.OutputStream;
+
 /**
  * @author Hans Dockter
  */
 public interface CommandLine2StartParameterConverter {
     StartParameter convert(String[] args);
+
+    void showHelp(OutputStream out);
 }
