@@ -128,12 +128,7 @@ public class BaseSettings implements SettingsInternal {
                 );
             }
         };
-        ResolverProvider resolverProvider = new ResolverProvider() {
-            public List<DependencyResolver> getResolvers() {
-                return repositoryHandler.getResolvers();
-            }
-        };
-        return configurationContainerFactory.createConfigurationContainer(resolverProvider, metaDataProvider).add(BUILD_CONFIGURATION);
+        return configurationContainerFactory.createConfigurationContainer(repositoryHandler, metaDataProvider).add(BUILD_CONFIGURATION);
     }
 
     private void assignBuildSrcStartParameter(StartParameter startParameter) {

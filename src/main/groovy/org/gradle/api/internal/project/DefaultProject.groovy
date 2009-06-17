@@ -104,8 +104,8 @@ class DefaultProject extends AbstractProject {
         ConfigureUtil.configure(configureClosure, getArtifacts())
     }
 
-    public void buildscript(Closure configureClosure) {
-        configureClosure.call()
+    public void scriptclasspath(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getScriptclasspath())
     }
 
     /**

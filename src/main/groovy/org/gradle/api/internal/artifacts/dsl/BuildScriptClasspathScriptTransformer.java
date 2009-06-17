@@ -26,6 +26,8 @@ import org.codehaus.groovy.control.SourceUnit;
 import java.util.Iterator;
 
 public class BuildScriptClasspathScriptTransformer extends AbstractScriptTransformer {
+    private static final String BUILDSCRIPT_METHOD_NAME = "scriptclasspath";
+
     public void call(SourceUnit source) throws CompilationFailedException {
 
         Iterator statementIterator = source.getAST().getStatementBlock().getStatements().iterator();
@@ -48,7 +50,7 @@ public class BuildScriptClasspathScriptTransformer extends AbstractScriptTransfo
         }
 
         MethodCallExpression methodCall = (MethodCallExpression) expressionStatement.getExpression();
-        if (!isMethodOnThis(methodCall, "buildscript")) {
+        if (!isMethodOnThis(methodCall, BUILDSCRIPT_METHOD_NAME)) {
             return false;
         }
 

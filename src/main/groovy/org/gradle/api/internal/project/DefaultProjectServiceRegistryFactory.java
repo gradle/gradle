@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.project;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.initialization.DefaultScriptClasspathHandler;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
@@ -39,6 +40,7 @@ import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.logging.AntLoggingAdapter;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,87 +72,140 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
 
     private class ProjectServiceRegistryImpl implements ProjectServiceRegistry {
         private final ProjectInternal project;
-        private DefaultConvention convention;
-        private DefaultTaskContainer taskContainer;
-        private RepositoryHandler repositoryHandler;
-        private ConfigurationContainer configurationContainer;
-        private ArtifactHandler artifactHandler;
-        private DependencyHandler dependencyHandler;
-        private ProjectPluginsContainer projectPluginsHandler;
-        private final DefaultAntBuilderFactory antBuilderFactory;
+        private final List<Service> services = new ArrayList<Service>();
 
-        public ProjectServiceRegistryImpl(ProjectInternal project) {
+        public ProjectServiceRegistryImpl(final ProjectInternal project) {
             this.project = project;
-            antBuilderFactory = new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
-        }
 
-        public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
-            if (serviceType.isAssignableFrom(ProjectPluginsContainer.class)) {
-                if (projectPluginsHandler == null) {
-                    projectPluginsHandler = new DefaultProjectsPluginContainer(project.getBuild().getPluginRegistry());
+            services.add(new Service(ProjectEvaluator.class) {
+                @Override
+                protected Object create() {
+                    return projectEvaluator;
                 }
-                return serviceType.cast(projectPluginsHandler);
-            }
-            if (serviceType.isAssignableFrom(Convention.class)) {
-                if (convention == null) {
-                    convention = new DefaultConvention();
+            });
+
+            services.add(new Service(RepositoryHandlerFactory.class) {
+                @Override
+                protected Object create() {
+                    return repositoryHandlerFactory;
                 }
-                return serviceType.cast(convention);
-            }
-            if (serviceType.isAssignableFrom(TaskContainerInternal.class)) {
-                if (taskContainer == null) {
-                    taskContainer = new DefaultTaskContainer(this.project, taskFactory);
+            });
+
+            services.add(new Service(AntBuilderFactory.class) {
+                @Override
+                protected Object create() {
+                    return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
                 }
-                return serviceType.cast(taskContainer);
-            }
-            if (serviceType.isAssignableFrom(RepositoryHandler.class)) {
-                if (repositoryHandler == null) {
-                    repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(get(Convention.class));
+            });
+
+            services.add(new Service(ProjectPluginsContainer.class) {
+                @Override
+                protected Object create() {
+                    return new DefaultProjectsPluginContainer(project.getBuild().getPluginRegistry());
                 }
-                return serviceType.cast(repositoryHandler);
-            }
-            if (serviceType.isAssignableFrom(ConfigurationHandler.class)) {
-                if (configurationContainer == null) {
-                    configurationContainer = configurationContainerFactory.createConfigurationContainer(new ResolverProviderImpl(),
+            });
+
+            services.add(new Service(TaskContainerInternal.class) {
+                @Override
+                protected Object create() {
+                    return new DefaultTaskContainer(project, taskFactory);
+                }
+            });
+
+            services.add(new Service(Convention.class) {
+                @Override
+                protected Object create() {
+                    return new DefaultConvention();
+                }
+            });
+
+            services.add(new Service(RepositoryHandler.class) {
+                @Override
+                protected Object create() {
+                    return repositoryHandlerFactory.createRepositoryHandler(get(Convention.class));
+                }
+            });
+
+            services.add(new Service(ConfigurationHandler.class) {
+                @Override
+                protected Object create() {
+                    return configurationContainerFactory.createConfigurationContainer(get(ResolverProvider.class),
                             new DependencyMetaDataProviderImpl());
                 }
-                return serviceType.cast(configurationContainer);
-            }
-            if (serviceType.isAssignableFrom(ArtifactHandler.class)) {
-                if (artifactHandler == null) {
-                    artifactHandler = new DefaultArtifactHandler(get(ConfigurationContainer.class),
-                            publishArtifactFactory);
+            });
+
+            services.add(new Service(ArtifactHandler.class) {
+                @Override
+                protected Object create() {
+                    return new DefaultArtifactHandler(get(ConfigurationContainer.class), publishArtifactFactory);
                 }
-                return serviceType.cast(artifactHandler);
-            }
-            if (serviceType.isAssignableFrom(DependencyHandler.class)) {
-                if (dependencyHandler == null) {
-                    ProjectFinder projectFinder = new ProjectFinder() {
+            });
+
+            services.add(new Service(ProjectFinder.class) {
+                @Override
+                protected Object create() {
+                    return new ProjectFinder() {
                         public Project getProject(String path) {
                             return project.project(path);
                         }
                     };
-                    dependencyHandler = new DefaultDependencyHandler(get(ConfigurationContainer.class), dependencyFactory, projectFinder);
                 }
-                return serviceType.cast(dependencyHandler);
+            });
+
+            services.add(new Service(DependencyHandler.class) {
+                @Override
+                protected Object create() {
+                    return new DefaultDependencyHandler(get(ConfigurationContainer.class), dependencyFactory, get(
+                            ProjectFinder.class));
+                }
+            });
+
+            services.add(new Service(ScriptClasspathHandler.class) {
+                @Override
+                protected Object create() {
+                    RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(
+                            new DefaultConvention());
+                    ConfigurationHandler configurationContainer = configurationContainerFactory
+                            .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
+                    DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
+                            dependencyFactory, get(ProjectFinder.class));
+                    return new DefaultScriptClasspathHandler(repositoryHandler, dependencyHandler);
+                }
+            });
+        }
+
+        public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
+            for (Service service : services) {
+                T t = service.getService(serviceType);
+                if (t != null) {
+                    return t;
+                }
             }
-            if (serviceType.isAssignableFrom(AntBuilderFactory.class)) {
-                return serviceType.cast(antBuilderFactory);
-            }
-            if (serviceType.isAssignableFrom(ProjectEvaluator.class)) {
-                return serviceType.cast(projectEvaluator);
-            }
-            if (serviceType.isAssignableFrom(RepositoryHandlerFactory.class)) {
-                return serviceType.cast(repositoryHandlerFactory);
-            }
+
             throw new IllegalArgumentException(String.format("No project service of type %s available.",
                     serviceType.getSimpleName()));
         }
 
-        private class ResolverProviderImpl implements ResolverProvider {
-            public List<DependencyResolver> getResolvers() {
-                return get(RepositoryHandler.class).getResolvers();
+        private abstract class Service {
+            final Class<?> serviceType;
+            Object service;
+
+            Service(Class<?> serviceType) {
+                this.serviceType = serviceType;
             }
+
+            <T> T getService(Class<T> serviceType) {
+                if (!serviceType.isAssignableFrom(this.serviceType)) {
+                    return null;
+                }
+                if (service == null) {
+                    service = create();
+                    assert service != null;
+                }
+                return serviceType.cast(service);
+            }
+
+            protected abstract Object create();
         }
 
         private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {

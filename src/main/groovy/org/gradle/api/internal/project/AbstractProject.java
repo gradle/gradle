@@ -20,6 +20,7 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
 import org.gradle.api.*;
+import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.internal.BeanDynamicObject;
@@ -119,12 +120,13 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private RepositoryHandler repositoryHandler;
 
+    private ScriptClasspathHandler scriptClasspathHandler;
+
     private ListenerBroadcast<Action> afterEvaluateActions = new ListenerBroadcast<Action>(Action.class);
     private ListenerBroadcast<Action> beforeEvaluateActions = new ListenerBroadcast<Action>(Action.class);
 
     private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
     private DynamicObjectHelper dynamicObjectHelper;
-
 
     public AbstractProject(String name) {
         this.name = name;
@@ -167,9 +169,10 @@ public abstract class AbstractProject implements ProjectInternal {
         projectEvaluator = serviceRegistry.get(ProjectEvaluator.class);
         repositoryHandler = serviceRegistry.get(RepositoryHandler.class);
         configurationContainer = serviceRegistry.get(ConfigurationHandler.class);
-        this.projectPluginsHandler = serviceRegistry.get(ProjectPluginsContainer.class);
-        this.artifactHandler = serviceRegistry.get(ArtifactHandler.class);
-        this.dependencyHandler = serviceRegistry.get(DependencyHandler.class);
+        projectPluginsHandler = serviceRegistry.get(ProjectPluginsContainer.class);
+        artifactHandler = serviceRegistry.get(ArtifactHandler.class);
+        dependencyHandler = serviceRegistry.get(DependencyHandler.class);
+        scriptClasspathHandler = serviceRegistry.get(ScriptClasspathHandler.class);
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(serviceRegistry.get(Convention.class));
@@ -219,6 +222,10 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void setProjectEvaluator(ProjectEvaluator projectEvaluator) {
         this.projectEvaluator = projectEvaluator;
+    }
+
+    public ScriptClasspathHandler getScriptclasspath() {
+        return scriptClasspathHandler;
     }
 
     public ClassLoader getBuildScriptClassLoader() {

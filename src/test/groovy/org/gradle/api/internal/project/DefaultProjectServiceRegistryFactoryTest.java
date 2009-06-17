@@ -16,6 +16,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.artifacts.dsl.*;
+import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -23,11 +24,11 @@ import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.initialization.DefaultScriptClasspathHandler;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.configuration.DefaultProjectEvaluator;
 import org.gradle.configuration.ProjectEvaluator;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -40,7 +41,8 @@ import org.junit.runner.RunWith;
 @RunWith(JMock.class)
 public class DefaultProjectServiceRegistryFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ConfigurationContainerFactory configurationContainerFactory = context.mock(ConfigurationContainerFactory.class);
+    private final ConfigurationContainerFactory configurationContainerFactory = context.mock(
+            ConfigurationContainerFactory.class);
     private final RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
     private final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
     private final PublishArtifactFactory publishArtifactFactory = context.mock(PublishArtifactFactory.class);
@@ -84,7 +86,8 @@ public class DefaultProjectServiceRegistryFactoryTest {
     public void providesARepositoryHandlerFactory() {
         ProjectServiceRegistry registry = factory.create(project);
         assertThat(registry.get(RepositoryHandlerFactory.class), sameInstance(repositoryHandlerFactory));
-        assertThat(registry.get(RepositoryHandlerFactory.class), sameInstance(registry.get(RepositoryHandlerFactory.class)));
+        assertThat(registry.get(RepositoryHandlerFactory.class), sameInstance(registry.get(
+                RepositoryHandlerFactory.class)));
     }
 
     @Test
@@ -112,7 +115,7 @@ public class DefaultProjectServiceRegistryFactoryTest {
         ProjectServiceRegistry registry = factory.create(project);
 
         expectConfigurationHandlerCreated();
-        
+
         assertThat(registry.get(DependencyHandler.class), instanceOf(DefaultDependencyHandler.class));
         assertThat(registry.get(DependencyHandler.class), sameInstance(registry.get(DependencyHandler.class)));
     }
@@ -134,6 +137,17 @@ public class DefaultProjectServiceRegistryFactoryTest {
     }
 
     @Test
+    public void providesAScriptClasspathHandler() {
+        expectConfigurationHandlerCreated();
+        
+        ProjectServiceRegistry registry = factory.create(project);
+
+        assertThat(registry.get(ScriptClasspathHandler.class), instanceOf(DefaultScriptClasspathHandler.class));
+        assertThat(registry.get(ScriptClasspathHandler.class), sameInstance(registry.get(
+                ScriptClasspathHandler.class)));
+    }
+
+    @Test
     public void registryThrowsExceptionForUnknownService() {
         try {
             factory.create(project).get(String.class);
@@ -144,9 +158,14 @@ public class DefaultProjectServiceRegistryFactoryTest {
     }
 
     private void expectConfigurationHandlerCreated() {
-        context.checking(new Expectations(){{
-            one(configurationContainerFactory).createConfigurationContainer(with(any(ResolverProvider.class)), with(any(
-                    DependencyMetaDataProvider.class)));
+        context.checking(new Expectations() {{
+            RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
+
+            one(repositoryHandlerFactory).createRepositoryHandler(with(notNullValue(Convention.class)));
+            will(returnValue(repositoryHandler));
+
+            one(configurationContainerFactory).createConfigurationContainer(with(sameInstance(repositoryHandler)), with(
+                    notNullValue(DependencyMetaDataProvider.class)));
             will(returnValue(configurationHandler));
         }});
     }

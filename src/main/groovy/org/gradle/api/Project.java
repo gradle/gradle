@@ -21,6 +21,7 @@ import groovy.util.AntBuilder;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
@@ -159,7 +160,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface Project extends Comparable<Project> {
-    /**                          
+    /**
      * The default project build file name.
      */
     public static final String DEFAULT_BUILD_FILE = "build.gradle";
@@ -386,7 +387,7 @@ public interface Project extends Comparable<Project> {
      * @return This project.
      */
     Project usePlugin(String pluginName);
-    
+
     /**
      * <p>Applies a {@link Plugin} to this project.</p>
      *
@@ -413,8 +414,8 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action closure is passed to the task's {@link Task#doFirst(TaskAction)} method. Calling this method is equivalent
-     * to calling {@link #createTask(java.util.Map, String, TaskAction)} with an empty options map.</p>
+     * action is passed to the task's {@link Task#doFirst(TaskAction)} method. Calling this method is equivalent to
+     * calling {@link #createTask(java.util.Map, String, TaskAction)} with an empty options map.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
      * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
@@ -422,7 +423,7 @@ public interface Project extends Comparable<Project> {
      * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
      *
      * @param name The name of the task to be created
-     * @param action The closure to be passed to the {@link Task#doFirst(TaskAction)} method of the created task.
+     * @param action The action to be passed to the {@link Task#doFirst(TaskAction)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
@@ -464,8 +465,8 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action closure is passed to the task's {@link Task#doFirst(TaskAction)} method. A map of creation options can be
-     * passed to this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the
+     * action is passed to the task's {@link Task#doFirst(TaskAction)} method. A map of creation options can be passed
+     * to this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the
      * available options.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
@@ -476,7 +477,7 @@ public interface Project extends Comparable<Project> {
      *
      * @param args The task creation options.
      * @param name The name of the task to be created
-     * @param action The closure to be passed to the {@link Task#doFirst(TaskAction)} method of the created task.
+     * @param action The action to be passed to the {@link Task#doFirst(TaskAction)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
@@ -620,7 +621,7 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Locates a project by path and configures it using the given closure. If the path is relative, it is
-     * interpreted relative to this project.</p>
+     * interpreted relative to this project. The target project is passed to the closure as the closure's delegate.</p>
      *
      * @param path The path.
      * @param configureClosure The closure to use to configure the project.
@@ -732,8 +733,8 @@ public interface Project extends Comparable<Project> {
     AntBuilder getAnt();
 
     /**
-     * <p>Creates an additional <code>AntBuilder</code> for this project. You can use this in your build file to
-     * execute ant tasks.</p>
+     * <p>Creates an additional <code>AntBuilder</code> for this project. You can use this in your build file to execute
+     * ant tasks.</p>
      *
      * @return Creates an <code>AntBuilder</code> for this project. Never returns null.
      * @see #getAnt()
@@ -742,12 +743,12 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Executes the given closure against the <code>AntBuilder</code> for this project. You can use this in your
-     * build file to execute ant tasks.</p>
+     * build file to execute ant tasks. The <code>AntBuild</code> is passed to the closure as the closure's
+     * delegate.</p>
      *
      * <p>You can call this method in your build file using <code>ant</code> followed by a code block.</p>
      *
-     * @param configureClosure The closure to execute against the <code>AntBuilder</code>. The closure receives no
-     * paramters.
+     * @param configureClosure The closure to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
      */
     AntBuilder ant(Closure configureClosure);
@@ -760,9 +761,27 @@ public interface Project extends Comparable<Project> {
     ConfigurationHandler getConfigurations();
 
     /**
+     * Configures the dependency configurations for this project. Executes the given closure against the {@link
+     * ConfigurationHandler} for this project. The {@link ConfigurationHandler} is passed to the closure as the
+     * closure's delegate.
+     *
+     * @param configureClosure the closure to use to configure the dependency configurations.
+     */
+    void configurations(Closure configureClosure);
+
+    /**
      * Returns a handler for assigning artifacts produced by the project to configurations.
      */
     ArtifactHandler getArtifacts();
+
+    /**
+     * Configures the published artifacts for this project. Executes the given closure against the {@link
+     * ArtifactHandler} for this project. The {@link ArtifactHandler} is passed to the closure as the closure's
+     * delegate.
+     *
+     * @param configureClosure the closure to use to configure the published artifacts.
+     */
+    void artifacts(Closure configureClosure);
 
     /**
      * <p>Return the {@link Convention} for this project.</p>
@@ -806,7 +825,8 @@ public interface Project extends Comparable<Project> {
     void subprojects(Action<? super Project> action);
 
     /**
-     * <p>Executes the given closure against each of the subprojects of this project.</p>
+     * <p>Executes the given closure against each of the sub-projects of this project. The target project is passed to
+     * the closure as the closure's delegate. </p>
      *
      * <p>You can call this method in your build file using <code>subprojects</code> followed by a code block.</p>
      *
@@ -822,7 +842,8 @@ public interface Project extends Comparable<Project> {
     void allprojects(Action<? super Project> action);
 
     /**
-     * <p>Executes the given closure against this project and its subprojects.</p>
+     * <p>Executes the given closure against this project and its sub-projects. The target project is passed to the
+     * closure as the closure's delegate.</p>
      *
      * <p>You can call this method in your build file using <code>allprojects</code> followed by a code block.</p>
      *
@@ -956,8 +977,8 @@ public interface Project extends Comparable<Project> {
     void captureStandardOutput(LogLevel level);
 
     /**
-     * Configures an object via a closure. That way you don't have to specify the context of a configuration statement
-     * multiple times.
+     * Configures an object via a closure, with the closure's delegate set to the supplied object. This way you don't
+     * have to specify the context of a configuration statement multiple times.
      *
      * Instead of:
      * <pre>
@@ -982,7 +1003,7 @@ public interface Project extends Comparable<Project> {
 
     /**
      * Configures a collection of objects via a closure. This is equivalent to calling {@link #configure(Object,
-     * groovy.lang.Closure)} for eac of the given objects.
+     * groovy.lang.Closure)} for each of the given objects.
      *
      * @param objects The objects to configure
      * @param configureClosure The closure with configure statements
@@ -991,10 +1012,20 @@ public interface Project extends Comparable<Project> {
     Iterable<?> configure(Iterable<?> objects, Closure configureClosure);
 
     /**
-     * Returns a handler to create repositories which are used for retrieving dependencies and can be also be used for
-     * uploading artifacts produced by the project.
+     * Returns a handler to create repositories which are used for retrieving dependencies and uploading artifacts
+     * produced by the project.
+     *
+     * @return the repository handler. Never returns null.
      */
     RepositoryHandler getRepositories();
+
+    /**
+     * Configures the repositories for this project. Executes the given closure against the {@link RepositoryHandler}
+     * for this project. The {@link RepositoryHandler} is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure the closure to use to configure the repositories.
+     */
+    void repositories(Closure configureClosure);
 
     /**
      * Creates a new repository handler.
@@ -1007,18 +1038,43 @@ public interface Project extends Comparable<Project> {
     RepositoryHandler createRepositoryHandler();
 
     /**
-     * Returns the instance of the repository handler factory. The factory can be modified to use customized values for
-     * initializing the create handlers. The maven plugin does this for example.
-     */
-    RepositoryHandlerFactory getRepositoryHandlerFactory();
-
-    /**
      * Returns the dependencies of this project. The returned dependency handler instance can be used for adding new
      * dependencies. For accessing already declared dependencies, the configurations can be used.
      *
+     * @return the dependency handler. Never returns null.
      * @see #getConfigurations()
      */
     DependencyHandler getDependencies();
 
+    /**
+     * Configures the dependencies for this project. Executes the given closure against the {@link DependencyHandler}
+     * for this project. The {@link DependencyHandler} is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure the closure to use to configure the dependencies.
+     */
+    void dependencies(Closure configureClosure);
+
+    /**
+     * Returns the plugins container for this project. The returned container can be used to manage the plugins which
+     * are used by this project.
+     *
+     * @return the plugin container. Never returns null.
+     */
     ProjectPluginsContainer getPlugins();
+
+    /**
+     * Returns the build script classpath for this project. You can use this handler to manage the classpath used to
+     * compile and execute the project's build script.
+     *
+     * @return the classpath handler. Never returns null.
+     */
+    ScriptClasspathHandler getScriptclasspath();
+
+    /**
+     * Configures the build script classpath for this project. The given closure is executed against this project's
+     * {@link ScriptClasspathHandler}.
+     *
+     * @param configureClosure the closure to use to configure the build script classpath.
+     */
+    void scriptclasspath(Closure configureClosure);
 }

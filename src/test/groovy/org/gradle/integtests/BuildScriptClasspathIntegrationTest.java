@@ -31,8 +31,9 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     public void canDeclareClasspathInBuildScript() {
         testFile("build.gradle").writelns(
                 "println 'start evaluate'",
-                "buildscript {",
-                "    println 'declare build classpath'",
+                "scriptclasspath {",
+                "    repositories {  }",
+                "    dependencies {  }",
                 "}",
                 "task hello"
         );

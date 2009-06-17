@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.api.internal.plugins.DefaultConvention
@@ -38,7 +37,6 @@ import org.gradle.api.invocation.Build
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
 import org.gradle.api.plugins.Convention
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginTest
 import org.gradle.api.tasks.Directory
 import org.gradle.api.tasks.util.BaseDirConverter
@@ -61,7 +59,7 @@ import static org.junit.Assert.*
 import org.gradle.api.internal.BeanDynamicObject
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ProjectPluginsContainer
-import org.gradle.api.plugins.ProjectPluginsContainer
+import org.gradle.api.initialization.dsl.ScriptClasspathHandler
 
 /**
  * @author Hans Dockter
@@ -106,8 +104,10 @@ class DefaultProjectTest {
     RepositoryHandlerFactory repositoryHandlerFactoryMock = context.mock(RepositoryHandlerFactory.class);
     RepositoryHandler repositoryHandlerMock
     DependencyFactory dependencyFactoryMock
+    DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
     ProjectPluginsContainer projectPluginsHandlerMock = context.mock(ProjectPluginsContainer)
     PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory)
+    ScriptClasspathHandler scriptClasspathHandlerMock = context.mock(ScriptClasspathHandler)
     Build build;
     Convention convention = new DefaultConvention();
 
@@ -157,6 +157,7 @@ class DefaultProjectTest {
 
         projectServiceRegistryFactoryMock = context.mock(ProjectServiceRegistryFactory)
         serviceRegistryMock = context.mock(ProjectServiceRegistry)
+
         context.checking {
             allowing(projectServiceRegistryFactoryMock).create(withParam(any(Project))); will(returnValue(serviceRegistryMock))
             allowing(serviceRegistryMock).get(TaskContainerInternal); will(returnValue(taskContainerMock))
@@ -165,11 +166,12 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(RepositoryHandlerFactory); will(returnValue(repositoryHandlerFactoryMock))
             allowing(serviceRegistryMock).get(ConfigurationHandler); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
-            allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(context.mock(DependencyHandler)))
+            allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
             allowing(serviceRegistryMock).get(Convention); will(returnValue(convention))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).get(AntBuilderFactory); will(returnValue(antBuilderFactoryMock))
             allowing(serviceRegistryMock).get(ProjectPluginsContainer); will(returnValue(projectPluginsHandlerMock))
+            allowing(serviceRegistryMock).get(ScriptClasspathHandler); will(returnValue(scriptClasspathHandlerMock))
         }
 
         rootDir = new File("/path/root").absoluteFile
@@ -213,13 +215,12 @@ class DefaultProjectTest {
   }
 
   @Test void testDependencies() {
-      boolean called = false;
-      DependencyHandler dependencyHandlerMock = [add: {String name, notation -> called = true; null}] as DependencyHandler
-      project.setDependencyHandler dependencyHandlerMock
-      project.dependencies {
-          add("test", "dep")
+      context.checking {
+          one(dependencyHandlerMock).add('conf', 'dep')
       }
-      assertTrue(called)
+      project.dependencies {
+          add('conf', 'dep')
+      }
   }
 
   @Test void testConfigurations() {
@@ -229,6 +230,15 @@ class DefaultProjectTest {
         }
         project.configurationContainer = configurationContainerMock
         project.configurations cl
+    }
+
+  @Test void testScriptClasspath() {
+        context.checking {
+            one(scriptClasspathHandlerMock).getRepositories()
+        }
+        project.scriptclasspath {
+            repositories
+        }
     }
 
     @Test void testProject() {
