@@ -175,7 +175,7 @@ public class Gradle {
 
     /**
      * Returns a Gradle instance based on the passed command line syntax arguments. Certain command line arguments
-     * won't have any effect if you choose this method (e.g. -t, -v, -h). If you want to act upon, you better
+     * won't have any effect if you choose this method (e.g. -v, -h). If you want to act upon, you better
      * use {@link #createStartParameter(String[])} in conjunction with {@link #newInstance(String[])}.
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
