@@ -6,7 +6,7 @@
         parent project. If the build logic gets too complex for being properly modeled by methods you want have an OO
         Model.
         <footnote>
-            <para>Which might range from a single class to something very complex)
+            <para>Which might range from a single class to something very complex.
             </para>
         </footnote>
         Gradle makes this very easy. Just drop your classes in a certain folder and Gradle automatically compiles them
@@ -18,9 +18,7 @@
             your build source code in this folder and stick to the layout convention for a Java/Groovy project (see
             <xref linkend='javalayout'/>). Gradle then automatically compiles and tests this code and puts it in
             the classpath of your build script. You don't need to provide any further instruction. For multi-project
-            builds there can be only one
-            <literal>buildSrc</literal>
-            directory which has to be in the root project.
+            builds there can be only one <literal>buildSrc</literal> directory which has to be in the root project.
         </para>
         <para>This is probably good enough for most of the cases. If you need more flexibility, you can provide a
             <filename>build.gradle</filename> and a <filename>settings.gradle</filename> file in the
@@ -33,8 +31,9 @@
             <literal>settings.gradle</literal>
             file.
         </para>
-        <sample id="settingsBuildLogic" dir="userguide/organizeBuildLogic" title="Configuring external dependencies in settings.gradle file">
-            <sourcefile file="settings.gradle"/>
+        <sample id="externalBuildDependency" dir="userguide/organizeBuildLogic/externalDependency" title="Configuring external dependencies the build file">
+            <sourcefile file="build.gradle"/>
+            <output args="-q encode"/>
         </sample>
         <para>You can pass any of the dependencies described in
             <xref linkend='sec:how_to_declare_your_dependencies'/>

@@ -17,9 +17,11 @@ package org.gradle.configuration;
 
 import org.gradle.api.internal.artifacts.dsl.TaskDefinitionScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
+import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.groovy.scripts.*;
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
@@ -47,6 +49,7 @@ public class BuildScriptCompilerTest {
     private final ClassLoader classLoader = context.mock(ClassLoader.class);
     private final ProjectScript classpathScript = context.mock(ProjectScript.class, "classpath");
     private final ProjectScript buildScript = context.mock(ProjectScript.class, "build");
+    private final ScriptClassLoaderProvider classLoaderProvider = context.mock(ScriptClassLoaderProvider.class);
     private final File rootDir = new File("root dir");
     private final BuildScriptCompiler evaluator = new BuildScriptCompiler(importsReader, scriptProcessorFactory,
             projectScriptMetaData);
@@ -60,8 +63,8 @@ public class BuildScriptCompilerTest {
             allowing(project).getRootDir();
             will(returnValue(rootDir));
 
-            allowing(project).getBuildScriptClassLoader();
-            will(returnValue(classLoader));
+            allowing(project).getClassLoaderProvider();
+            will(returnValue(classLoaderProvider));
         }});
     }
 
@@ -73,6 +76,9 @@ public class BuildScriptCompilerTest {
             one(scriptProcessorFactory).createProcessor(with(reflectionEquals(expectedScriptSource)));
             will(returnValue(processor));
 
+            one(classLoaderProvider).getClassLoader();
+            will(returnValue(classLoader));
+            
             one(processor).setClassloader(classLoader);
 
             one(processor).setTransformer(with(notNullValue(BuildScriptClasspathScriptTransformer.class)));
@@ -84,7 +90,9 @@ public class BuildScriptCompilerTest {
 
             one(classpathScript).run();
 
-            one(processor).setTransformer(with(notNullValue(TaskDefinitionScriptTransformer.class)));
+            one(classLoaderProvider).updateClassPath();
+            
+            one(processor).setTransformer(with(notNullValue(BuildScriptTransformer.class)));
 
             one(processor).process(ProjectScript.class);
             will(returnValue(buildScript));

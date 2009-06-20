@@ -18,7 +18,10 @@ package org.gradle.groovy.scripts;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
-import org.codehaus.groovy.control.*;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
@@ -45,7 +48,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     public <T extends Script> T createScriptOnTheFly(ScriptSource source, ClassLoader classLoader,
-                                                     CompilationUnit.SourceUnitOperation transformer,
+                                                     Transformer transformer,
                                                      Class<T> scriptBaseClass) {
         Clock clock = new Clock();
         logger.debug("Compiling script using {} with {}.", source.getDisplayName(), transformer);
@@ -58,7 +61,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     public void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
-                             CompilationUnit.SourceUnitOperation transformer, Class<? extends Script> scriptBaseClass) {
+                             Transformer transformer, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
         logger.debug("Compiling script using {} with {}.", source.getDisplayName(), transformer);
         GFileUtils.deleteDirectory(scriptCacheDir);
@@ -73,13 +76,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private Class compileScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
-                              final CompilationUnit.SourceUnitOperation transformer) {
+                              final Transformer transformer) {
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(CompilerConfiguration config, CodeSource source) {
                 CompilationUnit compilationUnit = super.createCompilationUnit(config, source);
                 if (transformer != null) {
-                    compilationUnit.addPhaseOperation(transformer, Phases.CANONICALIZATION);
+                    transformer.register(compilationUnit);
                 }
                 return compilationUnit;
             }

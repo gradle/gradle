@@ -25,12 +25,11 @@ import org.codehaus.groovy.control.CompilationUnit;
  * @author Hans Dockter
  */
 public interface ScriptCompilationHandler {
-    <T extends Script> T createScriptOnTheFly(ScriptSource source, ClassLoader classLoader,
-                                              CompilationUnit.SourceUnitOperation transformer,
+    <T extends Script> T createScriptOnTheFly(ScriptSource source, ClassLoader classLoader, Transformer transformer,
                                               Class<T> scriptBaseClass);
 
-    void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
-                      CompilationUnit.SourceUnitOperation transformer, Class<? extends Script> scriptBaseClass);
+    void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir, Transformer transformer,
+                      Class<? extends Script> scriptBaseClass);
 
     <T extends Script> T loadFromCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                                        Class<T> scriptBaseClass);

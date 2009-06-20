@@ -17,22 +17,6 @@ package org.gradle.groovy.scripts;
 
 import org.codehaus.groovy.control.CompilationUnit;
 
-/**
- * Compiles a script into an executable {@code Script} object.
- */
-public interface ScriptProcessor {
-    /**
-     * Sets the parent classloader for the script. Can be null.
-     */
-    ScriptProcessor setClassloader(ClassLoader classloader);
-
-    /**
-     * Sets the transformer to use to compile the script. Can be null.
-     */
-    ScriptProcessor setTransformer(Transformer transformer);
-
-    /**
-     * Compiles the script into a {@code Script} object of the given type.
-     */
-    <T extends ScriptWithSource> T process(Class<T> scriptType);
+public interface Transformer {
+    void register(CompilationUnit compilationUnit);
 }

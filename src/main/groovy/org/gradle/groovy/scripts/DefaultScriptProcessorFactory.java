@@ -15,7 +15,6 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.codehaus.groovy.control.CompilationUnit;
 import org.gradle.CacheUsage;
 import org.gradle.api.Project;
 
@@ -53,7 +52,7 @@ public class DefaultScriptProcessorFactory implements ScriptProcessorFactory {
     private class ScriptProcessorImpl implements ScriptProcessor {
         private final ScriptSource source;
         private ClassLoader classloader;
-        private CompilationUnit.SourceUnitOperation transformer;
+        private Transformer transformer;
 
         public ScriptProcessorImpl(ScriptSource source) {
             this.source = source;
@@ -64,7 +63,7 @@ public class DefaultScriptProcessorFactory implements ScriptProcessorFactory {
             return this;
         }
 
-        public ScriptProcessor setTransformer(CompilationUnit.SourceUnitOperation transformer) {
+        public ScriptProcessor setTransformer(Transformer transformer) {
             this.transformer = transformer;
             return this;
         }

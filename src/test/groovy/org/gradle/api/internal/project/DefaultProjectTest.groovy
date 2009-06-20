@@ -60,6 +60,7 @@ import org.gradle.api.internal.BeanDynamicObject
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ProjectPluginsContainer
 import org.gradle.api.initialization.dsl.ScriptClasspathHandler
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 
 /**
  * @author Hans Dockter
@@ -172,19 +173,20 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(AntBuilderFactory); will(returnValue(antBuilderFactoryMock))
             allowing(serviceRegistryMock).get(ProjectPluginsContainer); will(returnValue(projectPluginsHandlerMock))
             allowing(serviceRegistryMock).get(ScriptClasspathHandler); will(returnValue(scriptClasspathHandlerMock))
+            allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
         }
 
         rootDir = new File("/path/root").absoluteFile
         projectRegistry = build.projectRegistry
-        project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
+        project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script,
                 projectRegistry, build, projectServiceRegistryFactoryMock);
-        child1 = new DefaultProject("child1", project, new File("child1"), null, script, buildScriptClassLoader,
+        child1 = new DefaultProject("child1", project, new File("child1"), null, script,
                 projectRegistry, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child1)
-        childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script, buildScriptClassLoader,
+        childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script,
                 projectRegistry, build, projectServiceRegistryFactoryMock)
         child1.addChildProject(childchild)
-        child2 = new DefaultProject("child2", project, new File("child2"), null, script, buildScriptClassLoader,
+        child2 = new DefaultProject("child2", project, new File("child2"), null, script,
                 projectRegistry, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
@@ -246,7 +248,7 @@ class DefaultProjectTest {
         assertSame project, child1.rootProject
         checkProject(project, null, 'root', rootDir)
 
-        assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script, buildScriptClassLoader,
+        assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script,
                 new DefaultProjectRegistry(), build, projectServiceRegistryFactoryMock).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
@@ -261,7 +263,6 @@ class DefaultProjectTest {
         assertSame(projectDir, project.projectDir)
         assertSame this.project, project.rootProject
         assertEquals(new File(projectDir, TEST_BUILD_FILE_NAME), project.buildFile)
-        assertSame project.buildScriptClassLoader, buildScriptClassLoader
         assertSame projectEvaluator, project.projectEvaluator
         assertSame antBuilderFactoryMock, project.antBuilderFactory
         assertSame project.build, build

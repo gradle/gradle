@@ -102,7 +102,6 @@ class HelperUtil {
                 new File(parentProject.getProjectDir(), name),
                 parentProject.buildFile,
                 new StringScriptSource("test build file", null),
-                parentProject.buildScriptClassLoader,
                 parentProject.projectRegistry,
                 parentProject.build,
                 parentProject."_service_registry_factory_"

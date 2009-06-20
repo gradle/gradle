@@ -20,18 +20,18 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import groovy.util.AntBuilder;
 import org.gradle.api.*;
-import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
+import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
@@ -63,8 +63,6 @@ public abstract class AbstractProject implements ProjectInternal {
     private BuildInternal build;
 
     private ProjectEvaluator projectEvaluator;
-
-    private ClassLoader buildScriptClassLoader;
 
     private File buildFile;
 
@@ -122,6 +120,8 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ScriptClasspathHandler scriptClasspathHandler;
 
+    private ScriptClassLoaderProvider scriptClassLoaderProvider;
+
     private ListenerBroadcast<Action> afterEvaluateActions = new ListenerBroadcast<Action>(Action.class);
     private ListenerBroadcast<Action> beforeEvaluateActions = new ListenerBroadcast<Action>(Action.class);
 
@@ -132,7 +132,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.name = name;
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(new DefaultConvention());
-        taskContainer = null;
     }
 
     public AbstractProject(String name,
@@ -140,7 +139,6 @@ public abstract class AbstractProject implements ProjectInternal {
                            File projectDir,
                            File buildFile,
                            ScriptSource buildScriptSource,
-                           ClassLoader buildScriptClassLoader,
                            IProjectRegistry projectRegistry,
                            BuildInternal build,
                            ProjectServiceRegistryFactory serviceRegistryFactory) {
@@ -150,7 +148,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.parent = parent;
         this.name = name;
         this.buildFile = buildFile;
-        this.buildScriptClassLoader = buildScriptClassLoader;
         this.projectRegistry = projectRegistry;
         this.state = State.CREATED;
         this.buildScriptSource = buildScriptSource;
@@ -173,6 +170,7 @@ public abstract class AbstractProject implements ProjectInternal {
         artifactHandler = serviceRegistry.get(ArtifactHandler.class);
         dependencyHandler = serviceRegistry.get(DependencyHandler.class);
         scriptClasspathHandler = serviceRegistry.get(ScriptClasspathHandler.class);
+        scriptClassLoaderProvider = serviceRegistry.get(ScriptClassLoaderProvider.class);
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(serviceRegistry.get(Convention.class));
@@ -228,12 +226,8 @@ public abstract class AbstractProject implements ProjectInternal {
         return scriptClasspathHandler;
     }
 
-    public ClassLoader getBuildScriptClassLoader() {
-        return buildScriptClassLoader;
-    }
-
-    public void setBuildScriptClassLoader(ClassLoader buildScriptClassLoader) {
-        this.buildScriptClassLoader = buildScriptClassLoader;
+    public ScriptClassLoaderProvider getClassLoaderProvider() {
+        return scriptClassLoaderProvider;
     }
 
     public File getBuildFile() {

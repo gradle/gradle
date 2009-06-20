@@ -40,13 +40,11 @@ class DefaultProject extends AbstractProject {
                           File projectDir,
                           File buildFile,
                           ScriptSource buildScriptSource,
-                          ClassLoader buildScriptClassLoader,
                           IProjectRegistry projectRegistry,
                           BuildInternal build,
                           ProjectServiceRegistryFactory serviceRegistryFactory
     ) {
-        super(name, parent, projectDir, buildFile, buildScriptSource, buildScriptClassLoader,
-                projectRegistry, build, serviceRegistryFactory);
+        super(name, parent, projectDir, buildFile, buildScriptSource, projectRegistry, build, serviceRegistryFactory);
     }
 
     def propertyMissing(String name) {

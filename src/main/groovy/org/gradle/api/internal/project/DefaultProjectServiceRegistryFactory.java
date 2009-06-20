@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.initialization.DefaultScriptClasspathHandler;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
@@ -169,7 +170,15 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
                             .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
                     DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
                             dependencyFactory, get(ProjectFinder.class));
-                    return new DefaultScriptClasspathHandler(repositoryHandler, dependencyHandler);
+                    return new DefaultScriptClasspathHandler(repositoryHandler, dependencyHandler,
+                            configurationContainer, project.getBuild().getBuildScriptClassLoader());
+                }
+            });
+
+            services.add(new Service(ScriptClassLoaderProvider.class) {
+                @Override
+                protected Object create() {
+                    return get(ScriptClasspathHandler.class);
                 }
             });
         }

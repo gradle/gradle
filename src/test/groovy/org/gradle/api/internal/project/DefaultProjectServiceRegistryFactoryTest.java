@@ -25,8 +25,10 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.initialization.DefaultScriptClasspathHandler;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.configuration.ProjectEvaluator;
@@ -137,14 +139,26 @@ public class DefaultProjectServiceRegistryFactoryTest {
     }
 
     @Test
-    public void providesAScriptClasspathHandler() {
+    public void providesAScriptClasspathHandlerAndScriptClassLoaderProvider() {
         expectConfigurationHandlerCreated();
-        
+        context.checking(new Expectations(){{
+            BuildInternal build = context.mock(BuildInternal.class);
+
+            allowing(project).getBuild();
+            will(returnValue(build));
+
+            allowing(build).getBuildScriptClassLoader();
+            will(returnValue(null));
+
+            ignoring(configurationHandler);
+        }});
+
         ProjectServiceRegistry registry = factory.create(project);
 
         assertThat(registry.get(ScriptClasspathHandler.class), instanceOf(DefaultScriptClasspathHandler.class));
         assertThat(registry.get(ScriptClasspathHandler.class), sameInstance(registry.get(
                 ScriptClasspathHandler.class)));
+        assertThat(registry.get(ScriptClassLoaderProvider.class), sameInstance((Object) registry.get(ScriptClasspathHandler.class)));
     }
 
     @Test

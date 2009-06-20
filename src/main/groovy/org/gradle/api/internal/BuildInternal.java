@@ -34,7 +34,7 @@ public interface BuildInternal extends Build {
     TaskExecuter getTaskGraph();
 
     /**
-     * Returns the default project.
+     * Returns the default project. This is used to resolve relative names and paths provided on the UI.
      */
     ProjectInternal getDefaultProject();
 
@@ -43,12 +43,12 @@ public interface BuildInternal extends Build {
     PluginRegistry getPluginRegistry();
 
     /**
-     * Returns the classloader to use for the build files of this build.
+     * Returns the root classloader to use for the build scripts of this build.
      */
     ClassLoader getBuildScriptClassLoader();
 
     /**
-     * Returns the broadcaster for {ProjectEvaluationListener} events for this build
+     * Returns the broadcaster for {@link ProjectEvaluationListener} events for this build
      */
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
 }

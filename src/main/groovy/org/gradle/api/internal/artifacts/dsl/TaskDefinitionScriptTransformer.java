@@ -22,11 +22,16 @@ import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.control.Phases;
 
 import java.util.Collections;
 import java.util.List;
 
 public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
+    protected int getPhase() {
+        return Phases.CANONICALIZATION;
+    }
+
     public void call(SourceUnit source) throws CompilationFailedException {
         GroovyCodeVisitor transformer = new TaskDefinitionTransformer();
         source.getAST().getStatementBlock().visit(transformer);

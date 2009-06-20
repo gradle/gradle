@@ -18,16 +18,28 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.ConfigureUtil;
 import groovy.lang.Closure;
 
-public class DefaultScriptClasspathHandler implements ScriptClasspathHandler {
+import java.net.URLClassLoader;
+import java.net.URL;
+import java.net.MalformedURLException;
+import java.io.File;
+
+public class DefaultScriptClasspathHandler implements ScriptClasspathHandler, ScriptClassLoaderProvider {
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
+    private final ProjectClassLoader classLoader;
+    private final Configuration classpathConfiguration;
 
-    public DefaultScriptClasspathHandler(RepositoryHandler repositoryHandler, DependencyHandler dependencyHandler) {
+    public DefaultScriptClasspathHandler(RepositoryHandler repositoryHandler, DependencyHandler dependencyHandler,
+                                         ConfigurationContainer configContainer, ClassLoader classLoader) {
         this.repositoryHandler = repositoryHandler;
         this.dependencyHandler = dependencyHandler;
+        this.classLoader = new ProjectClassLoader(classLoader);
+        classpathConfiguration = configContainer.add("classpath");
     }
 
     public void dependencies(Closure configureClosure) {
@@ -44,5 +56,30 @@ public class DefaultScriptClasspathHandler implements ScriptClasspathHandler {
 
     public void repositories(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, repositoryHandler);
+    }
+
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    public void updateClassPath() {
+        for (File file : classpathConfiguration.getFiles()) {
+            try {
+                classLoader.addURL(file.toURI().toURL());
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static class ProjectClassLoader extends URLClassLoader {
+        public ProjectClassLoader(ClassLoader classLoader) {
+            super(new URL[0], classLoader);
+        }
+
+        @Override
+        protected void addURL(URL url) {
+            super.addURL(url);
+        }
     }
 }

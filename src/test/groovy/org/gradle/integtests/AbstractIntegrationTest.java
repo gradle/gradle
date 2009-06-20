@@ -127,4 +127,8 @@ public class AbstractIntegrationTest {
         parameter.setProjectDir(projectDir);
         return new InProcessGradleExecuter(parameter);
     }
+
+    protected ArtifactBuilder artifactBuilder() {
+        return new GradleBackedArtifactBuilder(new InProcessGradleExecuter(startParameter()), new File(getTestDir(), "artifacts"));
+    }
 }

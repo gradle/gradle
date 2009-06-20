@@ -1,0 +1,14 @@
+import org.apache.commons.codec.binary.Base64
+
+scriptclasspath {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'commons-codec', name: 'commons-codec', version: '1.2'
+    }
+}
+
+task encode << {
+    println new String(new Base64().encode('hello world\n'.getBytes()))
+}

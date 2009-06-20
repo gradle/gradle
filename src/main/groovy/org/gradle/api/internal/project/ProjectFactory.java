@@ -56,7 +56,6 @@ public class ProjectFactory implements IProjectFactory {
                 projectDescriptor.getProjectDir(),
                 projectDescriptor.getBuildFile(),
                 source,
-                build.getBuildScriptClassLoader(),
                 build.getProjectRegistry(),
                 build,
                 serviceRegistryFactory);

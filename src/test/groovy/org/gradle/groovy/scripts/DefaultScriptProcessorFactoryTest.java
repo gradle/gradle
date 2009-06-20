@@ -23,17 +23,14 @@ import org.gradle.api.Project;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.control.CompilationFailedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -271,10 +268,7 @@ public class DefaultScriptProcessorFactoryTest {
     public void testUsesSuppliedTransformerToGenerateCacheDir() {
         createBuildScriptFile();
 
-        final CompilationUnit.SourceUnitOperation transformer = new CompilationUnit.SourceUnitOperation() {
-            public void call(SourceUnit source) throws CompilationFailedException {
-            }
-        };
+        final Transformer transformer = context.mock(Transformer.class);
         final File expectedCacheDir = new File(testCacheDir.getParentFile(), transformer.getClass().getSimpleName());
 
         context.checking(new Expectations(){{

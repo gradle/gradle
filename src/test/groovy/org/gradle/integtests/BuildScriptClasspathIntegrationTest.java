@@ -29,13 +29,37 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
 
     @Test
     public void canDeclareClasspathInBuildScript() {
+        ArtifactBuilder builder = artifactBuilder();
+        builder.sourceFile("org/gradle/test/BuildClass.java").writelns(
+                "package org.gradle.test;",
+                "public class BuildClass { }"
+        );
+        builder.sourceFile("org/gradle/test2/AnotherBuildClass.java").writelns(
+                "package org.gradle.test2;",
+                "public class AnotherBuildClass { }"
+        );
+        builder.buildJar(testFile("repo/test-1.3.jar").asFile());
+
         testFile("build.gradle").writelns(
-                "println 'start evaluate'",
+                "import org.gradle.test.BuildClass",
+                "import org.gradle.test2.*",
                 "scriptclasspath {",
-                "    repositories {  }",
-                "    dependencies {  }",
+                "  repositories {",
+                "    flatDir dirs: file('repo')",
+                "  }",
+                "  dependencies {",
+                "    classpath name: 'test', version: '1.+'",
+                "  }",
                 "}",
-                "task hello"
+                "task hello << {",
+                "  new org.gradle.test.BuildClass()",
+                "  new BuildClass()",
+                "  new AnotherBuildClass()",
+                "}",
+                "a = new BuildClass()",
+                "b = AnotherBuildClass",
+                "class TestClass extends BuildClass { }",
+                "def aMethod() { return new AnotherBuildClass() }"
         );
         inTestDirectory().withTasks("hello").run();
     }
@@ -52,6 +76,26 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     
     @Test @Ignore
     public void canUseImportedClassesInClasspathDeclaration() {
+        Assert.fail("implement me");
+    }
+
+    @Test @Ignore
+    public void inheritsClassPathOfParentProject() {
+        Assert.fail("implement me");
+    }
+
+    @Test @Ignore
+    public void canUseBuildSrcClassesInClasspathDeclaration() {
+        Assert.fail("implement me");
+    }
+
+    @Test @Ignore
+    public void canInjectClassPathIntoSubProjects() {
+        Assert.fail("implement me");
+    }
+    
+    @Test @Ignore
+    public void canReuseClassPathRepositories() {
         Assert.fail("implement me");
     }
 }

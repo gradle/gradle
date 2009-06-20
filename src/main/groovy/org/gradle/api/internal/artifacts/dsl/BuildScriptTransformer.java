@@ -16,25 +16,13 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.Phases;
-import org.codehaus.groovy.ast.expr.*;
 import org.gradle.groovy.scripts.Transformer;
 
-public abstract class AbstractScriptTransformer extends CompilationUnit.SourceUnitOperation implements Transformer {
+public class BuildScriptTransformer implements Transformer {
     public void register(CompilationUnit compilationUnit) {
-        compilationUnit.addPhaseOperation(this, getPhase());
-    }
-
-    protected abstract int getPhase();
-
-    protected boolean isMethodOnThis(MethodCallExpression call, String name) {
-        boolean isTaskMethod = call.getMethod() instanceof ConstantExpression && call.getMethod().getText().equals(
-                name);
-        return isTaskMethod && targetIsThis(call);
-    }
-
-    protected boolean targetIsThis(MethodCallExpression call) {
-        Expression target = call.getObjectExpression();
-        return target instanceof VariableExpression && target.getText().equals("this");
+        BuildScriptClasspathScriptTransformer classpathScriptTransformer = new BuildScriptClasspathScriptTransformer();
+        classpathScriptTransformer.invert().register(compilationUnit);
+        TaskDefinitionScriptTransformer taskDefinitionScriptTransformer = new TaskDefinitionScriptTransformer();
+        taskDefinitionScriptTransformer.register(compilationUnit);
     }
 }
