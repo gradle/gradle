@@ -258,10 +258,10 @@
                 <td>testResourceDirNames</td>
                 <td>testResourceDirs</td>
                 <td>
-                    <literal>main/resources</literal>
+                    <literal>test/resources</literal>
                 </td>
                 <td>
-                    [<literal><replaceable>srcRoot</replaceable>/main/resources</literal>]
+                    [<literal><replaceable>srcRoot</replaceable>/test/resources</literal>]
                 </td>
             </tr>
             <tr>
