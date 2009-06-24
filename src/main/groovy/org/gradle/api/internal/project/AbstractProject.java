@@ -528,13 +528,13 @@ public abstract class AbstractProject implements ProjectInternal {
             return this;
         }
         Clock clock = new Clock();
+        logger.info(String.format("Evaluating project %s using %s.", path, getBuildScriptSource().getDisplayName()));
         beforeEvaluateActions.getSource().execute(this);
         state = State.INITIALIZING;
         projectEvaluator.evaluate(this);
         logger.debug("Timing: Running the build script took " + clock.getTime());
         state = State.INITIALIZED;
         afterEvaluateActions.getSource().execute(this);
-        logger.info(String.format("Project %s evaluated using %s.", path, getBuildScriptSource().getDisplayName()));
         logger.debug("Timing: Project evaluation took " + clock.getTime());
         return this;
     }
