@@ -1,4 +1,4 @@
-
+// START SNIPPET configuration-injection
 subprojects {
     usePlugin 'java'
     usePlugin 'eclipse'
@@ -15,5 +15,4 @@ subprojects {
     version = '1.0'
     manifest.mainAttributes(provider: 'gradle')
 }
-
-
+// END SNIPPET configuration-injection

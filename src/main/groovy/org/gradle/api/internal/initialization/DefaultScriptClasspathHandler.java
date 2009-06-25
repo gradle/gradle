@@ -31,6 +31,7 @@ import java.io.File;
 public class DefaultScriptClasspathHandler implements ScriptClasspathHandler, ScriptClassLoaderProvider {
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
+    private final ConfigurationContainer configContainer;
     private final ProjectClassLoader classLoader;
     private final Configuration classpathConfiguration;
 
@@ -38,8 +39,9 @@ public class DefaultScriptClasspathHandler implements ScriptClasspathHandler, Sc
                                          ConfigurationContainer configContainer, ClassLoader classLoader) {
         this.repositoryHandler = repositoryHandler;
         this.dependencyHandler = dependencyHandler;
+        this.configContainer = configContainer;
         this.classLoader = new ProjectClassLoader(classLoader);
-        classpathConfiguration = configContainer.add("classpath");
+        classpathConfiguration = configContainer.add(CLASSPATH_CONFIGURATION);
     }
 
     public void dependencies(Closure configureClosure) {
@@ -56,6 +58,10 @@ public class DefaultScriptClasspathHandler implements ScriptClasspathHandler, Sc
 
     public void repositories(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, repositoryHandler);
+    }
+
+    public ConfigurationContainer getConfigurations() {
+        return configContainer;
     }
 
     public ClassLoader getClassLoader() {

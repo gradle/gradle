@@ -1,5 +1,3 @@
-mavenCentral()
-dependencies("commons-math:commons-math:1.1@jar")
 
 // START SNIPPET include-projects
 include "shared", "api", "services:webservice"

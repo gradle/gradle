@@ -20,7 +20,7 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
-    @Test
+    @Test @Ignore
     public void providesADefaultBuildForBuildSrcProject() {
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
         testFile("build.gradle").writelns("new BuildClass()");
@@ -30,18 +30,28 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     @Test
     public void canDeclareClasspathInBuildScript() {
         ArtifactBuilder builder = artifactBuilder();
-        builder.sourceFile("org/gradle/test/BuildClass.java").writelns(
+        builder.sourceFile("org/gradle/test/ImportedClass.java").writelns(
                 "package org.gradle.test;",
-                "public class BuildClass { }"
+                "public class ImportedClass { }"
         );
-        builder.sourceFile("org/gradle/test2/AnotherBuildClass.java").writelns(
+        builder.sourceFile("org/gradle/test/StaticImportedClass.java").writelns(
+                "package org.gradle.test;",
+                "public class StaticImportedClass { public static int someValue = 12; }"
+        );
+        builder.sourceFile("org/gradle/test/StaticImportedFieldClass.java").writelns(
+                "package org.gradle.test;",
+                "public class StaticImportedFieldClass { public static int anotherValue = 4; }"
+        );
+        builder.sourceFile("org/gradle/test2/OnDemandImportedClass.java").writelns(
                 "package org.gradle.test2;",
-                "public class AnotherBuildClass { }"
+                "public class OnDemandImportedClass { }"
         );
         builder.buildJar(testFile("repo/test-1.3.jar").asFile());
 
         testFile("build.gradle").writelns(
-                "import org.gradle.test.BuildClass",
+                "import org.gradle.test.ImportedClass",
+                "import static org.gradle.test.StaticImportedClass.*",
+                "import static org.gradle.test.StaticImportedFieldClass.anotherValue",
                 "import org.gradle.test2.*",
                 "scriptclasspath {",
                 "  repositories {",
@@ -52,14 +62,57 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "  }",
                 "}",
                 "task hello << {",
-                "  new org.gradle.test.BuildClass()",
-                "  new BuildClass()",
-                "  new AnotherBuildClass()",
+                "  new org.gradle.test.ImportedClass()",
+                "  println someValue",
+                "  println anotherValue",
+                "  new ImportedClass()",
+                "  new OnDemandImportedClass()",
                 "}",
-                "a = new BuildClass()",
-                "b = AnotherBuildClass",
-                "class TestClass extends BuildClass { }",
-                "def aMethod() { return new AnotherBuildClass() }"
+                "a = new ImportedClass()",
+                "b = OnDemandImportedClass",
+                "c = someValue",
+                "d = anotherValue",
+                "class TestClass extends ImportedClass { }",
+                "def aMethod() { return new OnDemandImportedClass() }"
+        );
+        inTestDirectory().withTasks("hello").run();
+    }
+
+    @Test
+    public void canUseBuildSrcAndSystemClassesInClasspathDeclaration() {
+        testFile("buildSrc/src/main/java/org/gradle/buildsrc/test/ImportedClass.java").writelns(
+                "package org.gradle.buildsrc.test;",
+                "public class ImportedClass { }"
+        );
+        testFile("buildSrc/src/main/java/org/gradle/buildsrc/test/StaticImportedClass.java").writelns(
+                "package org.gradle.buildsrc.test;",
+                "public class StaticImportedClass { public static int someValue = 12; }"
+        );
+        testFile("buildSrc/src/main/java/org/gradle/buildsrc/test/StaticImportedFieldClass.java").writelns(
+                "package org.gradle.buildsrc.test;",
+                "public class StaticImportedFieldClass { public static int anotherValue = 4; }"
+        );
+        testFile("buildSrc/src/main/java/org/gradle/buildsrc/test2/OnDemandImportedClass.java").writelns(
+                "package org.gradle.buildsrc.test2;",
+                "public class OnDemandImportedClass { }"
+        );
+
+        testFile("build.gradle").writelns(
+                "import org.gradle.buildsrc.test.ImportedClass",
+                "import org.gradle.buildsrc.test2.*",
+                "import static org.gradle.buildsrc.test.StaticImportedClass.*",
+                "import static org.gradle.buildsrc.test.StaticImportedFieldClass.anotherValue",
+                "scriptclasspath {",
+                "    new ImportedClass()",
+                "    new org.gradle.buildsrc.test.ImportedClass()",
+                "    new org.gradle.buildsrc.test2.OnDemandImportedClass()",
+                "    println someValue",
+                "    println anotherValue",
+                "    List l = new ArrayList()",
+                "    Project p = project",
+                "    Closure cl = { }",
+                "}",
+                "task hello"
         );
         inTestDirectory().withTasks("hello").run();
     }
@@ -81,11 +134,6 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
 
     @Test @Ignore
     public void inheritsClassPathOfParentProject() {
-        Assert.fail("implement me");
-    }
-
-    @Test @Ignore
-    public void canUseBuildSrcClassesInClasspathDeclaration() {
         Assert.fail("implement me");
     }
 

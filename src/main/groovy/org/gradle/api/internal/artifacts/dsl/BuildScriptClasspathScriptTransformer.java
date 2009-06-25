@@ -21,6 +21,7 @@ import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.ImportNode;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.Phases;
@@ -30,6 +31,7 @@ import org.gradle.groovy.scripts.Transformer;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class BuildScriptClasspathScriptTransformer extends AbstractScriptTransformer {
     private static final String BUILDSCRIPT_METHOD_NAME = "scriptclasspath";
@@ -42,8 +44,36 @@ public class BuildScriptClasspathScriptTransformer extends AbstractScriptTransfo
         Spec<Statement> spec = isScriptBlock();
         filterStatements(source, spec);
 
-        source.getAST().getImports().clear();
-        source.getAST().getImportPackages().clear();
+        // Filter imported classes which are not available yet
+
+        Iterator iter = source.getAST().getImports().iterator();
+        while (iter.hasNext()) {
+            ImportNode importedClass = (ImportNode) iter.next();
+            if (!isVisible(source, importedClass.getClassName())) {
+                iter.remove();
+            }
+        }
+
+        iter = source.getAST().getStaticImportClasses().keySet().iterator();
+        while (iter.hasNext()) {
+            String importedClass = (String) iter.next();
+            if (!isVisible(source, importedClass)) {
+                iter.remove();
+            }
+        }
+
+        iter = source.getAST().getStaticImportAliases().entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            ClassNode importedClass = (ClassNode) entry.getValue();
+            if (!isVisible(source, importedClass.getName())) {
+                iter.remove();
+                source.getAST().getStaticImportFields().remove(entry.getKey());
+            }
+        }
+//        source.getAST().getStaticImportFields().clear();
+//        source.getAST().getStaticImportAliases().clear();
+
         List classes = source.getAST().getClasses();
         if (!classes.isEmpty()) {
             classes.subList(1, classes.size()).clear();
@@ -53,6 +83,15 @@ public class BuildScriptClasspathScriptTransformer extends AbstractScriptTransfo
             }
         }
         source.getAST().getMethods().clear();
+    }
+
+    private boolean isVisible(SourceUnit source, String className) {
+        try {
+            source.getClassLoader().loadClass(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     private void filterStatements(SourceUnit source, Spec<Statement> spec) {
