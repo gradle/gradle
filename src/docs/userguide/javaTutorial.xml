@@ -147,7 +147,7 @@
                 content for all archives, and some common dependencies:
             </para>
             <sample id="javaMultiProject" dir="java/multiproject" title="Multi-project build - common configuration">
-                <sourcefile file="build.gradle"/>
+                <sourcefile file="build.gradle" snippet="configuration-injection"/>
             </sample>
 
             <para>Notice that our sample applies the Java plugin to each subproject. This means the tasks and

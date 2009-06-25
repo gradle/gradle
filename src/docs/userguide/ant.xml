@@ -19,30 +19,91 @@
         <para>This chapter is a work in progress.</para>
     </note>
 
+    <para>Gradle provides excellent integration with Ant. You can use individual Ant tasks or entire Ant builds in your
+        Gradle builds. In fact, you will find that it's far easier and more powerful to use Ant tasks in a Gradle build
+        script, than it is to use Ant's XML format. You could even use Gradle as an Ant task scripting tool, and not use
+        any other Gradle features in your builds.
+    </para>
+
+    <para>Ant can be divided into two layers. Gradle provides integration with both layers. The first layer is the Ant
+        language. It contains the syntax for the <filename>build.xml</filename>, the handling of the targets, special
+        constructs like macrodefs, etc. Basically everything except the Ant tasks and types. Gradle understands
+        this language, and allows you to import your Ant <filename>build.xml</filename> into a Gradle project. You can
+        then use the targets of your Ant build as if they were Gradle tasks.
+    </para>
+
+    <para>The second layer of Ant is its wealth of Ant tasks and types, like <literal>javac</literal>,
+        <literal>copy</literal> or <literal>jar</literal>. For this layer Gradle provides integration
+        simply by relying on Groovy, and the fantastic <literal>AntBuilder</literal>.
+    </para>
+
+    <para>Finally, since build scripts are simply Groovy scripts, you can always execute an Ant build as an external
+        process. Your build script may contain statements like: <literal>"ant clean compile".execute()</literal>.
+        <footnote>
+            <para>In Groovy you can execute Strings. To learn more about executing external processes with Groovy have a
+                look in 'Groovy in Action' 9.3.2 or at the Groovy wiki
+            </para>
+        </footnote>
+    </para>
+
     <section>
         <title>Using Ant tasks in your build</title>
-        <para>TBD</para>
+
+        <para>In your build script, a property called <literal>ant</literal> is provided by Gradle. This is a reference
+            to an instance of Groovy's <literal>AntBuilder</literal>. The <literal>AntBuilder</literal>
+            is used the following way:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>Ant task or type names correspond to <literal>ant</literal> method names.
+                </para>
+            </listitem>
+            <listitem>
+                <para>Ant task attributes correspond to arguments to these methods. The arguments are passed to the
+                    method using a map.
+                </para>
+            </listitem>
+            <listitem>
+                <para>Nested Ant XML elements correspond to method calls of the passed closure.
+                </para>
+            </listitem>
+        </itemizedlist>
+
+        <para>More information about <literal>AntBuilder</literal> can be found in 'Groovy in Action' 8.4 or at the Groovy Wiki
+        </para>
+
+        <section>
+            <title>Using external Ant tasks in your build</title>
+            <para>You can use the <literal>typedef</literal> Ant task to define external Ant tasks, just as you would
+                in a <literal>build.xml</literal> file:
+            </para>
+            <para>TODO - sample goes here</para>
+            <para>
+                Gradle's dependency management works well with the <literal>typedef</literal>.
+            </para>
+            <para>TODO - sample goes here</para>
+        </section>
     </section>
 
     <section>
         <title>Ant properties and references</title>
 
-        <para>To set an Ant property</para>
+        <para>There are several ways to set an Ant property, so that the property can be used by Ant tasks:</para>
         <sample id="antProperties" dir="userguide/ant/properties" title="Setting an Ant property">
             <sourcefile file="build.gradle" snippet="set-property"/>
             <sourcefile file="build.xml" snippet="set-property"/>
         </sample>
-        <para>To get an Ant property</para>
+        <para>There are several ways to get an Ant property which has been set by an Ant task:</para>
         <sample id="antProperties" dir="userguide/ant/properties" title="Getting an Ant property">
             <sourcefile file="build.xml" snippet="get-property"/>
             <sourcefile file="build.gradle" snippet="get-property"/>
         </sample>
-        <para>To set an Ant reference</para>
+        <para>There are several ways to set an Ant reference:</para>
         <sample id="antProperties" dir="userguide/ant/properties" title="Setting an Ant reference">
             <sourcefile file="build.gradle" snippet="set-reference"/>
             <sourcefile file="build.xml" snippet="set-reference"/>
         </sample>
-        <para>To get an Ant reference</para>
+        <para>There are several ways to get an Ant reference:</para>
         <sample id="antProperties" dir="userguide/ant/properties" title="Getting an Ant reference">
             <sourcefile file="build.xml" snippet="get-reference"/>
             <sourcefile file="build.gradle" snippet="get-reference"/>

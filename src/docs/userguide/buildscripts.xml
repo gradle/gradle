@@ -128,49 +128,18 @@
         </sample>
     </section>
     <section>
-        <title>Ant</title>
-        <para>Let's talk a little bit about Gradle's Ant integration. Ant can be divided into two layers. The first layer
-            is the Ant language. It contains the syntax for the build.xml, the handling of the targets, special
-            constructs like macrodefs, etc. Basically everything except the Ant tasks and types. Gradle does not offer
-            any special integration for this first layer. Of course you can in your build script execute an Ant build as
-            an external process. Your build script may contain statements like:
-            <literal>"ant clean compile".execute()</literal>.
-            <footnote>
-                <para>In Groovy you can execute Strings. To learn more about executing external processes with Groovy
-                    have a look in 'Groovy in Action' 9.3.2 or at the Groovy wiki
-                </para>
-            </footnote>
-        </para>
-        <para>The second layer of Ant is its wealth of Ant tasks and types, like <literal>javac</literal>,
-            <literal>copy</literal> or <literal>jar</literal>. For this layer Gradle provides excellent integration
-            simply by relying on Groovy. Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant
-            tasks from Gradle is as convenient and more powerful than using Ant tasks from a
-            <filename>build.xml</filename> file. Let's look at an example:
+        <title>Using Ant Tasks</title>
+        <para>Ant tasks are first-class citizens in Gradle. Gradle provides excellent integration for Ant tasks simply
+            by relying on Groovy. Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks
+            from Gradle is as convenient and more powerful than using Ant tasks from a <filename>build.xml</filename>
+            file. Let's look at an example:
         </para>
         <sample id="antChecksum" dir="userguide/tutorial/antChecksum" title="Using AntBuilder to execute ant.checksum target">
             <sourcefile file="build.gradle"/>
             <output args="-q checksum"/>
         </sample>
-        <para>In your build script, a property called <literal>ant</literal> is provided by Gradle. It is a reference
-            to an instance of Groovy's <literal>AntBuilder</literal>. The <literal>AntBuilder</literal>
-            is used the following way:
-        </para>
-        <itemizedlist>
-            <listitem>
-                <para>Ant task names correspond to AntBuilder method names.
-                </para>
-            </listitem>
-            <listitem>
-                <para>Ant task attributes correspond to arguments to these methods. The arguments are passed to the method using a map.
-                </para>
-            </listitem>
-            <listitem>
-                <para>Nested Ant tasks correspond to method calls of the passed closure.
-                </para>
-            </listitem>
-        </itemizedlist>
-        <para>More information about Ant Builder can be found in 'Groovy in Action' 8.4 or at the Groovy Wiki
-        </para>
+
+        <para>There is lots more you can do with Ant in your build scripts. You can find out more in <xref linkend="ant"/>.</para>
     </section>
     <section>
         <title>Using methods</title>

@@ -31,7 +31,7 @@
             </para>
         </listitem>
         <listitem>
-            <para>Ant tasks as first class citizens.
+            <para>Ant tasks and builds as first class citizens.
             </para>
         </listitem>
         <listitem>
@@ -45,6 +45,20 @@
         </listitem>
     </itemizedlist>
     <para>
-        In <xref linkend='overview'/> you will find a detailed overview of Gradle. Otherwise, the <link linkend="getting_started">tutorials</link> are waiting, have fun :)
+        In <xref linkend='overview'/> you will find a detailed overview of Gradle. Otherwise, the
+        <link linkend="getting_started">tutorials</link> are waiting, have fun :)
     </para>
+    <section>
+        <title>About this user guide</title>
+        <para>This user guide, like Gradle itself, is under very active development. Some parts of Gradle aren't
+            documented as completely as they need to be, and some of the content presented won't be entirely clear or
+            will assume that the reader knows more about Gradle than they do. We need your help to improve this user 
+            guide. You can find out more about contributing to the documentation at the Gradle
+            <ulink url="http://www.gradle.org/contributing.html">web site</ulink>.
+        </para>
+        <para>You can find more examples, and some additions to this user guide, on the
+            <ulink url="http://docs.codehaus.org/display/GRADLE/User+guide">wiki</ulink>.
+            You can also contribute your own examples and extra content there.
+        </para>
+    </section>
 </chapter>
