@@ -38,11 +38,6 @@ import java.util.List;
  */
 public class DefaultCommandLine2StartParameterConverter implements CommandLine2StartParameterConverter {
     public static final String GRADLE_HOME_PROPERTY_KEY = "gradle.home";
-    public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
-    public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
-    public final static String DEFAULT_PLUGIN_PROPERTIES = "plugin.properties";
-    public final static String IMPORTS_FILE_NAME = "gradle-imports";
-    public final static String NL = System.getProperty("line.separator");
 
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
