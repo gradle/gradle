@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
 
 /**
- * <p>A {@code Module} represents the meta-information about a project which should be used when publishing the
- * module.</p>
- *
- * @author Hans Dockter
+ * The Ant integration {@link org.gradle.api.Plugin} implementation.
  */
-public interface Module {
-    public static final String DEFAULT_STATUS = "integration";
-
-    String getGroup();
-
-    String getName();
-
-    String getVersion();
-
-    String getStatus();
-}
+package org.gradle.api.plugins.ant;

@@ -17,16 +17,16 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.DomainObjectContainer;
 
 /**
- * This class is used by a project to use plugins against the project and manage the plugins that have been used.
+ * A {@code ProjectPluginsContainer} is used by a project to use plugins against the project and manage the plugins that
+ * have been used.
  *
  * Plugins can be specified by id or type. The id of a plugin is specified in the plugin.properties file in GRADLE_HOME.
  * Only the plugin specified there have an id.
  *
- * The name of a plugin is either its id. In the case a plugin does not has an id, its name is the fully qualified
- * class name.
+ * The name of a plugin is either its id. In the case a plugin does not has an id, its name is the fully qualified class
+ * name.
  *
  * @author Hans Dockter
  */

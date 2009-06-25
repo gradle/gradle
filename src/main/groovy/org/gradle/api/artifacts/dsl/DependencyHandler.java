@@ -19,44 +19,74 @@ import org.gradle.api.artifacts.Dependency;
 import groovy.lang.Closure;
 
 /**
- * This class is for creating dependencies and adding them to configurations. The dependencies that should be created
- * can be described in a String or Map notation.
+ * <p>A {@code DependencyHandler} is used to declare artifact dependencies. Artifact dependencies are grouped into
+ * configurations (see {@link org.gradle.api.artifacts.Configuration}), and a given dependency declarations is always
+ * attached to a single configuration.</p>
  *
- * <p>To create and add a specific dependency to a configuration you can use the following syntax:</p>
+ * <p>To declare a specific dependency for a configuration you can use the following syntax:</p>
  *
- * <code>&lt;DependencyHandler>.&lt;configurationName> &lt;dependencyNotation1>, &lt;dependencyNotation2>, ...</code>
+ * <pre>
+ * dependencies {
+ *     <i>configurationName</i> <i>dependencyNotation1</i>, <i>dependencyNotation2</i>, ...
+ * }
+ * </pre>
  *
- * <p>There are two allowed dependency notations. One is a string notation:</p>
+ * <p>or, to configure a dependency when it is declared, you can additionally pass a configuration closure:</p>
  *
- * <code>"&lt;group>:&lt;name>:&lt;version>:&lt;classifier>"</code>
+ * <pre>
+ * dependencies {
+ *     <i>configurationName</i> <i>dependencyNotation</i> {
+ *         <i>configStatement1</i>
+ *         <i>configStatement2</i>
+ *     }
+ * }
+ * </pre>
  *
- * <p>The other is a map notation:</p> <code>group: &lt;group>, name: &lt;name> version: &lt;version>, classifier:
- * &lt;classifier></code>
+ * <p>There are several supported dependency notations. These are described below. For each dependency declared this
+ * way, a {@link Dependency} object is created. You can use this object to query or further configure the
+ * dependency.</p>
  *
- * <p>In both notations, all properties, except name, are optional.</p>
+ * <h2>External Modules</h2>
  *
- * <p>To add a module (see {@link org.gradle.api.artifacts.ClientModule}) to a configuration you can use the
- * notation:</p>
+ * There are 3 notations supported for declaring a dependency on an external module. One is a string notation:</p>
  *
- * <code>&lt;DependencyHandler>.&lt;configurationName> module(moduleNotation)</code>
+ * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>"</code>
+ *
+ * <p>The other is a map notation:</p>
+ *
+ * <code><i>configurationName</i> group: <i>group</i>:, name: <i>name</i>, version: <i>version</i>, classifier:
+ * <i>classifier</i></code>
+ *
+ * <p>In both notations, all properties, except name, are optional. External dependencies are represented using a {@link
+ * org.gradle.api.artifacts.ModuleDependency}.</p>
+ *
+ * <h2>Client Modules</h2>
+ *
+ * <p>To add a client module to a configuration you can use the notation:</p>
+ *
+ * <pre>
+ * <i>configurationName</i> module(<i>moduleNotation</i>) {
+ *     <i>module dependencies</i>
+ * }
+ * </pre>
  *
  * The module notation is the same as the dependency notations described above, except that the classifier property is
- * not available.
+ * not available. Client modules are represented using a {@link org.gradle.api.artifacts.ClientModule}.
+ *
+ * <h2>Projects</h2>
  *
  * <p>To add a project dependency, you use the following notation</p>
  *
- * <code>&lt;DependencyHandler>.&lt;configurationName> project(':someProject')</code>
+ * <code><i>configurationName</i> project(':someProject')</code>
+ *
+ * <p>Project dependencies are represented using a {@link org.gradle.api.artifacts.ProjectDependency}.</p>
+ *
+ * <h2>Files</h2>
  *
  * <p>You can also add a dependency using a {@link org.gradle.api.artifacts.FileCollection}:</p>
- * <code>&lt;DependencyHandler>.&lt;configurationName> files('a file')</code>
+ * <code><i>configurationName</i> files('a file')</code>
  *
- * <p>To configure dependencies, you can additonally pass a configuration closure.</p>
- * <pre>&lt;DependencyHandler>.&lt;configurationName> <anyDependencyType> {
- *    &lt;configStatement1>
- *    &lt;configStatement2>
- * }
- *
- * </pre>
+ * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.SelfResolvingDependency}.</p>
  *
  * @author Hans Dockter
  */

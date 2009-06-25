@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.dsl;
 
 /**
- * /**
  * This class is for creating publish artifacts and adding them to configurations. Creating publish artifacts
  * does not mean to create an archive. What is created is a domain object which represents a file to be published
  * and information on how it should be published (e.g. the name). The publish artifact, that should be created,

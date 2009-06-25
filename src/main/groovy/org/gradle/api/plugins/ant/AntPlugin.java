@@ -19,6 +19,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 
+/**
+ * <p>A {@link org.gradle.api.Plugin} which adds Ant integration to a project.</p>
+ */
 public class AntPlugin implements Plugin {
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         project.getConvention().getPlugins().put("ant", new AntPluginConvention(project));

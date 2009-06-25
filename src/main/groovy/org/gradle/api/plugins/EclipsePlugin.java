@@ -39,7 +39,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
+ * <p>A {@link org.gradle.api.Plugin} which generates Eclipse project files for projects that use the {@link
+ * org.gradle.api.plugins.JavaPlugin} or the {@link org.gradle.api.plugins.WarPlugin}.</p>
  *
  * @author Hans Dockter
  */

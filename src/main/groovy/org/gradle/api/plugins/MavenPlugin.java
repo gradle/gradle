@@ -34,6 +34,9 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
+ * <p>A {@link org.gradle.api.Plugin} which allows project artifacts to be deployed to a Maven repository, or installed
+ * to the local Maven cache.</p>
+ *
  * @author Hans Dockter
  */
 public class MavenPlugin implements Plugin {
@@ -87,14 +90,6 @@ public class MavenPlugin implements Plugin {
         MavenPluginConvention mavenConvention = new MavenPluginConvention(project, customValues);
         Convention convention = project.getConvention();
         convention.getPlugins().put("maven", mavenConvention);
-    }
-
-    private boolean isJavaPluginApplied(Project project) {
-        return project.getPlugins().hasPlugin(JavaPlugin.class);
-    }
-
-    private boolean isWarPluginApplied(Project project) {
-        return project.getPlugins().hasPlugin(WarPlugin.class);
     }
 
     private void configureJavaScopeMappings(ResolverContainer resolverFactory, ConfigurationContainer configurations) {

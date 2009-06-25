@@ -21,6 +21,8 @@ import org.gradle.api.Rule;
 import java.util.List;
 
 /**
+ * <p>A {@code PluginContainer} is used to manage a set of {@link org.gradle.api.Plugin} instances.</p>
+ *
  * @author Hans Dockter
  */
 public interface PluginContainer extends PluginCollection<Plugin> {

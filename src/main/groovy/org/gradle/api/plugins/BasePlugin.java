@@ -28,6 +28,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Set;
 
+/**
+ * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
+ */
 public class BasePlugin implements Plugin {
     public static final String CLEAN_TASK_NAME = "clean";
 

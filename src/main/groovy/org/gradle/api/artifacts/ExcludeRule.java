@@ -18,7 +18,7 @@ package org.gradle.api.artifacts;
 import java.util.Map;
 
 /**
- * An ExcludeRule is used to describe transitive dependencies that should be excluded when resolving
+ * An {@code ExcludeRule} is used to describe transitive dependencies that should be excluded when resolving
  * dependencies.
  *
  * @author Hans Dockter
