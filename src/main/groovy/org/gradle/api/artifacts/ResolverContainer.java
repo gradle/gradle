@@ -18,11 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
-import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.specs.Spec;
 
 import java.io.File;
@@ -69,7 +65,6 @@ public interface ResolverContainer extends Iterable<DependencyResolver> {
     String DEFAULT_CACHE_NAME = "default-gradle-cache";
     String INTERNAL_REPOSITORY_NAME = "internal-repository";
     String DEFAULT_CACHE_DIR_NAME = "cache";
-    String TMP_CACHE_DIR_NAME = Project.TMP_DIR_NAME + "/tmpIvyCache";
     String RESOLVER_NAME = "name";
     String RESOLVER_URL = "url";
 
