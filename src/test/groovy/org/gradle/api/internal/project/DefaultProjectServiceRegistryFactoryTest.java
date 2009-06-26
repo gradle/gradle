@@ -143,6 +143,9 @@ public class DefaultProjectServiceRegistryFactoryTest {
         context.checking(new Expectations(){{
             BuildInternal build = context.mock(BuildInternal.class);
 
+            allowing(project).getParent();
+            will(returnValue(null));
+            
             allowing(project).getBuild();
             will(returnValue(build));
 

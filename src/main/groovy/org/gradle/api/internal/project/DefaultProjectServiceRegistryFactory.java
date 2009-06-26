@@ -170,8 +170,14 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
                             .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
                     DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
                             dependencyFactory, get(ProjectFinder.class));
+                    ClassLoader parentClassLoader;
+                    if (project.getParent() != null) {
+                        parentClassLoader = project.getParent().getClassLoaderProvider().getClassLoader();
+                    } else {
+                        parentClassLoader = project.getBuild().getBuildScriptClassLoader();
+                    }
                     return new DefaultScriptHandler(repositoryHandler, dependencyHandler,
-                            configurationContainer, project.getBuild().getBuildScriptClassLoader());
+                            configurationContainer, parentClassLoader);
                 }
             });
 

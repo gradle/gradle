@@ -117,13 +117,34 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
         inTestDirectory().withTasks("hello").run();
     }
 
+    @Test
+    public void inheritsClassPathOfParentProject() {
+        ArtifactBuilder builder = artifactBuilder();
+        builder.sourceFile("org/gradle/test/BuildClass.java").writelns(
+                "package org.gradle.test;",
+                "public class BuildClass { }"
+        );
+        builder.buildJar(testFile("repo/test-1.3.jar").asFile());
+        testFile("settings.gradle").writelns(
+                "include 'child'"
+        );
+        testFile("build.gradle").writelns(
+                "scriptclasspath {",
+                "    repositories { flatDir(dirs: file('repo')) }",
+                "    dependencies { classpath name: 'test', version: '1.3' }",
+                "}"
+        );
+        testFile("child/build.gradle").writelns(
+                "task hello << ",
+                "{",
+                "    new org.gradle.test.BuildClass()",
+                "}"
+        );
+        inTestDirectory().withTasks("hello").run();
+    }
+
     @Test @Ignore
     public void reportsFailureDuringClasspathDeclaration() {
-        Assert.fail("implement me");
-    }
-    
-    @Test @Ignore
-    public void inheritsClassPathOfParentProject() {
         Assert.fail("implement me");
     }
 
