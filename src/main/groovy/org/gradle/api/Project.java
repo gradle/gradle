@@ -21,7 +21,7 @@ import groovy.util.AntBuilder;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
@@ -1068,11 +1068,11 @@ public interface Project extends Comparable<Project> {
      *
      * @return the classpath handler. Never returns null.
      */
-    ScriptClasspathHandler getScriptclasspath();
+    ScriptHandler getScriptclasspath();
 
     /**
      * Configures the build script classpath for this project. The given closure is executed against this project's
-     * {@link ScriptClasspathHandler}.
+     * {@link ScriptHandler}. The {@link ScriptHandler} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the build script classpath.
      */

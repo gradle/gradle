@@ -22,7 +22,7 @@ import groovy.util.AntBuilder;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
-import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.DynamicObject;
@@ -118,7 +118,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private RepositoryHandler repositoryHandler;
 
-    private ScriptClasspathHandler scriptClasspathHandler;
+    private ScriptHandler scriptHandler;
 
     private ScriptClassLoaderProvider scriptClassLoaderProvider;
 
@@ -169,7 +169,7 @@ public abstract class AbstractProject implements ProjectInternal {
         projectPluginsHandler = serviceRegistry.get(ProjectPluginsContainer.class);
         artifactHandler = serviceRegistry.get(ArtifactHandler.class);
         dependencyHandler = serviceRegistry.get(DependencyHandler.class);
-        scriptClasspathHandler = serviceRegistry.get(ScriptClasspathHandler.class);
+        scriptHandler = serviceRegistry.get(ScriptHandler.class);
         scriptClassLoaderProvider = serviceRegistry.get(ScriptClassLoaderProvider.class);
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
@@ -222,8 +222,8 @@ public abstract class AbstractProject implements ProjectInternal {
         this.projectEvaluator = projectEvaluator;
     }
 
-    public ScriptClasspathHandler getScriptclasspath() {
-        return scriptClasspathHandler;
+    public ScriptHandler getScriptclasspath() {
+        return scriptHandler;
     }
 
     public ScriptClassLoaderProvider getClassLoaderProvider() {

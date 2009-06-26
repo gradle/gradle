@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.initialization.DefaultScriptClasspathHandler;
+import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
@@ -161,7 +161,7 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
                 }
             });
 
-            services.add(new Service(ScriptClasspathHandler.class) {
+            services.add(new Service(ScriptHandler.class) {
                 @Override
                 protected Object create() {
                     RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(
@@ -170,7 +170,7 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
                             .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
                     DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
                             dependencyFactory, get(ProjectFinder.class));
-                    return new DefaultScriptClasspathHandler(repositoryHandler, dependencyHandler,
+                    return new DefaultScriptHandler(repositoryHandler, dependencyHandler,
                             configurationContainer, project.getBuild().getBuildScriptClassLoader());
                 }
             });
@@ -178,7 +178,7 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
             services.add(new Service(ScriptClassLoaderProvider.class) {
                 @Override
                 protected Object create() {
-                    return get(ScriptClasspathHandler.class);
+                    return get(ScriptHandler.class);
                 }
             });
         }

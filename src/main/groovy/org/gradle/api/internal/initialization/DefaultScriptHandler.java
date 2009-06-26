@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -28,14 +28,14 @@ import java.net.URL;
 import java.net.MalformedURLException;
 import java.io.File;
 
-public class DefaultScriptClasspathHandler implements ScriptClasspathHandler, ScriptClassLoaderProvider {
+public class DefaultScriptHandler implements ScriptHandler, ScriptClassLoaderProvider {
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
     private final ConfigurationContainer configContainer;
     private final ProjectClassLoader classLoader;
     private final Configuration classpathConfiguration;
 
-    public DefaultScriptClasspathHandler(RepositoryHandler repositoryHandler, DependencyHandler dependencyHandler,
+    public DefaultScriptHandler(RepositoryHandler repositoryHandler, DependencyHandler dependencyHandler,
                                          ConfigurationContainer configContainer, ClassLoader classLoader) {
         this.repositoryHandler = repositoryHandler;
         this.dependencyHandler = dependencyHandler;

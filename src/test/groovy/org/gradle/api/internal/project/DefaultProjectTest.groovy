@@ -59,8 +59,9 @@ import static org.junit.Assert.*
 import org.gradle.api.internal.BeanDynamicObject
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ProjectPluginsContainer
-import org.gradle.api.initialization.dsl.ScriptClasspathHandler
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
+import org.gradle.api.initialization.dsl.ScriptHandler
 
 /**
  * @author Hans Dockter
@@ -108,7 +109,7 @@ class DefaultProjectTest {
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
     ProjectPluginsContainer projectPluginsHandlerMock = context.mock(ProjectPluginsContainer)
     PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory)
-    ScriptClasspathHandler scriptClasspathHandlerMock = context.mock(ScriptClasspathHandler)
+    ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
     Build build;
     Convention convention = new DefaultConvention();
 
@@ -172,7 +173,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).get(AntBuilderFactory); will(returnValue(antBuilderFactoryMock))
             allowing(serviceRegistryMock).get(ProjectPluginsContainer); will(returnValue(projectPluginsHandlerMock))
-            allowing(serviceRegistryMock).get(ScriptClasspathHandler); will(returnValue(scriptClasspathHandlerMock))
+            allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
         }
 
@@ -236,7 +237,7 @@ class DefaultProjectTest {
 
   @Test void testScriptClasspath() {
         context.checking {
-            one(scriptClasspathHandlerMock).getRepositories()
+            one(scriptHandlerMock).getRepositories()
         }
         project.scriptclasspath {
             repositories

@@ -4,7 +4,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.internal.initialization.DefaultScriptClasspathHandler
+import org.gradle.api.internal.initialization.DefaultScriptHandler
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
 import org.jmock.integration.junit4.JMock
@@ -15,7 +15,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 @RunWith(JMock)
-public class DefaultScriptClasspathHandlerTest {
+public class DefaultScriptHandlerTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler)
     private final DependencyHandler dependencyHandler = context.mock(DependencyHandler)
@@ -28,11 +28,11 @@ public class DefaultScriptClasspathHandlerTest {
             one(configurationContainer).add('classpath')
         }
 
-        new DefaultScriptClasspathHandler(repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
+        new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
     }
 
     @Test void createsAClassLoaderAndAddsContentsOfClassPathConfiguration() {
-        DefaultScriptClasspathHandler handler = handler()
+        DefaultScriptHandler handler = handler()
 
         ClassLoader classLoader = handler.classLoader
         assertThat(classLoader, instanceOf(URLClassLoader))
@@ -53,7 +53,7 @@ public class DefaultScriptClasspathHandlerTest {
     }
 
     @Test void canConfigureRepositories() {
-        DefaultScriptClasspathHandler handler = handler()
+        DefaultScriptHandler handler = handler()
 
         context.checking {
             one(repositoryHandler).mavenCentral()
@@ -65,7 +65,7 @@ public class DefaultScriptClasspathHandlerTest {
     }
 
     @Test void canConfigureDependencies() {
-        DefaultScriptClasspathHandler handler = handler()
+        DefaultScriptHandler handler = handler()
 
         context.checking {
             one(dependencyHandler).add('config', 'dep')
@@ -76,12 +76,12 @@ public class DefaultScriptClasspathHandlerTest {
         }
     }
 
-    private DefaultScriptClasspathHandler handler() {
+    private DefaultScriptHandler handler() {
         context.checking {
             one(configurationContainer).add('classpath')
             will(returnValue(configuration))
         }
-        DefaultScriptClasspathHandler handler = new DefaultScriptClasspathHandler(repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
+        DefaultScriptHandler handler = new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
         return handler
     }
 }

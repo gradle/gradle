@@ -16,15 +16,14 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.artifacts.dsl.*;
-import org.gradle.api.initialization.dsl.ScriptClasspathHandler;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.initialization.DefaultScriptClasspathHandler;
+import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
@@ -139,7 +138,7 @@ public class DefaultProjectServiceRegistryFactoryTest {
     }
 
     @Test
-    public void providesAScriptClasspathHandlerAndScriptClassLoaderProvider() {
+    public void providesAScriptHandlerAndScriptClassLoaderProvider() {
         expectConfigurationHandlerCreated();
         context.checking(new Expectations(){{
             BuildInternal build = context.mock(BuildInternal.class);
@@ -155,10 +154,10 @@ public class DefaultProjectServiceRegistryFactoryTest {
 
         ProjectServiceRegistry registry = factory.create(project);
 
-        assertThat(registry.get(ScriptClasspathHandler.class), instanceOf(DefaultScriptClasspathHandler.class));
-        assertThat(registry.get(ScriptClasspathHandler.class), sameInstance(registry.get(
-                ScriptClasspathHandler.class)));
-        assertThat(registry.get(ScriptClassLoaderProvider.class), sameInstance((Object) registry.get(ScriptClasspathHandler.class)));
+        assertThat(registry.get(ScriptHandler.class), instanceOf(DefaultScriptHandler.class));
+        assertThat(registry.get(ScriptHandler.class), sameInstance(registry.get(
+                ScriptHandler.class)));
+        assertThat(registry.get(ScriptClassLoaderProvider.class), sameInstance((Object) registry.get(ScriptHandler.class)));
     }
 
     @Test

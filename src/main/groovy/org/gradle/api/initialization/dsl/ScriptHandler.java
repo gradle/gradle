@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import groovy.lang.Closure;
 
 /**
- * <p>A {@code ScriptClasspathHandler} allows you to manage the classpath used to compile and execute a build
+ * <p>A {@code ScriptHandler} allows you to manage the classpath used to compile and execute a build
  * script.</p>
  *
  * <p>To declare the script classpath, you use the {@link org.gradle.api.artifacts.dsl.DependencyHandler} provided by
@@ -32,7 +32,7 @@ import groovy.lang.Closure;
  * be found, using the {@link org.gradle.api.artifacts.dsl.RepositoryHandler} provided by {@link
  * #getRepositories()}.</p>
  */
-public interface ScriptClasspathHandler {
+public interface ScriptHandler {
     /**
      * The name of the configuration used to assemble the script classpath.
      */
