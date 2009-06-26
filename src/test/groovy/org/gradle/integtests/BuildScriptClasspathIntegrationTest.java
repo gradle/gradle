@@ -118,20 +118,10 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test @Ignore
-    public void collectsStdoutDuringClasspathDeclaration() {
-        Assert.fail("implement me");
-    }
-
-    @Test @Ignore
     public void reportsFailureDuringClasspathDeclaration() {
         Assert.fail("implement me");
     }
     
-    @Test @Ignore
-    public void canUseImportedClassesInClasspathDeclaration() {
-        Assert.fail("implement me");
-    }
-
     @Test @Ignore
     public void inheritsClassPathOfParentProject() {
         Assert.fail("implement me");

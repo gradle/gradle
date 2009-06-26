@@ -234,10 +234,6 @@ public abstract class AbstractProject implements ProjectInternal {
         return buildFile;
     }
 
-    public String getBuildFileClassName() {
-        return buildScriptSource.getClassName();
-    }
-
     public void setBuildFile(File buildFile) {
         this.buildFile = buildFile;
     }

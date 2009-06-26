@@ -33,17 +33,12 @@ public class ForkingGradleExecuter implements GradleExecuter {
     private List<String> args;
 
     public ForkingGradleExecuter(GradleDistribution distribution) {
-        reset();
-        this.distribution = distribution;
-        workingDir = distribution.getGradleHomeDir();
-    }
-
-    public GradleExecuter reset() {
         workingDir = null;
         logLevel = Executer.LIFECYCLE;
         tasks = new ArrayList<String>();
         args = new ArrayList<String>();
-        return this;
+        this.distribution = distribution;
+        workingDir = distribution.getGradleHomeDir();
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -87,11 +82,6 @@ public class ForkingGradleExecuter implements GradleExecuter {
 
     public GradleExecuter withQuietLogging() {
         logLevel = Executer.QUIET;
-        return this;
-    }
-
-    public GradleExecuter withLogLevel(int logLevel) {
-        this.logLevel = logLevel;
         return this;
     }
 

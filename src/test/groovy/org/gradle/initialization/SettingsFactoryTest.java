@@ -17,8 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
@@ -51,7 +49,6 @@ public class SettingsFactoryTest {
     public void createSettings() {
         final ConfigurationContainerFactory configurationContainerFactory = context.mock(ConfigurationContainerFactory.class);
         final ConfigurationHandler configurationContainer = context.mock(ConfigurationHandler.class);
-        final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
         final Configuration configuration = context.mock(Configuration.class);
         final InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
         final File expectedSettingsDir = new File("settingsDir");
@@ -69,14 +66,13 @@ public class SettingsFactoryTest {
         BuildSourceBuilder expectedBuildSourceBuilder = context.mock(BuildSourceBuilder.class);
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry, dependencyFactory,
-                repositoryHandlerMock,
-                configurationContainerFactory, internalRepositoryDummy, expectedBuildSourceBuilder);
+        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry,
+                repositoryHandlerMock, configurationContainerFactory, internalRepositoryDummy,
+                expectedBuildSourceBuilder);
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(expectedSettingsDir,
                 expectedScriptSource, expectedGradleProperties, expectedStartParameter);
 
-        assertSame(dependencyFactory, settings.getDependencyFactory());
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         assertSame(expectedBuildSourceBuilder, settings.getBuildSourceBuilder());
         assertEquals(expectedGradleProperties, settings.getAdditionalProperties());

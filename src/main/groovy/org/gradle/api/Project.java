@@ -244,22 +244,9 @@ public interface Project extends Comparable<Project> {
      *
      * <p>You can access this property in your build file using <code>buildFile</code></p>
      *
-     * @return Current build file. Never returns null.
-     * @see #getBuildFileClassName()
+     * @return Current build file. May return null.
      */
     File getBuildFile();
-
-    /**
-     * <p>Returns the name of the classname the build file compiles to. They might be the same but not necessarily. If
-     * the build file name contains characters which are illegal for a class name, they are replaced in the build file
-     * name with underscores. In case of an embedded build script, the build file name and the build file class name are
-     * equal to {@value #EMBEDDED_SCRIPT_ID}. In case there is no build file provided for a project, Gradle injects an
-     * empty embedded script which obeys to the same naming convention as described above.</p>
-     *
-     * @return Current build file class name. Never returns null.
-     * @see #getBuildFile()
-     */
-    String getBuildFileClassName();
 
     /**
      * <p>Returns the parent project of this project, if any.</p>

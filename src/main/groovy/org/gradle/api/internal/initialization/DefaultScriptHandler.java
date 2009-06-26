@@ -36,11 +36,11 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptClassLoaderPro
     private final Configuration classpathConfiguration;
 
     public DefaultScriptHandler(RepositoryHandler repositoryHandler, DependencyHandler dependencyHandler,
-                                         ConfigurationContainer configContainer, ClassLoader classLoader) {
+                                ConfigurationContainer configContainer, ClassLoader parentClassLoader) {
         this.repositoryHandler = repositoryHandler;
         this.dependencyHandler = dependencyHandler;
         this.configContainer = configContainer;
-        this.classLoader = new ProjectClassLoader(classLoader);
+        this.classLoader = new ProjectClassLoader(parentClassLoader);
         classpathConfiguration = configContainer.add(CLASSPATH_CONFIGURATION);
     }
 
@@ -79,8 +79,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptClassLoaderPro
     }
 
     private static class ProjectClassLoader extends URLClassLoader {
-        public ProjectClassLoader(ClassLoader classLoader) {
-            super(new URL[0], classLoader);
+        public ProjectClassLoader(ClassLoader parentClassLoader) {
+            super(new URL[0], parentClassLoader);
         }
 
         @Override

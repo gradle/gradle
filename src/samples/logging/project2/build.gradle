@@ -1,2 +1,7 @@
 dependsOn(':project1')
 println(prefix + 'quietProject2Out')
+
+scriptclasspath {
+    println(prefix + 'quietProject2ScriptClassPathOut')
+    logger.info(prefix + 'infoProject2ScriptClassPathOut')
+}

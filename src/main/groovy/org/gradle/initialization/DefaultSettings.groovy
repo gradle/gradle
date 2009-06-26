@@ -33,13 +33,12 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 public class DefaultSettings extends BaseSettings {
     public DefaultSettings() {}
 
-    DefaultSettings(DependencyFactory dependencyFactory,
-                    RepositoryHandler repositoryHandler,
+    DefaultSettings(RepositoryHandler repositoryHandler,
                     ConfigurationContainerFactory configurationContainerFactory,
                     InternalRepository internalRepository,
                     IProjectDescriptorRegistry projectDescriptorRegistry,
                     BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
-        super(dependencyFactory, repositoryHandler, configurationContainerFactory, internalRepository, projectDescriptorRegistry,
+        super(repositoryHandler, configurationContainerFactory, internalRepository, projectDescriptorRegistry,
                 buildSourceBuilder, settingsDir, settingsScript, startParameter)
     }
 

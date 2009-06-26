@@ -16,13 +16,9 @@
 
 package org.gradle.initialization
 
-import org.apache.ivy.plugins.resolver.DependencyResolver
-import org.apache.ivy.plugins.resolver.DualResolver
-import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
-import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
@@ -33,9 +29,6 @@ import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.BuildSourceBuilder
@@ -49,7 +42,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
-
 
 /**
  * @author Hans Dockter
@@ -69,7 +61,6 @@ class DefaultSettingsTest {
     ConfigurationHandler configurationContainerStub = context.mock(ConfigurationHandler.class);
     Configuration configurationStub = context.mock(Configuration.class);
     InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
-    DependencyFactory dependencyFactoryStub = context.mock(DependencyFactory)
     RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class);
 
     @Before public void setUp() {
@@ -89,8 +80,7 @@ class DefaultSettingsTest {
             one(configurationContainerStub).add("build")
             will(returnValue(configurationStub))
         }
-        settings = new DefaultSettings(dependencyFactoryStub, repositoryHandlerMock,
-                configurationContainerFactoryStub, internalRepositoryDummy,
+        settings = new DefaultSettings(repositoryHandlerMock, configurationContainerFactoryStub, internalRepositoryDummy,
                 projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, scriptSourceMock, startParameter)
     }
 
@@ -185,110 +175,8 @@ class DefaultSettingsTest {
         return settings.createProjectDescriptor(settings.getRootProject(), testName, testDir)
     }
 
-
-    @Test public void testDependencies() {
-        String[] dependencyNotations = ["dep1", "dep2"]
-        Dependency dependencyDummy1 = [:] as Dependency
-        Dependency dependencyDummy2 = [:] as Dependency
-        context.checking {
-            allowing(dependencyFactoryStub).createDependency(dependencyNotations[0]); will(returnValue(dependencyDummy1))
-            allowing(dependencyFactoryStub).createDependency(dependencyNotations[1]); will(returnValue(dependencyDummy2))
-            one(configurationStub).addDependency(dependencyDummy1)
-            one(configurationStub).addDependency(dependencyDummy2)
-        }
-        settings.dependencies(dependencyNotations)
-    }
-
-    @Test public void testDependencyWithClosure() {
-        String dependencyNotation = "dep1"
-        Dependency dependencyDummy = [:] as Dependency
-        Closure configureClosure = {}
-        context.checking {
-            allowing(dependencyFactoryStub).createDependency(dependencyNotation, configureClosure); will(returnValue(dependencyDummy))
-            one(configurationStub).addDependency(dependencyDummy)
-        }
-
-        settings.dependency(dependencyNotation, configureClosure)
-    }
-
-    @Test public void testClientModule() {
-        String id = "dep1"
-        ClientModule clientModuleDummy = [:] as ClientModule
-        Closure configureClosure = {}
-        context.checking {
-            allowing(dependencyFactoryStub).createModule(id, configureClosure); will(returnValue(clientModuleDummy))
-            one(configurationStub).addDependency(clientModuleDummy)
-        }
-        settings.module(id, configureClosure)
-    }
-
-    @Test public void testMavenCentralWithArgs() {
-        settings.setRepositoryHandler(repositoryHandlerMock)
-        DualResolver expectedResolver = new DualResolver()
-        context.checking {
-            one(repositoryHandlerMock).mavenCentral(); will(returnValue(expectedResolver))
-        }
-        assert settings.mavenCentral().is(expectedResolver)
-    }
-
-    @Test public void testMavenCentral() {
-        settings.setRepositoryHandler(repositoryHandlerMock)
-        DualResolver expectedResolver = new DualResolver()
-        Map args = createTestRepoArgs()
-        context.checking {
-            one(repositoryHandlerMock).mavenCentral(args); will(returnValue(expectedResolver))
-        }
-        assert settings.mavenCentral(args).is(expectedResolver)
-    }
-
     private Map createTestRepoArgs() {
         return [name: 'someName']
-    }
-
-    @Test public void testMavenRepo() {
-        DualResolver expectedResolver = new DualResolver()
-        Map args = createTestRepoArgs()
-        context.checking {
-            one(repositoryHandlerMock).mavenRepo(args);
-            will(returnValue(expectedResolver))
-        }
-        assert settings.mavenRepo(args).is(expectedResolver)
-    }
-
-    @Test public void testMavenRepoWithoutName() {
-        DualResolver expectedResolver = new DualResolver()
-        Map args = createTestRepoArgs()
-        context.checking {
-            one(repositoryHandlerMock).mavenRepo(args);
-            will(returnValue(expectedResolver))
-        }
-        assert settings.mavenRepo(args).is(expectedResolver)
-    }
-
-    @Test public void testFlatDir() {
-        FileSystemResolver expectedResolver = new FileSystemResolver()
-        Map args = createTestRepoArgs()
-        context.checking {
-            one(repositoryHandlerMock).flatDir(args);
-            will(returnValue(expectedResolver))
-        }
-        assert settings.flatDir(args).is(expectedResolver)
-    }
-
-    @Test public void testFlatDirWithoutName() {
-        FileSystemResolver expectedResolver = new FileSystemResolver()
-        Map args = createTestRepoArgs()
-        context.checking {
-            one(repositoryHandlerMock).flatDir(args);
-            will(returnValue(expectedResolver))
-        }
-        assert settings.flatDir(args).is(expectedResolver)
-    }
-
-    @Test public void testResolver() {
-        settings.setRepositoryHandler(new DefaultRepositoryHandler(new DefaultResolverFactory(), null))
-        DependencyResolver resolver = settings.mavenCentral();
-        assertEquals([resolver], settings.resolvers)
     }
 
     @Test public void testCreateClassLoaderWithNonExistingBuildSource() {

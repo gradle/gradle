@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.*;
 import groovy.lang.Script;
 
@@ -45,7 +46,12 @@ public class BuildScriptCompiler implements ProjectEvaluator {
         Script classPathScript = processor.process(ProjectScript.class);
         projectScriptMetaData.applyMetaData(classPathScript, project);
 
-        classPathScript.run();
+        project.getStandardOutputRedirector().on(LogLevel.QUIET);
+        try {
+            classPathScript.run();
+        } finally {
+            project.getStandardOutputRedirector().flush();
+        }
         project.getClassLoaderProvider().updateClassPath();
 
         processor.setTransformer(new BuildScriptTransformer());

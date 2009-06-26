@@ -49,10 +49,6 @@ public class InProcessGradleExecuter implements GradleExecuter {
         this.parameter = parameter;
     }
 
-    public GradleExecuter reset() {
-        throw new UnsupportedOperationException();
-    }
-
     public GradleExecuter inDirectory(File directory) {
         parameter.setCurrentDir(directory);
         return this;
@@ -95,10 +91,6 @@ public class InProcessGradleExecuter implements GradleExecuter {
     public GradleExecuter withQuietLogging() {
         parameter.setLogLevel(LogLevel.QUIET);
         return this;
-    }
-
-    public GradleExecuter withLogLevel(int logLevel) {
-        throw new UnsupportedOperationException();
     }
 
     public GradleExecuter withArguments(String... args) {

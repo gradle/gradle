@@ -48,12 +48,6 @@ import java.util.Map;
  * <p>When a project is included in the build, a {@link ProjectDescriptor} is created. You can use this descriptor to
  * change the default vaules for several properties of the project.</p>
  *
- * <h3>Defining the Build Class-path</h3>
- *
- * <p>Using the <code>Settings</code> object, you can define the classpath which will be used to load the build scripts,
- * and all objects used by them. This should also include the non-standard plugins which the build scripts will
- * use.</p>
- *
  * <h3>Using Settings in a Settings File</h3>
  *
  * <h4>Dynamic Properties</h4>
@@ -113,41 +107,6 @@ public interface Settings {
      * @param projectNames the projects to add.
      */
     void includeFlat(String[] projectNames);
-    
-    /**
-     * <p>Adds dependencies to the build script classpath. The notation to describe dependencies are the same as described
-     * in {@link org.gradle.api.artifacts.dsl.DependencyHandler}.</p>
-     *
-     * @param dependencies The dependencies to add.
-     * @throws org.gradle.api.IllegalDependencyNotation if one of the given object cannot be converted to a {@code Dependency}.
-     */
-    void dependencies(Object[] dependencies) throws InvalidUserDataException;
-
-    /**
-     * Adds a dependency to the build script classpath. The notation to describe dependencies are the same as described
-     * in {@link org.gradle.api.artifacts.dsl.DependencyHandler}.</p>
-     *
-     * @param dependency The dependency to add.
-     * @param configureClosure The closure to use to configure the dependency.
-     * @throws org.gradle.api.IllegalDependencyNotation When one of the given object cannot be treated as a dependency.
-     */
-    Dependency dependency(Object dependency, Closure configureClosure) throws InvalidUserDataException;
-
-    /**
-     * Adds a module to the build script classpath. The notation to describe modules are the same as described
-     * in {@link org.gradle.api.artifacts.dsl.DependencyHandler}.</p>
-     * 
-     * @param notation
-     * @param configureClosure The closure to use to configure the module.
-     */
-    void module(Object notation, Closure configureClosure);
-
-    /**
-     * <p>Returns the set of resolvers used to resolve the build script classpath.</p>
-     *
-     * @return the resolvers. Never returns null.
-     */
-    List<DependencyResolver> getResolvers();
 
     /**
      * <p>Returns the settings directory of the build. The settings directory is the directory containing the settings
@@ -163,26 +122,6 @@ public interface Settings {
      * @return The root directory. Never returns null.
      */
     File getRootDir();
-
-    /**
-     * @see org.gradle.api.artifacts.dsl.RepositoryHandler#mavenCentral(java.util.Map)
-     */
-    DependencyResolver mavenCentral(Map args);
-
-    /**
-     * @see org.gradle.api.artifacts.dsl.RepositoryHandler#mavenCentral() 
-     */
-    DependencyResolver mavenCentral();
-
-    /**
-     * @see org.gradle.api.artifacts.dsl.RepositoryHandler#mavenRepo(java.util.Map)
-     */
-    DependencyResolver mavenRepo(Map args);
-
-    /**
-     * @see org.gradle.api.artifacts.dsl.RepositoryHandler#flatDir(java.util.Map) 
-     */
-    FileSystemResolver flatDir(Map args);
 
     /**
      * <p>Returns the root project of the build.</p>

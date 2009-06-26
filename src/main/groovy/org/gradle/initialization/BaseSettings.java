@@ -15,9 +15,6 @@
  */
 package org.gradle.initialization;
 
-import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -32,8 +29,6 @@ import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -45,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.net.URLClassLoader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,10 +68,6 @@ public class BaseSettings implements SettingsInternal {
 
     private DynamicObjectHelper dynamicObjectHelper;
 
-    private DependencyFactory dependencyFactory;
-
-    private RepositoryHandler repositoryHandler;
-
     private InternalRepository internalRepository;
 
     IProjectDescriptorRegistry projectDescriptorRegistry;
@@ -85,28 +75,27 @@ public class BaseSettings implements SettingsInternal {
     protected BaseSettings() {
     }
 
-    public BaseSettings(DependencyFactory dependencyFactory,
-                        RepositoryHandler repositoryHandler,
+    public BaseSettings(RepositoryHandler repositoryHandler,
                         ConfigurationContainerFactory configurationContainerFactory,
                         InternalRepository internalRepository,
                         IProjectDescriptorRegistry projectDescriptorRegistry,
                         BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
-        this.dependencyFactory = dependencyFactory;
-        this.repositoryHandler = repositoryHandler;
         this.internalRepository = internalRepository;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.buildSourceBuilder = buildSourceBuilder;
-        this.buildConfiguration = createBuildConfiguration(configurationContainerFactory, startParameter);
+        this.buildConfiguration = createBuildConfiguration(configurationContainerFactory, startParameter,
+                repositoryHandler);
         assignBuildSrcStartParameter(startParameter);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         dynamicObjectHelper = new DynamicObjectHelper(this);
     }
 
-    private Configuration createBuildConfiguration(ConfigurationContainerFactory configurationContainerFactory, final StartParameter startParameter) {
+    private Configuration createBuildConfiguration(ConfigurationContainerFactory configurationContainerFactory, final StartParameter startParameter,
+                                                   RepositoryHandler repositoryHandler) {
         DependencyMetaDataProvider metaDataProvider = new DependencyMetaDataProvider() {
             public Map getClientModuleRegistry() {
                 return new HashMap();
@@ -202,43 +191,7 @@ public class BaseSettings implements SettingsInternal {
         return projectPath;
     }
 
-    public void dependencies(Object[] dependencies) {
-        for (Object dependency : dependencies) {
-            buildConfiguration.addDependency(dependencyFactory.createDependency(dependency));
-        }
-    }
-
-    public Dependency dependency(Object dependencyNotation, Closure configureClosure) {
-        Dependency dependency = dependencyFactory.createDependency(dependencyNotation, configureClosure);
-        buildConfiguration.addDependency(dependency);
-        return dependency;
-    }
-
-    public void module(Object notation, Closure configureClosure) {
-        buildConfiguration.addDependency(dependencyFactory.createModule(notation, configureClosure));
-    }
-
-    public FileSystemResolver flatDir(Map args) {
-        return repositoryHandler.flatDir(args);
-    }
-
-    public DependencyResolver mavenCentral(Map args) {
-        return repositoryHandler.mavenCentral(args);
-    }
-
-    public DependencyResolver mavenCentral() {
-        return repositoryHandler.mavenCentral();
-    }
-
-    public DependencyResolver mavenRepo(Map args) {
-        return repositoryHandler.mavenRepo(args);
-    }
-
-    public List<DependencyResolver> getResolvers() {
-        return repositoryHandler.getResolvers();
-    }
-
-    // todo We don't have command query separation here. This si a temporary thing. If our new classloader handling works out, which
+    // todo We don't have command query separation here. This is a temporary thing. If our new classloader handling works out, which
     // adds simply the build script jars to the context classloader we can remove the return argument and simplify our design.
     public URLClassLoader createClassLoader() {
         URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
@@ -325,22 +278,6 @@ public class BaseSettings implements SettingsInternal {
 
     public Configuration getBuildConfiguration() {
         return buildConfiguration;
-    }
-
-    public RepositoryHandler getRepositoryHandler() {
-        return repositoryHandler;
-    }
-
-    public void setRepositoryHandler(RepositoryHandler repositoryHandler) {
-        this.repositoryHandler = repositoryHandler;
-    }
-
-    public DependencyFactory getDependencyFactory() {
-        return dependencyFactory;
-    }
-
-    public void setDependencyFactory(DependencyFactory dependencyFactory) {
-        this.dependencyFactory = dependencyFactory;
     }
 
     public IProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {

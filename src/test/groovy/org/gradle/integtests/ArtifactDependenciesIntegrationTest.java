@@ -16,7 +16,6 @@
 package org.gradle.integtests;
 
 import org.junit.Test;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 
 import java.io.File;

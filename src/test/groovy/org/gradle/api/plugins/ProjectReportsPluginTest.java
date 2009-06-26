@@ -17,7 +17,6 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;

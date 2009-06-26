@@ -555,10 +555,6 @@ class DefaultProjectTest {
         assertEquals(Project.PATH_SEPARATOR, project.path)
     }
 
-    @Test void testGetBuildFileCacheName() {
-        assertEquals('scriptClass', project.getBuildFileClassName())
-    }
-
     @Test void testGetProject() {
         assertSame(project, project.project(Project.PATH_SEPARATOR))
         assertSame(child1, project.project(Project.PATH_SEPARATOR + "child1"))

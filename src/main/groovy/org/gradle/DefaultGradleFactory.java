@@ -101,7 +101,6 @@ public class DefaultGradleFactory implements GradleFactory {
                                         importsReader,
                                         new SettingsFactory(
                                                 new DefaultProjectDescriptorRegistry(),
-                                                dependencyFactory,
                                                 new DefaultRepositoryHandler(resolverFactory, null),
                                                 configurationContainerFactory,
                                                 internalRepository,

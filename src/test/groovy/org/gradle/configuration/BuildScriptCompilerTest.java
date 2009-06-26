@@ -21,7 +21,9 @@ import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
+import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.*;
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
@@ -51,6 +53,7 @@ public class BuildScriptCompilerTest {
     private final ProjectScript buildScript = context.mock(ProjectScript.class, "build");
     private final ScriptClassLoaderProvider classLoaderProvider = context.mock(ScriptClassLoaderProvider.class);
     private final File rootDir = new File("root dir");
+    private final StandardOutputRedirector standardOutputRedirector = context.mock(StandardOutputRedirector.class);
     private final BuildScriptCompiler evaluator = new BuildScriptCompiler(importsReader, scriptProcessorFactory,
             projectScriptMetaData);
 
@@ -65,6 +68,9 @@ public class BuildScriptCompilerTest {
 
             allowing(project).getClassLoaderProvider();
             will(returnValue(classLoaderProvider));
+
+            allowing(project).getStandardOutputRedirector();
+            will(returnValue(standardOutputRedirector));
         }});
     }
 
@@ -88,7 +94,11 @@ public class BuildScriptCompilerTest {
 
             one(projectScriptMetaData).applyMetaData(classpathScript, project);
 
+            one(standardOutputRedirector).on(LogLevel.QUIET);
+
             one(classpathScript).run();
+            
+            one(standardOutputRedirector).flush();
 
             one(classLoaderProvider).updateClassPath();
             
