@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks.util;
 
 import org.gradle.api.InvalidUserDataException;
@@ -33,7 +33,8 @@ public class BaseDirConverter {
 
     public File baseDir(Object path, File baseDir, PathValidation validation) {
         if (!GUtil.isTrue(path) || !GUtil.isTrue(baseDir)) {
-            throw new InvalidUserDataException("Neither path nor baseDir must be null. path=$path basedir=$baseDir");
+            throw new IllegalArgumentException(String.format(
+                    "Neither path nor baseDir must be null. path=%s basedir=%s", path, baseDir));
         }
         File file = new File(path.toString());
         if (!file.isAbsolute()) {
@@ -41,14 +42,28 @@ public class BaseDirConverter {
         }
         file = GFileUtils.canonicalise(file);
         if (validation != PathValidation.NONE) {
-            String message = null;
             switch (validation) {
-                case EXISTS: if (!file.exists()) message = "Path=$path does not exists!"; break;
-                case FILE: if (!file.isFile()) message = "Path=$path is no file!"; break;
-                case DIRECTORY: if (!file.isDirectory()) message = "Path=$path is no directory!"; break;
-            }
-            if (message != null) {
-                throw new InvalidUserDataException(message);
+                case EXISTS:
+                    if (!file.exists()) {
+                        throw new InvalidUserDataException(String.format("File '%s' does not exist.", file));
+                    }
+                    break;
+                case FILE:
+                    if (!file.exists()) {
+                        throw new InvalidUserDataException(String.format("File '%s' does not exist.", file));
+                    }
+                    if (!file.isFile()) {
+                        throw new InvalidUserDataException(String.format("File '%s' is not a file.", file));
+                    }
+                    break;
+                case DIRECTORY:
+                    if (!file.exists()) {
+                        throw new InvalidUserDataException(String.format("Directory '%s' does not exist.", file));
+                    }
+                    if (!file.isDirectory()) {
+                        throw new InvalidUserDataException(String.format("Directory '%s' is not a directory.", file));
+                    }
+                    break;
             }
         }
         return file;

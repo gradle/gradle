@@ -16,15 +16,14 @@
 
 package org.gradle.api.tasks.util
 
-import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.util.HelperUtil
+import org.junit.After
 import org.junit.Before
-import static org.junit.Assert.*
 import org.junit.Test
-import org.junit.After;
-
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -53,11 +52,11 @@ class BaseDirConverterTest {
         HelperUtil.deleteTestDir()
     }
 
-    @Test (expected = InvalidUserDataException) public void testWithNullPath() {
+    @Test (expected = IllegalArgumentException) public void testWithNullPath() {
         baseDirConverter.baseDir(null, testFile)
     }
 
-    @Test (expected = InvalidUserDataException) public void testWithNullBaseDir() {
+    @Test (expected = IllegalArgumentException) public void testWithNullBaseDir() {
         baseDirConverter.baseDir('somepath', null)
     }
 
@@ -67,13 +66,23 @@ class BaseDirConverterTest {
         baseDirConverter.baseDir(TEST_PATH, testFile, PathValidation.NONE)
     }
 
-    @Test (expected = InvalidUserDataException) public void testPathValidationWithNonExistingFile() {
-        baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.FILE)
+    @Test public void testPathValidationWithNonExistingFile() {
+        try {
+            baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.FILE)
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo("File '$testFile.canonicalFile' does not exist.".toString()))
+        }
     }
 
-    @Test (expected = InvalidUserDataException) public void testPathValidationForFileWithDirectory() {
+    @Test public void testPathValidationForFileWithDirectory() {
         testDir.mkdir()
-        baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.FILE)
+        try {
+            baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.FILE)
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo("File '$testDir.canonicalFile' is not a file.".toString()))
+        }
     }
 
     @Test public void testWithValidFile() {
@@ -81,8 +90,13 @@ class BaseDirConverterTest {
         baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.FILE)
     }
 
-    @Test (expected = InvalidUserDataException) public void testPathValidationWithNonExistingDirectory() {
-        baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.DIRECTORY)
+    @Test public void testPathValidationWithNonExistingDirectory() {
+        try {
+            baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.DIRECTORY)
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo("Directory '$testDir.canonicalFile' does not exist.".toString()))
+        }
     }
 
     @Test public void testPathValidationWithValidDirectory() {
@@ -90,9 +104,14 @@ class BaseDirConverterTest {
         baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.DIRECTORY)
     }
 
-    @Test (expected = InvalidUserDataException) public void testPathValidationForDirectoryWithFile() {
+    @Test public void testPathValidationForDirectoryWithFile() {
         testFile.createNewFile()
-        baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.DIRECTORY)
+        try {
+            baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.DIRECTORY)
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo("Directory '$testFile.canonicalFile' is not a directory.".toString()))
+        }
     }
 
     @Test public void testPathValidationForExistingDirAndFile() {
@@ -102,12 +121,22 @@ class BaseDirConverterTest {
         baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.EXISTS)
     }
 
-    @Test(expected = InvalidUserDataException) public void testExistsPathValidationWithNonExistingDir() {
+    @Test public void testExistsPathValidationWithNonExistingDir() {
+        try {
             baseDirConverter.baseDir(testDir.name, baseDir, PathValidation.EXISTS)
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo("File '$testDir.canonicalFile' does not exist.".toString()))
+        }
     }
 
-    @Test(expected = InvalidUserDataException) public void testExistsPathValidationWithNonExistingFile() {
+    @Test public void testExistsPathValidationWithNonExistingFile() {
+        try {
             baseDirConverter.baseDir(testFile.name, baseDir, PathValidation.EXISTS)
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo("File '$testFile.canonicalFile' does not exist.".toString()))
+        }
     }
 
     @Test public void testWithAbsolutePath() {
