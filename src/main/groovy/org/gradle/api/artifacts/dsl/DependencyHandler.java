@@ -58,7 +58,7 @@ import groovy.lang.Closure;
  * <i>classifier</i></code>
  *
  * <p>In both notations, all properties, except name, are optional. External dependencies are represented using a {@link
- * org.gradle.api.artifacts.ModuleDependency}.</p>
+ * org.gradle.api.artifacts.ExternalModuleDependency}.</p>
  *
  * <h2>Client Modules</h2>
  *

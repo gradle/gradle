@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class DefaultModuleDependencyTest extends AbstractDependencyTest {
+public class DefaultExternalModuleDependencyTest extends AbstractDependencyTest {
     private static final String TEST_GROUP = "org.gradle";
     private static final String TEST_NAME = "gradle-core";
     private static final String TEST_VERSION = "4.4-beta2";
@@ -42,22 +42,22 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
 
     protected DefaultDependencyDescriptor expectedDependencyDescriptor;
 
-    private DefaultModuleDependency moduleDependency;
+    private DefaultExternalModuleDependency moduleDependency;
 
     public AbstractDependency getDependency() {
         return moduleDependency;
     }
 
     protected AbstractDependency createDependency(String group, String name, String version) {
-        return new DefaultModuleDependency(group, name, version);
+        return new DefaultExternalModuleDependency(group, name, version);
     }
 
     protected AbstractDependency createDependency(String group, String name, String version, String configuration) {
-        return new DefaultModuleDependency(group, name, version, configuration);
+        return new DefaultExternalModuleDependency(group, name, version, configuration);
     }
 
     @Before public void setUp() {
-        moduleDependency = new DefaultModuleDependency(TEST_GROUP, TEST_NAME, TEST_VERSION);
+        moduleDependency = new DefaultExternalModuleDependency(TEST_GROUP, TEST_NAME, TEST_VERSION);
         context.setImposteriser(ClassImposteriser.INSTANCE);
         dependencyDescriptorFactoryMock = context.mock(DependencyDescriptorFactory.class);
         expectedDependencyDescriptor = HelperUtil.getTestDescriptor();
@@ -76,33 +76,33 @@ public class DefaultModuleDependencyTest extends AbstractDependencyTest {
 
     @Test(expected = InvalidUserDataException.class)
     public void initWithNullName_shouldThrowInvalidUserDataEx() {
-        new DefaultModuleDependency(TEST_GROUP, null, TEST_VERSION);
+        new DefaultExternalModuleDependency(TEST_GROUP, null, TEST_VERSION);
     }
     
     @Test
     public void contentEqualsWithEqualDependencies() {
-        DefaultModuleDependency dependency1 = createModuleDependency();
-        DefaultModuleDependency dependency2 = createModuleDependency();
+        DefaultExternalModuleDependency dependency1 = createModuleDependency();
+        DefaultExternalModuleDependency dependency2 = createModuleDependency();
         assertThat(dependency1.contentEquals(dependency2), equalTo(true));
     }
 
     @Test
     public void contentEqualsWithNonEqualDependencies() {
-        DefaultModuleDependency dependency1 = createModuleDependency();
-        DefaultModuleDependency dependency2 = createModuleDependency();
+        DefaultExternalModuleDependency dependency1 = createModuleDependency();
+        DefaultExternalModuleDependency dependency2 = createModuleDependency();
         dependency2.setTransitive(!dependency1.isTransitive());
         assertThat(dependency1.contentEquals(dependency2), equalTo(false));
     }
 
     @Test
     public void copy() {
-        DefaultModuleDependency dependency = createModuleDependency();
-        DefaultModuleDependency copiedDependency = dependency.copy();
+        DefaultExternalModuleDependency dependency = createModuleDependency();
+        DefaultExternalModuleDependency copiedDependency = dependency.copy();
         assertDeepCopy(dependency, copiedDependency);
     }
 
-    private DefaultModuleDependency createModuleDependency() {
-        DefaultModuleDependency moduleDependency = new DefaultModuleDependency("group", "name", "version", "conf");
+    private DefaultExternalModuleDependency createModuleDependency() {
+        DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency("group", "name", "version", "conf");
         moduleDependency.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"));
         return moduleDependency;
     }

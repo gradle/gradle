@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts.specs;
 
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
@@ -35,7 +35,7 @@ public class DependencyTypeSpecTest {
     @Test
     public void testIsSatisfiedBy() {
         assertTrue(new DependencyTypeSpec(Type.PROJECT).isSatisfiedBy(context.mock(ProjectDependency.class)));
-        assertFalse(new DependencyTypeSpec(Type.PROJECT).isSatisfiedBy(context.mock(ModuleDependency.class)));
+        assertFalse(new DependencyTypeSpec(Type.PROJECT).isSatisfiedBy(context.mock(ExternalModuleDependency.class)));
     }
 
     @Test

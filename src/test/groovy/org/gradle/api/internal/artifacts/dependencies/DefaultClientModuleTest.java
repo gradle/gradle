@@ -101,7 +101,7 @@ public class DefaultClientModuleTest extends AbstractDependencyTest {
     private DefaultClientModule createModule() {
         DefaultClientModule clientModule =  new DefaultClientModule("group", "name", "version", "conf");
         clientModule.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"));
-        clientModule.addDependency(new DefaultModuleDependency("org", "name", "version"));
+        clientModule.addDependency(new DefaultExternalModuleDependency("org", "name", "version"));
         return clientModule;
     }
 }

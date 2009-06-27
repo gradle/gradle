@@ -24,7 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
-import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.api.internal.project.AbstractProject;
@@ -120,8 +120,8 @@ public class DefaultDependencyDescriptorFactoryTest {
     
     @Test
     public void testCreateFromModuleDependency() {
-        DefaultModuleDependency moduleDependency = ((DefaultModuleDependency)
-                setUpExternalDependency(new DefaultModuleDependency("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF))).setChanging(true);
+        DefaultExternalModuleDependency moduleDependency = ((DefaultExternalModuleDependency)
+                setUpExternalDependency(new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF))).setChanging(true);
 
         dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, moduleDependency, DUMMY_MODULE_REGISTRY);
         DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
@@ -132,8 +132,8 @@ public class DefaultDependencyDescriptorFactoryTest {
 
     @Test
     public void testCreateFromModuleDependencyWithNullGroupAndNullVersion() {
-        DefaultModuleDependency moduleDependency = ((DefaultModuleDependency)
-                setUpExternalDependency(new DefaultModuleDependency(null, "gradle-core", null, TEST_DEP_CONF))).setChanging(true);
+        DefaultExternalModuleDependency moduleDependency = ((DefaultExternalModuleDependency)
+                setUpExternalDependency(new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF))).setChanging(true);
 
         dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, moduleDependency, DUMMY_MODULE_REGISTRY);
         DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
@@ -212,7 +212,7 @@ public class DefaultDependencyDescriptorFactoryTest {
     }
 
 
-    private void checkModuleDependency(DefaultDependencyDescriptor dependencyDescriptor, DefaultModuleDependency dependency) {
+    private void checkModuleDependency(DefaultDependencyDescriptor dependencyDescriptor, DefaultExternalModuleDependency dependency) {
         assertEquals(createModuleRevisionIdFromDependency(dependency, new HashMap()),
                 dependencyDescriptor.getDependencyRevisionId());
         assertDependencyDescriptorHasFixtureValuesForExternalDependencies(dependencyDescriptor,

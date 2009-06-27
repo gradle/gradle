@@ -73,7 +73,7 @@ public class DefaultSelfResolvingDependencyTest {
         SelfResolvingDependency dependency = new DefaultSelfResolvingDependency(source);
         SelfResolvingDependency equalDependency = new DefaultSelfResolvingDependency(source);
         SelfResolvingDependency differentSource = new DefaultSelfResolvingDependency(context.mock(FileCollection.class, "other"));
-        Dependency differentType = new DefaultModuleDependency("group", "name", "version");
+        Dependency differentType = context.mock(Dependency.class);
 
         assertTrue(dependency.contentEquals(dependency));
         assertTrue(dependency.contentEquals(equalDependency));

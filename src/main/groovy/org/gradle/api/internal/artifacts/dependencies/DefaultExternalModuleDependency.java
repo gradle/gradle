@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultModuleDependency extends AbstractDependency implements ModuleDependency {
+public class DefaultExternalModuleDependency extends AbstractDependency implements ExternalModuleDependency {
     private String group;
     private String name;
     private String version;
@@ -31,11 +31,11 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
     private boolean force = false;
     private boolean changing = false;
 
-    public DefaultModuleDependency(String group, String name, String version) {
+    public DefaultExternalModuleDependency(String group, String name, String version) {
         this(group, name, version, null);
     }
 
-    public DefaultModuleDependency(String group, String name, String version, String configuration) {
+    public DefaultExternalModuleDependency(String group, String name, String version, String configuration) {
         super(configuration);
         if (name == null) {
             throw new InvalidUserDataException("Name must not be null!");
@@ -45,7 +45,7 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
         this.version = version;
     }
 
-    public DefaultModuleDependency force(boolean force) {
+    public DefaultExternalModuleDependency force(boolean force) {
         this.force = force;
         return this;
     }
@@ -66,7 +66,7 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
         return force;
     }
 
-    public DefaultModuleDependency setForce(boolean force) {
+    public DefaultExternalModuleDependency setForce(boolean force) {
         this.force = force;
         return this;
     }
@@ -75,13 +75,13 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
         return changing;
     }
 
-    public DefaultModuleDependency setChanging(boolean changing) {
+    public DefaultExternalModuleDependency setChanging(boolean changing) {
         this.changing = changing;
         return this;
     }
 
-    public DefaultModuleDependency copy() {
-        DefaultModuleDependency copiedModuleDependency = new DefaultModuleDependency(getGroup(), getName(), getVersion(), getConfiguration());
+    public DefaultExternalModuleDependency copy() {
+        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getConfiguration());
         Dependencies.copyExternal(this, copiedModuleDependency);
         copiedModuleDependency.setChanging(isChanging());
         return copiedModuleDependency;
@@ -91,7 +91,7 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
         if (this == dependency) return true;
         if (dependency == null || getClass() != dependency.getClass()) return false;
 
-        DefaultModuleDependency that = (DefaultModuleDependency) dependency;
+        DefaultExternalModuleDependency that = (DefaultExternalModuleDependency) dependency;
         if (!Dependencies.isContentEqualsForExternal(this, that)) return false;
 
         return changing == that.isChanging();
@@ -102,14 +102,14 @@ public class DefaultModuleDependency extends AbstractDependency implements Modul
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DefaultModuleDependency that = (DefaultModuleDependency) o;
+        DefaultExternalModuleDependency that = (DefaultExternalModuleDependency) o;
 
         return Dependencies.isKeyEquals(this, that);
     }
 
     @Override
     public String toString() {
-        return "DefaultModuleDependency{" +
+        return "DefaultExternalModuleDependency{" +
                 "group='" + group + '\'' +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +

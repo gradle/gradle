@@ -20,7 +20,7 @@ package org.gradle.api.artifacts;
  *
  * @author Hans Dockter
  */
-public interface ModuleDependency extends ExternalDependency {
+public interface ExternalModuleDependency extends ExternalDependency {
     /**
      * Returns whether or nor Gradle should always check for a change in the remote repository.
      *
@@ -35,5 +35,5 @@ public interface ModuleDependency extends ExternalDependency {
      * @param changing Whether or nor Gradle should always check for a change in the remote repository
      * @return this
      */
-    ModuleDependency setChanging(boolean changing);
+    ExternalModuleDependency setChanging(boolean changing);
 }

@@ -49,9 +49,9 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         } else if (dependency instanceof ProjectDependency) {
             moduleDescriptor.addDependency(createFromProjectDependency(configuration, moduleDescriptor,
                     (ProjectDependency) dependency));
-        } else if (dependency instanceof ModuleDependency) {
+        } else if (dependency instanceof ExternalModuleDependency) {
             moduleDescriptor.addDependency(createFromModuleDependency(configuration, moduleDescriptor,
-                    (ModuleDependency) dependency));
+                    (ExternalModuleDependency) dependency));
         } else if (dependency instanceof SelfResolvingDependency) {
             // do nothing
         }
@@ -92,14 +92,14 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         return dependencyDescriptor;
     }
 
-    private DependencyDescriptor createFromModuleDependency(String configuration, ModuleDescriptor parent, ModuleDependency moduleDependency) {
+    private DependencyDescriptor createFromModuleDependency(String configuration, ModuleDescriptor parent, ExternalModuleDependency externalModuleDependency) {
         DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(
                 parent,
-                createModuleRevisionIdFromDependency(moduleDependency),
-                moduleDependency.isForce(),
-                moduleDependency.isChanging(),
-                moduleDependency.isTransitive());
-        addExcludesArtifactsAndDependencies(configuration, moduleDependency, dependencyDescriptor);
+                createModuleRevisionIdFromDependency(externalModuleDependency),
+                externalModuleDependency.isForce(),
+                externalModuleDependency.isChanging(),
+                externalModuleDependency.isTransitive());
+        addExcludesArtifactsAndDependencies(configuration, externalModuleDependency, dependencyDescriptor);
         return dependencyDescriptor;
     }
 

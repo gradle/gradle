@@ -18,10 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
-import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
-import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,12 +31,12 @@ public class ModuleDependencyFactory implements IDependencyImplementationFactory
     private StringNotationParser stringNotationParser = new StringNotationParser();
     private MapModuleNotationParser mapNotationParser = new MapModuleNotationParser();
 
-    public DefaultModuleDependency createDependency(Object notation) {
+    public DefaultExternalModuleDependency createDependency(Object notation) {
         assert notation != null;
         if (notation instanceof String || notation instanceof GString) {
             return stringNotationParser.createDependency(notation.toString());
         } else if (notation instanceof Map) {
-            return (DefaultModuleDependency) mapNotationParser.createDependency(DefaultModuleDependency.class, (Map) notation);
+            return (DefaultExternalModuleDependency) mapNotationParser.createDependency(DefaultExternalModuleDependency.class, (Map) notation);
         }
         throw new IllegalDependencyNotation();
     }
@@ -47,9 +44,9 @@ public class ModuleDependencyFactory implements IDependencyImplementationFactory
     private static class StringNotationParser {
         private static final Pattern extensionSplitter = Pattern.compile("^(.+)\\@([^:]+$)");
         
-        public DefaultModuleDependency createDependency(String notation) {
+        public DefaultExternalModuleDependency createDependency(String notation) {
             ParsedModuleStringNotation parsedNotation = splitDescriptionIntoModuleNotationAndArtifactType(notation);
-            DefaultModuleDependency moduleDependency = new DefaultModuleDependency(
+            DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency(
                     parsedNotation.getGroup(),
                     parsedNotation.getName(),
                     parsedNotation.getVersion());

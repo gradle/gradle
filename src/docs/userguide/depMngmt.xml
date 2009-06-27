@@ -158,7 +158,7 @@
             </sample>
             <para>Gradle provides different notations for module dependencies. There is a string notation and
                 a map notation. A module dependency has an API which allows for further configuration. Have a look at
-                <apilink class='org.gradle.api.artifacts.ModuleDependency'/> to learn all about the API.
+                <apilink class='org.gradle.api.artifacts.ExternalModuleDependency'/> to learn all about the API.
                 This API provides properties and configuration methods. Via the string notation you can define a subset
                 the properties. With the map notation you can define all properties. To have access to the complete API,
                 either with the map or with the string notation, you can assign a single dependency to a configuration

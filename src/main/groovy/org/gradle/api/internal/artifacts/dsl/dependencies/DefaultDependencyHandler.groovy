@@ -21,9 +21,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.util.GUtil
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.internal.project.IProjectRegistry
 
 /**
  * @author Hans Dockter

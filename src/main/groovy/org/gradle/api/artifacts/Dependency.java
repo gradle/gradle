@@ -20,7 +20,7 @@ import java.util.Set;
 
 /**
  * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an
- * Ivy module, a Maven pom, another Gradle project, etc.. A source can have one or more artifacts.
+ * Ivy module, a Maven pom, another Gradle project, etc... A source can have one or more artifacts.
  *
  * A dependency is an entity. Its key consists of the fields {@code group, name, version, configuration}.
  *

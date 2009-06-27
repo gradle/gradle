@@ -22,16 +22,13 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
-import org.gradle.api.internal.artifacts.dependencies.DefaultModuleDependency;
-import org.gradle.util.WrapUtil;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import static org.gradle.util.WrapUtil.*;
 import static org.gradle.util.Matchers.*;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.*;
@@ -105,7 +102,7 @@ public class DefaultPomDependenciesConverterTest {
     }
 
     private Dependency createDependency(final String group, final String name, final String version) {
-        return new DefaultModuleDependency(group, name, version);
+        return new DefaultExternalModuleDependency(group, name, version);
     }
 
     @Test
