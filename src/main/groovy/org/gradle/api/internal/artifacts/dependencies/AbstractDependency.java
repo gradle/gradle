@@ -89,6 +89,9 @@ public abstract class AbstractDependency implements Dependency {
         return configuration;
     }
 
+    protected void copyTo(AbstractDependency target) {
+    }
+
     @Override
     public int hashCode() {
         int result = getGroup() != null ? getGroup().hashCode() : 0;

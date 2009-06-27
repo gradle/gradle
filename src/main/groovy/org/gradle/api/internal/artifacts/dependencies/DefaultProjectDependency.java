@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 /**
 * @author Hans Dockter
 */
-public class DefaultProjectDependency extends AbstractDependency implements ProjectDependency {
+public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependency {
     private Project dependencyProject;
 
     public DefaultProjectDependency(Project dependencyProject) {
@@ -58,7 +58,7 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
 
     public Dependency copy() {
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, getConfiguration());
-        Dependencies.copy(this, copiedProjectDependency);
+        copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
 
@@ -67,7 +67,7 @@ public class DefaultProjectDependency extends AbstractDependency implements Proj
         if (dependency == null || getClass() != dependency.getClass()) return false;
 
         ProjectDependency that = (ProjectDependency) dependency;
-        if (!Dependencies.isCommonContentEquals(this, that)) return false;
+        if (!isCommonContentEquals(that)) return false;
 
         return dependencyProject.equals(that.getDependencyProject());
     }

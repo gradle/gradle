@@ -17,28 +17,25 @@ package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import static org.gradle.util.WrapUtil.*;
-import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.Collections;
 
 /**
  * @author Hans Dockter
@@ -52,10 +49,10 @@ public class DefaultPomDependenciesConverterTest {
     private ExcludeRuleConverter excludeRuleConverterMock = context.mock(ExcludeRuleConverter.class);
 
     private MavenPom pomMock = context.mock(MavenPom.class);
-    private Dependency dependency1;
-    private Dependency dependency2;
-    private Dependency dependency31;
-    private Dependency dependency32;
+    private ModuleDependency dependency1;
+    private ModuleDependency dependency2;
+    private ModuleDependency dependency31;
+    private ModuleDependency dependency32;
     private Configuration compileConfStub;
     private Configuration testCompileConfStub;
 
@@ -90,18 +87,18 @@ public class DefaultPomDependenciesConverterTest {
         return new Conf2ScopeMapping(10, configuration, scope);
     }
 
-    private Configuration createNamedConfigurationStubWithDependencies(final String confName, final Dependency... dependencies) {
+    private Configuration createNamedConfigurationStubWithDependencies(final String confName, final ModuleDependency... dependencies) {
         final Configuration configurationStub = context.mock(Configuration.class, confName);
         context.checking(new Expectations() {{
             allowing(configurationStub).getName();
             will(returnValue(confName));
-            allowing(configurationStub).getDependencies();
+            allowing(configurationStub).getDependencies(ModuleDependency.class);
             will(returnValue(toSet(dependencies)));
         }});
         return configurationStub;
     }
 
-    private Dependency createDependency(final String group, final String name, final String version) {
+    private ModuleDependency createDependency(final String group, final String name, final String version) {
         return new DefaultExternalModuleDependency(group, name, version);
     }
 
@@ -142,7 +139,7 @@ public class DefaultPomDependenciesConverterTest {
 
     @Test
     public void convertWithUnMappedConfAndSkipFalse() {
-        final Dependency dependency4 = createDependency("org4", "name4", "rev4");
+        final ModuleDependency dependency4 = createDependency("org4", "name4", "rev4");
         final Configuration unmappedConfigurationStub = createNamedConfigurationStubWithDependencies("unmappedConf", dependency4);
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(false));
@@ -154,14 +151,6 @@ public class DefaultPomDependenciesConverterTest {
         checkCommonMavenDependencies(actualMavenDependencies);
         assertThat(actualMavenDependencies,
                 hasItem((MavenDependency) DefaultMavenDependency.newInstance("org4", "name4", "rev4", null, null)));
-    }
-
-    @Test
-    public void convertIgnoresSelfResolvingDependencies() {
-        Configuration configuration = createNamedConfigurationStubWithDependencies("self-resolve", context.mock(
-                SelfResolvingDependency.class));
-        List<MavenDependency> mavenDependencies = dependenciesConverter.convert(pomMock, toSet(configuration));
-        assertThat(mavenDependencies, isEmpty());
     }
 
     private void checkCommonMavenDependencies(List<MavenDependency> actualMavenDependencies) {

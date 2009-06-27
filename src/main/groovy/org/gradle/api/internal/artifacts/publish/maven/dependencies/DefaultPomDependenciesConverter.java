@@ -33,9 +33,9 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
     }
 
     public List<MavenDependency> convert(MavenPom pom, Set<Configuration> configurations) {
-        Map<Dependency, String> dependenciesMap = createDependencyToScopeMap(pom, configurations);
+        Map<ModuleDependency, String> dependenciesMap = createDependencyToScopeMap(pom, configurations);
         List<MavenDependency> mavenDependencies = new ArrayList<MavenDependency>();
-        for (Dependency dependency : dependenciesMap.keySet()) {
+        for (ModuleDependency dependency : dependenciesMap.keySet()) {
             if (dependency.getArtifacts().size() == 0) {
                 addFromDependencyDescriptor(mavenDependencies, dependency, dependenciesMap.get(dependency));
             } else {
@@ -45,13 +45,10 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         return mavenDependencies;
     }
 
-    private Map<Dependency, String> createDependencyToScopeMap(MavenPom pom, Set<Configuration> configurations) {
-        Map<Dependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
-        Map<Dependency, String> dependencyToScope = new HashMap<Dependency, String>();
-        for (Dependency dependency : dependencyToConfigurations.keySet()) {
-            if (dependency instanceof SelfResolvingDependency) {
-                continue;
-            }
+    private Map<ModuleDependency, String> createDependencyToScopeMap(MavenPom pom, Set<Configuration> configurations) {
+        Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
+        Map<ModuleDependency, String> dependencyToScope = new HashMap<ModuleDependency, String>();
+        for (ModuleDependency dependency : dependencyToConfigurations.keySet()) {
             Conf2ScopeMapping conf2ScopeMapping = pom.getScopeMappings().getMapping(dependencyToConfigurations.get(
                     dependency).toArray(new Configuration[dependencyToConfigurations.get(dependency).size()]));
             if (!useScope(pom, conf2ScopeMapping)) {
@@ -63,8 +60,8 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         return dependencyToScope;
     }
 
-    private Dependency findDependency(Dependency dependency, Configuration configuration) {
-        for (Dependency configurationDependency : configuration.getDependencies()) {
+    private ModuleDependency findDependency(ModuleDependency dependency, Configuration configuration) {
+        for (ModuleDependency configurationDependency : configuration.getDependencies(ModuleDependency.class)) {
             if (dependency.equals(configurationDependency)) {
                 return configurationDependency;
             }
@@ -76,10 +73,10 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         return conf2ScopeMapping.getScope() != null || !pom.getScopeMappings().isSkipUnmappedConfs();
     }
 
-    private Map<Dependency, Set<Configuration>> createDependencyToConfigurationsMap(Set<Configuration> configurations) {
-        Map<Dependency, Set<Configuration>> dependencySetMap = new HashMap<Dependency, Set<Configuration>>();
+    private Map<ModuleDependency, Set<Configuration>> createDependencyToConfigurationsMap(Set<Configuration> configurations) {
+        Map<ModuleDependency, Set<Configuration>> dependencySetMap = new HashMap<ModuleDependency, Set<Configuration>>();
         for (Configuration configuration : configurations) {
-            for (Dependency dependency : configuration.getDependencies()) {
+            for (ModuleDependency dependency : configuration.getDependencies(ModuleDependency.class)) {
                 if (dependencySetMap.get(dependency) == null) {
                     dependencySetMap.put(dependency, new HashSet<Configuration>());
                 }

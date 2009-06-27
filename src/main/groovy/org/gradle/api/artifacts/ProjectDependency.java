@@ -19,10 +19,10 @@ import org.gradle.api.Project;
 
 /**
  * <p>A {@code ProjectDependency} is a {@link Dependency} on another project in the current project hierarchy.</p>
- * 
+ *
  * @author Hans Dockter
  */
-public interface ProjectDependency extends Dependency {
+public interface ProjectDependency extends ModuleDependency {
     /**
      * Returns the project associated with this project dependency
      */
@@ -32,7 +32,7 @@ public interface ProjectDependency extends Dependency {
      * Returns the configuration associated with this project dependency. The configuration belongs to the project
      * associated with this project dependency.
      *
-     * @see #getDependencyProject() 
+     * @see #getDependencyProject()
      */
     Configuration getProjectConfiguration();
 }

@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public class DefaultClientModule extends AbstractDependency implements ClientModule {
+public class DefaultClientModule extends AbstractExternalDependency implements ClientModule {
 
     private String group;
 
@@ -106,7 +106,7 @@ public class DefaultClientModule extends AbstractDependency implements ClientMod
 
     public Dependency copy() {
         DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(), getConfiguration());
-        Dependencies.copyExternal(this, copiedClientModule);
+        copyTo(copiedClientModule);
         for (Dependency dependency : dependencies) {
             copiedClientModule.addDependency(dependency.copy());
         }
@@ -118,7 +118,7 @@ public class DefaultClientModule extends AbstractDependency implements ClientMod
         if (dependency == null || getClass() != dependency.getClass()) return false;
 
         ClientModule that = (ClientModule) dependency;
-        if (!Dependencies.isContentEqualsForExternal(this, that)) return false;
+        if (!isContentEqualsFor(that)) return false;
         
         return dependencies.equals(that.getDependencies());
     }
@@ -130,6 +130,6 @@ public class DefaultClientModule extends AbstractDependency implements ClientMod
 
         ClientModule that = (ClientModule) o;
 
-        return Dependencies.isKeyEquals(this, that);
+        return isKeyEquals(that);
     }
 }

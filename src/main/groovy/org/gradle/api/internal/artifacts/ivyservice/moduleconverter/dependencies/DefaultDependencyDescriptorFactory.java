@@ -103,7 +103,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         return dependencyDescriptor;
     }
 
-    private void addExcludesArtifactsAndDependencies(String configuration, Dependency dependency, DefaultDependencyDescriptor dependencyDescriptor) {
+    private void addExcludesArtifactsAndDependencies(String configuration, ModuleDependency dependency, DefaultDependencyDescriptor dependencyDescriptor) {
         addArtifacts(configuration, dependency.getArtifacts(), dependencyDescriptor);
         addExcludes(configuration, dependency.getExcludeRules(), dependencyDescriptor);
         addDependencyConfiguration(configuration, dependency, dependencyDescriptor);

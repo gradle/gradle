@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 /**
  * @author Hans Dockter
  */
-public class DefaultExternalModuleDependency extends AbstractDependency implements ExternalModuleDependency {
+public class DefaultExternalModuleDependency extends AbstractExternalDependency implements ExternalModuleDependency {
     private String group;
     private String name;
     private String version;
@@ -43,11 +43,6 @@ public class DefaultExternalModuleDependency extends AbstractDependency implemen
         this.group = group;
         this.name = name;
         this.version = version;
-    }
-
-    public DefaultExternalModuleDependency force(boolean force) {
-        this.force = force;
-        return this;
     }
 
     public String getGroup() {
@@ -82,7 +77,7 @@ public class DefaultExternalModuleDependency extends AbstractDependency implemen
 
     public DefaultExternalModuleDependency copy() {
         DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getConfiguration());
-        Dependencies.copyExternal(this, copiedModuleDependency);
+        copyTo(copiedModuleDependency);
         copiedModuleDependency.setChanging(isChanging());
         return copiedModuleDependency;
     }
@@ -92,7 +87,7 @@ public class DefaultExternalModuleDependency extends AbstractDependency implemen
         if (dependency == null || getClass() != dependency.getClass()) return false;
 
         DefaultExternalModuleDependency that = (DefaultExternalModuleDependency) dependency;
-        if (!Dependencies.isContentEqualsForExternal(this, that)) return false;
+        if (!isContentEqualsFor(that)) return false;
 
         return changing == that.isChanging();
     }
@@ -104,7 +99,7 @@ public class DefaultExternalModuleDependency extends AbstractDependency implemen
 
         DefaultExternalModuleDependency that = (DefaultExternalModuleDependency) o;
 
-        return Dependencies.isKeyEquals(this, that);
+        return isKeyEquals(that);
     }
 
     @Override
