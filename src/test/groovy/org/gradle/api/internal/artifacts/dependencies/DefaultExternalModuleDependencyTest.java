@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class DefaultExternalModuleDependencyTest extends AbstractDependencyTest {
+public class DefaultExternalModuleDependencyTest extends AbstractModuleDependencyTest {
     private static final String TEST_GROUP = "org.gradle";
     private static final String TEST_NAME = "gradle-core";
     private static final String TEST_VERSION = "4.4-beta2";
@@ -44,15 +44,15 @@ public class DefaultExternalModuleDependencyTest extends AbstractDependencyTest 
 
     private DefaultExternalModuleDependency moduleDependency;
 
-    public AbstractDependency getDependency() {
+    public AbstractModuleDependency getDependency() {
         return moduleDependency;
     }
 
-    protected AbstractDependency createDependency(String group, String name, String version) {
+    protected AbstractModuleDependency createDependency(String group, String name, String version) {
         return new DefaultExternalModuleDependency(group, name, version);
     }
 
-    protected AbstractDependency createDependency(String group, String name, String version, String configuration) {
+    protected AbstractModuleDependency createDependency(String group, String name, String version, String configuration) {
         return new DefaultExternalModuleDependency(group, name, version, configuration);
     }
 

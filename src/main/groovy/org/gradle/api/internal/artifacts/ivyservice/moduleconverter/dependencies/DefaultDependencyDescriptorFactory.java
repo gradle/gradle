@@ -137,7 +137,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         }
     }
 
-    private void addDependencyConfiguration(String configuration, Dependency dependency, DefaultDependencyDescriptor dependencyDescriptor) {
+    private void addDependencyConfiguration(String configuration, ModuleDependency dependency, DefaultDependencyDescriptor dependencyDescriptor) {
         dependencyDescriptor.addDependencyConfiguration(configuration, dependency.getConfiguration());
     }
 

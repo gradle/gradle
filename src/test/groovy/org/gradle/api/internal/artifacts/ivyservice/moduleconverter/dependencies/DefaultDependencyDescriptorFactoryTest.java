@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
@@ -28,11 +28,11 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.api.internal.project.AbstractProject;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
-import static org.hamcrest.Matchers.equalTo;
+import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -44,7 +44,10 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -155,7 +158,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         return ((ExternalDependency) setUpDependency(dependency)).setForce(true);
     }
 
-    private Dependency setUpDependency(Dependency dependency) {
+    private Dependency setUpDependency(ModuleDependency dependency) {
         return dependency.addArtifact(artifact).
                 addArtifact(artifactWithClassifiers).
                 exclude(TEST_EXCLUDE_RULE.getExcludeArgs()).

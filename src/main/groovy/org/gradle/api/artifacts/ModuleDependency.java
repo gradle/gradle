@@ -15,9 +15,68 @@
  */
 package org.gradle.api.artifacts;
 
+import java.util.Map;
+import java.util.Set;
+
 /**
  * <p>A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current
  * project.</p>
  */
 public interface ModuleDependency extends Dependency {
+    /**
+     * Adds an exclude rule to exclude transitive dependencies of this dependency. You can also add exclude rules
+     * per-configuration. See {@link Configuration#getExcludeRules()}.
+     *
+     * @param excludeProperties the properties to define the exclude rule.
+     * @return this
+     */
+    ModuleDependency exclude(Map<String, String> excludeProperties);
+
+    /**
+     * Returns the exclude rules for this dependency.
+     *
+     * @see #exclude(java.util.Map)
+     */
+    Set<ExcludeRule> getExcludeRules();
+
+    /**
+     * Returns the artifacts belonging to this dependency.
+     *
+     * @see #addArtifact(DependencyArtifact)
+     */
+    Set<DependencyArtifact> getArtifacts();
+
+    /**
+     * Adds an artifact to this dependency. If no artifact is added to a dependency, an implicit default artifact is
+     * used. This default artifact has the same name as the module and its type and extension is <em>jar</em>. If at
+     * least one artifact is explicitly added, the implicit default artifact won't be used any longer.
+     *
+     * @return this
+     */
+    ModuleDependency addArtifact(DependencyArtifact artifact);
+
+    /**
+     * Returns whether this dependency should be resolved including or excluding its transitive dependencies.
+     *
+     * @see #setTransitive(boolean)
+     */
+    boolean isTransitive();
+
+    /**
+     * Sets whether this dependency should be resolved including or excluding its transitive dependencies. The artifacts
+     * belonging to this dependency might themselve have dependencies on other artifacts. The latter are called
+     * transitive dependencies.
+     *
+     * @param transitive Whether transitive dependencies should be resolved.
+     * @return this
+     */
+    ModuleDependency setTransitive(boolean transitive);
+
+    /**
+     * Returns the configuration of this dependency module (not the configurations this dependency belongs too). Never
+     * returns null. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}. A dependency source
+     * might have multiple configuration. Every configuration represents a different set of artifacts and dependencies
+     * for this dependency module.
+     */
+    String getConfiguration();
 }

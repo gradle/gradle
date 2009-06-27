@@ -17,41 +17,35 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultClientModuleTest extends AbstractDependencyTest {
+public class DefaultClientModuleTest extends AbstractModuleDependencyTest {
     private static final String TEST_GROUP = "org.gradle";
     private static final String TEST_NAME = "gradle-core";
     private static final String TEST_VERSION = "4.4-beta2";
 
     DefaultClientModule clientModule;
 
-    Map<String, ModuleDescriptor> testModuleRegistry = new HashMap<String, ModuleDescriptor>();
-
     DefaultDependencyDescriptor expectedDependencyDescriptor;
 
-    protected AbstractDependency getDependency() {
+    protected AbstractModuleDependency getDependency() {
         return clientModule;
     }
 
-    protected AbstractDependency createDependency(String group, String name, String version) {
+    protected AbstractModuleDependency createDependency(String group, String name, String version) {
         return new DefaultClientModule(group, name, version);
     }
 
-    protected AbstractDependency createDependency(String group, String name, String version, String configuration) {
-        return (DefaultClientModule) new DefaultClientModule(group, name, version, configuration);
+    protected AbstractModuleDependency createDependency(String group, String name, String version, String configuration) {
+        return new DefaultClientModule(group, name, version, configuration);
     }
 
     @Before

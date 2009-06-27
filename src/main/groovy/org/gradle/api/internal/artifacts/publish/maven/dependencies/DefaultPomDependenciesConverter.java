@@ -86,30 +86,30 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         return dependencySetMap;
     }
 
-    private void addFromArtifactDescriptor(List<MavenDependency> mavenDependencies, Dependency dependency, String scope) {
+    private void addFromArtifactDescriptor(List<MavenDependency> mavenDependencies, ModuleDependency dependency, String scope) {
         for (DependencyArtifact artifact : dependency.getArtifacts()) {
             mavenDependencies.add(createMavenDependencyFromArtifactDescriptor(dependency, artifact, scope));
         }
     }
 
-    private void addFromDependencyDescriptor(List<MavenDependency> mavenDependencies, Dependency dependency, String scope) {
+    private void addFromDependencyDescriptor(List<MavenDependency> mavenDependencies, ModuleDependency dependency, String scope) {
         mavenDependencies.add(createMavenDependencyFromDependencyDescriptor(dependency, scope));
     }
 
-    private MavenDependency createMavenDependencyFromArtifactDescriptor(Dependency dependency, DependencyArtifact artifact, String scope) {
+    private MavenDependency createMavenDependencyFromArtifactDescriptor(ModuleDependency dependency, DependencyArtifact artifact, String scope) {
         return createMavenDependency(dependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier());
     }
 
-    private MavenDependency createMavenDependencyFromDependencyDescriptor(Dependency dependency, String scope) {
+    private MavenDependency createMavenDependencyFromDependencyDescriptor(ModuleDependency dependency, String scope) {
         return createMavenDependency(dependency, dependency.getName(), null, scope, null);
     }
 
-    private MavenDependency createMavenDependency(Dependency dependency, String name, String type, String scope, String classifier) {
+    private MavenDependency createMavenDependency(ModuleDependency dependency, String name, String type, String scope, String classifier) {
         return new DefaultMavenDependency(
                 dependency.getGroup(), name, dependency.getVersion(), type, scope, getExcludes(dependency), false, classifier);
     }
 
-    private List<MavenExclude> getExcludes(Dependency dependency) {
+    private List<MavenExclude> getExcludes(ModuleDependency dependency) {
         List<MavenExclude> mavenExcludes = new ArrayList<MavenExclude>();
         for (ExcludeRule excludeRule : dependency.getExcludeRules()) {
             DefaultMavenExclude mavenExclude = excludeRuleConverter.convert(excludeRule);

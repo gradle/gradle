@@ -26,7 +26,6 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
     private final FileCollection source;
 
     public DefaultSelfResolvingDependency(FileCollection source) {
-        super(DEFAULT_CONFIGURATION);
         this.source = source;
     }
 

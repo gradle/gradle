@@ -16,79 +16,12 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import groovy.lang.Closure;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ExcludeRuleContainer;
-import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GUtil;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
 * @author Hans Dockter
 */
 public abstract class AbstractDependency implements Dependency {
-    private ExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
-
-    protected String configuration = Dependency.DEFAULT_CONFIGURATION;
-
-    private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
-    private boolean transitive = true;
-
-    protected AbstractDependency(String configuration) {
-        this.configuration = GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
-    }
-
-    public Dependency exclude(Map<String, String> excludeProperties) {
-        excludeRuleContainer.add(excludeProperties);
-        return this;
-    }
-
-    public Set<ExcludeRule> getExcludeRules() {
-        return excludeRuleContainer.getRules();
-    }
-
-    public void setExcludeRuleContainer(ExcludeRuleContainer excludeRuleContainer) {
-        this.excludeRuleContainer = excludeRuleContainer;
-    }
-
-    public Set<DependencyArtifact> getArtifacts() {
-        return artifacts;
-    }
-
-    public void setArtifacts(Set<DependencyArtifact> artifacts) {
-        this.artifacts = artifacts;
-    }
-
-    public AbstractDependency addArtifact(DependencyArtifact artifact) {
-        artifacts.add(artifact);
-        return this;
-    }
-    
-    public DependencyArtifact artifact(Closure configureClosure) {
-        DependencyArtifact artifact =  (DependencyArtifact) ConfigureUtil.configure(configureClosure, new DefaultDependencyArtifact());
-        artifacts.add(artifact);
-        return artifact;
-    }
-
-    public boolean isTransitive() {
-        return transitive;
-    }
-
-    public Dependency setTransitive(boolean transitive) {
-        this.transitive = transitive;
-        return this;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
-
     protected void copyTo(AbstractDependency target) {
     }
 

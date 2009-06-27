@@ -17,23 +17,19 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.artifacts.dsl.dependencies.IDependencyImplementationFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -68,7 +64,6 @@ public class DefaultDependencyFactoryTest {
         context.checking(new Expectations() {{
             allowing(testImplPointFactoryStub).createDependency(point);
             will(returnValue(pointDependencyMock));
-            one(pointDependencyMock).setTransitive(true);
         }});
         Closure configureClosure = HelperUtil.toClosure("{ transitive = true }");
         assertSame(pointDependencyMock, dependencyFactory.createDependency(point, configureClosure));
@@ -123,7 +118,7 @@ public class DefaultDependencyFactoryTest {
         final Dependency dependencyDummy1 = context.mock(Dependency.class, "dep1");
         final Dependency dependencyDummy2 = context.mock(Dependency.class, "dep2");
         final Dependency dependencyDummy3 = context.mock(Dependency.class, "dep3");
-        final Dependency dependencyMock = context.mock(Dependency.class, "dep4");
+        final ModuleDependency dependencyMock = context.mock(ModuleDependency.class, "dep4");
         context.checking(new Expectations() {{
             allowing(clientModuleFactoryStub).createClientModule(someModuleNotation);
             will(returnValue(clientModuleMock));

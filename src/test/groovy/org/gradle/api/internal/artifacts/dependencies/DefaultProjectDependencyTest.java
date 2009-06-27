@@ -36,19 +36,19 @@ import java.io.File;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class DefaultProjectDependencyTest extends AbstractDependencyTest {
+public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     private DefaultProjectDependency projectDependency;
     private Project dependencyProject;
 
-    protected AbstractDependency getDependency() {
+    protected AbstractModuleDependency getDependency() {
         return projectDependency;
     }
 
-    protected AbstractDependency createDependency(String group, String name, String version) {
+    protected AbstractModuleDependency createDependency(String group, String name, String version) {
         return createDependency(group, name, version, null);    
     }
 
-    protected AbstractDependency createDependency(String group, String name, String version, String configuration) {
+    protected AbstractModuleDependency createDependency(String group, String name, String version, String configuration) {
         DefaultProject dependencyProject = HelperUtil.createRootProject(new File(name));
         dependencyProject.setGroup(group);
         dependencyProject.setVersion(version);
