@@ -29,11 +29,17 @@ public interface ExternalModuleDependency extends ExternalDependency {
     boolean isChanging();
 
     /**
-     * Sets whether or nor Gradle should always check for a change in the remote repository. If set
-     * to true, Gradle will check the remote repository even if a dependency with the same version is already in the local
-     * cache. Defaults to false.
+     * Sets whether or nor Gradle should always check for a change in the remote repository. If set to true, Gradle will
+     * check the remote repository even if a dependency with the same version is already in the local cache. Defaults to
+     * false.
+     *
      * @param changing Whether or nor Gradle should always check for a change in the remote repository
      * @return this
      */
     ExternalModuleDependency setChanging(boolean changing);
+
+    /**
+     * {@inheritDoc}
+     */
+    ExternalModuleDependency copy();    
 }

@@ -23,12 +23,13 @@ import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -48,7 +49,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations,
                                  Map<String, ModuleDescriptor> clientModuleRegistry) {
         for (Configuration configuration : configurations) {
-            for (Dependency dependency : configuration.getDependencies()) {
+            for (ModuleDependency dependency : configuration.getDependencies(ModuleDependency.class)) {
                 dependencyDescriptorFactory.addDependencyDescriptor(configuration.getName(), moduleDescriptor,
                         dependency, clientModuleRegistry);
             }

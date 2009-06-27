@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +30,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultClientModuleDescriptorFactory implements ClientModuleDescriptorFactory {
-    public ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<Dependency> dependencies,
+    public ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies,
                                                    DependencyDescriptorFactory dependencyDescriptorFactory,
                                                    Map<String, ModuleDescriptor> clientModuleRegistry) {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId,
@@ -41,10 +42,10 @@ public class DefaultClientModuleDescriptorFactory implements ClientModuleDescrip
         return moduleDescriptor;
     }
 
-    private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<Dependency> dependencies,
+    private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<ModuleDependency> dependencies,
                                           DependencyDescriptorFactory dependencyDescriptorFactory,
                                           Map<String, ModuleDescriptor> clientModuleRegistry) {
-        for (Dependency dependency : dependencies) {
+        for (ModuleDependency dependency : dependencies) {
             dependencyDescriptorFactory.addDependencyDescriptor(Dependency.DEFAULT_CONFIGURATION, moduleDescriptor,
                     dependency, clientModuleRegistry);
         }

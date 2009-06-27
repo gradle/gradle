@@ -250,7 +250,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Adds an exclude rule to exclude transitive dependencies for all dependencies of this configuration.
-     * You can also add exclude rules per-dependency. See {@link Dependency#exclude(java.util.Map)}. 
+     * You can also add exclude rules per-dependency. See {@link ModuleDependency#exclude(java.util.Map)}.
      *
      * @param excludeProperties the properties to define the exclude rule.
      * @return this

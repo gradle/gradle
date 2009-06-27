@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleC
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.Matchers;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -103,7 +102,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         final DefaultClientModule clientModule = (DefaultClientModule) setUpExternalDependency(
                 new DefaultClientModule("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF));
 
-        final Dependency dependencyDependency = context.mock(Dependency.class, "dependencyDependency"); 
+        final ModuleDependency dependencyDependency = context.mock(ModuleDependency.class, "dependencyDependency");
         clientModule.addDependency(dependencyDependency);
         final ModuleRevisionId testModuleRevisionId = createModuleRevisionIdFromDependency(clientModule, WrapUtil.toMap(ClientModule.CLIENT_MODULE_KEY, clientModule.getId()));
         context.checking(new Expectations() {{
@@ -143,15 +142,6 @@ public class DefaultDependencyDescriptorFactoryTest {
 
         assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
         checkModuleDependency(dependencyDescriptor, moduleDependency);
-    }
-
-    @Test
-    public void testCreateFromSelfResolvingDependency() {
-        SelfResolvingDependency dependency = context.mock(SelfResolvingDependency.class);
-
-        dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, dependency,
-                DUMMY_MODULE_REGISTRY);
-        assertThat(moduleDescriptor.getDependencies(), Matchers.isEmptyArray());
     }
 
     private ExternalDependency setUpExternalDependency(ExternalDependency dependency) {

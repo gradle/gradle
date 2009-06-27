@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,7 +37,7 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
 
     private boolean force = false;
 
-    private Set<Dependency> dependencies = new HashSet<Dependency>();
+    private Set<ModuleDependency> dependencies = new HashSet<ModuleDependency>();
 
     public DefaultClientModule(String group, String name, String version) {
         this(group, name, version, null);
@@ -56,7 +57,7 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
         return value == null ? "" : value;
     }
 
-    public Set<Dependency> getDependencies() {
+    public Set<ModuleDependency> getDependencies() {
         return dependencies;
     }
 
@@ -100,14 +101,14 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
         return this;
     }
 
-    public void addDependency(Dependency dependency) {
+    public void addDependency(ModuleDependency dependency) {
         this.dependencies.add(dependency);
     }
 
-    public Dependency copy() {
+    public ClientModule copy() {
         DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(), getConfiguration());
         copyTo(copiedClientModule);
-        for (Dependency dependency : dependencies) {
+        for (ModuleDependency dependency : dependencies) {
             copiedClientModule.addDependency(dependency.copy());
         }
         return copiedClientModule;

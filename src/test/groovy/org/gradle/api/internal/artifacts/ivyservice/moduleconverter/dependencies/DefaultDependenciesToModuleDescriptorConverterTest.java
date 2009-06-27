@@ -22,8 +22,8 @@ import org.apache.ivy.plugins.conflict.ConflictManager;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.IvyConverterTestUtil;
@@ -52,11 +52,11 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
     private static final ExcludeRule GRADLE_EXCLUDE_RULE_DUMMY_2 = new DefaultExcludeRule(toMap("org2", "testOrg2"));
     private static final Map CLIENT_MODULE_REGISTRY_DUMMY = Collections.emptyMap();
 
-    private Dependency dependencyDummy1 = context.mock(Dependency.class, "dep1");
-    private Dependency dependencyDummy2 = context.mock(Dependency.class, "dep2");
-    private Dependency similarDependency1 = HelperUtil.createDependency("group", "name", "version");
-    private Dependency similarDependency2 = HelperUtil.createDependency("group", "name", "version");
-    private Dependency similarDependency3 = HelperUtil.createDependency("group", "name", "version");
+    private ModuleDependency dependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
+    private ModuleDependency dependencyDummy2 = context.mock(ModuleDependency.class, "dep2");
+    private ModuleDependency similarDependency1 = HelperUtil.createDependency("group", "name", "version");
+    private ModuleDependency similarDependency2 = HelperUtil.createDependency("group", "name", "version");
+    private ModuleDependency similarDependency3 = HelperUtil.createDependency("group", "name", "version");
     private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub_1 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule1");
     private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub_2 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule2");
 
@@ -111,7 +111,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         }});
     }
 
-    private void associateDependencyWithDescriptor(final Dependency dependency, final DefaultModuleDescriptor parent,
+    private void associateDependencyWithDescriptor(final ModuleDependency dependency, final DefaultModuleDescriptor parent,
                                                    final Configuration configuration) {
         final String configurationName = configuration.getName();
         context.checking(new Expectations() {{
@@ -121,10 +121,10 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
     }
     
     private Configuration createNamedConfigurationStubWithDependenciesAndExcludeRules(final String name, final ExcludeRule excludeRule,
-                                                                                      final Dependency... dependencies) {
+                                                                                      final ModuleDependency... dependencies) {
         final Configuration configurationStub = IvyConverterTestUtil.createNamedConfigurationStub(name, context);
         context.checking(new Expectations() {{
-            allowing(configurationStub).getDependencies();
+            allowing(configurationStub).getDependencies(ModuleDependency.class);
             will(returnValue(toSet(dependencies)));    
 
             allowing(configurationStub).getExcludeRules();

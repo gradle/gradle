@@ -35,7 +35,7 @@ public interface ClientModule extends ExternalDependency {
      * @param dependency The dependency to add to the client module.
      * @see #getDependencies() 
      */
-    void addDependency(Dependency dependency);
+    void addDependency(ModuleDependency dependency);
 
     /**
      * Returns the id of the client module. This is usually only used for internal handling of the
@@ -48,7 +48,12 @@ public interface ClientModule extends ExternalDependency {
     /**
      * Returns all the dependencies added to the client module.
      *
-     * @see #addDependency(Dependency) 
+     * @see #addDependency(ModuleDependency)
      */
-    Set<Dependency> getDependencies();
+    Set<ModuleDependency> getDependencies();
+
+    /**
+     * {@inheritDoc}
+     */
+    ClientModule copy();
 }

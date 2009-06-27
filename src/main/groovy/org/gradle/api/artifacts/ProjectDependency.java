@@ -35,4 +35,9 @@ public interface ProjectDependency extends ModuleDependency {
      * @see #getDependencyProject()
      */
     Configuration getProjectConfiguration();
+
+    /**
+     * {@inheritDoc}
+     */
+    ProjectDependency copy();
 }

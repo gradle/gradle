@@ -56,7 +56,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return dependencyProject.getConfigurations().getByName(getConfiguration());
     }
 
-    public Dependency copy() {
+    public ProjectDependency copy() {
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, getConfiguration());
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;

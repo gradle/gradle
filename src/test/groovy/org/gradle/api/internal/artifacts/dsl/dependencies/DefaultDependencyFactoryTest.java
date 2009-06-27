@@ -115,9 +115,9 @@ public class DefaultDependencyFactoryTest {
         final String someNotation3 = "someNotation3";
         final String someNotation4 = "someNotation4";
         final String someModuleNotation = "junit:junit:4.4";
-        final Dependency dependencyDummy1 = context.mock(Dependency.class, "dep1");
-        final Dependency dependencyDummy2 = context.mock(Dependency.class, "dep2");
-        final Dependency dependencyDummy3 = context.mock(Dependency.class, "dep3");
+        final ModuleDependency dependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
+        final ModuleDependency dependencyDummy2 = context.mock(ModuleDependency.class, "dep2");
+        final ModuleDependency dependencyDummy3 = context.mock(ModuleDependency.class, "dep3");
         final ModuleDependency dependencyMock = context.mock(ModuleDependency.class, "dep4");
         context.checking(new Expectations() {{
             allowing(clientModuleFactoryStub).createClientModule(someModuleNotation);

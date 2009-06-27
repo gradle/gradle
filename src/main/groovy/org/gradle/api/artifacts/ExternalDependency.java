@@ -33,4 +33,9 @@ public interface ExternalDependency extends ModuleDependency {
      * @return this
      */
     ExternalDependency setForce(boolean force);
+
+    /**
+     * {@inheritDoc}
+     */
+    ExternalDependency copy();
 }

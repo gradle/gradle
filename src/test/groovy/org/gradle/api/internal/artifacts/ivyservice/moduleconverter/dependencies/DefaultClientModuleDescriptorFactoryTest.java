@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -38,7 +39,7 @@ public class DefaultClientModuleDescriptorFactoryTest {
     public void testCreateModuleDescriptor() {
         DefaultClientModuleDescriptorFactory clientModuleDescriptorFactory =
                 new DefaultClientModuleDescriptorFactory();
-        Dependency dependencyMock = context.mock(Dependency.class);
+        ModuleDependency dependencyMock = context.mock(ModuleDependency.class);
         DependencyDescriptor dependencyDescriptorDummy = context.mock(DependencyDescriptor.class);
         final ModuleRevisionId TEST_MODULE_REVISION_ID = ModuleRevisionId.newInstance("org", "name", "version");
         DependencyDescriptorFactorySpy dependencyDescriptorFactorySpy = new DependencyDescriptorFactorySpy(dependencyDescriptorDummy);
@@ -84,7 +85,7 @@ public class DefaultClientModuleDescriptorFactoryTest {
         }
 
         public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
-                                            Dependency dependency, Map<String, ModuleDescriptor> clientModuleRegistry) {
+                                            ModuleDependency dependency, Map<String, ModuleDescriptor> clientModuleRegistry) {
             this.configuration = configuration;
             this.parent = moduleDescriptor;
             this.dependency = dependency;

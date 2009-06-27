@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +26,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface ClientModuleDescriptorFactory {
-    ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<Dependency> dependencies,
-                                                   DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                   Map<String, ModuleDescriptor> clientModuleRegistry);
+    ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies,
+                                            DependencyDescriptorFactory dependencyDescriptorFactory,
+                                            Map<String, ModuleDescriptor> clientModuleRegistry);
 }

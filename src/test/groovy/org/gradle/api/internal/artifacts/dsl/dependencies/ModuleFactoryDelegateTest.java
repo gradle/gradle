@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
@@ -41,7 +42,7 @@ public class ModuleFactoryDelegateTest {
     @Test
     public void dependency() {
         final String dependencyNotation = "someNotation";
-        final Dependency dependencyDummy = context.mock(Dependency.class);
+        final ModuleDependency dependencyDummy = context.mock(ModuleDependency.class);
         letFactoryStubReturnDependency(dependencyNotation, dependencyDummy, null, true);
         moduleFactoryDelegate.dependency(dependencyNotation);
         assertThat(clientModule.getDependencies(), Matchers.equalTo(WrapUtil.toSet(dependencyDummy)));
@@ -51,7 +52,7 @@ public class ModuleFactoryDelegateTest {
     public void dependencyWithClosure() {
         final String dependencyNotation = "someNotation";
         final Closure configureClosure = HelperUtil.toClosure("{}");
-        final Dependency dependencyDummy = context.mock(Dependency.class);
+        final ModuleDependency dependencyDummy = context.mock(ModuleDependency.class);
         letFactoryStubReturnDependency(dependencyNotation, dependencyDummy, configureClosure, true);
         moduleFactoryDelegate.dependency(dependencyNotation, configureClosure);
         assertThat(clientModule.getDependencies(), Matchers.equalTo(WrapUtil.toSet(dependencyDummy)));
@@ -61,8 +62,8 @@ public class ModuleFactoryDelegateTest {
     public void dependencies() {
         final String dependencyNotation1 = "someNotation1";
         final String dependencyNotation2 = "someNotation2";
-        final Dependency dependencyDummy1 = context.mock(Dependency.class, "dep1");
-        final Dependency dependencyDummy2 = context.mock(Dependency.class, "dep2");
+        final ModuleDependency dependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
+        final ModuleDependency dependencyDummy2 = context.mock(ModuleDependency.class, "dep2");
         letFactoryStubReturnDependency(dependencyNotation1, dependencyDummy1, null, false);
         letFactoryStubReturnDependency(dependencyNotation2, dependencyDummy2, null, false);
         moduleFactoryDelegate.dependencies(WrapUtil.toArray(dependencyNotation1, dependencyNotation2));
@@ -91,6 +92,6 @@ public class ModuleFactoryDelegateTest {
             will(returnValue(clientModuleDummy));
         }});
         moduleFactoryDelegate.module(clientModuleNotation, configureClosure);
-        assertThat(this.clientModule.getDependencies(), Matchers.equalTo(WrapUtil.<Dependency>toSet(clientModuleDummy)));
+        assertThat(this.clientModule.getDependencies(), Matchers.equalTo(WrapUtil.<ModuleDependency>toSet(clientModuleDummy)));
     }
 }

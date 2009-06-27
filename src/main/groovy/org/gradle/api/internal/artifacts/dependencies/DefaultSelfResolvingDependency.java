@@ -41,7 +41,7 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
         return source.equals(selfResolvingDependency.source);
     }
 
-    public Dependency copy() {
+    public SelfResolvingDependency copy() {
         return new DefaultSelfResolvingDependency(source);
     }
 
