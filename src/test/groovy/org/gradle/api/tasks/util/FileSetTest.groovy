@@ -18,8 +18,10 @@ package org.gradle.api.tasks.util
 
 import org.gradle.api.InvalidUserDataException
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
+import org.gradle.util.HelperUtil;
 
 /**
  * @author Hans Dockter
@@ -29,7 +31,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
     File testDir
 
-    PatternSet getPatternSet() {
+    PatternFilterable getPatternSet() {
         return fileSet
     }
 
@@ -37,38 +39,54 @@ class FileSetTest extends AbstractTestForPatternSet {
         FileSet
     }
 
-    @Before public void setUp()  {
-        super.setUp()
-        testDir = '/testdir' as File
-        fileSet = patternSetType.newInstance(testDir, contextObject)
+    public Map getConstructorMap() {
+        [dir: testDir]
     }
 
-    @Test public void testFileSet() {
-        assert fileSet.contextObject.is(contextObject)
-        assertEquals(testDir, fileSet.dir)
+    @Before public void setUp()  {
+        super.setUp()
+        testDir = HelperUtil.makeNewTestDir()
+        fileSet = patternSetType.newInstance(testDir)
+    }
 
+    @Test public void testFileSetConstruction() {
         fileSet = new FileSet(testDir)
-        assert fileSet.contextObject.is(fileSet)
         assertEquals(testDir, fileSet.dir)
 
         fileSet = new FileSet(dir: testDir)
-        assert fileSet.contextObject.is(fileSet)
         assertEquals(testDir, fileSet.dir)
     }
 
-    @Test(expected = InvalidUserDataException) public void testFileSetWithIllegalArgument() {
+    @Test(expected = InvalidUserDataException) public void testFileSetConstructionWithNoBaseDirSpecified() {
         new FileSet([:])
     }
 
-    @Test public void testFileSetWithDirAsString() {
+    @Test public void testFileSetConstructionWithDirAsString() {
         FileSet fileSet = new FileSet(dir: 'dirname')
         assertEquals(new File('dirname'), fileSet.dir);
     }
 
+    @Test public void testCanScanForFiles() {
+        File included1 = new File(testDir, 'subDir/included1')
+        File included2 = new File(testDir, 'subDir2/included2')
+        File excluded1 = new File(testDir, 'subDir/excluded1')
+        [included1, included2, excluded1].each {File file ->
+            file.parentFile.mkdirs()
+            file.text = 'some text'
+        }
+
+        fileSet.include('**/*included*')
+        fileSet.exclude('**/*excluded*')
+
+        Set f1 = fileSet.files
+        Set f2 = [included1, included2] as Set
+        assertThat(f1, equalTo(f2))
+    }
+    
     void checkPatternSetForAntBuilderTest(antPatternSet, PatternSet patternSet) {
         // Unfortunately, the ant fileset task has no public properties to check its includes/excludes values
         // todo: We might get hold of those properties via reflection. But this makes things unstable. As Ant
-        // only guarantees statbility for its public API. 
+        // only guarantees stability for its public API.
         assertEquals(testDir, antPatternSet.dir)
     }
 

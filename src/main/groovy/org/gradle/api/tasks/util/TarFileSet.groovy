@@ -36,14 +36,6 @@ class TarFileSet extends ZipFileSet {
         super(dir)
     }
 
-    TarFileSet(Object contextObject) {
-        super(contextObject)
-    }
-
-    TarFileSet(File dir, Object contextObject) {
-        super(dir, contextObject)
-    }
-
     TarFileSet(Map args) {
         super(args)
     }
@@ -58,7 +50,7 @@ class TarFileSet extends ZipFileSet {
         }
         removeEmptyArgs(args)
         node.tarfileset(args) {
-            addIncludesAndExcludesToBuilder(delegate)
+            patternSet.addIncludesAndExcludesToBuilder(delegate)
         }
     }
 }

@@ -16,17 +16,11 @@
 
 package org.gradle.api.tasks.util
 
-import org.junit.Before
-
 /**
  * @author Hans Dockter
  */
 class TarFileSetTest extends FileSetTest {
     Class getPatternSetType() {
         TarFileSet
-    }
-
-    @Before public void setUp()  {
-        super.setUp()
     }
 }

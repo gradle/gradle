@@ -16,18 +16,11 @@
  
 package org.gradle.api.tasks.util
 
-import org.junit.Before
-
 /**
 * @author Hans Dockter
 */
 class PatternSetTest extends AbstractTestForPatternSet {
-    PatternSet patternSet
-
-    @Before public void setUp()  {
-        super.setUp()
-        patternSet = new PatternSet(contextObject)
-    }
+    PatternSet patternSet = new PatternSet()
 
     PatternSet getPatternSet() {
         patternSet
@@ -36,6 +29,4 @@ class PatternSetTest extends AbstractTestForPatternSet {
     Class getPatternSetType() {
         PatternSet
     }
-
-
 }

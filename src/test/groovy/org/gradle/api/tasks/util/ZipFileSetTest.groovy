@@ -16,8 +16,6 @@
  
 package org.gradle.api.tasks.util
 
-import org.junit.Before
-
 /**
  * @author Hans Dockter
  */
@@ -26,10 +24,4 @@ class ZipFileSetTest extends FileSetTest {
     Class getPatternSetType() {
         ZipFileSet
     }
-    
-    @Before public void setUp()  {
-        super.setUp()
-    }
-
-
 }

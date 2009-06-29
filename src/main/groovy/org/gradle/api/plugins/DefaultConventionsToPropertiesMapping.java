@@ -185,7 +185,7 @@ public class DefaultConventionsToPropertiesMapping {
         },
                 "resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList(new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
+                return WrapUtil.toList((Object) new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
             }
         }));
     }
@@ -198,11 +198,11 @@ public class DefaultConventionsToPropertiesMapping {
                 "baseDir", null,
                 "classesFileSets", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList(new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
+                return WrapUtil.toList((Object) new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
             }
         },      "resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList(new FileSet(convention.getPlugin(WarPluginConvention.class).getWebAppDir()));
+                return WrapUtil.toList((Object) new FileSet(convention.getPlugin(WarPluginConvention.class).getWebAppDir()));
             }
         },
                 "libExcludeConfigurations", new ConventionValue() {

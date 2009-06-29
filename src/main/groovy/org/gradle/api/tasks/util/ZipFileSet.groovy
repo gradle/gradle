@@ -33,14 +33,6 @@ class ZipFileSet extends FileSet {
         super(dir)
     }
 
-    ZipFileSet(Object contextObject) {
-        super(contextObject)
-    }
-
-    ZipFileSet(File dir, Object contextObject) {
-        super(dir, contextObject)
-    }
-
     ZipFileSet(Map args) {
         super(args)
     }
@@ -54,7 +46,7 @@ class ZipFileSet extends FileSet {
         }
         removeEmptyArgs(args)
         node.zipfileset(args) {
-            addIncludesAndExcludesToBuilder(delegate)
+            patternSet.addIncludesAndExcludesToBuilder(delegate)
         }
     }
 

@@ -17,46 +17,91 @@
 package org.gradle.api.tasks.util
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.artifacts.AbstractFileCollection
+import org.gradle.api.tasks.AntBuilderAware
 
 /**
  * @author Hans Dockter
  */
 // todo rename dir to base
-class FileSet extends PatternSet {
+class FileSet extends AbstractFileCollection implements PatternFilterable, AntBuilderAware {
+    final PatternSet patternSet = new PatternSet()
     File dir
 
     FileSet() {
-        this(null)
+        this((File) null)
     }
 
     FileSet(File dir) {
-        this(dir, null)
-    }
-
-    FileSet(Object contextObject) {
-        super(contextObject)
-    }
-
-    FileSet(File dir, Object contextObject) {
-        super(contextObject)
         this.dir = dir
     }
 
     FileSet(Map args) {
-        super(transformToFile(args))
-        if (!args.dir) { throw new InvalidUserDataException ('A basedir must be specified in the task or via a method argument!') }
+        transformToFile(args).each {String key, value ->
+            this."$key" = value
+        }
+    }
 
+    public String getDisplayName() {
+        throw new UnsupportedOperationException();
+    }
+
+    public Set<File> getFiles() {
+        def ant = new AntBuilder()
+        def fileset = addToAntBuilder(ant)
+        Set files = new HashSet()
+        fileset.directoryScanner.includedFiles.each { files.add(new File(dir, it)) }
+        files
+    }
+
+    public Set<String> getIncludes() {
+        patternSet.includes
+    }
+
+    public PatternFilterable setIncludes(Iterable<String> includes) {
+        patternSet.setIncludes(includes)
+        this
+    }
+
+    public Set<String> getExcludes() {
+        patternSet.excludes
+    }
+
+    public PatternFilterable setExcludes(Iterable<String> excludes) {
+        patternSet.setExcludes(excludes)
+        this
+    }
+
+    public PatternFilterable include(String ... includes) {
+        patternSet.include(includes)
+        this
+    }
+
+    public PatternFilterable include(Iterable<String> includes) {
+        patternSet.include(includes)
+        this
+    }
+
+    public PatternFilterable exclude(String ... excludes) {
+        patternSet.exclude(excludes)
+        this
+    }
+
+    public PatternFilterable exclude(Iterable<String> excludes) {
+        patternSet.exclude(excludes)
+        this
     }
 
     private static Map transformToFile(Map args) {
+        if (!args.dir) { throw new InvalidUserDataException ('A basedir must be specified in the task or via a method argument!') }
         Map newArgs = new HashMap(args)
         newArgs.dir = new File(newArgs.dir.toString())
         newArgs
     }
 
-    def addToAntBuilder(node, String childNodeName) {
+    def addToAntBuilder(node, String childNodeName = null) {
         node."${childNodeName ?: 'fileset'}"(dir: dir.absolutePath) {
-            addIncludesAndExcludesToBuilder(delegate)
+            patternSet.addIncludesAndExcludesToBuilder(delegate)
         }
     }
 

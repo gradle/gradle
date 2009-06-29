@@ -31,7 +31,7 @@ class AntMetaArchiveParameterTest extends AbstractArchiveParameterTest {
 
     @Before public void setUp()  {
         expectedGradleManifest = new GradleManifest()
-        expectedMetaInfFileSets = [new FileSet('somedir')]
+        expectedMetaInfFileSets = [new FileSet(new File('somedir'))]
         expectedFileSetManifest = 'skip'
         super.setUp()
     }

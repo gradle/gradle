@@ -17,40 +17,58 @@
 package org.gradle.api.tasks.util
 
 import org.gradle.api.tasks.AntBuilderAware
+import org.gradle.util.GUtil
 
 /**
  * @author Hans Dockter
  */
-class PatternSet implements AntBuilderAware {
-    def contextObject
-
+class PatternSet implements AntBuilderAware, PatternFilterable {
     PatternSet() {
-        contextObject = this
-    }
-
-    PatternSet(Object contextObject) {
-        this.contextObject = contextObject ?: this
     }
 
     PatternSet(Map args) {
         args.each {String key, value ->
             this."$key" = value
         }
-        contextObject = this
     }
 
+    private Set includes = [] as LinkedHashSet
+    private Set excludes = [] as LinkedHashSet
 
-    LinkedHashSet includes = []
-    LinkedHashSet excludes = []
-
-    def include(String[] includes) {
-        this.includes.addAll((includes as LinkedHashSet))
-        contextObject
+    public Set<String> getIncludes() {
+        includes
     }
 
-    def exclude(String[] excludes) {
-        this.excludes.addAll((excludes as LinkedHashSet))
-        contextObject
+    public PatternSet setIncludes(Iterable<String> includes) {
+        this.includes.clear()
+        include(includes)
+    }
+
+    public Set<String> getExcludes() {
+        excludes
+    }
+
+    public PatternSet setExcludes(Iterable<String> excludes) {
+        this.excludes.clear()
+        exclude(excludes)
+    }
+
+    public PatternFilterable include(String... includes) {
+        include(includes as List)
+    }
+
+    public PatternFilterable include(Iterable<String> includes) {
+        GUtil.addToCollection(this.includes, includes)
+        this
+    }
+
+    public PatternFilterable exclude(String... excludes) {
+        exclude(excludes as List)
+    }
+
+    public PatternFilterable exclude(Iterable<String> excludes) {
+        GUtil.addToCollection(this.excludes, excludes)
+        this
     }
 
     protected addIncludesAndExcludesToBuilder(node) {

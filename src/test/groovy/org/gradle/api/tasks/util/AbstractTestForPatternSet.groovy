@@ -17,8 +17,10 @@
 package org.gradle.api.tasks.util
 
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.*
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
 
 /**
  * @author Hans Dockter
@@ -28,8 +30,11 @@ abstract class AbstractTestForPatternSet {
     static final String TEST_PATTERN_2 = 'pattern2'
     static final String TEST_PATTERN_3 = 'pattern3'
 
-    abstract PatternSet getPatternSet()
+    abstract PatternFilterable getPatternSet()
     abstract Class getPatternSetType()
+    Map getConstructorMap() {
+        [:]
+    }
 
     def contextObject
 
@@ -37,15 +42,16 @@ abstract class AbstractTestForPatternSet {
         contextObject = new Object()
     }
 
-    @Test public void testPatternSet() {
-        assert patternSet.contextObject.is(contextObject)
-        assertEquals([] as LinkedHashSet, patternSet.includes)
+    @Test public void testDefaultValues() {
+        assertThat(patternSet.includes, isEmpty())
+        assertThat(patternSet.excludes, isEmpty())
+    }
 
-        PatternSet patternSet = patternSetType.newInstance([] as Object[])
-        assert patternSet.is(patternSet.contextObject)
-
-        patternSet = patternSetType.newInstance([null] as Object[])
-        assert patternSet.is(patternSet.contextObject)
+    @Test public void testConstructionFromMap() {
+        Map map = constructorMap + [includes: [TEST_PATTERN_1], excludes: [TEST_PATTERN_2]]
+        PatternFilterable patternSet = patternSetType.newInstance(map)
+        assertThat(patternSet.includes, equalTo([TEST_PATTERN_1] as Set))
+        assertThat(patternSet.excludes, equalTo([TEST_PATTERN_2] as Set))
     }
 
     @Test public void testInclude() {
@@ -56,19 +62,26 @@ abstract class AbstractTestForPatternSet {
         checkIncludesExcludes(patternSet, 'exclude', 'excludes')
     }
 
-    void checkIncludesExcludes(PatternSet patternSet, String methodName, String propertyName) {
-        assert patternSet."$methodName"(TEST_PATTERN_1, TEST_PATTERN_2).is(contextObject)
-        assertEquals([TEST_PATTERN_1, TEST_PATTERN_2] as Set, patternSet."$propertyName")
-        patternSet."$methodName"(TEST_PATTERN_3)
-        assertEquals([TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3] as Set, patternSet."$propertyName")
+    void checkIncludesExcludes(PatternFilterable patternSet, String methodName, String propertyName) {
+        assertThat(patternSet."$methodName"(TEST_PATTERN_1, TEST_PATTERN_2), sameInstance(patternSet))
+        assertThat(patternSet."$propertyName", equalTo([TEST_PATTERN_1, TEST_PATTERN_2] as Set))
+
+        assertThat(patternSet."$methodName"(TEST_PATTERN_3), sameInstance(patternSet))
+        assertThat(patternSet."$propertyName", equalTo([TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3] as Set))
+
+        patternSet."$propertyName" = {[TEST_PATTERN_2].iterator()} as Iterable
+        assertThat(patternSet."$propertyName", equalTo([TEST_PATTERN_2] as Set))
+
+        assertThat(patternSet."$methodName"([TEST_PATTERN_3]), sameInstance(patternSet))
+        assertThat(patternSet."$propertyName", equalTo([TEST_PATTERN_2, TEST_PATTERN_3] as Set))
     }
 
-    void preparePatternSetForAntBuilderTest(PatternSet patternSet) {
+    void preparePatternSetForAntBuilderTest(PatternFilterable patternSet) {
         patternSet.include('i')
         patternSet.exclude('e')
     }
 
-    void checkPatternSetForAntBuilderTest(antPatternSet, PatternSet patternSet) {
+    void checkPatternSetForAntBuilderTest(antPatternSet, PatternFilterable patternSet) {
         assertEquals(patternSet.includes as String[], antPatternSet.getIncludePatterns())
         assertEquals(patternSet.excludes as String[], antPatternSet.getExcludePatterns())
     }
@@ -76,9 +89,7 @@ abstract class AbstractTestForPatternSet {
     @Test public void testAddToAntBuilder() {
         preparePatternSetForAntBuilderTest(patternSet)
         AntBuilder antBuilder = new AntBuilder()
-        patternSet.addToAntBuilder(antBuilder)
+        patternSet.addToAntBuilder(antBuilder, null)
 //        checkPatternSetForAntBuilderTest(antBuilder.collectorTarget.children[0].realThing, patternSet)
     }
-
-
 }
