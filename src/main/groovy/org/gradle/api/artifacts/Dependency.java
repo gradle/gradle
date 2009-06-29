@@ -16,10 +16,8 @@
 package org.gradle.api.artifacts;
 
 /**
- * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an
- * Ivy module, a Maven pom, another Gradle project, etc... A source can have zero or more artifacts.
- *
- * A dependency is an entity. Its key consists of the fields {@code group, name, version, configuration}.
+ * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an Ivy
+ * module, a Maven pom, another Gradle project, a collection of Files, etc... A source can have zero or more artifacts.
  *
  * @author Hans Dockter
  */
@@ -29,29 +27,28 @@ public interface Dependency {
     String CLASSIFIER = "classifier";
 
     /**
-     * Returns the group of this dependency. The group is often required to find the artifacts of a dependency
-     * in a repository. For example the group name corresponds to a directory name in a Maven like repository.
-     * Might return null.
+     * Returns the group of this dependency. The group is often required to find the artifacts of a dependency in a
+     * repository. For example, the group name corresponds to a directory name in a Maven like repository. Might return
+     * null.
      */
     String getGroup();
 
     /**
-     * Returns the name of this dependency. The name is almost always required to find the artifacts of a dependency
-     * in a repository. Never returns null.
+     * Returns the name of this dependency. The name is almost always required to find the artifacts of a dependency in
+     * a repository. Never returns null.
      */
     String getName();
 
     /**
-     * Returns the version of this dependency. The version is often required to find the artifacts of a dependency
-     * in a repository. For example the version name corresponds to a directory name in a Maven like repository.
-     * Might return null.
+     * Returns the version of this dependency. The version is often required to find the artifacts of a dependency in a
+     * repository. For example the version name corresponds to a directory name in a Maven like repository. Might return
+     * null.
      */
     String getVersion();
 
     /**
-     * Returns whether two dependencies have identical values for there properties.
-     * A dependency is an entity with a key. Therefore dependencies might be equal and yet have
-     * different properties.
+     * Returns whether two dependencies have identical values for their properties. A dependency is an entity with a
+     * key. Therefore dependencies might be equal and yet have different properties.
      *
      * @param dependency The dependency to compare this dependency with
      */
@@ -59,6 +56,8 @@ public interface Dependency {
 
     /**
      * Creates and returns a new dependency with the property values of this one.
+     *
+     * @return The copy. Never returns null.
      */
     Dependency copy();
 }

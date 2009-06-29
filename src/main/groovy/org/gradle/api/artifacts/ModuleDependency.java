@@ -77,7 +77,7 @@ public interface ModuleDependency extends Dependency {
     /**
      * Returns the configuration of this dependency module (not the configurations this dependency belongs too). Never
      * returns null. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}. A dependency source
-     * might have multiple configuration. Every configuration represents a different set of artifacts and dependencies
+     * might have multiple configurations. Every configuration represents a different set of artifacts and dependencies
      * for this dependency module.
      */
     String getConfiguration();
