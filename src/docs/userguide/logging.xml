@@ -2,52 +2,78 @@
     <title>Logging</title>
     <para>The log is the main 'UI' of a build tool. If it is too verbose, real warnings and problems are easily hidden
         by this. On the other hand you need the relevant information for figuring out if things have gone wrong. Gradle
-        has added two log-levels to the ones normally used. Those levels are
-        <emphasis>QUIET</emphasis>
-        and <emphasis>LIFECYCLE</emphasis>. The latter is the default and is telling you just what task is getting
-        executed or skipped.
+        defines 6 log levels, as shown in <xref linkend="logLevels"/>. There are two Gradle-specific log levels, in
+        addition to the ones you might normally see. Those levels are <emphasis>QUIET</emphasis> and
+        <emphasis>LIFECYCLE</emphasis>. The latter is the default, and is used to report build progress.
     </para>
+    <table id="logLevels">
+        <title>Log levels</title>
+        <thead>
+            <tr>
+                <td>Level</td>
+                <td>Used for</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>ERROR</td>
+            <td>Error messages</td>
+        </tr>
+        <tr>
+            <td>QUIET</td>
+            <td>Important information messages</td>
+        </tr>
+        <tr>
+            <td>WARNING</td>
+            <td>Warning messages</td>
+        </tr>
+        <tr>
+            <td>LIFECYCLE</td>
+            <td>Progress information messages</td>
+        </tr>
+        <tr>
+            <td>INFO</td>
+            <td>Information messages</td>
+        </tr>
+        <tr>
+            <td>DEBUG</td>
+            <td>Debug messages</td>
+        </tr>
+    </table>
     <section id='sec:choosing_a_log_level'>
         <title>Choosing a log level</title>
-        <para>You can use command line switches to choose different log levels (see <xref linkend='loglevels'/>).
-            The
-            <literal>WARN</literal>
-            and
-            <literal>ERROR</literal>
-            levels are included in all the other levels, except <literal>QUIET</literal>, where only
-            <literal>ERROR</literal>
-            is included. In <xref linkend='stacktraces'/> you find the command line switches for stacktrace
-            logging.
+        <para>You can use the command line switches shown in <xref linkend='logLevelCommandLineOptions'/> to choose
+            different log levels. In <xref linkend='stacktraces'/> you find the command line switches which affect
+            stacktrace logging.
         </para>
-        <table id='loglevels'>
+        <table id='logLevelCommandLineOptions'>
             <title>Log level command-line options</title>
             <thead>
                 <tr>
                     <td>Option</td>
-                    <td>Meaning</td>
+                    <td>Outputs Log Levels</td>
                 </tr>
             </thead>
             <tr>
                 <td>no logging options</td>
-                <td>LIFECYCLE</td>
+                <td>LIFECYCLE and higher</td>
             </tr>
             <tr>
                 <td>
                     <literal>-q</literal>
                 </td>
-                <td>QUIET</td>
+                <td>QUIET and higher</td>
             </tr>
             <tr>
                 <td>
                     <literal>-i</literal>
                 </td>
-                <td>INFO</td>
+                <td>INFO and higher</td>
             </tr>
             <tr>
                 <td>
                     <literal>-d</literal>
                 </td>
-                <td>DEBUG</td>
+                <td>DEBUG and higher (that is, all log messages)</td>
             </tr>
 
         </table>
@@ -119,7 +145,7 @@
         <sample id="logging" dir="logging/project1" title="Sending your own log message">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>Strictly speaking, <emphasis>QUIET</emphasis> and <emphasis>LIFECYCLE</emphasis> are no log levels, but they are markers. But logically Gradle
+        <para>Strictly speaking, <emphasis>QUIET</emphasis> and <emphasis>LIFECYCLE</emphasis> are not log levels, but they are markers. But logically Gradle
             treats them as log levels. In a future version of Gradle we want to provide a logger which provides
             additional log methods
             <literal>quiet</literal>
