@@ -25,11 +25,11 @@
         any other Gradle features in your builds.
     </para>
 
-    <para>Ant can be divided into two layers. Gradle provides integration with both layers. The first layer is the Ant
-        language. It contains the syntax for the <filename>build.xml</filename>, the handling of the targets, special
-        constructs like macrodefs, etc. Basically everything except the Ant tasks and types. Gradle understands
-        this language, and allows you to import your Ant <filename>build.xml</filename> into a Gradle project. You can
-        then use the targets of your Ant build as if they were Gradle tasks.
+    <para>Ant can be divided into two layers. The first layer is the Ant language. It provides the syntax for the
+        <filename>build.xml</filename>, the handling of the targets, special constructs like macrodefs, etc. Basically
+        everything except the Ant tasks and types. Gradle understands this language, and allows you to import your Ant
+        <filename>build.xml</filename>
+        into a Gradle project. You can then use the targets of your Ant build as if they were Gradle tasks.
     </para>
 
     <para>The second layer of Ant is its wealth of Ant tasks and types, like <literal>javac</literal>,
@@ -37,8 +37,8 @@
         simply by relying on Groovy, and the fantastic <literal>AntBuilder</literal>.
     </para>
 
-    <para>Finally, since build scripts are simply Groovy scripts, you can always execute an Ant build as an external
-        process. Your build script may contain statements like: <literal>"ant clean compile".execute()</literal>.
+    <para>Finally, since build scripts are Groovy scripts, you can always execute an Ant build as an external process.
+        Your build script may contain statements like:<literal>"ant clean compile".execute()</literal>.
         <footnote>
             <para>In Groovy you can execute Strings. To learn more about executing external processes with Groovy have a
                 look in 'Groovy in Action' 9.3.2 or at the Groovy wiki
@@ -47,11 +47,11 @@
     </para>
 
     <section>
-        <title>Using Ant tasks in your build</title>
+        <title>Using Ant tasks and types in your build</title>
 
         <para>In your build script, a property called <literal>ant</literal> is provided by Gradle. This is a reference
-            to an instance of Groovy's <literal>AntBuilder</literal>. The <literal>AntBuilder</literal>
-            is used the following way:
+            to an instance of Groovy's <literal>AntBuilder</literal>. The <literal>AntBuilder</literal> is used to
+            access Ant tasks, types and properties. It is used in the following way:
         </para>
         <itemizedlist>
             <listitem>
@@ -67,9 +67,42 @@
                 <para>Nested Ant XML elements correspond to method calls of the passed closure.
                 </para>
             </listitem>
+            <listitem>
+                <para>Nested text corresponds to an argument to these methods.
+                </para>
+            </listitem>
         </itemizedlist>
 
-        <para>More information about <literal>AntBuilder</literal> can be found in 'Groovy in Action' 8.4 or at the Groovy Wiki
+        <para>Let's look at a simple example. An Ant <literal>echo</literal> task is executed by calling the
+            <literal>ant.echo()</literal> method. The attributes of the task are passed as parameters to the method.</para>
+        <sample id="useAntTask" dir="userguide/ant/useAntTask" title="Using an Ant task">
+            <sourcefile file="build.gradle"/>
+            <output args="hello"/>
+        </sample>
+
+        <para>
+            You can pass nested text to an Ant task by passing it as a parameter to the method call.
+        </para>
+        <sample id="taskWithNestedText" dir="userguide/ant/taskWithNestedText" title="Passing nested text to an Ant task">
+            <sourcefile file="build.gradle"/>
+            <output args="hello"/>
+        </sample>
+
+        <para>Nested elements are passed to an Ant task inside a closures. Nested elements are defined in the same way
+            as tasks.</para>
+        <sample id="taskWithNestedElements" dir="userguide/ant/taskWithNestedElements" title="Passing nested elements to an Ant task">
+            <sourcefile file="build.gradle"/>
+            <test args="zip"/>
+        </sample>
+
+        <para>You can also access Ant types.</para>
+        <sample id="useAntType" dir="userguide/ant/useAntType" title="Using an Ant type">
+            <sourcefile file="build.gradle"/>
+            <test args="list"/>
+        </sample>
+
+        <para>More information about <literal>AntBuilder</literal> can be found in 'Groovy in Action' 8.4 or at the
+            <ulink url="http://groovy.codehaus.org/Using+Ant+from+Groovy">Groovy Wiki</ulink>
         </para>
 
         <section>
