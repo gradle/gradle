@@ -126,19 +126,19 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         Compile compile = getCompile();
 
         assertSame(compile.include(TEST_PATTERN_1, TEST_PATTERN_2), compile);
-        assertEquals(compile.getIncludes(), WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertEquals(compile.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
 
         assertSame(compile.include(TEST_PATTERN_3), compile);
-        assertEquals(compile.getIncludes(), WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
+        assertEquals(compile.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 
     @Test public void testExcludes() {
         Compile compile = getCompile();
 
         assertSame(compile.exclude(TEST_PATTERN_1, TEST_PATTERN_2), compile);
-        assertEquals(compile.getExcludes(), WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertEquals(compile.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
 
         assertSame(compile.exclude(TEST_PATTERN_3), compile);
-        assertEquals(compile.getExcludes(), WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
+        assertEquals(compile.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 }

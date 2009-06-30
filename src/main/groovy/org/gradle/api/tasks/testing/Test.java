@@ -22,6 +22,8 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.testing.TestFramework;
 import org.gradle.external.junit.JUnitTestFramework;
 import org.gradle.external.testng.TestNGTestFramework;
@@ -30,14 +32,17 @@ import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A task for executing Junit 3.8.x and Junit 4 tests.
  *
  * @author Hans Dockter
  */
-public class Test extends ConventionTask {
+public class Test extends ConventionTask implements PatternFilterable {
     public static final String FAILURES_OR_ERRORS_PROPERTY = "org.gradle.api.tasks.testing.failuresOrErrors";
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
@@ -50,10 +55,8 @@ public class Test extends ConventionTask {
 
     private File testReportDir = null;
 
-    private List<String> includes;
-
-    private List<String> excludes;
-
+    private PatternFilterable patternSet = new PatternSet();
+    
     private boolean stopAtFailuresOrErrors = true;
 
     private FileCollection configuration;
@@ -89,8 +92,8 @@ public class Test extends ConventionTask {
 
         testFramework.prepare(getProject(), this);
 
-        final List<String> includes = getIncludes();
-        final List<String> excludes = getExcludes();
+        final Set<String> includes = getIncludes();
+        final Set<String> excludes = getExcludes();
 
         final TestClassScanner testClassScanner = new TestClassScanner(
                 testClassesDir,
@@ -130,21 +133,37 @@ public class Test extends ConventionTask {
 
     /**
      * Adds include patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
-     * @see #setIncludes(java.util.List)
+     * @see #setIncludes(Iterable)
      */
     public Test include(String... includes) {
-        this.includes = GUtil.chooseCollection(this.includes, getExcludes());
-        this.includes.addAll(Arrays.asList(includes));
+        patternSet.include(includes);
+        return this;
+    }
+
+    /**
+     * Adds include patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
+     * @see #setIncludes(Iterable)
+     */
+    public Test include(Iterable<String> includes) {
+        patternSet.include(includes);
         return this;
     }
 
     /**
      * Adds exclude patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
-     * @see #setExcludes(java.util.List) (java.util.List)
+     * @see #setExcludes(Iterable)
      */
     public Test exclude(String... excludes) {
-        this.excludes = GUtil.chooseCollection(this.excludes, getExcludes());
-        this.excludes.addAll(Arrays.asList(excludes));
+        patternSet.exclude(excludes);
+        return this;
+    }
+
+    /**
+     * Adds exclude patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
+     * @see #setExcludes(Iterable) 
+     */
+    public Test exclude(Iterable<String> excludes) {
+        patternSet.exclude(excludes);
         return this;
     }
 
@@ -201,8 +220,8 @@ public class Test extends ConventionTask {
      *
      * @see #include(String[])
      */
-    public List<String> getIncludes() {
-        return includes;
+    public Set<String> getIncludes() {
+        return patternSet.getIncludes();
     }
 
     /**
@@ -211,8 +230,9 @@ public class Test extends ConventionTask {
      * @param includes The patterns list
      * @see #include(String[])
      */
-    public void setIncludes(List<String> includes) {
-        this.includes = includes;
+    public Test setIncludes(Iterable<String> includes) {
+        patternSet.setIncludes(includes);
+        return this;
     }
 
     /**
@@ -220,8 +240,8 @@ public class Test extends ConventionTask {
      *
      * @see #include(String[])
      */
-    public List<String> getExcludes() {
-        return excludes;
+    public Set<String> getExcludes() {
+        return patternSet.getExcludes();
     }
 
     /**
@@ -230,12 +250,13 @@ public class Test extends ConventionTask {
      * @param excludes The patterns list
      * @see #exclude(String[])
      */
-    public void setExcludes(List<String> excludes) {
-        this.excludes = excludes;
+    public Test setExcludes(Iterable<String> excludes) {
+        patternSet.setExcludes(excludes);
+        return this;
     }
 
     /**
-     * Returns whether this task should throw an exception in case of test failuer or error.
+     * Returns whether this task should throw an exception in case of test failure or error.
      */
     public boolean isStopAtFailuresOrErrors() {
         return stopAtFailuresOrErrors;

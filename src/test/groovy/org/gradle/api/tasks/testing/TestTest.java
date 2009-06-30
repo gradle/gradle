@@ -34,8 +34,8 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -96,8 +96,8 @@ public class TestTest extends AbstractConventionTaskTest {
         assertNull(test.getConfiguration());
         assertNull(test.getTestResultsDir());
         assertNull(test.getTestReportDir());
-        assertNull(test.getIncludes());
-        assertNull(test.getExcludes());
+        assertEquals(WrapUtil.toLinkedSet(), test.getIncludes());
+        assertEquals(WrapUtil.toLinkedSet(), test.getExcludes());
         assert test.isStopAtFailuresOrErrors();
     }
 
@@ -206,16 +206,16 @@ public class TestTest extends AbstractConventionTaskTest {
 
     @org.junit.Test public void testIncludes() {
         assertSame(test, test.include(TEST_PATTERN_1, TEST_PATTERN_2));
-        assertEquals(WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2), test.getIncludes());
+        assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2), test.getIncludes());
         test.include(TEST_PATTERN_3);
-        assertEquals(WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getIncludes());
+        assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getIncludes());
     }
 
     @org.junit.Test public void testExcludes() {
         assertSame(test, test.exclude(TEST_PATTERN_1, TEST_PATTERN_2));
-        assertEquals(WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2), test.getExcludes());
+        assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2), test.getExcludes());
         test.exclude(TEST_PATTERN_3);
-        assertEquals(WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getExcludes());
+        assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getExcludes());
     }
 
     private void setExistingDirsFilter() {

@@ -24,8 +24,8 @@ import org.gradle.api.tasks.util.CopyInstructionFactory;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.GUtil;
 
-import java.util.*;
 import java.io.File;
+import java.util.*;
 
 /**
  * Copies the content of the <code>sourceDirs</code> to the <code>destinationDir</code>.
@@ -51,7 +51,6 @@ public class Copy extends ConventionTask {
      * The syntax of the include patterns is the same as the ant syntax for include patterns.
      */
     private Set<String> globalIncludes = new HashSet<String>();
-
 
     /**
      * A set of exclude pattern (e.g. <code>'**//*.txt'</code>) which is applied to all source dirs.

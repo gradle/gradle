@@ -27,8 +27,8 @@ class AntJavac {
 
     static final String CLASSPATH_ID = 'compile.classpath'
 
-    void execute(List sourceDirs, List includes, List excludes, File targetDir, Iterable classpath, String sourceCompatibility,
-                 String targetCompatibility, CompileOptions compileOptions, AntBuilder ant) {
+    void execute(List sourceDirs, Collection includes, Collection excludes, File targetDir, Iterable classpath, 
+                 String sourceCompatibility, String targetCompatibility, CompileOptions compileOptions, AntBuilder ant) {
         createAntClassPath(ant, classpath)
         Map otherArgs = [
                 includeAntRuntime: false,

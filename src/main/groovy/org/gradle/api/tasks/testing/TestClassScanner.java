@@ -23,7 +23,7 @@ public class TestClassScanner {
     private final AntBuilder antBuilder;
     private final boolean scanForTestClasses;
 
-    public TestClassScanner(File testClassDirectory, List<String> includePatterns, List<String> excludePatterns, TestFramework testFramework, AntBuilder antBuilder, boolean scanForTestClasses) {
+    public TestClassScanner(File testClassDirectory, Collection<String> includePatterns, Collection<String> excludePatterns, TestFramework testFramework, AntBuilder antBuilder, boolean scanForTestClasses) {
         this.testClassDirectory = testClassDirectory;
         this.includePatterns = includePatterns == null ? new ArrayList<String>() : new ArrayList<String>(includePatterns);
         this.excludePatterns = excludePatterns == null ? new ArrayList<String>() : new ArrayList<String>(excludePatterns);
