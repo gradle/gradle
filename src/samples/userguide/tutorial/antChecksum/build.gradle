@@ -1,8 +1,7 @@
 task checksum << {
-    File[] files = new File('../antChecksumFiles').listFiles()
-    Arrays.sort(files)
+    def files = file('../antChecksumFiles').listFiles().sort()
     files.each { File file ->
-        ant.checksum(file: file.canonicalPath, property: file.name)
+        ant.checksum(file: file, property: file.name)
         println "$file.name Checksum: ${ant.properties[file.name]}"
     }
 }
