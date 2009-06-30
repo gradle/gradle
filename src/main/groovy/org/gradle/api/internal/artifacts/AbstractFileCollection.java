@@ -51,4 +51,8 @@ public abstract class AbstractFileCollection implements FileCollection {
     public String getAsPath() {
         return GUtil.join(getFiles(), File.pathSeparator);
     }
+
+    public FileCollection plus(FileCollection collection) {
+        return new UnionFileCollection(this, collection);
+    }
 }

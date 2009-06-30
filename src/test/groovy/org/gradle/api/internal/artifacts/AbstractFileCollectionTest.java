@@ -15,20 +15,17 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
+import org.gradle.api.artifacts.FileCollection;
+import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.gradle.api.InvalidUserDataException;
 
 import java.io.File;
-import java.util.Set;
-import java.util.LinkedHashSet;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class AbstractFileCollectionTest {
     @Test
@@ -85,6 +82,19 @@ public class AbstractFileCollectionTest {
 
         TestFileCollection collection = new TestFileCollection(file1, file2);
         assertThat(collection.getAsPath(), equalTo(file1 + File.pathSeparator + file2));
+    }
+
+    @Test
+    public void canAddCollections() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+        FileCollection sum = collection1.plus(collection2);
+        assertThat(sum, instanceOf(UnionFileCollection.class));
+        assertThat(sum.getFiles(), equalTo(WrapUtil.toLinkedSet(file1, file2, file3)));
     }
 
     private class TestFileCollection extends AbstractFileCollection {

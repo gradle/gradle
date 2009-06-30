@@ -41,9 +41,18 @@ public interface FileCollection extends Iterable<File> {
     Set<File> getFiles();
 
     /**
-     * Returns the contents of this collection as a path.
+     * Returns the contents of this collection as a path. This can be used, for example, in an Ant <path> element.
      *
      * @return The path. Returns an empty string if this collection is empty.
      */
     String getAsPath();
+
+    /**
+     * Returns a {@code FileCollection} which contains the union of this collection and the given collection. The
+     * returned collection is live, and tracks changes to both source collections.
+     *
+     * @param collection The other collection. Should not be null.
+     * @return A new collection containing the union.
+     */
+    FileCollection plus(FileCollection collection);
 }
