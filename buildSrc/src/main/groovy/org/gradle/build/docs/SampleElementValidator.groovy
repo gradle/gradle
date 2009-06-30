@@ -28,7 +28,7 @@ public class SampleElementValidator {
         			throw new RuntimeException("No file attribute specified for source file in sample '$id'.")
         		}
 
-        	} else if (child.name() == 'output') {
+        	} else if (child.name() == 'output' || child.name() == 'test') {
           	  	if (child.'@args' == null) {
           		  throw new RuntimeException("No args attribute specified for output for sample '$id'.")
           	  	}

@@ -172,9 +172,6 @@ public class UserGuideTransformTask extends DefaultTask {
                             }
                             programListingElement.appendChild(doc.createTextNode(normalise(srcFile.text)))
                             exampleElement.appendChild(programListingElement)
-
-                            locationHandler.processSampleLocation(exampleElement)
-                           
                         } else if (child.name() == 'output') {
                             String args = child.'@args'
                             String outputFile = child.'@outputFile' ? child.'@outputFile' : "${sampleId}.out"
@@ -192,8 +189,10 @@ public class UserGuideTransformTask extends DefaultTask {
                             File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}")
                             screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
                             exampleElement.appendChild(screenElement)
+                        } else if (child.name() == 'test') {
+                            String args = child.'@args'
 
-                            locationHandler.processSampleLocation(exampleElement)
+                            xml.sample(id: sampleId, dir: srcDir, args: args)
                         } else if (child.name() == 'layout') {
                         	Element outputTitle = doc.createElement("para")
                     		outputTitle.appendChild(doc.createTextNode("Build layout"))
@@ -226,9 +225,9 @@ public class UserGuideTransformTask extends DefaultTask {
                                 }
                             }
                             programListingElement.appendChild(doc.createTextNode(content.toString()))
-
-                            locationHandler.processSampleLocation(exampleElement)
                         }
+
+                        locationHandler.processSampleLocation(exampleElement)
                     }
                     element.parentNode.insertBefore(exampleElement, element)
                     element.parentNode.removeChild(element)
