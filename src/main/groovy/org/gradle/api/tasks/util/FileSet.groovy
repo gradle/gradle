@@ -43,7 +43,7 @@ class FileSet extends AbstractFileCollection implements PatternFilterable, AntBu
     }
 
     public String getDisplayName() {
-        throw new UnsupportedOperationException();
+        "file set '$dir'"
     }
 
     public Set<File> getFiles() {

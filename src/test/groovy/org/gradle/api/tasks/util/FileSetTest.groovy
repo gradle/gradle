@@ -82,6 +82,10 @@ class FileSetTest extends AbstractTestForPatternSet {
         Set f2 = [included1, included2] as Set
         assertThat(f1, equalTo(f2))
     }
+
+    @Test public void testDisplayName() {
+        assertThat(fileSet.displayName, equalTo("file set '$testDir'".toString()))
+    }
     
     void checkPatternSetForAntBuilderTest(antPatternSet, PatternSet patternSet) {
         // Unfortunately, the ant fileset task has no public properties to check its includes/excludes values
