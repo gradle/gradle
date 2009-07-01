@@ -16,6 +16,9 @@
 
 package org.gradle.api.tasks.compile
 
+import org.apache.tools.ant.taskdefs.Javac
+import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.api.tasks.util.AntTaskAccess
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -24,9 +27,15 @@ import org.slf4j.LoggerFactory
  */
 class AntJavac {
     private static Logger logger = LoggerFactory.getLogger(AntJavac)
-
     static final String CLASSPATH_ID = 'compile.classpath'
 
+    private final AntTaskAccess listener = new AntTaskAccess() { task->
+        if (task instanceof Javac) {
+            numFilesCompiled = task.fileList.length;
+        }
+    }
+    int numFilesCompiled;
+    
     void execute(List sourceDirs, Collection includes, Collection excludes, File targetDir, Iterable classpath, 
                  String sourceCompatibility, String targetCompatibility, CompileOptions compileOptions, AntBuilder ant) {
         createAntClassPath(ant, classpath)
@@ -39,6 +48,7 @@ class AntJavac {
                 source: sourceCompatibility
         ]
         targetDir.mkdirs()
+        ant.project.addBuildListener(listener)
         ant.javac(otherArgs + compileOptions.optionMap()) {
             includes.each {
                 include(name: it)
@@ -52,6 +62,7 @@ class AntJavac {
                 }
             }
         }
+        ant.project.removeBuildListener(listener)
     }
 
     private void createAntClassPath(AntBuilder ant, Iterable classpath) {

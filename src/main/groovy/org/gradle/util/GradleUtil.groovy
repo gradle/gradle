@@ -18,6 +18,8 @@ package org.gradle.util
 
 import org.apache.commons.io.FilenameUtils
 import org.apache.tools.ant.BuildListener
+import org.gradle.util.BootstrapUtil
+import org.gradle.util.ClasspathUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -65,9 +67,7 @@ class GradleUtil {
 AntBuilder ant = loader.loadClass('groovy.util.AntBuilder').newInstance()
 ant.project.removeBuildListener(ant.project.getBuildListeners()[0])
 ant.project.addBuildListener(loader.loadClass("org.gradle.logging.AntLoggingAdapter").newInstance())
-ant.sequential {
-    $filling
-}
+$filling
 """
     }
 
@@ -76,7 +76,7 @@ ant.sequential {
         antBuilder.project.addBuildListener(buildListener)
     }
 
-    static executeIsolatedAntScript(List loaderClasspath, String filling) {
+    static Object executeIsolatedAntScript(List loaderClasspath, String filling) {
         ClassLoader oldCtx = Thread.currentThread().contextClassLoader
         File toolsJar = ClasspathUtil.getToolsJar()
         logger.debug("Tools jar is: {}", toolsJar)
@@ -89,10 +89,13 @@ ant.sequential {
         }
         ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, oldCtx.parent)
         Thread.currentThread().contextClassLoader = newLoader
-        String scriptText = createIsolatedAntScript(filling)
-        logger.debug("Using groovyc as: {}", scriptText)
-        newLoader.loadClass("groovy.lang.GroovyShell").newInstance(newLoader).evaluate(
+        try {
+            String scriptText = createIsolatedAntScript(filling)
+            logger.debug("Using groovyc as: {}", scriptText)
+            return newLoader.loadClass("groovy.lang.GroovyShell").newInstance(newLoader).evaluate(
                 scriptText)
-        Thread.currentThread().contextClassLoader = oldCtx
+        } finally {
+            Thread.currentThread().contextClassLoader = oldCtx
+        }
     }
 }

@@ -21,9 +21,12 @@ import org.gradle.api.tasks.AbstractTaskTest;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 
 
 /**
@@ -49,15 +52,27 @@ public class CompileTest extends AbstractCompileTest {
         return compile;
     }
 
-    @Test
-    public void testExecute() {
+    public void testExecute(final int numFilesCompiled) {
         setUpMocksAndAttributes(compile);
         context.checking(new Expectations() {{
             one(antCompileMock).execute(compile.getSrcDirs(), compile.getIncludes(), compile.getExcludes(), compile.getDestinationDir(),
                     compile.getClasspath(), compile.getSourceCompatibility(), compile.getTargetCompatibility(), compile.getOptions(),
                     compile.getProject().getAnt());
+            one(antCompileMock).getNumFilesCompiled(); will(returnValue(numFilesCompiled));
         }});
         compile.execute();
+    }
+
+    @Test
+    public void testExecuteDoingWork() {
+        testExecute(7);
+        assertTrue(compile.getDidWork());
+    }
+
+    @Test
+    public void testExecuteNotDoingWork() {
+        testExecute(0);
+        assertFalse(compile.getDidWork());
     }
 
     // todo We need to do this to make the compiler happy. We need to file a Jira to Groovy.

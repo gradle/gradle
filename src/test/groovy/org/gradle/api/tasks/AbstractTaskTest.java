@@ -23,25 +23,24 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.TaskFactory;
-import org.gradle.test.util.Check;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.GUtil;
-import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.specs.Spec;
+import org.gradle.test.util.Check;
+import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import org.jmock.Expectations;
+import org.jmock.Sequence;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.Matchers.*;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
-import org.jmock.Sequence;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -439,5 +438,100 @@ public abstract class AbstractTaskTest {
         String testDescription = "testDescription";
         getTask().setDescription(testDescription);
         assertEquals(testDescription, getTask().getDescription());
+    }
+
+    @Test
+    public void testExecutionEnabledByOnlyIf() {
+        final AbstractTask task = getTask();
+        task.onlyIf(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task task) {
+                assertEquals(getTask(), task);
+                return true;
+            }
+        });
+        assertExecutionEnabled();
+    }
+
+    @Test
+    public void testExecutionEnabledByOnlyIfWithClosure() {
+        getTask().onlyIf(HelperUtil.toClosure("{ task -> true }"));
+        assertExecutionEnabled();
+    }
+
+    @Test
+    public void testExecutionEnabledByDefault() {
+        AbstractTask task = getTask();
+        task.deleteAllActions();
+        final boolean[] worked = new boolean[]{false};
+        task.doLast(new TaskAction() {
+            public void execute(Task task) {
+                worked[0] = true;
+            }
+        });
+        // no onlyIf set
+        task.execute();
+        assertTrue(worked[0]);
+    }
+
+    private void assertExecutionEnabled() {
+        final AbstractTask task = getTask();
+        task.deleteAllActions();
+        final List<Boolean> worked = new ArrayList<Boolean>();
+
+        task.doLast(new TaskAction() {
+            public void execute(Task task) {
+                worked.add(Boolean.TRUE);
+            }
+        });
+
+        task.execute();
+        assertTrue(!worked.isEmpty());
+    }
+
+    @Test
+    public void testExecutionDisabledByOnlyIf() {
+        getTask().onlyIf(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task task) { return false; }
+        });
+        assertExecutionDisabled();
+    }
+
+    @Test
+    public void testExecutionDisabledByOnlyIfWithClosure() {
+        getTask().onlyIf(HelperUtil.toClosure("{ task -> false }"));
+        assertExecutionDisabled();
+    }
+
+    private void assertExecutionDisabled() {
+        AbstractTask task = getTask();
+        task.deleteAllActions();
+        task.doLast(new TaskAction() {
+            public void execute(Task task) {
+                fail("Optimization failed");
+            }
+        });
+        task.execute();
+    }
+
+    @Test
+    public void testDependentTaskDidWork() {
+        AbstractProject project = HelperUtil.createRootProject();
+
+        final Set<Task> depTasks = new HashSet<Task>();
+        final TaskDependency dependencyMock = context.mock(TaskDependency.class);
+        getTask().dependsOn(dependencyMock);
+        context.checking(new Expectations() {{
+            allowing(dependencyMock).getDependencies(getTask()); will(returnValue(depTasks));
+        }});
+
+        DefaultTask task1 = new DefaultTask(project, "task1");
+        DefaultTask task2 = new DefaultTask(project, "task2");
+
+        depTasks.add(task1);
+        depTasks.add(task2);
+        assertFalse(getTask().dependsOnTaskDidWork());
+
+        task2.setDidWork(true);
+        assertTrue(getTask().dependsOnTaskDidWork());
     }
 }

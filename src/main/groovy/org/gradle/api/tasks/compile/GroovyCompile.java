@@ -23,11 +23,11 @@ import org.gradle.api.TaskAction;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Collection;
-import java.io.File;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -73,6 +73,7 @@ public class GroovyCompile extends Compile {
             classpath = GUtil.addLists(getClasspath());
             antCompile.execute(existingSourceDirs, getIncludes(), getExcludes(), getDestinationDir(), classpath,
                     getSourceCompatibility(), getTargetCompatibility(), getOptions(), getProject().getAnt());
+            setDidWork(antCompile.getNumFilesCompiled() > 0);            
         }
         List existingGroovySourceDirs = existentDirsFilter.findExistingDirs(getGroovySourceDirs());
         if (existingGroovySourceDirs.size() > 0) {
@@ -85,6 +86,7 @@ public class GroovyCompile extends Compile {
             antGroovyCompile.execute(getProject().getAnt(), existingGroovySourceDirs, getGroovyIncludes(), getGroovyExcludes(),
                     getGroovyJavaIncludes(), getGroovyExcludes(), getDestinationDir(), classpath, getSourceCompatibility(),
                     getTargetCompatibility(), getGroovyOptions(), getOptions(), taskClasspath);
+            setDidWork(antGroovyCompile.getNumFilesCompiled() > 0);            
         }
     }
 

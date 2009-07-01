@@ -18,21 +18,21 @@ package org.gradle;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.execution.TaskNameResolvingBuildExecuter;
-import org.gradle.execution.ProjectDefaultsBuildExecuter;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
+import org.gradle.execution.ProjectDefaultsBuildExecuter;
+import org.gradle.execution.TaskNameResolvingBuildExecuter;
 import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StrictScriptSource;
-import org.gradle.util.GUtil;
-import org.gradle.util.GFileUtils;
-import org.gradle.initialization.ProjectSpec;
-import org.gradle.initialization.ProjectDirectoryProjectSpec;
+import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.BuildFileProjectSpec;
 import org.gradle.initialization.DefaultProjectSpec;
+import org.gradle.initialization.ProjectDirectoryProjectSpec;
+import org.gradle.initialization.ProjectSpec;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
@@ -74,6 +74,7 @@ public class StartParameter {
     private boolean showHelp = false;
     private boolean showVersion = false;
     private boolean dryRun = false;
+    private boolean noOpt = false;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -111,6 +112,7 @@ public class StartParameter {
         startParameter.showHelp = showHelp;
         startParameter.showVersion = showVersion;
         startParameter.dryRun = dryRun;
+        startParameter.noOpt = noOpt;
         return startParameter;
     }
 
@@ -381,6 +383,14 @@ public class StartParameter {
 
     public void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
+    }
+
+    public boolean isNoOpt() {
+        return noOpt;
+    }
+
+    public void setNoOpt(boolean noOpt) {
+        this.noOpt = noOpt;
     }
 
     /**

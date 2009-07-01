@@ -93,6 +93,7 @@ public class Compile extends ConventionTask implements PatternFilterable {
 
         antCompile.execute(existingSourceDirs, patternSet.getIncludes(), patternSet.getExcludes(), getDestinationDir(),
                 getClasspath(), getSourceCompatibility(), getTargetCompatibility(), options, getProject().getAnt());
+        setDidWork(antCompile.getNumFilesCompiled() > 0);
     }
 
     public Iterable<File> getClasspath() {

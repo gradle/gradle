@@ -15,9 +15,9 @@
  */
 package org.gradle;
 
+import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import joptsimple.OptionException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
@@ -63,6 +63,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String VERSION = "v";
     private static final String CACHE = "C";
     private static final String DRY_RUN = "m";
+    private static final String NO_OPT = "o";
     private static final String HELP = "h";
 
     OptionParser parser = new OptionParser() {
@@ -93,6 +94,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT, "embedded"), "Specify an embedded build script.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks"), "Specify additional tasks for building project dependencies.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild"), "Do not rebuild project dependencies.");
+            acceptsAll(WrapUtil.toList(NO_OPT, "no-opt"), "Ignore any task optimization.");
             acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
         }
     };
@@ -223,6 +225,10 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
 
         if (options.has(DRY_RUN)) {
             startParameter.setDryRun(true);
+        }
+
+        if (options.has(NO_OPT)) {
+            startParameter.setNoOpt(true);
         }
 
         startParameter.setLogLevel(getLogLevel(options));

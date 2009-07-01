@@ -70,8 +70,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         return testObj;
     }
 
-    @Test
-    public void testExecute() {
+    public void testExecute(final int numFilesCompiled) {
         setUpMocksAndAttributes(testObj, TEST_GROOVY_CLASSPATH);
         context.checking(new Expectations() {
             {
@@ -80,9 +79,22 @@ public class GroovyCompileTest extends AbstractCompileTest {
                         testObj.getGroovyJavaExcludes(), testObj.getDestinationDir(), TEST_DEPENDENCY_MANAGER_CLASSPATH, 
                         testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getGroovyOptions(),
                         testObj.getOptions(), TEST_GROOVY_CLASSPATH);
+                one(antGroovycCompileMock).getNumFilesCompiled();  will(returnValue(numFilesCompiled));
             }
         });
         testObj.execute();
+    }
+
+    @Test
+    public void testExecuteDoingWork() {
+        testExecute(7);
+        assertTrue(testObj.getDidWork());
+    }
+
+    @Test
+    public void testExecuteNotDoingWork() {
+        testExecute(0);
+        assertFalse(testObj.getDidWork());
     }
 
     @Test
@@ -102,6 +114,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
         final FileCollection groovyClasspathCollection = context.mock(FileCollection.class);
         context.checking(new Expectations(){{
+            one(antJavacCompileMock).getNumFilesCompiled();
             allowing(groovyClasspathCollection).getFiles();
             will(returnValue(new LinkedHashSet(groovyClasspath)));
         }});

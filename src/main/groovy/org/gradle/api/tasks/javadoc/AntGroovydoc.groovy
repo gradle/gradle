@@ -24,8 +24,8 @@ import org.gradle.util.GradleUtil
 class AntGroovydoc {
     void execute(List sourceDirs, File destDir, AntBuilder ant, List taskClasspath) {
         String groovydoc = """
-    taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
-    groovydoc(
+    ant.taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
+    ant.groovydoc(
        destdir: '${GradleUtil.unbackslash(destDir)}',
        sourcepath: '${sourceDirs.collect {GradleUtil.unbackslash(it)}.join(':')}')
 """

@@ -15,30 +15,36 @@
  */
 package org.gradle.api.internal;
 
-import groovy.util.AntBuilder;
+import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import groovy.util.AntBuilder;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
-import org.gradle.api.plugins.Convention;
+import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.StandardOutputCapture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractTask implements TaskInternal {
+public abstract class AbstractTask implements TaskInternal {                                               
     private static Logger logger = LoggerFactory.getLogger(AbstractTask.class);
     private static Logger buildLogger = LoggerFactory.getLogger(Task.class);
 
@@ -54,6 +60,9 @@ public abstract class AbstractTask implements TaskInternal {
 
     private boolean executed;
 
+   // will be set to a default value of true before task is executed.  Derived classes may set to a more useful value
+    private boolean didWork = false;
+
     private boolean enabled = true;
 
     private String path = null;
@@ -65,6 +74,8 @@ public abstract class AbstractTask implements TaskInternal {
     private DynamicObjectHelper dynamicObjectHelper;
 
     private String description;
+
+    private Spec<Task> onlyIfSpec;
 
     protected AbstractTask() {
         dynamicObjectHelper = new DynamicObjectHelper(this);
@@ -129,6 +140,14 @@ public abstract class AbstractTask implements TaskInternal {
         dependencies.setValues(dependsOn);
     }
 
+    public void onlyIf(Closure onlyIfClosure) {
+        this.onlyIfSpec = (Spec<Task>) DefaultGroovyMethods.asType(onlyIfClosure, Spec.class);
+    }
+
+    public void onlyIf(Spec<Task> onlyIfSpec) {
+        this.onlyIfSpec = onlyIfSpec;
+    }
+
     public boolean isExecuted() {
         return executed;
     }
@@ -139,6 +158,18 @@ public abstract class AbstractTask implements TaskInternal {
 
     public void setExecuted(boolean executed) {
         this.executed = executed;
+    }
+
+    public boolean isDidWork() {
+        return didWork;
+    }
+
+    public boolean getDidWork() {
+        return isDidWork();
+    }
+
+    public void setDidWork(boolean didWork) {
+        this.didWork = didWork;
     }
 
     public boolean isEnabled() {
@@ -166,24 +197,31 @@ public abstract class AbstractTask implements TaskInternal {
         executing = true;
         logger.debug("Starting to execute Task: {}", path);
         if (!isSkipped()) {
-            logger.info(Logging.LIFECYCLE, "{}", path);
-            standardOutputCapture.start();
-            for (TaskAction action : actions) {
-                logger.debug("Executing Action:");
-                try {
-                    doExecute(action);
-                } catch (StopExecutionException e) {
-                    logger.info("Execution stopped by some action with message: {}", e.getMessage());
-                    break;
-                } catch (StopActionException e) {
-                    logger.debug("Action stopped by some action with message: {}", e.getMessage());
+            if (onlyIfSpec == null ||
+                    project.getBuild().getStartParameter().isNoOpt() ||
+                    onlyIfSpec.isSatisfiedBy(this)) {
+                logger.info(Logging.LIFECYCLE, "{}", path);
+                didWork = true;   // assume true unless changed during execution
+                standardOutputCapture.start();
+                for (TaskAction action : actions) {
+                    logger.debug("Executing Action:");
+                    try {
+                        doExecute(action);
+                    } catch (StopExecutionException e) {
+                        logger.info("Execution stopped by some action with message: {}", e.getMessage());
+                        break;
+                    } catch (StopActionException e) {
+                        logger.debug("Action stopped by some action with message: {}", e.getMessage());
                     } catch (Throwable t) {
-                    executing = false;
-                    standardOutputCapture.stop();
-                    throw new GradleScriptException(String.format("Execution failed for %s.", this), t, project.getBuildScriptSource());
+                        executing = false;
+                        standardOutputCapture.stop();
+                        throw new GradleScriptException(String.format("Execution failed for %s.", this), t, project.getBuildScriptSource());
+                    }
                 }
+                standardOutputCapture.stop();
+            } else {
+                logger.info(Logging.LIFECYCLE, "{} SKIPPED as onlyIf is false", path);
             }
-            standardOutputCapture.stop();
         }
         executing = false;
         executed = true;
@@ -337,5 +375,15 @@ public abstract class AbstractTask implements TaskInternal {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean dependsOnTaskDidWork() {
+        TaskDependency dependency = getTaskDependencies();
+        for (Task depTask : dependency.getDependencies(this)) {
+            if (depTask.getDidWork()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
