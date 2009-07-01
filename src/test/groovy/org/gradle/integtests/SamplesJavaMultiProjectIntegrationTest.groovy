@@ -35,7 +35,7 @@ import org.hamcrest.Matchers
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesJavaMultiProjectIntegrationTest {
 
-    static final String JAVA_PROJECT_NAME = 'javaproject'
+    static final String JAVA_PROJECT_NAME = 'java/multiproject'
     static final String SHARED_NAME = 'shared'
     static final String API_NAME = 'api'
     static final String WEBAPP_NAME = 'webservice'
@@ -52,7 +52,7 @@ class SamplesJavaMultiProjectIntegrationTest {
     @Before
     void setUp() {
         javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
-        projects = [SHARED_NAME, API_NAME, WEBAPP_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
+        projects = [SHARED_NAME, API_NAME, WEBAPP_PATH].collect {"$JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         deleteBuildDir(projects)
     }
 

@@ -589,6 +589,7 @@ task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc]) {
 }
 integTest.doFirst {
     ant {
+        delete(dir: integTestDistDir)
         copy(todir: integTestDistDir) {
             fileset(dir: explodedDistDir )
         }
