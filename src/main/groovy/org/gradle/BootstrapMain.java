@@ -53,7 +53,7 @@ public class BootstrapMain {
         mainMethod.invoke(null, new Object[]{args});
     }
 
-    private static String processGradleHome(boolean bootStrapDebug) {
+    private static void processGradleHome(boolean bootStrapDebug) {
         String gradleHome = System.getProperty("gradle.home");
         if (gradleHome == null) {
             gradleHome = System.getenv("GRADLE_HOME");
@@ -63,13 +63,12 @@ public class BootstrapMain {
             if (bootStrapDebug) {
                 System.out.println("Gradle Home is declared by environment variable GRADLE_HOME to: " + gradleHome);
             }
-            System.setProperty("gradle.home", gradleHome);
         } else {
             if (bootStrapDebug) {
                 System.out.println("Gradle Home is declared by system property gradle.home to: " + gradleHome);
             }
         }
-        return gradleHome;
+        System.setProperty("gradle.home", new File(gradleHome).getAbsolutePath());
     }
     
     private static List<URL> toUrl(List<File> files) throws MalformedURLException {
