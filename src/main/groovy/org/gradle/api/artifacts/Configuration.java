@@ -143,10 +143,10 @@ public interface Configuration extends FileCollection {
      * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as
      * {@link #files(org.gradle.api.specs.Spec)}.
      *
-     * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
+     * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
      * @return The files of a subset of dependencies of this configuration.
      */
-    Set<File> files(Closure dependencySpec);
+    Set<File> files(Closure dependencySpecClosure);
 
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration.
@@ -165,9 +165,38 @@ public interface Configuration extends FileCollection {
      *
      * @param dependencies The dependences to be resolved
      * @return The files of a subset of dependencies of this configuration.
-     * @throws RuntimeException If one of the dependencies does not belong to the configuration.
      */
     Set<File> files(Dependency... dependencies);
+
+    /**
+     * Resolves this configuration lazyly. The resolve happens when the elements of the returned FileCollection get accessed the first time.
+     * This locates and downloads the files which make up this configuration. Only the resulting set of files belonging to the subset
+     * of dependencies specified by the dependencySpec is contained in the FileCollection.
+     *
+     * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
+     * @return The FileCollection with a subset of dependencies of this configuration.
+     */
+    FileCollection fileCollection(Spec<Dependency> dependencySpec);
+
+    /**
+     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as
+     * {@link #fileCollection(org.gradle.api.specs.Spec)}.
+     *
+     * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
+     * @return The FileCollection with a subset of dependencies of this configuration.
+     */
+    FileCollection fileCollection(Closure dependencySpecClosure);
+
+    /**
+     * Resolves this configuration lazyly. The resolve happens when the elements of the returned FileCollection get accessed the first time.
+     * This locates and downloads the files which make up this configuration. Only the resulting set of files belonging to specified
+     * dependencies is contained in the FileCollection.
+     *
+     * @param dependencies The dependencies for which the FileCollection should contain the files.
+     * @return The FileCollection with a subset of dependencies of this configuration.
+     */
+    FileCollection fileCollection(Dependency... dependencies);
+
 
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
@@ -211,12 +240,12 @@ public interface Configuration extends FileCollection {
      * Publishes the artifacts of this configuration to the specified repositories. This
      * method is usually used only internally as the users use the associated upload tasks to
      * upload the artifacts.
-     * 
+     *
      * @param publishRepositories The repositories to publish the artifacts to.
      * @param publishInstruction Instructions for details of the upload.
      *
      * @see org.gradle.api.tasks.Upload
-     * @see #getUploadTaskName() 
+     * @see #getUploadTaskName()
      */
     void publish(List<DependencyResolver> publishRepositories, PublishInstruction publishInstruction);
 
@@ -256,7 +285,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Adds a dependency to this configuration
-     * 
+     *
      * @param dependency The dependency to be added.
      */
     void addDependency(Dependency dependency);
@@ -274,7 +303,7 @@ public interface Configuration extends FileCollection {
     /**
      * Returns the exclude rules applied for resolving any dependency of this configuration.
      *
-     * @see #exclude(java.util.Map) 
+     * @see #exclude(java.util.Map)
      */
     Set<ExcludeRule> getExcludeRules();
 
@@ -295,7 +324,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Adds an artifact to be published to this configuration.
-     * 
+     *
      * @param artifact The artifact.
      * @return this
      */
@@ -341,14 +370,14 @@ public interface Configuration extends FileCollection {
 
     /**
      * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as {@link #copy(org.gradle.api.specs.Spec)}
-     * 
+     *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
      */
     Configuration copy(Closure dependencySpec);
 
     /**
-     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as {@link #copyRecursive(org.gradle.api.specs.Spec)} 
+     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as {@link #copyRecursive(org.gradle.api.specs.Spec)}
      *
      * @param dependencySpec filtering requirements
      * @return copy of this configuration

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,19 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.report.ConfigurationResolveReport;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.IvyNodeCallers;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.GradleException;
+import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -38,11 +40,8 @@ public class Report2Classpath {
     private static Logger logger = LoggerFactory.getLogger(Report2Classpath.class);
 
     public Set<File> getClasspath(ResolveReport resolveReport, Set<Dependency> dependencies) {
-        return getDependentNodesMap(resolveReport, dependencies);
-    }
-
-    private Set<File> getDependentNodesMap(ResolveReport resolveReport, Set<Dependency> firstLevelDependencies) {
-        Set<ModuleRevisionId> firstLevelDependenciesModuleRevisionIds = createFirstLevelDependenciesModuleRevisionIds(firstLevelDependencies);
+        Clock clock = new Clock();
+        Set<ModuleRevisionId> firstLevelDependenciesModuleRevisionIds = createFirstLevelDependenciesModuleRevisionIds(dependencies);
         Set<File> files = new HashSet<File>();
         Set<ModuleRevisionId> transitiveFirstLevelDependenciesModuleRevisionIds = new HashSet<ModuleRevisionId>();
         for (Iterator iterator = resolveReport.getDependencies().iterator(); iterator.hasNext();) {
@@ -63,7 +62,7 @@ public class Report2Classpath {
                 files.addAll(getFilesForReport(resolveReport.getArtifactsReports(ivyNode.getId())));
             }
         }
-
+        logger.debug("Timing: Getting dependency files took {}", clock.getTime());
         return files;
     }
 
@@ -95,7 +94,7 @@ public class Report2Classpath {
 
     /*
      * Gradle has a different notion of equality then Ivy. We need to map the download reports to
-     * moduleRevisionIds that are only use fields relevant for Gradle equality. 
+     * moduleRevisionIds that are only use fields relevant for Gradle equality.
      */
     private ModuleRevisionId normalize(ModuleRevisionId moduleRevisionId) {
         return ModuleRevisionId.newInstance(
@@ -103,7 +102,7 @@ public class Report2Classpath {
                 moduleRevisionId.getName(),
                 moduleRevisionId.getRevision());
     }
-    
+
     private Set<File> getFilesForReport(ArtifactDownloadReport[] artifactDownloadReports) {
         Set<File> files = new LinkedHashSet<File>();
         if (artifactDownloadReports != null) {
