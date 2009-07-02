@@ -22,9 +22,12 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.util.WrapUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -72,16 +75,20 @@ public class DefaultIvyDependencyResolverTest {
     @Test
     public void testResolveAndGetFiles() throws IOException, ParseException {
         prepareResolveReport();
+        final Dependency dependencyDummy = context.mock(Dependency.class);
         final Set<File> expectedClasspath = toSet(new File(""));
         final String configurationName = configurationStub.getName();
         context.checking(new Expectations() {{
-            allowing(report2ClasspathStub).getClasspath(configurationName, resolveReportMock);
+            allowing(configurationStub).getAllDependencies();
+            will(returnValue(WrapUtil.toSet(dependencyDummy)));
+            allowing(report2ClasspathStub).getClasspath(resolveReportMock, WrapUtil.toSet(dependencyDummy));
             will(returnValue(expectedClasspath));
         }});
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
         
-        assertSame(expectedClasspath, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getFiles());
+        assertSame(expectedClasspath, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getFiles(
+                Specs.SATISFIES_ALL));
     }
 
     @Test
@@ -91,7 +98,7 @@ public class DefaultIvyDependencyResolverTest {
         prepareResolveReportWithError();
         ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
         try {
-            configuration.getFiles();
+            configuration.getFiles(Specs.SATISFIES_ALL);
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), startsWith("Could not resolve all dependencies for <configuration>"));

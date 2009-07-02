@@ -26,15 +26,15 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.Matchers;
 import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -207,6 +207,71 @@ public class DefaultConfigurationTest {
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
     }
 
+    @Test
+    public void filesWithDependencies() {
+        final Set<File> fileSet = toSet(new File("somePath"));
+        prepareForFilesBySpec(fileSet);
+        assertThat(configuration.files(context.mock(Dependency.class)), equalTo(fileSet));
+        assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
+    }
+
+    @Test
+    public void fileCollectionWithDependencies() {
+        Dependency dependency1 = HelperUtil.createDependency("group1", "name", "version");
+        Dependency dependency2 = HelperUtil.createDependency("group2", "name", "version");
+        DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
+                configuration.fileCollection(dependency1);
+        assertThat(fileCollection.getDependencySpec().isSatisfiedBy(dependency1),
+                equalTo(true));
+        assertThat(fileCollection.getDependencySpec().isSatisfiedBy(dependency2),
+                equalTo(false));
+    }
+
+    @Test
+    public void filesWithSpec() {
+        final Set<File> fileSet = toSet(new File("somePath"));
+        prepareForFilesBySpec(fileSet);
+        assertThat(configuration.files(context.mock(Spec.class)), equalTo(fileSet));
+        assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
+    }
+
+    @Test
+    public void fileCollectionWithSpec() {
+        Spec spec = context.mock(Spec.class);
+        DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
+                configuration.fileCollection(spec);
+        assertThat(fileCollection.getDependencySpec(), sameInstance(spec));
+    }
+
+    @Test
+    public void filesWithClosureSpec() {
+        Closure closure = HelperUtil.toClosure("{ dep -> dep.group == 'group1' }");
+        final Set<File> fileSet = toSet(new File("somePath"));
+        prepareForFilesBySpec(fileSet);
+        assertThat(configuration.files(closure), equalTo(fileSet));
+        assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
+    }
+
+    @Test
+    public void fileCollectionWithClosureSpec() {
+        Closure closure = HelperUtil.toClosure("{ dep -> dep.group == 'group1' }");
+        DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
+                configuration.fileCollection(closure);
+        assertThat(fileCollection.getDependencySpec().isSatisfiedBy(HelperUtil.createDependency("group1", "name", "version")),
+                equalTo(true));
+        assertThat(fileCollection.getDependencySpec().isSatisfiedBy(HelperUtil.createDependency("group2", "name", "version")),
+                equalTo(false));
+    }
+
+    private void prepareForFilesBySpec(final Set<File> fileSet) {
+        final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
+        prepareResolve(resolvedConfiguration, false);
+        context.checking(new Expectations() {{
+            one(resolvedConfiguration).getFiles(with(any(Spec.class)));
+            will(returnValue(fileSet));
+        }});
+    }
+
     @Test(expected = GradleException.class)
     public void resolveShouldRethrowFailure() {
         prepareForResolveWithErrors();
@@ -226,7 +291,7 @@ public class DefaultConfigurationTest {
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         context.checking(new Expectations() {{
             prepareResolve(resolvedConfiguration, false);
-            one(resolvedConfiguration).getFiles();
+            allowing(resolvedConfiguration).getFiles(Specs.SATISFIES_ALL);
             will(returnValue(fileSet));
         }});
     }
@@ -615,6 +680,7 @@ public class DefaultConfigurationTest {
         Configuration otherConf = configurationContainer.add("otherConf");
         otherConf.addDependency(similarDependency2InOtherConf);
         otherConf.addDependency(otherConfDependency);
+        configuration.extendsFrom(otherConf);
     }
 
     private void assertNotSameInstances(Set<Dependency> dependencies, Set<Dependency> otherDependencies) {

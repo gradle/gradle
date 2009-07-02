@@ -20,8 +20,11 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfiguration;
+import org.gradle.api.specs.Specs;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -46,6 +49,7 @@ public class SelfResolvingDependencyResolverTest {
 
     @Test
     public void wrapsResolvedConfigurationProvidedByDelegate() {
+        final Dependency moduleDependency = context.mock(Dependency.class);
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
@@ -59,15 +63,16 @@ public class SelfResolvingDependencyResolverTest {
         final File file = new File("file");
 
         context.checking(new Expectations() {{
-            one(resolvedConfiguration).getFiles();
+            one(resolvedConfiguration).getFiles(Specs.SATISFIES_ALL);
             will(returnValue(toSet(file)));
         }});
 
-        assertThat(configuration.getFiles(), equalTo(toLinkedSet(file)));
+        assertThat(configuration.getFiles(Specs.SATISFIES_ALL), equalTo(toLinkedSet(file)));
     }
     
     @Test
     public void addsFilesFromSelfResolvingDependenciesBeforeFilesFromResolvedConfiguration() {
+        final Dependency moduleDependency = context.mock(Dependency.class);
         final SelfResolvingDependency dependency = context.mock(SelfResolvingDependency.class);
 
         context.checking(new Expectations() {{
@@ -84,12 +89,12 @@ public class SelfResolvingDependencyResolverTest {
         final File depFile = new File("from dep");
 
         context.checking(new Expectations() {{
-            one(resolvedConfiguration).getFiles();
+            one(resolvedConfiguration).getFiles(Specs.SATISFIES_ALL);
             will(returnValue(toSet(configFile)));
             one(dependency).resolve();
             will(returnValue(toSet(depFile)));
         }});
 
-        assertThat(configuration.getFiles(), equalTo(toLinkedSet(depFile, configFile)));
+        assertThat(configuration.getFiles(Specs.SATISFIES_ALL), equalTo(toLinkedSet(depFile, configFile)));
     }
 }

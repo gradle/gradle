@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.GradleException;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
@@ -38,7 +41,7 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
         return resolver;
     }
 
-    public ResolvedConfiguration resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor) {
+    public ResolvedConfiguration resolve(final Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor) {
         final ResolvedConfiguration resolvedConfiguration = resolver.resolve(configuration, ivy, moduleDescriptor);
         final Set<SelfResolvingDependency> selfResolvingDependencies = configuration.getAllDependencies(
                 SelfResolvingDependency.class);
@@ -48,12 +51,14 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 return resolvedConfiguration.getResolveReport();
             }
 
-            public Set<File> getFiles() {
+            public Set<File> getFiles(Spec<Dependency> dependencySpec) {
                 Set<File> files = new LinkedHashSet<File>();
-                for (SelfResolvingDependency selfResolvingDependency : selfResolvingDependencies) {
-                    files.addAll(selfResolvingDependency.resolve());
+                Set<SelfResolvingDependency> selfResolvingDependenciesSubSet =
+                        Specs.filterIterable(selfResolvingDependencies, dependencySpec);
+                for (SelfResolvingDependency selfResolvingDependency : selfResolvingDependenciesSubSet) {
+                    files.addAll((selfResolvingDependency).resolve());
                 }
-                files.addAll(resolvedConfiguration.getFiles());
+                files.addAll(resolvedConfiguration.getFiles(dependencySpec));
                 return files;
             }
 

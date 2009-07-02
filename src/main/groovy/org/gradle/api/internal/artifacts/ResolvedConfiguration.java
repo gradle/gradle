@@ -17,16 +17,18 @@ package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.report.ResolveReport;
 import org.gradle.api.GradleException;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.artifacts.Dependency;
 
 import java.io.File;
 import java.util.Set;
 
 public interface ResolvedConfiguration {
     ResolveReport getResolveReport();
-
-    Set<File> getFiles();
-
+    
     boolean hasError();
 
     void rethrowFailure() throws GradleException;
+
+    Set<File> getFiles(Spec<Dependency> dependencySpec);
 }

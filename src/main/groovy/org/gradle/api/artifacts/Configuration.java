@@ -140,6 +140,36 @@ public interface Configuration extends FileCollection {
     Set<File> resolve();
 
     /**
+     * Takes a closure which gets coerced into a Spec. Behaves otherwise in the same way as
+     * {@link #files(org.gradle.api.specs.Spec)}.
+     *
+     * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
+     * @return The files of a subset of dependencies of this configuration.
+     */
+    Set<File> files(Closure dependencySpec);
+
+    /**
+     * Resolves this configuration. This locates and downloads the files which make up this configuration.
+     * But only the resulting set of files belonging to the subset of dependencies specified by the dependencySpec
+     * is returned.
+     *
+     * @param dependencySpec The spec describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
+     * @return The files of a subset of dependencies of this configuration.
+     */
+    Set<File> files(Spec<Dependency> dependencySpec);
+
+    /**
+     * Resolves this configuration. This locates and downloads the files which make up this configuration.
+     * But only the resulting set of files belonging to the specified dependencies
+     * is returned.
+     *
+     * @param dependencies The dependences to be resolved
+     * @return The files of a subset of dependencies of this configuration.
+     * @throws RuntimeException If one of the dependencies does not belong to the configuration.
+     */
+    Set<File> files(Dependency... dependencies);
+
+    /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
      * a ResolveReport that may be used to determine information about the resolve (including errors).
      *

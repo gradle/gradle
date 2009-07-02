@@ -20,8 +20,11 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
@@ -90,9 +93,10 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             }
         }
 
-        public Set<File> getFiles() {
+        public Set<File> getFiles(Spec<Dependency> dependencySpec) {
             rethrowFailure();
-            return report2Classpath.getClasspath(configuration.getName(), resolveReport);
+            Set<Dependency> dependencies = Specs.filterIterable(configuration.getAllDependencies(), dependencySpec);
+            return report2Classpath.getClasspath(resolveReport, dependencies);
         }
     }
 }

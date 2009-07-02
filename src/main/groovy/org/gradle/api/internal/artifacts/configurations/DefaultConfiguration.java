@@ -35,7 +35,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction;
 
-    private Set<Dependency> dependencies = new HashSet<Dependency>();
+    private Set<Dependency> dependencies = new LinkedHashSet<Dependency>();
 
     private Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
 
@@ -136,11 +136,35 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> resolve() {
-        ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
-        if (state == State.RESOLVED_WITH_FAILURES) {
-            resolvedConfiguration.rethrowFailure();
-        }
-        return resolvedConfiguration.getFiles();
+        return getFiles();   
+    }
+
+    public Set<File> getFiles() {
+        return fileCollection(Specs.SATISFIES_ALL).getFiles();
+    }
+
+    public Set<File> files(Dependency... dependencies) {
+        return fileCollection(dependencies).getFiles();
+    }
+
+    public Set<File> files(Closure dependencySpecClosure) {
+        return fileCollection(dependencySpecClosure).getFiles();
+    }
+
+    public Set<File> files(Spec<Dependency> dependencySpec) {
+        return fileCollection(dependencySpec).getFiles();
+    }
+
+    public FileCollection fileCollection(Spec<Dependency> dependencySpec) {
+        return new ConfigurationFileCollection(dependencySpec);
+    }
+
+    public FileCollection fileCollection(Closure dependencySpecClosure) {
+        return new ConfigurationFileCollection(dependencySpecClosure);
+    }
+
+    public FileCollection fileCollection(Dependency... dependencies) {
+        return new ConfigurationFileCollection(WrapUtil.toLinkedSet(dependencies));
     }
 
     public ResolveReport resolveAsReport() {
@@ -161,10 +185,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public void publish(List<DependencyResolver> publishResolvers, PublishInstruction publishInstruction) {
         ivyService.publish(new HashSet<Configuration>(getHierarchy()), publishInstruction, publishResolvers);
-    }
-
-    public Set<File> getFiles() {
-        return new LinkedHashSet<File>(resolve());
     }
 
     public TaskDependency getBuildDependencies() {
@@ -397,4 +417,41 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             throw new InvalidUserDataException("You can't change a configuration which is not in unresolved state!");
         }
     }
+
+    class ConfigurationFileCollection extends AbstractFileCollection {
+        private Spec<Dependency> dependencySpec;
+
+        private ConfigurationFileCollection(Spec<Dependency> dependencySpec) {
+            this.dependencySpec = dependencySpec;
+        }
+
+        public ConfigurationFileCollection(Closure dependencySpecClosure) {
+            this.dependencySpec = (Spec<Dependency>) DefaultGroovyMethods.asType(dependencySpecClosure, Spec.class);
+        }
+
+        public ConfigurationFileCollection(final Set<Dependency> dependencies) {
+            this.dependencySpec = new Spec<Dependency>() {
+                public boolean isSatisfiedBy(Dependency element) {
+                    return dependencies.contains(element); 
+                }
+            };
+        }
+
+        public Spec<Dependency> getDependencySpec() {
+            return dependencySpec;
+        }
+
+        public String getDisplayName() {
+            return "ConfigurationFileCollection for " + getName();
+        }
+
+        public Set<File> getFiles() {
+            ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
+            if (state == State.RESOLVED_WITH_FAILURES) {
+                resolvedConfiguration.rethrowFailure();
+            }
+            return resolvedConfiguration.getFiles(dependencySpec);
+        }
+    }
 }
+

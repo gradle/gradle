@@ -16,17 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
-import org.apache.ivy.core.report.ConfigurationResolveReport;
 import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.core.report.ConfigurationResolveReport;
+import org.apache.ivy.core.resolve.IvyNode;
+import org.apache.ivy.core.resolve.IvyNodeCallers;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.GradleException;
+import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -34,21 +37,80 @@ import java.util.Set;
 public class Report2Classpath {
     private static Logger logger = LoggerFactory.getLogger(Report2Classpath.class);
 
-    public Set<File> getClasspath(String configuration, ResolveReport resolveReport) {
-        Set<File> classpath = new LinkedHashSet<File>();
-        for (ArtifactDownloadReport artifactDownloadReport : getAllArtifactReports(resolveReport, configuration)) {
-            classpath.add(artifactDownloadReport.getLocalFile());
-        }
-        return classpath;
+    public Set<File> getClasspath(ResolveReport resolveReport, Set<Dependency> dependencies) {
+        return getDependentNodesMap(resolveReport, dependencies);
     }
 
-    private ArtifactDownloadReport[] getAllArtifactReports(ResolveReport report, String conf) {
-        logger.debug("using internal report instance to get artifacts list");
-        ConfigurationResolveReport configurationReport = report.getConfigurationReport(conf);
-        if (configurationReport == null) {
-            throw new GradleException("bad confs provided: " + conf
-                    + " not found among " + Arrays.asList(report.getConfigurations()));
+    private Set<File> getDependentNodesMap(ResolveReport resolveReport, Set<Dependency> firstLevelDependencies) {
+        Set<ModuleRevisionId> firstLevelDependenciesModuleRevisionIds = createFirstLevelDependenciesModuleRevisionIds(firstLevelDependencies);
+        Set<File> files = new HashSet<File>();
+        Set<ModuleRevisionId> transitiveFirstLevelDependenciesModuleRevisionIds = new HashSet<ModuleRevisionId>();
+        for (Iterator iterator = resolveReport.getDependencies().iterator(); iterator.hasNext();) {
+            IvyNode ivyNode = (IvyNode) iterator.next();
+            if (ivyNode.isLoaded()) {
+                ModuleRevisionId normalizedIvyNodeId = normalize(ivyNode.getId());
+                boolean hasAssociatedFirstLevelDependencyNodes = false;
+                if (isNodeFirstLevelDependency(normalizedIvyNodeId, firstLevelDependenciesModuleRevisionIds)) {
+                    hasAssociatedFirstLevelDependencyNodes = true;
+                } else {
+                    hasAssociatedFirstLevelDependencyNodes = hasParentFirstLevelDependency(transitiveFirstLevelDependenciesModuleRevisionIds,
+                            ivyNode);
+                }
+                if (!hasAssociatedFirstLevelDependencyNodes) {
+                    continue;
+                }
+                transitiveFirstLevelDependenciesModuleRevisionIds.add(ivyNode.getResolvedId());
+                files.addAll(getFilesForReport(resolveReport.getArtifactsReports(ivyNode.getId())));
+            }
         }
-        return configurationReport.getArtifactsReports(null, false);
+
+        return files;
+    }
+
+    private boolean hasParentFirstLevelDependency(Set<ModuleRevisionId> transitiveFirstLevelDependenciesModuleRevisionIds,
+                                                        IvyNode ivyNode) {
+        for (IvyNodeCallers.Caller caller : ivyNode.getAllRealCallers()) {
+            if (transitiveFirstLevelDependenciesModuleRevisionIds.contains(caller.getModuleRevisionId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isNodeFirstLevelDependency(ModuleRevisionId normalizedIvyNodeId, Set<ModuleRevisionId> firstLevelDependencies2Nodes) {
+        return firstLevelDependencies2Nodes.contains(normalizedIvyNodeId);
+    }
+
+    private Set<ModuleRevisionId> createFirstLevelDependenciesModuleRevisionIds(Set<Dependency> firstLevelDependencies) {
+        Set<ModuleRevisionId> firstLevelDependenciesModuleRevisionIds = new LinkedHashSet<ModuleRevisionId>();
+        for (Dependency firstLevelDependency : firstLevelDependencies) {
+            ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(
+                    GUtil.elvis(firstLevelDependency.getGroup(), ""),
+                    firstLevelDependency.getName(),
+                    GUtil.elvis(firstLevelDependency.getVersion(), ""));
+            firstLevelDependenciesModuleRevisionIds.add(moduleRevisionId);
+        }
+        return firstLevelDependenciesModuleRevisionIds;
+    }
+
+    /*
+     * Gradle has a different notion of equality then Ivy. We need to map the download reports to
+     * moduleRevisionIds that are only use fields relevant for Gradle equality. 
+     */
+    private ModuleRevisionId normalize(ModuleRevisionId moduleRevisionId) {
+        return ModuleRevisionId.newInstance(
+                moduleRevisionId.getOrganisation(),
+                moduleRevisionId.getName(),
+                moduleRevisionId.getRevision());
+    }
+    
+    private Set<File> getFilesForReport(ArtifactDownloadReport[] artifactDownloadReports) {
+        Set<File> files = new LinkedHashSet<File>();
+        if (artifactDownloadReports != null) {
+            for (ArtifactDownloadReport artifactDownloadReport : artifactDownloadReports) {
+                files.add(artifactDownloadReport.getLocalFile());
+            }
+        }
+        return files;
     }
 }

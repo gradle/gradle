@@ -19,9 +19,13 @@ import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ClientModule;
+import org.gradle.util.WrapUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -37,5 +41,9 @@ public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {
         return new ModuleRevisionId(new ModuleId(module.getGroup(), module.getName()), module.getVersion().toString());
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(Dependency dependency) {
+        return new ModuleRevisionId(new ModuleId(dependency.getGroup(), dependency.getName()), dependency.getVersion().toString());
     }
 }
