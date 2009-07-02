@@ -96,17 +96,13 @@ class WarTest extends AbstractArchiveTaskTest {
     }
 
     private Configuration createConfigurationMock(boolean failForMissingDependency, boolean includeProjectDependencies, List returnValue) {
-        Configuration copiedConfiguration = [
-                resolve: { -> returnValue as Set }
-        ] as Configuration
-
-        [copyRecursive: { Spec spec ->
+        [files: { Spec spec ->
             if (includeProjectDependencies) {
                 assertEquals(Specs.SATISFIES_ALL, spec)
             } else {
                 assertEquals(new DependencyTypeSpec(Type.EXTERNAL), spec)
             }
-            copiedConfiguration
+            returnValue as Set
         }] as Configuration
     }
 

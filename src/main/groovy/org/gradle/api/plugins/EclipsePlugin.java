@@ -109,7 +109,7 @@ public class EclipsePlugin implements Plugin {
                 "classpathLibs", new ConventionValue() {
                     public Object getValue(Convention convention, final IConventionAware conventionAwareObject) {
                         ConfigurationContainer configurationContainer = ((Task) conventionAwareObject).getProject().getConfigurations();
-                        return new ArrayList(configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME).copyRecursive(DependencySpecs.type(Type.EXTERNAL)).resolve());
+                        return new ArrayList(configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME).files(DependencySpecs.type(Type.EXTERNAL)));
                     }
                 },
                 "projectDependencies", new ConventionValue() {

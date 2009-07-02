@@ -67,8 +67,8 @@ class War extends Jar {
     public List dependencies(boolean failForMissingDependencies, boolean includeProjectDependencies) {
         List files = []
         def filteredDependencies = {String configurationName ->
-            project.configurations.getByName(configurationName).copyRecursive(
-                    includeProjectDependencies ? Specs.SATISFIES_ALL : new DependencyTypeSpec(Type.EXTERNAL)).resolve() as List
+            project.configurations.getByName(configurationName).files(
+                    includeProjectDependencies ? Specs.SATISFIES_ALL : new DependencyTypeSpec(Type.EXTERNAL)) as List
         }
 
         getLibConfigurations().each {String configurationName ->
