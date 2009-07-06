@@ -1,0 +1,111 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.Project
+import groovy.text.SimpleTemplateEngine
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+
+scriptclasspath {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath files(BootstrapUtil.gradleClasspath)
+    }
+}
+
+usePlugin(BasePlugin)
+
+task generateSmall(type: GeneratorTask, description: 'Generates a small project') {
+    destDir = new File(buildDir, 'small')
+}
+
+task generateLargeSrc(type: GeneratorTask, description: 'Generates a single project with lots of source files') {
+    destDir = new File(buildDir, 'largeSrc')
+    sourceFiles = 500
+}
+
+task generateMulti(type: GeneratorTask, description: 'Genetates a multi-project build') {
+    destDir = new File(buildDir, 'multi')
+    projects = 25
+}
+
+task all(dependsOn: {tasks.withType(GeneratorTask).all})
+
+class GeneratorTask extends DefaultTask {
+    File destDir
+    int sourceFiles = 1
+    int projects = 1
+
+    public GeneratorTask(Project project, String name) {
+        super(project, name)
+        doFirst(this.&generate)
+    }
+
+    private void generate() {
+        ant.delete(dir: destDir)
+        destDir.mkdirs()
+
+        generateRootProject()
+        subprojectNames.each {
+            generateSubProject(it)
+        }
+    }
+
+    List getSubprojectNames() {
+        if (projects == 1) {
+            return []
+        }
+        List result = []
+        projects.times {result << "project${it + 1}" }
+        result
+    }
+
+    def generateRootProject() {
+        generateProject projectName: 'root', subprojects: subprojectNames, projectDir: destDir,
+                files: subprojectNames.empty ? [] : ['settings.gradle'],
+                includeSource: subprojectNames.empty
+
+        DefaultExternalModuleDependency dependency = new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency('junit', 'junit', '4.5')
+        Configuration configuration = project.configurations.detachedConfiguration(dependency)
+        configuration.each {
+            ant.copy(file: it, toDir: new File(destDir, 'lib/test'))
+        }
+    }
+
+    def generateSubProject(String name) {
+        generateProject projectName: name, subprojects: [], projectDir: new File(destDir, name), files: [],
+                includeSource: true
+    }
+
+    def generateProject(Map args) {
+        SimpleTemplateEngine engine = new SimpleTemplateEngine()
+        File projectDir = args.projectDir
+
+        List files = args.files + [
+                'build.gradle',
+                'pom.xml',
+                'build.xml',
+        ]
+
+        Closure generate = {String name, String templateName, Map templateArgs ->
+            File destFile = new File(projectDir, name)
+            File srcTemplate = project.file("src/templates/$templateName")
+            destFile.parentFile.mkdirs()
+            destFile.withWriter {Writer writer ->
+                engine.createTemplate(srcTemplate).make(templateArgs).writeTo(writer)
+            }
+        }
+
+        files.each {String name ->
+            generate(name, name, args)
+        }
+
+        if (args.includeSource) {
+            sourceFiles.times {
+                Map classArgs = args + [productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
+                generate("src/main/java/org/gradle/test/performance/${classArgs.productionClassName}.java", 'Production.java', classArgs)
+                generate("src/test/java/org/gradle/test/performance/${classArgs.testClassName}.java", 'Test.java', classArgs)
+            }
+        }
+    }
+}

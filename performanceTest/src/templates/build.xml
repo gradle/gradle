@@ -1,0 +1,49 @@
+<project>
+    <property name="build.dir" location="ant-build"/>
+    <property name="src.dir" location="src/main/java"/>
+    <property name="test.src.dir" location="src/test/java"/>
+    <property name="classes.dir" location="\${build.dir}/classes"/>
+    <property name="test.classes.dir" location="\${build.dir}/test-classes"/>
+    <property name="test.reports.dir" location="\${build.dir}/test-reports"/>
+
+    <target name="clean">
+        <delete dir="\${build.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="\${classes.dir}"/>
+        <javac srcdir="\${src.dir}" destdir="\${classes.dir}"/>
+    </target>
+
+    <target name="compileTests" depends="compile">
+        <mkdir dir="\${test.classes.dir}"/>
+        <javac srcdir="\${test.src.dir}" destdir="\${test.classes.dir}">
+            <classpath>
+                <path location="\${classes.dir}"/>
+                <fileset dir="lib/test"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="test" depends="compile, compileTests">
+        <mkdir dir="\${test.reports.dir}"/>
+        <junit>
+            <classpath>
+                <path location="\${test.classes.dir}"/>
+                <path location="\${classes.dir}"/>
+                <fileset dir="lib/test"/>
+            </classpath>
+            <batchtest todir="\${test.reports.dir}">
+                <fileset dir="\${test.classes.dir}" includes="**/*Test*.class"/>
+            </batchtest>
+            <formatter type="xml"/>
+            <formatter type="plain" usefile="false"/>
+        </junit>
+    </target>
+
+    <target name="jar" depends="compile, test">
+        <jar destfile="\${build.dir}/production.jar">
+            <fileset dir="\${classes.dir}"/>
+        </jar>
+    </target>
+</project>
