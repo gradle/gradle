@@ -118,7 +118,8 @@ class BuildSourceBuilderTest {
     @Test public void testCreateDependencyWithCachedArtifactAndValidCache() {
         expectedStartParameter.setCacheUsage(CacheUsage.ON)
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
-        modifiedStartParameter.setTaskNames([JavaPlugin.INIT_TASK_NAME])
+        //modifiedStartParameter.setTaskNames([JavaPlugin.INIT_TASK_NAME])
+        modifiedStartParameter.setTaskNames([JavaPlugin.PROCESS_RESOURCES_TASK_NAME])
         modifiedStartParameter.setSearchUpwards(false)
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(true))

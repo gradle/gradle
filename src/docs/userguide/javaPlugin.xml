@@ -29,17 +29,10 @@
             </tr>
             <tr>
                 <td>
-                    <literal>init</literal>
-                </td>
-                <td>-</td>
-                <td><apilink class="org.gradle.api.Task"/></td>
-            </tr>
-            <tr>
-                <td>
                     <literal>processResources</literal>
                 </td>
                 <td>
-                    <literal>init</literal>
+                    <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
             </tr>
@@ -48,7 +41,7 @@
                     <literal>compile</literal>
                 </td>
                 <td>
-                    <literal>processResources</literal>
+                    <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
             </tr>
@@ -57,7 +50,7 @@
                     <literal>processTestResources</literal>
                 </td>
                 <td>
-                    <literal>compile</literal>
+                    <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
             </tr>
@@ -66,7 +59,7 @@
                     <literal>compileTests</literal>
                 </td>
                 <td>
-                    <literal>processTestResources</literal>
+                    <literal>compile</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
             </tr>
@@ -75,7 +68,10 @@
                     <literal>test</literal>
                 </td>
                 <td>
-                    <literal>compileTests</literal>
+                    <literal>compile</literal>,
+                    <literal>compileTests</literal>,
+                    <literal>processResources</literal>,
+                    <literal>processTestResources</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
             </tr>
@@ -90,7 +86,11 @@
                 <td>
                     <literal>jar</literal>
                 </td>
-                <td><literal>test</literal></td>
+                <td>
+                    <literal>compile</literal>,
+                    <literal>processResources</literal>,
+                    <literal>test</literal>
+                </td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/></td>
             </tr>
             <tr>
@@ -424,20 +424,6 @@
 
     </section>
 
-    <section>
-        <title>Init</title>
-        <para>The
-            <literal>init</literal>
-            task has no default action attached to it. It is meant to be a hook. You can add actions to it or associates
-            your custom tasks with it. The Java Plugin executes this task before any other of its tasks get executed
-            (except
-            <literal>clean</literal>
-            and
-            <literal>javadoc</literal>
-            which does not depends on <literal>init</literal>).
-        </para>
-    </section>
-
     <section id='sec:javadoc'>
         <title>Javadoc</title>
         <para>The
@@ -739,7 +725,7 @@
         </para>
         <sample id="zip" dir="userguide/tutorial/zipProject" title="Creation of ZIP archive">
             <sourcefile file="build.gradle"/>
-            <output args="-q init"/>
+            <output args="-q myZip"/>
         </sample>
         <para>This adds a Zip archive task with the name <literal>myZip</literal> which produces ZIP file
             <filename>zipProject-1.0.zip</filename>. It is important to distinguish between the name of the archive task
@@ -752,12 +738,12 @@
         </para>
         <sample id="zipWithCustomName" dir="userguide/tutorial/zipWithCustomName" title="Configuration of archive task - custom archive name">
             <sourcefile file="build.gradle"/>
-            <output args="-q init"/>
+            <output args="-q myZip"/>
         </sample>
         <para>You can further customize the archive names:</para>
         <sample id="zipWithArguments" dir="userguide/tutorial/zipWithArguments" title="Configuration of archive task - appendix &amp; classifier">
             <sourcefile file="build.gradle"/>
-            <output args="-q init"/>
+            <output args="-q myZip"/>
         </sample>
         <para>Often you will want to publish an archive, so that it is usable from another project. This process is
             described in <xref linkend="artifact_management"/>

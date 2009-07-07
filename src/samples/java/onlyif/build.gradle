@@ -22,7 +22,7 @@ compileTests.doLast { println "compileTests didWork = ${compile.didWork}" }
 test {
     options.systemProperties['property'] = 'value'
     onlyIf { task ->
-        task.dependsOnTaskDidWork() || compile.didWork
+        compile.didWork
     }
 }
 

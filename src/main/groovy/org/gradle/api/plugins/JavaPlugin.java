@@ -76,8 +76,6 @@ public class JavaPlugin implements Plugin {
 
         configureConfigurations(project);
 
-        configureInit(project);
-
         configureJavaDoc(project);
 
         configureProcessResources(project);
@@ -91,10 +89,6 @@ public class JavaPlugin implements Plugin {
         configureArchives(project);
     }
 
-    private void configureInit(Project project) {
-        project.getTasks().add(INIT_TASK_NAME).setDescription("The first task of the Java plugin tasks to be excuted. Does nothing if not customized.");
-    }
-
     private void configureTestCompile(Project project) {
         configureCompileTests(project.getTasks().add(COMPILE_TESTS_TASK_NAME, Compile.class),
                 (Compile) project.getTasks().getByName(COMPILE_TASK_NAME), DefaultConventionsToPropertiesMapping.TEST_COMPILE,
@@ -104,7 +98,6 @@ public class JavaPlugin implements Plugin {
     private void configureCompile(final Project project) {
         project.getTasks().withType(Compile.class).allTasks(new Action<Compile>() {
             public void execute(Compile compile) {
-                compile.dependsOn(PROCESS_RESOURCES_TASK_NAME);
                 compile.setClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
                 compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
                 addDependsOnProjectDependencies(compile, COMPILE_CONFIGURATION_NAME);
@@ -116,7 +109,6 @@ public class JavaPlugin implements Plugin {
 
     private void configureProcessResources(Project project) {
         Copy processResources = project.getTasks().add(PROCESS_RESOURCES_TASK_NAME, Copy.class);
-        processResources.dependsOn(INIT_TASK_NAME);
         processResources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
         processResources.setDescription(
                 "Process and copy the resources into the binary directory of the compiled sources.");
@@ -127,6 +119,7 @@ public class JavaPlugin implements Plugin {
             public void execute(Javadoc javadoc) {
                 javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
                 javadoc.setConfiguration(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
+                // todo - not sure we want this
                 addDependsOnProjectDependencies(javadoc, COMPILE_CONFIGURATION_NAME);
             }
         });
@@ -135,7 +128,6 @@ public class JavaPlugin implements Plugin {
 
     private void configureProcessTestResources(Project project) {
         ConventionTask processTestResources = project.getTasks().add(PROCESS_TEST_RESOURCES_TASK_NAME, Copy.class);
-        processTestResources.setDependsOn(WrapUtil.toSet(COMPILE_TASK_NAME));
         processTestResources.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         processTestResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
         processTestResources.setDescription(
@@ -148,6 +140,8 @@ public class JavaPlugin implements Plugin {
                 if (task instanceof Jar) {
                     task.conventionMapping(DefaultConventionsToPropertiesMapping.JAR);
                     task.dependsOn(TEST_TASK_NAME);
+                    task.dependsOn(PROCESS_RESOURCES_TASK_NAME);
+                    task.dependsOn(COMPILE_TASK_NAME);
                 }
                 else if (task instanceof Tar) {
                     task.conventionMapping(DefaultConventionsToPropertiesMapping.TAR);
@@ -166,6 +160,7 @@ public class JavaPlugin implements Plugin {
             }
         };
         Task libsTask = project.getTasks().add(LIBS_TASK_NAME);
+        libsTask.setDescription("Builds all Jar and War archives");
         libsTask.dependsOn(new TaskDependency(){
             public Set<? extends Task> getDependencies(Task task) {
                 return project.getTasks().findAll(isLib);
@@ -178,6 +173,7 @@ public class JavaPlugin implements Plugin {
             }
         };
         Task distsTask = project.getTasks().add(DISTS_TASK_NAME);
+        distsTask.setDescription("Builds all Jar, War, Zip, and Tar archives");
         distsTask.dependsOn(LIBS_TASK_NAME);
         distsTask.dependsOn(new TaskDependency(){
             public Set<? extends Task> getDependencies(Task task) {
@@ -194,6 +190,9 @@ public class JavaPlugin implements Plugin {
         project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
             public void execute(Test test) {
                 test.dependsOn(COMPILE_TESTS_TASK_NAME);
+                test.dependsOn(PROCESS_TEST_RESOURCES_TASK_NAME);
+                test.dependsOn(COMPILE_TASK_NAME);
+                test.dependsOn(PROCESS_RESOURCES_TASK_NAME);
                 test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
                 test.setConfiguration(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME));
                 addDependsOnProjectDependencies(test, TEST_RUNTIME_CONFIGURATION_NAME);
@@ -233,7 +232,7 @@ public class JavaPlugin implements Plugin {
     }
 
     protected Compile configureCompileTests(Compile compileTests, final Compile compile, Map propertyMapping, ConfigurationContainer configurations) {
-        compileTests.setDependsOn(WrapUtil.toSet(PROCESS_TEST_RESOURCES_TASK_NAME));
+        compileTests.setDependsOn(WrapUtil.toSet(COMPILE_TASK_NAME));
         compileTests.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         configureCompileInternal(compileTests, propertyMapping);
         compileTests.setClasspath(configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME));

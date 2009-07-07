@@ -100,35 +100,40 @@ class JavaPluginTest {
 
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
-        assertDependsOn(task, JavaPlugin.INIT_TASK_NAME)
+        assertDependsOn(task)
         assertThat(task.destinationDir, equalTo(project.classesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(Compile))
-        assertDependsOn(task, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        assertDependsOn(task)
         assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))
 
         task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
-        assertDependsOn(task, JavaPlugin.COMPILE_TASK_NAME)
+        assertDependsOn(task)
         assertThat(task.destinationDir, equalTo(project.testClassesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TESTS_TASK_NAME]
         assertThat(task, instanceOf(Compile))
-        assertDependsOn(task, JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME)
+        assertDependsOn(task, JavaPlugin.COMPILE_TASK_NAME)
         assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.testClassesDir))
 
         task = project.tasks[JavaPlugin.TEST_TASK_NAME]
         assertThat(task, instanceOf(org.gradle.api.tasks.testing.Test))
-        assertDependsOn(task, JavaPlugin.COMPILE_TESTS_TASK_NAME)
+        assertDependsOn(task, JavaPlugin.COMPILE_TESTS_TASK_NAME,
+                              JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME,
+                              JavaPlugin.COMPILE_TASK_NAME,
+                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
         assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)))
         assertThat(task.testClassesDir, equalTo(project.testClassesDir))
 
         task = project.tasks[JavaPlugin.JAR_TASK_NAME]
         assertThat(task, instanceOf(Jar))
-        assertDependsOn(task, JavaPlugin.TEST_TASK_NAME)
+        assertDependsOn(task, JavaPlugin.TEST_TASK_NAME,
+                              JavaPlugin.COMPILE_TASK_NAME,
+                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.baseDir, equalTo(project.classesDir))
 
@@ -155,12 +160,14 @@ class JavaPluginTest {
         javaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customCompile', type: Compile)
-        assertDependsOn(task, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
         assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.classesDir))
 
         task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
-        assertDependsOn(task, JavaPlugin.COMPILE_TESTS_TASK_NAME)
+        assertDependsOn(task, JavaPlugin.COMPILE_TESTS_TASK_NAME,
+                              JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME,
+                              JavaPlugin.COMPILE_TASK_NAME,
+                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
         assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)))
         assertThat(task.testClassesDir, equalTo(project.testClassesDir))
 
@@ -174,7 +181,9 @@ class JavaPluginTest {
         javaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customJar', type: Jar)
-        assertDependsOn(task, JavaPlugin.TEST_TASK_NAME)
+        assertDependsOn(task, JavaPlugin.TEST_TASK_NAME,
+                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME,
+                              JavaPlugin.COMPILE_TASK_NAME)
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.baseDir, equalTo(project.classesDir))
 

@@ -87,7 +87,8 @@ public class BuildSourceBuilder {
             startParameterArg.setSearchUpwards(false);
 
             if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(buildArtifactFile(buildResolverDir), startParameter.getCurrentDir())) {
-                startParameterArg.setTaskNames(WrapUtil.toList(JavaPlugin.INIT_TASK_NAME));
+                //startParameterArg.setTaskNames(WrapUtil.toList(JavaPlugin.INIT_TASK_NAME));
+                startParameterArg.setTaskNames(WrapUtil.toList(JavaPlugin.PROCESS_RESOURCES_TASK_NAME));
             }
 
             if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
