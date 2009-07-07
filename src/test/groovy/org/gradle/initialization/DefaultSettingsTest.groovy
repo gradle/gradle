@@ -32,6 +32,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -159,7 +160,7 @@ class DefaultSettingsTest {
         }
         URLClassLoader createdClassLoader = settings.createClassLoader()
         Set urls = createdClassLoader.URLs as Set
-        assertEquals([depFile1.toURI().toURL()] as Set, urls)
+        assertThat(urls, hasItem(depFile1.toURI().toURL()))
     }
 
     @Test public void testCanGetAndSetDynamicProperties() {
