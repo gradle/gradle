@@ -17,15 +17,10 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.api.artifacts.ResolverContainer
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-import org.gradle.api.artifacts.repositories.InternalRepository
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.BaseSettings
 import org.gradle.initialization.BuildSourceBuilder
 import org.gradle.initialization.IProjectDescriptorRegistry
-import org.gradle.api.artifacts.dsl.RepositoryHandler
 
 /**
  * @author Hans Dockter
@@ -33,13 +28,9 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 public class DefaultSettings extends BaseSettings {
     public DefaultSettings() {}
 
-    DefaultSettings(RepositoryHandler repositoryHandler,
-                    ConfigurationContainerFactory configurationContainerFactory,
-                    InternalRepository internalRepository,
-                    IProjectDescriptorRegistry projectDescriptorRegistry,
+    DefaultSettings(IProjectDescriptorRegistry projectDescriptorRegistry,
                     BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
-        super(repositoryHandler, configurationContainerFactory, internalRepository, projectDescriptorRegistry,
-                buildSourceBuilder, settingsDir, settingsScript, startParameter)
+        super(projectDescriptorRegistry, buildSourceBuilder, settingsDir, settingsScript, startParameter)
     }
 
     def propertyMissing(String property) {

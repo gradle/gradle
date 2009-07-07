@@ -20,11 +20,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.*;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolverContainer;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Build;
+import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -34,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,7 +49,6 @@ public class BuildSourceBuilder {
     public static final String BUILD_SRC_MODULE = "buildSrc";
     public static final String BUILD_SRC_REVISION = "SNAPSHOT";
     public static final String BUILD_SRC_TYPE = "jar";
-    public static final String BUILD_SRC_ID = String.format("%s:%s:%s", BUILD_SRC_ORG, BUILD_SRC_MODULE, BUILD_SRC_REVISION);
 
     private GradleFactory gradleFactory;
     private CacheInvalidationStrategy cacheInvalidationStrategy;
@@ -64,11 +65,7 @@ public class BuildSourceBuilder {
 
         logger.debug("Starting to build the build sources.");
         if (!startParameter.getCurrentDir().isDirectory()) {
-            logger.debug("Build source dir does not exists!. We leave.");
-            return new HashSet<File>();
-        }
-        if (!GUtil.isTrue(startParameter.getTaskNames())) {
-            logger.debug("No task names specified. We leave..");
+            logger.debug("Build source dir does not exist. We leave.");
             return new HashSet<File>();
         }
         logger.info("================================================" + " Start building buildSrc");
@@ -85,34 +82,44 @@ public class BuildSourceBuilder {
             StartParameter startParameterArg = startParameter.newInstance();
             startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
             startParameterArg.setSearchUpwards(false);
+            startParameterArg.setTaskNames(WrapUtil.toList(BasePlugin.CLEAN_TASK_NAME,
+                    Configurations.uploadInternalTaskName(Dependency.ARCHIVES_CONFIGURATION)));
+            boolean executeBuild = true;
 
             if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(buildArtifactFile(buildResolverDir), startParameter.getCurrentDir())) {
-                //startParameterArg.setTaskNames(WrapUtil.toList(JavaPlugin.INIT_TASK_NAME));
-                startParameterArg.setTaskNames(WrapUtil.toList(JavaPlugin.PROCESS_RESOURCES_TASK_NAME));
+                executeBuild = false;
             }
 
             if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
                 logger.debug("Build script file does not exists. Using default one.");
                 startParameterArg.useEmbeddedBuildFile(getDefaultScript());
             }
+
             Gradle gradle = gradleFactory.newInstance(startParameterArg);
-            BuildSourceBuildListener buildListener = new BuildSourceBuildListener();
-            gradle.addBuildListener(buildListener);
-            gradle.run().rethrowFailure();
-            File artifactFile = buildArtifactFile(buildResolverDir);
-            if (!artifactFile.exists()) {
-                logger.info("Building buildSrc has not produced any artifact!");
-                return new HashSet<File>();
+            BuildResult buildResult;
+            if (executeBuild) {
+                buildResult = gradle.run();
+            } else {
+                buildResult = gradle.getBuildAnalysis();
             }
-            Set<File> buildSourceClasspath = buildListener.getRootProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).resolve();
-            buildSourceClasspath.add(artifactFile);
+            buildResult.rethrowFailure();
+
+            Set<File> buildSourceClasspath = new LinkedHashSet<File>();
+            File artifactFile = buildArtifactFile(buildResolverDir);
+            if (artifactFile.exists()) {
+                buildSourceClasspath.add(artifactFile);
+            } else {
+                logger.info("Building buildSrc has not produced any artifacts.");
+            }
+            Configuration runtimeConfiguration = buildResult.getBuild().getRootProject().getConfigurations().getByName(
+                    JavaPlugin.RUNTIME_CONFIGURATION_NAME);
+            buildSourceClasspath.addAll(runtimeConfiguration.getFiles());
             logger.debug("Build source classpath is: {}", buildSourceClasspath);
             logger.info("================================================" + " Finished building buildSrc");
             return buildSourceClasspath;
         } finally {
             Logging.LIFECYCLE.remove(Logging.DISABLED);
         }
-
     }
 
     static String getDefaultScript() {
@@ -142,31 +149,5 @@ public class BuildSourceBuilder {
 
     public void setGradleFactory(GradleFactory gradleFactory) {
         this.gradleFactory = gradleFactory;
-    }
-
-    public static class BuildSourceBuildListener implements BuildListener {
-        private Project rootProject;
-
-        public void buildStarted(StartParameter startParameter) {}
-
-        public void settingsEvaluated(Settings settings) {}
-
-        public void projectsLoaded(Build build) {}
-
-        public void projectsEvaluated(Build build) {
-            rootProject = build.getRootProject();
-        }
-
-        public void taskGraphPopulated(TaskExecutionGraph graph) {}
-
-        public void buildFinished(BuildResult result) {}
-
-        public Project getRootProject() {
-            return rootProject;
-        }
-
-        public void setRootProject(Project rootProject) {
-            this.rootProject = rootProject;
-        }
     }
 }

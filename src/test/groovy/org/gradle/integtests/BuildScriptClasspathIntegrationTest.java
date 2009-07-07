@@ -15,16 +15,33 @@
  */
 package org.gradle.integtests;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import org.junit.Ignore;
+import org.junit.Test;
 
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
-    @Test @Ignore
+    @Test
     public void providesADefaultBuildForBuildSrcProject() {
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
         testFile("build.gradle").writelns("new BuildClass()");
         inTestDirectory().withTaskList().run();
+    }
+
+    @Test
+    public void cachesJarGeneratedByBuildSrc() {
+        testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
+        testFile("build.gradle").writelns("new BuildClass()");
+
+        inTestDirectory().withTaskList().run();
+
+        TestFile buildSrcJar = testFile(
+                "buildSrc/.gradle/internal-repository/org.gradle/buildSrc/SNAPSHOT/jars/buildSrc.jar");
+        long modTime = buildSrcJar.asFile().lastModified();
+
+        inTestDirectory().withTaskList().run();
+
+        assertThat(buildSrcJar.asFile().lastModified(), equalTo(modTime));
     }
 
     @Test
@@ -145,16 +162,16 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
 
     @Test @Ignore
     public void reportsFailureDuringClasspathDeclaration() {
-        Assert.fail("implement me");
+        fail("implement me");
     }
 
     @Test @Ignore
     public void canInjectClassPathIntoSubProjects() {
-        Assert.fail("implement me");
+        fail("implement me");
     }
     
     @Test @Ignore
     public void canReuseClassPathRepositories() {
-        Assert.fail("implement me");
+        fail("implement me");
     }
 }

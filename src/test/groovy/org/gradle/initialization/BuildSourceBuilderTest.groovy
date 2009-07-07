@@ -16,26 +16,27 @@
 
 package org.gradle.initialization
 
+import org.gradle.CacheUsage
+import org.gradle.Gradle
+import org.gradle.GradleFactory
+import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolverContainer
-import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.initialization.BuildListenerAction
 import org.gradle.initialization.BuildSourceBuilder
 import org.gradle.initialization.CacheInvalidationStrategy
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.*
-import static org.junit.Assert.assertEquals
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import static org.junit.Assert.*
+import org.gradle.BuildResult
+import org.gradle.api.invocation.Build
 
 /**
  * @author Hans Dockter
@@ -56,6 +57,7 @@ class BuildSourceBuilderTest {
     StartParameter expectedStartParameter
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     String expectedArtifactPath
+    BuildResult expectedBuildResult
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
@@ -71,19 +73,22 @@ class BuildSourceBuilderTest {
         cacheInvalidationStrategyMock = context.mock(CacheInvalidationStrategy)
         buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, cacheInvalidationStrategyMock)
         expectedStartParameter = new StartParameter(
-                searchUpwards: true,
+                searchUpwards: false,
                 currentDir: testBuildSrcDir,
-                taskNames: ['task1', 'task2'],
+                taskNames: ['clean', 'uploadArchivesInternal'],
                 gradleUserHomeDir: new File('gradleUserHome'),
                 projectProperties: dependencyProjectProps
         )
         testDependencies = ['dep1' as File, 'dep2' as File]
         expectedArtifactPath = "$testBuildResolverDir.absolutePath/$BuildSourceBuilder.BUILD_SRC_ORG" +
                 "/$BuildSourceBuilder.BUILD_SRC_MODULE/$BuildSourceBuilder.BUILD_SRC_REVISION/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}.jar"
+        Build build = context.mock(Build)
         context.checking {
             allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationHandlerStub))
             allowing(configurationHandlerStub).getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
+            allowing(build).getRootProject(); will(returnValue(rootProjectMock))
         }
+        expectedBuildResult = new BuildResult(null, build, null)
     }
 
     @After
@@ -101,70 +106,60 @@ class BuildSourceBuilderTest {
 
     @Test public void testCreateDependencyWithExistingBuildSources() {
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
-        modifiedStartParameter.setSearchUpwards(false)
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(false))
             one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
-            one(gradleMock).addBuildListener(withParam(any(BuildListener.class))); will(new BuildListenerAction(rootProjectMock))
-            one(gradleMock).run()
-            one(configurationMock).resolve(); will(returnValue(testDependencies))
+            one(gradleMock).run(); will(returnValue(expectedBuildResult))
+            one(configurationMock).getFiles(); will(returnValue(testDependencies))
         }
         createArtifact()
         createBuildFile()
-        Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
-        assertEquals(new HashSet(testDependencies + [expectedArtifactPath as File]), new HashSet(actualClasspath))
+        Set<File> actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
+        assertEquals(new LinkedHashSet([expectedArtifactPath as File] + testDependencies), actualClasspath)
     }
 
     @Test public void testCreateDependencyWithCachedArtifactAndValidCache() {
         expectedStartParameter.setCacheUsage(CacheUsage.ON)
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
-        //modifiedStartParameter.setTaskNames([JavaPlugin.INIT_TASK_NAME])
-        modifiedStartParameter.setTaskNames([JavaPlugin.PROCESS_RESOURCES_TASK_NAME])
-        modifiedStartParameter.setSearchUpwards(false)
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(true))
             one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
-            one(gradleMock).addBuildListener(withParam(any(BuildListener.class))); will(new BuildListenerAction(rootProjectMock))
-            one(gradleMock).run()
-            one(configurationMock).resolve(); will(returnValue(testDependencies))
+            one(gradleMock).getBuildAnalysis(); will(returnValue(expectedBuildResult))
+            one(configurationMock).getFiles(); will(returnValue(testDependencies))
         }
         createArtifact()
         createBuildFile()
         Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
-        assertEquals(new HashSet(testDependencies + [expectedArtifactPath as File]), new HashSet(actualClasspath))
+        assertEquals(new LinkedHashSet([expectedArtifactPath as File] + testDependencies), actualClasspath)
     }
 
     @Test public void testCreateDependencyWithCachedArtifactAndValidCacheWithCacheOff() {
         expectedStartParameter.setCacheUsage(CacheUsage.OFF)
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
-        modifiedStartParameter.setSearchUpwards(false)
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(true))
             one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
-            one(gradleMock).addBuildListener(withParam(any(BuildListener.class))); will(new BuildListenerAction(rootProjectMock))
-            one(gradleMock).run()
-            one(configurationMock).resolve(); will(returnValue(testDependencies))
+            one(gradleMock).run(); will(returnValue(expectedBuildResult))
+            one(configurationMock).getFiles(); will(returnValue(testDependencies))
         }
         createArtifact()
         createBuildFile()
         Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
-        assertEquals(new HashSet(testDependencies + [expectedArtifactPath as File]), new HashSet(actualClasspath))
+        assertEquals(new LinkedHashSet([expectedArtifactPath as File] + testDependencies), actualClasspath)
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildScript() {
         StartParameter modifiedStartParameter = this.expectedStartParameter.newInstance()
-        modifiedStartParameter.setSearchUpwards(false)
         modifiedStartParameter.useEmbeddedBuildFile(BuildSourceBuilder.getDefaultScript())
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(false))
             one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
-            one(gradleMock).addBuildListener(withParam(any(BuildListener.class))); will(new BuildListenerAction(rootProjectMock))
-            one(gradleMock).run()
-            one(configurationMock).resolve(); will(returnValue(testDependencies))
+            one(gradleMock).run(); will(returnValue(expectedBuildResult))
+            one(configurationMock).getFiles(); will(returnValue(testDependencies))
         }
         createArtifact()
         Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
-        assertEquals(new HashSet(testDependencies + [expectedArtifactPath as File]), new HashSet(actualClasspath))
+        assertEquals(new LinkedHashSet([expectedArtifactPath as File] + testDependencies), actualClasspath)
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildSrcDir() {
@@ -175,21 +170,12 @@ class BuildSourceBuilderTest {
 
     @Test public void testCreateDependencyWithNoArtifactProducingBuild() {
         StartParameter modifiedStartParameter = this.expectedStartParameter.newInstance()
-        modifiedStartParameter.setSearchUpwards(false)
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(false))
             one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
-            one(gradleMock).addBuildListener(withParam(any(BuildListener.class))); will(new BuildListenerAction(rootProjectMock))
             one(gradleMock).run()
         }
         createBuildFile()
-        assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
-    }
-
-    @Test public void testCreateDependencyWithEmptyTaskList() {
-        createBuildFile()
-        expectedStartParameter = expectedStartParameter.newInstance()
-        expectedStartParameter.setTaskNames([])
         assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 

@@ -18,7 +18,6 @@ package org.gradle;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory;
@@ -101,9 +100,6 @@ public class DefaultGradleFactory implements GradleFactory {
                                         importsReader,
                                         new SettingsFactory(
                                                 new DefaultProjectDescriptorRegistry(),
-                                                new DefaultRepositoryHandler(resolverFactory, null),
-                                                configurationContainerFactory,
-                                                internalRepository,
                                                 new BuildSourceBuilder(new DefaultGradleFactory(
                                                         new LoggingConfigurer() {
                                                             public void configure(LogLevel logLevel) {

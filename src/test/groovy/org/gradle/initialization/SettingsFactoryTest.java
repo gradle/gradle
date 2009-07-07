@@ -16,17 +16,9 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
@@ -47,28 +39,13 @@ public class SettingsFactoryTest {
 
     @Test
     public void createSettings() {
-        final ConfigurationContainerFactory configurationContainerFactory = context.mock(ConfigurationContainerFactory.class);
-        final ConfigurationHandler configurationContainer = context.mock(ConfigurationHandler.class);
-        final Configuration configuration = context.mock(Configuration.class);
-        final InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
         final File expectedSettingsDir = new File("settingsDir");
-        final RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class);
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
-        context.checking(new Expectations() {{
-            one(configurationContainerFactory).createConfigurationContainer(
-                    with(any(ResolverProvider.class)),
-                    with(any(DependencyMetaDataProvider.class)));
-            will(returnValue(configurationContainer));
-            one(configurationContainer).add(with(any(String.class)));
-            will(returnValue(configuration));
-        }});
         BuildSourceBuilder expectedBuildSourceBuilder = context.mock(BuildSourceBuilder.class);
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry,
-                repositoryHandlerMock, configurationContainerFactory, internalRepositoryDummy,
-                expectedBuildSourceBuilder);
+        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry, expectedBuildSourceBuilder);
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(expectedSettingsDir,
                 expectedScriptSource, expectedGradleProperties, expectedStartParameter);

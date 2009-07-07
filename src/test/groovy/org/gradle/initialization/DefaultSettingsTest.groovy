@@ -19,17 +19,7 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
-import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider
-import org.gradle.api.plugins.BasePlugin
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.BuildSourceBuilder
 import org.gradle.initialization.DefaultProjectDescriptor
@@ -57,12 +47,6 @@ class DefaultSettingsTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     DefaultProjectDescriptorRegistry projectDescriptorRegistry;
 
-    ConfigurationContainerFactory configurationContainerFactoryStub = context.mock(ConfigurationContainerFactory.class);
-    ConfigurationHandler configurationContainerStub = context.mock(ConfigurationHandler.class);
-    Configuration configurationStub = context.mock(Configuration.class);
-    InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
-    RepositoryHandler repositoryHandlerMock = context.mock(RepositoryHandler.class);
-
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         settingsDir = new File('/somepath/root').absoluteFile
@@ -72,28 +56,14 @@ class DefaultSettingsTest {
         scriptSourceMock = context.mock(ScriptSource)
 
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-        context.checking {
-            one(configurationContainerFactoryStub).createConfigurationContainer(
-                    withParam(any(ResolverProvider)),
-                    withParam(any(DependencyMetaDataProvider)))
-            will(returnValue(configurationContainerStub))
-            one(configurationContainerStub).add("build")
-            will(returnValue(configurationStub))
-        }
-        settings = new DefaultSettings(repositoryHandlerMock, configurationContainerFactoryStub, internalRepositoryDummy,
-                projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, scriptSourceMock, startParameter)
+        settings = new DefaultSettings(projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, scriptSourceMock, startParameter)
     }
 
     @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
         assertEquals(settingsDir, settings.getSettingsDir())
-        assert settings.buildConfiguration.is(configurationStub)
 
         assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
-        assertNull(settings.buildSrcStartParameter.buildFile)
-        assertEquals([BasePlugin.CLEAN_TASK_NAME, Configurations.uploadInternalTaskName(Dependency.ARCHIVES_CONFIGURATION)],
-                settings.buildSrcStartParameter.taskNames)
-        assertTrue(settings.buildSrcStartParameter.searchUpwards)
         assertNull(settings.getRootProject().getParent())
         assertEquals(settingsDir, settings.getRootProject().getProjectDir())
         assertEquals(settings.getRootProject().getProjectDir().getName(), settings.getRootProject().getName())
@@ -179,37 +149,17 @@ class DefaultSettingsTest {
         return [name: 'someName']
     }
 
-    @Test public void testCreateClassLoaderWithNonExistingBuildSource() {
-        checkCreateClassLoader([] as Set)
-    }
-
-    @Test public void testCreateClassLoaderWithExistingBuildSource() {
-        Set testBuildSourceDependencies = ['dep1' as File]
-        checkCreateClassLoader(testBuildSourceDependencies)
-    }
-
-    private checkCreateClassLoader(Set expectedTestDependencies) {
-        Set testFiles = [new File('/root/f1'), new File('/root/f2')] as Set
-        File expectedBuildResolverDir = 'expectedBuildResolverDir' as File
-        StartParameter expectedStartParameter = settings.buildSrcStartParameter.newInstance();
+    @Test public void testCreateClassLoader() {
+        File depFile1 = 'dep1' as File
+        StartParameter expectedStartParameter = settings.startParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
         context.checking {
-            allowing(configurationStub).getFiles()
-            will(returnValue(testFiles))
-        }
-        URLClassLoader createdClassLoader = null
-
-        context.checking {
             one(buildSourceBuilderMock).createBuildSourceClasspath(expectedStartParameter)
-            will(returnValue(expectedTestDependencies))
+            will(returnValue([depFile1] as Set))
         }
-        createdClassLoader = settings.createClassLoader()
-
-
-        Set urls = createdClassLoader.URLs as HashSet
-        (testFiles + expectedTestDependencies).collect() {File file -> file.toURI().toURL()}.each {
-            assert urls.contains(it)
-        }
+        URLClassLoader createdClassLoader = settings.createClassLoader()
+        Set urls = createdClassLoader.URLs as Set
+        assertEquals([depFile1.toURI().toURL()] as Set, urls)
     }
 
     @Test public void testCanGetAndSetDynamicProperties() {

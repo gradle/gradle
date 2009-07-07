@@ -17,10 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
@@ -31,28 +28,17 @@ import java.util.Map;
  */
 public class SettingsFactory {
     private IProjectDescriptorRegistry projectDescriptorRegistry;
-    private RepositoryHandler repositoryHandler;
-    private ConfigurationContainerFactory configurationContainerFactory;
-    private InternalRepository internalRepository;
     private BuildSourceBuilder buildSourceBuilder;
 
     public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry,
-                           RepositoryHandler repositoryHandler,
-                           ConfigurationContainerFactory configurationContainerFactory,
-                           InternalRepository internalRepository,
                            BuildSourceBuilder buildSourceBuilder) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
-        this.repositoryHandler = repositoryHandler;
-        this.configurationContainerFactory = configurationContainerFactory;
-        this.internalRepository = internalRepository;
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
     public SettingsInternal createSettings(File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter) {
-        DefaultSettings settings = new DefaultSettings(repositoryHandler,
-                configurationContainerFactory,
-                internalRepository, projectDescriptorRegistry,
+        DefaultSettings settings = new DefaultSettings(projectDescriptorRegistry,
                 buildSourceBuilder, settingsDir, settingsScript, startParameter);
         settings.getAdditionalProperties().putAll(gradleProperties);
         return settings;

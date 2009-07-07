@@ -17,31 +17,24 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.DefaultModule;
-import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.project.IProjectRegistry;
-import org.gradle.api.plugins.BasePlugin;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ClasspathUtil;
-import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URLClassLoader;
-import java.util.HashMap;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Hans Dockter
@@ -49,10 +42,7 @@ import java.util.Set;
 public class BaseSettings implements SettingsInternal {
     private static Logger logger = LoggerFactory.getLogger(DefaultSettings.class);
 
-    public static final String BUILD_CONFIGURATION = "build";
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
-
-    private Configuration buildConfiguration;
 
     private BuildSourceBuilder buildSourceBuilder;
 
@@ -62,69 +52,25 @@ public class BaseSettings implements SettingsInternal {
 
     private File settingsDir;
 
-    private StartParameter buildSrcStartParameter;
-
     private DefaultProjectDescriptor rootProjectDescriptor;
 
     private DynamicObjectHelper dynamicObjectHelper;
 
-    private InternalRepository internalRepository;
-
-    IProjectDescriptorRegistry projectDescriptorRegistry;
+    private IProjectDescriptorRegistry projectDescriptorRegistry;
 
     protected BaseSettings() {
     }
 
-    public BaseSettings(RepositoryHandler repositoryHandler,
-                        ConfigurationContainerFactory configurationContainerFactory,
-                        InternalRepository internalRepository,
-                        IProjectDescriptorRegistry projectDescriptorRegistry,
+    public BaseSettings(IProjectDescriptorRegistry projectDescriptorRegistry,
                         BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
-        this.internalRepository = internalRepository;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.buildSourceBuilder = buildSourceBuilder;
-        this.buildConfiguration = createBuildConfiguration(configurationContainerFactory, startParameter,
-                repositoryHandler);
-        assignBuildSrcStartParameter(startParameter);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         dynamicObjectHelper = new DynamicObjectHelper(this);
-    }
-
-    private Configuration createBuildConfiguration(ConfigurationContainerFactory configurationContainerFactory, final StartParameter startParameter,
-                                                   RepositoryHandler repositoryHandler) {
-        DependencyMetaDataProvider metaDataProvider = new DependencyMetaDataProvider() {
-            public Map getClientModuleRegistry() {
-                return new HashMap();
-            }
-
-            public File getGradleUserHomeDir() {
-                return startParameter.getGradleUserHomeDir();
-            }
-
-            public InternalRepository getInternalRepository() {
-                return internalRepository;
-            }
-
-            public Module getModule() {
-                return new DefaultModule(
-                        BUILD_DEPENDENCIES_GROUP,
-                        BUILD_DEPENDENCIES_NAME,
-                        BUILD_DEPENDENCIES_VERSION
-                );
-            }
-        };
-        return configurationContainerFactory.createConfigurationContainer(repositoryHandler, metaDataProvider).add(BUILD_CONFIGURATION);
-    }
-
-    private void assignBuildSrcStartParameter(StartParameter startParameter) {
-        buildSrcStartParameter = startParameter.newBuild();
-        buildSrcStartParameter.setTaskNames(WrapUtil.toList(BasePlugin.CLEAN_TASK_NAME,
-                Configurations.uploadInternalTaskName(Dependency.ARCHIVES_CONFIGURATION)));
-        buildSrcStartParameter.setSearchUpwards(true);
     }
 
     @Override
@@ -194,18 +140,24 @@ public class BaseSettings implements SettingsInternal {
     // todo We don't have command query separation here. This is a temporary thing. If our new classloader handling works out, which
     // adds simply the build script jars to the context classloader we can remove the return argument and simplify our design.
     public URLClassLoader createClassLoader() {
-        URLClassLoader classLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-        StartParameter startParameter = buildSrcStartParameter.newInstance();
-        startParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
-        Set<File> additionalClasspath = buildSourceBuilder.createBuildSourceClasspath(startParameter);
-        additionalClasspath.addAll(buildConfiguration.getFiles());
+        ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
+        StartParameter buildSrcStartParameter = startParameter.newBuild();
+        buildSrcStartParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
+        Set<File> additionalClasspath = buildSourceBuilder.createBuildSourceClasspath(buildSrcStartParameter);
         File toolsJar = ClasspathUtil.getToolsJar();
         if (toolsJar != null) {
             additionalClasspath.add(toolsJar);
         }
         logger.debug("Adding to classpath: {}", additionalClasspath);
-        ClasspathUtil.addUrl(classLoader, additionalClasspath);
-        return classLoader;
+        List<URL> urls = new ArrayList<URL>();
+        for (File file : additionalClasspath) {
+            try {
+                urls.add(file.toURI().toURL());
+            } catch (MalformedURLException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return new URLClassLoader(urls.toArray(new URL[urls.size()]), parentClassLoader);
     }
 
     public ProjectDescriptor getRootProject() {
@@ -252,14 +204,6 @@ public class BaseSettings implements SettingsInternal {
         this.settingsScript = settingsScript;
     }
 
-    public StartParameter getBuildSrcStartParameter() {
-        return buildSrcStartParameter;
-    }
-
-    public void setBuildSrcStartParameter(StartParameter buildSrcStartParameter) {
-        this.buildSrcStartParameter = buildSrcStartParameter;
-    }
-
     public IProjectDescriptorRegistry getProjectDescriptorRegistry() {
         return projectDescriptorRegistry;
     }
@@ -274,10 +218,6 @@ public class BaseSettings implements SettingsInternal {
 
     protected DynamicObjectHelper getDynamicObjectHelper() {
         return dynamicObjectHelper;
-    }
-
-    public Configuration getBuildConfiguration() {
-        return buildConfiguration;
     }
 
     public IProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
