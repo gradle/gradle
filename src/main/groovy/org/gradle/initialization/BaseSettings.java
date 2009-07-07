@@ -31,10 +31,7 @@ import java.io.File;
 import java.net.URLClassLoader;
 import java.net.URL;
 import java.net.MalformedURLException;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -141,13 +138,14 @@ public class BaseSettings implements SettingsInternal {
     // adds simply the build script jars to the context classloader we can remove the return argument and simplify our design.
     public URLClassLoader createClassLoader() {
         ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
+        File toolsJar = ClasspathUtil.getToolsJar();
+        if (toolsJar != null) {
+            ClasspathUtil.addUrl((URLClassLoader) parentClassLoader, Collections.singleton(toolsJar));
+        }
+        
         StartParameter buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
         Set<File> additionalClasspath = buildSourceBuilder.createBuildSourceClasspath(buildSrcStartParameter);
-        File toolsJar = ClasspathUtil.getToolsJar();
-        if (toolsJar != null) {
-            additionalClasspath.add(toolsJar);
-        }
         logger.debug("Adding to classpath: {}", additionalClasspath);
         List<URL> urls = new ArrayList<URL>();
         for (File file : additionalClasspath) {
