@@ -129,7 +129,7 @@ public class DefaultTaskContainerTest {
             container.add("task");
             fail();
         } catch (InvalidUserDataException e) {
-            assertThat(e.getMessage(), equalTo("Cannot add task 'task' as a task with that name already exists."));
+            assertThat(e.getMessage(), equalTo("Cannot add [task2] as a task with that name already exists."));
         }
 
         assertThat(container.getByName("task"), sameInstance(task));
@@ -255,7 +255,7 @@ public class DefaultTaskContainerTest {
     }
     
     private Task task(final String name) {
-        final Task task = context.mock(Task.class, "task" + ++taskCount);
+        final Task task = context.mock(Task.class, "[task" + ++taskCount + "]");
         context.checking(new Expectations(){{
             allowing(task).getName();
             will(returnValue(name));

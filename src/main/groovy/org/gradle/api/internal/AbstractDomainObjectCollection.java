@@ -19,6 +19,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.Set;
@@ -92,6 +93,12 @@ public abstract class AbstractDomainObjectCollection<T> implements DomainObjectC
         return getAsDynamicObject().invokeMethod(name, (Object[]) args);
     }
 
+    /**
+     * Called when an unknown domain object is requested.
+     *
+     * @param name The name of the unknown object
+     * @return The exception to throw.
+     */
     protected abstract UnknownDomainObjectException createNotFoundException(String name);
 
     /**

@@ -26,8 +26,7 @@ import org.gradle.api.plugins.UnknownPluginException;
 public class DefaultProjectsPluginContainer extends AbstractPluginContainer implements ProjectPluginsContainer {
     private PluginRegistry pluginRegistry;
 
-    public DefaultProjectsPluginContainer(final PluginRegistry pluginRegistry) {
-        super(Plugin.class);
+    public DefaultProjectsPluginContainer(PluginRegistry pluginRegistry) {
         this.pluginRegistry = pluginRegistry;
     }
 

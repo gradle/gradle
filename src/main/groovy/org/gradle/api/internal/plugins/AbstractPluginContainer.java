@@ -28,17 +28,9 @@ import groovy.lang.Closure;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractPluginContainer extends DefaultDomainObjectContainer<Plugin> implements PluginContainer {
-    public AbstractPluginContainer(Class<Plugin> type) {
-        super(type);
-    }
-
-    public void allPlugins(Action<? super Plugin> action) {
-        allObjects(action);
-    }
-
-    public void allPlugins(Closure closure) {
-        allObjects(closure);
+public abstract class AbstractPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
+    public AbstractPluginContainer() {
+        super(Plugin.class);
     }
 
     protected Plugin addPlugin(String id, PluginProvider pluginProvider) {
@@ -75,54 +67,6 @@ public abstract class AbstractPluginContainer extends DefaultDomainObjectContain
 
     public Plugin findPlugin(Class<? extends Plugin> type) {
         return findByName(getNameForType(type));
-    }
-
-    public FilteredPluginCollection<Plugin> matching(Spec<? super Plugin> spec) {
-        return new FilteredPluginCollection<Plugin>(this, Plugin.class, spec);
-    }
-
-    public <T extends Plugin> FilteredPluginCollection<T> withType(Class<T> type) {
-        return new FilteredPluginCollection<T>(this, type, Specs.satisfyAll());
-    }
-
-    public Action<? super Plugin> whenPluginAdded(Action<? super Plugin> action) {
-        return whenObjectAdded(action);
-    }
-
-    public void whenPluginAdded(Closure closure) {
-        whenObjectAdded(closure);
-    }
-
-    public static class FilteredPluginCollection<T extends Plugin> extends FilteredContainer<T> implements PluginCollection<T> {
-        private FilteredPluginCollection(AbstractDomainObjectCollection<? super T> parent, Class<T> type, Spec<? super T> spec) {
-            super(parent, type, spec);
-        }
-
-        @Override
-        public FilteredPluginCollection<T> matching(Spec<? super T> spec) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public <S extends T> FilteredPluginCollection<S> withType(Class<S> type) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void allPlugins(Action<? super T> action) {
-            allObjects(action);
-        }
-
-        public void allPlugins(Closure closure) {
-            allObjects(closure);
-        }
-
-        public Action<? super T> whenPluginAdded(Action<? super T> action) {
-            return whenObjectAdded(action);
-        }
-
-        public void whenPluginAdded(Closure closure) {
-            whenObjectAdded(closure);
-        }
     }
 
     protected interface PluginProvider {

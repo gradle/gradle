@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.*;
 
 import java.util.Map;
-import java.util.List;
 
 /**
  * <p>A {@code TaskContainer} is responsible for managing a set of {@link Task} instances.</p>
@@ -27,7 +26,7 @@ import java.util.List;
  * <p>You can obtain a {@code TaskContainer} instance by calling {@link org.gradle.api.Project#getTasks()}, or using the
  * {@code tasks} property in your build script.</p>
  */
-public interface TaskContainer extends TaskCollection<Task> {
+public interface TaskContainer extends TaskCollection<Task>, DomainObjectContainer<Task> {
     /**
      * <p>Locates a task by path. You can supply a task name, a relative path, or an absolute path. Relative paths are
      * interpreted relative to the project for this container. This method returns null if no task with the given path
@@ -166,19 +165,4 @@ public interface TaskContainer extends TaskCollection<Task> {
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
     <T extends Task> T replace(String name, Class<T> type);
-
-    /**
-     * Adds a rule to this container. The given rule is invoked when an unknown task is requested.
-     *
-     * @param rule The rule to add.
-     * @return The added rule.
-     */
-    Rule addRule(Rule rule);
-
-    /**
-     * Returns the rules used by this container.
-     *
-     * @return The rules, in the order they will be applied.
-     */
-    List<Rule> getRules();
 }

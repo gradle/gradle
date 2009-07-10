@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Rule;
+import org.gradle.api.tasks.TaskExecutionPolicy;
+import org.gradle.api.Task;
 
-import java.util.List;
-
-public interface DomainObjectContainer<T> extends DomainObjectCollection<T> {
-
-    Rule addRule(Rule rule);
-
-    List<Rule> getRules();
+public class DefaultTaskExecutionPolicy implements TaskExecutionPolicy {
+    public SkipReason shouldSkip(Task task) {
+        throw new UnsupportedOperationException();
+    }
 }

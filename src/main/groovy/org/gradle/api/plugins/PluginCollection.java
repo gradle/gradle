@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
+import org.gradle.api.DomainObjectCollection;
 
 import java.util.Set;
 import java.util.Map;
@@ -29,63 +30,19 @@ import groovy.lang.Closure;
  * 
  * @author Hans Dockter
  */
-public interface PluginCollection<T extends Plugin> extends Iterable<T> {
+public interface PluginCollection<T extends Plugin> extends DomainObjectCollection<T> {
     /**
-     * Returns the plugins in this collection.
-     *
-     * @return The tasks. Returns an empty set if this collection is empty.
-     */
-    Set<T> getAll();
-
-    /**
-     * Returns the plugins in this collection, as a map from task name to {@code Plugin} instance.
-     *
-     * @return The plugins. Returns an empty map if this collection is empty.
-     */
-    Map<String, T> getAsMap();
-
-    /**
-     * Returns the plugins in this collection which meet the given specification.
-     *
-     * @param spec The specification to use.
-     * @return The matching plugins. Returns an empty set if there are no such plugins in this collection.
-     */
-    Set<T> findAll(Spec<? super T> spec);
-
-    /**
-     * Returns a collection which contains the plugins in this collection which meet the given specification. The returned
-     * collection is live, so that when matching plugins are added to this collection, they are also visible in the
-     * filtered collection.
-     *
-     * @param spec The specification to use.
-     * @return The collection of matching plugins. Returns an empty collection if there are no such plugins in this
-     *         collection.
+     * {@inheritDoc}
      */
     PluginCollection<T> matching(Spec<? super T> spec);
 
     /**
-     * Locates a plugins by name, returning null if there is no such plugin.
-     *
-     * @param name The plugin name
-     * @return The plugin with the given name, or null if there is no such task in this collection.
-     */
-    T findByName(String name);
-
-    /**
-     * Locates a plugin by name, failing if there is no such task.
-     *
-     * @param name The plugin name
-     * @return The plugin with the given name. Never returns null.
-     * @throws org.gradle.api.UnknownTaskException when there is no such plugin in this collection.
+     * {@inheritDoc}
      */
     T getByName(String name) throws UnknownPluginException;
 
     /**
-     * Returns a collection containing the plugins in this collection of the given type.  The returned collection is live,
-     * so that when matching plugins are added to this collection, they are also visible in the filtered collection.
-     *
-     * @param type The type of plugins to find.
-     * @return The matching plugins. Returns an empty set if there are no such plugins in this collection.
+     * {@inheritDoc}
      */
     <S extends T> PluginCollection<S> withType(Class<S> type);
 
@@ -122,16 +79,7 @@ public interface PluginCollection<T extends Plugin> extends Iterable<T> {
     void allPlugins(Closure closure);
 
     /**
-     * Locates a plugin by name, failing if there is no such plugin. This method is identical to {@link #getByName(String)}.
-     * You can call this method in your build script by using the groovy {@code []} operator:
-     *
-     * <pre>
-     * plugins['some-plugin']'
-     * </pre>
-     *
-     * @param name The plugin name
-     * @return The plugin with the given name. Never returns null.
-     * @throws UnknownPluginException when there is no such plugin in this collection.
+     * {@inheritDoc}
      */
     T getAt(String name) throws UnknownPluginException;
 }

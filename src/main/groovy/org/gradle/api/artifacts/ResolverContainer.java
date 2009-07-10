@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.DomainObjectContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.specs.Spec;
 
@@ -53,7 +54,7 @@ import java.util.Set;
  *
  * @author Hans Dockter
  */
-public interface ResolverContainer extends Iterable<DependencyResolver> {
+public interface ResolverContainer extends DomainObjectContainer<DependencyResolver> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
     String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
@@ -171,59 +172,19 @@ public interface ResolverContainer extends Iterable<DependencyResolver> {
     DependencyResolver addFirst(Object userDescription, Closure configureClosure) throws InvalidUserDataException;
 
     /**
-     * Returns the resolvers in this container which meet the given criteria.
-     *
-     * @param spec The criteria to use.
-     * @return The matching resolvers. Returns an empty set if there are no such resolvers in this container.
-     */
-    Set<DependencyResolver> findAll(Spec<? super DependencyResolver> spec);
-
-    /**
-     * Locates a resolver by name, failing if there is no such resolver. You can call this method in your build script
-     * by using the {@code .} operator:
-     *
-     * <pre>
-     * resolvers.someResolver.addArtifactPattern(someUrl)
-     * </pre>
-     *
-     * @param name The resolver name
-     * @return The resolver with the given name. Never returns null.
-     * @throws UnknownRepositoryException when there is no such repository in this container.
+     * {@inheritDoc}
      */
     DependencyResolver getByName(String name) throws UnknownRepositoryException;
 
     /**
-     * Locates a resolver by name, failing if there is no such resolver. The given configure closure is executed against
-     * the resolver before it is returned from this method.
-     *
-     * @param name The resolver name
-     * @param configureClosure The closure to use to configure the resolver.
-     * @return The resolver with the given name. Never returns null.
-     * @throws UnknownRepositoryException when there is no such repository in this container.
+     * {@inheritDoc}
      */
     DependencyResolver getByName(String name, Closure configureClosure) throws UnknownRepositoryException;
 
     /**
-     * Locates a resolver by name, failing if there is no such resolver. This method is identical to {@link
-     * #getByName(String)}. You can call this method in your build script by using the groovy {@code []} operator:
-     *
-     * <pre>
-     * resolvers['some-resolver'].addArtifactPattern someUrl
-     * </pre>
-     *
-     * @param name The resolver name
-     * @return The resolver with the given name. Never returns null.
-     * @throws UnknownRepositoryException when there is no such repository in this container.
+     * {@inheritDoc}
      */
     DependencyResolver getAt(String name) throws UnknownRepositoryException;
-
-    /**
-     * Locates a resolver by name, returning null if there is no such resolver.
-     *
-     * @param name The resolver name
-     * @return The resolver with the given name, or null if there is no such resolver in this container.
-     */
-    DependencyResolver findByName(String name);
 
     /**
      * Returns the resolvers in this container, in sequence.
@@ -231,13 +192,6 @@ public interface ResolverContainer extends Iterable<DependencyResolver> {
      * @return The resolvers in sequence. Returns an empty list if this container is empty.
      */
     List<DependencyResolver> getResolvers();
-
-    /**
-     * Returns the resolvers in this container, as a map from resolver name to {@code DependencyResolver} instance.
-     *
-     * @return The resolver. Returns an empty map if this container is empty.
-     */
-    Map<String, DependencyResolver> getAsMap();
 
     void setMavenPomDir(File mavenPomDir);
 

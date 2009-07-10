@@ -17,6 +17,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Rule;
+import org.gradle.api.DomainObjectContainer;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ import java.util.List;
  *
  * @author Hans Dockter
  */
-public interface PluginContainer extends PluginCollection<Plugin> {
+public interface PluginContainer extends PluginCollection<Plugin>, DomainObjectContainer<Plugin> {
     /**
      * Returns true if the container has a plugin with the given name, false otherwise.
      *
@@ -38,21 +39,6 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @param type The type of the plugin
      */
     boolean hasPlugin(Class<? extends Plugin> type);
-
-    /**
-     * Adds a rule to this container. The given rule is invoked when an unknown plugin is requested.
-     *
-     * @param rule The rule to add.
-     * @return The added rule.
-     */
-    Rule addRule(Rule rule);
-
-    /**
-     * Returns the rules used by this container.
-     *
-     * @return The rules, in the order they will be applied.
-     */
-    List<Rule> getRules();
 
     /**
      * Returns the plugin for the given name.

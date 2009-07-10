@@ -15,105 +15,35 @@
  */
 package org.gradle.api.tasks;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
-
-import java.util.Set;
-import java.util.Map;
-
-import groovy.lang.Closure;
 
 /**
  * A {@code TaskCollection} contains a set of {@link Task} instances, and provides a number of query methods.
- *
- * <p>The tasks in a collection are accessable as read-only properties of the collection, using the name of the task as
- * the property name. For example:</p>
- *
- * <pre>
- * tasks.add('myTask')
- * tasks.myTask.dependsOn someOtherTask
- * </pre>
- *
- * <p>A dynamic method is added for each task which takes a configuration closure. This is equivalent to calling {@link
- * #getByName(String, groovy.lang.Closure)}. For example:</p>
- *
- * <pre>
- * tasks.add('myTask')
- * tasks.myTask {
- *     dependsOn someOtherTask
- * }
- * </pre>
  */
-public interface TaskCollection<T extends Task> extends Iterable<T> {
-    /**
-     * Returns the tasks in this collection.
-     *
-     * @return The tasks. Returns an empty set if this collection is empty.
-     */
-    Set<T> getAll();
+public interface TaskCollection<T extends Task> extends DomainObjectCollection<T> {
 
     /**
-     * Returns the tasks in this collection, as a map from task name to {@code Task} instance.
-     *
-     * @return The tasks. Returns an empty map if this collection is empty.
-     */
-    Map<String, T> getAsMap();
-
-    /**
-     * Returns the tasks in this collection which meet the given specification.
-     *
-     * @param spec The specification to use.
-     * @return The matching tasks. Returns an empty set if there are no such tasks in this collection.
-     */
-    Set<T> findAll(Spec<? super T> spec);
-
-    /**
-     * Returns a collection which contains the tasks in this collection which meet the given specification. The returned
-     * collection is live, so that when matching tasks are added to this collection, they are also visible in the
-     * filtered collection.
-     *
-     * @param spec The specification to use.
-     * @return The collection of matching tasks. Returns an empty collection if there are no such tasks in this
-     *         collection.
+     * {@inheritDoc}
      */
     TaskCollection<T> matching(Spec<? super T> spec);
 
     /**
-     * Locates a task by name, returning null if there is no such task.
-     *
-     * @param name The task name
-     * @return The task with the given name, or null if there is no such task in this collection.
-     */
-    T findByName(String name);
-
-    /**
-     * Locates a task by name, failing if there is no such task. The given configure closure is executed against the
-     * task before it is returned from this method.
-     *
-     * @param name The task name
-     * @param configureClosure The closure to use to configure the task.
-     * @return The task with the given name. Never returns null.
-     * @throws org.gradle.api.UnknownTaskException when there is no such task in this collection.
+     * {@inheritDoc}
      */
     T getByName(String name, Closure configureClosure) throws UnknownTaskException;
 
     /**
-     * Locates a task by name, failing if there is no such task.
-     *
-     * @param name The task name
-     * @return The task with the given name. Never returns null.
-     * @throws org.gradle.api.UnknownTaskException when there is no such task in this collection.
+     * {@inheritDoc}
      */
     T getByName(String name) throws UnknownTaskException;
 
     /**
-     * Returns a collection containing the tasks in this collection of the given type.  The returned collection is live,
-     * so that when matching tasks are added to this collection, they are also visible in the filtered collection.
-     *
-     * @param type The type of tasks to find.
-     * @return The matching tasks. Returns an empty set if there are no such tasks in this collection.
+     * {@inheritDoc}
      */
     <S extends T> TaskCollection<S> withType(Class<S> type);
 
@@ -150,16 +80,7 @@ public interface TaskCollection<T extends Task> extends Iterable<T> {
     void allTasks(Closure closure);
 
     /**
-     * Locates a task by name, failing if there is no such task. This method is identical to {@link #getByName(String)}.
-     * You can call this method in your build script by using the groovy {@code []} operator:
-     *
-     * <pre>
-     * tasks['some-task'].dependsOn 'another-task'
-     * </pre>
-     *
-     * @param name The task name
-     * @return The task with the given name. Never returns null.
-     * @throws org.gradle.api.UnknownTaskException when there is no such task in this collection.
+     * {@inheritDoc}
      */
     T getAt(String name) throws UnknownTaskException;
 }

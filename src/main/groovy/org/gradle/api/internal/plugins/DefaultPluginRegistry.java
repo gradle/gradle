@@ -47,11 +47,9 @@ public class DefaultPluginRegistry extends AbstractPluginContainer implements Pl
     };
 
     public DefaultPluginRegistry() {
-        super(Plugin.class);
     }
 
     public DefaultPluginRegistry(File pluginProperties) {
-        super(Plugin.class);
         if (!pluginProperties.isFile()) {
             return;
         }

@@ -17,25 +17,21 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.*;
-import org.gradle.api.internal.AbstractDomainObjectCollection;
-import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.project.ITaskFactory;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.TaskCollection;
 import org.gradle.util.GUtil;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> implements TaskContainerInternal {
-    private final Project project;
+public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private final ITaskFactory taskFactory;
 
     public DefaultTaskContainer(Project project, ITaskFactory taskFactory) {
-        super(Task.class);
-        this.project = project;
+        super(Task.class, project);
         this.taskFactory = taskFactory;
     }
 
@@ -50,7 +46,7 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
 
         if (!replace && findByName(name) != null) {
             throw new InvalidUserDataException(String.format(
-                    "Cannot add task '%s' as a task with that name already exists.", name));
+                    "Cannot add %s as a task with that name already exists.", task));
         }
 
         addObject(name, task);
@@ -82,32 +78,6 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
         return type.cast(add(GUtil.map(Task.TASK_NAME, name, Task.TASK_TYPE, type, Task.TASK_OVERWRITE, true)));
     }
 
-    @Override
-    public FilteredTaskCollection<Task> matching(Spec<? super Task> spec) {
-        return new FilteredTaskCollection<Task>(this, Task.class, spec);
-    }
-
-    @Override
-    public <T extends Task> FilteredTaskCollection<T> withType(Class<T> type) {
-        return new FilteredTaskCollection<T>(this, type, Specs.SATISFIES_ALL);
-    }
-
-    public Action<? super Task> whenTaskAdded(Action<? super Task> action) {
-        return whenObjectAdded(action);
-    }
-
-    public void whenTaskAdded(Closure closure) {
-        whenObjectAdded(closure);
-    }
-
-    public void allTasks(Action<? super Task> action) {
-        allObjects(action);
-    }
-
-    public void allTasks(Closure action) {
-        allObjects(action);
-    }
-
     public Task findByPath(String path) {
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
@@ -130,47 +100,5 @@ public class DefaultTaskContainer extends DefaultDomainObjectContainer<Task> imp
             throw new UnknownTaskException(String.format("Task with path '%s' not found in %s.", path, project));
         }
         return task;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return "task container";
-    }
-
-    @Override
-    protected UnknownDomainObjectException createNotFoundException(String name) {
-        return new UnknownTaskException(String.format("Task with name '%s' not found in %s.", name, project));
-    }
-
-    private static class FilteredTaskCollection<T extends Task> extends FilteredContainer<T> implements TaskCollection<T> {
-        private FilteredTaskCollection(AbstractDomainObjectCollection<? super T> parent, Class<T> type, Spec<? super T> spec) {
-            super(parent, type, spec);
-        }
-
-        @Override
-        public FilteredTaskCollection<T> matching(Spec<? super T> spec) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public <S extends T> FilteredTaskCollection<S> withType(Class<S> type) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void allTasks(Action<? super T> action) {
-            allObjects(action);
-        }
-
-        public void allTasks(Closure closure) {
-            allObjects(closure);
-        }
-
-        public Action<? super T> whenTaskAdded(Action<? super T> action) {
-            return whenObjectAdded(action);
-        }
-
-        public void whenTaskAdded(Closure closure) {
-            whenObjectAdded(closure);
-        }
     }
 }

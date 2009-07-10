@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.specs.Spec;
@@ -155,7 +156,8 @@ public class DefaultDomainObjectContainerTest {
 
     @Test
     public void canGetFilteredCollectionContainingAllObjectsWhichHaveType() {
-        class OtherBean extends Bean {}
+        class OtherBean extends Bean {
+        }
         Bean bean1 = new Bean();
         OtherBean bean2 = new OtherBean();
         Bean bean3 = new Bean();
@@ -280,7 +282,7 @@ public class DefaultDomainObjectContainerTest {
             container.getByName("unknown");
             fail();
         } catch (UnknownDomainObjectException e) {
-            assertThat(e.getMessage(), equalTo("Domain object with name 'unknown' not found."));
+            assertThat(e.getMessage(), equalTo("Bean with name 'unknown' not found."));
         }
     }
 
@@ -356,7 +358,7 @@ public class DefaultDomainObjectContainerTest {
         container.whenObjectAdded(HelperUtil.toClosure(closure));
         container.addObject("bean", bean);
     }
-    
+
     @Test
     public void callsActionWhenObjectRemoved() {
         final Action<Bean> action = context.mock(Action.class);
@@ -532,8 +534,8 @@ public class DefaultDomainObjectContainerTest {
     public void addRuleByClosure() {
         String testPropertyKey = "org.gradle.test.addRuleByClosure";
         String expectedTaskName = "someTaskName";
-        Closure ruleClosure = HelperUtil.toClosure(String.format(
-                "{ taskName -> System.setProperty('%s', '%s') }", testPropertyKey, expectedTaskName));
+        Closure ruleClosure = HelperUtil.toClosure(String.format("{ taskName -> System.setProperty('%s', '%s') }",
+                testPropertyKey, expectedTaskName));
         container.addRule("description", ruleClosure);
         container.getRules().get(0).apply(expectedTaskName);
         assertThat(System.getProperty(testPropertyKey), equalTo(expectedTaskName));
