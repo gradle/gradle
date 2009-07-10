@@ -43,6 +43,7 @@
     <xi:include href='mavenPlugin.xml'/>
     <xi:include href='antPlugin.xml'/>
     <xi:include href='osgi.xml'/>
+    <xi:include href='customPlugins.xml'/>
     <xi:include href='projectReports.xml'/>
     <xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
@@ -50,6 +51,7 @@
     <xi:include href='multiproject.xml'/>
     <xi:include href='organizeBuildLogic.xml'/>
     <xi:include href='gradleWrapper.xml'/>
+    <xi:include href='embedding.xml'/>
     <xi:include href='potentialTraps.xml'/>
     <xi:include href='commandLine.xml'/>
     <xi:include href='ideSupport.xml'/>

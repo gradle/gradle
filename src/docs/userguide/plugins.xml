@@ -3,11 +3,10 @@
     <para>Now we look at
         <emphasis>how</emphasis>
         Gradle provides build-by-convention and out of the box functionality. These features are decoupled from the core
-        of Gradle, and are provided via plugins. To make this clear at the very beginning, the plugins provided by
-        Gradle belong to the core distribution of Gradle and they are NEVER updated or changed in any way for a
+        of Gradle, and are provided via plugins. Although the plugins are decoupled, we would like to point out that
+        the Gradle core plugins are NEVER updated or changed for a
         particular Gradle distribution. If there is a bug in the compile functionality of Gradle, we will release a new
-        version of Gradle. There is no change of behavior for the lifetime of a given distribution of Gradle. We mention
-        this as there is another build tool with a plugin system which behaves differently.
+        version of Gradle. There is no change of behavior for the lifetime of a given distribution of Gradle.
     </para>
     <section id='sec:using_plugins'>
         <title>Declaring plugins</title>
@@ -67,7 +66,8 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
             <programlisting><xi:include href='../../toplevel/plugin.properties' parse='text'/></programlisting>
         </figure>
         <para>If you want to use your own plugins, you must make sure that they are accessible via the build script
-            classpath. See <xref linkend='organizing_build_logic'/> for more information.
+            classpath (see <xref linkend='organizing_build_logic'/> for more information). To learn more about how
+            to write custom plugins, see <xref linkend='custom_plugins'/>.
         </para>
     </section>
     <section id='sub:more_about_convention_objects'>

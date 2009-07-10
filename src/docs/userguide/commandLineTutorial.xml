@@ -49,6 +49,16 @@
 > gradle -p subproject
         </screen>
     </section>
+
+    <section>
+        <title>Dry Run</title>
+        <para>Sometimes you are interested in which tasks are executed in which order for a given set of tasks specified on the
+            command line. But you don't want the tasks to be executued. You can use the <option>-m</option> for this.
+            For example <userinput>gradle -m clean compile</userinput> shows you all tasks to be executed as
+            part of the clean and compile.
+        </para>
+        This is complementary to the <option>-t</option>, which shows you all available tasks for execution.
+    </section>
     
     <para>You can find out more about the <command>gradle</command> command's usage in <xref linkend="gradle_command_line"/></para>
 </chapter>
