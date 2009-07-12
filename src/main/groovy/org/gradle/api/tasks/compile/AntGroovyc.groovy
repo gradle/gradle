@@ -49,11 +49,11 @@ class AntGroovyc {
                         String targetCompatibility, GroovyCompileOptions groovyOptions, CompileOptions compileOptions, List taskClasspath) {
 
         String groovyc = """int numFilesCompiled = 0
-    org.gradle.api.tasks.util.AntTaskAccess listener = new org.gradle.api.tasks.util.AntTaskAccess() { task->
+    org.gradle.api.tasks.util.AntTaskAccess listener = new org.gradle.api.tasks.util.AntTaskAccess({ task->
         if (task != null && task instanceof org.codehaus.groovy.ant.Groovyc) {
             numFilesCompiled = task.fileList.length;
         }
-    }
+    })
     ant.project.addBuildListener(listener)
     ant.taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
     ant.mkdir(dir: '${GradleUtil.unbackslash(targetDir.absolutePath)}')
