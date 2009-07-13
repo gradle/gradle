@@ -32,6 +32,8 @@ import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.GFileUtils;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -45,6 +47,8 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class Test extends ConventionTask implements PatternFilterable {
+    private static final Logger logger = LoggerFactory.getLogger(Test.class);
+
     public static final String FAILURES_OR_ERRORS_PROPERTY = "org.gradle.api.tasks.testing.failuresOrErrors";
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
@@ -122,7 +126,8 @@ public class Test extends ConventionTask implements PatternFilterable {
 
         if ( !(toUseIncludes.isEmpty() && toUseExcludes.isEmpty()))
             testFramework.execute(getProject(), this, toUseIncludes, toUseExcludes);
-        // else when there are no includes/excludes -> don't execute test framework
+        else // when there are no includes/excludes -> don't execute test framework
+            logger.debug("skipping test execution, because no tests were found");
         // TestNG execution fails when there are no tests
         // JUnit execution doesn't fail when there are no tests
 
