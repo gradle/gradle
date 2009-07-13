@@ -30,6 +30,8 @@ import org.gradle.external.testng.TestNGTestFramework;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.GFileUtils;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -115,8 +117,14 @@ public class Test extends ConventionTask implements PatternFilterable {
             toUseIncludes = testClassNames;
             toUseExcludes = new ArrayList<String>();
         }
-        
-        testFramework.execute(getProject(), this, toUseIncludes, toUseExcludes);
+
+        GFileUtils.createDirectoriesWhenNotExistent(getTestResultsDir());// needed for JUnit reporting
+
+        if ( !(toUseIncludes.isEmpty() && toUseExcludes.isEmpty()))
+            testFramework.execute(getProject(), this, toUseIncludes, toUseExcludes);
+        // else when there are no includes/excludes -> don't execute test framework
+        // TestNG execution fails when there are no tests
+        // JUnit execution doesn't fail when there are no tests
 
         if (testReport) {
             testFramework.report(getProject(), this);
