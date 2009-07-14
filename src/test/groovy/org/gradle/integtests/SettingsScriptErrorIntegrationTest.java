@@ -16,7 +16,7 @@ public class SettingsScriptErrorIntegrationTest extends AbstractIntegrationTest 
 
         failure.assertHasFileName(String.format("Settings file '%s'", settingsFile));
         failure.assertHasLineNumber(3);
-        failure.assertHasContext("A problem occurred evaluating the settings file.");
-        failure.assertHasDescription("<failure message>");
+        failure.assertHasDescription("A problem occurred evaluating the settings file.");
+        failure.assertHasCause("<failure message>");
     }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests;
 
-import org.gradle.api.GradleException;
 import org.gradle.util.GUtil;
 import static org.gradle.util.Matchers.*;
 import org.hamcrest.Matcher;
@@ -127,10 +126,6 @@ public class ForkingGradleExecuter implements GradleExecuter {
             this.result = result;
         }
 
-        public GradleException getFailure() {
-            throw new UnsupportedOperationException();
-        }
-
         public void assertHasLineNumber(int lineNumber) {
             throw new UnsupportedOperationException();
         }
@@ -139,11 +134,11 @@ public class ForkingGradleExecuter implements GradleExecuter {
             assertThat(getError(), containsLine(startsWith(filename)));
         }
 
-        public void assertHasDescription(String description) {
-            assertDescription(equalTo(description));
+        public void assertHasCause(String description) {
+            assertThatCause(equalTo(description));
         }
 
-        public void assertDescription(final Matcher<String> matcher) {
+        public void assertThatCause(final Matcher<String> matcher) {
             assertThat(getError(), containsLine(new BaseMatcher<String>() {
                 public boolean matches(Object o) {
                     String str = (String) o;
@@ -157,11 +152,11 @@ public class ForkingGradleExecuter implements GradleExecuter {
             }));
         }
 
-        public void assertHasContext(String context) {
-            assertContext(equalTo(context));
+        public void assertHasDescription(String context) {
+            assertThatDescription(equalTo(context));
         }
 
-        public void assertContext(Matcher<String> matcher) {
+        public void assertThatDescription(Matcher<String> matcher) {
             assertThat(getError(), containsLine(matcher));
         }
     }

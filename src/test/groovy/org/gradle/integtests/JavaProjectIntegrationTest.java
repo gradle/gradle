@@ -1,6 +1,5 @@
 package org.gradle.integtests;
 
-import static org.hamcrest.Matchers.*;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -25,8 +24,8 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("libs").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasContext("Execution failed for task ':compile'");
-        failure.assertHasDescription("Compile failed; see the compiler error output for details.");
+        failure.assertHasDescription("Execution failed for task ':compile'");
+        failure.assertHasCause("Compile failed; see the compiler error output for details.");
     }
 
     @Test
@@ -41,8 +40,8 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("libs").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasContext("Execution failed for task ':compileTests'");
-        failure.assertHasDescription("Compile failed; see the compiler error output for details.");
+        failure.assertHasDescription("Execution failed for task ':compileTests'");
+        failure.assertHasCause("Compile failed; see the compiler error output for details.");
     }
 
     @Test
@@ -67,7 +66,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("javadoc").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasContext("Execution failed for task ':javadoc'");
-        failure.assertHasDescription("Javadoc generation failed.");
+        failure.assertHasDescription("Execution failed for task ':javadoc'");
+        failure.assertHasCause("Javadoc generation failed.");
     }
 }

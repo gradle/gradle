@@ -16,7 +16,6 @@
 package org.gradle.integtests;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.io.File;
@@ -106,34 +105,34 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").write("// empty");
 
         ExecutionFailure result = inTestDirectory().withTasks("test").runWithFailure();
-        result.assertContext(startsWith("Could not select the default project for this build. Multiple projects in this build have project directory"));
+        result.assertThatDescription(startsWith("Could not select the default project for this build. Multiple projects in this build have project directory"));
 
         result = usingProjectDir(getTestDir()).withTasks("test").runWithFailure();
-        result.assertContext(startsWith("Could not select the default project for this build. Multiple projects in this build have project directory"));
+        result.assertThatDescription(startsWith("Could not select the default project for this build. Multiple projects in this build have project directory"));
 
         result = usingBuildFile(testFile("build.gradle")).withTasks("test").runWithFailure();
-        result.assertContext(startsWith("Could not select the default project for this build. Multiple projects in this build have build file"));
+        result.assertThatDescription(startsWith("Could not select the default project for this build. Multiple projects in this build have build file"));
     }
 
     @Test
     public void buildFailsWhenSpecifiedBuildFileIsNotAFile() {
         ExecutionFailure result = usingBuildFile(testFile("unknown build file")).runWithFailure();
-        result.assertContext(startsWith("Build file"));
-        result.assertContext(endsWith("does not exist."));
+        result.assertThatDescription(startsWith("Build file"));
+        result.assertThatDescription(endsWith("does not exist."));
     }
 
     @Test
     public void buildFailsWhenSpecifiedProjectDirectoryIsNotADirectory() {
         ExecutionFailure result = usingProjectDir(testFile("unknown dir")).runWithFailure();
-        result.assertContext(startsWith("Project directory"));
-        result.assertContext(endsWith("does not exist."));
+        result.assertThatDescription(startsWith("Project directory"));
+        result.assertThatDescription(endsWith("does not exist."));
     }
 
     @Test
     public void buildFailsWhenSpecifiedSettingsFileIsNotAFile() {
         ExecutionFailure result = inTestDirectory().usingSettingsFile(testFile("unknown")).runWithFailure();
-        result.assertDescription(startsWith("Cannot read settings file"));
-        result.assertDescription(endsWith("as it does not exist."));
+        result.assertThatCause(startsWith("Cannot read settings file"));
+        result.assertThatCause(endsWith("as it does not exist."));
     }
 
     @Test
@@ -145,7 +144,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         projectdir.asFile().mkdirs();
 
         ExecutionFailure result = usingProjectDir(projectdir).usingSettingsFile(settingsFile).runWithFailure();
-        result.assertContext(startsWith("Could not select the default project for this build. No projects in this build have project directory"));
+        result.assertThatDescription(startsWith("Could not select the default project for this build. No projects in this build have project directory"));
     }
 
     @Test

@@ -43,7 +43,7 @@ public class JUnitIntegrationTest {
         ExecutionFailure failure = executer.withTasks("libs").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasContext("Execution failed for task ':test'.");
-        failure.assertDescription(startsWith("There were failing tests."));
+        failure.assertHasDescription("Execution failed for task ':test'.");
+        failure.assertThatCause(startsWith("There were failing tests."));
     }
 }

@@ -188,10 +188,6 @@ public class InProcessGradleExecuter implements GradleExecuter {
             }
         }
 
-        public GradleException getFailure() {
-            return failure;
-        }
-
         public void assertHasLineNumber(int lineNumber) {
             assertThat(failure.getMessage(), containsString(String.format(" line: %d", lineNumber)));
         }
@@ -200,19 +196,19 @@ public class InProcessGradleExecuter implements GradleExecuter {
             assertThat(failure.getMessage(), startsWith(String.format("%s", filename)));
         }
 
-        public void assertHasDescription(String description) {
+        public void assertHasCause(String description) {
             assertThat(failure.getCause().getMessage(), endsWith(description));
         }
 
-        public void assertDescription(Matcher<String> matcher) {
+        public void assertThatCause(Matcher<String> matcher) {
             assertThat(failure.getCause().getMessage(), matcher);
         }
 
-        public void assertHasContext(String context) {
+        public void assertHasDescription(String context) {
             assertThat(failure.getMessage(), containsString(context));
         }
 
-        public void assertContext(Matcher<String> matcher) {
+        public void assertThatDescription(Matcher<String> matcher) {
             assertThat(failure.getMessage(), matcher);
         }
     }

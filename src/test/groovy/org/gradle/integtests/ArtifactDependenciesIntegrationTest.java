@@ -17,7 +17,6 @@ package org.gradle.integtests;
 
 import org.junit.Test;
 import static org.hamcrest.Matchers.*;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -53,9 +52,9 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
         File buildFile = getTestBuildFile("projectWithUnknownDependency.gradle");
         ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
-        failure.assertHasContext("Execution failed for task ':listJars'");
-        failure.assertDescription(startsWith("Could not resolve all dependencies for configuration 'compile'"));
-        failure.assertDescription(containsString("unresolved dependency: test#projectA;1.2: not found"));
-        failure.assertDescription(containsString("unresolved dependency: test#projectB;2.1.5: not found"));
+        failure.assertHasDescription("Execution failed for task ':listJars'");
+        failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration 'compile'"));
+        failure.assertThatCause(containsString("unresolved dependency: test#projectA;1.2: not found"));
+        failure.assertThatCause(containsString("unresolved dependency: test#projectB;2.1.5: not found"));
     }
 }

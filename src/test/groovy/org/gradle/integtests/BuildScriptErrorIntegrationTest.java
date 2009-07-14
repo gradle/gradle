@@ -27,8 +27,8 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName("Embedded build file");
         failure.assertHasLineNumber(2);
-        failure.assertHasContext("A problem occurred evaluating root project 'tmpTest'");
-        failure.assertHasDescription("Could not find method createTakk() for arguments [do-stuff] on root project 'tmpTest'.");
+        failure.assertHasDescription("A problem occurred evaluating root project 'tmpTest'");
+        failure.assertHasCause("Could not find method createTakk() for arguments [do-stuff] on root project 'tmpTest'.");
     }
 
     @Test
@@ -41,7 +41,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = inTestDirectory().runWithFailure();
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(2);
-        failure.assertHasContext(String.format("Could not compile build file '%s'.", buildFile));
+        failure.assertHasDescription(String.format("Could not compile build file '%s'.", buildFile));
     }
 
     @Test
@@ -62,8 +62,8 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", childBuildFile));
         failure.assertHasLineNumber(2);
-        failure.assertHasContext("A problem occurred evaluating project ':child'");
-        failure.assertHasDescription("failure");
+        failure.assertHasDescription("A problem occurred evaluating project ':child'");
+        failure.assertHasCause("failure");
     }
 
     @Test
@@ -78,8 +78,8 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
-        failure.assertHasContext("Execution failed for task ':do-stuff'");
-        failure.assertHasDescription("/ by zero");
+        failure.assertHasDescription("Execution failed for task ':do-stuff'");
+        failure.assertHasCause("/ by zero");
     }
 
     @Test
@@ -90,8 +90,8 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
-        failure.assertHasContext("Execution failed for task ':brokenClosure'");
-        failure.assertHasDescription("broken closure");
+        failure.assertHasDescription("Execution failed for task ':brokenClosure'");
+        failure.assertHasCause("broken closure");
     }
 
     @Test
@@ -101,8 +101,8 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenJavaTask").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasContext("Execution failed for task ':brokenJavaTask'");
-        failure.assertHasDescription("broken action");
+        failure.assertHasDescription("Execution failed for task ':brokenJavaTask'");
+        failure.assertHasCause("broken action");
     }
 
     @Test
@@ -118,8 +118,8 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(2);
-        failure.assertHasContext("Failed to notify task execution graph listener");
-        failure.assertHasDescription("broken closure");
+        failure.assertHasDescription("Failed to notify task execution graph listener");
+        failure.assertHasCause("broken closure");
     }
     
     @Test @Ignore
@@ -135,7 +135,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
-        failure.assertHasContext("Failed to notify task execution graph listener");
-        failure.assertHasDescription("broken closure");
+        failure.assertHasDescription("Failed to notify task execution graph listener");
+        failure.assertHasCause("broken closure");
     }
 }

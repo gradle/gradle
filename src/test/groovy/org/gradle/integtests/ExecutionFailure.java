@@ -15,21 +15,18 @@
  */
 package org.gradle.integtests;
 
-import org.gradle.api.GradleException;
 import org.hamcrest.Matcher;
 
 public interface ExecutionFailure extends ExecutionResult {
-    GradleException getFailure();
-
     void assertHasLineNumber(int lineNumber);
 
     void assertHasFileName(String filename);
 
-    void assertHasDescription(String description);
+    void assertHasCause(String description);
 
-    void assertDescription(Matcher<String> matcher);
+    void assertThatCause(Matcher<String> matcher);
 
-    void assertHasContext(String context);
+    void assertHasDescription(String context);
 
-    void assertContext(Matcher<String> matcher);
+    void assertThatDescription(Matcher<String> matcher);
 }
