@@ -21,15 +21,15 @@
 
     <para>Gradle provides excellent integration with Ant. You can use individual Ant tasks or entire Ant builds in your
         Gradle builds. In fact, you will find that it's far easier and more powerful to use Ant tasks in a Gradle build
-        script, than it is to use Ant's XML format. You could even use Gradle as an Ant task scripting tool, and not use
-        any other Gradle features in your builds.
+        script, than it is to use Ant's XML format. You could even use Gradle simply as a powerful Ant task scripting
+        tool.
     </para>
 
     <para>Ant can be divided into two layers. The first layer is the Ant language. It provides the syntax for the
-        <filename>build.xml</filename>, the handling of the targets, special constructs like macrodefs, etc. Basically
-        everything except the Ant tasks and types. Gradle understands this language, and allows you to import your Ant
-        <filename>build.xml</filename>
-        into a Gradle project. You can then use the targets of your Ant build as if they were Gradle tasks.
+        <filename>build.xml</filename>, the handling of the targets, special constructs like macrodefs, and so on.
+        In other words, everything except the Ant tasks and types. Gradle understands this language, and allows you to
+        import your Ant <filename>build.xml</filename> directly into a Gradle project. You can then use the targets of
+        your Ant build as if they were Gradle tasks.
     </para>
 
     <para>The second layer of Ant is its wealth of Ant tasks and types, like <literal>javac</literal>,
@@ -50,52 +50,40 @@
         <title>Using Ant tasks and types in your build</title>
 
         <para>In your build script, a property called <literal>ant</literal> is provided by Gradle. This is a reference
-            to an instance of Groovy's <literal>AntBuilder</literal>. The <literal>AntBuilder</literal> is used to
-            access Ant tasks, types and properties. It is used in the following way:
+            to an <literal>AntBuilder</literal> instance. This <literal>AntBuilder</literal> is used to
+            access Ant tasks, types and properties from your build script. There is a very simple mapping from Ant's
+            <filename>build.xml</filename> format to Groovy, which is explained below.
         </para>
-        <itemizedlist>
-            <listitem>
-                <para>Ant task or type names correspond to <literal>ant</literal> method names.
-                </para>
-            </listitem>
-            <listitem>
-                <para>Ant task attributes correspond to arguments to these methods. The arguments are passed to the
-                    method using a map.
-                </para>
-            </listitem>
-            <listitem>
-                <para>Nested Ant XML elements correspond to method calls of the passed closure.
-                </para>
-            </listitem>
-            <listitem>
-                <para>Nested text corresponds to an argument to these methods.
-                </para>
-            </listitem>
-        </itemizedlist>
 
-        <para>Let's look at a simple example. An Ant <literal>echo</literal> task is executed by calling the
-            <literal>ant.echo()</literal> method. The attributes of the task are passed as parameters to the method.</para>
+        <para>You execute an Ant task by calling a method on the <literal>ant</literal> property. You use the task
+            name as the method name. For example, you execute the Ant <literal>echo</literal> task by calling the
+            <literal>ant.echo()</literal> method. The attributes of the Ant task are passed as Map parameters to the
+            method. Below is an example which executes the <literal>echo</literal> task. Notice that we can also mix
+            Groovy code and the Ant task markup:</para>
         <sample id="useAntTask" dir="userguide/ant/useAntTask" title="Using an Ant task">
             <sourcefile file="build.gradle"/>
             <output args="hello"/>
         </sample>
 
         <para>
-            You can pass nested text to an Ant task by passing it as a parameter to the method call.
+            You pass nested text to an Ant task by passing it as a parameter of the method call. In this example, we
+            pass the message for the <literal>echo</literal> task as nested text:
         </para>
         <sample id="taskWithNestedText" dir="userguide/ant/taskWithNestedText" title="Passing nested text to an Ant task">
             <sourcefile file="build.gradle"/>
             <output args="hello"/>
         </sample>
 
-        <para>Nested elements are passed to an Ant task inside a closures. Nested elements are defined in the same way
-            as tasks.</para>
+        <para>You pass nested elements to an Ant task inside a closure. Nested elements are defined in the same way
+            as tasks. That is, by calling a method with the same name as the element we want to define.</para>
         <sample id="taskWithNestedElements" dir="userguide/ant/taskWithNestedElements" title="Passing nested elements to an Ant task">
             <sourcefile file="build.gradle"/>
             <test args="zip"/>
         </sample>
 
-        <para>You can also access Ant types.</para>
+        <para>You can access Ant types in the same way that you access tasks, by using the name of the type as the
+            method name. The method call returns the Ant object, which you can then use in your build script. In the
+            following example, we create an Ant <literal>path</literal> object, then iterate over the contents of it.</para>
         <sample id="useAntType" dir="userguide/ant/useAntType" title="Using an Ant type">
             <sourcefile file="build.gradle"/>
             <test args="list"/>
@@ -108,13 +96,25 @@
         <section>
             <title>Using external Ant tasks in your build</title>
             <para>You can use the <literal>typedef</literal> Ant task to define external Ant tasks, just as you would
-                in a <literal>build.xml</literal> file:
+                in a <literal>build.xml</literal> file. You can then refer to the external Ant task as you would a
+                built-in Ant task.
             </para>
-            <para>TODO - sample goes here</para>
+            <sample id="useExternalAntTask" dir="userguide/ant/useExternalAntTask" title="Using an external Ant task">
+                <sourcefile file="build.gradle"/>
+            </sample>
             <para>
-                Gradle's dependency management works well with the <literal>typedef</literal>.
+                You can make use of Gradle's dependency management to assemble the classpath to use for the
+                <literal>typedef</literal>. To do this, you need to define a custom configuration for the classpath, then
+                add some dependencies to the configuration.
             </para>
-            <para>TODO - sample goes here</para>
+            <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Declaring the classpath for an external Ant task">
+                <sourcefile file="build.gradle" snippet="define-classpath"/>
+            </sample>
+            <para>To use the classpath configuration, use the <literal>asPath</literal> property of the custom configuration.</para>
+            <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Using an external Ant task and dependency management together">
+                <sourcefile file="build.gradle" snippet="use-classpath"/>
+                <test args="check"/>
+            </sample>
         </section>
     </section>
 

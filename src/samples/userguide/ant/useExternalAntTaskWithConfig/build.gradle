@@ -1,0 +1,22 @@
+repositories {
+    mavenCentral()
+}
+
+// START SNIPPET define-classpath
+configurations {
+    checkstyle
+}
+
+dependencies {
+    checkstyle group: 'checkstyle', name: 'checkstyle', version: '5.0'
+}
+// END SNIPPET define-classpath
+
+// START SNIPPET use-classpath
+task check << {
+    ant.taskdef(resource: 'checkstyletask.properties', classpath: configurations.checkstyle.asPath)
+    ant.checkstyle(config: 'checkstyle.xml') {
+        fileset(dir: 'src')
+    }
+}
+// END SNIPPET use-classpath

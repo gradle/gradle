@@ -1,0 +1,10 @@
+task check << {
+    ant.taskdef(resource: 'checkstyletask.properties') {
+        classpath {
+            fileset(dir: 'libs', include: '*.jar')
+        }
+    }
+    ant.checkstyle(config: 'checkstyle.xml') {
+        fileset(dir: 'src')
+    }
+}
