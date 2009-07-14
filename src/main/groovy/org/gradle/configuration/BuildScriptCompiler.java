@@ -57,6 +57,6 @@ public class BuildScriptCompiler implements ProjectEvaluator {
         processor.setTransformer(new BuildScriptTransformer());
         Script buildScript = processor.process(ProjectScript.class);
         projectScriptMetaData.applyMetaData(buildScript, project);
-        project.setBuildScript(buildScript);
+        project.setScript(buildScript);
     }
 }

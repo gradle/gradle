@@ -239,7 +239,7 @@ class DefaultProjectTest {
         context.checking {
             one(scriptHandlerMock).getRepositories()
         }
-        project.scriptclasspath {
+        project.buildscript {
             repositories
         }
     }
@@ -703,7 +703,7 @@ class DefaultProjectTest {
     @Test void testMethodMissing() {
         DefaultProject dummyParentProject = new DefaultProject("someProject")
         Script parentBuildScript = createScriptForMethodMissingTest('parent')
-        dummyParentProject.setBuildScript(parentBuildScript);
+        dummyParentProject.setScript(parentBuildScript);
         project.parent = dummyParentProject
         boolean closureCalled = false
         Closure testConfigureClosure = {closureCalled = true}
@@ -713,7 +713,7 @@ class DefaultProjectTest {
         project.convention.plugins.test = new TestConvention()
         assertEquals(TestConvention.METHOD_RESULT, project.scriptMethod(testConfigureClosure))
         Script projectScript = createScriptForMethodMissingTest('projectScript')
-        project.buildScript = projectScript
+        project.script = projectScript
         assertEquals('projectScript', project.scriptMethod(testConfigureClosure))
     }
 

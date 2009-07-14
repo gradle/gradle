@@ -32,6 +32,11 @@ public class OrSpecTest extends AbstractCompositeTest {
     }
 
     @Test
+    public void isNotSatisfiedWhenNoSpecs() {
+        assertFalse(new OrSpec().isSatisfiedBy(new Object()));
+    }
+    
+    @Test
     public void isSatisfiedByWithOneTrue() {
         assertTrue(new OrSpec(createAtomicElements(false, true, false)).isSatisfiedBy(context.mock(Dependency.class)));
     }

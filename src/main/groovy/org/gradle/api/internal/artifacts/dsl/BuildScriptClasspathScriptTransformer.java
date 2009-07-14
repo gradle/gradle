@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BuildScriptClasspathScriptTransformer extends AbstractScriptTransformer {
-    private static final String BUILDSCRIPT_METHOD_NAME = "scriptclasspath";
+    private static final String BUILDSCRIPT_METHOD_NAME = "buildscript";
 
     protected int getPhase() {
         return Phases.CONVERSION;

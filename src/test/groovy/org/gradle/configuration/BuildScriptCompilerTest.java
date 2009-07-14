@@ -15,7 +15,6 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.internal.artifacts.dsl.TaskDefinitionScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.project.ImportsReader;
@@ -109,7 +108,7 @@ public class BuildScriptCompilerTest {
 
             one(projectScriptMetaData).applyMetaData(buildScript, project);
 
-            one(project).setBuildScript(buildScript);
+            one(project).setScript(buildScript);
         }});
 
         evaluator.evaluate(project);

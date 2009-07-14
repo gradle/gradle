@@ -15,7 +15,6 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.internal.project.StandardOutputRedirector;
@@ -62,7 +61,7 @@ public class BuildScriptEvaluatorTest {
     @Test
     public void createsAndExecutesScriptAndNotifiesListener() {
         context.checking(new Expectations() {{
-            one(project).getBuildScript();
+            one(project).getScript();
             will(returnValue(buildScript));
 
             one(standardOutputRedirector).on(LogLevel.QUIET);
@@ -80,7 +79,7 @@ public class BuildScriptEvaluatorTest {
         final Throwable failure = new RuntimeException();
 
         context.checking(new Expectations() {{
-            one(project).getBuildScript();
+            one(project).getScript();
             will(returnValue(buildScript));
 
             one(standardOutputRedirector).on(LogLevel.QUIET);

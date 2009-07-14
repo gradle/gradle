@@ -91,7 +91,7 @@ class HelperUtil {
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)
-        project.setBuildScript(new EmptyScript())
+        project.setScript(new EmptyScript())
         project."_service_registry_factory_" = serviceRegistryFactory
         return project;
     }

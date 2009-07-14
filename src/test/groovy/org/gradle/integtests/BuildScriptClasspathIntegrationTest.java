@@ -70,7 +70,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "import static org.gradle.test.StaticImportedClass.*",
                 "import static org.gradle.test.StaticImportedFieldClass.anotherValue",
                 "import org.gradle.test2.*",
-                "scriptclasspath {",
+                "buildscript {",
                 "  repositories {",
                 "    flatDir dirs: file('repo')",
                 "  }",
@@ -119,7 +119,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "import org.gradle.buildsrc.test2.*",
                 "import static org.gradle.buildsrc.test.StaticImportedClass.*",
                 "import static org.gradle.buildsrc.test.StaticImportedFieldClass.anotherValue",
-                "scriptclasspath {",
+                "buildscript {",
                 "    new ImportedClass()",
                 "    new org.gradle.buildsrc.test.ImportedClass()",
                 "    new org.gradle.buildsrc.test2.OnDemandImportedClass()",
@@ -146,7 +146,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "include 'child'"
         );
         testFile("build.gradle").writelns(
-                "scriptclasspath {",
+                "buildscript {",
                 "    repositories { flatDir(dirs: file('repo')) }",
                 "    dependencies { classpath name: 'test', version: '1.3' }",
                 "}"

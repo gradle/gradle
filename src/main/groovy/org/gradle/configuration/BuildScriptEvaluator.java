@@ -22,7 +22,7 @@ public class BuildScriptEvaluator implements ProjectEvaluator {
     public void evaluate(ProjectInternal project) {
         project.getStandardOutputRedirector().on(LogLevel.QUIET);
         try {
-            project.getBuildScript().run();
+            project.getScript().run();
         } finally {
             project.getStandardOutputRedirector().flush();
         }

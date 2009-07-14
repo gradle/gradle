@@ -1050,12 +1050,12 @@ public interface Project extends Comparable<Project> {
     ProjectPluginsContainer getPlugins();
 
     /**
-     * Returns the build script classpath for this project. You can use this handler to manage the classpath used to
+     * Returns the build script handler for this project. You can use this handler to manage the classpath used to
      * compile and execute the project's build script.
      *
      * @return the classpath handler. Never returns null.
      */
-    ScriptHandler getScriptclasspath();
+    ScriptHandler getBuildscript();
 
     /**
      * Configures the build script classpath for this project. The given closure is executed against this project's
@@ -1063,5 +1063,5 @@ public interface Project extends Comparable<Project> {
      *
      * @param configureClosure the closure to use to configure the build script classpath.
      */
-    void scriptclasspath(Closure configureClosure);
+    void buildscript(Closure configureClosure);
 }

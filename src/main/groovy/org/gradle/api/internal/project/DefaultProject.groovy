@@ -31,6 +31,7 @@ import org.gradle.api.plugins.ProjectPluginsContainer
  */
 class DefaultProject extends AbstractProject {
 
+
     public DefaultProject(String name) {
         super(name);
     }
@@ -102,8 +103,8 @@ class DefaultProject extends AbstractProject {
         ConfigureUtil.configure(configureClosure, getArtifacts())
     }
 
-    public void scriptclasspath(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getScriptclasspath())
+    public void buildscript(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getBuildscript())
     }
 
     /**

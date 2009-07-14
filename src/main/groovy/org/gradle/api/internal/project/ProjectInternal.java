@@ -20,9 +20,9 @@ public interface ProjectInternal extends Project, ProjectIdentifier {
 
     DynamicObject getInheritedScope();
 
-    void setBuildScript(Script buildScript);
+    void setScript(Script buildScript);
 
-    Script getBuildScript();
+    Script getScript();
 
     StandardOutputRedirector getStandardOutputRedirector();
 

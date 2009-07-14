@@ -18,6 +18,7 @@ package org.gradle.api.specs;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import org.junit.Assert;
 
 /**
  * @author Hans Dockter
@@ -27,6 +28,11 @@ public class AndSpecTest extends AbstractCompositeTest {
         return new AndSpec(specs);
     }
 
+    @Test
+    public void isSatisfiedWhenNoSpecs() {
+        assertTrue(new AndSpec().isSatisfiedBy(new Object()));
+    }
+    
     @Test
     public void isSatisfiedByWithAllTrue() {
         assertTrue(new AndSpec(createAtomicElements(true, true, true)).isSatisfiedBy(new Object()));

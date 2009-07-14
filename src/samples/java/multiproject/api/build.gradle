@@ -1,4 +1,4 @@
-scriptclasspath {
+buildscript {
     repositories {
         mavenCentral()
     }

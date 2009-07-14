@@ -222,7 +222,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.projectEvaluator = projectEvaluator;
     }
 
-    public ScriptHandler getScriptclasspath() {
+    public ScriptHandler getBuildscript() {
         return scriptHandler;
     }
 
@@ -238,11 +238,11 @@ public abstract class AbstractProject implements ProjectInternal {
         this.buildFile = buildFile;
     }
 
-    public Script getBuildScript() {
+    public Script getScript() {
         return buildScript;
     }
 
-    public void setBuildScript(Script buildScript) {
+    public void setScript(Script buildScript) {
         this.buildScript = buildScript;
         dynamicObjectHelper.addObject(new BeanDynamicObject(buildScript).withNoProperties(), DynamicObjectHelper.Location.BeforeConvention);
     }
