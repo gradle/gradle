@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void handlesEmptyProjects() {
+    public void handlesEmptyProject() {
         testFile("build.gradle").writelns(
                 "usePlugin('java')"
         );
@@ -46,18 +46,16 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testFailureBreaksBuild() {
+    public void handlesTestSrcDoesNotContainAnyTestCases() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "usePlugin('java')"
         );
-        testFile("src/test/java/org/gradle/BrokenTest.java").write("package org.gradle; public class BrokenTest { }");
+        testFile("src/test/java/org/gradle/NotATest.java").writelns(
+                "package org.gradle;",
+                "public class NotATest {}");
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("libs").runWithFailure();
-
-        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
-        failure.assertHasContext("Execution failed for task ':test'");
-        failure.assertDescription(startsWith("There were failing tests."));
+        usingBuildFile(buildFile).withTasks("libs").run();
     }
 
     @Test

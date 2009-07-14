@@ -17,7 +17,10 @@ package org.gradle.integtests;
 
 import org.gradle.api.GradleException;
 import org.gradle.util.GUtil;
+import static org.gradle.util.Matchers.*;
 import org.hamcrest.Matcher;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -33,12 +36,11 @@ public class ForkingGradleExecuter implements GradleExecuter {
     private List<String> args;
 
     public ForkingGradleExecuter(GradleDistribution distribution) {
-        workingDir = null;
         logLevel = Executer.LIFECYCLE;
         tasks = new ArrayList<String>();
         args = new ArrayList<String>();
         this.distribution = distribution;
-        workingDir = distribution.getGradleHomeDir();
+        workingDir = distribution.getTestDir().asFile();
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -134,23 +136,33 @@ public class ForkingGradleExecuter implements GradleExecuter {
         }
 
         public void assertHasFileName(String filename) {
-            throw new UnsupportedOperationException();
+            assertThat(getError(), containsLine(startsWith(filename)));
         }
 
         public void assertHasDescription(String description) {
-            assertThat(getError(), containsString(description));
+            assertDescription(equalTo(description));
         }
 
-        public void assertDescription(Matcher<String> matcher) {
-            throw new UnsupportedOperationException();
+        public void assertDescription(final Matcher<String> matcher) {
+            assertThat(getError(), containsLine(new BaseMatcher<String>() {
+                public boolean matches(Object o) {
+                    String str = (String) o;
+                    String prefix = "Cause: ";
+                    return str.startsWith(prefix) && matcher.matches(str.substring(prefix.length()));
+                }
+
+                public void describeTo(Description description) {
+                    matcher.describeTo(description);
+                }
+            }));
         }
 
         public void assertHasContext(String context) {
-            assertThat(getError(), containsString(context));
+            assertContext(equalTo(context));
         }
 
         public void assertContext(Matcher<String> matcher) {
-            throw new UnsupportedOperationException();
+            assertThat(getError(), containsLine(matcher));
         }
     }
 }

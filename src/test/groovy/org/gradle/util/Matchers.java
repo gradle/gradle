@@ -23,6 +23,10 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
 import java.util.regex.Pattern;
 import java.util.Map;
+import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.StringReader;
+import java.io.IOException;
 
 public class Matchers {
     @Factory
@@ -34,12 +38,36 @@ public class Matchers {
     public static Matcher<String> containsLine(final String line) {
         return new BaseMatcher<String>() {
             public boolean matches(Object o) {
-                return Pattern.compile(String.format("^%s$", Pattern.quote(line)), Pattern.MULTILINE).matcher(
-                        o.toString()).find();
+                return containsLine(org.hamcrest.Matchers.equalTo(line)).matches(o);
             }
 
             public void describeTo(Description description) {
                 description.appendText("contains line ").appendValue(line);
+            }
+        };
+    }
+
+    @Factory
+    public static Matcher<String> containsLine(final Matcher<? super String> matcher) {
+        return new BaseMatcher<String>() {
+            public boolean matches(Object o) {
+                String str = (String) o;
+                BufferedReader reader = new BufferedReader(new StringReader(str));
+                String line;
+                try {
+                    while((line = reader.readLine()) != null) {
+                        if (matcher.matches(line)) {
+                            return true;
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                return false;
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("contains line that matches ").appendDescriptionOf(matcher);
             }
         };
     }
