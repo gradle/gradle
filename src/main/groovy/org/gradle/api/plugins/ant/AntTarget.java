@@ -20,19 +20,38 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.TaskDependency;
 
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-public class AntTask extends ConventionTask {
+public class AntTarget extends ConventionTask {
     private Target target;
 
-    public AntTask(Project project, String name) {
+    public AntTarget(Project project, String name) {
         super(project, name);
         doFirst(new TaskAction() {
             public void execute(Task task) {
                 executeAntTarget();
             }
         });
+
+        dependsOn(new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                return getAntTargetDependencies();
+            }
+        });
+    }
+
+    private Set<Task> getAntTargetDependencies() {
+        Set<Task> tasks = new LinkedHashSet<Task>();
+        Enumeration dependencies = target.getDependencies();
+        while (dependencies.hasMoreElements()) {
+            String name = (String) dependencies.nextElement();
+            tasks.add(getProject().getTasks().getByName(name));
+        }
+        return tasks;
     }
 
     private void executeAntTarget() {
@@ -45,11 +64,6 @@ public class AntTask extends ConventionTask {
 
     public void setTarget(Target target) {
         this.target = target;
-        Enumeration dependencies = target.getDependencies();
-        while (dependencies.hasMoreElements()) {
-            String name = (String) dependencies.nextElement();
-            dependsOn(name);
-        }
     }
 
     @Override

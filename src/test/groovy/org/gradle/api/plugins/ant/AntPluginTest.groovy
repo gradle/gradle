@@ -38,15 +38,15 @@ public class AntPluginTest {
         project.importAntBuild(buildFile)
 
         def task = project.tasks.target1
-        assertThat(task, instanceOf(AntTask))
+        assertThat(task, instanceOf(AntTarget))
         assertThat(task.target.name, equalTo('target1'))
         
         task = project.tasks.target2
-        assertThat(task, instanceOf(AntTask))
+        assertThat(task, instanceOf(AntTarget))
         assertThat(task.target.name, equalTo('target2'))
 
         task = project.tasks.target3
-        assertThat(task, instanceOf(AntTask))
+        assertThat(task, instanceOf(AntTarget))
         assertThat(task.target.name, equalTo('target3'))
     }
 }

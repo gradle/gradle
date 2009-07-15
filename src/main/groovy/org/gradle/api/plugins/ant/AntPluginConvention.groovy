@@ -15,19 +15,23 @@ public class AntPluginConvention {
     def importAntBuild(String file) {
         importAntBuild(project.file(file))
     }
-    
+
     def importAntBuild(File file) {
         file = file.canonicalFile
         org.apache.tools.ant.Project antProject = project.ant.project
-        antProject.basedir = file.parentFile
+        File oldBaseDir = antProject.baseDir
+        antProject.baseDir = file.parentFile
 
-        antProject.setUserProperty(MagicNames.ANT_FILE, file.getAbsolutePath());
+        try {
+            antProject.setUserProperty(MagicNames.ANT_FILE, file.getAbsolutePath())
+            ProjectHelper.configureProject(antProject, file)
+        } finally {
+            antProject.baseDir = oldBaseDir
+        }
 
-        ProjectHelper.configureProject(antProject, file)
-        
         antProject.targets.each {name, Target target ->
             if (target.name) {
-                AntTask task = project.tasks.add(target.name, AntTask)
+                AntTarget task = project.tasks.add(target.name, AntTarget)
                 task.target = target
             }
         }

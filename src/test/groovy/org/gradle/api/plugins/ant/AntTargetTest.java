@@ -17,58 +17,63 @@ package org.gradle.api.plugins.ant;
 
 import org.apache.tools.ant.Target;
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
 import org.apache.tools.ant.BuildException;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.Task;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.Before;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 
-public class AntTaskTest {
-    private Target target = new Target();
-    private AntTask task = new AntTask(HelperUtil.createRootProject(), "task");
+import java.util.Set;
+
+public class AntTargetTest {
+    private Target antTarget = new Target();
+    private final DefaultProject project = HelperUtil.createRootProject();
+    private AntTarget target = new AntTarget(project, "target");
 
     @Before
     public void setUp() {
-        target.setProject(new Project());
+        antTarget.setProject(new Project());
     }
 
     @Test
     public void executesTargetOnExecute() {
         TestTask testTask = new TestTask();
-        testTask.setProject(target.getProject());
-        target.addTask(testTask);
+        testTask.setProject(antTarget.getProject());
+        antTarget.addTask(testTask);
 
-        task.setTarget(target);
-        task.execute();
+        target.setTarget(antTarget);
+        target.execute();
 
         assertTrue(testTask.executed);
     }
 
     @Test
     public void dependsOnTargetDependencies() {
-        target.setDepends("a, b");
+        Task a = project.getTasks().add("a");
+        Task b = project.getTasks().add("b");
+        antTarget.setDepends("a, b");
 
-        task.setTarget(target);
-        assertThat(task.getDependsOn(), equalTo(toSet((Object) "a", "b")));
+        target.setTarget(antTarget);
+        Set dependencies = target.getTaskDependencies().getDependencies(target);
+        assertThat(dependencies, equalTo((Set) toSet(a, b)));
     }
 
     @Test
     public void delegatesDescriptionToTarget() {
-        target.setDescription("description");
+        antTarget.setDescription("description");
 
-        task.setTarget(target);
-        assertThat(task.getDescription(), equalTo("description"));
+        target.setTarget(antTarget);
+        assertThat(target.getDescription(), equalTo("description"));
 
-        task.setDescription("new description");
+        antTarget.setDescription("new description");
         assertThat(target.getDescription(), equalTo("new description"));
     }
 
-    public static class TestTask extends Task {
+    public static class TestTask extends org.apache.tools.ant.Task {
         boolean executed;
 
         @Override
