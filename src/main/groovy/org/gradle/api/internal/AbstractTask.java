@@ -75,7 +75,7 @@ public abstract class AbstractTask implements TaskInternal {
 
     private String description;
 
-    private Spec<Task> onlyIfSpec;
+    private Spec<? super Task> onlyIfSpec;
 
     protected AbstractTask() {
         dynamicObjectHelper = new DynamicObjectHelper(this);
@@ -144,7 +144,7 @@ public abstract class AbstractTask implements TaskInternal {
         this.onlyIfSpec = (Spec<Task>) DefaultGroovyMethods.asType(onlyIfClosure, Spec.class);
     }
 
-    public void onlyIf(Spec<Task> onlyIfSpec) {
+    public void onlyIf(Spec<? super Task> onlyIfSpec) {
         this.onlyIfSpec = onlyIfSpec;
     }
 

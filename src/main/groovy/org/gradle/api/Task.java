@@ -225,7 +225,7 @@ public interface Task extends Comparable<Task> {
      * @see #getDidWork()
      * @param onlyIfSpec specifies if a task should be run
      */
-    void onlyIf(Spec<Task> onlyIfSpec);
+    void onlyIf(Spec<? super Task> onlyIfSpec);
 
     /**
      * <p>Checks if the task actually did any work.  Even if a Task executes, it may determine that it has nothing
