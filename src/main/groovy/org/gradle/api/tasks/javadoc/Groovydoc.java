@@ -38,7 +38,7 @@ import java.util.ArrayList;
  * @author Hans Dockter
  */
 public class Groovydoc extends ConventionTask {
-    private List srcDirs;
+    private List<File> srcDirs;
 
     private FileCollection groovyClasspath;
 
@@ -77,14 +77,14 @@ public class Groovydoc extends ConventionTask {
      *
      * @return The source directories. Never returns null.
      */
-    public List getSrcDirs() {
+    public List<File> getSrcDirs() {
         return srcDirs;
     }
 
     /**
      * <p>Sets the source directories containing the groovy source files to generate documentation for.</p>
      */
-    public void setSrcDirs(List srcDirs) {
+    public void setSrcDirs(List<File> srcDirs) {
         this.srcDirs = srcDirs;
     }
 

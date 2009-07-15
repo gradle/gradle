@@ -23,7 +23,7 @@ import org.gradle.api.TaskAction;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.DefaultTask;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ import java.io.File;
  * 
  * @author Hans Dockter
  */
-public class Upload extends DefaultTask {
+public class Upload extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Upload.class);
 
     private Configuration configuration;
