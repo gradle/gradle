@@ -42,6 +42,10 @@ public class ForkingGradleExecuter implements GradleExecuter {
         workingDir = distribution.getTestDir().asFile();
     }
 
+    public GradleExecuter inDirectory(TestFile directory) {
+        return inDirectory(directory.asFile());
+    }
+
     public GradleExecuter inDirectory(File directory) {
         workingDir = directory;
         return this;

@@ -20,14 +20,14 @@ import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
-import static org.junit.Assert.assertTrue
-import org.junit.runner.RunWith
-import org.junit.Test
-import org.junit.Before
-import org.junit.After
-import static org.junit.Assert.*
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matchers
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.gradle.integtests.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -42,7 +42,7 @@ class SamplesJavaMultiProjectIntegrationTest {
     static final String SERVICES_NAME = 'services'
     static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
-    private File javaprojectDir
+    private TestFile javaprojectDir
     private List projects;
 
     // Injected by test runner
@@ -51,7 +51,7 @@ class SamplesJavaMultiProjectIntegrationTest {
 
     @Before
     void setUp() {
-        javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
+        javaprojectDir = new TestFile(dist.samplesDir, 'java/multiproject')
         projects = [SHARED_NAME, API_NAME, WEBAPP_PATH].collect {"$JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         deleteBuildDir(projects)
     }
@@ -91,23 +91,37 @@ class SamplesJavaMultiProjectIntegrationTest {
         assertExists(javaprojectDir, WEBAPP_PATH, 'build/test-results/TESTS-TestSuites.xml')
         assertExists(javaprojectDir, WEBAPP_PATH, 'build/reports/tests/index.html')
 
-        // Check jar exists
-        assertExists(javaprojectDir, SHARED_NAME, "build/libs/$SHARED_NAME-1.0.jar".toString())
-        assertExists(javaprojectDir, API_NAME, "build/libs/$API_NAME-1.0.jar".toString())
-        assertExists(javaprojectDir, API_NAME, "build/libs/$API_NAME-spi-1.0.jar".toString())
-        assertExists(javaprojectDir, WEBAPP_PATH, "build/libs/$WEBAPP_NAME-2.5.war".toString())
+        // Check jars exist
+        assertExists(javaprojectDir, SHARED_NAME, "build/libs/$SHARED_NAME-1.0.jar")
+
+        TestFile apiImplJar = javaprojectDir.file(API_NAME, "build/libs/$API_NAME-1.0.jar")
+        apiImplJar.assertExists()
+        TestFile tmpDir = dist.testDir.file("$API_NAME-1.0.jar")
+        apiImplJar.unzipTo(tmpDir)
+        tmpDir.assertHasDescendents('org/gradle/api/PersonList.class',
+                'META-INF/MANIFEST.MF',
+                'org/gradle/apiImpl/Impl.class')
+
+        TestFile apiJar = javaprojectDir.file(API_NAME, "build/libs/$API_NAME-spi-1.0.jar")
+        tmpDir = dist.testDir.file("$API_NAME-spi-1.0.jar")
+        apiJar.unzipTo(tmpDir)
+        tmpDir.assertHasDescendents('org/gradle/api/PersonList.class', 
+                'META-INF/MANIFEST.MF')
+
+        assertExists(javaprojectDir, API_NAME, "build/libs/$API_NAME-spi-1.0.jar")
+        assertExists(javaprojectDir, WEBAPP_PATH, "build/libs/$WEBAPP_NAME-2.5.war")
 
         // Check dist zip exists
-        assertExists(javaprojectDir, API_NAME, "build/distributions/$API_NAME-1.0.zip".toString())
+        assertExists(javaprojectDir, API_NAME, "build/distributions/$API_NAME-1.0.zip")
     }
 
     @Test
     public void multiProjectJavaDoc() {
         executer.inDirectory(javaprojectDir).withTasks('javadoc').run()
         assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
-        assertTrue(fileText(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').contains("These are the shared classes."))
+        assertTrue(javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').text.contains("These are the shared classes."))
         assertExists(javaprojectDir, API_NAME, 'build/docs/javadoc/index.html')
-        assertTrue(fileText(javaprojectDir, API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').contains("These are the API classes"))
+        assertTrue(javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').text.contains("These are the API classes"))
         assertExists(javaprojectDir, WEBAPP_PATH, 'build/docs/javadoc/index.html')
     }
 
@@ -117,7 +131,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         String testPackagePrefix = 'build/test-classes/org/gradle'
 
         // Partial build using current directory
-        executer.inDirectory(new File(javaprojectDir, "$SERVICES_NAME/$WEBAPP_NAME")).withTasks('libs').run()
+        executer.inDirectory(javaprojectDir.file("$SERVICES_NAME/$WEBAPP_NAME")).withTasks('libs').run()
         checkPartialWebAppBuild(packagePrefix, javaprojectDir, testPackagePrefix)
 
         // Partial build using task path
@@ -135,18 +149,18 @@ class SamplesJavaMultiProjectIntegrationTest {
 
     @Test
     public void noRebuildOfProjectDependencies() {
-        File apiDir = new File(javaprojectDir, API_NAME)
+        TestFile apiDir = javaprojectDir.file(API_NAME)
         executer.inDirectory(apiDir).withTasks('compile').run()
-        File sharedJar = new File(javaprojectDir, ".gradle/internal-repository/org.gradle/shared/1.0/jars/shared.jar")
-        long oldTimeStamp = sharedJar.lastModified()
+        TestFile sharedJar = javaprojectDir.file(".gradle/internal-repository/org.gradle/shared/1.0/jars/shared.jar")
+        long oldTimeStamp = sharedJar.asFile().lastModified()
         executer.inDirectory(apiDir).withTasks('clean', 'compile').withArguments("-a").run()
-        long newTimeStamp = sharedJar.lastModified()
+        long newTimeStamp = sharedJar.asFile().lastModified()
         assertThat(newTimeStamp, Matchers.equalTo(oldTimeStamp))
     }
 
     @Test
     public void additionalProjectDependenciesTasks() {
-        File apiDir = new File(javaprojectDir, API_NAME)
+        TestFile apiDir = javaprojectDir.file(API_NAME)
         executer.inDirectory(apiDir).withTasks('compile').withArguments("-A javadoc").run()
         assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
     }
@@ -157,17 +171,17 @@ class SamplesJavaMultiProjectIntegrationTest {
 
         String cachePath = System.properties['user.home'] + '/.gradle/cache'
         compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
-                file(javaprojectDir, API_NAME, ".project").text)
+                javaprojectDir.file(API_NAME, ".project").text)
         compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
-                file(javaprojectDir, WEBAPP_PATH, ".project").text)
+                javaprojectDir.file(WEBAPP_PATH, ".project").text)
         compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
-                file(javaprojectDir, WEBAPP_PATH, ".project").text)
+                javaprojectDir.file(WEBAPP_PATH, ".project").text)
         compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedApiClasspathFile.txt", cachePath),
-                file(javaprojectDir, API_NAME, ".classpath").text)
+                javaprojectDir.file(API_NAME, ".classpath").text)
         compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedWebApp1ClasspathFile.txt", cachePath),
-                file(javaprojectDir, WEBAPP_PATH, ".classpath").text)
+                javaprojectDir.file(WEBAPP_PATH, ".classpath").text)
         compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedWebApp1WtpFile.txt", cachePath),
-                file(javaprojectDir, WEBAPP_PATH, ".settings/org.eclipse.wst.common.component").text)
+                javaprojectDir.file(WEBAPP_PATH, ".settings/org.eclipse.wst.common.component").text)
 
         executer.inDirectory(javaprojectDir).withTasks('eclipseClean').run()
         assertDoesNotExist(javaprojectDir, false, API_NAME, ".project")
@@ -188,7 +202,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         templateEngine.createTemplate(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream(resourcePath).text).make(cachePath: new File(cachePath).canonicalPath).toString().replace('\\', '/')
     }
            
-    private static def checkPartialWebAppBuild(String packagePrefix, File javaprojectDir, String testPackagePrefix) {
+    private static def checkPartialWebAppBuild(String packagePrefix, TestFile javaprojectDir, String testPackagePrefix) {
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'main.properties')
         assertExists(javaprojectDir, SHARED_NAME, testPackagePrefix, SHARED_NAME, 'PersonTest.class')
@@ -198,19 +212,11 @@ class SamplesJavaMultiProjectIntegrationTest {
         assertDoesNotExist(javaprojectDir, false, "$SERVICES_NAME/$WEBAPP_NAME" as String, 'build', 'libs', 'webservice-2.5.jar')
     }
 
-    private static void assertExists(File baseDir, String[] path) {
-        new TestFile(baseDir).file(path).assertExists()
+    private static void assertExists(TestFile baseDir, Object... path) {
+        baseDir.file(path).assertExists()
     }
 
-    static File file(File baseDir, String[] path) {
-        new File(baseDir, path.join('/'));    
-    }
-
-    static void assertDoesNotExist(File baseDir, boolean shouldExists, String[] path) {
-        new TestFile(baseDir).file(path).assertDoesNotExist()
-    }
-
-    static String fileText(File baseDir, String[] path) {
-        file(baseDir, path).text
+    static void assertDoesNotExist(TestFile baseDir, boolean shouldExists, Object... path) {
+        baseDir.file(path).assertDoesNotExist()
     }
 }

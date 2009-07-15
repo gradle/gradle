@@ -77,7 +77,7 @@ public class Matchers {
         return new BaseMatcher<Iterable<?>>() {
             public boolean matches(Object o) {
                 Iterable<?> iterable = (Iterable<?>) o;
-                return !iterable.iterator().hasNext();
+                return iterable != null && !iterable.iterator().hasNext();
             }
 
             public void describeTo(Description description) {

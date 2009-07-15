@@ -33,29 +33,35 @@ class SamplesWebProjectIntegrationTest {
 
     @Test
     public void webProjectSamples() {
-        String gradleHome = dist.gradleHomeDir.absolutePath
-        File webProjectDir = new File(dist.samplesDir, "webApplication/$WEB_PROJECT_NAME")
+        TestFile webProjectDir = new TestFile(dist.samplesDir, "webApplication/$WEB_PROJECT_NAME")
         executer.inDirectory(webProjectDir).withTasks('clean', 'libs').run()
-        String unjarPath = "$webProjectDir/build/unjar"
-        AntBuilder ant = new AntBuilder()
-        ant.unjar(src: "$webProjectDir/build/libs/$WEB_PROJECT_NAME-1.0.war", dest: unjarPath)
-        ['root.txt', 'WEB-INF/classes/org/MyClass.class', 'WEB-INF/lib/compile-1.0.jar', 'WEB-INF/lib/runtime-1.0.jar',
-                'WEB-INF/lib/additional-1.0.jar', 'WEB-INF/lib/otherLib-1.0.jar', 'WEB-INF/additional.xml', 'WEB-INF/webapp.xml', 'WEB-INF/web.xml',
-                'webapp.html'].each {
-            assert new File("$unjarPath/$it").isFile()
-        }
-
-        checkJettyPlugin(gradleHome, webProjectDir)
+        TestFile tmpDir = dist.testDir.file('unjar')
+        webProjectDir.file("build/libs/$WEB_PROJECT_NAME-1.0.war").unzipTo(tmpDir)
+        tmpDir.assertHasDescendents(
+                'root.txt',
+                'META-INF/MANIFEST.MF',
+                'WEB-INF/classes/org/HelloServlet.class',
+                'WEB-INF/classes/org/MyClass.class',
+                'WEB-INF/lib/compile-1.0.jar',
+                'WEB-INF/lib/runtime-1.0.jar',
+                'WEB-INF/lib/additional-1.0.jar',
+                'WEB-INF/lib/otherLib-1.0.jar',
+                'WEB-INF/additional.xml',
+                'WEB-INF/webapp.xml',
+                'WEB-INF/web.xml',
+                'webapp.html')
     }
 
-    void checkJettyPlugin(String gradleHome, File webProjectDir) {
+    @Test
+    public void checkJettyPlugin() {
+        TestFile webProjectDir = new TestFile(dist.samplesDir, "webApplication/$WEB_PROJECT_NAME")
         executer.inDirectory(webProjectDir).withTasks('clean', 'runTest').run()
         checkServletOutput(webProjectDir)
         executer.inDirectory(webProjectDir).withTasks('clean', 'runWarTest').run()
         checkServletOutput(webProjectDir)
     }
 
-    static void checkServletOutput(File webProjectDir) {
-        Assert.assertEquals('Hello Gradle', new File(webProjectDir, "build/servlet-out.txt").text)
+    static void checkServletOutput(TestFile webProjectDir) {
+        Assert.assertEquals('Hello Gradle', webProjectDir.file("build/servlet-out.txt").text)
     }
 }

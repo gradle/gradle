@@ -24,11 +24,14 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.AbstractFileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.util.FileSet;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.Tar;
@@ -49,7 +52,6 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class JavaPlugin implements Plugin {
-    public static final String INIT_TASK_NAME = "init";
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
     public static final String COMPILE_TASK_NAME = "compile";
     public static final String PROCESS_TEST_RESOURCES_TASK_NAME = "processTestResources";
@@ -183,6 +185,11 @@ public class JavaPlugin implements Plugin {
 
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.setDescription("Generates a jar archive with all the compiled classes.");
+        jar.conventionMapping("resourceCollections", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return WrapUtil.toList((Object) new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
+            }
+        });
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
     }
 

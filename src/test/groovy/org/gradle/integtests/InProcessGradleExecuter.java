@@ -49,6 +49,10 @@ public class InProcessGradleExecuter implements GradleExecuter {
         this.parameter = parameter;
     }
 
+    public GradleExecuter inDirectory(TestFile directory) {
+        return inDirectory(directory.asFile());
+    }
+
     public GradleExecuter inDirectory(File directory) {
         parameter.setCurrentDir(directory);
         return this;

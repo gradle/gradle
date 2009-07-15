@@ -20,6 +20,8 @@ import java.io.File;
 public interface GradleExecuter {
     GradleExecuter inDirectory(File directory);
 
+    GradleExecuter inDirectory(TestFile directory);
+
     GradleExecuter withSearchUpwards();
 
     GradleExecuter withTasks(String... names);

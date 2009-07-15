@@ -18,13 +18,12 @@ package org.gradle.integtests;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.CompressUtil;
 import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Formatter;
-import java.util.List;
+import java.util.*;
 
 public class TestFile {
     private final File file;
@@ -40,7 +39,7 @@ public class TestFile {
     public TestFile file(Object... path) {
         return new TestFile(file, path);
     }
-    
+
     public TestFile writelns(String... lines) {
         return writelns(Arrays.asList(lines));
     }
@@ -52,6 +51,18 @@ public class TestFile {
             throw new UncheckedIOException(e);
         }
         return this;
+    }
+
+    public String getText() {
+        try {
+            return FileUtils.readFileToString(file);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public void unzipTo(TestFile file) {
+        CompressUtil.unzip(this.file, file.file);
     }
 
     public void touch() {
@@ -85,5 +96,27 @@ public class TestFile {
 
     public void assertDoesNotExist() {
         assertFalse(String.format("%s should not exist", file), file.exists());
+    }
+
+    /**
+     * Asserts that this file contains exactly the given set of descendents
+     */
+    public void assertHasDescendents(String... descendents) {
+        Set<String> actual = new TreeSet<String>();
+        visit(actual, "", file);
+        Set<String> expected = new TreeSet<String>(Arrays.asList(descendents));
+        assertEquals(expected, actual);
+    }
+
+    private void visit(Set<String> names, String prefix, File file) {
+        if (file.isDirectory()) {
+            for (File child : file.listFiles()) {
+                if (child.isFile()) {
+                    names.add(prefix + child.getName());
+                } else if (child.isDirectory()) {
+                    visit(names, prefix + child.getName() + "/", child);
+                }
+            }
+        }
     }
 }
