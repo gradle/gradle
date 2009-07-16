@@ -52,26 +52,15 @@ public class AbstractIntegrationTest {
         URL resource = getClass().getResource("testProjects/" + name);
         assertThat(String.format("Could not find resource '%s'", name), resource, notNullValue());
         assertThat(resource.getProtocol(), equalTo("file"));
-        File sourceFile;
-        try {
-            sourceFile = new File(resource.toURI());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(String.format("Could not locate test build file '%s'.", name));
-        }
-
-        File destFile = testFile(sourceFile.getName()).asFile();
-        try {
-            FileUtils.copyFile(sourceFile, destFile);
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("Could not copy test build file '%s' to '%s'", sourceFile,
-                    destFile), e);
-        }
+        TestFile sourceFile= new TestFile(resource);
+        TestFile destFile = testFile(sourceFile.getName());
+        sourceFile.copyTo(destFile);
         return destFile;
     }
 
     private StartParameter startParameter() {
         StartParameter parameter = new StartParameter();
-        parameter.setGradleHomeDir(testFile("gradle-home").asFile());
+        parameter.setGradleHomeDir(testFile("gradle-home"));
 
         testFile("gradle-home/gradle-imports").writelns("import org.gradle.api.*", "import static org.junit.Assert.*",
                 "import static org.hamcrest.Matchers.*");
@@ -84,7 +73,7 @@ public class AbstractIntegrationTest {
                 "ant=org.gradle.api.plugins.ant.AntPlugin"
         );
 
-        parameter.setGradleUserHomeDir(testFile("user-home").asFile());
+        parameter.setGradleUserHomeDir(testFile("user-home"));
 
         parameter.setSearchUpwards(false);
         parameter.setCacheUsage(CacheUsage.ON);
@@ -102,10 +91,6 @@ public class AbstractIntegrationTest {
         return new InProcessGradleExecuter(parameter).inDirectory(directory);
     }
 
-    protected GradleExecuter usingBuildFile(TestFile file) {
-        return usingBuildFile(file.asFile());
-    }
-
     protected GradleExecuter usingBuildFile(File file) {
         StartParameter parameter = startParameter();
         parameter.setBuildFile(file);
@@ -116,10 +101,6 @@ public class AbstractIntegrationTest {
         StartParameter parameter = startParameter();
         parameter.useEmbeddedBuildFile(script);
         return new InProcessGradleExecuter(parameter);
-    }
-
-    protected GradleExecuter usingProjectDir(TestFile projectDir) {
-        return usingProjectDir(projectDir.asFile());
     }
 
     protected GradleExecuter usingProjectDir(File projectDir) {

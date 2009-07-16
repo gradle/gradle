@@ -33,11 +33,11 @@ class SamplesWebProjectIntegrationTest {
 
     @Test
     public void webProjectSamples() {
-        TestFile webProjectDir = new TestFile(dist.samplesDir, "webApplication/$WEB_PROJECT_NAME")
+        TestFile webProjectDir = dist.samplesDir.file("webApplication/$WEB_PROJECT_NAME")
         executer.inDirectory(webProjectDir).withTasks('clean', 'libs').run()
         TestFile tmpDir = dist.testDir.file('unjar')
         webProjectDir.file("build/libs/$WEB_PROJECT_NAME-1.0.war").unzipTo(tmpDir)
-        tmpDir.assertHasDescendents(
+        tmpDir.assertHasDescendants(
                 'root.txt',
                 'META-INF/MANIFEST.MF',
                 'WEB-INF/classes/org/HelloServlet.class',
@@ -54,7 +54,7 @@ class SamplesWebProjectIntegrationTest {
 
     @Test
     public void checkJettyPlugin() {
-        TestFile webProjectDir = new TestFile(dist.samplesDir, "webApplication/$WEB_PROJECT_NAME")
+        TestFile webProjectDir = dist.samplesDir.file("webApplication/$WEB_PROJECT_NAME")
         executer.inDirectory(webProjectDir).withTasks('clean', 'runTest').run()
         checkServletOutput(webProjectDir)
         executer.inDirectory(webProjectDir).withTasks('clean', 'runWarTest').run()

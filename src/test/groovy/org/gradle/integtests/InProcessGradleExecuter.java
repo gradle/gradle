@@ -19,6 +19,8 @@ import org.gradle.StartParameter;
 import org.gradle.Gradle;
 import org.gradle.BuildResult;
 import org.gradle.BuildListener;
+import org.gradle.util.Matchers;
+import static org.gradle.util.Matchers.*;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.api.Task;
 import org.gradle.api.GradleException;
@@ -49,10 +51,6 @@ public class InProcessGradleExecuter implements GradleExecuter {
         this.parameter = parameter;
     }
 
-    public GradleExecuter inDirectory(TestFile directory) {
-        return inDirectory(directory.asFile());
-    }
-
     public GradleExecuter inDirectory(File directory) {
         parameter.setCurrentDir(directory);
         return this;
@@ -76,10 +74,6 @@ public class InProcessGradleExecuter implements GradleExecuter {
     public InProcessGradleExecuter withDependencyList() {
         parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
         return this;
-    }
-
-    public InProcessGradleExecuter usingSettingsFile(TestFile settingsFile) {
-        return usingSettingsFile(settingsFile.asFile());
     }
 
     public InProcessGradleExecuter usingSettingsFile(File settingsFile) {
@@ -201,7 +195,7 @@ public class InProcessGradleExecuter implements GradleExecuter {
         }
 
         public void assertHasCause(String description) {
-            assertThat(failure.getCause().getMessage(), endsWith(description));
+            assertThatCause(equalTo(description));
         }
 
         public void assertThatCause(Matcher<String> matcher) {
@@ -209,11 +203,11 @@ public class InProcessGradleExecuter implements GradleExecuter {
         }
 
         public void assertHasDescription(String context) {
-            assertThat(failure.getMessage(), containsString(context));
+            assertThatDescription(startsWith(context));
         }
 
         public void assertThatDescription(Matcher<String> matcher) {
-            assertThat(failure.getMessage(), matcher);
+            assertThat(failure.getMessage(), containsLine(matcher));
         }
     }
 }

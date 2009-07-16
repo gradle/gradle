@@ -105,10 +105,6 @@ public class TestNGIntegrationTest {
         project.doAssert(projectDir, result)
     }
 
-    static File file(File baseDir, String[] path) {
-        new File(baseDir, path.join('/'));
-    }
-
     static void checkExists(File baseDir, String[] path) {
         new TestFile(baseDir, path).assertExists()
     }

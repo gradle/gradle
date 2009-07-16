@@ -51,7 +51,7 @@ class SamplesJavaMultiProjectIntegrationTest {
 
     @Before
     void setUp() {
-        javaprojectDir = new TestFile(dist.samplesDir, 'java/multiproject')
+        javaprojectDir = dist.samplesDir.file('java/multiproject')
         projects = [SHARED_NAME, API_NAME, WEBAPP_PATH].collect {"$JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         deleteBuildDir(projects)
     }
@@ -98,14 +98,14 @@ class SamplesJavaMultiProjectIntegrationTest {
         apiImplJar.assertExists()
         TestFile tmpDir = dist.testDir.file("$API_NAME-1.0.jar")
         apiImplJar.unzipTo(tmpDir)
-        tmpDir.assertHasDescendents('org/gradle/api/PersonList.class',
+        tmpDir.assertHasDescendants('org/gradle/api/PersonList.class',
                 'META-INF/MANIFEST.MF',
                 'org/gradle/apiImpl/Impl.class')
 
         TestFile apiJar = javaprojectDir.file(API_NAME, "build/libs/$API_NAME-spi-1.0.jar")
         tmpDir = dist.testDir.file("$API_NAME-spi-1.0.jar")
         apiJar.unzipTo(tmpDir)
-        tmpDir.assertHasDescendents('org/gradle/api/PersonList.class', 
+        tmpDir.assertHasDescendants('org/gradle/api/PersonList.class',
                 'META-INF/MANIFEST.MF')
 
         assertExists(javaprojectDir, API_NAME, "build/libs/$API_NAME-spi-1.0.jar")
@@ -152,9 +152,9 @@ class SamplesJavaMultiProjectIntegrationTest {
         TestFile apiDir = javaprojectDir.file(API_NAME)
         executer.inDirectory(apiDir).withTasks('compile').run()
         TestFile sharedJar = javaprojectDir.file(".gradle/internal-repository/org.gradle/shared/1.0/jars/shared.jar")
-        long oldTimeStamp = sharedJar.asFile().lastModified()
+        long oldTimeStamp = sharedJar.lastModified()
         executer.inDirectory(apiDir).withTasks('clean', 'compile').withArguments("-a").run()
-        long newTimeStamp = sharedJar.asFile().lastModified()
+        long newTimeStamp = sharedJar.lastModified()
         assertThat(newTimeStamp, Matchers.equalTo(oldTimeStamp))
     }
 

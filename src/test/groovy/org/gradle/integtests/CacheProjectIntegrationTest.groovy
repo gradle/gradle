@@ -36,11 +36,11 @@ class CacheProjectIntegrationTest {
         File cacheProjectDir = new File(dist.samplesDir, "cache-project")
         cacheProjectDir.mkdirs();
         createLargeBuildScript(cacheProjectDir)
-        testBuild(cacheProjectDir, dist.gradleHomeDir, "hello1", String.format("Hello 1"))
+        testBuild(cacheProjectDir, "hello1", String.format("Hello 1"))
         changeCacheVersionProperty(cacheProjectDir)
-        testBuild(cacheProjectDir, dist.gradleHomeDir, "hello2", String.format("Hello 2"))
+        testBuild(cacheProjectDir, "hello2", String.format("Hello 2"))
         modifyLargeBuildScript(cacheProjectDir)
-        testBuild(cacheProjectDir, dist.gradleHomeDir, "newTask", String.format("I am new"))
+        testBuild(cacheProjectDir, "newTask", String.format("I am new"))
     }
 
     private def changeCacheVersionProperty(File cacheProjectDir) {
@@ -55,7 +55,7 @@ class CacheProjectIntegrationTest {
         propertiesOutputStream.close()
     }
 
-    private def testBuild(File cacheProjectDir, File gradleHome, String taskName, String expected) {
+    private def testBuild(File cacheProjectDir, String taskName, String expected) {
         executer.inDirectory(cacheProjectDir).withTasks(taskName).withQuietLogging().run()
         Assert.assertEquals(expected, new File(cacheProjectDir, TEST_FILE).text)
     }

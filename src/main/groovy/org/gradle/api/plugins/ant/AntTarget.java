@@ -25,9 +25,14 @@ import org.gradle.api.tasks.TaskDependency;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.io.File;
 
+/**
+ * A task which executes an Ant target.
+ */
 public class AntTarget extends ConventionTask {
     private Target target;
+    private File baseDir;
 
     public AntTarget(Project project, String name) {
         super(project, name);
@@ -55,22 +60,54 @@ public class AntTarget extends ConventionTask {
     }
 
     private void executeAntTarget() {
-        target.performTasks();
+        File oldBaseDir = target.getProject().getBaseDir();
+        target.getProject().setBaseDir(baseDir);
+        try {
+            target.performTasks();
+        } finally {
+            target.getProject().setBaseDir(oldBaseDir);
+        }
     }
 
+    /**
+     * Returns the Ant target to execute.
+     */
     public Target getTarget() {
         return target;
     }
 
+    /**
+     * Sets the Ant target to execute.
+     */
     public void setTarget(Target target) {
         this.target = target;
     }
 
+    /**
+     * Returns the Ant project base directory to use when executing the target.
+     */
+    public File getBaseDir() {
+        return baseDir;
+    }
+
+    /**
+     * Sets the Ant project base directory to use when executing the target.
+     */
+    public void setBaseDir(File baseDir) {
+        this.baseDir = baseDir;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getDescription() {
         return target == null ? null : target.getDescription();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setDescription(String description) {
         if (target != null) {

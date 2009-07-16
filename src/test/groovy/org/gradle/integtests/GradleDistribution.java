@@ -1,15 +1,13 @@
 package org.gradle.integtests;
 
-import java.io.File;
-
 public interface GradleDistribution {
-    File getGradleHomeDir();
+    TestFile getGradleHomeDir();
 
-    File getSamplesDir();
+    TestFile getSamplesDir();
 
-    File getUserGuideInfoDir();
+    TestFile getUserGuideInfoDir();
 
-    File getUserGuideOutputDir();
+    TestFile getUserGuideOutputDir();
 
     /**
      * Returns a scratch-pad directory for the current test.

@@ -24,20 +24,41 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.net.URI;
+import java.net.URL;
+import java.net.URISyntaxException;
 
-public class TestFile {
-    private final File file;
-
+public class TestFile extends File {
     public TestFile(File file, Object... path) {
+        super(join(file, path).getAbsolutePath());
+    }
+
+    public TestFile(URI uri) {
+        this(new File(uri));
+    }
+
+    public TestFile(URL url) {
+        this(toUri(url));
+    }
+
+    private static URI toUri(URL url) {
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static File join(File file, Object[] path) {
         File current = GFileUtils.canonicalise(file);
         for (Object p : path) {
             current = GFileUtils.canonicalise(new File(current, p.toString()));
         }
-        this.file = current;
+        return current;
     }
 
     public TestFile file(Object... path) {
-        return new TestFile(file, path);
+        return new TestFile(this, path);
     }
 
     public TestFile writelns(String... lines) {
@@ -46,43 +67,51 @@ public class TestFile {
 
     public TestFile write(Object content) {
         try {
-            FileUtils.writeStringToFile(file, content.toString());
+            FileUtils.writeStringToFile(this, content.toString());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(String.format("Could not write to test file '%s'", this), e);
         }
         return this;
     }
 
+    public TestFile leftShift(Object content) {
+        return write(content);
+    }
+
     public String getText() {
         try {
-            return FileUtils.readFileToString(file);
+            return FileUtils.readFileToString(this);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(String.format("Could not read from test file '%s'", this), e);
         }
     }
 
-    public void unzipTo(TestFile file) {
-        CompressUtil.unzip(this.file, file.file);
+    public void unzipTo(File target) {
+        CompressUtil.unzip(this, target);
+    }
+
+    public void copyTo(File target) {
+        try {
+            FileUtils.copyFile(this, target);
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not copy test file '%s' to '%s'", this, target), e);
+        }
     }
 
     public void touch() {
         try {
-            FileUtils.touch(file);
+            FileUtils.touch(this);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public File asFile() {
-        return file;
-    }
-
     @Override
     public String toString() {
-        return file.getPath();
+        return getPath();
     }
 
-    public TestFile writelns(List<String> lines) {
+    public TestFile writelns(Iterable<String> lines) {
         Formatter formatter = new Formatter();
         for (String line : lines) {
             formatter.format("%s%n", line);
@@ -91,31 +120,30 @@ public class TestFile {
     }
 
     public void assertExists() {
-        assertTrue(String.format("%s does not exist", file), file.exists());
+        assertTrue(String.format("%s does not exist", this), exists());
     }
 
     public void assertDoesNotExist() {
-        assertFalse(String.format("%s should not exist", file), file.exists());
+        assertFalse(String.format("%s should not exist", this), exists());
     }
 
     /**
-     * Asserts that this file contains exactly the given set of descendents
+     * Asserts that this file contains exactly the given set of descendants.
      */
-    public void assertHasDescendents(String... descendents) {
+    public void assertHasDescendants(String... descendants) {
         Set<String> actual = new TreeSet<String>();
-        visit(actual, "", file);
-        Set<String> expected = new TreeSet<String>(Arrays.asList(descendents));
+        assertTrue(this.isDirectory());
+        visit(actual, "", this);
+        Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
         assertEquals(expected, actual);
     }
 
     private void visit(Set<String> names, String prefix, File file) {
-        if (file.isDirectory()) {
-            for (File child : file.listFiles()) {
-                if (child.isFile()) {
-                    names.add(prefix + child.getName());
-                } else if (child.isDirectory()) {
-                    visit(names, prefix + child.getName() + "/", child);
-                }
+        for (File child : file.listFiles()) {
+            if (child.isFile()) {
+                names.add(prefix + child.getName());
+            } else if (child.isDirectory()) {
+                visit(names, prefix + child.getName() + "/", child);
             }
         }
     }

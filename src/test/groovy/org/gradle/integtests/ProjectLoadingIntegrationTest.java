@@ -141,7 +141,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         settingsFile.write("// empty");
 
         TestFile projectdir = testFile("project dir");
-        projectdir.asFile().mkdirs();
+        projectdir.mkdirs();
 
         ExecutionFailure result = usingProjectDir(projectdir).usingSettingsFile(settingsFile).runWithFailure();
         result.assertThatDescription(startsWith("Could not select the default project for this build. No projects in this build have project directory"));

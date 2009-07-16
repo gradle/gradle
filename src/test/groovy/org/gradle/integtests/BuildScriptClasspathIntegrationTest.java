@@ -37,11 +37,11 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
 
         TestFile buildSrcJar = testFile(
                 "buildSrc/.gradle/internal-repository/org.gradle/buildSrc/SNAPSHOT/jars/buildSrc.jar");
-        long modTime = buildSrcJar.asFile().lastModified();
+        long modTime = buildSrcJar.lastModified();
 
         inTestDirectory().withTaskList().run();
 
-        assertThat(buildSrcJar.asFile().lastModified(), equalTo(modTime));
+        assertThat(buildSrcJar.lastModified(), equalTo(modTime));
     }
 
     @Test
@@ -63,7 +63,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "package org.gradle.test2;",
                 "public class OnDemandImportedClass { }"
         );
-        builder.buildJar(testFile("repo/test-1.3.jar").asFile());
+        builder.buildJar(testFile("repo/test-1.3.jar"));
 
         testFile("build.gradle").writelns(
                 "import org.gradle.test.ImportedClass",
@@ -141,7 +141,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "package org.gradle.test;",
                 "public class BuildClass { }"
         );
-        builder.buildJar(testFile("repo/test-1.3.jar").asFile());
+        builder.buildJar(testFile("repo/test-1.3.jar"));
         testFile("settings.gradle").writelns(
                 "include 'child'"
         );

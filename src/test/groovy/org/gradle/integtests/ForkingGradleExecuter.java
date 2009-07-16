@@ -39,11 +39,7 @@ public class ForkingGradleExecuter implements GradleExecuter {
         tasks = new ArrayList<String>();
         args = new ArrayList<String>();
         this.distribution = distribution;
-        workingDir = distribution.getTestDir().asFile();
-    }
-
-    public GradleExecuter inDirectory(TestFile directory) {
-        return inDirectory(directory.asFile());
+        workingDir = distribution.getTestDir();
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -65,10 +61,6 @@ public class ForkingGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withDependencyList() {
-        throw new UnsupportedOperationException();
-    }
-
-    public GradleExecuter usingSettingsFile(TestFile settingsFile) {
         throw new UnsupportedOperationException();
     }
 

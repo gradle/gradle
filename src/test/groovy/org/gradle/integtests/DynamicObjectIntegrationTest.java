@@ -59,7 +59,7 @@ public class DynamicObjectIntegrationTest {
                 "}"
         );
 
-        executer.inDirectory(testDir.asFile()).withTasks("testTask").run();
+        executer.inDirectory(testDir).withTasks("testTask").run();
     }
 
     @Test
@@ -94,7 +94,7 @@ public class DynamicObjectIntegrationTest {
                 "}"
         );
 
-        executer.inDirectory(testDir.asFile()).withTasks("testTask").run();
+        executer.inDirectory(testDir).withTasks("testTask").run();
     }
 
     @Test
@@ -115,6 +115,6 @@ public class DynamicObjectIntegrationTest {
                 "groovyTask.custom = 'another value'"
         );
 
-        executer.inDirectory(testDir.asFile()).withTasks("defaultTask").run();
+        executer.inDirectory(testDir).withTasks("defaultTask").run();
     }
 }

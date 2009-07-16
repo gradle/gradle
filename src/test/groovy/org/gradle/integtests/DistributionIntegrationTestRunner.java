@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.junit.runner.Description;
@@ -74,27 +73,27 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
     }
 
     private GradleDistribution getDist() throws IOException {
-        final File gradleHomeDir = file("integTest.gradleHomeDir", new File("build/distributions/exploded"));
-        final File samplesDir = new File(gradleHomeDir, "samples");
-        File srcDir = file("integTest.srcDir", new File("src"));
-        final File userGuideOutputDir = new File(srcDir, "samples/userguideOutput");
-        final File userGuideInfoDir = file("integTest.userGuideInfoDir", new File("build/docbook/src"));
+        final TestFile gradleHomeDir = file("integTest.gradleHomeDir", new File("build/distributions/exploded"));
+        final TestFile samplesDir = new TestFile(gradleHomeDir, "samples");
+        TestFile srcDir = file("integTest.srcDir", new File("src"));
+        final TestFile userGuideOutputDir = new TestFile(srcDir, "samples/userguideOutput");
+        final TestFile userGuideInfoDir = file("integTest.userGuideInfoDir", new File("build/docbook/src"));
         final TestFile testDir = new TestFile(GFileUtils.canonicalise(HelperUtil.makeNewTestDir()));
 
         return new GradleDistribution() {
-            public File getGradleHomeDir() {
+            public TestFile getGradleHomeDir() {
                 return gradleHomeDir;
             }
 
-            public File getSamplesDir() {
+            public TestFile getSamplesDir() {
                 return samplesDir;
             }
 
-            public File getUserGuideInfoDir() {
+            public TestFile getUserGuideInfoDir() {
                 return userGuideInfoDir;
             }
 
-            public File getUserGuideOutputDir() {
+            public TestFile getUserGuideOutputDir() {
                 return userGuideOutputDir;
             }
 
@@ -104,12 +103,8 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         };
     }
 
-    private static File file(String propertyName, File defaultFile) {
+    private static TestFile file(String propertyName, File defaultFile) {
         String path = System.getProperty(propertyName, defaultFile.getAbsolutePath());
-        try {
-            return new File(path).getCanonicalFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return new TestFile(new File(path));
     }
 }

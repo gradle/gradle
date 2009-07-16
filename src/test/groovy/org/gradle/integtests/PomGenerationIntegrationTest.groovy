@@ -36,15 +36,14 @@ class PomGenerationIntegrationTest {
 
     @Test
     public void pomSamples() {
-        String gradleHome = dist.gradleHomeDir.absolutePath
         File pomProjectDir = new File(dist.samplesDir, 'pomGeneration')
         File repoDir = new File(pomProjectDir, "pomRepo");
         FileUtils.deleteQuietly(repoDir)
-        checkWithNoCustomVersion(gradleHome, pomProjectDir, repoDir);
-        checkWithCustomVersion(gradleHome, pomProjectDir, repoDir);
+        checkWithNoCustomVersion(pomProjectDir, repoDir);
+        checkWithCustomVersion(pomProjectDir, repoDir);
     }
 
-    private def checkWithNoCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
+    private def checkWithNoCustomVersion(File pomProjectDir, File repoDir) {
         String version = '1.0'
         String groupId = "gradle"
         long start = System.currentTimeMillis();
@@ -56,7 +55,7 @@ class PomGenerationIntegrationTest {
         checkInstall(start, pomProjectDir, version, groupId)
     }
 
-    private def checkWithCustomVersion(String gradleHome, File pomProjectDir, File repoDir) {
+    private def checkWithCustomVersion(File pomProjectDir, File repoDir) {
         long start = System.currentTimeMillis();
         String version = "1.0MVN"
         String groupId = "deployGroup"

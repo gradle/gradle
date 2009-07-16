@@ -106,6 +106,6 @@ public class SamplesJavaOnlyIfIntegrationTest {
     }
 
     private static void removeFile(File baseDir, String path) {
-        new TestFile(baseDir).file(path).asFile().delete();
+        new TestFile(baseDir).file(path).delete();
     }
 }

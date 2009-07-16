@@ -20,8 +20,6 @@ import java.io.File;
 public interface GradleExecuter {
     GradleExecuter inDirectory(File directory);
 
-    GradleExecuter inDirectory(TestFile directory);
-
     GradleExecuter withSearchUpwards();
 
     GradleExecuter withTasks(String... names);
@@ -33,8 +31,6 @@ public interface GradleExecuter {
     GradleExecuter withQuietLogging();
 
     GradleExecuter withArguments(String... args);
-
-    GradleExecuter usingSettingsFile(TestFile settingsFile);
 
     GradleExecuter usingSettingsFile(File settingsFile);
 
