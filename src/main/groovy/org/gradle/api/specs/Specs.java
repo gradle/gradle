@@ -15,8 +15,11 @@
  */
 package org.gradle.api.specs;
 
+import org.gradle.api.internal.tasks.copy.RelativePath;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -29,7 +32,19 @@ public class Specs {
     };
 
     public static <T> Spec<T> satisfyAll() {
-        return (Spec<T>) SATISFIES_ALL;
+        return new Spec<T>() {
+            public boolean isSatisfiedBy(T element) {
+                return true;
+            }
+        };
+    }
+
+    public static <T> Spec<T> satisfyNone() {
+        return new Spec<T>() {
+            public boolean isSatisfiedBy(T element) {
+                return false;
+            }
+        };
     }
 
     public static <T> Set<T> filterIterable(Iterable<T> iterable, Spec<? super T> spec) {
@@ -42,15 +57,26 @@ public class Specs {
         return result;
     }
 
-    public static <T> AndSpec<T> and(Spec<T>... specs) {
+    public static <T> AndSpec<T> and(Spec<? super T>... specs) {
         return new AndSpec<T>(specs);  
     }
 
-    public static <T> OrSpec<T> or(Spec<T>... specs) {
+    public static <T> OrSpec<T> or(Spec<? super T>... specs) {
         return new OrSpec<T>(specs);
     }
 
-    public static <T> NotSpec<T> not(Spec<T> spec) {
+    public static <T> NotSpec<T> not(Spec<? super T> spec) {
         return new NotSpec<T>(spec);  
+    }
+
+    public static <T> Spec<T> or(final boolean defaultWhenNoSpecs, List<? extends Spec<? super T>> specs) {
+        if (specs.isEmpty()) {
+            return new Spec<T>() {
+                public boolean isSatisfiedBy(T element) {
+                    return defaultWhenNoSpecs;
+                }
+            };
+        }
+        return new OrSpec<T>(specs.toArray(new Spec[specs.size()]));
     }
 }

@@ -19,12 +19,12 @@ package org.gradle.api.specs;
  * @author Hans Dockter
  */
 public class AndSpec<T> extends CompositeSpec<T> {
-    public AndSpec(Spec... specs) {
+    public AndSpec(Spec<? super T>... specs) {
         super(specs);
     }
 
     public boolean isSatisfiedBy(T object) {
-        for (Spec spec : getSpecs()) {
+        for (Spec<? super T> spec : getSpecs()) {
             if (!spec.isSatisfiedBy(object)) {
                 return false;
             }

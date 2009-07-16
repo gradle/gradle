@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.tasks.copy;
 
-import org.gradle.api.internal.tasks.copy.pattern.PatternMatcher;
 import org.gradle.api.internal.tasks.copy.pattern.PatternMatcherFactory;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Directory walker supporting {@link PatternMatcher}s for includes and excludes.
+ * Directory walker supporting {@link Spec}s for includes and excludes.
  * The file system is traversed breadth first - all files in a directory will be
  * visited before any child directory is visited.
  *
@@ -39,29 +40,31 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
     private static Logger logger = LoggerFactory.getLogger(BreadthFirstDirectoryWalker.class);
 
     private FileVisitor visitor;
-    private List<PatternMatcher> includes;
-    private List<PatternMatcher> excludes;
+    private Spec<RelativePath> includes;
+    private Spec<RelativePath> excludes;
     private boolean caseSensitive;
 
     public BreadthFirstDirectoryWalker(boolean caseSensitive, FileVisitor visitor) {
         this.caseSensitive = caseSensitive;
         this.visitor = visitor;
-        includes = new ArrayList<PatternMatcher>();
-        excludes = new ArrayList<PatternMatcher>();
+        includes = Specs.satisfyAll();
+        excludes = Specs.satisfyNone();
     }
 
     public void addIncludes(List<String> includes) {
-        this.includes.clear();
+        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>();
         for (String include : includes) {
-            this.includes.add(PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include));
+            matchers.add(PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include));
         }
+        this.includes = Specs.or(true, matchers);
     }
 
     public void addExcludes(List<String> excludes){
-        this.excludes.clear();
+        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>();
         for (String exclude : excludes) {
-            this.excludes.add(PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude));
+            matchers.add(PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude));
         }
+        this.excludes = Specs.or(false, matchers);
     }
 
     /**
@@ -117,27 +120,7 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
     }
 
     boolean isAllowed(RelativePath path) {
-        if (!includes.isEmpty()) {
-            boolean accepted = false;
-            for (PatternMatcher include : includes) {
-                accepted = include.isSatisfiedBy(path);
-                if (accepted) { 
-                    break;
-                }
-            }
-            if (!accepted) {
-                return false;
-            }
-        }
-
-        if (!excludes.isEmpty()) {
-            for (PatternMatcher exclude : excludes) {
-                if (exclude.isSatisfiedBy(path)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return includes.isSatisfiedBy(path) && !excludes.isSatisfiedBy(path);
     }
 
     private void notifyDir(File dir, RelativePath path) {

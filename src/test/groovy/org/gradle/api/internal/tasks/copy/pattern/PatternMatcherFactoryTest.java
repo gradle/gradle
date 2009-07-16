@@ -3,11 +3,12 @@ package org.gradle.api.internal.tasks.copy.pattern;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.gradle.api.internal.tasks.copy.RelativePath;
+import org.gradle.api.specs.Spec;
 
 import java.util.List;
 
 public class PatternMatcherFactoryTest {
-    private PatternMatcher matcher;
+    private Spec<RelativePath> matcher;
     private RelativePath path;
     List<PatternStep> steps;
     PatternStep step;

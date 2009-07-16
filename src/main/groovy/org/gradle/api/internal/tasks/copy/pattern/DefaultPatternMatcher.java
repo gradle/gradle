@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.copy.pattern;
 
 import org.gradle.api.internal.tasks.copy.RelativePath;
+import org.gradle.api.specs.Spec;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ import java.util.ListIterator;
 /**
  * @author Steve Appling
  */
-public class DefaultPatternMatcher implements PatternMatcher {
+public class DefaultPatternMatcher implements Spec<RelativePath> {
     private List<PatternStep> steps;
     private boolean partialMatchDirs;
 

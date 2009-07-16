@@ -3,11 +3,12 @@ package org.gradle.api.internal.tasks.copy.pattern;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.gradle.api.internal.tasks.copy.RelativePath;
+import org.gradle.api.specs.Spec;
 
 public class NameOnlyPatternMatcherTest {
 
     @Test public void testLiteralName() {
-        PatternMatcher matcher;
+        Spec<RelativePath> matcher;
         RelativePath path;
 
         matcher = new NameOnlyPatternMatcher(true, true, "fred.txt");
@@ -20,7 +21,7 @@ public class NameOnlyPatternMatcherTest {
     }
 
     @Test public void testPartialMatch() {
-        PatternMatcher matcher;
+        Spec<RelativePath> matcher;
         RelativePath path;
 
         matcher = new NameOnlyPatternMatcher(true, true, "fred");
@@ -40,7 +41,7 @@ public class NameOnlyPatternMatcherTest {
     }
 
     @Test public void testWildcardInName() {
-        PatternMatcher matcher;
+        Spec<RelativePath> matcher;
         RelativePath path;
 
         matcher = new NameOnlyPatternMatcher(true, true, "*.jsp");

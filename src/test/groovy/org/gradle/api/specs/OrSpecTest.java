@@ -32,8 +32,8 @@ public class OrSpecTest extends AbstractCompositeTest {
     }
 
     @Test
-    public void isNotSatisfiedWhenNoSpecs() {
-        assertFalse(new OrSpec().isSatisfiedBy(new Object()));
+    public void isSatisfiedWhenNoSpecs() {
+        assertTrue(new OrSpec().isSatisfiedBy(new Object()));
     }
     
     @Test

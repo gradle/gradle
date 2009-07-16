@@ -16,24 +16,24 @@
 
 package org.gradle.api.internal.tasks.copy;
 
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.After;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertThat;
-import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.equalTo;
-import org.apache.commons.io.IOUtils;
+import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.filters.ReplaceTokens;
+import org.gradle.api.Transformer;
+import org.gradle.util.HelperUtil;
+import static org.hamcrest.Matchers.*;
+import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.io.*;
-import java.net.URL;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
-
-import groovy.lang.Closure;
 
 
 public class CopyVisitorTest {
@@ -139,7 +139,7 @@ public class CopyVisitorTest {
 
     @Test public void testGetTargetRenamed() {
         RegExpNameMapper renamer = new RegExpNameMapper("(.+)\\.java", "$1Test.java");
-        ArrayList<NameMapper> mappers = new ArrayList<NameMapper>(1);
+        ArrayList<Transformer<String>> mappers = new ArrayList<Transformer<String>>(1);
         mappers.add(renamer);
 
         visitor = new CopyVisitor(testDir, null, mappers, new FilterChain());

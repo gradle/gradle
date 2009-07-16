@@ -21,13 +21,13 @@ import static org.junit.Assert.*;
 public class RegExpNameMapperTest {
     @Test public void testRenameWithCapture() {
         RegExpNameMapper mapper = new RegExpNameMapper("(.+).java","$1Test.java");
-        assertEquals("SourceTest.java", mapper.rename("Source.java"));
-        assertEquals("SecondTest.java", mapper.rename("Second.java"));
+        assertEquals("SourceTest.java", mapper.transform("Source.java"));
+        assertEquals("SecondTest.java", mapper.transform("Second.java"));
     }
 
     @Test public void testRenameNoMatch() {
         RegExpNameMapper mapper = new RegExpNameMapper("(.+).java","$1Test.java");
         String noMatch = "NoMatch";
-        assertEquals(noMatch, mapper.rename(noMatch));
+        assertEquals(noMatch, mapper.transform(noMatch));
     }
 }

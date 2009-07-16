@@ -15,16 +15,23 @@
  */
 package org.gradle.api.specs;
 
+import java.util.List;
+
 /**
  * @author Hans Dockter
  */
 public class OrSpec<T> extends CompositeSpec<T> {
-    public OrSpec(Spec... specs) {
+    public OrSpec(Spec<? super T>... specs) {
         super(specs);
     }
 
     public boolean isSatisfiedBy(T object) {
-        for (Spec spec : getSpecs()) {
+        List<Spec<? super T>> specs = getSpecs();
+        if (specs.isEmpty()) {
+            return true;
+        }
+
+        for (Spec<? super T> spec : specs) {
             if (spec.isSatisfiedBy(object)) {
                 return true;
             }

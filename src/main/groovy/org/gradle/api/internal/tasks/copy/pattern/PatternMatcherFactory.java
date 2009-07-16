@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.tasks.copy.pattern;
 
+import org.gradle.api.internal.tasks.copy.RelativePath;
+import org.gradle.api.specs.Spec;
+
 /**
  * @author Steve Appling
  */
 public class PatternMatcherFactory {
-    public static PatternMatcher getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
+    public static Spec<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
         // trailing / or \ assumes **
         if (  pattern.endsWith("/") ||
               pattern.endsWith("\\") ) {

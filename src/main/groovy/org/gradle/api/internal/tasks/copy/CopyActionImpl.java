@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.copy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gradle.api.*;
+import org.gradle.api.internal.artifacts.FileResolver;
 import org.gradle.api.tasks.copy.CopyAction;
 import org.gradle.api.tasks.copy.CopySpec;
 
@@ -37,26 +38,22 @@ public class CopyActionImpl implements CopyAction {
     private static Logger logger = LoggerFactory.getLogger(CopyActionImpl.class);
     private static String[] globalExcludes;
 
-    CopySpecImpl rootSpec;
+    private CopySpecImpl rootSpec;
     private boolean caseSensitive = true;
 
-    private Project project;
     private boolean didWork;
 
     // following are only injected for test purposes
     private DirectoryWalker testWalker;
     private FileVisitor testVisitor;
 
-
-
-    public CopyActionImpl(Project project) {
-        rootSpec = new CopySpecImpl(project);
-        this.project = project;
+    public CopyActionImpl(FileResolver resolver) {
+        rootSpec = new CopySpecImpl(resolver);
     }
 
     // Only used for testing
-    public CopyActionImpl(Project project, FileVisitor testVisitor, DirectoryWalker testWalker) {
-        this(project);
+    public CopyActionImpl(FileResolver resolver, FileVisitor testVisitor, DirectoryWalker testWalker) {
+        this(resolver);
         this.testVisitor = testVisitor;
         this.testWalker = testWalker;
     }

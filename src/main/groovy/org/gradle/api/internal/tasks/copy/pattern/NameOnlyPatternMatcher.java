@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.copy.pattern;
 
 import org.gradle.api.internal.tasks.copy.RelativePath;
+import org.gradle.api.specs.Spec;
 
 /**
  * PatternMatcher for handling the very common '**\name' pattern
@@ -25,7 +26,7 @@ import org.gradle.api.internal.tasks.copy.RelativePath;
  * the RelativePath is a File.
  * @author Steve Appling
  */
-public class NameOnlyPatternMatcher implements PatternMatcher {
+public class NameOnlyPatternMatcher implements Spec<RelativePath> {
     private boolean partialMatchDirs;
     private PatternStep nameStep;
 

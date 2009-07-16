@@ -19,13 +19,14 @@ import org.hamcrest.Matchers
 import org.gradle.api.internal.tasks.copy.CopyActionImpl
 import org.gradle.api.tasks.Copy
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyActionTest  {
     CopyActionImpl copyAction;
     BreadthFirstDirectoryWalker walker;
     FileVisitor visitor;
-    Project project
+    ProjectInternal project
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
@@ -35,7 +36,7 @@ public class CopyActionTest  {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         walker = context.mock(BreadthFirstDirectoryWalker.class)
         visitor = context.mock(CopyVisitor.class)
-        copyAction = new CopyActionImpl(project, visitor, walker)
+        copyAction = new CopyActionImpl(project.fileResolver, visitor, walker)
     }
 
     def executeWith(Closure c) {

@@ -18,6 +18,8 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.internal.tasks.copy.*;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.artifacts.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.*;
 import org.gradle.api.tasks.copy.CopySpec;
 import org.gradle.api.tasks.copy.CopyAction;
@@ -64,9 +66,15 @@ public class Copy extends ConventionTask implements CopyAction {
     CopyActionImpl copyAction;
 
     public Copy(Project project, String name) {
+        this(project, name, null, null);
+    }
+
+    // Only used for testing
+    Copy(Project project, String name, FileVisitor testVisitor, DirectoryWalker testWalker) {
         super(project, name);
 
-        copyAction = new CopyActionImpl(project);
+        FileResolver fileResolver = ((ProjectInternal) project).getFileResolver();
+        copyAction = new CopyActionImpl(fileResolver, testVisitor, testWalker);
 
         doLast(new TaskAction() {
             public void execute(Task task) {
@@ -75,12 +83,6 @@ public class Copy extends ConventionTask implements CopyAction {
                 setDidWork(copyAction.getDidWork());
             }
         });
-    }
-
-    // Only used for testing
-    Copy(Project project, String name, FileVisitor testVisitor, DirectoryWalker testWalker) {
-        this(project, name);
-        copyAction = new CopyActionImpl(project, testVisitor, testWalker);
     }
 
     void configureRootSpec() {

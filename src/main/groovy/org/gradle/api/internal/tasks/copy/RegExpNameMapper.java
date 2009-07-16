@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.copy;
 
-import org.gradle.api.internal.tasks.copy.NameMapper;
+import org.gradle.api.Transformer;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 /**
  * @author Steve Appling
  */
-public class RegExpNameMapper implements NameMapper {
+public class RegExpNameMapper implements Transformer<String> {
     private Matcher matcher;
     private String replacement;
 
@@ -32,7 +32,7 @@ public class RegExpNameMapper implements NameMapper {
         replacement = replaceWith;
     }
 
-    public String rename(String source) {
+    public String transform(String source) {
         String result = source;
         matcher.reset(source);
         if (matcher.find()) {

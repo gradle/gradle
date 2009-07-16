@@ -17,9 +17,10 @@ package org.gradle.api.internal.tasks.copy;
 
 import groovy.lang.Closure;
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gradle.api.GradleException;
 
 import java.io.*;
 import java.util.List;
@@ -28,16 +29,14 @@ import java.util.List;
  * @author Steve Appling
  */
 public class CopyVisitor implements FileVisitor {
-    private static Logger logger = LoggerFactory.getLogger(CopyVisitor.class);
-
     private File baseDestDir, currentDestDir;
     private List<Closure> remapClosures;
-    private List<NameMapper> nameMappers;
+    private List<Transformer<String>> nameMappers;
     private FilterChain filter;
     private boolean didWork = false;
 
 
-    public CopyVisitor(File baseDestDir, List<Closure> remapClosures, List<NameMapper> nameMappers, FilterChain filter) {
+    public CopyVisitor(File baseDestDir, List<Closure> remapClosures, List<Transformer<String>> nameMappers, FilterChain filter) {
         this.baseDestDir = baseDestDir;
         this.remapClosures = remapClosures;
         this.nameMappers = nameMappers;
@@ -74,8 +73,8 @@ public class CopyVisitor implements FileVisitor {
         String targetName = path.getLastName();
         if (nameMappers != null && nameMappers.size() != 0) {
             String resultName = null;
-            for (NameMapper nameMapper : nameMappers) {
-                resultName = nameMapper.rename(targetName);
+            for (Transformer<String> nameMapper : nameMappers) {
+                resultName = nameMapper.transform(targetName);
                 if (resultName != null) {
                     break;
                 }

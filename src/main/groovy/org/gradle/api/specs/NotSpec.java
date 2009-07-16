@@ -19,9 +19,9 @@ package org.gradle.api.specs;
  * @author Hans Dockter
  */
 public class NotSpec<T> implements Spec<T> {
-    private Spec<T> sourceSpec;
+    private Spec<? super T> sourceSpec;
 
-    public NotSpec(Spec<T> sourceSpec) {
+    public NotSpec(Spec<? super T> sourceSpec) {
         this.sourceSpec = sourceSpec;
     }
 

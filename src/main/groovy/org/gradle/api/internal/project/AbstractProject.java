@@ -810,7 +810,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public CopyAction copy(Closure closure) {
-        CopyAction result = new CopyActionImpl(this);
+        CopyAction result = new CopyActionImpl(fileResolver);
         configure(result,  closure);
         result.execute();
         return result;

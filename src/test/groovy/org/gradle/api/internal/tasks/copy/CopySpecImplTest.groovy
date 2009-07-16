@@ -1,37 +1,28 @@
-package org.gradle.api.tasks.copy;
+package org.gradle.api.internal.tasks.copy;
 
-import org.junit.Test;
-import org.junit.Before;
-import groovy.util.AntBuilder;
-import static org.junit.Assert.*;
-import org.gradle.api.internal.tasks.copy.CopySpecImpl;
-import org.apache.tools.ant.filters.*
-import org.hamcrest.Matchers
-
-import java.io.File;
-import java.util.List;
+import java.io.File
 import java.util.ArrayList
-import org.gradle.api.internal.tasks.copy.CopySpecImpl
-import org.gradle.api.Project;
-import org.gradle.util.HelperUtil;
-
+import java.util.List
+import org.apache.tools.ant.filters.HeadFilter
+import org.apache.tools.ant.filters.StripJavaComments
+import org.gradle.api.internal.artifacts.BaseDirConverter
+import org.gradle.api.internal.artifacts.FileResolver
+import org.gradle.util.HelperUtil
+import org.hamcrest.Matchers
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*
 
 public class CopySpecImplTest {
 
-    private AntBuilder ant;
     private CopySpecImpl spec;
-    private File baseFile;
-    private final Project project = HelperUtil.createRootProject();
+    private File baseFile = HelperUtil.makeNewTestDir();
+    private final FileResolver fileResolver = new BaseDirConverter(baseFile);
 
     @Before
     public void setUp() {
-        baseFile = project.getBuildDir()
-        if (ant == null) {
-            ant = new AntBuilder();
-        }
-        spec = new CopySpecImpl(project);
+        spec = new CopySpecImpl(fileResolver);
     }
-
 
     private List<String> getTestSourceFileNames() {
         List<String> names = new ArrayList<String>();
@@ -68,7 +59,7 @@ public class CopySpecImplTest {
         List<File> sources = getRelativeTestSources();
         spec.from(sources);
 
-        List<File> resolvedSources = sources.collect { new File(project.getProjectDir(), it.path)}
+        List<File> resolvedSources = sources.collect { new File(baseFile, it.path)}
         assertEquals(resolvedSources, spec.getAllSourceDirs());
     }
 
@@ -82,8 +73,8 @@ public class CopySpecImplTest {
         List<File> sources = getAbsoluteTestSources();
         spec.from(sources);
 
-        File childFile = new File(project.getProjectDir(), "childFile")
-        CopySpecImpl childSpec = new CopySpecImpl(project, spec);
+        File childFile = new File(baseFile, "childFile")
+        CopySpecImpl childSpec = new CopySpecImpl(fileResolver, spec);
         childSpec.from(childFile.path);
 
         sources.add(childFile);
@@ -92,7 +83,7 @@ public class CopySpecImplTest {
 
     @Test public void testSourceWithClosure() {
         File sourceFile = getAbsoluteTestSources().get(0);
-        File destFile = new File(project.projectDir, 'target');
+        File destFile = new File(baseFile, 'target');
 
         spec.from(sourceFile) {
             into destFile
@@ -110,7 +101,7 @@ public class CopySpecImplTest {
 
     @Test public void testIterableWithClosure() {
         HashSet sources = new HashSet(getAbsoluteTestSources())
-        File destFile = new File(project.projectDir, 'target');
+        File destFile = new File(baseFile, 'target');
 
         spec.from(sources) {
             into destFile

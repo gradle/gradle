@@ -23,13 +23,13 @@ import java.util.List;
  * @author Hans Dockter
  */
 abstract public class CompositeSpec<T> implements Spec<T> {
-    private List<Spec> specs;
+    private List<Spec<? super T>> specs;
 
-    protected CompositeSpec(Spec... specs) {
+    protected CompositeSpec(Spec<? super T>... specs) {
         this.specs = Arrays.asList(specs);
     }
 
-    public List<Spec> getSpecs() {
+    public List<Spec<? super T>> getSpecs() {
         return Collections.unmodifiableList(specs);
     }
 
