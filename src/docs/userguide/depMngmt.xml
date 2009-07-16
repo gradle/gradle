@@ -373,7 +373,7 @@
         </para>
         <sample id="configurationHandlingDependencies" dir="userguide/artifacts/configurationHandling" title="Accessing declared dependencies">
             <sourcefile file="build.gradle" snippet="dependencies"/>
-            <output args="dependencies"/>
+            <output args="-q dependencies"/>
         </sample>
         <para><code>dependencies</code> returns only the dependencies belonging explicitly to the configuration.
             <code>allDependencies</code> includes the dependencies from extended
@@ -383,13 +383,13 @@
         </para>
         <sample id="configurationHandlingAllFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files">
             <sourcefile file="build.gradle" snippet="allFiles"/>
-            <output args="allFiles"/>
+            <output args="-q allFiles"/>
         </sample>
         <para>Sometimes you want the library files of a subset of the configuration dependencies (e.g. of a single dependency).
         </para>
         <sample id="configurationHandlingFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files with spec">
             <sourcefile file="build.gradle" snippet="files"/>
-            <output args="files"/>
+            <output args="-q files"/>
         </sample>
         <para>The <code>Configuration.files</code> method always retrieves all artifacts of the <emphasis>whole</emphasis> configuration. It
         then filters the retrieved files by specified dpendencies. As you can see in the example, transitive dependencies are included.
@@ -401,7 +401,7 @@
         </para>
         <sample id="configurationHandlingCopy" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
             <sourcefile file="build.gradle" snippet="copy"/>
-             <output args="copy"/>
+             <output args="-q copy"/>
         </sample>
         <para>It is important to note that the returned files of the copied configuration
             are often but not always the same than the returned files of the dependency subset of the original configuration.
@@ -409,7 +409,7 @@
             dependencies of the subset and dependencies not belonging to the subset the resolve result might be different.</para>
         <sample id="configurationHandlingCopyVsFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.copy vs. Configuration.files">
             <sourcefile file="build.gradle" snippet="copyVsFiles"/>
-             <output args="copyVsFiles"/>
+             <output args="-q copyVsFiles"/>
         </sample>
         <para>In the example above, <code>orca</code> has a dependency on <code>seal-1.0</code> whereas
             <code>shark</code> has a dependency on <code>seal-2.0</code>. The original configuration has therefore a version
