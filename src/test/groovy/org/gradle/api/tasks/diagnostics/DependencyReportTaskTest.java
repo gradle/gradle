@@ -15,22 +15,21 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.report.ResolveReport;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ConfigurationHandler;
-import org.gradle.api.artifacts.report.IvyDependencyGraph;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.nullValue;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +39,6 @@ import java.io.IOException;
 @RunWith(JMock.class)
 public class DependencyReportTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private DependencyReportRenderer renderer;
     private Project project;
     private DependencyReportTask task;
 
@@ -48,7 +46,6 @@ public class DependencyReportTaskTest {
     public void setup() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         project = context.mock(ProjectInternal.class);
-        renderer = context.mock(DependencyReportRenderer.class);
 
         context.checking(new Expectations() {{
             allowing(project).absolutePath("list");
@@ -58,7 +55,13 @@ public class DependencyReportTaskTest {
         }});
 
         task = new DependencyReportTask(this.project, "list");
-        task.setRenderer(renderer);
+
+    }
+
+    @Test
+    public void init() {
+        assertThat(task.getRenderer(), instanceOf(AsciiReportRenderer.class));
+        assertThat(task.getConfigurations(), nullValue());
     }
 
     @Test
@@ -66,15 +69,33 @@ public class DependencyReportTaskTest {
         final ConfigurationContainer configurationContainer = context.mock(ConfigurationHandler.class);
         final Configuration configuration1 = context.mock(Configuration.class, "Configuration1");
         final Configuration configuration2 = context.mock(Configuration.class, "Configuration2");
-        final ResolveReport report = new ResolveReport(new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("org", "mod"), "rev"), "status", null));
-
         context.checking(new Expectations() {{
             allowing(project).getConfigurations();
             will(returnValue(configurationContainer));
 
             allowing(configurationContainer).getAll();
-            will(returnValue(WrapUtil.toSet(configuration2, configuration1)));
+            will(returnValue(WrapUtil.toSet(configuration1, configuration2)));
+        }});
+        assertConfigurationsIsPassedToRenderer(configuration1, configuration2);
+    }
 
+    @Test
+    public void passesSpecifiedConfigurationToRenderer() throws IOException {
+        final Configuration configuration1 = context.mock(Configuration.class, "Configuration1");
+        final Configuration configuration2 = context.mock(Configuration.class, "Configuration2");
+        task.setConfigurations(WrapUtil.toSet(configuration1, configuration2));
+        assertConfigurationsIsPassedToRenderer(configuration1, configuration2);
+    }
+
+    private void assertConfigurationsIsPassedToRenderer(final Configuration configuration1, final Configuration configuration2) throws IOException {
+        final DependencyReportRenderer renderer = context.mock(DependencyReportRenderer.class);
+        final ResolvedConfiguration resolvedConfiguration1 = context.mock(ResolvedConfiguration.class, "ResolvedConf1");
+        final ResolvedConfiguration resolvedConfiguration2 = context.mock(ResolvedConfiguration.class, "ResolvedConf2");
+
+        task.setRenderer(renderer);
+        task.setConfigurations(WrapUtil.toSet(configuration1, configuration2));
+
+        context.checking(new Expectations() {{
             allowing(configuration1).getName();
             will(returnValue("config1"));
 
@@ -84,35 +105,34 @@ public class DependencyReportTaskTest {
             Sequence resolve = context.sequence("resolve");
             Sequence render = context.sequence("render");
 
-            one(configuration1).resolveAsReport();
+            one(configuration1).getResolvedConfiguration();
             inSequence(resolve);
-            will(returnValue(report));
+            will(returnValue(resolvedConfiguration1));
 
             one(renderer).startConfiguration(configuration1);
             inSequence(render);
 
-            one(renderer).render(with(aNonNull(IvyDependencyGraph.class)));
+            one(renderer).render(resolvedConfiguration1);
             inSequence(render);
 
             one(renderer).completeConfiguration(configuration1);
             inSequence(render);
 
-            one(configuration2).resolveAsReport();
+            one(configuration2).getResolvedConfiguration();
             inSequence(resolve);
-            will(returnValue(report));
+            will(returnValue(resolvedConfiguration2));
 
             one(renderer).startConfiguration(configuration2);
             inSequence(render);
 
-            one(renderer).render(with(aNonNull(IvyDependencyGraph.class)));
+            one(renderer).render(resolvedConfiguration2);
             inSequence(render);
 
             one(renderer).completeConfiguration(configuration2);
             inSequence(render);
         }});
-
         task.generate(project);
     }
 
-    
+
 }

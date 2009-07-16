@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.report.ResolveReport;
-import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.artifacts.ResolvedDependency;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 
-public interface ResolvedConfiguration {
-    ResolveReport getResolveReport();
-    
-    boolean hasError();
+/**
+ * @author Hans Dockter
+ */
+public interface IvyReportConverter {
+    Map<Dependency, Set<ResolvedDependency>> translateReport(ResolveReport resolveReport, Configuration configuration);
 
-    void rethrowFailure() throws GradleException;
-
-    Set<File> getFiles(Spec<Dependency> dependencySpec);
-
-    Set<ResolvedDependency> getFirstLevelResolvedDependencies();
+    Set<File> getClasspath(String configuration, ResolveReport resolveReport);
 }

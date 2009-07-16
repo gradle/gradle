@@ -15,13 +15,15 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.report.IvyDependency;
-import org.gradle.api.artifacts.report.IvyDependencyGraph;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.ResolvedDependency;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.*;
 
 /**
  * Simple dependency graph renderer that emits an ASCII tree.
@@ -64,23 +66,44 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
     public void completeConfiguration(Configuration configuration) {
     }
 
-    public void render(IvyDependencyGraph graph) throws IOException
+    public void render(ResolvedConfiguration resolvedConfiguration) throws IOException
     {
-        render(graph.getRoot(), 1);
+        Set<ResolvedDependency> mergedRoots = mergeChildren(resolvedConfiguration.getFirstLevelResolvedDependencies());
+        for (ResolvedDependency root : mergedRoots) {
+            render(root, 1);
+        }
     }
 
-    private void render(IvyDependency node, int depth) throws IOException
+    private void render(ResolvedDependency resolvedDependency, int depth) throws IOException
     {
         getFormatter().format(getIndent(depth));
-		getFormatter().format("%s%n", node);
+		getFormatter().format("%s:%s%n", resolvedDependency.getName(), resolvedDependency.getConfiguration());
 
-		for(IvyDependency dep : node.getDependencies())
+        Collection<ResolvedDependency> mergedChildren = mergeChildren(resolvedDependency.getChildren());
+
+		for(ResolvedDependency childResolvedDependency : mergedChildren)
 		{
-			render(dep, depth + 1);
+			render(childResolvedDependency, depth + 1);
 		}
     }
 
-	private String getIndent(int depth)
+    private Set<ResolvedDependency> mergeChildren(Set<ResolvedDependency> children) {
+        Map<String, Set<ResolvedDependency>> mergedGroups = new HashMap<String, Set<ResolvedDependency>>();
+        for (ResolvedDependency child : children) {
+            Set<ResolvedDependency> mergeGroup = mergedGroups.get(child.getName());
+            if (mergeGroup == null) {
+                mergedGroups.put(child.getName(), mergeGroup = new HashSet<ResolvedDependency>());
+            }
+            mergeGroup.add(child);
+        }
+        Set<ResolvedDependency> mergedChildren = new HashSet<ResolvedDependency>();
+        for (Set<ResolvedDependency> mergedGroup : mergedGroups.values()) {
+            mergedChildren.add(new MergedResolvedDependency(mergedGroup));
+        }
+        return mergedChildren;
+    }
+
+    private String getIndent(int depth)
 	{
 		StringBuilder buffer = new StringBuilder();
 
@@ -98,4 +121,49 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
 
 		return buffer.toString();
 	}
+
+    private static class MergedResolvedDependency implements ResolvedDependency {
+        private Set<ResolvedDependency> mergedResolvedDependencies = new LinkedHashSet<ResolvedDependency>();
+
+        public MergedResolvedDependency(Set<ResolvedDependency> mergedResolvedDependencies) {
+            assert !mergedResolvedDependencies.isEmpty();
+            this.mergedResolvedDependencies = mergedResolvedDependencies;
+        }
+
+        public String getName() {
+            return mergedResolvedDependencies.iterator().next().getName();
+        }
+
+        public String getConfiguration() {
+            String mergedConfiguration = "";
+            for (ResolvedDependency mergedResolvedDependency : mergedResolvedDependencies) {
+                mergedConfiguration += mergedResolvedDependency.getConfiguration() + ",";
+            }
+            return mergedConfiguration.substring(0, mergedConfiguration.length() - 1);
+        }
+
+        public Set<ResolvedDependency> getChildren() {
+            Set<ResolvedDependency> mergedChildren = new LinkedHashSet<ResolvedDependency>();
+            for (ResolvedDependency mergedResolvedDependency : mergedResolvedDependencies) {
+                mergedChildren.addAll(mergedResolvedDependency.getChildren());
+            }
+            return mergedChildren;
+        }
+
+        public Set<ResolvedDependency> getParents() {
+            throw new UnsupportedOperationException();
+        }
+
+        public Set<File> getFiles() {
+            Set<File> mergedFiles = new LinkedHashSet<File>();
+            for (ResolvedDependency mergedResolvedDependency : mergedResolvedDependencies) {
+                mergedFiles.addAll(mergedResolvedDependency.getFiles());
+            }
+            return mergedFiles;
+        }
+
+        public Set<File> getAllFiles() {
+            throw new UnsupportedOperationException();
+        }
+    }
 }

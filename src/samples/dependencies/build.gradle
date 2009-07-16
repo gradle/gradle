@@ -1,0 +1,110 @@
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.junit.Assert
+
+group = 'sealife'
+
+repositories {
+    add(new FileSystemResolver()) {
+        name = "repo"
+        addArtifactPattern("$projectDir/repo/[organization]/[module]-[revision].[ext]")
+        addIvyPattern("$projectDir/repo/[organization]/ivy-[module]-[revision].xml")
+        checkmodified = true
+    }
+}
+
+configurations {
+    oneDepWithNoTransitives
+    oneDepWithTransitives
+    twoDepsWithNoTransitives
+    twoDepsWithTransitives
+    twoDepsWithOneAsTransitive
+    twoDepsWithVersionConflicts
+    twoDepsWithDifferentDependencyConfigurations
+    extended
+    extending.extendsFrom extended
+    selfResolving
+    mixed.extendsFrom selfResolving, twoDepsWithTransitives
+}
+
+dependencies {
+    oneDepWithNoTransitives "sea.fish:herring:1.0"
+    oneDepWithTransitives "sea.fish:tuna:1.0"
+    twoDepsWithNoTransitives "sea.fish:herring:1.0", "sea.mammals:seal:1.0"
+    twoDepsWithTransitives "sea.mammals:orca:1.0", "sea.fish:tuna:1.0"
+    twoDepsWithOneAsTransitive "sea.fish:shark:1.0", "sea.fish:tuna:1.0"
+    twoDepsWithVersionConflicts "sea.fish:shark:1.0", "sea.mammals:orca:1.0"
+    twoDepsWithDifferentDependencyConfigurations "sea.fish:shark:1.0", "sea.fish:billfish:1.0"
+    extended "sea.fish:tuna:1.0"
+    extending "sea.mammals:orca:1.0"
+    selfResolving files("$projectDir/lib/selfResolving1.jar"), files("$projectDir/src")
+}
+
+task test << {
+    assertCorrectFilesForCompleteConfigurations()
+    assertFilesForDependencySubsets()
+    assertFilesForConfigurationCopies()
+}
+
+def assertCorrectFilesForCompleteConfigurations() {
+    expectedResults = [
+            oneDepWithNoTransitives: ['herring-1.0.jar'] as Set,
+            oneDepWithTransitives: ['tuna-1.0.jar', 'herring-1.0.jar'] as Set,
+            twoDepsWithNoTransitives: ['seal-1.0.jar', 'herring-1.0.jar'] as Set,
+            twoDepsWithTransitives: ['tuna-1.0.jar', 'orca-1.0.jar', 'seal-1.0.jar', 'herring-1.0.jar'] as Set,
+            twoDepsWithOneAsTransitive: ['tuna-1.0.jar', 'shark-1.0.jar', 'seal-2.0.jar', 'herring-1.0.jar'] as Set,
+            twoDepsWithVersionConflicts: ['tuna-1.0.jar', 'shark-1.0.jar', 'seal-2.0.jar', 'orca-1.0.jar', 'herring-1.0.jar'] as Set,
+            twoDepsWithDifferentDependencyConfigurations: ['tuna-1.0.jar', 'shark-1.0.jar', 'seal-2.0.jar', 'billfish-1.0.jar', 'herring-1.0.jar', 'squid-1.0.jar'] as Set,
+            extending: ['tuna-1.0.jar', 'herring-1.0.jar', 'seal-1.0.jar', 'orca-1.0.jar'] as Set,
+            selfResolving: ['selfResolving1.jar', 'src'] as Set,
+            mixed: ['tuna-1.0.jar', 'orca-1.0.jar', 'seal-1.0.jar', 'herring-1.0.jar', 'selfResolving1.jar', 'src'] as Set
+    ]
+    expectedResults.each { configurationName, expectedFileNames ->
+        Set resolvedFileNames = configurations[configurationName].files.collect { it.name }
+        Assert.assertEquals(expectedFileNames, resolvedFileNames)
+    }
+}
+
+def assertFilesForDependencySubsets() {
+    assertSubsetFiles(configurations.oneDepWithNoTransitives, { dep -> dep.name == 'herring' }, ['herring-1.0.jar'])
+    assertSubsetFiles(configurations.oneDepWithTransitives, { dep -> dep.name == 'tuna' }, ['tuna-1.0.jar', 'herring-1.0.jar'])
+    assertSubsetFiles(configurations.twoDepsWithNoTransitives, { dep -> dep.name == 'herring' }, ['herring-1.0.jar'])
+    assertSubsetFiles(configurations.twoDepsWithTransitives, { dep -> dep.name == 'tuna' }, ['tuna-1.0.jar', 'herring-1.0.jar'])
+    assertSubsetFiles(configurations.twoDepsWithOneAsTransitive, { dep -> dep.name == 'shark' }, ['tuna-1.0.jar', 'shark-1.0.jar', 'seal-2.0.jar', 'herring-1.0.jar'])
+    assertSubsetFiles(configurations.twoDepsWithOneAsTransitive, { dep -> dep.name == 'tuna' }, ['tuna-1.0.jar', 'herring-1.0.jar'])
+    assertSubsetFiles(configurations.twoDepsWithVersionConflicts, { dep -> dep.name == 'shark' }, ['tuna-1.0.jar', 'shark-1.0.jar', 'seal-2.0.jar', 'herring-1.0.jar'])
+    assertSubsetFiles(configurations.twoDepsWithVersionConflicts, { dep -> dep.name == 'orca' }, ['orca-1.0.jar', 'seal-2.0.jar'])
+    assertSubsetFiles(configurations.twoDepsWithDifferentDependencyConfigurations, { dep -> dep.name == 'shark' }, ['tuna-1.0.jar', 'shark-1.0.jar', 'seal-2.0.jar', 'herring-1.0.jar'])
+    assertSubsetFiles(configurations.twoDepsWithDifferentDependencyConfigurations, { dep -> dep.name == 'billfish' }, ['tuna-1.0.jar', 'billfish-1.0.jar', 'squid-1.0.jar'])
+    assertSubsetFiles(configurations.extending, { dep -> dep.name == 'tuna' }, ['tuna-1.0.jar', 'herring-1.0.jar'])
+    assertSubsetFiles(configurations.selfResolving, { dep -> dep.source.singleFile.name == 'src' }, ['src'])
+    assertSubsetFiles(configurations.mixed, { dep ->
+        dep instanceof org.gradle.api.artifacts.SelfResolvingDependency || dep.name == 'tuna' }, ['src', 'selfResolving1.jar', 'tuna-1.0.jar', 'herring-1.0.jar'])
+}
+
+task check << {
+    assertSubsetFiles(configurations.twoDepsWithOneAsTransitive, { dep -> dep.name == 'tuna' }, ['tuna-1.0.jar', 'herring-1.0.jar'])    
+}
+
+def assertSubsetFiles(configuration, spec, expectedFileNames) {
+    Set resolvedFileNames = configuration.files(spec).collect { it.name }
+    Assert.assertEquals(expectedFileNames as Set, resolvedFileNames)
+}
+
+def assertFilesForConfigurationCopies() {
+    assertConfigurationCopyFiles(configurations.oneDepWithNoTransitives, { dep -> true }, ['herring-1.0.jar'])
+    assertConfigurationCopyFiles(configurations.oneDepWithTransitives, { dep -> dep.name == 'tuna' }, ['tuna-1.0.jar', 'herring-1.0.jar'])
+    assertConfigurationCopyFiles(configurations.twoDepsWithVersionConflicts, { dep -> dep.name == 'shark' }, ['tuna-1.0.jar', 'shark-1.0.jar', 'seal-2.0.jar', 'herring-1.0.jar'])
+    assertConfigurationCopyFiles(configurations.twoDepsWithVersionConflicts, { dep -> dep.name == 'orca' }, ['orca-1.0.jar', 'seal-1.0.jar'])
+    assertConfigurationCopyFiles(configurations.extending, { dep -> true }, ['seal-1.0.jar', 'orca-1.0.jar'])
+    assertConfigurationCopyFiles(configurations.extending, { dep -> dep.name == 'tuna' }, ['tuna-1.0.jar', 'herring-1.0.jar'], true)
+    assertConfigurationCopyFiles(configurations.selfResolving, { dep -> true }, ['selfResolving1.jar', 'src'])
+    assertConfigurationCopyFiles(configurations.selfResolving, { dep -> dep.source.singleFile.name == 'src' }, ['src'])
+    assertConfigurationCopyFiles(configurations.mixed, { dep ->
+        dep instanceof org.gradle.api.artifacts.SelfResolvingDependency || dep.name == 'tuna' }, ['src', 'selfResolving1.jar', 'tuna-1.0.jar', 'herring-1.0.jar'], true)
+}
+
+def assertConfigurationCopyFiles(configuration, spec, expectedFileNames, recursive = false) {
+    String method = recursive ? 'copyRecursive' : 'copy'
+    Set resolvedFileNames = configuration."$method"(spec).collect { it.name }
+    Assert.assertEquals(expectedFileNames as Set, resolvedFileNames)
+}

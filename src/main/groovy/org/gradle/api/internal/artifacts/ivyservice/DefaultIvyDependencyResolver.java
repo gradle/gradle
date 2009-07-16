@@ -20,19 +20,22 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.ResolvedDependency;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Set;
 import java.util.Formatter;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -40,10 +43,10 @@ import java.util.Formatter;
 public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyResolver.class);
 
-    private Report2Classpath report2Classpath;
+    private IvyReportConverter ivyReportTranslator;
 
-    public DefaultIvyDependencyResolver(Report2Classpath report2Classpath) {
-        this.report2Classpath = report2Classpath;
+    public DefaultIvyDependencyResolver(IvyReportConverter ivyReportTranslator) {
+        this.ivyReportTranslator = ivyReportTranslator;
     }
 
     public ResolvedConfiguration resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor) {
@@ -68,6 +71,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
     private class ResolvedConfigurationImpl implements ResolvedConfiguration {
         private final ResolveReport resolveReport;
         private final Configuration configuration;
+        private Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies;
 
         public ResolvedConfigurationImpl(ResolveReport resolveReport, Configuration configuration) {
             this.resolveReport = resolveReport;
@@ -94,9 +98,41 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         public Set<File> getFiles(Spec<Dependency> dependencySpec) {
-            rethrowFailure();
+            if (configuration.getAllDependencies().equals(Specs.filterIterable(configuration.getAllDependencies(), dependencySpec))) {
+                return ivyReportTranslator.getClasspath(configuration.getName(), resolveReport);
+            }
+            buildResolvedDependencies();
             Set<Dependency> dependencies = Specs.filterIterable(configuration.getAllDependencies(), dependencySpec);
-            return report2Classpath.getClasspath(resolveReport, dependencies);
+            Set<File> files = new LinkedHashSet<File>();
+            for (Dependency dependency : dependencies) {
+                Set<ResolvedDependency> resolvedDependencies = firstLevelResolvedDependencies.get(dependency);
+                if (resolvedDependencies == null) {
+                    continue;
+                }
+                for (ResolvedDependency resolvedDependency : resolvedDependencies) {
+                    files.addAll(resolvedDependency.getAllFiles());
+                }
+            }
+            return files;
+        }
+
+        public Set<ResolvedDependency> getFirstLevelResolvedDependencies() {
+            buildResolvedDependencies();
+            Set<ResolvedDependency> resolvedDependencies = new LinkedHashSet<ResolvedDependency>();
+            for (Dependency dependency : firstLevelResolvedDependencies.keySet()) {
+                resolvedDependencies.addAll(firstLevelResolvedDependencies.get(dependency));
+            }
+            return resolvedDependencies;
+        }
+
+        private void buildResolvedDependencies() {
+            rethrowFailure();
+            if (firstLevelResolvedDependencies != null) {
+                return;
+            }
+            firstLevelResolvedDependencies = ivyReportTranslator.translateReport(
+                    resolveReport,
+                    configuration);
         }
     }
 }

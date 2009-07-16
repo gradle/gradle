@@ -1,8 +1,9 @@
 package org.gradle.api.internal.artifacts.configurations;
 
+import groovy.lang.Closure;
 import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
-import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
@@ -15,12 +16,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.WrapUtil;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.io.File;
 import java.util.*;
-
-import groovy.lang.Closure;
 
 public class DefaultConfiguration extends AbstractFileCollection implements Configuration {
     private final String name;
@@ -167,11 +165,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new ConfigurationFileCollection(WrapUtil.toLinkedSet(dependencies));
     }
 
-    public ResolveReport resolveAsReport() {
-        return getResolvedConfiguration().getResolveReport();
-    }
-
-    private ResolvedConfiguration getResolvedConfiguration() {
+    public ResolvedConfiguration getResolvedConfiguration() {
         if (state == State.UNRESOLVED) {
             cachedResolvedConfiguration = ivyService.resolve(this);
             if (cachedResolvedConfiguration.hasError()) {

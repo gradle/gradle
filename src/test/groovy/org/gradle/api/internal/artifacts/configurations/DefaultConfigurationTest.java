@@ -16,25 +16,23 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.Matchers.isEmpty;
 import org.gradle.util.WrapUtil;
-import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -297,20 +295,11 @@ public class DefaultConfigurationTest {
     }
 
     @Test
-    public void resolveSuccessfullyAsReport() {
-        ResolveReport resolveReport = context.mock(ResolveReport.class);
-        prepareResolve(resolveReport);
-        assertThat(configuration.resolveAsReport(), equalTo(resolveReport));
-        assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
-    }
-
-    private void prepareResolve(final ResolveReport resolveReport) {
-        final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
+    public void resolveSuccessfullyAsResolvedConfiguration() {
+        ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         prepareResolve(resolvedConfiguration, false);
-        context.checking(new Expectations() {{
-            allowing(resolvedConfiguration).getResolveReport();
-            will(returnValue(resolveReport));
-        }});
+        assertThat(configuration.getResolvedConfiguration(), equalTo(resolvedConfiguration));
+        assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
     }
 
     private void prepareResolve(final ResolvedConfiguration resolvedConfiguration, final boolean withErrors) {
@@ -324,8 +313,8 @@ public class DefaultConfigurationTest {
 
     @Test
     public void multipleResolvesShouldUseCachedResult() {
-        prepareResolve(context.mock(ResolveReport.class));
-        assertThat(configuration.resolveAsReport(), sameInstance(configuration.resolveAsReport()));
+        prepareResolve(context.mock(ResolvedConfiguration.class), true);
+        assertThat(configuration.getResolvedConfiguration(), sameInstance(configuration.getResolvedConfiguration()));
     }
 
     @Test

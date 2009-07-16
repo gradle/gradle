@@ -21,15 +21,16 @@ import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -55,6 +56,12 @@ public class DefaultDependencyFactoryTest {
             will(returnValue(pointDependencyDummy));
         }});
         assertSame(pointDependencyDummy, dependencyFactory.createDependency(point));
+    }
+
+    @Test
+    public void createDependencyWithDependencyObject() {
+        final Dependency dependencyDummy = context.mock(Dependency.class);
+        assertSame(dependencyDummy, dependencyFactory.createDependency(dependencyDummy));    
     }
 
     @Test

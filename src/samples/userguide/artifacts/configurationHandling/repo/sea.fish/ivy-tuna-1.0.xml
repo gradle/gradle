@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ivy-module version="1.0">
+    <info
+        organisation="sea.fish"
+        module="tuna"
+        revision="1.0"/>
+    <configurations>
+        <conf name="default"/>
+    </configurations>
+    <dependencies>
+        <dependency org="sea.fish" name="herring" rev="1.0" conf="default"/>
+    </dependencies>
+</ivy-module>

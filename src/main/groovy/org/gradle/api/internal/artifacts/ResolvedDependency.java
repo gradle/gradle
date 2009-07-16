@@ -15,22 +15,22 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.report.ResolveReport;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.specs.Spec;
-
 import java.io.File;
 import java.util.Set;
 
-public interface ResolvedConfiguration {
-    ResolveReport getResolveReport();
-    
-    boolean hasError();
+/**
+ * @author Hans Dockter
+ */
+public interface ResolvedDependency {
+    String getName();
 
-    void rethrowFailure() throws GradleException;
+    String getConfiguration();
 
-    Set<File> getFiles(Spec<Dependency> dependencySpec);
+    Set<ResolvedDependency> getChildren();
 
-    Set<ResolvedDependency> getFirstLevelResolvedDependencies();
+    Set<ResolvedDependency> getParents();
+
+    Set<File> getFiles();
+
+    Set<File> getAllFiles();
 }

@@ -17,11 +17,12 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.util.GUtil
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.util.GUtil
 
 /**
  * @author Hans Dockter
@@ -48,11 +49,7 @@ class DefaultDependencyHandler implements DependencyHandler {
 
     private Dependency pushDependency(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
         Dependency dependency
-        if (notation instanceof Dependency) {
-            dependency = notation
-        } else {
-            dependency = dependencyFactory.createDependency(notation, configureClosure)
-        }
+        dependency = dependencyFactory.createDependency(notation, configureClosure)
         configuration.addDependency(dependency)
         dependency
     }

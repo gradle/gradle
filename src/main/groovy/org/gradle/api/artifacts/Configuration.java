@@ -16,8 +16,8 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
-import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -200,11 +200,11 @@ public interface Configuration extends FileCollection {
 
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
-     * a ResolveReport that may be used to determine information about the resolve (including errors).
+     * a ResolvedConfiguration that may be used to determine information about the resolve (including errors).
      *
-     * @return The ResolveReport
+     * @return The ResolvedConfiguration object
      */
-    ResolveReport resolveAsReport();
+    ResolvedConfiguration getResolvedConfiguration();
 
     /**
      * Returns the name of the task that upload the artifacts of this configuration to the internal

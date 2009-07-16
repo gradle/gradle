@@ -17,15 +17,15 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.report.IvyDependency;
-import org.gradle.api.artifacts.report.IvyDependencyGraph;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.ResolvedDependency;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * DependencyGraphRenderer that emits simple graphviz dot notation for a dependency tree.
+ * DependencyGrAaphRenderer that emits simple graphviz dot notation for a dependency tree.
  *
  * @author Phil Messenger
  */
@@ -43,12 +43,14 @@ public class GraphvizReportRenderer extends TextProjectReportRenderer implements
         // Do nothing
     }
 
-    public void render(IvyDependencyGraph graph) throws IOException {
-        getFormatter().format("digraph %s{%n", graph.getConf());
+    public void render(ResolvedConfiguration resolvedConfiguration) throws IOException {
+        getFormatter().format("digraph %s{%n", "SomeConf");
 
         Set<String> edges = new HashSet<String>();
 
-        buildDotDependencyTree(graph.getRoot(), edges);
+        for (ResolvedDependency resolvedDependency : resolvedConfiguration.getFirstLevelResolvedDependencies()) {
+            buildDotDependencyTree(resolvedDependency, edges);
+        }
 
         for (String edge : edges) {
             getFormatter().format("%s%n", edge);
@@ -57,13 +59,16 @@ public class GraphvizReportRenderer extends TextProjectReportRenderer implements
         getFormatter().format("}%n");
     }
 
-    private void buildDotDependencyTree(IvyDependency root, Set<String> edges) {
-        for (IvyDependency dep : root.getDependencies()) {
-            String edge = "\"" + root.getName() + "\" -> \"" + dep.getName().replace('-', '_') + "\";";
+    private void buildDotDependencyTree(ResolvedDependency root, Set<String> edges) {
+        if (root.getAllFiles().isEmpty()) {
+            return;
+        }
+        for (ResolvedDependency dep : root.getChildren()) {
+            String edge = "\"" + root.toString() + "\" -> \"" + dep.toString().replace('-', '_') + "\";";
             edges.add(edge);
         }
 
-        for (IvyDependency dep : root.getDependencies()) {
+        for (ResolvedDependency dep : root.getChildren()) {
             buildDotDependencyTree(dep, edges);
         }
     }

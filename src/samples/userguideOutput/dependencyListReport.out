@@ -8,12 +8,11 @@ No configurations
 Project :api
 ------------------------------------------------------------
 compile
-|-----api:unspecified:unspecified
-      |-----commons-io:commons-io:1.2
+|-----commons-io:commons-io:1.2:default
 
 ------------------------------------------------------------
 Project :webapp
 ------------------------------------------------------------
 compile
-|-----webapp:unspecified:unspecified
-      |-----commons-io:commons-io:1.2
+|-----commons-io:commons-io:1.2:default
+

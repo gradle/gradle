@@ -49,6 +49,10 @@ public class DefaultDependencyFactory implements DependencyFactory {
     }
 
     public Dependency createDependency(Object dependencyNotation) {
+        if (dependencyNotation instanceof Dependency) {
+            return (Dependency) dependencyNotation;
+        }
+        
         Dependency dependency = null;
         for (IDependencyImplementationFactory factory : dependencyFactories) {
             try {

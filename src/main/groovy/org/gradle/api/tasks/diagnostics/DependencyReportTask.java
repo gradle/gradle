@@ -17,11 +17,10 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.report.IvyDependencyGraph;
-import org.gradle.api.artifacts.report.IvyDependencyGraphBuilder;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -35,6 +34,8 @@ import java.util.TreeSet;
 public class DependencyReportTask extends AbstractReportTask {
 
     private DependencyReportRenderer renderer = new AsciiReportRenderer();
+
+    private Set<Configuration> configurations;
 
     public DependencyReportTask(Project project, String name) {
         super(project, name);
@@ -58,17 +59,29 @@ public class DependencyReportTask extends AbstractReportTask {
                         return conf1.getName().compareTo(conf2.getName());
                     }
                 });
-        sortedConfigurations.addAll(project.getConfigurations().getAll());
+        sortedConfigurations.addAll(getConfigurations(project));
         for (Configuration configuration : sortedConfigurations) {
-            IvyDependencyGraphBuilder graphBuilder = new IvyDependencyGraphBuilder();
-
-            // todo - move the following to Configuration, so that a IvyDependencyGraph can be obtained directly
-            // todo - failOnResolve should lead to exception
-            IvyDependencyGraph graph = graphBuilder.buildGraph(configuration.resolveAsReport(), configuration.getName());
-
             renderer.startConfiguration(configuration);
-            renderer.render(graph);
+            renderer.render(configuration.getResolvedConfiguration());
             renderer.completeConfiguration(configuration);
         }
+    }
+
+    private Set<Configuration> getConfigurations(Project project) {
+        return configurations != null ? configurations : project.getConfigurations().getAll();
+    }
+
+    /**
+     * Returns the configurations to use to build a report. If unset, all project configurations will be used.
+     */
+    public Set<Configuration> getConfigurations() {
+        return configurations;
+    }
+
+    /**
+     * Set the configurations to use to build a report. If unset, all project configurations will be used.
+     */
+    public void setConfigurations(Set<Configuration> configurations) {
+        this.configurations = configurations;
     }
 }

@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.integtests;
 
-import org.apache.ivy.core.report.ResolveReport;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.specs.Spec;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Set;
 
-public interface ResolvedConfiguration {
-    ResolveReport getResolveReport();
-    
-    boolean hasError();
+/**
+ * @author Hans Dockter
+ */
+@RunWith (DistributionIntegrationTestRunner.class)
+public class DependenciesResolveIntegrationTest {
+    // Injected by test runner
+    private GradleDistribution dist;
+    private GradleExecuter executer;
 
-    void rethrowFailure() throws GradleException;
-
-    Set<File> getFiles(Spec<Dependency> dependencySpec);
-
-    Set<ResolvedDependency> getFirstLevelResolvedDependencies();
+    @Test
+    public void testResolve() {
+        // the actual testing is done in the build script.
+        File projectDir = new File(dist.getSamplesDir(), "dependencies");
+        executer.inDirectory(projectDir).withTasks("test").run();
+    }   
 }

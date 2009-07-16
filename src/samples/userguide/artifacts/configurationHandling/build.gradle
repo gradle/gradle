@@ -1,0 +1,73 @@
+import org.apache.ivy.plugins.resolver.FileSystemResolver
+
+repositories {
+    add(new FileSystemResolver()) {
+        name = "repo"
+        addArtifactPattern("$projectDir/repo/[organization]/[module]-[revision].[ext]")
+        addIvyPattern("$projectDir/repo/[organization]/ivy-[module]-[revision].xml")
+        checkmodified = true
+    }
+}
+
+//START SNIPPET setup
+configurations {
+    sealife
+    alllife.extendsFrom sealife
+}
+
+dependencies {
+    sealife "sea.mammals:orca:1.0", "sea.fish:shark:1.0", "sea.fish:tuna:1.0"
+    alllife "air.birds:albatros:1.0"
+}
+//END SNIPPET setup
+
+//START SNIPPET dependencies
+task dependencies << {
+    configurations.alllife.dependencies.each { dep -> println dep.name }
+    println()
+    configurations.alllife.allDependencies.each { dep -> println dep.name }
+    println()
+    configurations.alllife.allDependencies.findAll { dep -> dep.name != 'orca' }.each { dep -> println dep.name }
+}
+//END SNIPPET dependencies
+
+//START SNIPPET allFiles
+task allFiles << {
+    configurations.sealife.files.each { file ->
+        println file.name
+    }
+}
+//END SNIPPET allFiles
+
+//START SNIPPET files
+task files << {
+    configurations.sealife.files { dep -> dep.name == 'orca' }.each { file ->
+        println file.name
+    }
+}
+//END SNIPPET files
+
+
+//START SNIPPET copy
+task copy << {
+    configurations.alllife.copyRecursive { dep -> dep.name != 'orca' }.allDependencies.each { dep ->
+        println dep.name
+    }
+    println()
+    configurations.alllife.copy().allDependencies.each { dep ->
+        println dep.name
+    }
+}
+//END SNIPPET copy
+
+//START SNIPPET copyVsFiles
+task copyVsFiles << {
+    configurations.sealife.copyRecursive { dep -> dep.name == 'orca' }.each { file ->
+        println file.name
+    }
+    println()
+    configurations.sealife.files { dep -> dep.name == 'orca' }.each { file ->
+        println file.name
+    }
+}
+//END SNIPPET copyVsFiles

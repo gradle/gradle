@@ -15,20 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.SelfResolvingDependency;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.GradleException;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
+import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
+import org.gradle.api.internal.artifacts.ResolvedDependency;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
+import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Set;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
     private final IvyDependencyResolver resolver;
@@ -60,6 +63,18 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 }
                 files.addAll(resolvedConfiguration.getFiles(dependencySpec));
                 return files;
+            }
+
+            public Set<ResolvedDependency> getFirstLevelResolvedDependencies() {
+                Set<ResolvedDependency> firstLevelResolvedDependencies = resolvedConfiguration.getFirstLevelResolvedDependencies();
+                for (SelfResolvingDependency selfResolvingDependency : selfResolvingDependencies) {
+                    Set<File> files = selfResolvingDependency.resolve();
+                    firstLevelResolvedDependencies.add(new DefaultResolvedDependency(
+                            GUtil.join(files, ";"),
+                            "",
+                            files));
+                }
+                return firstLevelResolvedDependencies;
             }
 
             public boolean hasError() {

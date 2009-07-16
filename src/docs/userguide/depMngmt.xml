@@ -8,7 +8,7 @@
         <itemizedlist>
             <listitem>
                 <para>All the concepts that you already know and like are still there and are fully supported by Gradle. The current dependency management solutions all require to work with XML descriptor files and are usually
-        based on remote repositories for downloading the dependencies. Gradle fully supports this approach. 
+        based on remote repositories for downloading the dependencies. Gradle fully supports this approach.
                 </para>
             </listitem>
             <listitem>
@@ -173,7 +173,7 @@
             </para>
             <section id='ssub:artifact_dependencies'>
                 <title>Artifact only notation</title>
-                <para>As said above, if no module descriptor file can be found, Gradle by default 
+                <para>As said above, if no module descriptor file can be found, Gradle by default
                     downloads a jar with the name of the module. But sometimes, even if the repository contains module descriptors,  you want to download only the artifact jar, without
                     the dependencies.
                     <footnote>
@@ -358,42 +358,73 @@
                 </tr>
             </table>
         </section>
-        <section>
-            <title>Working with dependencies</title>
-            <para>To get the library files of the dependencies of a configuration you can do:
-            </para>
-            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Working with dependencies">
-                <sourcefile file="build.gradle" snippet="dependencies-with-empty-attributes"/>
-            </sample>
-            <para>Sometimes you want the library files of a subset of the configuration dependencies (e.g. of a single dependency).
-                Gradle does not provide such a functionality in the current release (expect it to be available in the next release).
-                What you can do is to use a copy of a configuration. 
-            </para>
-            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Working with dependencies">
-                <sourcefile file="build.gradle" snippet="configuration-copy"/>
-            </sample>
-            <para>Now you can resolve this copied configuration. You must be aware that the resolve of the copied configuration is often
-            but not always the same as the resolve of the subset of the source configuration. In case of version conflicts between
-            dependencies of the subset and dependencies not belonging to the subset the resolve result might be different. The
-                <code>copy</code> method copies only the dependencies belonging explicitly to the configuration. The
-                <code>copyRecursive</code> methode copies all the dependencies, including the dependencies from extended
-                configurations.
-            </para>
-            <para>Once a configuration is resolved it is immutable. Changing its state or the state of one of its dependencies
-                will cause an exception.
-            </para>
-            <para>You can use the configuration to access the declared dependencies or a subset of those:
-            </para>
-            <sample id="dependenciesWithEmptyAttributes" dir="userguide/artifacts/externalDependencies" title="Accessing declared dependencies">
-                <sourcefile file="build.gradle" snippet="configuration-get-dependencies"/>
-            </sample>
-            <para><code>dependencies</code> returns only the dependencies belonging explicitly to the configuration.
-                <code>allDependencies</code> includes the dependencies from extended
-                configurations. As said above, in the next release of Gradle you will be able to resolve configurations
-                with dependency subsets. To learn more about the API of the configuration class see the javadoc:
-                <apilink class='org.gradle.api.artifacts.Configuration'/>.
-            </para>
-        </section>
+    </section>
+    <section>
+        <title>Working with dependencies</title>
+        <para>For the examples below we have the following dependencies setup:</para>
+        <sample id="configurationHandlingSetup" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
+            <sourcefile file="build.gradle" snippet="setup"/>
+        </sample>
+        <para>The dependencies have the following transitive dependencies:</para>
+        <para>shark-1.0 -> seal-2.0, tuna-1.0</para>
+        <para>orca-1.0 -> seal-1.0</para>
+        <para>tuna-1.0 -> herring-1.0</para>
+        <para>You can use the configuration to access the declared dependencies or a subset of those:
+        </para>
+        <sample id="configurationHandlingDependencies" dir="userguide/artifacts/configurationHandling" title="Accessing declared dependencies">
+            <sourcefile file="build.gradle" snippet="dependencies"/>
+            <output args="dependencies"/>
+        </sample>
+        <para><code>dependencies</code> returns only the dependencies belonging explicitly to the configuration.
+            <code>allDependencies</code> includes the dependencies from extended
+            configurations.
+        </para>
+        <para>To get the library files of the configuration dependencies you can do:
+        </para>
+        <sample id="configurationHandlingAllFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files">
+            <sourcefile file="build.gradle" snippet="allFiles"/>
+            <output args="allFiles"/>
+        </sample>
+        <para>Sometimes you want the library files of a subset of the configuration dependencies (e.g. of a single dependency).
+        </para>
+        <sample id="configurationHandlingFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.files with spec">
+            <sourcefile file="build.gradle" snippet="files"/>
+            <output args="files"/>
+        </sample>
+        <para>The <code>Configuration.files</code> method always retrieves all artifacts of the <emphasis>whole</emphasis> configuration. It
+        then filters the retrieved files by specified dpendencies. As you can see in the example, transitive dependencies are included.
+        </para>
+        <para>You can also copy a configuration. You can optionally specify that only a subset of dependencies from the orginal configuration
+            should be copied. The copying methods come in two flavors. The <code>copy</code> method copies only the dependencies belonging
+            explicitly to the configuration. The <code>copyRecursive</code> methode copies all the dependencies, including the dependencies from extended
+            configurations.
+        </para>
+        <sample id="configurationHandlingCopy" dir="userguide/artifacts/configurationHandling" title="Configuration.copy">
+            <sourcefile file="build.gradle" snippet="copy"/>
+             <output args="copy"/>
+        </sample>
+        <para>It is important to note that the returned files of the copied configuration
+            are often but not always the same than the returned files of the dependency subset of the original configuration.
+            In case of version conflicts between
+            dependencies of the subset and dependencies not belonging to the subset the resolve result might be different.</para>
+        <sample id="configurationHandlingCopyVsFiles" dir="userguide/artifacts/configurationHandling" title="Configuration.copy vs. Configuration.files">
+            <sourcefile file="build.gradle" snippet="copyVsFiles"/>
+             <output args="copyVsFiles"/>
+        </sample>
+        <para>In the example above, <code>orca</code> has a dependency on <code>seal-1.0</code> whereas
+            <code>shark</code> has a dependency on <code>seal-2.0</code>. The original configuration has therefore a version
+            conflict which is resolved to the newer <code>seal-2.0</code> version. The <code>files</code> method therefore
+            returns <code>seal-2.0</code> as a transitive dependency of <code>orca</code>. The copied configuration only has <code>orca</code>
+            as a dependency and therefore there is no version conflict and <code>seal-1.0</code> is returned as a transitive
+            dependency.
+        </para>
+        <para>Once a configuration is resolved it is immutable. Changing its state or the state of one of its dependencies
+            will cause an exception. You can always copy a resolved configuration. The copied configuration is in the unresolved
+            state and can be freshly resolved.
+        </para>
+        <para>To learn more about the API of the configuration class see the javadoc:
+            <apilink class='org.gradle.api.artifacts.Configuration'/>.
+        </para>
     </section>
     <section id='sec:repositories'>
         <title>Repositories</title>
@@ -484,7 +515,7 @@
                     </para>
                 </listitem>
             </itemizedlist>
-            <para>Let's say, you declare a dependency on the 
+            <para>Let's say, you declare a dependency on the
                 <literal>junit:junit:3.8.2</literal> library.
                 Now how does Gradle find it in the repositories? Somehow the dependency information has to be mapped to a
                 path. In contrast to Maven, where this path is fixed, with Gradle you can define a pattern that defines

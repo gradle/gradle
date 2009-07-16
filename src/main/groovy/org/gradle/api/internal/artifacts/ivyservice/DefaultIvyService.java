@@ -40,7 +40,7 @@ public class DefaultIvyService implements IvyService {
     private ModuleDescriptorConverter moduleDescriptorConverter = new DefaultModuleDescriptorConverter();
     private IvyFactory ivyFactory = new DefaultIvyFactory();
     private IvyDependencyResolver dependencyResolver = new SelfResolvingDependencyResolver(
-            new DefaultIvyDependencyResolver(new Report2Classpath()));
+            new DefaultIvyDependencyResolver(new DefaultIvyReportConverter()));
     private IvyDependencyPublisher dependencyPublisher = new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory());
     private final DependencyMetaDataProvider metaDataProvider;
     private final ResolverProvider resolverProvider;

@@ -16,7 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.report.IvyDependencyGraph;
+import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 
 import java.io.IOException;
 
@@ -35,9 +35,9 @@ public interface DependencyReportRenderer extends ProjectReportRenderer {
     /**
      * Writes the given dependency graph for the current configuration.
      *
-     * @param graph The dependency graph.
+     * @param resolvedConfiguration The resolved configuration.
      */
-    void render(IvyDependencyGraph graph) throws IOException;
+    void render(ResolvedConfiguration resolvedConfiguration) throws IOException;
 
     /**
      * Completes the rendering of the given configuration.
