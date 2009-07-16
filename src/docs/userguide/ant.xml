@@ -15,9 +15,6 @@
   -->
 <chapter id="ant">
     <title>Using Ant from Gradle</title>
-    <note>
-        <para>This chapter is a work in progress.</para>
-    </note>
 
     <para>Gradle provides excellent integration with Ant. You can use individual Ant tasks or entire Ant builds in your
         Gradle builds. In fact, you will find that it's far easier and more powerful to use Ant tasks in a Gradle build
@@ -46,27 +43,32 @@
         </footnote>
     </para>
 
+    <para>You can use Gradle's Ant integration as a path for migrating from Ant to Gradle. For example, you could start
+        by importing your existing Ant build. Then you could move your dependency declarations from the Ant script
+        to your build file. Finally, you could move your tasks across to your build file, or replace them with
+        some of Gradle's plugins.</para>
+
     <section>
         <title>Using Ant tasks and types in your build</title>
 
         <para>In your build script, a property called <literal>ant</literal> is provided by Gradle. This is a reference
-            to an <literal>AntBuilder</literal> instance. This <literal>AntBuilder</literal> is used to
+            to an <apilink class="org.gradle.api.AntBuilder"/> instance. This <literal>AntBuilder</literal> is used to
             access Ant tasks, types and properties from your build script. There is a very simple mapping from Ant's
             <filename>build.xml</filename> format to Groovy, which is explained below.
         </para>
 
-        <para>You execute an Ant task by calling a method on the <literal>ant</literal> property. You use the task
+        <para>You execute an Ant task by calling a method on the <literal>AntBuilder</literal> instance. You use the task
             name as the method name. For example, you execute the Ant <literal>echo</literal> task by calling the
             <literal>ant.echo()</literal> method. The attributes of the Ant task are passed as Map parameters to the
             method. Below is an example which executes the <literal>echo</literal> task. Notice that we can also mix
-            Groovy code and the Ant task markup:</para>
+            Groovy code and the Ant task markup. This can be extremely powerful.</para>
         <sample id="useAntTask" dir="userguide/ant/useAntTask" title="Using an Ant task">
             <sourcefile file="build.gradle"/>
             <output args="hello"/>
         </sample>
 
         <para>
-            You pass nested text to an Ant task by passing it as a parameter of the method call. In this example, we
+            You pass nested text to an Ant task by passing it as a parameter of the task method call. In this example, we
             pass the message for the <literal>echo</literal> task as nested text:
         </para>
         <sample id="taskWithNestedText" dir="userguide/ant/taskWithNestedText" title="Passing nested text to an Ant task">
@@ -75,14 +77,14 @@
         </sample>
 
         <para>You pass nested elements to an Ant task inside a closure. Nested elements are defined in the same way
-            as tasks. That is, by calling a method with the same name as the element we want to define.</para>
+            as tasks, by calling a method with the same name as the element we want to define.</para>
         <sample id="taskWithNestedElements" dir="userguide/ant/taskWithNestedElements" title="Passing nested elements to an Ant task">
             <sourcefile file="build.gradle"/>
             <test args="zip"/>
         </sample>
 
-        <para>You can access Ant types in the same way that you access tasks, by using the name of the type as the
-            method name. The method call returns the Ant object, which you can then use in your build script. In the
+        <para>You can access Ant types in the same way that you access tasks, using the name of the type as the
+            method name. The method call returns the Ant data type, which you can then use directly in your build script. In the
             following example, we create an Ant <literal>path</literal> object, then iterate over the contents of it.</para>
         <sample id="useAntType" dir="userguide/ant/useAntType" title="Using an Ant type">
             <sourcefile file="build.gradle"/>
@@ -94,24 +96,24 @@
         </para>
 
         <section>
-            <title>Using external Ant tasks in your build</title>
-            <para>You can use the <literal>typedef</literal> Ant task to define external Ant tasks, just as you would
-                in a <literal>build.xml</literal> file. You can then refer to the external Ant task as you would a
-                built-in Ant task.
+            <title>Using custom Ant tasks in your build</title>
+            <para>To make custom tasks available in your build, you use the <literal>typedef</literal> Ant task, just
+                as you would in a <literal>build.xml</literal> file. You can then refer to the custom Ant task as you
+                would a built-in Ant task.
             </para>
-            <sample id="useExternalAntTask" dir="userguide/ant/useExternalAntTask" title="Using an external Ant task">
+            <sample id="useExternalAntTask" dir="userguide/ant/useExternalAntTask" title="Using a custom Ant task">
                 <sourcefile file="build.gradle"/>
             </sample>
             <para>
-                You can make use of Gradle's dependency management to assemble the classpath to use for the
-                <literal>typedef</literal>. To do this, you need to define a custom configuration for the classpath, then
-                add some dependencies to the configuration.
+                You can use Gradle's dependency management to assemble the classpath to use for the custom tasks.
+                To do this, you need to define a custom configuration for the classpath, then add some dependencies 
+                to the configuration.
             </para>
-            <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Declaring the classpath for an external Ant task">
+            <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Declaring the classpath for a custom Ant task">
                 <sourcefile file="build.gradle" snippet="define-classpath"/>
             </sample>
             <para>To use the classpath configuration, use the <literal>asPath</literal> property of the custom configuration.</para>
-            <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Using an external Ant task and dependency management together">
+            <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Using a custom Ant task and dependency management together">
                 <sourcefile file="build.gradle" snippet="use-classpath"/>
                 <test args="check"/>
             </sample>
@@ -119,41 +121,17 @@
     </section>
 
     <section>
-        <title>Ant properties and references</title>
-
-        <para>There are several ways to set an Ant property, so that the property can be used by Ant tasks:</para>
-        <sample id="antProperties" dir="userguide/ant/properties" title="Setting an Ant property">
-            <sourcefile file="build.gradle" snippet="set-property"/>
-            <sourcefile file="build.xml" snippet="set-property"/>
-        </sample>
-        <para>There are several ways to get an Ant property which has been set by an Ant task:</para>
-        <sample id="antProperties" dir="userguide/ant/properties" title="Getting an Ant property">
-            <sourcefile file="build.xml" snippet="get-property"/>
-            <sourcefile file="build.gradle" snippet="get-property"/>
-        </sample>
-        <para>There are several ways to set an Ant reference:</para>
-        <sample id="antProperties" dir="userguide/ant/properties" title="Setting an Ant reference">
-            <sourcefile file="build.gradle" snippet="set-reference"/>
-            <sourcefile file="build.xml" snippet="set-reference"/>
-        </sample>
-        <para>There are several ways to get an Ant reference:</para>
-        <sample id="antProperties" dir="userguide/ant/properties" title="Getting an Ant reference">
-            <sourcefile file="build.xml" snippet="get-reference"/>
-            <sourcefile file="build.gradle" snippet="get-reference"/>
-        </sample>
-    </section>
-
-    <section>
         <title>Importing an Ant build</title>
-        <para>You can use the <literal>ant.importBuild()</literal> method to import an Ant build into your Gradle project.
+        <para>You can use the <literal>ant.importBuild()</literal> method to import an Ant build into your Gradle
+            project. When you import an Ant build, each Ant target is treated as a Gradle task. This means you can
+            manipulate and execute the Ant targets in exactly the same way as Gradle tasks.
         </para>
         <sample id="antHello" dir="userguide/ant/hello" title="Importing an Ant build">
             <sourcefile file="build.gradle"/>
             <sourcefile file="build.xml"/>
             <output args="hello"/>
         </sample>
-        <para>Each Ant target is treated as a Gradle task. This means you can manipulate and execute the Ant targets in
-            exactly the same way as Gradle tasks. For example, you can add a task which depends on an Ant target:
+        <para>You can add a task which depends on an Ant target:
         </para>
         <sample id="dependsOnAntTarget" dir="userguide/ant/dependsOnAntTarget" title="Task that depends on Ant target">
             <sourcefile file="build.gradle"/>
@@ -173,7 +151,38 @@
     </section>
 
     <section>
+        <title>Ant properties and references</title>
+
+        <para>There are several ways to set an Ant property, so that the property can be used by Ant tasks. You can
+            set the property directly on the <literal>AntBuilder</literal> instance. The Ant properties are also
+            available as a Map which you can change. You can also use the Ant <literal>property</literal> task.
+            Below are some examples of each of these methods.
+        </para>
+        <sample id="antProperties" dir="userguide/ant/properties" title="Setting an Ant property">
+            <sourcefile file="build.gradle" snippet="set-property"/>
+            <sourcefile file="build.xml" snippet="set-property"/>
+        </sample>
+        <para>Many Ant tasks set properties when they execute. There are several ways to get the value of these properties.
+            You can get the property directly from the <literal>AntBuilder</literal> instance. The Ant properties are
+            also available as a Map. Below are some examples.</para>
+        <sample id="antProperties" dir="userguide/ant/properties" title="Getting an Ant property">
+            <sourcefile file="build.xml" snippet="get-property"/>
+            <sourcefile file="build.gradle" snippet="get-property"/>
+        </sample>
+        <para>There are several ways to set an Ant reference:</para>
+        <sample id="antProperties" dir="userguide/ant/properties" title="Setting an Ant reference">
+            <sourcefile file="build.gradle" snippet="set-reference"/>
+            <sourcefile file="build.xml" snippet="set-reference"/>
+        </sample>
+        <para>There are several ways to get an Ant reference:</para>
+        <sample id="antProperties" dir="userguide/ant/properties" title="Getting an Ant reference">
+            <sourcefile file="build.xml" snippet="get-reference"/>
+            <sourcefile file="build.gradle" snippet="get-reference"/>
+        </sample>
+    </section>
+
+    <section>
         <title>API</title>
-        <para>Have a look at <apilink class="org.gradle.api.AntBuilder"/>.</para>
+        <para>The Ant integration is provided by <apilink class="org.gradle.api.AntBuilder"/>.</para>
     </section>
 </chapter>

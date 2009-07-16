@@ -132,51 +132,43 @@
     </section>
     <section id='sec:gradle_properties_and_system_properties'>
         <title>Gradle properties and system properties</title>
-        <para>Gradle offers a variety of ways to add properties to your build. With the
-            <option>-D</option>
-            command line option you can pass a system property to the JVM which runs Gradle. The <option>-D</option> option of the <command>gradle</command> command has the same effect as the
-            <option>-D</option> option of the <command>java</command> command.
+        <para>Gradle offers a variety of ways to add properties to your build. With the <option>-D</option> command line
+            option you can pass a system property to the JVM which runs Gradle. The <option>-D</option> option of the
+            <command>gradle</command> command has the same effect as the <option>-D</option> option of the
+            <command>java</command> command.
         </para>
-        <para>There is also the possibility to directly add properties to your project objects. You can place a
-            <filename>gradle.properties</filename>
-            file either in the Gradle user home dir (defaults to
-            <filename><replaceable>USER_HOME</replaceable>/.gradle</filename>
-            ) or in your project dir. For multiproject builds you can place
-            <filename>gradle.properties</filename>
-            files in any subproject. The properties of the
-            <filename>gradle.properties</filename>
-            can be accessed via the project object. The properties file in the the user's home directory has precedence
-            over property files in the project directories.
+        <para>You can also directly add properties to your project objects using properties files. You can place a
+            <filename>gradle.properties</filename> file in the Gradle user home directory (defaults to
+            <filename><replaceable>USER_HOME</replaceable>/.gradle</filename>) or in your project directory. For
+            multi-project builds you can place <filename>gradle.properties</filename> files in any subproject directory.
+            The properties of the <filename>gradle.properties</filename> can be accessed via the project object. The
+            properties file in the user's home directory has precedence over property files in the project directories.
         </para>
         <para>You can also add properties directly to your project object via the <option>-P</option>
             command line option. For more exotic use cases you can even pass properties <emphasis>directly</emphasis>
             to the project object via system and environment properties. For example if you run a build on a continuous
             integration server where you have no admin rights for the <emphasis>machine</emphasis>. Your build script
-            needs properties which values should not be seen by others. Therefore you can't use the
-            <option>-P</option>
-            option. In this case you can add an environment property in the project adminstration section (invisible to
+            needs properties which values should not be seen by others. Therefore you can't use the <option>-P</option>
+            option. In this case you can add an environment property in the project administration section (invisible to
             normal users).
             <footnote>
                 <para>
-                    <emphasis>Teamcity</emphasis>
-                    or
-                    <emphasis>Bamboo</emphasis>
-                    are for example CI servers which offer this functionality
+                    <emphasis>Teamcity</emphasis> or <emphasis>Bamboo</emphasis> are for example CI servers which
+                    offer this functionality.
                 </para>
             </footnote>
-            If the environment property follows the pattern <literal>ORG_GRADLE_PROJECT_yourProperty=somevalue</literal>,
-            <literal>yourProperty</literal>
-            is added to your project object. If in the future CI servers support Gradle directly, they might start
-            Gradle via its main method. Therefore we already support the same mechanism for system properties. The only
-            difference is the prefix, which is <literal>org.gradle.project.</literal>.
+            If the environment property follows the pattern
+            <literal>ORG_GRADLE_PROJECT_<replaceable>propertyName</replaceable>=somevalue</literal>,
+            <literal>propertyName</literal> is added to your project object. If in the future CI servers support Gradle
+            directly, they might start Gradle via its main method. Therefore we already support the same mechanism for
+            system properties. The only difference is the pattern, which is
+            <literal>org.gradle.project.<replaceable>propertyName</replaceable></literal>.
         </para>
-        <para>With the
-            <filename>gradle.properties</filename>
-            files you can also set system properties. If a property in such a file has the prefix
-            <literal>systemProp.</literal>
-            the property and its value are added to the system properties (without the prefix).
+        <para>With the <filename>gradle.properties</filename> files you can also set system properties. If a property
+            in such a file has the prefix <literal>systemProp.</literal> the property and its value are added to the 
+            system properties, without the prefix.
         </para>
-        <sample id="properties" dir="userguide/tutorial/properties" title="Setting propertis with settings.gradle file">
+        <sample id="properties" dir="userguide/tutorial/properties" title="Setting properties with a gradle.properties file">
             <sourcefile file="gradle.properties"/>
             <sourcefile file="build.gradle"/>
             <output args="-q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps"/>

@@ -41,10 +41,10 @@
     <xi:include href='warPlugin.xml'/>
     <xi:include href='jettyPlugin.xml'/>
     <xi:include href='mavenPlugin.xml'/>
-    <xi:include href='antPlugin.xml'/>
     <xi:include href='osgi.xml'/>
-    <xi:include href='customPlugins.xml'/>
+    <xi:include href='eclipsePlugin.xml'/>
     <xi:include href='projectReports.xml'/>
+    <xi:include href='customPlugins.xml'/>
     <xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
     <xi:include href='buildLifecycle.xml'/>

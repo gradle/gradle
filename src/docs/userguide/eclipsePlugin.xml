@@ -13,8 +13,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id="ant_plugin">
-    <title>The Ant Plugin</title>
+<chapter id="eclipse_plugin">
+    <title>The Eclipse Plugin</title>
     <note>
         <para>This chapter is a work in progress</para>
     </note>
@@ -38,5 +38,5 @@
         <title>Convention properties</title>
         <para>TBD</para>
     </section>
-    
+
 </chapter>

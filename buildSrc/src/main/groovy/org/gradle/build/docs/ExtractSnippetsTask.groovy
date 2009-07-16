@@ -47,8 +47,15 @@ public class ExtractSnippetsTask extends DefaultTask {
                     0: new SnippetWriter(name, destFile).start(),
                     1: new SnippetWriter(name, new File(snippetsDir, name)).start()
             ]
-            Pattern startSnippetPattern = Pattern.compile('\\s*//\\s*START\\s+SNIPPET\\s+(\\S+)\\s*')
-            Pattern endSnippetPattern = Pattern.compile('\\s*//\\s*END\\s+SNIPPET\\s+(\\S+)\\s*')
+            Pattern startSnippetPattern
+            Pattern endSnippetPattern
+            if (name.endsWith('.xml')) {
+                startSnippetPattern = Pattern.compile('\\s*<!--\\s*START\\s+SNIPPET\\s+(\\S+)\\s*-->')
+                endSnippetPattern = Pattern.compile('\\s*<!--\\s*END\\s+SNIPPET\\s+(\\S+)\\s*-->')
+            } else {
+                startSnippetPattern = Pattern.compile('\\s*//\\s*START\\s+SNIPPET\\s+(\\S+)\\s*')
+                endSnippetPattern = Pattern.compile('\\s*//\\s*END\\s+SNIPPET\\s+(\\S+)\\s*')
+            }
 
             try {
                 // Can't use eachLine {} because it throws away blank lines
