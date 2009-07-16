@@ -8,4 +8,9 @@ repositories {
 dependencies {
     testCompile 'junit:junit:4.5'
 }
+
+test {
+    options.forkOptions.forkMode = ForkMode.ONCE
+    testReport = false
+}
 <% } %>

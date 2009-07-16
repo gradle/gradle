@@ -4,7 +4,7 @@ import groovy.text.SimpleTemplateEngine
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 
-scriptclasspath {
+buildscript {
     repositories {
         mavenCentral()
     }
