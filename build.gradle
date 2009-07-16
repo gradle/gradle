@@ -115,7 +115,7 @@ dependencies {
                 "org.mortbay.jetty:jetty-annotations:6.1.14@jar")
     }
 
-    compile module("org.apache.ivy:ivy:2.1.0-rc1") {
+    compile module("org.apache.ivy:ivy:2.1.0-rc2") {
         dependencies("jsch:jsch:0.1.31")
     }
 
