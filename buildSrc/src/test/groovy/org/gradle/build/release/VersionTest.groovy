@@ -30,6 +30,7 @@ import org.gradle.invocation.DefaultBuild
 import org.gradle.logging.AntLoggingAdapter
 import org.gradle.util.GradleUtil
 import org.gradle.api.internal.project.*
+import org.gradle.configuration.ProjectEvaluator
 
 /**
  * @author Hans Dockter
@@ -60,7 +61,7 @@ class VersionTest extends GroovyTestCase {
                         new DefaultConfigurationContainerFactory(),
                         null,
                         null,
-                        null),
+                        [:] as ProjectEvaluator),
                 new StringScriptSource("embedded build file", "embedded"))
         IProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry()
         ProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir, registry)
