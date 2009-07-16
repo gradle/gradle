@@ -10,11 +10,9 @@ import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.ProjectPluginsContainer;
-import org.gradle.external.junit.JUnitTestFramework;
+import org.gradle.api.AntBuilder;
 import org.hamcrest.Matchers;
 import static junit.framework.Assert.*;
-
-import groovy.util.AntBuilder;
 
 /**
  * @author Tom Eyckmans

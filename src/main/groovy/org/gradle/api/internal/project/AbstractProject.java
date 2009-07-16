@@ -18,7 +18,6 @@ package org.gradle.api.internal.project;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
-import groovy.util.AntBuilder;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
@@ -27,7 +26,9 @@ import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectHelper;
+import org.gradle.api.internal.artifacts.FileResolver;
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection;
+import org.gradle.api.internal.artifacts.BaseDirConverter;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
@@ -37,7 +38,6 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.util.BaseDirConverter;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.*;
@@ -58,9 +58,9 @@ public abstract class AbstractProject implements ProjectInternal {
         CREATED, INITIALIZING, INITIALIZED
     }
 
-    private Project rootProject;
+    private final Project rootProject;
 
-    private BuildInternal build;
+    private final BuildInternal build;
 
     private ProjectEvaluator projectEvaluator;
 
@@ -70,11 +70,11 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ScriptSource buildScriptSource;
 
-    private File projectDir;
+    private final File projectDir;
 
-    private ProjectInternal parent;
+    private final ProjectInternal parent;
 
-    private String name;
+    private final String name;
 
     private Object group = DEFAULT_GROUP;
 
@@ -82,7 +82,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Object status = DEFAULT_STATUS;
 
-    private Map<String, Project> childProjects = new HashMap<String, Project>();
+    private final Map<String, Project> childProjects = new HashMap<String, Project>();
 
     private List<String> defaultTasks = new ArrayList<String>();
 
@@ -90,7 +90,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private State state;
 
-    private BaseDirConverter baseDirConverter = new BaseDirConverter();
+    private FileResolver fileResolver;
 
     private AntBuilderFactory antBuilderFactory;
 
@@ -100,9 +100,9 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ProjectPluginsContainer projectPluginsHandler;
 
-    private String path = null;
+    private final String path;
 
-    private int depth = 0;
+    private final int depth;
 
     private TaskContainerInternal taskContainer;
 
@@ -132,6 +132,12 @@ public abstract class AbstractProject implements ProjectInternal {
         this.name = name;
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(new DefaultConvention());
+        projectDir = null;
+        depth = 0;
+        path = Project.PATH_SEPARATOR;
+        rootProject = this;
+        parent = null;
+        build = null;
     }
 
     public AbstractProject(String name,
@@ -155,9 +161,13 @@ public abstract class AbstractProject implements ProjectInternal {
 
         if (parent == null) {
             path = Project.PATH_SEPARATOR;
+            depth = 0;
         } else {
             path = parent.absolutePath(name);
+            depth = parent.getDepth() + 1;
         }
+
+        fileResolver = new BaseDirConverter(getProjectDir());
 
         ProjectServiceRegistry serviceRegistry = serviceRegistryFactory.create(this);
         antBuilderFactory = serviceRegistry.get(AntBuilderFactory.class);
@@ -178,10 +188,6 @@ public abstract class AbstractProject implements ProjectInternal {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }
         dynamicObjectHelper.addObject(taskContainer.getAsDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
-
-        if (parent != null) {
-            depth = parent.getDepth() + 1;
-        }
     }
 
     public RepositoryHandler createRepositoryHandler() {
@@ -194,16 +200,8 @@ public abstract class AbstractProject implements ProjectInternal {
         return rootProject;
     }
 
-    public void setRootProject(Project rootProject) {
-        this.rootProject = rootProject;
-    }
-
     public BuildInternal getBuild() {
         return build;
-    }
-
-    public void setBuild(BuildInternal build) {
-        this.build = build;
     }
 
     public ProjectPluginsContainer getPlugins() {
@@ -263,11 +261,6 @@ public abstract class AbstractProject implements ProjectInternal {
         return parent;
     }
 
-    public void setParent(ProjectInternal parent) {
-        this.parent = parent;
-        dynamicObjectHelper.setParent(parent == null ? null : parent.getInheritedScope());
-    }
-
     public ProjectIdentifier getParentIdentifier() {
         return parent;
     }
@@ -312,10 +305,6 @@ public abstract class AbstractProject implements ProjectInternal {
         return childProjects;
     }
 
-    public void setChildProjects(Map<String, Project> childProjects) {
-        this.childProjects = childProjects;
-    }
-
     public List<String> getDefaultTasks() {
         return defaultTasks;
     }
@@ -348,12 +337,12 @@ public abstract class AbstractProject implements ProjectInternal {
         this.state = state;
     }
 
-    public BaseDirConverter getBaseDirConverter() {
-        return baseDirConverter;
+    public FileResolver getFileResolver() {
+        return fileResolver;
     }
 
-    public void setBaseDirConverter(BaseDirConverter baseDirConverter) {
-        this.baseDirConverter = baseDirConverter;
+    public void setFileResolver(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
     }
 
     public void setAnt(AntBuilder ant) {
@@ -602,10 +591,6 @@ public abstract class AbstractProject implements ProjectInternal {
         return projectDir;
     }
 
-    public void setProjectDir(File projectDir) {
-        this.projectDir = projectDir;
-    }
-
     public File getBuildDir() {
         return GFileUtils.canonicalise(new File(getProjectDir(), buildDirName));
     }
@@ -699,15 +684,15 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File file(Object path) {
-        return file(path, PathValidation.NONE);
+        return fileResolver.resolve(path);
     }
 
     public File file(Object path, PathValidation validation) {
-        return baseDirConverter.baseDir(path, getProjectDir(), validation);
+        return fileResolver.resolve(path, validation);
     }
 
     public FileCollection files(Object... paths) {
-        return new PathResolvingFileCollection(this, paths);
+        return new PathResolvingFileCollection(fileResolver, paths);
     }
 
     public File relativePath(Object path) {

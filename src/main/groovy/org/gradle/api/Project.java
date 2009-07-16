@@ -17,7 +17,6 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import groovy.util.AntBuilder;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.Settings;

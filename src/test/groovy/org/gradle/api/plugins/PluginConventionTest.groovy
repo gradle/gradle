@@ -34,9 +34,8 @@ public abstract class AbstractPluginConventionTest {
     abstract Map getCustomValues()
 
     @Before public void setUp()  {
-        testDir = HelperUtil.makeNewTestDir()
-        project = new DefaultProject("someProject")
-        project.setProjectDir(testDir)
+        project = HelperUtil.createRootProject()
+        testDir = project.projectDir
     }
 
     @Test public void testCustomValues() {

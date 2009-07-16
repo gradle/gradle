@@ -21,16 +21,16 @@ import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
 import org.gradle.api.artifacts.FileCollection
-import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.artifacts.repositories.InternalRepository
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.BeanDynamicObject
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
+import org.gradle.api.internal.artifacts.FileResolver
 import org.gradle.api.internal.artifacts.PathResolvingFileCollection
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Build
@@ -38,8 +38,8 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPluginTest
+import org.gradle.api.plugins.ProjectPluginsContainer
 import org.gradle.api.tasks.Directory
-import org.gradle.api.tasks.util.BaseDirConverter
 import org.gradle.configuration.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
@@ -53,15 +53,13 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import groovy.lang.*
+import java.util.*
 import org.gradle.api.*
+import org.gradle.api.artifacts.dsl.*
+import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.BeanDynamicObject
-import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.plugins.ProjectPluginsContainer
-import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
-import org.gradle.api.initialization.dsl.ScriptHandler
 
 /**
  * @author Hans Dockter
@@ -125,7 +123,7 @@ class DefaultProjectTest {
         outputRedirectorOtherProjectsMock = context.mock(StandardOutputRedirector, "otherProjects")
         taskContainerMock = context.mock(TaskContainerInternal);
         antBuilderFactoryMock = context.mock(AntBuilderFactory)
-        testAntBuilder = new AntBuilder()
+        testAntBuilder = new DefaultAntBuilder()
         context.checking {
             allowing(outputRedirectorOtherProjectsMock).flush();
             allowing(outputRedirectorOtherProjectsMock).off();
@@ -463,10 +461,8 @@ class DefaultProjectTest {
         ProjectInternal child1 = ['getName': {-> 'child1'}] as ProjectInternal
         ProjectInternal child2 = ['getName': {-> 'child2'}] as ProjectInternal
 
-        project.childProjects = [:]
-
         project.addChildProject(child1)
-        assertEquals(1, project.childProjects.size())
+        assertEquals(2, project.childProjects.size())
         assertSame(child1, project.childProjects.child1)
 
         project.addChildProject(child2)
@@ -701,17 +697,14 @@ class DefaultProjectTest {
     }
 
     @Test void testMethodMissing() {
-        DefaultProject dummyParentProject = new DefaultProject("someProject")
-        Script parentBuildScript = createScriptForMethodMissingTest('parent')
-        dummyParentProject.setScript(parentBuildScript);
-        project.parent = dummyParentProject
         boolean closureCalled = false
         Closure testConfigureClosure = {closureCalled = true}
-        assertEquals('parent', project.scriptMethod(testConfigureClosure))
         project.someTask(testConfigureClosure)
         assert closureCalled
+
         project.convention.plugins.test = new TestConvention()
         assertEquals(TestConvention.METHOD_RESULT, project.scriptMethod(testConfigureClosure))
+        
         Script projectScript = createScriptForMethodMissingTest('projectScript')
         project.script = projectScript
         assertEquals('projectScript', project.scriptMethod(testConfigureClosure))
@@ -849,18 +842,21 @@ def scriptMethod(Closure closure) {
         String expectedPath = 'somepath'
         PathValidation expectedValidation = PathValidation.FILE
         boolean converterCalled = false
-        child1.baseDirConverter = [baseDir: {String path, File baseDir, PathValidation pathValidation ->
+        child1.fileResolver = [resolve: {String path, PathValidation pathValidation ->
             converterCalled = true
             assertEquals(expectedPath, path)
-            assertEquals(child1.getProjectDir(), baseDir)
             assertEquals(expectedValidation, pathValidation)
-            baseDir
-        }] as BaseDirConverter
+            child1.projectDir
+        }] as FileResolver
         child1.file(expectedPath, PathValidation.FILE)
         assertTrue(converterCalled)
 
         converterCalled = false
-        expectedValidation = PathValidation.NONE
+        child1.fileResolver = [resolve: {String path ->
+            converterCalled = true
+            assertEquals(expectedPath, path)
+            child1.projectDir
+        }] as FileResolver
         child1.file(expectedPath)
         assertTrue(converterCalled)
     }
@@ -928,7 +924,6 @@ def scriptMethod(Closure closure) {
     @Test void testAnt() {
         Closure configureClosure = {fileset(dir: 'dir', id: 'fileset')}
         project.ant(configureClosure)
-        assertEquals(Closure.OWNER_FIRST, configureClosure.@resolveStrategy)
         assertThat(project.ant.project.getReference('fileset'), instanceOf(FileSet))
     }
 

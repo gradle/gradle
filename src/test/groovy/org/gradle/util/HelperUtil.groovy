@@ -96,11 +96,11 @@ class HelperUtil {
         return project;
     }
 
-    static DefaultProject createChildProject(DefaultProject parentProject, String name) {
+    static DefaultProject createChildProject(DefaultProject parentProject, String name, File projectDir = null) {
         DefaultProject project = new DefaultProject(
                 name,
                 parentProject,
-                new File(parentProject.getProjectDir(), name),
+                projectDir ?: new File(parentProject.getProjectDir(), name),
                 parentProject.buildFile,
                 new StringScriptSource("test build file", null),
                 parentProject.projectRegistry,

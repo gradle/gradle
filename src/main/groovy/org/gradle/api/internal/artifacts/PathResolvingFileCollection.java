@@ -29,10 +29,10 @@ import groovy.lang.Closure;
  */
 public class PathResolvingFileCollection extends AbstractFileCollection {
     private final List<Object> files;
-    private final Project project;
+    private final FileResolver resolver;
 
-    public PathResolvingFileCollection(Project project, Object... files) {
-        this.project = project;
+    public PathResolvingFileCollection(FileResolver resolver, Object... files) {
+        this.resolver = resolver;
         this.files = Arrays.asList(files);
     }
 
@@ -50,16 +50,16 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
                 Object closureResult = closure.call();
                 if (closureResult instanceof Collection) {
                     for (Object nested : (Collection<?>) closureResult) {
-                        result.add(project.file(nested));
+                        result.add(resolver.resolve(nested));
                     }
                 } else {
-                    result.add(project.file(closureResult));
+                    result.add(resolver.resolve(closureResult));
                 }
             } else if (element instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) element;
                 result.addAll(fileCollection.getFiles());
             } else {
-                result.add(project.file(element));
+                result.add(resolver.resolve(element));
             }
         }
         return result;

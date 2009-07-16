@@ -2,13 +2,12 @@ package org.gradle.external.testng;
 
 import org.jmock.Expectations;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.AntBuilder;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkTest;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.external.testng.TestNGTestFramework;
 import org.junit.Before;
 import static org.junit.Assert.*;
-import groovy.util.AntBuilder;
 
 import java.io.File;
 

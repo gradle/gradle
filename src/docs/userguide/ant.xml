@@ -145,7 +145,7 @@
 
     <section>
         <title>Importing an Ant build</title>
-        <para>You can use the <firstterm>Ant Plugin</firstterm> to import an Ant build into your Gradle project.
+        <para>You can use the <literal>ant.importBuild()</literal> method to import an Ant build into your Gradle project.
         </para>
         <sample id="antHello" dir="userguide/ant/hello" title="Importing an Ant build">
             <sourcefile file="build.gradle"/>
@@ -170,5 +170,10 @@
             <sourcefile file="build.xml"/>
             <output args="hello"/>
         </sample>
+    </section>
+
+    <section>
+        <title>API</title>
+        <para>Have a look at <apilink class="org.gradle.api.AntBuilder"/>.</para>
     </section>
 </chapter>

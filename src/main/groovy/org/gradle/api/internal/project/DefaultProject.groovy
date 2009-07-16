@@ -19,12 +19,8 @@ package org.gradle.api.internal.project
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.BuildInternal
-import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.project.*
-import org.gradle.api.internal.plugins.PluginRegistry
-import org.gradle.api.plugins.ProjectPluginsContainer
 
 /**
  * @author Hans Dockter
@@ -60,8 +56,8 @@ class DefaultProject extends AbstractProject {
         dynamicObjectHelper.setProperty(name, value)
     }
 
-    public AntBuilder ant(Closure configureClosure) {
-        return (AntBuilder) ConfigureUtil.configure(configureClosure, getAnt(), Closure.OWNER_FIRST);
+    public org.gradle.api.AntBuilder ant(Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, getAnt());
     }
 
     public void subprojects(Closure configureClosure) {

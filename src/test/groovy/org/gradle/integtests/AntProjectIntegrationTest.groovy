@@ -17,8 +17,7 @@ public class AntProjectIntegrationTest extends AbstractIntegrationTest {
 </project>
 """
         testFile('build.gradle') << """
-usePlugin('ant')
-importAntBuild(file('build.xml'))
+ant.importBuild(file('build.xml'))
 task init << { buildDir.mkdirs() }
 task ant(dependsOn: target1)
 """
@@ -52,9 +51,8 @@ task ant(dependsOn: target1)
 </project>
 """
         testFile('build.gradle') << """
-usePlugin('ant')
-importAntBuild('project1/build.xml')
-importAntBuild('project2/build.xml')
+ant.importBuild('project1/build.xml')
+ant.importBuild('project2/build.xml')
 task ant(dependsOn: [target1, target2])
 """
         TestFile target1File = testFile('project1/build/target1.txt')
@@ -88,8 +86,7 @@ task ant(dependsOn: [target1, target2])
 </project>
 """
         testFile('build.gradle') << """
-usePlugin('ant')
-importAntBuild('build.xml')
+ant.importBuild('build.xml')
 task ant(dependsOn: [target1, target2])
 """
         TestFile target1File = testFile('build/target1.txt')
@@ -115,8 +112,7 @@ task ant(dependsOn: [target1, target2])
 """
         TestFile buildFile = testFile('build.gradle')
         buildFile << """
-usePlugin('ant')
-importAntBuild('build.xml')
+ant.importBuild('build.xml')
 """
         ExecutionFailure failure = inTestDirectory().withTasks('target1').runWithFailure()
         failure.assertHasFileName("Build file '$buildFile'")
@@ -135,8 +131,7 @@ importAntBuild('build.xml')
 """
         TestFile buildFile = testFile('build.gradle')
         buildFile << """
-usePlugin('ant')
-importAntBuild('build.xml')
+ant.importBuild('build.xml')
 """
         ExecutionFailure failure = inTestDirectory().withTasks('target1').runWithFailure()
         failure.assertHasFileName("Build file '$buildFile'")

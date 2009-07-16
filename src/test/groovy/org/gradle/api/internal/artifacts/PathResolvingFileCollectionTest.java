@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
@@ -34,19 +33,19 @@ import java.util.List;
 @RunWith(JMock.class)
 public class PathResolvingFileCollectionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Project project = context.mock(Project.class);
+    private final FileResolver resolver = context.mock(FileResolver.class);
 
     @Test
     public void resolvesSpecifiedFilesAgainstProject() {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        FileCollection collection = new PathResolvingFileCollection(project, "src1", "src2");
+        FileCollection collection = new PathResolvingFileCollection(resolver, "src1", "src2");
 
         context.checking(new Expectations() {{
-            one(project).file("src1");
+            one(resolver).resolve("src1");
             will(returnValue(file1));
-            one(project).file("src2");
+            one(resolver).resolve("src2");
             will(returnValue(file2));
         }});
 
@@ -59,15 +58,15 @@ public class PathResolvingFileCollectionTest {
         final File file2 = new File("2");
 
         context.checking(new Expectations() {{
-            allowing(project).file('a');
+            allowing(resolver).resolve('a');
             will(returnValue(file1));
-            allowing(project).file('b');
+            allowing(resolver).resolve('b');
             will(returnValue(file2));
         }});
 
         List<Character> files = toList('a');
         Closure closure = HelperUtil.returns(files);
-        FileCollection collection = new PathResolvingFileCollection(project, closure);
+        FileCollection collection = new PathResolvingFileCollection(resolver, closure);
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1)));
 
@@ -81,10 +80,10 @@ public class PathResolvingFileCollectionTest {
         Closure closure = HelperUtil.returns('a');
         final File file = new File("1");
 
-        FileCollection collection = new PathResolvingFileCollection(project, closure);
+        FileCollection collection = new PathResolvingFileCollection(resolver, closure);
 
         context.checking(new Expectations() {{
-            one(project).file('a');
+            one(resolver).resolve('a');
             will(returnValue(file));
         }});
 
@@ -97,14 +96,14 @@ public class PathResolvingFileCollectionTest {
         final File file2 = new File("2");
 
         context.checking(new Expectations() {{
-            allowing(project).file("src1");
+            allowing(resolver).resolve("src1");
             will(returnValue(file1));
-            allowing(project).file("src2");
+            allowing(resolver).resolve("src2");
             will(returnValue(file2));
         }});
 
         List<String> files = toList("src1");
-        FileCollection collection = new PathResolvingFileCollection(project, files);
+        FileCollection collection = new PathResolvingFileCollection(resolver, files);
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1)));
 
@@ -120,7 +119,7 @@ public class PathResolvingFileCollectionTest {
 
         final FileCollection src = context.mock(FileCollection.class);
 
-        FileCollection collection = new PathResolvingFileCollection(project, toList((Object) src));
+        FileCollection collection = new PathResolvingFileCollection(resolver, toList((Object) src));
 
         context.checking(new Expectations() {{
             one(src).getFiles();

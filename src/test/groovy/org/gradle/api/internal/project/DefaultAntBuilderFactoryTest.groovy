@@ -15,17 +15,16 @@
  */
 package org.gradle.api.internal.project
 
-import org.junit.runner.RunWith
-import org.jmock.integration.junit4.JMock
-import org.gradle.util.JUnit4GroovyMockery
 import org.apache.tools.ant.BuildListener
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import org.junit.Before
-import org.gradle.util.HelperUtil
 import org.gradle.api.Project
-import org.apache.tools.ant.types.Path
+import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith (JMock)
 public class DefaultAntBuilderFactoryTest {
@@ -53,41 +52,5 @@ public class DefaultAntBuilderFactoryTest {
     public void setsBaseDirOfAntProject() {
         def ant = factory.createAntBuilder()
         assertThat(ant.project.baseDir, equalTo(project.projectDir))
-    }
-
-    @Test
-    public void canGetAndSetAntProjectProperties() {
-        def ant = factory.createAntBuilder()
-        ant.someProp = 'value'
-        ant.property(name: 'anotherProp', value: '${someProp}')
-        assertThat(ant.anotherProp, equalTo('value'))
-    }
-
-    @Test
-    public void canGetAndSetAntPropertiesUsingPropertiesNameSpace() {
-        def ant = factory.createAntBuilder()
-        ant.properties.someProp = 'value'
-        ant.property(name: 'anotherProp', value: '${someProp}')
-        assertThat(ant.properties['anotherProp'], equalTo('value'))
-    }
-
-    @Test
-    public void throwsMissingPropertyExceptionForUnknownProperty() {
-        def ant = factory.createAntBuilder()
-        try {
-            ant.unknown
-            fail()
-        } catch (MissingPropertyException e) {
-            // expected
-        }
-    }
-
-    @Test
-    public void canGetAndSetAntProjectReferences() {
-        def ant = factory.createAntBuilder()
-        def path = new Path(ant.project, 'path')
-        ant.references.someRef = path
-        ant.path(id: 'anotherRef', refid: 'someRef')
-        assertThat(ant.references['anotherRef'].toString(), equalTo(path.toString()))
     }
 }

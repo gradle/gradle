@@ -74,8 +74,7 @@ public class DefaultProjectRegistryTest {
 
     @Test
     public void cannotLocateProjectsWithAmbiguousProjectDir() {
-        DefaultProject duplicateProjectDirProject = HelperUtil.createChildProject(childMock, "childchild2");
-        duplicateProjectDirProject.setProjectDir(childMock.getProjectDir());
+        DefaultProject duplicateProjectDirProject = HelperUtil.createChildProject(childMock, "childchild2", childMock.getProjectDir());
         projectRegistry.addProject(duplicateProjectDirProject);
 
         try {

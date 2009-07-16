@@ -30,8 +30,8 @@ public class DefaultAntBuilderFactory implements AntBuilderFactory {
         this.project = project;
     }
 
-    public groovy.util.AntBuilder createAntBuilder() {
-        AntBuilder antBuilder = new AntBuilder();
+    public DefaultAntBuilder createAntBuilder() {
+        DefaultAntBuilder antBuilder = new DefaultAntBuilder(project);
         antBuilder.getProject().setBaseDir(project.getProjectDir());
         antBuilder.getProject().removeBuildListener((BuildListener) antBuilder.getProject().getBuildListeners().get(0));
         antBuilder.getProject().addBuildListener(buildListener);

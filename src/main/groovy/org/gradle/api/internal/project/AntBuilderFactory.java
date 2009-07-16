@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
-import groovy.util.AntBuilder;
+import org.gradle.api.AntBuilder;
 
 /**
  * @author Hans Dockter

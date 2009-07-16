@@ -21,7 +21,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.StopActionException;
@@ -34,8 +33,8 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import org.junit.Before;
 import static org.junit.Assert.*;
+import org.junit.Before;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,7 +74,6 @@ public class TestTest extends AbstractConventionTaskTest {
     @Before public void setUp() {
         super.setUp();
         test = new Test(getProject(), AbstractTaskTest.TEST_TASK_NAME);
-        ((AbstractProject) test.getProject()).setProjectDir(TEST_ROOT_DIR);
         context.checking(new Expectations(){{
             one(testFrameworkMock).initialize(getProject(), test);
         }});

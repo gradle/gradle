@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.util;
+package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
+import org.gradle.api.internal.artifacts.FileResolver;
 import org.gradle.util.GUtil;
 import org.gradle.util.GFileUtils;
 
@@ -26,12 +27,18 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public class BaseDirConverter {
-    public File baseDir(Object path, File baseDir) {
-        return baseDir(path, baseDir, PathValidation.NONE);
+public class BaseDirConverter implements FileResolver {
+    private final File baseDir;
+
+    public BaseDirConverter(File baseDir) {
+        this.baseDir = baseDir;
     }
 
-    public File baseDir(Object path, File baseDir, PathValidation validation) {
+    public File resolve(Object path) {
+        return resolve(path, PathValidation.NONE);
+    }
+
+    public File resolve(Object path, PathValidation validation) {
         if (!GUtil.isTrue(path) || !GUtil.isTrue(baseDir)) {
             throw new IllegalArgumentException(String.format(
                     "Neither path nor baseDir must be null. path=%s basedir=%s", path, baseDir));

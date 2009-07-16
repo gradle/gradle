@@ -69,8 +69,7 @@ public class AbstractIntegrationTest {
                 "java=org.gradle.api.plugins.JavaPlugin",
                 "groovy=org.gradle.api.plugins.GroovyPlugin",
                 "war=org.gradle.api.plugins.WarPlugin",
-                "maven=org.gradle.api.plugins.MavenPlugin",
-                "ant=org.gradle.api.plugins.ant.AntPlugin"
+                "maven=org.gradle.api.plugins.MavenPlugin"
         );
 
         parameter.setGradleUserHomeDir(testFile("user-home"));

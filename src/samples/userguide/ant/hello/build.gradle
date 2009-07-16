@@ -1,2 +1,1 @@
-usePlugin 'ant'
-importAntBuild 'build.xml'
+ant.importBuild 'build.xml'

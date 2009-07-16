@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.ant;
+package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.plugins.ProjectPluginsContainer;
+import org.gradle.api.PathValidation;
 
-/**
- * <p>A {@link org.gradle.api.Plugin} which adds Ant integration to a project.</p>
- */
-public class AntPlugin implements Plugin {
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-        project.getConvention().getPlugins().put("ant", new AntPluginConvention(project));
-    }
+import java.io.File;
+
+public interface FileResolver {
+    File resolve(Object path);
+
+    File resolve(Object path, PathValidation validation);
 }

@@ -191,8 +191,7 @@ class BuildLoaderTest {
     private ProjectInternal project(ProjectDescriptor descriptor, ProjectInternal parent) {
         DefaultProject project
         if (parent) {
-            project = HelperUtil.createChildProject(parent, descriptor.name)
-            project.projectDir = descriptor.projectDir
+            project = HelperUtil.createChildProject(parent, descriptor.name, descriptor.projectDir)
         } else {
             project = HelperUtil.createRootProject(descriptor.projectDir)
         }
