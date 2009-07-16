@@ -1,4 +1,4 @@
 task(myCopy, type: Copy)
-    .from(file('resources'))
-    .into(file('target'))
-    .includes('**/*.txt', '**/*.xml', '**/*.properties')
+    .from('resources')
+    .into('target')
+    .include('**/*.txt', '**/*.xml', '**/*.properties')

@@ -556,7 +556,7 @@
         </table>
         <para>The
             <literal>processResources</literal>
-            task offers includes and excludes directives as well as filters. Have a look at
+            task offers include and exclude directives as well as filters. Have a look at
             <apilink class="org.gradle.api.tasks.Copy"/> to learn about the details.
         </para>
     </section>

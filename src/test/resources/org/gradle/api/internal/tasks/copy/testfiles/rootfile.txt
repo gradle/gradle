@@ -1,0 +1,3 @@
+The magic number is @MAGIC@
+This is a test
+file to copy

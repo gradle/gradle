@@ -33,11 +33,13 @@ import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.copy.CopyActionImpl;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.copy.CopyAction;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.*;
@@ -805,5 +807,12 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public Map<String, ?> getProperties() {
         return dynamicObjectHelper.getProperties();
+    }
+
+    public CopyAction copy(Closure closure) {
+        CopyAction result = new CopyActionImpl(this);
+        configure(result,  closure);
+        result.execute();
+        return result;
     }
 }

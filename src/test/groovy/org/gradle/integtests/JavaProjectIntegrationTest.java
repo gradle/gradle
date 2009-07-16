@@ -69,4 +69,14 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasDescription("Execution failed for task ':javadoc'");
         failure.assertHasCause("Javadoc generation failed.");
     }
+
+    @Test
+    public void processResources() throws IOException {
+        TestFile buildFile = testFile("javadocs.gradle");
+        buildFile.write("usePlugin('java')");
+        testFile("src/main/resources/org/gradle/resource.file").write("test resource");
+
+        usingBuildFile(buildFile).withTasks("dists").run();
+        testFile("build/classes/org/gradle/resource.file").assertExists();
+    }
 }

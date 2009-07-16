@@ -13,160 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.tasks.copy;
 
-package org.gradle.api.tasks;
-
-import org.gradle.api.internal.tasks.copy.*;
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.*;
-import org.gradle.api.tasks.copy.CopySpec;
-import org.gradle.api.tasks.copy.CopyAction;
-import org.gradle.api.internal.tasks.copy.CopyActionImpl;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 import groovy.lang.Closure;
 
-import java.io.*;
+import java.io.File;
+import java.io.FilterReader;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Task for copying files.  This task can also rename and filter files as it copies.
- * The task implements {@link org.gradle.api.tasks.copy.CopySpec CopySpec} for specifying
- * what to copy.
- * <p>
- * Examples:
+ * A set of specifications for copying files.  This includes:
+ * <ul>
+ *   <li>source directories (multiples allowed)
+ *   <li>destination directory
+ *   <li>ANT like include patterns
+ *   <li>ANT like exclude patterns
+ *   <li>File relocating rules
+ *   <li>renaming rules
+ *   <li>content filters
+ * </ul>
+ *
+ * CopySpecs may be nested by passing a closure to one of the from methods.  The
+ * closure creates a child CopySpec and delegates methods in the closure to the child.
+ * Child CopySpecs inherit any values specified in the parent.  Only the leaf CopySpecs
+ * will be used in any copy operations.
+ * This allows constructs like:
  * <pre>
- * task(mydoc, type:Copy) {
- *    from 'src/main/doc'
- *    into 'build/target/doc'
+ * into('webroot')
+ * exclude('**&#47;.svn/**')
+ * from('src/main/webapp') {
+ *    include '**&#47;*.jsp'
  * }
- *
- *
- * task(initconfig, type:Copy) {
- *    from('src/main/config') {
- *       include '**&#47;*.properties'
- *       include '**&#47;*.xml'
- *       filter(ReplaceTokens, tokens:[version:'2.3.1'])
- *    }
- *    from('src/main/languages') {
- *       rename 'EN_US_(*.)', '$1'
- *    }
- *    into 'build/target/config'
- *    exclude '**&#47;*.bak', '**&#47;CVS/'
+ * from('src/main/js') {
+ *    include '**&#47;*.js'
  * }
  * </pre>
+ *
+ * In this example, the <code>into</code> and <code>exclude</code> specifications at the
+ * root level are inherited by the two child CopySpecs. 
  * @author Steve Appling
  */
-public class Copy extends ConventionTask implements CopyAction {
-    private static Logger logger = LoggerFactory.getLogger(Copy.class);
-
-    CopyActionImpl copyAction;
-
-    public Copy(Project project, String name) {
-        super(project, name);
-
-        copyAction = new CopyActionImpl(project);
-
-        doLast(new TaskAction() {
-            public void execute(Task task) {
-                configureRootSpec();
-                copyAction.execute();
-                setDidWork(copyAction.getDidWork());
-            }
-        });
-    }
-
-    // Only used for testing
-    Copy(Project project, String name, FileVisitor testVisitor, DirectoryWalker testWalker) {
-        this(project, name);
-        copyAction = new CopyActionImpl(project, testVisitor, testWalker);
-    }
-
-    void configureRootSpec() {
-        CopySpecImpl rootSpec = (CopySpecImpl) copyAction.getRootSyncSpec();
-
-        List srcDirs = getSrcDirs();
-        List<File> rootSrcDirs = rootSpec.getSourceDirs();
-        if ((srcDirs != null) &&
-            (rootSrcDirs==null || !rootSrcDirs.equals(srcDirs)) ) {
-            rootSpec.from(srcDirs);
-        }
-
-        File destDir = getDestinationDir();
-        File rootDestDir = rootSpec.getDestDir();
-        if ((destDir != null) &&
-            (rootDestDir==null || !rootDestDir.equals(destDir)) ) {
-            rootSpec.into(destDir);
-        }
-        copyAction.configureRootSpec();
-    }
-
-
-    /**
-     * Set the exclude patterns used by all Copy tasks.
-     * This is typically used to set VCS type excludes like:
-     * <pre>
-     * Copy.globalExclude( '**&#47;.svn/' )
-     * </pre>
-     * Note that there are no global excludes by default.
-     * Unlike CopySpec.exclude, this does not add a new exclude pattern, it sets
-     * (or resets) the exclude patterns.  You can't use sequential calls to
-     * this method to add multiple global exclude patterns.
-     * @param excludes exclude patterns to use
-     */
-    public static void globalExclude(String... excludes) {
-        CopyActionImpl.globalExclude(excludes);
-    }
-
-
-    // Following 4 methods are used only to get convention src and dest
-    public List getSrcDirs() {
-        CopySpecImpl rootSpec = (CopySpecImpl) copyAction.getRootSyncSpec();
-        List<File> srcDirs = rootSpec.getSourceDirs();
-        return srcDirs.size()>0 ? srcDirs : null;
-    }
-
-    public void setSrcDirs(List srcDirs) {
-        CopySpecImpl rootSpec = (CopySpecImpl) copyAction.getRootSyncSpec();
-        rootSpec.from(srcDirs);
-    }
-
-    public File getDestinationDir() {
-        CopySpecImpl rootSpec = (CopySpecImpl) copyAction.getRootSyncSpec();
-        return rootSpec.getDestDir();
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        CopySpecImpl rootSpec = (CopySpecImpl) copyAction.getRootSyncSpec();
-        rootSpec.into(destinationDir);
-    }
-
-
-    // -------------------------------------------------
-    // --- Delegate CopyAction methods to copyAction ---
-    // -------------------------------------------------
-
-    /**
-     * Set case sensitivity for comparisons.
-     * @param caseSensitive
-     */
-    public void setCaseSensitive(boolean caseSensitive) {
-        copyAction.setCaseSensitive(caseSensitive);
-    }
-
-    public List<? extends CopySpec> getLeafSyncSpecs() {
-        return copyAction.getLeafSyncSpecs();
-    }
-
-    public CopySpec getRootSyncSpec() {
-        return copyAction.getRootSyncSpec();
-    }
-
-    // -------------------------------------------------
-    // ---- Delegate CopySpec methods to copyAction ----
-    // -------------------------------------------------
-
+public interface CopySpec {
     /**
      * Specifies sources for a copy.
      * The toString() method of each sourcePath is used to get a path.
@@ -174,9 +62,7 @@ public class Copy extends ConventionTask implements CopyAction {
      * Relative paths will be evaluated relative to the project directory.
      * @param sourcePaths Paths to source directories for the copy
      */
-    public CopySpec from(Object... sourcePaths) {
-        return copyAction.from(sourcePaths);
-    }
+    CopySpec from(Object... sourcePaths);
 
     /**
      * Specifies the source for a copy and creates a child CopySpec.
@@ -188,18 +74,14 @@ public class Copy extends ConventionTask implements CopyAction {
      * @param sourcePath Path to source for the copy
      * @param c closure for configuring the child CopySpec
      */
-    public CopySpec from(Object sourcePath, Closure c) {
-        return copyAction.from(sourcePath, c);
-    }
+    CopySpec from(Object sourcePath, Closure c);
 
     /**
      * Specifies sources for a copy.
      * The paths are evaluated like {@link org.gradle.api.Project#file(Object) Project.file() }.
      * @param sourcePaths Paths to source directories for the copy
      */
-    public CopySpec from(Iterable<Object> sourcePaths) {
-        return copyAction.from(sourcePaths);
-    }
+    CopySpec from(Iterable<Object> sourcePaths);
 
     /**
      * Specifies sources for a copy and creates a child
@@ -209,18 +91,14 @@ public class Copy extends ConventionTask implements CopyAction {
      * @param sourcePaths Paths to source directories for the copy
      * @param c Closure for configuring the child CopySpec
      */
-    public CopySpec from(Iterable<Object> sourcePaths, Closure c) {
-        return copyAction.from(sourcePaths, c);
-    }
-
+    CopySpec from(Iterable<Object> sourcePaths, Closure c);
 
     /**
      * Specifies the destination directory for a copy.
-     * @param destDir Destination directory
+     * The path is evaluated relative to the project directory.
+     * @param destPath Path to the destination directory for a Copy
      */
-    public CopySpec into(Object destDir) {
-        return copyAction.into(destDir);
-    }
+    CopySpec into(Object destPath);
 
     /**
      * Adds an ANT style include pattern to the copy specification.
@@ -257,10 +135,7 @@ public class Copy extends ConventionTask implements CopyAction {
      * patterns to be copied.
      * @param includes a vararg list of include patterns
      */
-    public CopySpec include(String... includes) {
-        return copyAction.include(includes);
-    }
-
+    CopySpec include(String ... includes);
 
     /**
      * Adds an ANT style exclude pattern to the copy specification.
@@ -275,10 +150,7 @@ public class Copy extends ConventionTask implements CopyAction {
      *
      * @param excludes a vararg list of exclude patterns
      */
-    public CopySpec exclude(String... excludes) {
-        return copyAction.exclude(excludes);
-    }
-
+    CopySpec exclude(String ... excludes);
 
     /**
      * Maps a source file to a different relative location under the target directory.
@@ -288,10 +160,7 @@ public class Copy extends ConventionTask implements CopyAction {
      * directory.  The closure should return a File object with a new target destination.
      * @param closure remap closure
      */
-    public CopySpec remapTarget(Closure closure) {
-        return copyAction.remapTarget(closure);
-    }
-
+    CopySpec remapTarget(Closure closure);
 
     /**
      * Renames files based on a regular expression.  Uses java.util.regex type of
@@ -308,10 +177,7 @@ public class Copy extends ConventionTask implements CopyAction {
      * @param sourceRegEx Source regular expression
      * @param replaceWith Replacement string (use $ syntax for capture groups)
      */
-    public CopySpec rename(String sourceRegEx, String replaceWith) {
-        return copyAction.rename(sourceRegEx, replaceWith);
-    }
-
+    CopySpec rename(String sourceRegEx, String replaceWith);
 
 
     /**
@@ -330,9 +196,7 @@ public class Copy extends ConventionTask implements CopyAction {
      * @param map map of filter parameters
      * @param filterType Class of filter to add
      */
-    public CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType) {
-        return copyAction.filter(map, filterType);
-    }
+    CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType);
 
     /**
      * Adds a content filter to be used during the copy.  Multiple calls to
@@ -347,7 +211,5 @@ public class Copy extends ConventionTask implements CopyAction {
      * </pre>
      * @param filterType Class of filter to add
      */
-    public CopySpec filter(Class<FilterReader> filterType) {
-        return copyAction.filter(filterType);
-    }
+    CopySpec filter(Class<FilterReader> filterType);
 }

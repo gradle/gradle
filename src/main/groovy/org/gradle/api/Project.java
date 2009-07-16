@@ -26,6 +26,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.copy.CopyAction;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -646,8 +647,10 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Resolves a file path relative to the project directory of this project.</p>
+     * <p>path.toString will be used to get a string path.  If this string can be interpreted
+     * as a relative path, the project directory will be used as a base directory.</p>
      *
-     * @param path An object which toString method value is interpreted as a relative path to the project directory.
+     * @param path An object who's toString method value is interpreted as a path to a file.
      * @return The resolved file. Never returns null.
      */
     File file(Object path);
