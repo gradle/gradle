@@ -21,10 +21,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.apache.ivy.core.module.descriptor.Artifact;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -68,7 +65,7 @@ public class Configurations {
     }
 
     public static Set<Dependency> getDependencies(List<Configuration> configurations, Spec<Dependency> dependencySpec) {
-        Set<Dependency> dependencies = new HashSet<Dependency>();
+        Set<Dependency> dependencies = new LinkedHashSet<Dependency>();
         for (Configuration configuration : configurations) {
             for (Dependency dependency : configuration.getDependencies()) {
                 if (dependencySpec.isSatisfiedBy(dependency)) {

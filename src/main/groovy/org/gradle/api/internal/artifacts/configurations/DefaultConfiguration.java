@@ -24,7 +24,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private Visibility visibility = Visibility.PUBLIC;
     private boolean transitive = true;
-    private Set<Configuration> extendsFrom = new HashSet<Configuration>();
+    private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
     private String description;
     private ConfigurationsProvider configurationsProvider;
 
@@ -238,7 +238,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Dependency> getAllDependencies() {
-        return Configurations.getDependencies(this.getHierarchy(), Specs.SATISFIES_ALL);
+        return Configurations.getDependencies(getHierarchy(), Specs.<Dependency>satisfyAll());
     }
 
     public <T extends Dependency> Set<T> getDependencies(Class<T> type) {
