@@ -19,11 +19,7 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.Clock;
@@ -68,7 +64,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         return resolveOptions;
     }
 
-    private class ResolvedConfigurationImpl implements ResolvedConfiguration {
+    class ResolvedConfigurationImpl implements ResolvedConfiguration {
         private final ResolveReport resolveReport;
         private final Configuration configuration;
         private Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies;
@@ -86,14 +82,14 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             return resolveReport.hasError();
         }
 
-        public void rethrowFailure() throws GradleException {
+        public void rethrowFailure() throws ResolveException {
             if (resolveReport.hasError()) {
                 Formatter formatter = new Formatter();
                 formatter.format("Could not resolve all dependencies for %s:%n", configuration);
                 for (Object msg : resolveReport.getAllProblemMessages()) {
                     formatter.format("    - %s%n", msg);
                 }
-                throw new GradleException(formatter.toString());
+                throw new ResolveException(formatter.toString());
             }
         }
 

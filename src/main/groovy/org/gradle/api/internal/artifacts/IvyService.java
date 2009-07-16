@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishInstruction;
+import org.gradle.api.artifacts.ResolvedConfiguration;
 
 import java.util.List;
 import java.util.Set;

@@ -24,7 +24,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;

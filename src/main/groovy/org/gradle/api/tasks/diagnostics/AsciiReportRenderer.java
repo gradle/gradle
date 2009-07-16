@@ -17,8 +17,8 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.util.GUtil;
 
 import java.io.File;

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.ResolvedDependency;
+
 import java.io.File;
 import java.util.HashSet;
 import java.util.LinkedHashSet;

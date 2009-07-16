@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;

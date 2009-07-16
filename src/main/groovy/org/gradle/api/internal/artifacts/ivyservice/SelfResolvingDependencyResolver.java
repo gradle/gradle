@@ -17,14 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.report.ResolveReport;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.ResolvedDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
@@ -50,10 +45,6 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 SelfResolvingDependency.class);
 
         return new ResolvedConfiguration() {
-            public ResolveReport getResolveReport() {
-                return resolvedConfiguration.getResolveReport();
-            }
-
             public Set<File> getFiles(Spec<Dependency> dependencySpec) {
                 Set<File> files = new LinkedHashSet<File>();
                 Set<SelfResolvingDependency> selfResolvingDependenciesSubSet =

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.report.ResolveReport;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.ResolvedDependency;
 
 import java.io.File;
 import java.util.Map;

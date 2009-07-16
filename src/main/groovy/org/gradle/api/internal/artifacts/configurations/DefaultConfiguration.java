@@ -10,7 +10,6 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.AbstractFileCollection;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;

@@ -19,22 +19,20 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.SelfResolvingDependency;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.specs.Specs;
-import static org.gradle.util.WrapUtil.*;
-import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.toLinkedSet;
+import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Set;
 
 @RunWith(JMock.class)
 public class SelfResolvingDependencyResolverTest {
@@ -49,7 +47,6 @@ public class SelfResolvingDependencyResolverTest {
 
     @Test
     public void wrapsResolvedConfigurationProvidedByDelegate() {
-        final Dependency moduleDependency = context.mock(Dependency.class);
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));

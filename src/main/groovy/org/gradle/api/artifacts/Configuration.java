@@ -17,7 +17,6 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 

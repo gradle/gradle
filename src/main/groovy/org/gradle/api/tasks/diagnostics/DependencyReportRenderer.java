@@ -16,7 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolvedConfiguration;
 
 import java.io.IOException;
 

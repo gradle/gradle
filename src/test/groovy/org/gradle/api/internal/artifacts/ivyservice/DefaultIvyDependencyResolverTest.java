@@ -24,8 +24,8 @@ import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
@@ -186,7 +186,7 @@ public class DefaultIvyDependencyResolverTest {
         prepareResolveReport();
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        assertSame(resolveReportMock, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getResolveReport());
+        assertEquals(false, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).hasError());
     }
 
     @Test
@@ -194,7 +194,7 @@ public class DefaultIvyDependencyResolverTest {
         prepareResolveReportWithError();
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
-        assertSame(resolveReportMock, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getResolveReport());
+        assertEquals(true, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).hasError());
     }
 
     private ModuleDescriptor createAnonymousModuleDescriptor() {
