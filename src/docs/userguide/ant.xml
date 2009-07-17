@@ -17,7 +17,7 @@
     <title>Using Ant from Gradle</title>
 
     <para>Gradle provides excellent integration with Ant. You can use individual Ant tasks or entire Ant builds in your
-        Gradle builds. In fact, you will find that it's far easier and more powerful to use Ant tasks in a Gradle build
+        Gradle builds. In fact, you will find that it's far easier and more powerful using Ant tasks in a Gradle build
         script, than it is to use Ant's XML format. You could even use Gradle simply as a powerful Ant task scripting
         tool.
     </para>
@@ -43,10 +43,12 @@
         </footnote>
     </para>
 
-    <para>You can use Gradle's Ant integration as a path for migrating from Ant to Gradle. For example, you could start
-        by importing your existing Ant build. Then you could move your dependency declarations from the Ant script
-        to your build file. Finally, you could move your tasks across to your build file, or replace them with
-        some of Gradle's plugins.</para>
+    <para>You can use Gradle's Ant integration as a path for migrating your build from Ant to Gradle. For example, you
+        could start by importing your existing Ant build. Then you could move your dependency declarations from the Ant
+        script to your build file. Finally, you could move your tasks across to your build file, or replace them with
+        some of Gradle's plugins. This process can be done in parts over time, and you can have a working Gradle build
+        during the entire process.
+    </para>
 
     <section>
         <title>Using Ant tasks and types in your build</title>
@@ -107,7 +109,7 @@
             <para>
                 You can use Gradle's dependency management to assemble the classpath to use for the custom tasks.
                 To do this, you need to define a custom configuration for the classpath, then add some dependencies 
-                to the configuration.
+                to the configuration. This is described in more detail in <xref linkend='sec:how_to_declare_your_dependencies'/>.
             </para>
             <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Declaring the classpath for a custom Ant task">
                 <sourcefile file="build.gradle" snippet="define-classpath"/>
@@ -156,7 +158,7 @@
         <para>There are several ways to set an Ant property, so that the property can be used by Ant tasks. You can
             set the property directly on the <literal>AntBuilder</literal> instance. The Ant properties are also
             available as a Map which you can change. You can also use the Ant <literal>property</literal> task.
-            Below are some examples of each of these methods.
+            Below are some examples of how to do this.
         </para>
         <sample id="antProperties" dir="userguide/ant/properties" title="Setting an Ant property">
             <sourcefile file="build.gradle" snippet="set-property"/>

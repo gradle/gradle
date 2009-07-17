@@ -1,5 +1,6 @@
 import org.apache.commons.codec.binary.Base64
 
+// START SNIPPET declare-classpath
 buildscript {
     repositories {
         mavenCentral()
@@ -8,7 +9,9 @@ buildscript {
         classpath group: 'commons-codec', name: 'commons-codec', version: '1.2'
     }
 }
+// END SNIPPET declare-classpath
 
 task encode << {
-    println new String(new Base64().encode('hello world\n'.getBytes()))
+    def byte[] encodedString = new Base64().encode('hello world\n' as byte[])
+    println new String(encodedString)
 }

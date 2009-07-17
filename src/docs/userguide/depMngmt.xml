@@ -128,9 +128,8 @@
     <section id='sec:how_to_declare_your_dependencies'>
         <title>How to declare your dependencies</title>
         <para>People who know Ivy have come across most of the concepts we are going to introduce now. But Gradle does not
-            use any XML for declaring the dependencies (e.g. no
-            <literal>ivy.xml</literal>
-            file). It has its own notations which is part of the Gradle build file.
+            use any XML for declaring the dependencies (e.g. no <literal>ivy.xml</literal> file). It has its own
+            notation which is part of the Gradle build file.
         </para>
         <section id='sub:configurations'>
             <title>Configurations</title>
@@ -139,12 +138,11 @@
                 If you use the Java plugin, Gradle adds a number of pre-defined configurations to your build. The
                 plugin also assigns configurations to tasks. See <xref linkend='sec:java_plugin_and_dependency_management'/>
                 for details. Of course you can add your add custom configurations on top of that. There are many use cases
-                for custom configurations.This is very handy for
-                example for adding dependencies not needed for building or testing your software (e.g. additional JDBC
-                drivers to be shipped with your distribution). The configurations are managed by a
-                <literal>configurations</literal> object. The closure you pass to the configurations object is applied
-                against its API. To learn more about this API have a look at the javadoc:
-                <apilink class='org.gradle.api.artifacts.dsl.ConfigurationHandler'/>.
+                for custom configurations. This is very handy for example for adding dependencies not needed for
+                building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
+                The configurations are managed by a <literal>configurations</literal> object. The closure you pass to
+                the configurations object is applied against its API. To learn more about this API have a look at the
+                javadoc: <apilink class='org.gradle.api.artifacts.dsl.ConfigurationHandler'/>.
             </para>
         </section>
         <section id='sub:module_dependencies'>
