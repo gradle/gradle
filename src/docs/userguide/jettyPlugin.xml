@@ -69,7 +69,7 @@
     </section>
 
     <section>
-        <title>Configurations</title>
+        <title>Dependency management</title>
         <para>The Jetty plugin does not define any dependency configurations.</para>
     </section>
 

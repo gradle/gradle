@@ -51,7 +51,7 @@
     </section>
 
     <section>
-        <title>Configurations</title>
+        <title>Dependency management</title>
         <para>The Groovy plugin adds a dependency configuration called <literal>groovy</literal>.</para>
         <para>Gradle is written in Groovy and allows you to write your build scripts in Groovy. But this is an internal
             aspect of Gradle which is strictly separated from building Groovy projects. You are free to choose the Groovy

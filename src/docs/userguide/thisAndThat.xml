@@ -63,42 +63,6 @@
         </sample>
         </section>
     </section>
-    <section>
-        <title>Obtaining information about your build</title>
-        <para>Gradle provides several ways you can find out many details of your build. This can be useful for
-            understanding the structure and dependencies of your build, and for debugging problems. Firstly, Gradle
-            provides several command-line options which show particular details of your build. And secondly, Gradle
-            provides a
-            <literal>project-reports</literal>
-            plugin, which adds tasks to generate reports about your build.
-        </para>
-        <para>Running <userinput>gradle --tasks</userinput>
-            gives you a list of the tasks which make up the build, broken down by project. This report shows the default
-            tasks, if any, of each project, and the description and dependencies of each task. Below is an example of
-            this report:
-        </para>
-        <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
-            <output args="-q --tasks"/>
-        </sample>
-        <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>
-            gives you a list of the dependencies of the build, broken down by project. This report shows the
-            configurations of each project. For each configuration, the direct and transitive dependencies of that
-            configuration are shown. Below is an example of this report:
-        </para>
-        <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
-            <output args="-q --dependencies"/>
-        </sample>
-        <para>Running
-            <userinput>gradle --properties</userinput>
-            gives you a list of the properties of each project in the build.
-        </para>
-        <!--<sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">-->
-            <!--<output args="-q - -properties"/>-->
-        <!--</sample>-->
-        <para>Finally, you can use the <literal>project-reports</literal> plugin to add a number of reporting tasks to
-            your project.
-        </para>
-    </section>
     <section id='sec:directory_creation'>
         <title>Directory creation</title>
         <para>There is a common situation, that multiple tasks depend on the existence of a directory. Of course you can

@@ -174,12 +174,62 @@
 
     </section>
 
-    <section>
-        <title>Configurations</title>
-        <para>The Java plugin adds a number of configurations to your project, as shown in
-            <xref linkend="sec:java_plugin_and_dependency_management"/>.
-        To learn more about configurations see <xref linkend="sub:configurations"/> and
-        <xref linkend="artifacts_and_configurations"/></para>
+    <section id="sec:java_plugin_and_dependency_management">
+        <title>Dependency management</title>
+        <para>The Java plugin adds a number of dependency configurations to your project, as shown in
+            <xref linkend="tab:configurations"/>. It assigns those configurations to tasks such as
+            <literal>compile</literal> and <literal>test</literal>.
+            To learn more about configurations see <xref linkend="sub:configurations"/> and
+            <xref linkend="artifacts_and_configurations"/>
+        </para>
+        <table id='tab:configurations'>
+            <title>Java plugin - dependency configurations</title>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Extends</td>
+                    <td>Used by tasks</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>compile</td>
+                <td>-</td>
+                <td>compile</td>
+                <td>Compile time dependencies</td>
+            </tr>
+            <tr>
+                <td>runtime</td>
+                <td>compile</td>
+                <td>-</td>
+                <td>Runtime dependencies</td>
+            </tr>
+            <tr>
+                <td>testCompile</td>
+                <td>compile</td>
+                <td>compileTests</td>
+                <td>Additional dependencies for compiling tests.</td>
+            </tr>
+            <tr>
+                <td>testRuntime</td>
+                <td>runtime, testCompile</td>
+                <td>test</td>
+                <td>Additional dependencies for running tests only.</td>
+            </tr>
+            <tr>
+                <td>archives</td>
+                <td>-</td>
+                <td>uploadArchives</td>
+                <td>Artifacts (e.g. jars) produced by this project.</td>
+            </tr>
+            <tr>
+                <td>default</td>
+                <td>runtime, archives</td>
+                <td>-</td>
+                <td>Artifacts produced <literal>and</literal> dependencies required by this project.
+                </td>
+            </tr>
+        </table>
     </section>
 
     <section>
@@ -620,22 +670,9 @@
             </tr>
 
         </table>
-        <para>The classpath of the compile task is derived from two sources. One is the
-            <emphasis>configuration</emphasis>
-            assigned to the task by the Java plugin. The other classpath source is the
-            <literal>unmanagedClasspath</literal>
-            property: a list of files denoting a jar or a directory. Usually you create your classpath via the
-            configuration. The
-            <literal>unmanagedClasspath</literal>
-            is used internally by Gradle. This classpath is not shared between projects in a multi-project build. Nor is
-            it part of a dependency descriptor if you choose to upload your library to a repository. See
-            <xref linkend='sec:java_plugin_and_dependency_management'/>
-            how the Java plugin maps the configurations to the tasks. See also the whole chapter <xref linkend='dependency_management'/>
-            on dependency management.
-        </para>
         <para>Have a look at <apilink class="org.gradle.api.tasks.compile.Compile"/>
-            to learn about the details. The compile task delegates to Ants javac task to do the compile. You can set most
-            of the properties of Ants javac task.
+            to learn about the details. The compile task delegates to Ant's javac task to do the compile. You can set most
+            of the properties of the Ant javac task.
         </para>
     </section>
 

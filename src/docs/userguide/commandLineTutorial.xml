@@ -51,6 +51,38 @@
     </section>
 
     <section>
+        <title>Obtaining information about your build</title>
+        <para>Gradle provides several command-line options which show particular details of your build. This can be
+            useful for understanding the structure and dependencies of your build, and for debugging problems.
+        </para>
+        <para>Running <userinput>gradle --tasks</userinput>
+            gives you a list of the tasks which make up the build, broken down by project. This report shows the default
+            tasks, if any, of each project, and the description and dependencies of each task. Below is an example of
+            this report:
+        </para>
+        <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
+            <output args="-q --tasks"/>
+        </sample>
+        <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>
+            gives you a list of the dependencies of the build, broken down by project. This report shows the
+            configurations of each project. For each configuration, the direct and transitive dependencies of that
+            configuration are shown. Below is an example of this report:
+        </para>
+        <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
+            <output args="-q --dependencies"/>
+        </sample>
+        <para>Running <userinput>gradle --properties</userinput> gives you a list of the properties of each project in
+            the build.
+        </para>
+        <!--<sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">-->
+            <!--<output args="-q - -properties"/>-->
+        <!--</sample>-->
+        <para>You can also use the <link linkend="project_reports_plugin">project report plugin</link> to add a
+            number of reporting tasks to your project.
+        </para>
+    </section>
+    
+    <section>
         <title>Dry Run</title>
         <para>Sometimes you are interested in which tasks are executed in which order for a given set of tasks specified on the
             command line, but you don't want the tasks to be executed. You can use the <option>-m</option> for this.

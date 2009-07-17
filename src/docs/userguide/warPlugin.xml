@@ -29,7 +29,7 @@
     </section>
 
     <section>
-        <title>Configurations</title>
+        <title>Dependency management</title>
         <para>The War plugin adds two dependency configurations: <literal>providedCompile</literal> and
             <literal>providedRuntime</literal>. Those configurations have the same scope as the respective
             <literal>compile</literal> and <literal>runtime</literal> configurations, except that they are not added to

@@ -135,15 +135,14 @@
         <section id='sub:configurations'>
             <title>Configurations</title>
             <para>Dependencies are grouped in configurations. Configurations have a name, a number of other properties,
-                and they can extend each other. For examples see: <xref linkend='sec:artifact_configurations'/>
-                If you use the Java or Groovy plugin, Gradle adds a number of pre-defined configurations to your build. The
-                plugin also assigns configurations to tasks. See
-                <xref linkend='sec:java_plugin_and_dependency_management'/>
+                and they can extend each other. For examples see: <xref linkend='sec:artifact_configurations'/>.
+                If you use the Java plugin, Gradle adds a number of pre-defined configurations to your build. The
+                plugin also assigns configurations to tasks. See <xref linkend='sec:java_plugin_and_dependency_management'/>
                 for details. Of course you can add your add custom configurations on top of that. There are many use cases
                 for custom configurations.This is very handy for
                 example for adding dependencies not needed for building or testing your software (e.g. additional JDBC
                 drivers to be shipped with your distribution). The configurations are managed by a
-                <emphasis>configurations</emphasis> object. The closure you pass to the configurations object is applied
+                <literal>configurations</literal> object. The closure you pass to the configurations object is applied
                 against its API. To learn more about this API have a look at the javadoc:
                 <apilink class='org.gradle.api.artifacts.dsl.ConfigurationHandler'/>.
             </para>
@@ -208,8 +207,7 @@
         </section>
         <section id='sub:client_module_dependencies'>
             <title>Client module dependencies</title>
-            <para>Client module dependencies enable you to declare
-                <emphasis>transitive</emphasis>
+            <para>Client module dependencies enable you to declare <emphasis>transitive</emphasis>
                 dependencies directly in your build script. They are a replacement for a module descriptor XML file in
                 an external repository.
             </para>
@@ -221,28 +219,34 @@
                 dependencies of a client module can be normal module dependencies or artifact dependencies or another
                 client module. Have also a look at the javadoc: <apilink class='org.gradle.api.artifacts.ClientModule'/>
             </para>
-            <para>In the current release
-                <emphasis>Client Modules</emphasis>
-                have one limitation. Let's say your project is a library and you want this library to be uploaded
-                to your company's Maven or Ivy repository. Gradle uploads the jars of your project to the company
-                repository together with the XML descriptor file of the dependencies. If you use
-                <literal>Client Modules</literal>
-                the dependency declaration in the XML descriptor file is not correct. We try to improve this in a future
-                release of Gradle.
+            <para>In the current release client modules have one limitation. Let's say your project is a library and
+                you want this library to be uploaded to your company's Maven or Ivy repository. Gradle uploads the
+                jars of your project to the company repository together with the XML descriptor file of the dependencies.
+                If you use client modules the dependency declaration in the XML descriptor file is not correct. We will
+                improve this in a future release of Gradle.
             </para>
         </section>
         <section id='sub:project_dependencies'>
             <title>Project dependencies</title>
             <para>Gradle distinguishes between external dependencies and dependencies on projects which are part of the
-                same multi-project build. For the latter you can declare <emphasis>Project Dependencies</emphasis>.
+                same multi-project build. For the latter you can declare <firstterm>Project Dependencies</firstterm>.
             </para>
             <sample id="project-dependencies" dir="java/multiproject/api" title="Project dependencies">
                 <sourcefile file="build.gradle" snippet="project-dependencies"/>
             </sample>
-            <para>For more information see the javadoc: <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
+            <para>For more information see the javadoc for <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
             </para>
             <para>Multi-project builds are discussed in <xref linkend='multi_project_builds'/>.
             </para>
+        </section>
+        <section>
+            <title>File dependencies</title>
+            <para>File dependencies allow you to directly add a set of files to a configuration. This can be useful if
+                you cannot, or do not want to, place certain files in a repository.</para>
+            <sample id="file-dependencies" dir="userguide/artifacts/externalDependencies" title="File dependencies">
+                <sourcefile file="build.gradle" snippet="file-dependencies"/>
+            </sample>
+            <para>File dependencies are not included in the published dependency descriptor for your project.</para>
         </section>
         <section id='sub:exclude_transitive_dependencies'>
             <title>Excluding transitive dependencies</title>
@@ -299,64 +303,6 @@
             <para>You can generate dependency reports from the command line (see <xref linkend="para:commandline_dependency_report"/>).
                 With the help of the Project report plugin (see <xref linkend="project_reports_plugin"/>) such a report can be created by your build.
             </para>
-        </section>
-        <section id='sec:java_plugin_and_dependency_management'>
-            <title>Java plugin and dependency management</title>
-            <para>The Java Plugin preconfigures the dependency management. It adds a set of configurations and
-                assign those configurations to tasks like <literal>compile</literal> and <literal>test</literal>.
-                <xref linkend='tab:configurations'/>
-                shows the details.
-            </para>
-            <table id='tab:configurations'>
-                <title>Java/Groovy configurations</title>
-                <thead>
-                    <tr>
-                        <td>Name</td>
-                        <td>Extends</td>
-                        <td>Task</td>
-                        <td>Meaning</td>
-                    </tr>
-                </thead>
-                <tr>
-                    <td>compile</td>
-                    <td>-</td>
-                    <td>compile</td>
-                    <td>Compile time dependencies</td>
-                </tr>
-                <tr>
-                    <td>runtime</td>
-                    <td>compile</td>
-                    <td>-</td>
-                    <td>Runtime dependencies</td>
-                </tr>
-                <tr>
-                    <td>testCompile</td>
-                    <td>compile</td>
-                    <td>compileTests</td>
-                    <td>Additional dependencies for compiling tests.</td>
-                </tr>
-                <tr>
-                    <td>testRuntime</td>
-                    <td>runtime, testCompile</td>
-                    <td>test</td>
-                    <td>Additional dependencies for running tests only.</td>
-                </tr>
-                <tr>
-                    <td>archives</td>
-                    <td>-</td>
-                    <td>uploadArchives</td>
-                    <td>Artifacts (e.g. jars) produced by this project.</td>
-                </tr>
-                <tr>
-                    <td>default</td>
-                    <td>runtime, archives</td>
-                    <td>-</td>
-                    <td>Artifacts produced and dependencies
-                        <literal>and</literal>
-                        required by this project.
-                    </td>
-                </tr>
-            </table>
         </section>
     </section>
     <section>

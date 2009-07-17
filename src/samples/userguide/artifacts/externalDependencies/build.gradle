@@ -74,6 +74,13 @@ dependencies {
 }
 //END SNIPPET client-modules
 
+//START SNIPPET file-dependencies
+dependencies {
+    runtime files('libs/a.jar', 'libs/b.jar')
+    runtime new FileSet(dir: 'libs', includes: ['*.jar'])
+}
+//END SNIPPET file-dependencies
+
 //START SNIPPET list-grouping
 List groovy = ["org.codehaus.groovy:groovy-all:1.5.4@jar",
                "commons-cli:commons-cli:1.0@jar",
