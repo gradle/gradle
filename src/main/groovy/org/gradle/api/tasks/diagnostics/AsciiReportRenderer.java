@@ -154,15 +154,27 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
             throw new UnsupportedOperationException();
         }
 
-        public Set<File> getFiles() {
+        public Set<File> getModuleFiles() {
             Set<File> mergedFiles = new LinkedHashSet<File>();
             for (ResolvedDependency mergedResolvedDependency : mergedResolvedDependencies) {
-                mergedFiles.addAll(mergedResolvedDependency.getFiles());
+                mergedFiles.addAll(mergedResolvedDependency.getModuleFiles());
             }
             return mergedFiles;
         }
 
-        public Set<File> getAllFiles() {
+        public Set<File> getParentFiles(ResolvedDependency parent) {
+            return null;
+        }
+
+        public Set<File> getFiles(ResolvedDependency parent) {
+            return null;
+        }
+
+        public Set<File> getAllFiles(ResolvedDependency parent) {
+            return null;
+        }
+
+        public Set<File> getAllModuleFiles() {
             throw new UnsupportedOperationException();
         }
     }

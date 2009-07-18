@@ -31,7 +31,8 @@ import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
+import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -130,6 +131,25 @@ public class DefaultDependencyDescriptorFactoryTest {
 
         assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
         checkModuleDependency(dependencyDescriptor, moduleDependency);
+    }
+
+    @Test
+    public void testCreateWithTwoDependenciesOfSameModuleRevisionId() {
+        String otherDependencyConfiguration = TEST_DEP_CONF + "X";
+        DefaultExternalModuleDependency moduleDependency = ((DefaultExternalModuleDependency)
+                setUpExternalDependency(new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF))).setChanging(true);
+        DefaultExternalModuleDependency moduleDependency2 = ((DefaultExternalModuleDependency)
+                setUpExternalDependency(new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", otherDependencyConfiguration))).setChanging(true);
+
+        dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, moduleDependency, DUMMY_MODULE_REGISTRY);
+        dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, moduleDependency2, DUMMY_MODULE_REGISTRY);
+        assertThat(moduleDescriptor.getDependencies().length, equalTo(1));
+
+        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
+        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF), Matchers.hasItemInArray(TEST_DEP_CONF));
+        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF), Matchers.hasItemInArray(otherDependencyConfiguration));
+        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF).length, equalTo(2));
+        assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
     }
 
     @Test

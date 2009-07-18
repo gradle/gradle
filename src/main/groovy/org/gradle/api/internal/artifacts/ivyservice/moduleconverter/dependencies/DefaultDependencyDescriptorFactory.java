@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -43,52 +43,39 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
                                         ModuleDependency dependency,
                                         Map<String, ModuleDescriptor> clientModuleRegistry) {
         // todo Make this object oriented and enhancable
+        InternalDependencyFactory internalDependencyFactory = null;
         if (dependency instanceof ClientModule) {
-            moduleDescriptor.addDependency(createFromClientModule(configuration, moduleDescriptor,
-                    (ClientModule) dependency, clientModuleRegistry));
+            internalDependencyFactory = new ClientModuleDependencyFactory((ClientModule) dependency,
+                    configuration, moduleDescriptor, clientModuleRegistry);
         } else if (dependency instanceof ProjectDependency) {
-            moduleDescriptor.addDependency(createFromProjectDependency(configuration, moduleDescriptor,
-                    (ProjectDependency) dependency));
+            internalDependencyFactory = new ProjectDependencyFactory((ProjectDependency) dependency,
+                    configuration, moduleDescriptor);
         } else if (dependency instanceof ExternalModuleDependency) {
-            moduleDescriptor.addDependency(createFromModuleDependency(configuration, moduleDescriptor,
-                    (ExternalModuleDependency) dependency));
+            internalDependencyFactory = new ExternalModuleDependencyFactory((ExternalModuleDependency) dependency, configuration, moduleDescriptor);
         } else {
             throw new GradleException("Can't map dependency of type: " + dependency.getClass());
         }
+        addDependency(configuration, moduleDescriptor, internalDependencyFactory);
+
     }
 
-    private DependencyDescriptor createFromClientModule(String configuration, ModuleDescriptor parent,
-                                                        ClientModule clientModule,
-                                                        Map<String, ModuleDescriptor> clientModuleRegistry) {
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
-                ModuleRevisionId.newInstance(clientModule.getGroup(), clientModule.getName(), clientModule.getVersion(),
-                        WrapUtil.toMap(ClientModule.CLIENT_MODULE_KEY, clientModule.getId())), clientModule.isForce(),
-                false, clientModule.isTransitive());
-        addExcludesArtifactsAndDependencies(configuration, clientModule, dependencyDescriptor);
-
-        ModuleDescriptor moduleDescriptor = clientModuleDescriptorFactory.createModuleDescriptor(
-                dependencyDescriptor.getDependencyRevisionId(), clientModule.getDependencies(), this,
-                clientModuleRegistry);
-        clientModuleRegistry.put(clientModule.getId(), moduleDescriptor);
-
-        return dependencyDescriptor;
+    private void addDependency(String configuration, DefaultModuleDescriptor moduleDescriptor, InternalDependencyFactory internalDependencyFactory) {
+        ModuleRevisionId moduleRevisionId = internalDependencyFactory.createModuleRevisionId();
+        DefaultDependencyDescriptor existingDependencyDescriptor = findExistingDescriptor(moduleDescriptor, moduleRevisionId);
+        if (existingDependencyDescriptor == null) {
+            moduleDescriptor.addDependency(internalDependencyFactory.createDependencyDescriptor(moduleRevisionId));
+        } else {
+            existingDependencyDescriptor.addDependencyConfiguration(configuration, internalDependencyFactory.getDependencyConfiguration());
+        }
     }
 
-    private DependencyDescriptor createFromProjectDependency(String configuration, ModuleDescriptor parent,
-                                                             ProjectDependency dependency) {
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
-                createModuleRevisionIdFromDependency(dependency), false, true, dependency.isTransitive());
-        addExcludesArtifactsAndDependencies(configuration, dependency, dependencyDescriptor);
-        return dependencyDescriptor;
-    }
-
-    private DependencyDescriptor createFromModuleDependency(String configuration, ModuleDescriptor parent,
-                                                            ExternalModuleDependency externalModuleDependency) {
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
-                createModuleRevisionIdFromDependency(externalModuleDependency), externalModuleDependency.isForce(),
-                externalModuleDependency.isChanging(), externalModuleDependency.isTransitive());
-        addExcludesArtifactsAndDependencies(configuration, externalModuleDependency, dependencyDescriptor);
-        return dependencyDescriptor;
+    private DefaultDependencyDescriptor findExistingDescriptor(DefaultModuleDescriptor moduleDescriptor, ModuleRevisionId moduleRevisionId) {
+        for (DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
+            if (dependencyDescriptor.getDependencyRevisionId().equals(moduleRevisionId)) {
+                return (DefaultDependencyDescriptor) dependencyDescriptor;
+            }
+        }
+        return null;
     }
 
     private void addExcludesArtifactsAndDependencies(String configuration, ModuleDependency dependency,
@@ -153,4 +140,103 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
     public void setClientModuleDescriptorFactory(ClientModuleDescriptorFactory clientModuleDescriptorFactory) {
         this.clientModuleDescriptorFactory = clientModuleDescriptorFactory;
     }
+
+    private interface InternalDependencyFactory {
+        ModuleRevisionId createModuleRevisionId();
+        DependencyDescriptor createDependencyDescriptor(ModuleRevisionId moduleRevisionId);
+        String getDependencyConfiguration();
+    }
+
+    private class ExternalModuleDependencyFactory implements InternalDependencyFactory {
+        private ExternalModuleDependency externalModuleDependency;
+        private String configuration;
+        private ModuleDescriptor parent;
+
+        private ExternalModuleDependencyFactory(ExternalModuleDependency externalModuleDependency, String configuration, ModuleDescriptor parent) {
+            this.externalModuleDependency = externalModuleDependency;
+            this.configuration = configuration;
+            this.parent = parent;
+        }
+
+        public ModuleRevisionId createModuleRevisionId() {
+            return createModuleRevisionIdFromDependency(externalModuleDependency);
+        }
+
+        public DependencyDescriptor createDependencyDescriptor(ModuleRevisionId moduleRevisionId) {
+            DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
+                    moduleRevisionId, externalModuleDependency.isForce(),
+                    externalModuleDependency.isChanging(), externalModuleDependency.isTransitive());
+            addExcludesArtifactsAndDependencies(configuration, externalModuleDependency, dependencyDescriptor);
+            return dependencyDescriptor;
+        }
+
+        public String getDependencyConfiguration() {
+            return externalModuleDependency.getConfiguration();
+        }
+    }
+
+    private class ClientModuleDependencyFactory implements InternalDependencyFactory {
+        private ClientModule clientModule;
+        private String configuration;
+        private ModuleDescriptor parent;
+        private Map<String, ModuleDescriptor> clientModuleRegistry;
+
+        private ClientModuleDependencyFactory(ClientModule clientModule, String configuration, ModuleDescriptor parent, Map<String, ModuleDescriptor> clientModuleRegistry) {
+            this.clientModule = clientModule;
+            this.configuration = configuration;
+            this.parent = parent;
+            this.clientModuleRegistry = clientModuleRegistry;
+        }
+
+        public ModuleRevisionId createModuleRevisionId() {
+            return ModuleRevisionId.newInstance(clientModule.getGroup(), clientModule.getName(), clientModule.getVersion(),
+                    WrapUtil.toMap(ClientModule.CLIENT_MODULE_KEY, clientModule.getId()));
+        }
+
+        public DependencyDescriptor createDependencyDescriptor(ModuleRevisionId moduleRevisionId) {
+            DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
+                    moduleRevisionId, clientModule.isForce(),
+                    false, clientModule.isTransitive());
+            addExcludesArtifactsAndDependencies(configuration, clientModule, dependencyDescriptor);
+
+            ModuleDescriptor moduleDescriptor = clientModuleDescriptorFactory.createModuleDescriptor(
+                    dependencyDescriptor.getDependencyRevisionId(), clientModule.getDependencies(), DefaultDependencyDescriptorFactory.this,
+                    clientModuleRegistry);
+            clientModuleRegistry.put(clientModule.getId(), moduleDescriptor);
+
+            return dependencyDescriptor;
+        }
+
+        public String getDependencyConfiguration() {
+            return clientModule.getConfiguration();
+        }
+    }
+
+    private class ProjectDependencyFactory implements InternalDependencyFactory {
+        private ProjectDependency projectDependency;
+        private String configuration;
+        private ModuleDescriptor parent;
+
+        private ProjectDependencyFactory(ProjectDependency projectDependency, String configuration, ModuleDescriptor parent) {
+            this.projectDependency = projectDependency;
+            this.configuration = configuration;
+            this.parent = parent;
+        }
+
+        public ModuleRevisionId createModuleRevisionId() {
+            return createModuleRevisionIdFromDependency(projectDependency);
+        }
+
+        public DependencyDescriptor createDependencyDescriptor(ModuleRevisionId moduleRevisionId) {
+            DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
+                    moduleRevisionId, false, true, projectDependency.isTransitive());
+            addExcludesArtifactsAndDependencies(configuration, projectDependency, dependencyDescriptor);
+            return dependencyDescriptor;
+        }
+
+        public String getDependencyConfiguration() {
+            return projectDependency.getConfiguration();
+        }
+    }
+
 }

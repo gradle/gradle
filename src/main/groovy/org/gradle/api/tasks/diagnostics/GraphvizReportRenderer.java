@@ -60,7 +60,7 @@ public class GraphvizReportRenderer extends TextProjectReportRenderer implements
     }
 
     private void buildDotDependencyTree(ResolvedDependency root, Set<String> edges) {
-        if (root.getAllFiles().isEmpty()) {
+        if (root.getAllModuleFiles().isEmpty()) {
             return;
         }
         for (ResolvedDependency dep : root.getChildren()) {

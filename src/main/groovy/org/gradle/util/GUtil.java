@@ -188,4 +188,22 @@ public class GUtil {
         }
         return formatter.toString();
     }
+
+    public static List<String> stringifieAsList(Iterable iterable) {
+        List<String> stringifiedList = new ArrayList<String>();
+        stringify(iterable, stringifiedList);
+        return stringifiedList;
+    }
+
+    public static Set<String> stringifyAsSet(Iterable iterable) {
+        Set<String> stringifiedSet = new LinkedHashSet<String>();
+        stringify(iterable, stringifiedSet);
+        return stringifiedSet;
+    }
+
+    private static void stringify(Iterable iterable, Collection<String> stringifiedList) {
+        for (Object element : iterable) {
+            stringifiedList.add(element.toString());
+        }
+    }
 }

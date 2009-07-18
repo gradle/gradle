@@ -119,9 +119,9 @@ public class DefaultIvyDependencyResolverTest {
                 WrapUtil.toSet(resolvedDependency3));
 
         context.checking(new Expectations() {{
-            allowing(resolvedDependency1).getAllFiles();
+            allowing(resolvedDependency1).getAllFiles(null);
             will(returnValue(WrapUtil.toSet(new File("file1"))));
-            allowing(resolvedDependency2).getAllFiles();
+            allowing(resolvedDependency2).getAllFiles(null);
             will(returnValue(WrapUtil.toSet(new File("file2"))));
             allowing(configurationStub).getAllDependencies();
             will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));

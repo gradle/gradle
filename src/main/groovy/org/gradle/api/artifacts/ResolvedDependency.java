@@ -48,10 +48,16 @@ public interface ResolvedDependency {
      * Returns the artifact files belonging to this ResolvedDependencie. Returns never null. But there might be
      * ResolvedDependencies which don't have artifact files and where an empty set is returned. 
      */
-    Set<File> getFiles();
+    Set<File> getModuleFiles();
 
     /**
      * Returns the artifact files belonging to this ResolvedDependencie and recursively to its children. Returns never null.
      */
-    Set<File> getAllFiles();
+    Set<File> getAllModuleFiles();
+
+    Set<File> getParentFiles(ResolvedDependency parent);
+
+    Set<File> getFiles(ResolvedDependency parent);
+
+    Set<File> getAllFiles(ResolvedDependency parent);
 }

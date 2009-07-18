@@ -14,7 +14,11 @@ subprojects {
         mavenCentral()
     }
     dependencies {
-        compile "commons-io:commons-io:1.2"
+        if (project.name == 'webapp') {
+        	compile "commons-io:commons-io:1.2"
+		} else {
+			compile "junit:junit:4.4"
+		}
     }
     task libs
     tasks.addRule(new TestRule())

@@ -25,6 +25,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -60,10 +61,12 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 Set<ResolvedDependency> firstLevelResolvedDependencies = resolvedConfiguration.getFirstLevelResolvedDependencies();
                 for (SelfResolvingDependency selfResolvingDependency : selfResolvingDependencies) {
                     Set<File> files = selfResolvingDependency.resolve();
-                    firstLevelResolvedDependencies.add(new DefaultResolvedDependency(
+                    DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(
                             GUtil.join(files, ";"),
                             "",
-                            files));
+                            Collections.<String>emptySet(), files);
+                    resolvedDependency.getParents().add(null);
+                    firstLevelResolvedDependencies.add(resolvedDependency);
                 }
                 return firstLevelResolvedDependencies;
             }

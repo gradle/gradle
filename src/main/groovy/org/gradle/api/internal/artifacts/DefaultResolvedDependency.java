@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -29,14 +29,17 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     private Set<ResolvedDependency> children = new HashSet<ResolvedDependency>();
     private Set<ResolvedDependency> parents = new HashSet<ResolvedDependency>();
     private String configuration;
-    private Set<File> files = new LinkedHashSet<File>();
-
+    private Set<File> moduleFiles = new LinkedHashSet<File>();
+    private Map<ResolvedDependency, Set<File>> parentFiles = new LinkedHashMap<ResolvedDependency, Set<File>>();
     private String name;
+    private Set<String> configurationHierarchy;
 
-    public DefaultResolvedDependency(String name, String configuration, Set<File> files) {
+    public DefaultResolvedDependency(String name, String configuration, Set<String> configurationHierarchy, Set<File> moduleFiles) {
+        this.configurationHierarchy = configurationHierarchy;
+        assert moduleFiles != null;
         this.name = name;
         this.configuration = configuration;
-        this.files = files;
+        this.moduleFiles = moduleFiles;
     }
 
     public String getName() {
@@ -47,19 +50,56 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         return configuration;
     }
 
+    public Set<String> getConfigurationHierarchy() {
+        return configurationHierarchy;
+    }
+
+    public boolean containsConfiguration(String configuration) {
+        return configurationHierarchy.contains(configuration);
+    }
+
     public Set<ResolvedDependency> getChildren() {
         return children;
     }
 
-    public Set<File> getFiles() {
-        return files;
+    public Set<File> getModuleFiles() {
+        return moduleFiles;
     }
 
-    public Set<File> getAllFiles() {
+    public Set<File> getAllModuleFiles() {
         Set<File> allFiles = new LinkedHashSet<File>();
-        allFiles.addAll(getFiles());
+        allFiles.addAll(getModuleFiles());
         for (ResolvedDependency childResolvedDependency : getChildren()) {
-            allFiles.addAll(childResolvedDependency.getAllFiles());
+            allFiles.addAll(childResolvedDependency.getAllModuleFiles());
+        }
+        return allFiles;
+    }
+
+    public Set<File> getParentFiles(ResolvedDependency parent) {
+        throwExceptionIfUnknownParent(parent);
+        Set<File> files = parentFiles.get(parent);
+        return files == null ? Collections.<File>emptySet() : files;
+    }
+
+    private void throwExceptionIfUnknownParent(ResolvedDependency parent) {
+        if (!parents.contains(parent)) {
+            throw new InvalidUserDataException("Unknown Parent");
+        }
+    }
+
+    public Set<File> getFiles(ResolvedDependency parent) {
+        throwExceptionIfUnknownParent(parent);
+        return GUtil.addSets(getParentFiles(parent), getModuleFiles());
+    }
+
+    public Set<File> getAllFiles(ResolvedDependency parent) {
+        throwExceptionIfUnknownParent(parent);
+        Set<File> allFiles = new LinkedHashSet<File>();
+        allFiles.addAll(getFiles(parent));
+        for (ResolvedDependency childResolvedDependency : getChildren()) {
+            for (ResolvedDependency childParent : childResolvedDependency.getParents()) {
+                allFiles.addAll(childResolvedDependency.getAllFiles(childParent));
+            }
         }
         return allFiles;
     }
@@ -70,6 +110,10 @@ public class DefaultResolvedDependency implements ResolvedDependency {
 
     public String toString() {
         return name + ";" + configuration;
+    }
+
+    public void addParentSpecificFiles(ResolvedDependency parent, Set<File> files) {
+        parentFiles.put(parent, files);
     }
 
     @Override
