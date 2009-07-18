@@ -15,9 +15,7 @@
  */
 package org.gradle.external.junit;
 
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.GroovyPlugin;
 import org.gradle.api.tasks.testing.AbstractTestFramework;
 import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.testing.JunitForkOptions;
@@ -25,12 +23,12 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-import java.util.Collection;
 import java.io.File;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Tom Eyckmans
@@ -54,15 +52,9 @@ public class JUnitTestFramework extends AbstractTestFramework {
 
         final JunitForkOptions forkOptions = options.getForkOptions();
 
-        // only fork per test if no tests are implemented in Groovy
-        if (!project.getPlugins().hasPlugin(GroovyPlugin.class)) {
-            options.setFork(true);
-            forkOptions.setForkMode(ForkMode.PER_TEST);
-            forkOptions.setDir(project.getProjectDir());
-        }
-        else {
-            forkOptions.setForkMode(ForkMode.ONCE);
-        }
+        options.setFork(true);
+        forkOptions.setForkMode(ForkMode.ONCE);
+        forkOptions.setDir(project.getProjectDir());
     }
 
     public void prepare(Project project, Test testTask) {
@@ -73,8 +65,7 @@ public class JUnitTestFramework extends AbstractTestFramework {
         antJUnitExecute.execute(testTask.getTestClassesDir(), testTask.getClasspath(), testTask.getTestResultsDir(), includes, excludes, options, project.getAnt());
     }
 
-    public void report(Project project, Test testTask)
-    {
+    public void report(Project project, Test testTask) {
         antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(), project.getAnt());
     }
 
