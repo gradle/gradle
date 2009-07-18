@@ -4,13 +4,23 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask
 
 group = 'sealife'
 
-subprojects {
+project(':atlantic') {
     usePlugin('java')
     configurations {
         other
     }
     dependencies {
         other "sea.fish:herring:1.0", files("$rootDir/lib/selfResolving1.jar")
+    }
+}
+
+project(':northSea') {
+    usePlugin('java')
+    configurations {
+        other
+    }
+    dependencies {
+        other "sea.fish:squid:1.0", files("$rootDir/lib/selfResolving2.jar"), project(path: ':atlantic', configuration: 'other')
     }
 }
 
@@ -37,7 +47,8 @@ configurations {
     extendingWithDifferentConfiguration.extendsFrom extended
     selfResolving
     mixed.extendsFrom selfResolving, twoDepsWithTransitives
-    subproject
+    subprojectAtlantic
+    subprojectNorthSea
     classifier
     extendingClassifier.extendsFrom classifier
     customArtifacts
@@ -58,7 +69,8 @@ dependencies {
     extendingWithDifferentConfiguration group: 'sea.fish', name: 'tuna', version: '1.0', configuration: 'specialWaters'
     extendingWithDifferentConfiguration "sea.mammals:seal:1.0"
     selfResolving files("$rootDir/lib/selfResolving1.jar"), files("$projectDir/someDir")
-    subproject project(path: ':deepSea', configuration: 'other')
+    subprojectAtlantic project(path: ':atlantic', configuration: 'other')
+    subprojectNorthSea project(path: ':northSea', configuration: 'other')
     classifier "sea.fish:herring:1.0"
     classifier('sea.mammals:dolphin:1.0') {
 	    artifact {
@@ -89,7 +101,7 @@ dependencies {
 
 }
 
-task test(dependsOn: configurations.subproject.buildDependencies) << {
+task test(dependsOn: [configurations.subprojectAtlantic.buildDependencies, configurations.subprojectNorthSea.buildDependencies]) << {
     assertCorrectFilesForCompleteConfigurations()
     assertFilesForDependencySubsets()
     assertFilesForConfigurationCopies()
@@ -109,7 +121,8 @@ def assertCorrectFilesForCompleteConfigurations() {
             extending: ['tuna-1.0.jar', 'herring-1.0.jar', 'seal-1.0.jar', 'orca-1.0.jar'] as Set,
             selfResolving: ['selfResolving1.jar', 'someDir'] as Set,
             mixed: ['tuna-1.0.jar', 'orca-1.0.jar', 'seal-1.0.jar', 'herring-1.0.jar', 'selfResolving1.jar', 'someDir'] as Set,
-            subproject: ['selfResolving1.jar', 'herring-1.0.jar'] as Set,
+            subprojectAtlantic: ['selfResolving1.jar', 'herring-1.0.jar'] as Set,
+            subprojectNorthSea: ['selfResolving1.jar', 'herring-1.0.jar', 'selfResolving2.jar', 'squid-1.0.jar'] as Set,
             classifier: ['dolphin-1.0-oceanic.jar', 'dolphin-1.0-river.jar', "herring-1.0.jar"] as Set,
             extendingClassifier: ['dolphin-1.0-oceanic.jar', 'dolphin-1.0-river.jar', "herring-1.0.jar"] as Set
     ]
@@ -117,14 +130,6 @@ def assertCorrectFilesForCompleteConfigurations() {
         Set resolvedFileNames = configurations[configurationName].files.collect { it.name }
         Assert.assertEquals(expectedFileNames, resolvedFileNames)
     }
-}
-
-task check << {
-    println(configurations.mixed.files)
-}
-
-task report(type: DependencyReportTask, dependsOn: configurations.subproject.buildDependencies) {
-//    configurations = [project.configurations.depWithMultipleConfigurations]
 }
 
 def assertFilesForDependencySubsets() {
