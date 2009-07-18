@@ -19,9 +19,11 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -31,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -89,6 +92,31 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         }});
         DefaultProjectDependency projectDependency = new DefaultProjectDependency(projectStub, "conf1");
         assertThat(projectDependency.getProjectConfiguration(), sameInstance(configurationDummy));
+    }
+
+    @Test
+    public void resolve() {
+        final Configuration configurationStub = context.mock(Configuration.class);
+        final ConfigurationHandler configurationHandlerStub = context.mock(ConfigurationHandler.class);
+        final Project projectStub = context.mock(Project.class);
+        final SelfResolvingDependency selfResolvingDependency = context.mock(SelfResolvingDependency.class);
+        final Set<File> selfResolvingFiles = WrapUtil.toSet(new File("somePath"));
+        context.checking(new Expectations() {{
+
+            allowing(projectStub).getConfigurations();
+            will(returnValue(configurationHandlerStub));
+
+            allowing(configurationHandlerStub).getByName("conf1");
+            will(returnValue(configurationStub));
+
+            allowing(configurationStub).getAllDependencies(SelfResolvingDependency.class);
+            will(returnValue(WrapUtil.toSet(selfResolvingDependency)));
+
+            allowing(selfResolvingDependency).resolve();
+            will(returnValue(selfResolvingFiles));
+        }});
+        DefaultProjectDependency projectDependency = new DefaultProjectDependency(projectStub, "conf1");
+        assertThat(projectDependency.resolve(), equalTo(selfResolvingFiles));
     }
 
     @Test

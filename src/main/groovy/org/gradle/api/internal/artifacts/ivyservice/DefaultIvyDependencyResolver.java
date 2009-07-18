@@ -94,22 +94,23 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         public Set<File> getFiles(Spec<Dependency> dependencySpec) {
-            if (configuration.getAllDependencies().equals(Specs.filterIterable(configuration.getAllDependencies(), dependencySpec))) {
+            if (doesSpecContainAllModuleDependencies(dependencySpec)) {
                 return ivyReportTranslator.getClasspath(configuration.getName(), resolveReport);
             }
             buildResolvedDependencies();
-            Set<Dependency> dependencies = Specs.filterIterable(configuration.getAllDependencies(), dependencySpec);
+            Set<ModuleDependency> allModuleDependencies = Specs.filterIterable(configuration.getAllDependencies(ModuleDependency.class), dependencySpec);
             Set<File> files = new LinkedHashSet<File>();
-            for (Dependency dependency : dependencies) {
-                Set<ResolvedDependency> resolvedDependencies = firstLevelResolvedDependencies.get(dependency);
-                if (resolvedDependencies == null) {
-                    continue;
-                }
+            for (ModuleDependency moduleDependency : allModuleDependencies) {
+                Set<ResolvedDependency> resolvedDependencies = firstLevelResolvedDependencies.get(moduleDependency);
                 for (ResolvedDependency resolvedDependency : resolvedDependencies) {
                     files.addAll(resolvedDependency.getAllFiles());
                 }
             }
             return files;
+        }
+
+        private boolean doesSpecContainAllModuleDependencies(Spec<Dependency> dependencySpec) {
+            return configuration.getAllDependencies(ModuleDependency.class).equals(Specs.filterIterable(configuration.getAllDependencies(), dependencySpec));
         }
 
         public Set<ResolvedDependency> getFirstLevelResolvedDependencies() {

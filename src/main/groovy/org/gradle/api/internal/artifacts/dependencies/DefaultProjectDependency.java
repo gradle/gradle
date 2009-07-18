@@ -20,6 +20,11 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.SelfResolvingDependency;
+
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
 * @author Hans Dockter
@@ -60,6 +65,14 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, getConfiguration());
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
+    }
+
+    public Set<File> resolve() {
+        Set<File> files = new LinkedHashSet<File>();
+        for (SelfResolvingDependency selfResolvingDependency : getProjectConfiguration().getAllDependencies(SelfResolvingDependency.class)) {
+            files.addAll(selfResolvingDependency.resolve());
+        }
+        return files;
     }
 
     public boolean contentEquals(Dependency dependency) {

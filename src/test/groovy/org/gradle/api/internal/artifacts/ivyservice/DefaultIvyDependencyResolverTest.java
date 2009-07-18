@@ -22,10 +22,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
@@ -81,14 +78,17 @@ public class DefaultIvyDependencyResolverTest {
     @Test
     // For performance optimization a spec that returns all dependencies is retrieved in a special way. Therefore we need
     // a separate test for this use case.
-    public void testResolveAndGetFilesForAllDependencies() throws IOException, ParseException {
+    public void testResolveAndGetFilesForAllModuleDependencies() throws IOException, ParseException {
         prepareResolveReport();
-        final Dependency dependencyDummy = context.mock(Dependency.class);
+        final ModuleDependency moduleDependencyDummy = context.mock(ModuleDependency.class);
+        final SelfResolvingDependency selfResolvingDependencyDummy = context.mock(SelfResolvingDependency.class);
         final Set<File> expectedClasspath = toSet(new File(""));
         final String configurationName = configurationStub.getName();
         context.checking(new Expectations() {{
             allowing(configurationStub).getAllDependencies();
-            will(returnValue(WrapUtil.toSet(dependencyDummy)));
+            will(returnValue(WrapUtil.toSet(moduleDependencyDummy, selfResolvingDependencyDummy)));
+            allowing(configurationStub).getAllDependencies(ModuleDependency.class);
+            will(returnValue(WrapUtil.toSet(moduleDependencyDummy)));
             allowing(ivyReportTranslatorStub).getClasspath(configurationName, resolveReportMock);
             will(returnValue(expectedClasspath));
         }});
@@ -96,21 +96,26 @@ public class DefaultIvyDependencyResolverTest {
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
 
         assertSame(expectedClasspath, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getFiles(
-                Specs.SATISFIES_ALL));
+                new Spec<Dependency>() {
+                    public boolean isSatisfiedBy(Dependency element) {
+                        return element == moduleDependencyDummy;
+                    }
+                }));
     }
 
     @Test
     public void testResolveAndGetFilesWithDependencySubset() throws IOException, ParseException {
         prepareResolveReport();
-        final Dependency dependencyDummy1 = context.mock(Dependency.class, "dep1");
-        final Dependency dependencyDummy2 = context.mock(Dependency.class, "dep2");
+        final ModuleDependency moduleDependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
+        final ModuleDependency moduleDependencyDummy2 = context.mock(ModuleDependency.class, "dep2");
+        final SelfResolvingDependency selfResolvingDependencyDummy = context.mock(SelfResolvingDependency.class);
         final ResolvedDependency resolvedDependency1 = context.mock(ResolvedDependency.class, "resolved1");
         final ResolvedDependency resolvedDependency2 = context.mock(ResolvedDependency.class, "resolved2");
         ResolvedDependency resolvedDependency3 = context.mock(ResolvedDependency.class, "resolved3");
         final Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = GUtil.map(
-                dependencyDummy1,
+                moduleDependencyDummy1,
                 WrapUtil.toSet(resolvedDependency1, resolvedDependency2),
-                dependencyDummy2,
+                moduleDependencyDummy2,
                 WrapUtil.toSet(resolvedDependency3));
 
         context.checking(new Expectations() {{
@@ -119,7 +124,9 @@ public class DefaultIvyDependencyResolverTest {
             allowing(resolvedDependency2).getAllFiles();
             will(returnValue(WrapUtil.toSet(new File("file2"))));
             allowing(configurationStub).getAllDependencies();
-            will(returnValue(WrapUtil.toSet(dependencyDummy1, dependencyDummy2)));
+            will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
+            allowing(configurationStub).getAllDependencies(ModuleDependency.class);
+            will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2)));
             allowing(ivyReportTranslatorStub).translateReport(resolveReportMock, configurationStub);
             will(returnValue(firstLevelResolvedDependencies));
         }});
@@ -129,7 +136,7 @@ public class DefaultIvyDependencyResolverTest {
         Set<File> actualFiles = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getFiles(
                 new Spec<Dependency>() {
                     public boolean isSatisfiedBy(Dependency element) {
-                        return element == dependencyDummy1;
+                        return element == moduleDependencyDummy1 || element == selfResolvingDependencyDummy;
                     }
                 });
         assertThat(actualFiles, equalTo(WrapUtil.toSet(new File("file1"), new File("file2"))));
@@ -143,6 +150,7 @@ public class DefaultIvyDependencyResolverTest {
         ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor);
         context.checking(new Expectations() {{
             allowing(configurationStub).getAllDependencies();
+            allowing(configurationStub).getAllDependencies(ModuleDependency.class);
         }});
         try {
             configuration.getFiles(Specs.SATISFIES_ALL);

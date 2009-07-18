@@ -22,7 +22,7 @@ import org.gradle.api.Project;
  *
  * @author Hans Dockter
  */
-public interface ProjectDependency extends ModuleDependency {
+public interface ProjectDependency extends ModuleDependency, SelfResolvingDependency {
     /**
      * Returns the project associated with this project dependency
      */

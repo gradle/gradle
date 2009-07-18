@@ -29,9 +29,4 @@ public interface SelfResolvingDependency extends Dependency {
      * @return The files which make up this dependency.
      */
     Set<File> resolve();
-
-    /**
-     * {@inheritDoc}
-     */
-    SelfResolvingDependency copy();
 }
