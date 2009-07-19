@@ -665,7 +665,7 @@ task ide << {
     def libDir = file('lib')
     ant.delete(dir: libDir)
     [configurations.runtime, configurations.testRuntime].each {config ->
-        config.copyRecursive(DependencySpecs.type(Type.EXTERNAL)).files.each {file ->
+        config.files(DependencySpecs.type(Type.EXTERNAL)).each {file ->
             ant.copy(file: file, todir: libDir)
         }
     }
