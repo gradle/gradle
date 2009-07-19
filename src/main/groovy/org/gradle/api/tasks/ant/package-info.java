@@ -15,6 +15,6 @@
  */
 
 /**
- * The Ant integration {@link org.gradle.api.Plugin} implementation.
+ * The Ant integration {@link org.gradle.api.Task} implementations.
  */
-package org.gradle.api.plugins.ant;
+package org.gradle.api.tasks.ant;

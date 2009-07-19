@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.ant;
+package org.gradle.api.tasks.ant;
 
 import org.apache.tools.ant.Target;
 import org.gradle.api.Project;

@@ -20,7 +20,7 @@ import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeEvent
 import org.gradle.api.GradleException
 import org.apache.tools.ant.Target
-import org.gradle.api.plugins.ant.AntTarget
+import org.gradle.api.tasks.ant.AntTarget
 import org.gradle.api.Project
 import org.apache.tools.ant.MagicNames
 import org.apache.tools.ant.ProjectHelper

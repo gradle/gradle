@@ -6,7 +6,7 @@ import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
-import org.gradle.api.plugins.ant.AntTarget
+import org.gradle.api.tasks.ant.AntTarget
 
 class DefaultAntBuilderTest {
     private final Project project = HelperUtil.createRootProject()
