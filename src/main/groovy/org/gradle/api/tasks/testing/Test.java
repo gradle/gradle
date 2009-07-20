@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A task for executing Junit 3.8.x and Junit 4 tests.
+ * A task for executing JUnit (3.8.x or 4) or TestNG tests.
  *
  * @author Hans Dockter
  */
