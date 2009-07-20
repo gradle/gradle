@@ -1,1 +1,50 @@
-Release Notes - Gradle - Version 0.6
+
+Release Notes - Gradle - Version 0.7
+
+
+** Bug
+    * [GRADLE-415] - Use patched ivy with Fix for IVY-1066 (was: -tests.jar dependency download failing)
+    * [GRADLE-518] - The copy method of a dependency does not copy the configuration.
+    * [GRADLE-524] - ide task in gradle's own build.gradle doesn't work
+    * [GRADLE-526] - Relative Path in GRADLE_HOME does not work any more
+    * [GRADLE-527] - project.libs.archiveTasks no longer exists but is used in UG 24.59
+    * [GRADLE-528] - testResource dir property documentation error
+    * [GRADLE-530] - New Jar task always included classes found in 'classesDir'
+    * [GRADLE-531] -  ide task in buildSrc/build.gradle doesn't work
+    * [GRADLE-534] - Dependency reports do not show the correct hierarchy
+    * [GRADLE-536] - integTest target in Gradle's own build can't be re-run without clean
+    * [GRADLE-538] - Test detection seems to think that every class under src/test/java is a test class
+    * [GRADLE-540] - scanForTestClasses=false has no effect
+
+** Improvement
+    * [GRADLE-121] - Offer option to print out the DAG for executing a particular task. This should also be printed out in debug mode.
+    * [GRADLE-174] - Add javadocs to the public API.
+    * [GRADLE-208] - Log the start of the project evaluation in info mode not the end (to make debugging easier)
+    * [GRADLE-239] - Document on the website and in the user's guide how to submit a patch for the user's guide.
+    * [GRADLE-258] - doc examples could be more Groovy idiomatic
+    * [GRADLE-316] - Provide a consistent mechanism to add properties and methods to Project, Task and Settings objects
+    * [GRADLE-331] - The documentation should have a chapter how to use Ant.
+    * [GRADLE-351] - Set project directory as default dir for ant exec task
+    * [GRADLE-353] - Set baseDir of AntBuilder's Ant project to the directory of the Gradle project
+    * [GRADLE-357] - Replace unmanaged classpath with new dependency type
+    * [GRADLE-442] - Upgrade groovy version used for build scripts to 1.6
+    * [GRADLE-481] - Simplified way to obtain all projects and tasks
+    * [GRADLE-490] - The UsersGuideIntegrationTest should evaluate a script only once.
+    * [GRADLE-515] - User Guide grammar fixes and other minor improvements
+    * [GRADLE-516] - documentation - better titles for examples & list of examples
+    * [GRADLE-517] - Simplify ant project property access from build script
+    * [GRADLE-520] - Provide the option to pass command line style parameters for embedded usage.
+    * [GRADLE-522] - Provide listeners for plugin registration and usage
+    * [GRADLE-529] - userguide - pdf version - page number
+    * [GRADLE-537] - Update Java Plugin Task Dependencies
+    * [GRADLE-542] - Change default fork mode for Java project tests to 'once'
+    * [GRADLE-543] - Provide a native copy task
+    * [GRADLE-545] - The resolve of a ProjectDependency should return its self resolving dependencies.
+    * [GRADLE-546] - Introduce custom set's to return resolve result by lazy initialization.
+
+** New Feature
+    * [GRADLE-275] - Gradle should be able to read and use an Ant build file
+    * [GRADLE-519] - Allow build script classpath to be specified in the build script
+    * [GRADLE-523] - Offer a dry-run option for a Gradle build.
+    * [GRADLE-533] - Initial Framework for Task Optimization
+    * [GRADLE-535] - Configuration should return the files for a subset of the dependencies
