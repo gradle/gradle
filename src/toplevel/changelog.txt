@@ -40,7 +40,6 @@ Release Notes - Gradle - Version 0.7
     * [GRADLE-542] - Change default fork mode for Java project tests to 'once'
     * [GRADLE-543] - Provide a native copy task
     * [GRADLE-545] - The resolve of a ProjectDependency should return its self resolving dependencies.
-    * [GRADLE-546] - Introduce custom set's to return resolve result by lazy initialization.
 
 ** New Feature
     * [GRADLE-275] - Gradle should be able to read and use an Ant build file
