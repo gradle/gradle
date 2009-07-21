@@ -52,7 +52,7 @@ public class AbstractIntegrationTest {
         URL resource = getClass().getResource("testProjects/" + name);
         assertThat(String.format("Could not find resource '%s'", name), resource, notNullValue());
         assertThat(resource.getProtocol(), equalTo("file"));
-        TestFile sourceFile= new TestFile(resource);
+        TestFile sourceFile = new TestFile(resource);
         TestFile destFile = testFile(sourceFile.getName());
         sourceFile.copyTo(destFile);
         return destFile;
@@ -71,7 +71,8 @@ public class AbstractIntegrationTest {
                 "java=org.gradle.api.plugins.JavaPlugin",
                 "groovy=org.gradle.api.plugins.GroovyPlugin",
                 "war=org.gradle.api.plugins.WarPlugin",
-                "maven=org.gradle.api.plugins.MavenPlugin"
+                "maven=org.gradle.api.plugins.MavenPlugin",
+                "code-quality=org.gradle.api.plugins.quality.CodeQualityPlugin"
         );
 
         parameter.setGradleUserHomeDir(testFile("user-home"));

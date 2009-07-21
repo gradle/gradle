@@ -137,6 +137,15 @@ dependencies {
             "org.apache.ant:ant-nodeps:1.7.0@jar",
             "org.apache.ant:ant-trax:1.7.0@jar",
             "junit:junit:4.5"
+    runtime module("checkstyle:checkstyle:5.0") {
+        dependency("antlr:antlr:2.7.7")
+        dependency("org.slf4j:jcl-over-slf4j:1.5.3@jar")
+        dependency("com.google.collections:google-collections:0.9")
+        dependency("commons-beanutils:commons-beanutils-core:1.7.0")
+    }
+    runtime module("org.codenarc:CodeNarc:0.5") {
+        dependency("org.slf4j:log4j-over-slf4j:1.5.3@jar")
+    }
 
     def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
     testCompile "junit:junit:4.5", "xmlunit:xmlunit:1.2", FIRST_LEVEL_JMOCK

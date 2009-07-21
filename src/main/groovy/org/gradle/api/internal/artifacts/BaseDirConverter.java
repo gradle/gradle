@@ -43,11 +43,19 @@ public class BaseDirConverter implements FileResolver {
             throw new IllegalArgumentException(String.format(
                     "Neither path nor baseDir must be null. path=%s basedir=%s", path, baseDir));
         }
-        File file = new File(path.toString());
+
+        File file;
+        if (path instanceof File) {
+            file = (File) path;
+        } else {
+            file = new File(path.toString());
+        }
+
         if (!file.isAbsolute()) {
             file = new File(baseDir, path.toString());
         }
         file = GFileUtils.canonicalise(file);
+
         if (validation != PathValidation.NONE) {
             switch (validation) {
                 case EXISTS:

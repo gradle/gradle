@@ -41,6 +41,7 @@
     <xi:include href='warPlugin.xml'/>
     <xi:include href='jettyPlugin.xml'/>
     <xi:include href='mavenPlugin.xml'/>
+    <xi:include href='codeQualityPlugin.xml'/>
     <xi:include href='osgi.xml'/>
     <xi:include href='eclipsePlugin.xml'/>
     <xi:include href='projectReports.xml'/>
