@@ -17,7 +17,7 @@ usePlugin 'code-quality'
     @Test
     public void generatesReportForJavaSource() {
         testFile('build.gradle') << '''
-usePlugin 'groovy'
+usePlugin 'java'
 usePlugin 'code-quality'
 '''
         testFile('config/checkstyle.xml') << '''
@@ -31,9 +31,7 @@ usePlugin 'code-quality'
 </module>'''
 
         testFile('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
-        testFile('src/main/groovy/org/gradle/Class2.java') << 'package org.gradle; class Class2 { }'
         testFile('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
-        testFile('src/test/groovy/org/gradle/TestClass2.java') << 'package org.gradle; class TestClass2 { }'
 
         inTestDirectory().withTasks('check').run()
 
@@ -77,6 +75,15 @@ usePlugin 'code-quality'
 usePlugin 'groovy'
 usePlugin 'code-quality'
 '''
+        testFile('config/codenarc.xml') << '''
+<ruleset xmlns="http://codenarc.org/ruleset/1.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
+        xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
+    <ruleset-ref path='rulesets/imports.xml'/>
+</ruleset>
+'''
+
         testFile('src/main/groovy/org/gradle/Class1.groovy') << 'package org.gradle; class Class1 { }'
         testFile('src/test/groovy/org/gradle/TestClass1.groovy') << 'package org.gradle; class TestClass1 { }'
 
@@ -97,6 +104,16 @@ usePlugin 'code-quality'
 usePlugin 'groovy'
 usePlugin 'code-quality'
 '''
+
+        testFile('config/codenarc.xml') << '''
+<ruleset xmlns="http://codenarc.org/ruleset/1.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
+        xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
+    <ruleset-ref path='rulesets/naming.xml'/>
+</ruleset>
+'''
+        
         testFile('src/main/groovy/org/gradle/class1.groovy') << 'package org.gradle; class class1 { }'
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
