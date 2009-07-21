@@ -72,12 +72,14 @@ class CodeQualityPluginTest {
         def task = project.tasks[CodeQualityPlugin.CODE_NARC_TASK]
         assertThat(task, instanceOf(CodeNarc))
         assertThat(task.srcDirs, equalTo(project.groovySrcDirs))
+        assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, equalTo(project.codeNarcReportFile))
         assertDependsOn(task)
 
         task = project.tasks[CodeQualityPlugin.CODE_NARC_TESTS_TASK]
         assertThat(task, instanceOf(CodeNarc))
         assertThat(task.srcDirs, equalTo(project.groovyTestSrcDirs))
+        assertThat(task.configFile, equalTo(project.codeNarcTestConfigFile))
         assertThat(task.reportFile, equalTo(project.codeNarcTestReportFile))
         assertDependsOn(task)
 

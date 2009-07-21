@@ -30,7 +30,7 @@ import org.gradle.build.docs.SampleElementValidator
 
 defaultTasks "clean", "dists"
 
-usePlugin('groovy')
+usePlugin 'groovy'
 
 archivesBaseName = 'gradle'
 
@@ -143,7 +143,7 @@ dependencies {
         dependency("com.google.collections:google-collections:0.9")
         dependency("commons-beanutils:commons-beanutils-core:1.7.0")
     }
-    runtime module("org.codenarc:CodeNarc:0.5") {
+    runtime module("org.codenarc:CodeNarc:0.6") {
         dependency("org.slf4j:log4j-over-slf4j:1.5.3@jar")
     }
 

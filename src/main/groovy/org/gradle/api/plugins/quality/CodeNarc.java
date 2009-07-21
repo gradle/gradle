@@ -29,6 +29,7 @@ public class CodeNarc extends ConventionTask {
 
     private List<File> srcDirs;
     private File reportFile;
+    private File configFile;
 
     public CodeNarc(Project project, String name) {
         super(project, name);
@@ -44,7 +45,7 @@ public class CodeNarc extends ConventionTask {
         new ExistingDirsFilter().findExistingDirsAndThrowStopActionIfNone(srcDirs);
         File reportFile = getReportFile();
         reportFile.getParentFile().mkdirs();
-        antCodeNarc.execute(getAnt(), srcDirs, reportFile);
+        antCodeNarc.execute(getAnt(), srcDirs, getConfigFile(), reportFile);
     }
 
     public List<File> getSrcDirs() {
@@ -53,6 +54,14 @@ public class CodeNarc extends ConventionTask {
 
     public void setSrcDirs(List<File> srcDirs) {
         this.srcDirs = srcDirs;
+    }
+
+    public File getConfigFile() {
+        return configFile;
+    }
+
+    public void setConfigFile(File configFile) {
+        this.configFile = configFile;
     }
 
     public File getReportFile() {

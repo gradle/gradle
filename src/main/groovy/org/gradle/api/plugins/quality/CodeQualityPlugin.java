@@ -79,7 +79,7 @@ public class CodeQualityPlugin implements Plugin {
         });
 
         Checkstyle checkstyle = project.getTasks().add(CHECKSTYLE_TASK, Checkstyle.class);
-        checkstyle.setDescription("Runs Checkstyle against the project's Java source");
+        checkstyle.setDescription("Runs Checkstyle against the Java source code.");
         checkstyle.conventionMapping("resultFile", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return convention.getPlugin(JavaCodeQualityPluginConvention.class).getCheckstyleResultFile();
@@ -87,7 +87,7 @@ public class CodeQualityPlugin implements Plugin {
         });
 
         checkstyle = project.getTasks().add(CHECKSTYLE_TESTS_TASK, Checkstyle.class);
-        checkstyle.setDescription("Runs Checkstyle against the project's Java test source");
+        checkstyle.setDescription("Runs Checkstyle against the Java test source code.");
         checkstyle.conventionMapping("srcDirs", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return convention.getPlugin(JavaPluginConvention.class).getTestSrcDirs();
@@ -123,11 +123,16 @@ public class CodeQualityPlugin implements Plugin {
                         return convention.getPlugin(GroovyPluginConvention.class).getGroovySrcDirs();
                     }
                 });
+                codeNarc.conventionMapping("configFile", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return convention.getPlugin(GroovyCodeQualityPluginConvention.class).getCodeNarcConfigFile();
+                    }
+                });
             }
         });
 
         CodeNarc codeNarc = project.getTasks().add(CODE_NARC_TASK, CodeNarc.class);
-        codeNarc.setDescription("Runs CodeNarc against the project's Groovy source");
+        codeNarc.setDescription("Runs CodeNarc against the Groovy source code.");
         codeNarc.conventionMapping("reportFile", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return convention.getPlugin(GroovyCodeQualityPluginConvention.class).getCodeNarcReportFile();
@@ -135,10 +140,15 @@ public class CodeQualityPlugin implements Plugin {
         });
 
         codeNarc = project.getTasks().add(CODE_NARC_TESTS_TASK, CodeNarc.class);
-        codeNarc.setDescription("Runs CodeNarc against the project's Groovy test source");
+        codeNarc.setDescription("Runs CodeNarc against the Groovy test source code.");
         codeNarc.conventionMapping("srcDirs", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return convention.getPlugin(GroovyPluginConvention.class).getGroovyTestSrcDirs();
+            }
+        });
+        codeNarc.conventionMapping("configFile", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return convention.getPlugin(GroovyCodeQualityPluginConvention.class).getCodeNarcTestConfigFile();
             }
         });
         codeNarc.conventionMapping("reportFile", new ConventionValue() {
