@@ -19,13 +19,14 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.IvyArtifactFilePathVariableProvider;
 import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,17 +34,19 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToModuleDescriptorConverter {
-    public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
+    public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations, IvySettings ivySettings,
+                             IvyArtifactFilePathVariableProvider filePathVariableProvider) {
         for (Configuration configuration : configurations) {
             for (PublishArtifact publishArtifact : configuration.getArtifacts()) {
                 Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleDescriptor.getModuleRevisionId());
+                ivySettings.setVariable(filePathVariableProvider.createVariableName(ivyArtifact), publishArtifact.getFile().getAbsolutePath());
                 moduleDescriptor.addArtifact(configuration.getName(), ivyArtifact);
             }
         }
     }
 
     public Artifact createIvyArtifact(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
-        Map extraAttributes = WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, publishArtifact.getFile().getAbsolutePath());
+        Map extraAttributes = new HashMap();
         if (GUtil.isTrue(publishArtifact.getClassifier())) {
             extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
         }

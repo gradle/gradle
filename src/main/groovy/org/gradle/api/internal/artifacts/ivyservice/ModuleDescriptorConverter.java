@@ -32,7 +32,8 @@ import java.util.Set;
 public interface ModuleDescriptorConverter extends IvyObjectBuilder<DefaultModuleDescriptor> {
     void addIvyTransformer(Transformer<DefaultModuleDescriptor> defaultModuleDescriptorTransformer);
 
-    ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module, IvySettings settings);
+    ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module, IvySettings settings,
+                                       IvyArtifactFilePathVariableProvider filePathVariableProvider);
 
     ModuleDescriptor convertForResolve(Configuration configuration, Module module, Map clientModuleRegistry, IvySettings settings);
 }

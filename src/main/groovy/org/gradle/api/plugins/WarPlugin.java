@@ -22,7 +22,9 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.War;
 
 /**
@@ -39,7 +41,6 @@ public class WarPlugin implements Plugin {
 
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         projectPluginsHandler.usePlugin(JavaPlugin.class, project);
-        project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME).setEnabled(false);
         project.getConvention().getPlugins().put("war", new WarPluginConvention(project));
 
         project.getTasks().withType(War.class).allTasks(new Action<War>() {
@@ -50,9 +51,25 @@ public class WarPlugin implements Plugin {
         
         War war = project.getTasks().add(WAR_TASK_NAME, War.class);
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
-        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(war));
-
+        Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
+        disableJarTaskAndRemoveFromArchivesConfiguration(project, archivesConfiguration);
+        archivesConfiguration.addArtifact(new ArchivePublishArtifact(war));
         configureConfigurations(project.getConfigurations());
+    }
+
+    private void disableJarTaskAndRemoveFromArchivesConfiguration(Project project, Configuration archivesConfiguration) {
+        Jar jarTask = (Jar) project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
+        jarTask.setEnabled(false);
+        removeJarTaskFromArchivesConfiguration(archivesConfiguration, jarTask);
+    }
+
+    private void removeJarTaskFromArchivesConfiguration(Configuration archivesConfiguration, Jar jar) {
+        // todo: There should be a richer connection between an ArchiveTask and a PublishArtifact
+        for (PublishArtifact publishArtifact : archivesConfiguration.getAllArtifacts()) {
+            if (publishArtifact.getFile().equals(jar.getArchivePath())) {
+                archivesConfiguration.removeArtifact(publishArtifact);
+            }
+        }
     }
 
     public void configureConfigurations(ConfigurationContainer configurationContainer) {

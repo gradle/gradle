@@ -15,16 +15,17 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
-import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.Set;
 
@@ -46,8 +47,7 @@ public class MavenPluginTest {
 
         Task task = project.getTasks().getByName(MavenPlugin.INSTALL_TASK_NAME);
         Set dependencies = task.getTaskDependencies().getDependencies(task);
-        assertEquals(dependencies, toSet(project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME),
-                project.getTasks().getByName(WarPlugin.WAR_TASK_NAME)));
+        assertThat(dependencies, equalTo((Set) toSet(project.getTasks().getByName(WarPlugin.WAR_TASK_NAME))));
     }
 
     private void assertHasConfigurationAndMapping(DefaultProject project, String configurationName, String scope, int priority) {

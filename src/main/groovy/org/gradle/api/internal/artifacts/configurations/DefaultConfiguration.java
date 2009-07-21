@@ -270,6 +270,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    public Configuration removeArtifact(PublishArtifact artifact) {
+        throwExceptionIfNotInUnresolvedState();
+        artifacts.remove(artifact);
+        return this;
+    }
+
     public Set<PublishArtifact> getArtifacts() {
         return artifacts;
     }

@@ -24,6 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.artifacts.ivyservice.IvyArtifactFilePathVariableProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
@@ -54,11 +55,12 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
         return createResolveModuleDescriptor(module, new LinkedHashSet(configuration.getHierarchy()), clientModuleRegistry, settings);
     }
 
-    public ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module, IvySettings settings) {
+    public ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module, IvySettings settings,
+                                              IvyArtifactFilePathVariableProvider filePathVariableProvider) {
         assert configurations.size() > 0;
         Set<Configuration> descriptorConfigurations = publishDescriptor ? setWithAllConfs(configurations) : configurations;
         ModuleDescriptor moduleDescriptor = createPublishModuleDescriptor(module, descriptorConfigurations, settings);
-        artifactsToModuleDescriptorConverter.addArtifacts((DefaultModuleDescriptor) moduleDescriptor, descriptorConfigurations);
+        artifactsToModuleDescriptorConverter.addArtifacts((DefaultModuleDescriptor) moduleDescriptor, descriptorConfigurations, settings, filePathVariableProvider);
         return moduleDescriptor;
     }
 

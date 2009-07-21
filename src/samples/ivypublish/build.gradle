@@ -1,0 +1,43 @@
+import org.junit.Assert
+
+usePlugin('java')
+
+version = '1.0'
+group = 'org.gradle.test'
+
+ant {
+    importBuild "$rootDir/build.xml"
+    buildDir = owner.buildDir.toString()
+}
+
+repositories {
+    flatDir(dirs: "$buildDir/repo", name: 'repo')
+}
+
+task sourceJar(type: Jar) {
+    baseName = 'ivypublishSource'
+    fileSet(dir: srcDirs[0])
+}
+
+artifacts {
+    archives sourceJar
+}
+
+uploadArchives {
+    repositories {
+        add project.repositories.repo
+    }
+}
+
+retrieveFromAnt {
+    dependsOn uploadArchives
+    doLast {
+        Assert.assertEquals(new File("$buildDir/antRetrieve").listFiles().collect { it.name } as Set,
+                ["ivypublish.jar", "ivypublishSource.jar"] as Set)
+    }
+}
+
+
+
+
+

@@ -535,6 +535,22 @@ public class DefaultConfigurationTest {
         assertThat(configuration.getAllArtifacts(), equalTo(toSet(artifactConf, artifactOtherConf2)));
     }
 
+    @Test
+    public void removeArtifact() {
+        PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+        configuration.addArtifact(artifact);
+        configuration.removeArtifact(artifact);
+        assertThat(configuration.getAllArtifacts(), equalTo(Collections.<PublishArtifact>emptySet()));
+    }
+
+    @Test
+    public void removeArtifactWithUnknownArtifact() {
+        PublishArtifact artifact = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
+        configuration.addArtifact(artifact);
+        configuration.removeArtifact(HelperUtil.createPublishArtifact("name2", "ext1", "type1", "classifier1"));
+        assertThat(configuration.getAllArtifacts(), equalTo(WrapUtil.toSet(artifact)));
+    }
+
     private void assertCorrectInstanceInAllDependencies(Set<Dependency> allDependencies, Dependency correctInstance) {
         for (Dependency dependency : allDependencies) {
             if (dependency == correctInstance) {
@@ -733,6 +749,11 @@ public class DefaultConfigurationTest {
         assertInvalidUserDataException(new Executer() {
             public void execute() {
                 configuration.extendsFrom(context.mock(Configuration.class));
+            }
+        });
+        assertInvalidUserDataException(new Executer() {
+            public void execute() {
+                configuration.removeArtifact(context.mock(PublishArtifact.class, "removeeArtifact"));
             }
         });
     }

@@ -54,6 +54,7 @@ public class DefaultIvyService_PublishTest {
     private PublishEngine publishEngineDummy = context.mock(PublishEngine.class);
     private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
+    private IvyArtifactFilePathVariableProvider filePathVariableProviderDummy = context.mock(IvyArtifactFilePathVariableProvider.class);
 
     @Test
     public void testPublish() {
@@ -85,7 +86,7 @@ public class DefaultIvyService_PublishTest {
         ivyService.setModuleDescriptorConverter(moduleDescriptorConverterStub);
         ivyService.setSettingsConverter(settingsConverterStub);
         ivyService.setDependencyPublisher(ivyDependencyPublisherMock);
-
+        ivyService.setFilePathVariableProvider(filePathVariableProviderDummy);
         return ivyService;
     }
 
@@ -138,7 +139,7 @@ public class DefaultIvyService_PublishTest {
             will(returnValue(publishEngineDummy));
 
             allowing(ivyService.getModuleDescriptorConverter()).convertForPublish(configurations,
-                    publishInstruction.isUploadDescriptor(), moduleDummy, ivySettingsDummy);
+                    publishInstruction.isUploadDescriptor(), moduleDummy, ivySettingsDummy, filePathVariableProviderDummy);
             will(returnValue(moduleDescriptorDummy));
         }});
     }

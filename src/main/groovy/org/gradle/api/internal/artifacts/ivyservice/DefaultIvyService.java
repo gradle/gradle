@@ -41,7 +41,9 @@ public class DefaultIvyService implements IvyService {
     private IvyFactory ivyFactory = new DefaultIvyFactory();
     private IvyDependencyResolver dependencyResolver = new SelfResolvingDependencyResolver(
             new DefaultIvyDependencyResolver(new DefaultIvyReportConverter()));
-    private IvyDependencyPublisher dependencyPublisher = new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory());
+    private IvyArtifactFilePathVariableProvider filePathVariableProvider = new DefaultIvyArtifactFilePathVariableProvider();
+    private IvyDependencyPublisher dependencyPublisher = new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory(),
+            filePathVariableProvider);
     private final DependencyMetaDataProvider metaDataProvider;
     private final ResolverProvider resolverProvider;
 
@@ -100,6 +102,14 @@ public class DefaultIvyService implements IvyService {
         return dependencyPublisher;
     }
 
+    public IvyArtifactFilePathVariableProvider getFilePathVariableProvider() {
+        return filePathVariableProvider;
+    }
+
+    public void setFilePathVariableProvider(IvyArtifactFilePathVariableProvider filePathVariableProvider) {
+        this.filePathVariableProvider = filePathVariableProvider;
+    }
+
     public ResolvedConfiguration resolve(final Configuration configuration) {
         Map<String, ModuleDescriptor> clientModuleRegistry = metaDataProvider.getClientModuleRegistry();
         Ivy ivy = ivyForResolve(resolverProvider.getResolvers(), metaDataProvider.getGradleUserHomeDir(),
@@ -119,7 +129,7 @@ public class DefaultIvyService implements IvyService {
                 publishInstruction,
                 publishResolvers,
                 moduleDescriptorConverter.convertForPublish(configurationsToPublish, publishInstruction.isUploadDescriptor(),
-                        metaDataProvider.getModule(), ivy.getSettings()),
+                        metaDataProvider.getModule(), ivy.getSettings(), filePathVariableProvider),
                 ivy.getPublishEngine());
     }
 

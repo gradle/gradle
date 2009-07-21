@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.publish.PublishEngine;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.PublishInstruction;
-import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -32,17 +33,17 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
-    public static final String FILE_PATH_EXTRA_ATTRIBUTE = "filePath";
-    public static final List<String> ARTIFACT_PATTERN = WrapUtil.toList(String.format("[%s]", FILE_PATH_EXTRA_ATTRIBUTE));
     public static final String POM_FILE_NAME = "pom.xml";
     public static final String IVY_FILE_NAME = "ivy.xml";
 
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
 
     private PublishOptionsFactory publishOptionsFactory;
+    private IvyArtifactFilePathVariableProvider filePathVariableProvider;
 
-    public DefaultIvyDependencyPublisher(PublishOptionsFactory publishOptionsFactory) {
+    public DefaultIvyDependencyPublisher(PublishOptionsFactory publishOptionsFactory, IvyArtifactFilePathVariableProvider filePathVariableProvider) {
         this.publishOptionsFactory = publishOptionsFactory;
+        this.filePathVariableProvider = filePathVariableProvider;
     }
 
     public void publish(Set<String> configurations,
@@ -56,7 +57,7 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
             }
             for (DependencyResolver resolver : publishResolvers) {
                 logger.info("Publishing to Resolver {}", resolver);
-                publishEngine.publish(moduleDescriptor, ARTIFACT_PATTERN, resolver,
+                publishEngine.publish(moduleDescriptor, createArtifactPatterns(moduleDescriptor.getAllArtifacts()), resolver,
                         publishOptionsFactory.createPublishOptions(configurations, publishInstruction));
             }
         } catch (IOException e) {
@@ -64,5 +65,13 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private List<String> createArtifactPatterns(Artifact[] artifacts) {
+        List<String> artifactPatterns = new ArrayList<String>();
+        for (Artifact artifact : artifacts) {
+            artifactPatterns.add("${" + filePathVariableProvider.createVariableName(artifact) + "}");
+        }
+        return artifactPatterns;
     }
 }

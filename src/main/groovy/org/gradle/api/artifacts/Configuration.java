@@ -330,6 +330,14 @@ public interface Configuration extends FileCollection {
     Configuration addArtifact(PublishArtifact artifact);
 
     /**
+     * Removes an artifact from the artifacts to be published to this configuration.
+     *
+     * @param artifact The artifact.
+     * @return this
+     */
+    Configuration removeArtifact(PublishArtifact artifact);
+
+    /**
      * Creates a copy of this configuration that only contains the dependencies directly in this configuration
      * (without contributions from superconfigurations).  The new configuation will be in the
      * UNRESOLVED state, but will retain all other attributes of this configuration except superconfigurations.

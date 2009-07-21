@@ -17,20 +17,20 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.internal.plugins.DefaultPluginRegistry
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.WarPluginConvention
+import org.gradle.api.tasks.bundling.War
 import org.gradle.util.HelperUtil
 import org.junit.Test
-import static org.gradle.util.WrapUtil.*
-import static org.hamcrest.Matchers.*
+import static org.gradle.util.WrapUtil.toSet
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.*
-import org.gradle.api.Task
-import org.gradle.api.tasks.bundling.War
-import org.gradle.api.internal.plugins.DefaultPluginRegistry
-import org.gradle.api.internal.plugins.DefaultPluginRegistry
 
 /**
  * @author Hans Dockter
@@ -96,6 +96,14 @@ class WarPluginTest {
         assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
 
         assertDependsOn(project.tasks[JavaPlugin.LIBS_TASK_NAME], JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME, 'customWar')
+    }
+
+    @Test public void addsDefaultWarToArchiveConfiguration() {
+        warPlugin.use(project, project.getPlugins())
+
+        Configuration archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
+        assertThat(archiveConfiguration.getAllArtifacts().size(), equalTo(1)); 
+        assertThat(archiveConfiguration.getAllArtifacts().iterator().next().getType(), equalTo("war")); 
     }
 
     private void assertDependsOn(Task task, String... names) {
