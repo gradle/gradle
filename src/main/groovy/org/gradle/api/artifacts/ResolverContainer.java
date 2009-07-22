@@ -17,15 +17,12 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.DomainObjectContainer;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.specs.Spec;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * <p>A {@code ResolverContainer} is responsible for managing a set of {@link org.apache.ivy.plugins.resolver.DependencyResolver}
@@ -62,7 +59,6 @@ public interface ResolverContainer extends DomainObjectContainer<DependencyResol
     String DEFAULT_CACHE_ARTIFACT_PATTERN
             = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";
     String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
-    String BUILD_RESOLVER_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact].[ext]";
     String DEFAULT_CACHE_NAME = "default-gradle-cache";
     String INTERNAL_REPOSITORY_NAME = "internal-repository";
     String DEFAULT_CACHE_DIR_NAME = "cache";

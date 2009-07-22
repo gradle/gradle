@@ -42,9 +42,9 @@ public class DefaultInternalRepository extends FileSystemResolver implements Int
     private void configure(File dir) {
         setRepositoryCacheManager(createCacheManager());
         setName(ResolverContainer.INTERNAL_REPOSITORY_NAME);
-        String pattern = String.format(dir.getAbsolutePath() + "/" + ResolverContainer.BUILD_RESOLVER_PATTERN);
-        addIvyPattern(pattern);
-        addArtifactPattern(pattern);
+        String patternRoot = String.format(dir.getAbsolutePath() + "/");
+        addIvyPattern(patternRoot + ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
+        addArtifactPattern(patternRoot + ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         setValidate(false);
     }
 

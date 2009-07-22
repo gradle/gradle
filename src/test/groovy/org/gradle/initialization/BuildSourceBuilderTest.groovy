@@ -16,27 +16,24 @@
 
 package org.gradle.initialization
 
-import org.gradle.CacheUsage
-import org.gradle.Gradle
-import org.gradle.GradleFactory
-import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.invocation.Build
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.initialization.BuildSourceBuilder
 import org.gradle.initialization.CacheInvalidationStrategy
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.junit.Assert.*
-import org.gradle.BuildResult
-import org.gradle.api.invocation.Build
+import org.gradle.*
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -81,7 +78,7 @@ class BuildSourceBuilderTest {
         )
         testDependencies = ['dep1' as File, 'dep2' as File]
         expectedArtifactPath = "$testBuildResolverDir.absolutePath/$BuildSourceBuilder.BUILD_SRC_ORG" +
-                "/$BuildSourceBuilder.BUILD_SRC_MODULE/$BuildSourceBuilder.BUILD_SRC_REVISION/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}.jar"
+                "/$BuildSourceBuilder.BUILD_SRC_MODULE/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}-${BuildSourceBuilder.BUILD_SRC_REVISION}.jar"
         Build build = context.mock(Build)
         context.checking {
             allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationHandlerStub))

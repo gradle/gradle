@@ -131,7 +131,7 @@ public class BuildSourceBuilder {
     }
 
     public File buildArtifactFile(File buildResolverDir) {
-        String path = IvyPatternHelper.substitute(buildResolverDir.getAbsolutePath() + "/" + ResolverContainer.BUILD_RESOLVER_PATTERN,
+        String path = IvyPatternHelper.substitute(buildResolverDir.getAbsolutePath() + "/" + ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN,
                 BUILD_SRC_ORG, BUILD_SRC_MODULE, BUILD_SRC_REVISION, BUILD_SRC_MODULE, BUILD_SRC_TYPE, BUILD_SRC_TYPE);
         return new File(path);
     }
