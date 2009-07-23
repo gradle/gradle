@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.util
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.artifacts.AbstractFileCollection
+import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.tasks.AntBuilderAware
 
 /**

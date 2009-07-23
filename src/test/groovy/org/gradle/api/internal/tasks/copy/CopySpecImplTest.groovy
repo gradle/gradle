@@ -5,13 +5,15 @@ import java.util.ArrayList
 import java.util.List
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
-import org.gradle.api.internal.artifacts.BaseDirConverter
-import org.gradle.api.internal.artifacts.FileResolver
+import org.gradle.api.internal.file.BaseDirConverter
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.HelperUtil
 import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
+import org.gradle.api.internal.file.BaseDirConverter
+import org.gradle.api.internal.file.FileResolver
 
 public class CopySpecImplTest {
 

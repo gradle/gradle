@@ -33,7 +33,7 @@ import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.*
-import org.gradle.api.artifacts.FileCollection
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.util.AntFileCollectionBuilder
 import org.gradle.api.internal.ConventionTask
 

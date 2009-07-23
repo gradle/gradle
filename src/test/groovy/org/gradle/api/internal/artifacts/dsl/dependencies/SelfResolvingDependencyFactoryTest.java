@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;

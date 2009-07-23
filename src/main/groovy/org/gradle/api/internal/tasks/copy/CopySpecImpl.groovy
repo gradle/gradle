@@ -20,13 +20,14 @@ import java.io.File
 import java.io.FilterReader
 import java.lang.reflect.Constructor
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.artifacts.FileResolver
-import org.gradle.api.tasks.copy.CopySpec
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.file.CopySpec
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.*
 import java.util.*
 import org.gradle.api.Transformer
+import org.gradle.api.internal.file.FileResolver
 
 /**
  * @author Steve Appling

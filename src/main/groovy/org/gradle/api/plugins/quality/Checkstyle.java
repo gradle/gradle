@@ -16,7 +16,7 @@
 package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.ExistingDirsFilter;

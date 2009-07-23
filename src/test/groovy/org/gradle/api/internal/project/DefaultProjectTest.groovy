@@ -20,13 +20,13 @@ import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
-import org.gradle.api.artifacts.FileCollection
+import org.gradle.api.file.FileCollection
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.BeanDynamicObject
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
-import org.gradle.api.internal.artifacts.FileResolver
-import org.gradle.api.internal.artifacts.PathResolvingFileCollection
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.PathResolvingFileCollection
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
@@ -60,6 +60,8 @@ import org.gradle.api.artifacts.dsl.*
 import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.FileResolver
 
 /**
  * @author Hans Dockter

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts
+package org.gradle.api.internal.file
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
@@ -24,7 +24,7 @@ import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
-import org.gradle.api.internal.artifacts.BaseDirConverter
+import org.gradle.api.internal.file.BaseDirConverter
 
 /**
  * @author Hans Dockter

@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.AbstractFileCollection;
+import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;

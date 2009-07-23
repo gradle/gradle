@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.file;
 
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.Expectations;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 import org.junit.runner.RunWith;
-import org.gradle.api.artifacts.FileCollection;
-import org.gradle.util.WrapUtil;
+import org.gradle.api.file.FileCollection;
 import static org.gradle.util.WrapUtil.*;
 
 import java.io.File;

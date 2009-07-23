@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.internal.artifacts.AbstractFileCollection;
+import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.WrapUtil;

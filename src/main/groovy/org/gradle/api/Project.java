@@ -17,7 +17,7 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
@@ -26,7 +26,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.copy.CopyAction;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -686,7 +685,7 @@ public interface Project extends Comparable<Project> {
      *
      * <li>A {@code Collection}. Flattened and recursively converted to files.</li>
      *
-     * <li>A {@link FileCollection}. The result of its {@link FileCollection#getFiles()} is included in the returned
+     * <li>A {@link FileCollection}. The result of its {@link org.gradle.api.file.FileCollection#getFiles()} is included in the returned
      * collection.</li>
      *
      * <li>A Closure. Should return an {@code Object} or {@code Collection}, which are then converted to files.</li>

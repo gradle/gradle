@@ -18,12 +18,12 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.internal.tasks.copy.*;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.artifacts.FileResolver;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.*;
 import org.gradle.api.TaskAction;
-import org.gradle.api.tasks.copy.CopySpec;
-import org.gradle.api.tasks.copy.CopyAction;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.CopyAction;
 import org.gradle.api.internal.tasks.copy.CopyActionImpl;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ import java.util.Map;
 
 /**
  * Task for copying files.  This task can also rename and filter files as it copies.
- * The task implements {@link org.gradle.api.tasks.copy.CopySpec CopySpec} for specifying
+ * The task implements {@link org.gradle.api.file.CopySpec CopySpec} for specifying
  * what to copy.
  * <p>
  * Examples:

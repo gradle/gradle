@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;

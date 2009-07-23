@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.file;
 
-import org.gradle.util.GFileUtils;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.AbstractFileCollection;
 
 import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
-public class DefaultFileCollection extends AbstractFileCollection {
-    private final Set<File> files = new LinkedHashSet<File>();
+/**
+ * A {@link org.gradle.api.file.FileCollection} which contains the union of the given source collections. Maintains
+ * file ordering.
+ */
+public class UnionFileCollection extends AbstractFileCollection {
+    private final List<FileCollection> sourceCollections;
 
-    public DefaultFileCollection(File... files) {
-        this(Arrays.asList(files));
-    }
-    
-    public DefaultFileCollection(Iterable<File> files) {
-        for (File file : files) {
-            this.files.add(GFileUtils.canonicalise(file));
-        }
+    public UnionFileCollection(FileCollection... sourceCollections) {
+        this.sourceCollections = Arrays.asList(sourceCollections);
     }
 
     public String getDisplayName() {
@@ -40,6 +40,10 @@ public class DefaultFileCollection extends AbstractFileCollection {
     }
 
     public Set<File> getFiles() {
+        Set<File> files = new LinkedHashSet<File>();
+        for (FileCollection collection : sourceCollections) {
+            files.addAll(collection.getFiles());
+        }
         return files;
     }
 }

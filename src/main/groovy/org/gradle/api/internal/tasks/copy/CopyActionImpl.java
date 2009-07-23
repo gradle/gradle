@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.copy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gradle.api.*;
-import org.gradle.api.internal.artifacts.FileResolver;
-import org.gradle.api.tasks.copy.CopyAction;
-import org.gradle.api.tasks.copy.CopySpec;
+import org.gradle.api.file.CopyAction;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.internal.file.FileResolver;
 
 import java.util.List;
 import java.util.Map;

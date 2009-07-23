@@ -860,7 +860,7 @@
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.artifacts.FileCollection"/>
+                    <apilink class="org.gradle.api.file.FileCollection"/>
                 </td>
                 <td>An arbitrary collection of files to include in the archive. In contrast to a
                     <literal>FileSet</literal> they don't need to have a common basedir. There are a number of ways

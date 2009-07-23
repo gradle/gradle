@@ -18,7 +18,7 @@ package org.gradle.api.plugins.jetty;
 import hidden.org.codehaus.plexus.util.FileUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.jetty.util.ScanTargetPattern;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;

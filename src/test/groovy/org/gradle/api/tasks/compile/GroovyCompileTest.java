@@ -18,9 +18,8 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;

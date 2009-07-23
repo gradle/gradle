@@ -83,7 +83,7 @@ import groovy.lang.Closure;
  *
  * <h2>Files</h2>
  *
- * <p>You can also add a dependency using a {@link org.gradle.api.artifacts.FileCollection}:</p>
+ * <p>You can also add a dependency using a {@link org.gradle.api.file.FileCollection}:</p>
  * <code><i>configurationName</i> files('a file')</code>
  *
  * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.SelfResolvingDependency}.</p>

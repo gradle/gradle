@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.copy;
+package org.gradle.api.file;
 
 import groovy.lang.Closure;
 
-import java.io.File;
 import java.io.FilterReader;
-import java.util.List;
 import java.util.Map;
 
 /**

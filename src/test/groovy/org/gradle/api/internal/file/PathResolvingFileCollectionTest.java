@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
-import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;

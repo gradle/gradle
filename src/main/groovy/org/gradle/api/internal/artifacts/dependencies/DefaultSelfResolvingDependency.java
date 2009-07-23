@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 import java.util.Set;

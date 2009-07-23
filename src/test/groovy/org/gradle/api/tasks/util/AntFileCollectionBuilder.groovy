@@ -16,10 +16,11 @@
  
 package org.gradle.api.tasks.util
 
-import org.gradle.api.internal.artifacts.DefaultFileCollection
+import org.gradle.api.internal.file.DefaultFileCollection
 import org.gradle.api.tasks.AntBuilderAware
 import org.gradle.api.tasks.util.AntFileCollectionBuilder
 import org.junit.Test
+import org.gradle.api.internal.file.DefaultFileCollection
 
 /**
  * @author Hans Dockter

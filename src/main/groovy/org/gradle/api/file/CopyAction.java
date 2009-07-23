@@ -8,16 +8,11 @@
 
    Author(s) sappling
 =============================================================================*/
-package org.gradle.api.tasks.copy;
+package org.gradle.api.file;
 
-import groovy.lang.Closure;
-
-import java.io.File;
-import java.io.FilterReader;
 import java.util.List;
-import java.util.Map;
 
-public interface CopyAction extends CopySpec{
+public interface CopyAction extends CopySpec {
 
     /**
      * Execute the copy

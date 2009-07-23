@@ -18,9 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
-import org.gradle.api.artifacts.FileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.util.GUtil;
 
 import java.io.File;
