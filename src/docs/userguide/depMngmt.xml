@@ -411,6 +411,14 @@
             </sample>
             <para>The first URL is used to look for poms and jars. The subsequent URLs are used to look for jars.
             </para>
+            <section>
+            	<title>Accessing password protected Maven repositories</title>
+            	<para>To access a password protected Maven repository (basic authentication) you need to use one of Ivy features:</para>
+    	        <sample id="mavenPasswordProtectedRepo" dir="userguide/artifacts/defineRepository" title="Accessing password protected Maven repository">
+	                <sourcefile file="build.gradle" snippet="maven-password-protected-repo"/>
+        	    </sample>
+        	    <para>Host name should not include <literal>"http://"</literal> prefix. It is advisable to keep your login and password in <filename>gradle.properties</filename> rather than directly in the build file.</para>
+            </section>
         </section>
         <section id='sec:flat_dir_resolver'>
             <title>Flat directory resolver</title>
