@@ -51,15 +51,9 @@ public class GroovyCompile extends Compile {
 
     public GroovyCompile(Project project, String name) {
         super(project, name);
-        setActions(new ArrayList<TaskAction>());
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                compile(task);
-            }
-        });
     }
 
-    protected void compile(Task task) {
+    protected void compile() {
         if (antCompile == null) throw new InvalidUserDataException("The ant compile command must be set!");
         if (getAntGroovyCompile() == null) throw new InvalidUserDataException("The ant groovy compile command must be set!");
         if (getDestinationDir() == null) throw new InvalidUserDataException("The target dir is not set, compile can't be triggered!");

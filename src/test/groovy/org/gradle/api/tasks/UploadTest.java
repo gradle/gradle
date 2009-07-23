@@ -44,7 +44,7 @@ public class UploadTest extends AbstractTaskTest {
 
     @Before public void setUp() {
         super.setUp();
-        upload = new Upload(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        upload = createTask(Upload.class);
         (projectRootDir = new File(HelperUtil.makeNewTestDir(), "root")).mkdir();
     }
 

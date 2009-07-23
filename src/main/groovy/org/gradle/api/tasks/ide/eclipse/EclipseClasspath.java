@@ -24,10 +24,9 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -71,14 +70,10 @@ public class EclipseClasspath extends ConventionTask {
 
     public EclipseClasspath(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                generateClasspath();
-            }
-        });
     }
 
-    private void generateClasspath() {
+    @TaskAction
+    protected void generateClasspath() {
         File eclipseClasspathFile = getProject().file(CLASSPATH_FILE_NAME);
 
         backupOldClasspathFile(eclipseClasspathFile);

@@ -17,15 +17,17 @@
 package org.gradle.api.tasks.javadoc;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.*;
+import org.gradle.api.GradleException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.util.exec.ExecHandle;
-import org.gradle.util.GUtil;
-import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.external.javadoc.MinimalJavadocOptions;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
+import org.gradle.external.javadoc.MinimalJavadocOptions;
+import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.util.GUtil;
+import org.gradle.util.exec.ExecHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,15 +67,11 @@ public class Javadoc extends ConventionTask {
 
     public Javadoc(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                generate();
-            }
-        });
         javadocExecHandleBuilder = new JavadocExecHandleBuilder();
     }
 
-    private void generate() {
+    @TaskAction
+    protected void generate() {
         List<File> existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(), getSrcDirs());
 
         final File destinationDir = getDestinationDir();

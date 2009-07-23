@@ -16,8 +16,7 @@
 package org.gradle.api.tasks.ide.eclipse;
 
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.util.GFileUtils;
 
@@ -39,14 +38,10 @@ import java.io.File;
 public class EclipseClean extends ConventionTask {
     public EclipseClean(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                deleteEclipseFiles();
-            }
-        });
     }
 
-    private void deleteEclipseFiles() {
+    @TaskAction
+    protected void deleteEclipseFiles() {
         GFileUtils.deleteQuietly(getProject().file(EclipseProject.PROJECT_FILE_NAME));
         GFileUtils.deleteQuietly(getProject().file(EclipseClasspath.CLASSPATH_FILE_NAME));
         GFileUtils.deleteQuietly(getProject().file(new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)));

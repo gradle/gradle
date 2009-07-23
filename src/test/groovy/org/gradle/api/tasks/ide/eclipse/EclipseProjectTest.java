@@ -35,7 +35,6 @@ import java.io.IOException;
  */
 public class EclipseProjectTest extends AbstractTaskTest {
     private EclipseProject eclipseProject;
-    private File projectDir;
 
     public AbstractTask getTask() {
         return eclipseProject;
@@ -44,8 +43,7 @@ public class EclipseProjectTest extends AbstractTaskTest {
     @Before
     public void setUp() {
         super.setUp();
-        projectDir = HelperUtil.makeNewTestDir();
-        eclipseProject = new EclipseProject(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        eclipseProject = createTask(EclipseProject.class);
         eclipseProject.setProjectName("myProject");
     }
 

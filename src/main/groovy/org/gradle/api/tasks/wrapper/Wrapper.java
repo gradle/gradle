@@ -19,6 +19,7 @@ package org.gradle.api.tasks.wrapper;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.*;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GUtil;
 import org.gradle.wrapper.Install;
 
@@ -70,11 +71,6 @@ public class Wrapper extends DefaultTask {
 
     public Wrapper(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                generate();
-            }
-        });
         scriptDestinationPath = "";
         jarPath = "";
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
@@ -84,6 +80,7 @@ public class Wrapper extends DefaultTask {
         urlRoot = DEFAULT_URL_ROOT;
     }
 
+    @TaskAction
     private void generate() {
         if (scriptDestinationPath == null) {
             throw new InvalidUserDataException("The scriptDestinationPath property must be specified!");

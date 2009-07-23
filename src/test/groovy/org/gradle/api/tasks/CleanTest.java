@@ -54,7 +54,7 @@ public class CleanTest extends AbstractConventionTaskTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        clean = new Clean(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        clean = createTask(Clean.class);
         existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
     }
 

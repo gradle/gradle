@@ -17,12 +17,11 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.TaskAction;
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -34,14 +33,10 @@ public abstract class AbstractReportTask extends ConventionTask {
 
     public AbstractReportTask(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                generate();
-            }
-        });
     }
 
-    private void generate() {
+    @TaskAction
+    public void generate() {
         try {
             ProjectReportRenderer renderer = getRenderer();
             File outputFile = getOutputFile();

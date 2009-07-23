@@ -21,6 +21,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.*;
+import org.gradle.api.TaskAction;
 import org.gradle.api.tasks.copy.CopySpec;
 import org.gradle.api.tasks.copy.CopyAction;
 import org.gradle.api.internal.tasks.copy.CopyActionImpl;

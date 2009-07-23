@@ -67,14 +67,13 @@ public class EclipseClasspathTest extends AbstractTaskTest {
         super.setUp();
         expectedSrcDirs = WrapUtil.<Object>toList("src/main/java", "src/main/resources");
         expectedTestSrcDirs = WrapUtil.<Object>toList("src/test/java", "src/test/resources");
-        File projectDir = HelperUtil.makeNewTestDir();
         createProjectDirs(expectedSrcDirs, expectedTestSrcDirs);
         projectDependencyMock = context.mock(DefaultProjectDependency.class);
         testProject = HelperUtil.createRootProject(new File("dependent"));
         context.checking(new Expectations() {{
             allowing(projectDependencyMock).getDependencyProject(); will(returnValue(testProject));
         }});
-        eclipseClasspath = new EclipseClasspath(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        eclipseClasspath = createTask(EclipseClasspath.class);
     }
 
     private void createProjectDirs(List<Object>... fileLists) {

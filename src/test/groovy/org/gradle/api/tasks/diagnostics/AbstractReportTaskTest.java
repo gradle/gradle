@@ -59,7 +59,7 @@ public class AbstractReportTaskTest {
             inSequence(sequence);
         }});
 
-        task.execute();
+        task.generate();
     }
 
     @Test
@@ -81,7 +81,7 @@ public class AbstractReportTaskTest {
         }});
 
         task.setOutputFile(file);
-        task.execute();
+        task.generate();
     }
 
     @Test
@@ -114,7 +114,7 @@ public class AbstractReportTaskTest {
             inSequence(sequence);
         }});
 
-        task.execute();
+        task.generate();
     }
 
     @Test
@@ -131,7 +131,7 @@ public class AbstractReportTaskTest {
         }});
 
         task.setOutputFile(file);
-        task.execute();
+        task.generate();
 
         assertTrue(file.getParentFile().isDirectory());
     }

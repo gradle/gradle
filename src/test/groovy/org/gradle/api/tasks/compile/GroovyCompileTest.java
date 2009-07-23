@@ -59,7 +59,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        testObj = new GroovyCompile(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        testObj = createTask(GroovyCompile.class);
         antJavacCompileMock = context.mock(AntJavac.class);
         antGroovycCompileMock = context.mock(AntGroovyc.class);
         testObj.setAntGroovyCompile(antGroovycCompileMock);

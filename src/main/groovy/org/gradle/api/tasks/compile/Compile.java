@@ -18,13 +18,12 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -72,13 +71,9 @@ public class Compile extends ConventionTask implements PatternFilterable {
 
     public Compile(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                compile();
-            }
-        });
     }
 
+    @TaskAction
     protected void compile() {
         if (antCompile == null) {
             throw new InvalidUserDataException("The ant compile command must be set!");

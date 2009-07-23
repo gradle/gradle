@@ -43,26 +43,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     public AbstractJettyRunTask(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
-                List<URL> additionalClasspath = new ArrayList<URL>();
-                for (File additionalRuntimeJar : getAdditionalRuntimeJars()) {
-                    try {
-                        additionalClasspath.add(additionalRuntimeJar.toURI().toURL());
-                    } catch (MalformedURLException e) {
-                        throw new InvalidUserDataException(e);
-                    }
-                }
-                URLClassLoader jettyClassloader = new URLClassLoader(additionalClasspath.toArray(new URL[additionalClasspath.size()]), originalClassloader);
-                try {
-                    Thread.currentThread().setContextClassLoader(jettyClassloader);
-                    startJetty();
-                } finally {
-                    Thread.currentThread().setContextClassLoader(originalClassloader);
-                }
-            }
-        });
     }
 
     private Iterable<File> additionalRuntimeJars = new ArrayList<File>();
@@ -205,6 +185,26 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
 
     public abstract void finishConfigurationBeforeStart() throws Exception;
+
+    @org.gradle.api.tasks.TaskAction
+    protected void start() {
+        ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
+        List<URL> additionalClasspath = new ArrayList<URL>();
+        for (File additionalRuntimeJar : getAdditionalRuntimeJars()) {
+            try {
+                additionalClasspath.add(additionalRuntimeJar.toURI().toURL());
+            } catch (MalformedURLException e) {
+                throw new InvalidUserDataException(e);
+            }
+        }
+        URLClassLoader jettyClassloader = new URLClassLoader(additionalClasspath.toArray(new URL[additionalClasspath.size()]), originalClassloader);
+        try {
+            Thread.currentThread().setContextClassLoader(jettyClassloader);
+            startJetty();
+        } finally {
+            Thread.currentThread().setContextClassLoader(originalClassloader);
+        }
+    }
 
     public JettyPluginServer getServer() {
         return this.server;

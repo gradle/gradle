@@ -20,15 +20,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.taskdefs.Jar;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.invocation.DefaultBuild;
 import org.gradle.util.*;
 import org.gradle.wrapper.Install;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,7 +57,7 @@ public class WrapperTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        wrapper = createTask(Wrapper.class);
         wrapperScriptGeneratorMock = context.mock(WrapperScriptGenerator.class);
         wrapper.setScriptDestinationPath("scriptDestination");
         wrapper.setGradleVersion("1.0");
@@ -68,7 +66,7 @@ public class WrapperTest extends AbstractTaskTest {
         File testGradleHomeLib = new File(testGradleHome, "lib");
         testGradleHomeLib.mkdirs();
         createSourceWrapperJar(testGradleHomeLib);
-        ((DefaultBuild) getProject().getBuild()).getStartParameter().setGradleHomeDir(testGradleHome);
+        getProject().getBuild().getStartParameter().setGradleHomeDir(testGradleHome);
         targetWrapperJarPath = "jarPath";
         expectedTargetWrapperJar = new File(getProject().getProjectDir(),
                 targetWrapperJarPath + "/" + Install.WRAPPER_JAR);
@@ -82,7 +80,7 @@ public class WrapperTest extends AbstractTaskTest {
     }
 
     private void createSourceWrapperJar(File testGradleHomeLib) {
-        File sourceWrapperExplodedDir = new File(testGradleHomeLib, Wrapper.WRAPPER_JAR_BASE_NAME + "-" + TestConsts.VERSION);
+        File sourceWrapperExplodedDir = new File(testGradleHomeLib, Wrapper.WRAPPER_JAR_BASE_NAME + "-" + getProject().getBuild().getGradleVersion());
         sourceWrapperExplodedDir.mkdirs();
         GFileUtils.writeStringToFile(new File(sourceWrapperExplodedDir, TEST_FILE_NAME), TEST_TEXT);
         sourceWrapperJar = new File(testGradleHomeLib, sourceWrapperExplodedDir.getName() + ".jar");

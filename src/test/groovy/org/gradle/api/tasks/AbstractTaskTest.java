@@ -19,10 +19,9 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
+import org.gradle.api.TaskAction;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.project.AbstractProject;
-import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.internal.project.TaskFactory;
+import org.gradle.api.internal.project.*;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
@@ -31,8 +30,7 @@ import org.gradle.test.util.Check;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -51,7 +49,7 @@ public abstract class AbstractTaskTest {
     private AbstractProject project;
 
     private JUnit4Mockery context = new JUnit4Mockery();
-    private static final TaskFactory taskFactory = new TaskFactory();
+    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory());
 
     @Before
     public void setUp() {
@@ -60,14 +58,18 @@ public abstract class AbstractTaskTest {
 
     public abstract AbstractTask getTask();
 
+    public <T extends AbstractTask> T createTask(Class<T> type) {
+        return createTask(type, project, TEST_TASK_NAME);
+    }
+
     public Task createTask(Project project, String name) {
         return createTask(getTask().getClass(), project, name);
     }
 
-    public Task createTask(Class<? extends AbstractTask> type, Project project, String name) {
+    public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
         Task task = taskFactory.createTask(project, GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
         assertTrue(type.isAssignableFrom(task.getClass()));
-        return task;
+        return type.cast(task);
     }
 
     @Test

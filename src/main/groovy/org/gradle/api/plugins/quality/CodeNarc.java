@@ -16,9 +16,8 @@
 package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 
 import java.io.File;
@@ -33,14 +32,10 @@ public class CodeNarc extends ConventionTask {
 
     public CodeNarc(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                generate();
-            }
-        });
     }
 
-    private void generate() {
+    @TaskAction
+    public void check() {
         List<File> srcDirs = getSrcDirs();
         new ExistingDirsFilter().findExistingDirsAndThrowStopActionIfNone(srcDirs);
         File reportFile = getReportFile();

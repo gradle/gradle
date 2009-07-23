@@ -19,8 +19,6 @@ package org.gradle.api.tasks;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.slf4j.Logger;
@@ -41,14 +39,10 @@ public class Clean extends ConventionTask {
 
     public Clean(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                clean();
-            }
-        });
     }
 
-    private void clean() {
+    @TaskAction
+    protected void clean() {
         if (getDir() == null) {
             throw new InvalidUserDataException("The dir property must be specified!");
         }

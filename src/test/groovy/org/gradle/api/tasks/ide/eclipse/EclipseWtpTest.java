@@ -62,13 +62,12 @@ public class EclipseWtpTest extends AbstractTaskTest {
     @Before
     public void setUp() {
         super.setUp();
-        File projectDir = HelperUtil.makeNewTestDir();
         projectDependencyMock = context.mock(DefaultProjectDependency.class);
         testProject = HelperUtil.createRootProject(new File("dependent"));
         context.checking(new Expectations() {{
             allowing(projectDependencyMock).getDependencyProject(); will(returnValue(testProject));
         }});
-        eclipseWtp = new EclipseWtp(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        eclipseWtp = createTask(EclipseWtp.class);
     }
 
     @After

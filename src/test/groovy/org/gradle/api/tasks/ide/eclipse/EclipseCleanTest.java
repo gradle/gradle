@@ -42,7 +42,7 @@ public class EclipseCleanTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         projectDir = HelperUtil.makeNewTestDir();
-        eclipseClean = new EclipseClean(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        eclipseClean = createTask(EclipseClean.class);
         try {
             createEclipseFiles();
         } catch (IOException e) {

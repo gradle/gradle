@@ -18,9 +18,9 @@ package org.gradle.api.tasks.ant;
 import org.apache.tools.ant.Target;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskAction;
 
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -36,11 +36,6 @@ public class AntTarget extends ConventionTask {
 
     public AntTarget(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                executeAntTarget();
-            }
-        });
 
         dependsOn(new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
@@ -59,7 +54,8 @@ public class AntTarget extends ConventionTask {
         return tasks;
     }
 
-    private void executeAntTarget() {
+    @TaskAction
+    protected void executeAntTarget() {
         File oldBaseDir = target.getProject().getBaseDir();
         target.getProject().setBaseDir(baseDir);
         try {

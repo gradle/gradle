@@ -73,7 +73,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
     @Before public void setUp() {
         super.setUp();
-        test = new Test(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        test = createTask(Test.class);
         context.checking(new Expectations(){{
             one(testFrameworkMock).initialize(getProject(), test);
         }});

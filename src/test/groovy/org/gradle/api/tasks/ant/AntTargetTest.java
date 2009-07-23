@@ -49,7 +49,7 @@ public class AntTargetTest {
 
         target.setTarget(antTarget);
         target.setBaseDir(baseDir);
-        target.execute();
+        target.executeAntTarget();
 
         assertTrue(testTask.executed);
     }

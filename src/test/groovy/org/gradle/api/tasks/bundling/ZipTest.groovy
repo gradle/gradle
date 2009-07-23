@@ -33,7 +33,7 @@ class ZipTest extends AbstractArchiveTaskTest {
 
     @Before public void setUp()  {
         super.setUp()
-        zip = new Zip(project, AbstractTaskTest.TEST_TASK_NAME)
+        zip = createTask(Zip)
         configure(zip)
         antZipMocker = new MockFor(AntZip)
     }

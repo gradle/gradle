@@ -18,22 +18,24 @@ package org.gradle.api.tasks.testing;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.*;
+import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.testing.TestFramework;
 import org.gradle.external.junit.JUnitTestFramework;
 import org.gradle.external.testng.TestNGTestFramework;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.GFileUtils;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -77,13 +79,9 @@ public class Test extends ConventionTask implements PatternFilterable {
 
     public Test(Project project, String name) {
         super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                executeTests();
-            }
-        });
     }
 
+    @TaskAction
     protected void executeTests() {
         final File testClassesDir = getTestClassesDir();
 

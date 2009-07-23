@@ -40,7 +40,7 @@ class DirectoryTest extends AbstractTaskTest {
     @Before public void setUp() {
         super.setUp()
         directoryForAbstractTest = new Directory(project, AbstractTaskTest.TEST_TASK_NAME)
-        directory = new Directory(project, TASK_DIR_NAME)
+        directory = createTask(Directory.class, project, TASK_DIR_NAME)
         HelperUtil.makeNewTestDir()
     }
 
@@ -73,10 +73,10 @@ class DirectoryTest extends AbstractTaskTest {
         assert file.isFile()
     }
 
-    @Test (expected = GradleScriptException) public void testWithExistingFile() {
+    @Test (expected = InvalidUserDataException) public void testWithExistingFile() {
         File file = new File(project.projectDir, 'testname')
         file.createNewFile()
         directory = new Directory(project, 'testname')
-        directory.execute()
+        directory.mkdir()
     }
 }

@@ -43,7 +43,7 @@ public class CompileTest extends AbstractCompileTest {
     @Before public void setUp()  {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        compile = new Compile(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        compile = createTask(Compile.class);
         antCompileMock = context.mock(AntJavac.class);
         compile.antCompile = antCompileMock;
     }

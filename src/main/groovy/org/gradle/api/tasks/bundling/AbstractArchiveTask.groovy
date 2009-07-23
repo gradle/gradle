@@ -18,18 +18,18 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.artifacts.FileCollection
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.artifacts.DefaultFileCollection
 import org.gradle.api.tasks.util.AntDirective
+import org.gradle.api.tasks.util.AntFileCollectionBuilder
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.artifacts.FileCollection
-import org.gradle.api.internal.artifacts.DefaultFileCollection
-import org.gradle.api.tasks.util.AntFileCollectionBuilder
+import org.gradle.api.tasks.TaskAction
 
 /**
  * @author Hans Dockter
@@ -103,10 +103,10 @@ public abstract class AbstractArchiveTask extends ConventionTask {
 
     public AbstractArchiveTask(Project project, String name) {
         super(project, name);
-        doLast(this.&generateArchive)
     }
-    
-    public void generateArchive(Task task) {
+
+    @TaskAction
+    public void generateArchive() {
         logger.debug("Creating archive: {}", name)
         if (!getDestinationDir()) {
             throw new InvalidUserDataException('You mustspecify the destinationDir.')

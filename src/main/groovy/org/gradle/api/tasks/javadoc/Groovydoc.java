@@ -18,12 +18,11 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.artifacts.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
 import java.util.List;
@@ -51,14 +50,10 @@ public class Groovydoc extends ConventionTask {
     public Groovydoc(Project project, String name) {
         super(project, name);
         captureStandardOutput(LogLevel.INFO);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                generate();
-            }
-        });
     }
 
-    private void generate() {
+    @TaskAction
+    protected void generate() {
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
                 getDestinationDir(), getSrcDirs());
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());

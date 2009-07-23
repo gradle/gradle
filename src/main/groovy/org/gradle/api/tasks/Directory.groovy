@@ -30,11 +30,11 @@ public class Directory extends DefaultTask {
     Directory(Project project, String name) {
         super(project, name);
         if (new File(name).isAbsolute()) { throw new InvalidUserDataException('Path must not be absolute.')}
-        doFirst(this.&mkdir)
         dir = project.file(name)
     }
 
-    private void mkdir(Task task) {
+    @TaskAction
+    protected void mkdir() {
         if (dir.exists()) {
             if (dir.isFile()) {
                 throw new InvalidUserDataException("The directory $name can't be created. There exists a file already with this path.")

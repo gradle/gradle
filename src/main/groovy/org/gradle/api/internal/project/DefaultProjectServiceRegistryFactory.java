@@ -48,7 +48,7 @@ import java.util.Map;
 
 // todo - compose this
 public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegistryFactory {
-    private final ITaskFactory taskFactory = new TaskFactory();
+    private final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory());
     private final RepositoryHandlerFactory repositoryHandlerFactory;
     private final ConfigurationContainerFactory configurationContainerFactory;
     private final PublishArtifactFactory publishArtifactFactory;

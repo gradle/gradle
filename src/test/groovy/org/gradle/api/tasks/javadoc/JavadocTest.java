@@ -60,7 +60,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
     @Before
     public void setUp() {
         super.setUp();
-        task = new Javadoc(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        task = createTask(Javadoc.class);
         task.setExistentDirsFilter(existingDirsFilter);
         task.setConfiguration(configurationMock);
         task.setJavadocExecHandleBuilder(javadocExecHandleBuilderMock);

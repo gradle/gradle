@@ -18,8 +18,6 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -53,14 +51,10 @@ public class Upload extends ConventionTask {
     public Upload(Project project, String name) {
         super(project, name);
         repositories = project.createRepositoryHandler();
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                upload();
-            }
-        });
     }
 
-    private void upload() {
+    @TaskAction
+    protected void upload() {
         logger.info("Publishing configurations: " + configuration);
         configuration.publish(repositories.getResolvers(),
                 new PublishInstruction(isUploadDescriptor(),
