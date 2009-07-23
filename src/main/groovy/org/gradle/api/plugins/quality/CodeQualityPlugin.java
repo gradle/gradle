@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.plugins.*;
 
 import java.util.Set;
@@ -39,8 +40,7 @@ public class CodeQualityPlugin implements Plugin {
     public void use(final Project project, ProjectPluginsContainer projectPluginsHandler) {
         projectPluginsHandler.usePlugin(ReportingBasePlugin.class, project);
 
-        Task task = project.getTasks().add(CHECK_TASK);
-        task.setDescription("Executes all quality checks");
+        configureCheckTask(project);
 
         project.getPlugins().withType(JavaPlugin.class).allPlugins(new Action<Plugin>() {
             public void execute(Plugin plugin) {
@@ -54,14 +54,28 @@ public class CodeQualityPlugin implements Plugin {
         });
     }
 
-    private void configureForJavaPlugin(final Project project) {
-        project.getConvention().getPlugins().put("javaCodeQuality", new JavaCodeQualityPluginConvention(project));
-
+    private void configureCheckTask(final Project project) {
+        Task task = project.getTasks().add(CHECK_TASK);
+        task.setDescription("Executes all quality checks");
         project.getTasks().getByName(CHECK_TASK).dependsOn(new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 return project.getTasks().withType(Checkstyle.class).getAll();
             }
         });
+        project.getTasks().getByName(CHECK_TASK).dependsOn(new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                return project.getTasks().withType(CodeNarc.class).getAll();
+            }
+        });
+        project.getTasks().withType(Jar.class).allTasks(new Action<Jar>() {
+            public void execute(Jar jar) {
+                jar.dependsOn(CHECK_TASK);
+            }
+        });
+    }
+
+    private void configureForJavaPlugin(final Project project) {
+        project.getConvention().getPlugins().put("javaCodeQuality", new JavaCodeQualityPluginConvention(project));
 
         project.getTasks().withType(Checkstyle.class).allTasks(new Action<Checkstyle>() {
             public void execute(Checkstyle checkstyle) {
@@ -103,18 +117,10 @@ public class CodeQualityPlugin implements Plugin {
                 return convention.getPlugin(JavaCodeQualityPluginConvention.class).getCheckstyleTestResultFile();
             }
         });
-
-        project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME).dependsOn(CHECK_TASK);
     }
 
     private void configureForGroovyPlugin(final Project project) {
         project.getConvention().getPlugins().put("groovyCodeQuality", new GroovyCodeQualityPluginConvention(project));
-
-        project.getTasks().getByName(CHECK_TASK).dependsOn(new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                return project.getTasks().withType(CodeNarc.class).getAll();
-            }
-        });
 
         project.getTasks().withType(CodeNarc.class).allTasks(new Action<CodeNarc>() {
             public void execute(CodeNarc codeNarc) {
