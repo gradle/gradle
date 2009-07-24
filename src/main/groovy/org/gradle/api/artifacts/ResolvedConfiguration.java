@@ -51,5 +51,5 @@ public interface ResolvedConfiguration {
      * @return A set with ResolvedDependency instances for every configuration dependency.
      * @throws ResolveException in case the resolve was not successful.
      */
-    Set<ResolvedDependency> getFirstLevelResolvedDependencies();
+    Set<ResolvedDependency> getFirstLevelModuleDependencies();
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import java.io.File;
 import java.util.Set;
 
 /**
@@ -23,11 +22,19 @@ import java.util.Set;
  */
 public interface ResolvedDependency {
     /**
-     * Returns the name of the dependency. The name is differently constructed for different types of dependencies.
-     * For external dependencies the name consists of the group, name and version. For self resolving dependencies the
-     * name consists of the file paths belonging to this dependency.
+     * Returns the group of the resolved dependency
+     */
+    String getGroup();
+
+    /**
+     * Returns the name of the resolved dependency.
      */
     String getName();
+
+    /**
+     * Returns the version of the resolved dependency.
+     */
+    String getVersion();
 
     /**
      * Returns the configuration under which this instance was resolved.
@@ -45,19 +52,39 @@ public interface ResolvedDependency {
     Set<ResolvedDependency> getParents();
 
     /**
-     * Returns the artifact files belonging to this ResolvedDependencie. Returns never null. But there might be
-     * ResolvedDependencies which don't have artifact files and where an empty set is returned. 
+     * Returns the module artifacts belonging to this ResolvedDependency. A module artifact is an artifact that belongs
+     * to a ResolvedDependency independent of a particular parent. Returns never null. 
      */
-    Set<File> getModuleFiles();
+    Set<ResolvedArtifact> getModuleArtifacts();
 
     /**
-     * Returns the artifact files belonging to this ResolvedDependencie and recursively to its children. Returns never null.
+     * Returns the module artifacts belonging to this ResolvedDependency and recursively to its children. Returns never null.
+     *
+     * @see #getModuleArtifacts()
      */
-    Set<File> getAllModuleFiles();
+    Set<ResolvedArtifact> getAllModuleArtifacts();
 
-    Set<File> getParentFiles(ResolvedDependency parent);
+    /**
+     * Returns the artifacts belonging to this ResolvedDependency which it only has for a particular parent. Returns never null.
+     *
+     * @param parent A parent of the ResolvedDependency. Must not be null.
+     * @throws org.gradle.api.InvalidUserDataException If the parent is unknown or null
+     */
+    Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent);
 
-    Set<File> getFiles(ResolvedDependency parent);
+    /**
+     * Returns a union of the module and parent artifacts of this dependency. Never returns null.
+     *
+     * @param parent A parent of the ResolvedDependency. Must not be null.
+     * @throws org.gradle.api.InvalidUserDataException If the parent is unknown or null
+     */
+    Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent);
 
-    Set<File> getAllFiles(ResolvedDependency parent);
+    /**
+     * Returns a union of the module and parent artifacts of this dependency and its children. Never returns null.
+     *
+     * @param parent A parent of the ResolvedDependency. Must not be null.
+     * @throws org.gradle.api.InvalidUserDataException If the parent is unknown or null
+     */
+    Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent);
 }

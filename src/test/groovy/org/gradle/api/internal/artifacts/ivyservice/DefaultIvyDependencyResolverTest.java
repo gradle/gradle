@@ -23,6 +23,7 @@ import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
@@ -119,15 +120,15 @@ public class DefaultIvyDependencyResolverTest {
                 WrapUtil.toSet(resolvedDependency3));
 
         context.checking(new Expectations() {{
-            allowing(resolvedDependency1).getAllFiles(null);
-            will(returnValue(WrapUtil.toSet(new File("file1"))));
-            allowing(resolvedDependency2).getAllFiles(null);
-            will(returnValue(WrapUtil.toSet(new File("file2"))));
+            allowing(resolvedDependency1).getAllArtifacts(null);
+            will(returnValue(WrapUtil.toSet(new DefaultResolvedArtifact("someName", "someType", "someExtension", new File("file1")))));
+            allowing(resolvedDependency2).getAllArtifacts(null);
+            will(returnValue(WrapUtil.toSet(new DefaultResolvedArtifact("someName2", "someType", "someExtension", new File("file2")))));
             allowing(configurationStub).getAllDependencies();
             will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
             allowing(configurationStub).getAllDependencies(ModuleDependency.class);
             will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2)));
-            allowing(ivyReportTranslatorStub).translateReport(resolveReportMock, configurationStub);
+            allowing(ivyReportTranslatorStub).convertReport(resolveReportMock, configurationStub);
             will(returnValue(firstLevelResolvedDependencies));
         }});
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();

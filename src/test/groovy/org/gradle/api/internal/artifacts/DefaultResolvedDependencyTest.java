@@ -15,122 +15,150 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.util.GUtil;
+import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * @author Hans Dockter
  */
 public class DefaultResolvedDependencyTest {
-//    @Test
-//    public void init() {
-//        String someName = "someName";
-//        String someConfiguration = "someConfiguration";
-//        Set<File> someFiles = WrapUtil.toSet(new File("someFile"));
-//        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(someName, someConfiguration, getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, someFiles);
-//        assertThat(resolvedDependency.getName(), equalTo(someName));
-//        assertThat(resolvedDependency.getConfiguration(), equalTo(someConfiguration));
-//        assertThat(resolvedDependency.getModuleFiles(), equalTo(someFiles));
-//        assertThat(resolvedDependency.getChildren(), equalTo(Collections.<ResolvedDependency>emptySet()));
-//        assertThat(resolvedDependency.getParents(), equalTo(Collections.<ResolvedDependency>emptySet()));
-//    }
-//
-//    @Test
-//    public void getAllModuleFiles() {
-//        Set<File> someFiles = WrapUtil.toSet(new File("someFile"));
-//        Set<File> someChildFiles = WrapUtil.toSet(new File("someFile"));
-//        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someName", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, someFiles);
-//        resolvedDependency.getChildren().add(new DefaultResolvedDependency("someChild", "someChildConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, someChildFiles));
-//        assertThat(resolvedDependency.getAllModuleFiles(), equalTo(GUtil.addSets(someChildFiles, someFiles)));
-//    }
-//
-//    @Test
-//    public void getParentFiles() {
-//        Set<File> someModuleFiles = WrapUtil.toSet(new File("someFile"));
-//        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someName", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, someModuleFiles);
-//
-//        Set<File> parent1SpecificFiles = WrapUtil.toSet(new File("parent1Specific"));
-//        DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificFiles);
-//
-//        Set<File> parent2SpecificFiles = WrapUtil.toSet(new File("parent2Specific"));
-//        DefaultResolvedDependency parentResolvedDependency2 = createAndAddParent("parent2", resolvedDependency, parent2SpecificFiles);
-//
-//        assertThat(resolvedDependency.getParentFiles(parentResolvedDependency1), equalTo(parent1SpecificFiles));
-//        assertThat(resolvedDependency.getParentFiles(parentResolvedDependency2), equalTo(parent2SpecificFiles));
-//    }
-//
-//    @Test
-//    public void getFiles() {
-//        Set<File> someModuleFiles = WrapUtil.toSet(new File("someModuleFile"));
-//        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someName", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, someModuleFiles);
-//
-//        Set<File> parent1SpecificFiles = WrapUtil.toSet(new File("parent1Specific"));
-//        DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificFiles);
-//
-//        assertThat(resolvedDependency.getFiles(parentResolvedDependency1), equalTo(GUtil.addSets(someModuleFiles, parent1SpecificFiles)));
-//    }
-//
-//    public void getFilesWithParentWithoutParentFiles() {
-//        Set<File> moduleFiles = WrapUtil.toSet(new File("someModuleFile"));
-//        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someName", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, moduleFiles);
-//
-//        DefaultResolvedDependency parent = new DefaultResolvedDependency("parent", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, Collections.<File>emptySet());
-//        resolvedDependency.getParents().add(parent);
-//        assertThat(resolvedDependency.getFiles(parent), equalTo(moduleFiles));
-//    }
-//
-//    public void getParentFilesWithParentWithoutParentFiles() {
-//        Set<File> moduleFiles = WrapUtil.toSet(new File("someModuleFile"));
-//        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someName", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, moduleFiles);
-//
-//        DefaultResolvedDependency parent = new DefaultResolvedDependency("parent", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, Collections.<File>emptySet());
-//        resolvedDependency.getParents().add(parent);
-//        assertThat(resolvedDependency.getParentFiles(parent), equalTo(Collections.<File>emptySet()));
-//    }
-//
-//    @Test(expected = InvalidUserDataException.class)
-//    public void getParentFilesWithUnknownParent() {
-//        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someName", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, Collections.<File>emptySet());
-//        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("parent2", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, Collections.<File>emptySet());
-//        assertThat(resolvedDependency.getParentFiles(unknownParent),
-//                equalTo(Collections.<File>emptySet()));
-//    }
-//
-//    @Test(expected = InvalidUserDataException.class)
-//    public void getFilesWithUnknownParent() {
-//        Set<File> someModuleFiles = WrapUtil.toSet(new File("someModuleFile"));
-//        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someName", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, Collections.<File>emptySet());
-//
-//        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("parent2", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, Collections.<File>emptySet());
-//        assertThat(resolvedDependency.getParentFiles(unknownParent),
-//                equalTo(someModuleFiles));
-//    }
-//
-//    @Test
-//    public void getAllFiles() {
-//        Set<File> someModuleFiles = WrapUtil.toSet(new File("someModuleFile"));
-//        Set<File> someChildModuleFiles = WrapUtil.toSet(new File("someChildModuleFile"));
-//        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someName", "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, someModuleFiles);
-//
-//        Set<File> parent1SpecificFiles = WrapUtil.toSet(new File("parent1Specific"));
-//        DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificFiles);
-//
-//        createAndAddParent("parent2", resolvedDependency, WrapUtil.toSet(new File("parent2Specific")));
-//
-//        DefaultResolvedDependency child = new DefaultResolvedDependency("someChild", "someChildConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, someChildModuleFiles);
-//        resolvedDependency.getChildren().add(child);
-//
-//        Set<File> childParent1SpecificFiles = WrapUtil.toSet(new File("childParent1Specific"));
-//        createAndAddParent("childParent1", child, childParent1SpecificFiles);
-//
-//        Set<File> childParent2SpecificFiles = WrapUtil.toSet(new File("childParent2Specific"));
-//        createAndAddParent("childParent2", child, childParent2SpecificFiles);
-//
-//        assertThat(resolvedDependency.getAllFiles(parentResolvedDependency1),
-//                equalTo(GUtil.addSets(someModuleFiles, parent1SpecificFiles, someChildModuleFiles, childParent1SpecificFiles, childParent2SpecificFiles)));
-//    }
-//
-//    private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<File> parentSpecificFiles) {
-//        DefaultResolvedDependency parent = new DefaultResolvedDependency(parentName, "someConfiguration", getExtendedConfigurations(ivyNode, configuration), resolvedDependencies, Collections.<File>emptySet());
-//        resolvedDependency.getParents().add(parent);
-//        resolvedDependency.addParentSpecificFiles(parent, parentSpecificFiles);
-//        return parent;
-//    }
+    private static final Set<String> SOME_CONFIGURATION_HIERARCHY = WrapUtil.toSet("someConfiguration", "conf1");
+
+    @Test
+    public void init() {
+        String someGroup = "someGroup";
+        String someName = "someName";
+        String someVersion = "someVersion";
+        String someConfiguration = "someConfiguration";
+        Set<ResolvedArtifact> someArtifacts = WrapUtil.<ResolvedArtifact>toSet(createArtifact("someName"));
+        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(someGroup, someName, someVersion, someConfiguration, SOME_CONFIGURATION_HIERARCHY, someArtifacts);
+        assertThat(resolvedDependency.getGroup(), equalTo(someGroup));
+        assertThat(resolvedDependency.getName(), equalTo(someName));
+        assertThat(resolvedDependency.getVersion(), equalTo(someVersion));
+        assertThat(resolvedDependency.getConfiguration(), equalTo(someConfiguration));
+        assertThat(resolvedDependency.getModuleArtifacts(), equalTo(someArtifacts));
+        assertThat(resolvedDependency.getConfigurationHierarchy(), equalTo(SOME_CONFIGURATION_HIERARCHY));
+        assertThat(resolvedDependency.getChildren(), equalTo(Collections.<ResolvedDependency>emptySet()));
+        assertThat(resolvedDependency.getParents(), equalTo(Collections.<ResolvedDependency>emptySet()));
+    }
+
+    @Test
+    public void getAllModuleArtifacts() {
+        Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.<ResolvedArtifact>toSet(createArtifact("moduleArtifact"));
+        Set<ResolvedArtifact> someChildModuleArtifacts = WrapUtil.<ResolvedArtifact>toSet(createArtifact("childModuleArtifact"));
+        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someGroup", "someName", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, someModuleArtifacts);
+        resolvedDependency.getChildren().add(new DefaultResolvedDependency("someGroup", "someChild", "someVersion", "someChildConfiguration", SOME_CONFIGURATION_HIERARCHY, someChildModuleArtifacts));
+        assertThat(resolvedDependency.getAllModuleArtifacts(), equalTo(GUtil.addSets(someChildModuleArtifacts, someModuleArtifacts)));
+    }
+
+    @Test
+    public void getParentArtifacts() {
+        Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.toSet(createArtifact("someResolvedArtifact"));
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency(someModuleArtifacts);
+
+        Set<ResolvedArtifact> parent1SpecificArtifacts = WrapUtil.toSet(createArtifact("parent1Specific"));
+        DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificArtifacts);
+
+        Set<ResolvedArtifact> parent2SpecificArtifacts = WrapUtil.toSet(createArtifact("parent2Specific"));
+        DefaultResolvedDependency parentResolvedDependency2 = createAndAddParent("parent2", resolvedDependency, parent2SpecificArtifacts);
+
+        assertThat(resolvedDependency.getParentArtifacts(parentResolvedDependency1), equalTo(parent1SpecificArtifacts));
+        assertThat(resolvedDependency.getParentArtifacts(parentResolvedDependency2), equalTo(parent2SpecificArtifacts));
+    }
+
+    private ResolvedArtifact createArtifact(String name) {
+        return new DefaultResolvedArtifact(name, "someType", "someExt", new File("pathTo" + name));
+    }
+
+    private DefaultResolvedDependency createResolvedDependency(Set<ResolvedArtifact> moduleArtifacts) {
+        return new DefaultResolvedDependency("someGroup", "someName", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, moduleArtifacts);
+    }
+
+    @Test
+    public void getArtifacts() {
+        Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency(someModuleArtifacts);
+
+        Set<ResolvedArtifact> parent1SpecificArtifacts = WrapUtil.toSet(createArtifact("parent1Specific"));
+        DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificArtifacts);
+
+        assertThat(resolvedDependency.getArtifacts(parentResolvedDependency1), equalTo(GUtil.addSets(someModuleArtifacts, parent1SpecificArtifacts)));
+    }
+
+    public void getArtifactsWithParentWithoutParentArtifacts() {
+        Set<ResolvedArtifact> moduleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency(moduleArtifacts);
+
+        DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", "parent", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        resolvedDependency.getParents().add(parent);
+        assertThat(resolvedDependency.getArtifacts(parent), equalTo(moduleArtifacts));
+    }
+
+    public void getParentArtifactsWithParentWithoutParentArtifacts() {
+        Set<ResolvedArtifact> moduleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency(moduleArtifacts);
+
+        DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", "parent", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        resolvedDependency.getParents().add(parent);
+        assertThat(resolvedDependency.getParentArtifacts(parent), equalTo(Collections.<ResolvedArtifact>emptySet()));
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void getParentArtifactsWithUnknownParent() {
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency(Collections.<ResolvedArtifact>emptySet());
+        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someGroup", "parent2", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        assertThat(resolvedDependency.getParentArtifacts(unknownParent),
+                equalTo(Collections.<ResolvedArtifact>emptySet()));
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    public void getArtifactsWithUnknownParent() {
+        Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency(Collections.<ResolvedArtifact>emptySet());
+
+        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someGroup", "parent2", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        assertThat(resolvedDependency.getParentArtifacts(unknownParent),
+                equalTo(someModuleArtifacts));
+    }
+
+    @Test
+    public void getAllArtifacts() {
+        Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
+        Set<ResolvedArtifact> someChildModuleArtifacts = WrapUtil.toSet(createArtifact("someChildModuleResolvedArtifact"));
+        DefaultResolvedDependency resolvedDependency = createResolvedDependency(someModuleArtifacts);
+
+        Set<ResolvedArtifact> parent1SpecificArtifacts = WrapUtil.toSet(createArtifact("parent1Specific"));
+        DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificArtifacts);
+
+        createAndAddParent("parent2", resolvedDependency, WrapUtil.toSet(createArtifact("parent2Specific")));
+
+        DefaultResolvedDependency child = new DefaultResolvedDependency("someGroup", "someChild", "someVersion", "someChildConfiguration", SOME_CONFIGURATION_HIERARCHY, someChildModuleArtifacts);
+        resolvedDependency.getChildren().add(child);
+
+        Set<ResolvedArtifact> childParent1SpecificArtifacts = WrapUtil.toSet(createArtifact("childParent1Specific"));
+        createAndAddParent("childParent1", child, childParent1SpecificArtifacts);
+
+        Set<ResolvedArtifact> childParent2SpecificArtifacts = WrapUtil.toSet(createArtifact("childParent2Specific"));
+        createAndAddParent("childParent2", child, childParent2SpecificArtifacts);
+
+        assertThat(resolvedDependency.getAllArtifacts(parentResolvedDependency1),
+                equalTo(GUtil.addSets(someModuleArtifacts, parent1SpecificArtifacts, someChildModuleArtifacts, childParent1SpecificArtifacts, childParent2SpecificArtifacts)));
+    }
+
+    private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<ResolvedArtifact> parentSpecificArtifacts) {
+        DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", parentName, "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        resolvedDependency.getParents().add(parent);
+        resolvedDependency.addParentSpecificArtifacts(parent, parentSpecificArtifacts);
+        return parent;
+    }
 }

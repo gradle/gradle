@@ -17,11 +17,11 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.util.GUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -68,7 +68,7 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
 
     public void render(ResolvedConfiguration resolvedConfiguration) throws IOException
     {
-        Set<ResolvedDependency> mergedRoots = mergeChildren(resolvedConfiguration.getFirstLevelResolvedDependencies());
+        Set<ResolvedDependency> mergedRoots = mergeChildren(resolvedConfiguration.getFirstLevelModuleDependencies());
         for (ResolvedDependency root : mergedRoots) {
             render(root, 1);
         }
@@ -77,7 +77,8 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
     private void render(ResolvedDependency resolvedDependency, int depth) throws IOException
     {
         getFormatter().format(getIndent(depth));
-		getFormatter().format("%s:%s%n", resolvedDependency.getName(), resolvedDependency.getConfiguration());
+		getFormatter().format("%s:%s:%s:%s%n", resolvedDependency.getGroup(), resolvedDependency.getName(), resolvedDependency.getVersion(),
+                resolvedDependency.getConfiguration());
 
         Collection<ResolvedDependency> mergedChildren = mergeChildren(resolvedDependency.getChildren());
 
@@ -134,6 +135,14 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
             return mergedResolvedDependencies.iterator().next().getName();
         }
 
+        public String getGroup() {
+            return mergedResolvedDependencies.iterator().next().getGroup();
+        }
+
+        public String getVersion() {
+            return mergedResolvedDependencies.iterator().next().getVersion();
+        }
+
         public String getConfiguration() {
             String mergedConfiguration = "";
             for (ResolvedDependency mergedResolvedDependency : mergedResolvedDependencies) {
@@ -154,27 +163,27 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
             throw new UnsupportedOperationException();
         }
 
-        public Set<File> getModuleFiles() {
-            Set<File> mergedFiles = new LinkedHashSet<File>();
+        public Set<ResolvedArtifact> getModuleArtifacts() {
+            Set<ResolvedArtifact> mergedModuleArtifacts = new LinkedHashSet<ResolvedArtifact>();
             for (ResolvedDependency mergedResolvedDependency : mergedResolvedDependencies) {
-                mergedFiles.addAll(mergedResolvedDependency.getModuleFiles());
+                mergedModuleArtifacts.addAll(mergedResolvedDependency.getModuleArtifacts());
             }
-            return mergedFiles;
+            return mergedModuleArtifacts;
         }
 
-        public Set<File> getParentFiles(ResolvedDependency parent) {
-            return null;
+        public Set<ResolvedArtifact> getAllModuleArtifacts() {
+            throw new UnsupportedOperationException();
         }
 
-        public Set<File> getFiles(ResolvedDependency parent) {
-            return null;
+        public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
+            throw new UnsupportedOperationException();
         }
 
-        public Set<File> getAllFiles(ResolvedDependency parent) {
-            return null;
+        public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
+            throw new UnsupportedOperationException();
         }
 
-        public Set<File> getAllModuleFiles() {
+        public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
             throw new UnsupportedOperationException();
         }
     }

@@ -19,13 +19,10 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -57,18 +54,8 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 return files;
             }
 
-            public Set<ResolvedDependency> getFirstLevelResolvedDependencies() {
-                Set<ResolvedDependency> firstLevelResolvedDependencies = resolvedConfiguration.getFirstLevelResolvedDependencies();
-                for (SelfResolvingDependency selfResolvingDependency : selfResolvingDependencies) {
-                    Set<File> files = selfResolvingDependency.resolve();
-                    DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(
-                            GUtil.join(files, ";"),
-                            "",
-                            Collections.<String>emptySet(), files);
-                    resolvedDependency.getParents().add(null);
-                    firstLevelResolvedDependencies.add(resolvedDependency);
-                }
-                return firstLevelResolvedDependencies;
+            public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
+                return resolvedConfiguration.getFirstLevelModuleDependencies();
             }
 
             public boolean hasError() {

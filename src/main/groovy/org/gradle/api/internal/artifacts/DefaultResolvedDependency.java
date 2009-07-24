@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.util.GUtil;
 
-import java.io.File;
 import java.util.*;
 
 /**
@@ -29,21 +29,34 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     private Set<ResolvedDependency> children = new HashSet<ResolvedDependency>();
     private Set<ResolvedDependency> parents = new HashSet<ResolvedDependency>();
     private String configuration;
-    private Set<File> moduleFiles = new LinkedHashSet<File>();
-    private Map<ResolvedDependency, Set<File>> parentFiles = new LinkedHashMap<ResolvedDependency, Set<File>>();
+    private Set<ResolvedArtifact> moduleArtifacts = new LinkedHashSet<ResolvedArtifact>();
+    private Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();
+    private String group;
     private String name;
+    private String version;
     private Set<String> configurationHierarchy;
 
-    public DefaultResolvedDependency(String name, String configuration, Set<String> configurationHierarchy, Set<File> moduleFiles) {
+    public DefaultResolvedDependency(String group, String name, String version, String configuration, Set<String> configurationHierarchy,
+                                     Set<ResolvedArtifact> moduleArtifacts) {
+        this.group = group;
+        this.version = version;
         this.configurationHierarchy = configurationHierarchy;
-        assert moduleFiles != null;
+        assert moduleArtifacts != null;
         this.name = name;
         this.configuration = configuration;
-        this.moduleFiles = moduleFiles;
+        this.moduleArtifacts = moduleArtifacts;
+    }
+
+    public String getGroup() {
+        return group;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getVersion() {
+        return version;
     }
 
     public String getConfiguration() {
@@ -62,23 +75,40 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         return children;
     }
 
-    public Set<File> getModuleFiles() {
-        return moduleFiles;
+    public Set<ResolvedArtifact> getModuleArtifacts() {
+        return moduleArtifacts;
     }
 
-    public Set<File> getAllModuleFiles() {
-        Set<File> allFiles = new LinkedHashSet<File>();
-        allFiles.addAll(getModuleFiles());
+    public Set<ResolvedArtifact> getAllModuleArtifacts() {
+        Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<ResolvedArtifact>();
+        allArtifacts.addAll(getModuleArtifacts());
         for (ResolvedDependency childResolvedDependency : getChildren()) {
-            allFiles.addAll(childResolvedDependency.getAllModuleFiles());
+            allArtifacts.addAll(childResolvedDependency.getAllModuleArtifacts());
         }
-        return allFiles;
+        return allArtifacts;
     }
 
-    public Set<File> getParentFiles(ResolvedDependency parent) {
+    public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
         throwExceptionIfUnknownParent(parent);
-        Set<File> files = parentFiles.get(parent);
-        return files == null ? Collections.<File>emptySet() : files;
+        Set<ResolvedArtifact> artifacts = parentArtifacts.get(parent);
+        return artifacts == null ? Collections.<ResolvedArtifact>emptySet() : artifacts;
+    }
+
+    public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
+        throwExceptionIfUnknownParent(parent);
+        return GUtil.addSets(getParentArtifacts(parent), getModuleArtifacts());
+    }
+
+    public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
+        throwExceptionIfUnknownParent(parent);
+        Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<ResolvedArtifact>();
+        allArtifacts.addAll(getArtifacts(parent));
+        for (ResolvedDependency childResolvedDependency : getChildren()) {
+            for (ResolvedDependency childParent : childResolvedDependency.getParents()) {
+                allArtifacts.addAll(childResolvedDependency.getAllArtifacts(childParent));
+            }
+        }
+        return allArtifacts;
     }
 
     private void throwExceptionIfUnknownParent(ResolvedDependency parent) {
@@ -86,24 +116,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
             throw new InvalidUserDataException("Unknown Parent");
         }
     }
-
-    public Set<File> getFiles(ResolvedDependency parent) {
-        throwExceptionIfUnknownParent(parent);
-        return GUtil.addSets(getParentFiles(parent), getModuleFiles());
-    }
-
-    public Set<File> getAllFiles(ResolvedDependency parent) {
-        throwExceptionIfUnknownParent(parent);
-        Set<File> allFiles = new LinkedHashSet<File>();
-        allFiles.addAll(getFiles(parent));
-        for (ResolvedDependency childResolvedDependency : getChildren()) {
-            for (ResolvedDependency childParent : childResolvedDependency.getParents()) {
-                allFiles.addAll(childResolvedDependency.getAllFiles(childParent));
-            }
-        }
-        return allFiles;
-    }
-
+    
     public Set<ResolvedDependency> getParents() {
         return parents;
     }
@@ -112,8 +125,8 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         return name + ";" + configuration;
     }
 
-    public void addParentSpecificFiles(ResolvedDependency parent, Set<File> files) {
-        parentFiles.put(parent, files);
+    public void addParentSpecificArtifacts(ResolvedDependency parent, Set<ResolvedArtifact> artifacts) {
+        parentArtifacts.put(parent, artifacts);
     }
 
     @Override

@@ -48,7 +48,7 @@ public class GraphvizReportRenderer extends TextProjectReportRenderer implements
 
         Set<String> edges = new HashSet<String>();
 
-        for (ResolvedDependency resolvedDependency : resolvedConfiguration.getFirstLevelResolvedDependencies()) {
+        for (ResolvedDependency resolvedDependency : resolvedConfiguration.getFirstLevelModuleDependencies()) {
             buildDotDependencyTree(resolvedDependency, edges);
         }
 
@@ -60,7 +60,7 @@ public class GraphvizReportRenderer extends TextProjectReportRenderer implements
     }
 
     private void buildDotDependencyTree(ResolvedDependency root, Set<String> edges) {
-        if (root.getAllModuleFiles().isEmpty()) {
+        if (root.getAllModuleArtifacts().isEmpty()) {
             return;
         }
         for (ResolvedDependency dep : root.getChildren()) {

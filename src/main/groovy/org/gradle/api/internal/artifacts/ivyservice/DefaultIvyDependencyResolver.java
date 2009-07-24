@@ -103,7 +103,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             for (ModuleDependency moduleDependency : allModuleDependencies) {
                 Set<ResolvedDependency> resolvedDependencies = firstLevelResolvedDependencies.get(moduleDependency);
                 for (ResolvedDependency resolvedDependency : resolvedDependencies) {
-                    files.addAll(resolvedDependency.getAllFiles(null));
+                    files.addAll(ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(null)));
                 }
             }
             return files;
@@ -113,7 +113,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             return configuration.getAllDependencies(ModuleDependency.class).equals(Specs.filterIterable(configuration.getAllDependencies(ModuleDependency.class), dependencySpec));
         }
 
-        public Set<ResolvedDependency> getFirstLevelResolvedDependencies() {
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
             buildResolvedDependencies();
             Set<ResolvedDependency> resolvedDependencies = new LinkedHashSet<ResolvedDependency>();
             for (Dependency dependency : firstLevelResolvedDependencies.keySet()) {
@@ -127,7 +127,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             if (firstLevelResolvedDependencies != null) {
                 return;
             }
-            firstLevelResolvedDependencies = ivyReportTranslator.translateReport(
+            firstLevelResolvedDependencies = ivyReportTranslator.convertReport(
                     resolveReport,
                     configuration);
         }
