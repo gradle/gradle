@@ -17,10 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.specs.Specs;
 import static org.gradle.util.WrapUtil.toLinkedSet;
 import static org.gradle.util.WrapUtil.toSet;
@@ -33,6 +30,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
 
 @RunWith(JMock.class)
 public class SelfResolvingDependencyResolverTest {
@@ -69,7 +68,6 @@ public class SelfResolvingDependencyResolverTest {
     
     @Test
     public void addsFilesFromSelfResolvingDependenciesBeforeFilesFromResolvedConfiguration() {
-        final Dependency moduleDependency = context.mock(Dependency.class);
         final SelfResolvingDependency dependency = context.mock(SelfResolvingDependency.class);
 
         context.checking(new Expectations() {{
@@ -94,4 +92,45 @@ public class SelfResolvingDependencyResolverTest {
 
         assertThat(configuration.getFiles(Specs.SATISFIES_ALL), equalTo(toLinkedSet(depFile, configFile)));
     }
+
+    @Test
+    public void testGetModuleDependencies() throws IOException, ParseException {
+        context.checking(new Expectations() {{
+            one(delegate).resolve(configuration, ivy, moduleDescriptor);
+            will(returnValue(resolvedConfiguration));
+            allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+            will(returnValue(toSet()));
+        }});
+
+        final ResolvedDependency resolvedDependency = context.mock(ResolvedDependency.class);
+
+        context.checking(new Expectations() {{
+            one(resolvedConfiguration).getFirstLevelModuleDependencies();
+            will(returnValue(toSet(resolvedDependency)));
+        }});
+
+        assertThat(resolver.resolve(this.configuration, ivy, moduleDescriptor).getFirstLevelModuleDependencies(),
+                equalTo(toSet(resolvedDependency)));
+    }
+
+    @Test
+    public void testGetResolvedArtifacts() {
+        context.checking(new Expectations() {{
+            one(delegate).resolve(configuration, ivy, moduleDescriptor);
+            will(returnValue(resolvedConfiguration));
+            allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+            will(returnValue(toSet()));
+        }});
+
+        final ResolvedArtifact resolvedArtifact = context.mock(ResolvedArtifact.class);
+
+        context.checking(new Expectations() {{
+            one(resolvedConfiguration).getResolvedArtifacts();
+            will(returnValue(toSet(resolvedArtifact)));
+        }});
+
+        assertThat(resolver.resolve(this.configuration, ivy, moduleDescriptor).getResolvedArtifacts(),
+                equalTo(toSet(resolvedArtifact)));
+    }
+
 }

@@ -64,9 +64,10 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
         return configurationReport.getArtifactsReports(null, false);
     }
 
-    public Map<Dependency, Set<ResolvedDependency>> convertReport(ResolveReport resolveReport, Configuration configuration) {
+    public IvyConversionResult convertReport(ResolveReport resolveReport, Configuration configuration) {
         Clock clock = new Clock();
         Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = new LinkedHashMap<Dependency, Set<ResolvedDependency>>();
+        Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>();
         ConfigurationResolveReport configurationResolveReport = resolveReport.getConfigurationReport(configuration.getName());
         LinkedHashMap<ModuleRevisionId, Map<String, DefaultResolvedDependency>> handledNodes = new LinkedHashMap<ModuleRevisionId, Map<String, DefaultResolvedDependency>>();
         Map<DefaultResolvedDependency, IvyNode> resolvedDependencies2Nodes = new HashMap<DefaultResolvedDependency, IvyNode>();
@@ -81,13 +82,14 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
                     handledNodes,
                     resolvedDependencies2Nodes,
                     firstLevelResolvedDependencies,
+                    resolvedArtifacts,
                     configuration.getName(),
                     configurationResolveReport,
                     firstLevelDependenciesModuleRevisionIds,
                     resolveReport);
         }
         logger.debug("Timing: Translating report for configuration {} took {}", configuration, clock.getTime());
-        return firstLevelResolvedDependencies;
+        return new DefaultIvyConversionResult(firstLevelResolvedDependencies, resolvedArtifacts);
     }
 
     private boolean isResolvedNode(IvyNode node, Configuration configuration) {
@@ -95,11 +97,11 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
     }
 
     private Map<String, DefaultResolvedDependency> getResolvedDependenciesForNode(IvyNode ivyNode,
-                                                                           Map<ModuleRevisionId, Map<String, DefaultResolvedDependency>> handledNodes,
-                                                                           Map<DefaultResolvedDependency, IvyNode> resolvedDependencies2Nodes,
-                                                                           Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies, String conf,
-                                                                           ConfigurationResolveReport configurationResolveReport,
-                                                                           Map<ModuleRevisionId, Map<String, ModuleDependency>> firstLevelDependenciesModuleRevisionIds, ResolveReport resolveReport) {
+                                                                                  Map<ModuleRevisionId, Map<String, DefaultResolvedDependency>> handledNodes,
+                                                                                  Map<DefaultResolvedDependency, IvyNode> resolvedDependencies2Nodes,
+                                                                                  Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies, Set<ResolvedArtifact> resolvedArtifacts, String conf,
+                                                                                  ConfigurationResolveReport configurationResolveReport,
+                                                                                  Map<ModuleRevisionId, Map<String, ModuleDependency>> firstLevelDependenciesModuleRevisionIds, ResolveReport resolveReport) {
         ModuleRevisionId nodeId = ivyNode.getId();
         if (handledNodes.containsKey(nodeId)) {
             return handledNodes.get(nodeId);
@@ -111,6 +113,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
                 DefaultResolvedDependency resolvedDependencyForDependencyConfiguration = resolvedDependencies.get(dependencyConfiguration);
                 if (resolvedDependencyForDependencyConfiguration == null) {
                     resolvedDependencyForDependencyConfiguration = createResolvedDependency(ivyNode, resolveReport, dependencyConfiguration);
+                    resolvedArtifacts.addAll(resolvedDependencyForDependencyConfiguration.getModuleArtifacts());
                     resolvedDependencies.put(dependencyConfiguration, resolvedDependencyForDependencyConfiguration);
                     resolvedDependencies2Nodes.put(resolvedDependencyForDependencyConfiguration, ivyNode);
                     addNodeIfFirstLevelDependency(ivyNode, resolvedDependencyForDependencyConfiguration, firstLevelDependenciesModuleRevisionIds, firstLevelResolvedDependencies);
@@ -125,17 +128,17 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
             }
             IvyNode parentNode = configurationResolveReport.getDependency(caller.getModuleRevisionId());
             Map<String, DefaultResolvedDependency> parentResolvedDependencies = getResolvedDependenciesForNode(parentNode, handledNodes, resolvedDependencies2Nodes,
-                    firstLevelResolvedDependencies, conf, configurationResolveReport,
+                    firstLevelResolvedDependencies, resolvedArtifacts, conf, configurationResolveReport,
                     firstLevelDependenciesModuleRevisionIds, resolveReport);
-            createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode, resolvedDependencies2Nodes, resolvedDependencies, parentNode, caller,
+            createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode, resolvedDependencies, resolvedArtifacts, parentNode, caller,
                     dependencyConfigurationsForNode, parentResolvedDependencies, resolveReport);
         }
         handledNodes.put(nodeId, resolvedDependencies);
         return resolvedDependencies;
     }
 
-    private void createAssociationsBetweenChildAndParentResolvedDependencies(IvyNode ivyNode, Map<DefaultResolvedDependency, IvyNode> resolvedDependencies2Nodes, Map<String, DefaultResolvedDependency> resolvedDependencies,
-                                                                             IvyNode callerNode, IvyNodeCallers.Caller caller, Set<String> dependencyConfigurationsForNode, Map<String, DefaultResolvedDependency> parentResolvedDependencies, ResolveReport resolveReport) {
+    private void createAssociationsBetweenChildAndParentResolvedDependencies(IvyNode ivyNode, Map<String, DefaultResolvedDependency> resolvedDependencies,
+                                                                             Set<ResolvedArtifact> resolvedArtifacts, IvyNode callerNode, IvyNodeCallers.Caller caller, Set<String> dependencyConfigurationsForNode, Map<String, DefaultResolvedDependency> parentResolvedDependencies, ResolveReport resolveReport) {
         for (String dependencyConfiguration : dependencyConfigurationsForNode) {
             Set<String> callerConfigurations = getCallerConfigurationsByDependencyConfiguration(caller, ivyNode, dependencyConfiguration);
             Set<DefaultResolvedDependency> parentResolvedDependenciesForCallerConfigurations = getParentResolvedDependenciesByConfigurations(
@@ -145,8 +148,10 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
                 DefaultResolvedDependency resolvedDependency = resolvedDependencies.get(dependencyConfiguration);
                 parentResolvedDependency.getChildren().add(resolvedDependency);
                 resolvedDependency.getParents().add(parentResolvedDependency);
-                resolvedDependency.addParentSpecificArtifacts(parentResolvedDependency,  getParentSpecificArtifacts(resolvedDependency, parentResolvedDependency.getConfiguration(),
-                        callerNode, caller, resolveReport));
+                Set<ResolvedArtifact> parentSpecificResolvedArtifacts = getParentSpecificArtifacts(resolvedDependency, parentResolvedDependency.getConfiguration(),
+                        callerNode, caller, resolveReport);
+                resolvedDependency.addParentSpecificArtifacts(parentResolvedDependency, parentSpecificResolvedArtifacts);
+                resolvedArtifacts.addAll(parentSpecificResolvedArtifacts);
             }
         }
     }

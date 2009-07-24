@@ -54,6 +54,10 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 return files;
             }
 
+            public Set<ResolvedArtifact> getResolvedArtifacts() {
+                return resolvedConfiguration.getResolvedArtifacts();
+            }
+
             public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
                 return resolvedConfiguration.getFirstLevelModuleDependencies();
             }

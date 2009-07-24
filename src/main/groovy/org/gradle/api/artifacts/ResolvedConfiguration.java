@@ -52,4 +52,6 @@ public interface ResolvedConfiguration {
      * @throws ResolveException in case the resolve was not successful.
      */
     Set<ResolvedDependency> getFirstLevelModuleDependencies();
+
+    Set<ResolvedArtifact> getResolvedArtifacts();
 }

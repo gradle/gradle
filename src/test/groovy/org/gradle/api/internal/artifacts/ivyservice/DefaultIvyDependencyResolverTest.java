@@ -63,10 +63,10 @@ public class DefaultIvyDependencyResolverTest {
 
     private Configuration configurationStub = context.mock(Configuration.class, "<configuration>");
     private Ivy ivyStub = context.mock(Ivy.class);
-    private DefaultIvyReportConverter ivyReportTranslatorStub = context.mock(DefaultIvyReportConverter.class);
+    private DefaultIvyReportConverter ivyReportConverterStub = context.mock(DefaultIvyReportConverter.class);
     private ResolveReport resolveReportMock = context.mock(ResolveReport.class);
 
-    private DefaultIvyDependencyResolver ivyDependencyResolver = new DefaultIvyDependencyResolver(ivyReportTranslatorStub);
+    private DefaultIvyDependencyResolver ivyDependencyResolver = new DefaultIvyDependencyResolver(ivyReportConverterStub);
 
     @Before
     public void setUp() {
@@ -90,7 +90,7 @@ public class DefaultIvyDependencyResolverTest {
             will(returnValue(WrapUtil.toSet(moduleDependencyDummy, selfResolvingDependencyDummy)));
             allowing(configurationStub).getAllDependencies(ModuleDependency.class);
             will(returnValue(WrapUtil.toSet(moduleDependencyDummy)));
-            allowing(ivyReportTranslatorStub).getClasspath(configurationName, resolveReportMock);
+            allowing(ivyReportConverterStub).getClasspath(configurationName, resolveReportMock);
             will(returnValue(expectedClasspath));
         }});
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
@@ -113,6 +113,7 @@ public class DefaultIvyDependencyResolverTest {
         final ResolvedDependency resolvedDependency1 = context.mock(ResolvedDependency.class, "resolved1");
         final ResolvedDependency resolvedDependency2 = context.mock(ResolvedDependency.class, "resolved2");
         ResolvedDependency resolvedDependency3 = context.mock(ResolvedDependency.class, "resolved3");
+        final IvyConversionResult conversionResultStub = context.mock(IvyConversionResult.class);
         final Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = GUtil.map(
                 moduleDependencyDummy1,
                 WrapUtil.toSet(resolvedDependency1, resolvedDependency2),
@@ -128,7 +129,9 @@ public class DefaultIvyDependencyResolverTest {
             will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
             allowing(configurationStub).getAllDependencies(ModuleDependency.class);
             will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2)));
-            allowing(ivyReportTranslatorStub).convertReport(resolveReportMock, configurationStub);
+            allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
+            will(returnValue(conversionResultStub));
+            allowing(conversionResultStub).getFirstLevelResolvedDependencies();
             will(returnValue(firstLevelResolvedDependencies));
         }});
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
@@ -141,6 +144,49 @@ public class DefaultIvyDependencyResolverTest {
                     }
                 });
         assertThat(actualFiles, equalTo(WrapUtil.toSet(new File("file1"), new File("file2"))));
+    }
+
+    @Test
+    public void testGetModuleDependencies() throws IOException, ParseException {
+        prepareResolveReport();
+        final ModuleDependency moduleDependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
+        final ResolvedDependency resolvedDependency1 = context.mock(ResolvedDependency.class, "resolved1");
+        final ResolvedDependency resolvedDependency2 = context.mock(ResolvedDependency.class, "resolved2");
+        final IvyConversionResult conversionResultStub = context.mock(IvyConversionResult.class);
+        Set<ResolvedDependency> resolvedDependenciesSet = WrapUtil.toSet(resolvedDependency1, resolvedDependency2);
+        final Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = GUtil.map(
+                moduleDependencyDummy1,
+                resolvedDependenciesSet);
+
+        context.checking(new Expectations() {{
+            allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
+            will(returnValue(conversionResultStub));
+            allowing(conversionResultStub).getFirstLevelResolvedDependencies();
+            will(returnValue(firstLevelResolvedDependencies));
+        }});
+        ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
+        prepareTestsThatRetrieveDependencies(moduleDescriptor);
+
+        Set<ResolvedDependency> actualFirstLevelModuleDependencies = ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getFirstLevelModuleDependencies();
+        assertThat(actualFirstLevelModuleDependencies, equalTo(resolvedDependenciesSet));
+    }
+
+    @Test
+    public void testGetResolvedArtifacts() throws IOException, ParseException {
+        prepareResolveReport();
+        final IvyConversionResult conversionResultStub = context.mock(IvyConversionResult.class);
+        final ResolvedArtifact resolvedArtifactDummy = context.mock(ResolvedArtifact.class);
+        final Set<ResolvedArtifact> resolvedArtifacts = WrapUtil.toSet(resolvedArtifactDummy);
+        context.checking(new Expectations() {{
+            allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
+            will(returnValue(conversionResultStub));
+            allowing(conversionResultStub).getResolvedArtifacts();
+            will(returnValue(resolvedArtifacts));
+        }});
+        ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
+        prepareTestsThatRetrieveDependencies(moduleDescriptor);
+        assertThat(ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor)
+                .getResolvedArtifacts(), equalTo(resolvedArtifacts));
     }
 
     @Test

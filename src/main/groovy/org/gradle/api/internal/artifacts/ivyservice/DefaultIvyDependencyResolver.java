@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Formatter;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -67,7 +66,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
     class ResolvedConfigurationImpl implements ResolvedConfiguration {
         private final ResolveReport resolveReport;
         private final Configuration configuration;
-        private Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies;
+        private IvyConversionResult conversionResult;
 
         public ResolvedConfigurationImpl(ResolveReport resolveReport, Configuration configuration) {
             this.resolveReport = resolveReport;
@@ -101,7 +100,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             Set<ModuleDependency> allModuleDependencies = Specs.filterIterable(configuration.getAllDependencies(ModuleDependency.class), dependencySpec);
             Set<File> files = new LinkedHashSet<File>();
             for (ModuleDependency moduleDependency : allModuleDependencies) {
-                Set<ResolvedDependency> resolvedDependencies = firstLevelResolvedDependencies.get(moduleDependency);
+                Set<ResolvedDependency> resolvedDependencies = conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
                 for (ResolvedDependency resolvedDependency : resolvedDependencies) {
                     files.addAll(ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(null)));
                 }
@@ -116,18 +115,23 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
             buildResolvedDependencies();
             Set<ResolvedDependency> resolvedDependencies = new LinkedHashSet<ResolvedDependency>();
-            for (Dependency dependency : firstLevelResolvedDependencies.keySet()) {
-                resolvedDependencies.addAll(firstLevelResolvedDependencies.get(dependency));
+            for (Dependency dependency : conversionResult.getFirstLevelResolvedDependencies().keySet()) {
+                resolvedDependencies.addAll(conversionResult.getFirstLevelResolvedDependencies().get(dependency));
             }
             return resolvedDependencies;
         }
 
+        public Set<ResolvedArtifact> getResolvedArtifacts() {
+            buildResolvedDependencies();
+            return conversionResult.getResolvedArtifacts();
+        }
+
         private void buildResolvedDependencies() {
             rethrowFailure();
-            if (firstLevelResolvedDependencies != null) {
+            if (conversionResult != null) {
                 return;
             }
-            firstLevelResolvedDependencies = ivyReportTranslator.convertReport(
+            conversionResult = ivyReportTranslator.convertReport(
                     resolveReport,
                     configuration);
         }
