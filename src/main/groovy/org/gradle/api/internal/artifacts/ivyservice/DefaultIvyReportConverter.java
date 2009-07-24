@@ -212,7 +212,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
     }
 
     private Set<String> getConfigurationHierarchy(IvyNode node, String configurationName) {
-        Set<String> configurations = new HashSet<String>();
+        Set<String> configurations = new LinkedHashSet<String>();
         configurations.add(configurationName);
         org.apache.ivy.core.module.descriptor.Configuration configuration = node.getConfiguration(configurationName);
         for (String extendedConfigurationNames : configuration.getExtends()) {
@@ -278,7 +278,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
     }
 
     private Set<ArtifactRevisionId> getModuleArtifactsIdsForConfiguration(IvyNode dependencyNode, Set<String> configurations) {
-        Set<ArtifactRevisionId> artifactRevisionIds = new HashSet<ArtifactRevisionId>();
+        Set<ArtifactRevisionId> artifactRevisionIds = new LinkedHashSet<ArtifactRevisionId>();
         for (String hierarchyConfiguration : configurations) {
             Artifact[] artifactSubSet = dependencyNode.getDescriptor().getArtifacts(hierarchyConfiguration);
             for (Artifact artifact : artifactSubSet) {

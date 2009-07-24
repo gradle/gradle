@@ -26,8 +26,8 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultResolvedDependency implements ResolvedDependency {
-    private Set<ResolvedDependency> children = new HashSet<ResolvedDependency>();
-    private Set<ResolvedDependency> parents = new HashSet<ResolvedDependency>();
+    private Set<ResolvedDependency> children = new LinkedHashSet<ResolvedDependency>();
+    private Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
     private String configuration;
     private Set<ResolvedArtifact> moduleArtifacts = new LinkedHashSet<ResolvedArtifact>();
     private Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();

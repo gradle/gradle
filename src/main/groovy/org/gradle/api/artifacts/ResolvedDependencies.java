@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts;
 
 import java.io.File;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -24,7 +24,7 @@ import java.util.Set;
  */
 public class ResolvedDependencies {
     public static Set<File> getFilesFromArtifacts(Set<ResolvedArtifact> artifacts) {
-        Set<File> files = new HashSet<File>();
+        Set<File> files = new LinkedHashSet<File>();
         for (ResolvedArtifact moduleArtifact : artifacts) {
             files.add(moduleArtifact.getFile());
         }
