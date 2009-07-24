@@ -41,7 +41,7 @@ public class BaseDirConverter implements FileResolver {
     public File resolve(Object path, PathValidation validation) {
         if (!GUtil.isTrue(path) || !GUtil.isTrue(baseDir)) {
             throw new IllegalArgumentException(String.format(
-                    "Neither path nor baseDir must be null. path=%s basedir=%s", path, baseDir));
+                    "Neither path nor baseDir may be null or empty string. path='%s' basedir='%s'", path, baseDir));
         }
 
         File file;
