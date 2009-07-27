@@ -15,21 +15,32 @@
  */
 package org.gradle.api.internal.file;
 
+import groovy.lang.Closure;
 import org.gradle.api.file.SourceSet;
 import org.gradle.api.tasks.StopActionException;
-import groovy.lang.Closure;
 
 import java.util.*;
 
 public class CompositeSourceSet implements SourceSet {
     private final Set<SourceSet> sets;
+    private final String displayName;
 
     public CompositeSourceSet(SourceSet... sets) {
-        this(Arrays.asList(sets));
+        this("source set", Arrays.asList(sets));
     }
 
-    public CompositeSourceSet(Collection<? extends SourceSet> sets) {
+    public CompositeSourceSet(String displayName, SourceSet... sets) {
+        this(displayName, Arrays.asList(sets));
+    }
+
+    public CompositeSourceSet(String displayName, Collection<? extends SourceSet> sets) {
+        this.displayName = displayName;
         this.sets = new LinkedHashSet<SourceSet>(sets);
+    }
+
+    @Override
+    public String toString() {
+        return displayName;
     }
 
     public Set<SourceSet> getSets() {
@@ -50,7 +61,7 @@ public class CompositeSourceSet implements SourceSet {
                 // Continue
             }
         }
-        throw new StopActionException("No source files to operate on.");
+        throw new StopActionException(String.format("No source files found in %s.", displayName));
     }
 
     public SourceSet matching(Closure filterConfigClosure) {
@@ -58,7 +69,7 @@ public class CompositeSourceSet implements SourceSet {
         for (SourceSet set : sets) {
             filteredSets.add(set.matching(filterConfigClosure));
         }
-        return new CompositeSourceSet(filteredSets);
+        return new CompositeSourceSet(displayName, filteredSets);
     }
 
     public Object addToAntBuilder(Object node, String childNodeName) {

@@ -1,6 +1,8 @@
 package org.gradle.integtests
 
 import org.junit.Test
+import static org.gradle.util.Matchers.*
+import static org.hamcrest.Matchers.*
 
 class CodeQualityIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -25,8 +27,8 @@ usePlugin 'code-quality'
 
         inTestDirectory().withTasks('check').run()
 
-        testFile('build/checkstyle/main.xml').assertExists()
-        testFile('build/checkstyle/test.xml').assertExists()
+        testFile('build/checkstyle/main.xml').assertContents(containsLine(containsString('org/gradle/Class1.java')))
+        testFile('build/checkstyle/test.xml').assertContents(containsLine(containsString('org/gradle/TestClass1.java')))
     }
 
     @Test
@@ -42,8 +44,8 @@ usePlugin 'code-quality'
 
         inTestDirectory().withTasks('check').run()
 
-        testFile('build/checkstyle/main.xml').assertExists()
-        testFile('build/checkstyle/test.xml').assertExists()
+        testFile('build/checkstyle/main.xml').assertContents(containsLine(containsString('org/gradle/Class1.java')))
+        testFile('build/checkstyle/test.xml').assertContents(containsLine(containsString('org/gradle/TestClass1.java')))
     }
 
     @Test
@@ -76,7 +78,7 @@ usePlugin 'code-quality'
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
         failure.assertHasDescription('Execution failed for task \':checkstyle\'')
-        failure.assertHasCause('Got 2 errors and 0 warnings.')
+        failure.assertThatCause(startsWith('Checkstyle check violations were found in main java source. See the report at'))
 
         testFile('build/checkstyle/main.xml').assertExists()
     }
@@ -128,7 +130,7 @@ usePlugin 'code-quality'
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
         failure.assertHasDescription('Execution failed for task \':codenarc\'')
-        failure.assertHasCause('Exceeded maximum number of priority 2 violations: (p1=0; p2=1; p3=0)')
+        failure.assertThatCause(startsWith('CodeNarc check violations were found in main groovy source. See the report at '))
 
         testFile('build/reports/codenarc/main.html').assertExists()
     }

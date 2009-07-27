@@ -87,10 +87,10 @@ class JavaPluginConvention {
         testResourceDirNames << 'test/resources'
         src = new DefaultSourceDirectorySet(project.fileResolver)
         src.srcDirs { -> srcDirs }
-        allJavaSrc = new CompositeSourceSet(src)
+        allJavaSrc = new CompositeSourceSet('main java source', src)
         testSrc = new DefaultSourceDirectorySet(project.fileResolver)
         testSrc.srcDirs {-> testSrcDirs }
-        allJavaTestSrc = new CompositeSourceSet(testSrc)
+        allJavaTestSrc = new CompositeSourceSet('test java source', testSrc)
     }
 
     File mkdir(File parent = null, String name) {

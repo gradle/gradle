@@ -33,16 +33,21 @@ public class CompositeSourceSetTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final SourceSet set1 = context.mock(SourceSet.class, "set1");
     private final SourceSet set2 = context.mock(SourceSet.class, "set2");
-    private final CompositeSourceSet set = new CompositeSourceSet(set1, set2);
+    private final CompositeSourceSet set = new CompositeSourceSet("<display name>", set1, set2);
+
+    @Test
+    public void usesDisplayNameAsToString() {
+        assertThat(set.toString(), equalTo("<display name>"));
+    }
 
     @Test
     public void stopActionThrowsExceptionWhenSetIsEmpty() {
-        CompositeSourceSet set = new CompositeSourceSet();
+        CompositeSourceSet set = new CompositeSourceSet("<display name>");
         try {
             set.stopActionIfEmpty();
             fail();
         } catch (StopActionException e) {
-            assertThat(e.getMessage(), equalTo("No source files to operate on."));
+            assertThat(e.getMessage(), equalTo("No source files found in <display name>."));
         }
     }
 
@@ -59,7 +64,7 @@ public class CompositeSourceSetTest {
             set.stopActionIfEmpty();
             fail();
         } catch (StopActionException e) {
-            assertThat(e.getMessage(), equalTo("No source files to operate on."));
+            assertThat(e.getMessage(), equalTo("No source files found in <display name>."));
         }
     }
 

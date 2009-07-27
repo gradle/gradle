@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.CompressUtil;
 import static org.junit.Assert.*;
+import org.hamcrest.Matcher;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,6 +80,7 @@ public class TestFile extends File {
     }
 
     public String getText() {
+        assertIsFile();
         try {
             return FileUtils.readFileToString(this);
         } catch (IOException e) {
@@ -123,8 +125,16 @@ public class TestFile extends File {
         assertTrue(String.format("%s does not exist", this), exists());
     }
 
+    public void assertIsFile() {
+        assertTrue(String.format("%s is not a file", this), isFile());
+    }
+
     public void assertDoesNotExist() {
         assertFalse(String.format("%s should not exist", this), exists());
+    }
+
+    public void assertContents(Matcher<String> matcher) {
+        assertThat(getText(), matcher);
     }
 
     /**

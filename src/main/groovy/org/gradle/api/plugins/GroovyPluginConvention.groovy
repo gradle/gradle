@@ -57,13 +57,13 @@ class GroovyPluginConvention {
 
         groovySrc = new DefaultSourceDirectorySet(project.fileResolver)
         groovySrc.srcDirs {-> groovySrcDirs}
-        allGroovySrc = new CompositeSourceSet()
+        allGroovySrc = new CompositeSourceSet('main groovy source')
         allGroovySrc.add(groovySrc.matching {include '**/*.groovy'})
         javaConvention.allJavaSrc.add(groovySrc.matching {include '**/*.java'})
 
         groovyTestSrc = new DefaultSourceDirectorySet(project.fileResolver)
         groovyTestSrc.srcDirs {-> groovyTestSrcDirs}
-        allGroovyTestSrc = new CompositeSourceSet()
+        allGroovyTestSrc = new CompositeSourceSet('test groovy source')
         allGroovyTestSrc.add(groovyTestSrc.matching {include '**/*.groovy'})
         javaConvention.allJavaTestSrc.add(groovyTestSrc.matching {include '**/*.java'})
     }
