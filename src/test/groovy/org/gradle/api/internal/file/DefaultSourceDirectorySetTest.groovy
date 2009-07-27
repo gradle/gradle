@@ -191,7 +191,7 @@ public static class FileListTask extends Task {
         Iterator<Resource> iterator = fileset.iterator()
         while (iterator.hasNext()) {
             Resource resource = iterator.next()
-            filenames.add(resource.getName())
+            filenames.add(resource.getName().replace(File.separator, '/'))
         }
     }
 }
