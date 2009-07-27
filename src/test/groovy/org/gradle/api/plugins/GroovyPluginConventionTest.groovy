@@ -19,28 +19,24 @@ package org.gradle.api.plugins
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*;
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Test
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.HelperUtil
+import org.gradle.api.file.SourceDirectorySet;
 
 /**
  * @author Hans Dockter
  */
-class GroovyPluginConventionTest extends AbstractPluginConventionTest {
+class GroovyPluginConventionTest {
+    private DefaultProject project = HelperUtil.createRootProject()
+    private File testDir = project.projectDir
     private GroovyPluginConvention groovyConvention
     private JavaPluginConvention javaConvention
 
-    Class getType() {
-        GroovyPluginConvention
-    }
-
-    Map getCustomValues() {
-        [groovySrcDirNames: ['newSourceRootName']]
-    }
-
     @Before public void setUp()  {
-        super.setUp()
-        javaConvention = new JavaPluginConvention(project, [:])
+        javaConvention = new JavaPluginConvention(project)
         project.convention.plugins.java = javaConvention
-        groovyConvention = new GroovyPluginConvention(project, [:])
+        groovyConvention = new GroovyPluginConvention(project)
     }
 
     @Test public void testGroovyConvention() {
@@ -60,6 +56,20 @@ class GroovyPluginConventionTest extends AbstractPluginConventionTest {
         checkGroovyDirs(project.srcRootName)
     }
 
+    @Test public void testSourceSetsReflectChangesToSourceDirs() {
+        SourceDirectorySet src = groovyConvention.groovySrc
+        assertThat(src.srcDirs, equalTo(groovyConvention.groovySrcDirs as Set))
+        groovyConvention.groovySrcDirNames << 'another'
+        assertThat(src.srcDirs, equalTo(groovyConvention.groovySrcDirs as Set))
+    }
+
+    @Test public void testTestSourceSetsReflectChangesToTestSourceDirs() {
+        SourceDirectorySet src = groovyConvention.groovyTestSrc
+        assertThat(src.srcDirs, equalTo(groovyConvention.groovyTestSrcDirs as Set))
+        groovyConvention.groovyTestSrcDirNames << 'another'
+        assertThat(src.srcDirs, equalTo(groovyConvention.groovyTestSrcDirs as Set))
+    }
+    
     @Test public void testGroovyDocDirUsesJavaConventionToDetermineDocsDir() {
         assertThat(groovyConvention.groovydocDir, equalTo(new File(javaConvention.docsDir, "groovydoc")))
 

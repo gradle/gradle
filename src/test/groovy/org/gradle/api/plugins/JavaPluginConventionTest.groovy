@@ -17,7 +17,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.plugins.AbstractPluginConventionTest
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.ReportingBasePluginConvention
 import org.junit.Before
@@ -25,25 +24,21 @@ import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.HelperUtil
+import org.gradle.api.file.SourceDirectorySet
 
 /**
  * @author Hans Dockter
  */
-class JavaPluginConventionTest extends AbstractPluginConventionTest {
+class JavaPluginConventionTest {
+    private DefaultProject project = HelperUtil.createRootProject()
+    private File testDir = project.projectDir
     private JavaPluginConvention convention
 
-    Class getType() {
-        JavaPluginConvention
-    }
-
-    Map getCustomValues() {
-        [srcRootName: 'newSourceRootName']
-    }
-
     @Before public void setUp() {
-        super.setUp()
         project.convention.plugins.reportingBase = new ReportingBasePluginConvention(project)
-        convention = new JavaPluginConvention(project, [:])
+        convention = new JavaPluginConvention(project)
     }
 
     @Test public void defaultValues() {
@@ -94,6 +89,20 @@ class JavaPluginConventionTest extends AbstractPluginConventionTest {
         assertEquals(new File(convention.docsDir, convention.javadocDirName), convention.javadocDir)
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
+    }
+
+    @Test public void testSourceSetsReflectChangesToSourceDirs() {
+        SourceDirectorySet src = convention.src
+        assertThat(src.srcDirs, equalTo(convention.srcDirs as Set))
+        convention.srcDirNames << 'another'
+        assertThat(src.srcDirs, equalTo(convention.srcDirs as Set))
+    }
+    
+    @Test public void testTestSourceSetsReflectChangesToTestSourceDirs() {
+        SourceDirectorySet src = convention.testSrc
+        assertThat(src.srcDirs, equalTo(convention.testSrcDirs as Set))
+        convention.testSrcDirNames << 'another'
+        assertThat(src.srcDirs, equalTo(convention.testSrcDirs as Set))
     }
 
     @Test public void testTestReportDirIsCalculatedRelativeToReportsDir() {

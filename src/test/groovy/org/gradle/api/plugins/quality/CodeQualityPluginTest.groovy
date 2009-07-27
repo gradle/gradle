@@ -46,14 +46,14 @@ class CodeQualityPluginTest {
 
         def task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.srcDirs, equalTo(project.srcDirs))
+        assertThat(task.source, equalTo(project.allJavaSrc))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.checkstyleResultFile))
         assertDependsOn(task)
 
         task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TESTS_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.srcDirs, equalTo(project.testSrcDirs))
+        assertThat(task.source, equalTo(project.allJavaTestSrc))
         assertThat(task.configFile, equalTo(project.checkstyleTestConfigFile))
         assertThat(task.resultFile, equalTo(project.checkstyleTestResultFile))
         assertDependsOn(task)
@@ -88,14 +88,14 @@ class CodeQualityPluginTest {
 
         def task = project.tasks[CodeQualityPlugin.CODE_NARC_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.srcDirs, equalTo(project.groovySrcDirs))
+        assertThat(task.source, equalTo(project.allGroovySrc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, equalTo(project.codeNarcReportFile))
         assertDependsOn(task)
 
         task = project.tasks[CodeQualityPlugin.CODE_NARC_TESTS_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.srcDirs, equalTo(project.groovyTestSrcDirs))
+        assertThat(task.source, equalTo(project.allGroovyTestSrc))
         assertThat(task.configFile, equalTo(project.codeNarcTestConfigFile))
         assertThat(task.reportFile, equalTo(project.codeNarcTestReportFile))
         assertDependsOn(task)

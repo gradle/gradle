@@ -79,9 +79,9 @@ public class CodeQualityPlugin implements Plugin {
 
         project.getTasks().withType(Checkstyle.class).allTasks(new Action<Checkstyle>() {
             public void execute(Checkstyle checkstyle) {
-                checkstyle.conventionMapping("srcDirs", new ConventionValue() {
+                checkstyle.conventionMapping("source", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getSrcDirs();
+                        return convention.getPlugin(JavaPluginConvention.class).getAllJavaSrc();
                     }
                 });
                 checkstyle.conventionMapping("configFile", new ConventionValue() {
@@ -102,9 +102,9 @@ public class CodeQualityPlugin implements Plugin {
 
         checkstyle = project.getTasks().add(CHECKSTYLE_TESTS_TASK, Checkstyle.class);
         checkstyle.setDescription("Runs Checkstyle against the Java test source code.");
-        checkstyle.conventionMapping("srcDirs", new ConventionValue() {
+        checkstyle.conventionMapping("source", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return convention.getPlugin(JavaPluginConvention.class).getTestSrcDirs();
+                return convention.getPlugin(JavaPluginConvention.class).getAllJavaTestSrc();
             }
         });
         checkstyle.conventionMapping("configFile", new ConventionValue() {
@@ -124,9 +124,9 @@ public class CodeQualityPlugin implements Plugin {
 
         project.getTasks().withType(CodeNarc.class).allTasks(new Action<CodeNarc>() {
             public void execute(CodeNarc codeNarc) {
-                codeNarc.conventionMapping("srcDirs", new ConventionValue() {
+                codeNarc.conventionMapping("source", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(GroovyPluginConvention.class).getGroovySrcDirs();
+                        return convention.getPlugin(GroovyPluginConvention.class).getAllGroovySrc();
                     }
                 });
                 codeNarc.conventionMapping("configFile", new ConventionValue() {
@@ -147,9 +147,9 @@ public class CodeQualityPlugin implements Plugin {
 
         codeNarc = project.getTasks().add(CODE_NARC_TESTS_TASK, CodeNarc.class);
         codeNarc.setDescription("Runs CodeNarc against the Groovy test source code.");
-        codeNarc.conventionMapping("srcDirs", new ConventionValue() {
+        codeNarc.conventionMapping("source", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return convention.getPlugin(GroovyPluginConvention.class).getGroovyTestSrcDirs();
+                return convention.getPlugin(GroovyPluginConvention.class).getAllGroovyTestSrc();
             }
         });
         codeNarc.conventionMapping("configFile", new ConventionValue() {

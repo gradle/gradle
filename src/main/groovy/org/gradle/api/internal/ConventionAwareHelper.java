@@ -53,7 +53,7 @@ public class ConventionAwareHelper {
         while (keySetIterator.hasNext()) {
             String propertyName = (String) keySetIterator.next();
             if (!ReflectionUtil.hasProperty(source, propertyName)) {
-                throw new InvalidUserDataException("You can't map a property that does not exists: propertyName= " + propertyName);
+                throw new InvalidUserDataException("You can't map a property that does not exist: propertyName= " + propertyName);
             }
         }
         this.conventionMapping.putAll(mapping);

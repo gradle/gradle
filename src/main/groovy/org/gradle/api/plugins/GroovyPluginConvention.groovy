@@ -17,7 +17,10 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.PluginUtil
+
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.file.CompositeSourceSet
+import org.gradle.api.internal.file.DefaultSourceDirectorySet
 
 /**
  * @author Hans Dockter
@@ -29,13 +32,40 @@ class GroovyPluginConvention {
     List floatingGroovySrcDirs = []
     List floatingGroovyTestSrcDirs = []
     String groovydocDirName
+    /**
+     * All groovy/java source to be compiled for this project.
+     */
+    SourceDirectorySet groovySrc
+    /**
+     * All groovy/java test source to be compiled for this project.
+     */
+    SourceDirectorySet groovyTestSrc
+    /**
+     * All groovy source for this project.
+     */
+    CompositeSourceSet allGroovySrc
+    /**
+     * All groovy test source for this project.
+     */
+    CompositeSourceSet allGroovyTestSrc
 
-    GroovyPluginConvention(Project project, Map customValues) {
+    GroovyPluginConvention(Project project) {
         this.project = project
         groovySrcDirNames << 'main/groovy'
         groovyTestSrcDirNames << 'test/groovy'
         groovydocDirName = 'groovydoc'
-        PluginUtil.applyCustomValues(project.convention, this, customValues)
+
+        groovySrc = new DefaultSourceDirectorySet(project.fileResolver)
+        groovySrc.srcDirs {-> groovySrcDirs}
+        allGroovySrc = new CompositeSourceSet()
+        allGroovySrc.add(groovySrc.matching {include '**/*.groovy'})
+        javaConvention.allJavaSrc.add(groovySrc.matching {include '**/*.java'})
+
+        groovyTestSrc = new DefaultSourceDirectorySet(project.fileResolver)
+        groovyTestSrc.srcDirs {-> groovyTestSrcDirs}
+        allGroovyTestSrc = new CompositeSourceSet()
+        allGroovyTestSrc.add(groovyTestSrc.matching {include '**/*.groovy'})
+        javaConvention.allJavaTestSrc.add(groovyTestSrc.matching {include '**/*.java'})
     }
 
     List getGroovySrcDirs() {

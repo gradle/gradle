@@ -16,33 +16,22 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.plugins.AbstractPluginConventionTest
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.plugins.ReportingBasePluginConvention
-import org.junit.Assert
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.assertEquals
-import org.gradle.api.JavaVersion
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
  */
-class BasePluginConventionTest extends AbstractPluginConventionTest {
+class BasePluginConventionTest {
+    private DefaultProject project = HelperUtil.createRootProject()
+    private File testDir = project.projectDir
     private BasePluginConvention convention
 
-    Class getType() {
-        BasePluginConvention
-    }
-
-    Map getCustomValues() {
-        [distsDirName: 'distributions']
-    }
-
     @Before public void setUp() {
-        super.setUp()
-        convention = new BasePluginConvention(project, [:])
+        convention = new BasePluginConvention(project)
     }
 
     @Test public void defaultValues() {

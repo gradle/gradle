@@ -43,7 +43,7 @@ public class GroovyPlugin implements Plugin {
 
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         JavaPlugin javaPlugin = projectPluginsHandler.usePlugin(JavaPlugin.class, project);
-        GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project, Collections.emptyMap());
+        GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project);
         project.getConvention().getPlugins().put("groovy", groovyPluginConvention);
 
         Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).

@@ -6,6 +6,7 @@ import org.gradle.api.artifacts.dsl.*
 import org.gradle.api.artifacts.specs.*
 import org.gradle.api.dependencies.*
 import org.gradle.api.execution.*
+import org.gradle.api.file.*
 import org.gradle.api.logging.*
 import org.gradle.api.initialization.*
 import org.gradle.api.invocation.*

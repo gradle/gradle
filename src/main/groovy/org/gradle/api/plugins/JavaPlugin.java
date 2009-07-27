@@ -72,7 +72,7 @@ public class JavaPlugin implements Plugin {
         projectPluginsHandler.usePlugin(BasePlugin.class, project);
         projectPluginsHandler.usePlugin(ReportingBasePlugin.class, project);
 
-        JavaPluginConvention javaConvention = new JavaPluginConvention(project, Collections.emptyMap());
+        JavaPluginConvention javaConvention = new JavaPluginConvention(project);
         Convention convention = project.getConvention();
         convention.getPlugins().put("java", javaConvention);
 

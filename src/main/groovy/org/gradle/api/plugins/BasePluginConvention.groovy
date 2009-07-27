@@ -16,7 +16,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.PluginUtil
 
 public class BasePluginConvention {
     Project project
@@ -25,12 +24,11 @@ public class BasePluginConvention {
     String libsDirName
     String archivesBaseName
 
-    BasePluginConvention(Project project, Map customValues) {
+    BasePluginConvention(Project project) {
         this.project = project
         archivesBaseName = project.name
         distsDirName = 'distributions'
         libsDirName = 'libs'
-        PluginUtil.applyCustomValues(project.convention, this, customValues)
     }
 
     File getDistsDir() {

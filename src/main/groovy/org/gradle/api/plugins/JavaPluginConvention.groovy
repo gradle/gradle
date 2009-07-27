@@ -18,7 +18,9 @@ package org.gradle.api.plugins
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.PluginUtil
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.file.CompositeSourceSet
+import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.tasks.bundling.GradleManifest
 
 /**
@@ -44,13 +46,31 @@ class JavaPluginConvention {
     List floatingTestSrcDirs = []
     List floatingResourceDirs = []
     List floatingTestResourceDirs = []
+    /**
+     * All java source to be compiled for this project.
+     */
+    SourceDirectorySet src
+    /**
+     * All java test source to be compiled for this project.
+     */
+    SourceDirectorySet testSrc
+    /**
+     * All java source for this project. This includes, for example, source which is directly compiled, and source which
+     * is indirectly compiled through joint compilation.
+     */
+    CompositeSourceSet allJavaSrc
+    /**
+     * All java test source for this project. This includes, for example, source which is directly compiled, and source which
+     * is indirectly compiled through joint compilation.
+     */
+    CompositeSourceSet allJavaTestSrc
 
     private JavaVersion srcCompat
     private JavaVersion targetCompat
     GradleManifest manifest
     List metaInf
 
-    JavaPluginConvention(Project project, Map customValues) {
+    JavaPluginConvention(Project project) {
         this.project = project
         manifest = new GradleManifest()
         metaInf = []
@@ -65,7 +85,12 @@ class JavaPluginConvention {
         resourceDirNames << 'main/resources'
         testSrcDirNames << 'test/java'
         testResourceDirNames << 'test/resources'
-        PluginUtil.applyCustomValues(project.convention, this, customValues)
+        src = new DefaultSourceDirectorySet(project.fileResolver)
+        src.srcDirs { -> srcDirs }
+        allJavaSrc = new CompositeSourceSet(src)
+        testSrc = new DefaultSourceDirectorySet(project.fileResolver)
+        testSrc.srcDirs {-> testSrcDirs }
+        allJavaTestSrc = new CompositeSourceSet(testSrc)
     }
 
     File mkdir(File parent = null, String name) {

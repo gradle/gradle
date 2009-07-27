@@ -33,14 +33,6 @@ class GradleUtil {
         fileDescriptions.collect { new File(it.toString()) }
     }
 
-    static def configure(Closure configureClosure, def delegate, int resolveStrategy) {
-        if (!configureClosure) { return delegate}
-        configureClosure.resolveStrategy = resolveStrategy
-        configureClosure.delegate = delegate
-        configureClosure.call()
-        delegate
-    }
-
     static void deleteDir(File dir) {
         assert !dir.isFile()
         if (dir.isDirectory()) {new AntBuilder().delete(dir: dir, quiet: true)}

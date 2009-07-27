@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
+import org.gradle.api.file.SourceSet;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
@@ -26,7 +27,7 @@ import java.util.List;
 public class CodeNarc extends ConventionTask {
     private AntCodeNarc antCodeNarc = new AntCodeNarc();
 
-    private List<File> srcDirs;
+    private SourceSet source;
     private File reportFile;
     private File configFile;
 
@@ -36,19 +37,21 @@ public class CodeNarc extends ConventionTask {
 
     @TaskAction
     public void check() {
-        List<File> srcDirs = getSrcDirs();
-        new ExistingDirsFilter().findExistingDirsAndThrowStopActionIfNone(srcDirs);
+        SourceSet source = getSource();
+        source.stopActionIfEmpty();
+
         File reportFile = getReportFile();
         reportFile.getParentFile().mkdirs();
-        antCodeNarc.execute(getAnt(), srcDirs, getConfigFile(), reportFile);
+
+        antCodeNarc.execute(getAnt(), source, getConfigFile(), reportFile);
     }
 
-    public List<File> getSrcDirs() {
-        return srcDirs;
+    public SourceSet getSource() {
+        return source;
     }
 
-    public void setSrcDirs(List<File> srcDirs) {
-        this.srcDirs = srcDirs;
+    public void setSource(SourceSet source) {
+        this.source = source;
     }
 
     public File getConfigFile() {

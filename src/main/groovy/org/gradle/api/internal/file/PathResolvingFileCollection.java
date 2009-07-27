@@ -15,16 +15,13 @@
  */
 package org.gradle.api.internal.file;
 
+import groovy.lang.Closure;
 import org.gradle.api.Project;
-import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
-
-import groovy.lang.Closure;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link Project}.
@@ -35,9 +32,14 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
 
     public PathResolvingFileCollection(FileResolver resolver, Object... files) {
         this.resolver = resolver;
-        this.files = Arrays.asList(files);
+        this.files = new ArrayList<Object>(Arrays.asList(files));
     }
 
+    public PathResolvingFileCollection add(Object file) {
+        files.add(file);
+        return this;
+    }
+    
     public String getDisplayName() {
         return "file collection";
     }

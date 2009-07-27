@@ -28,6 +28,7 @@ import java.lang.*
 import java.util.*
 import org.gradle.api.Transformer
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Steve Appling
@@ -86,9 +87,7 @@ public class CopySpecImpl implements CopySpec {
             CopySpecImpl child = new CopySpecImpl(resolver, this);
             child.from(sourcePaths);
             childSpecs.add(child);
-            c.setDelegate(child);
-            c.setResolveStrategy(Closure.DELEGATE_FIRST);
-            c.call();
+            ConfigureUtil.configure(c, child)
             result = child;
         }
         return result;
@@ -187,9 +186,7 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpec filterChain(Closure c) {
-        c.setDelegate(filterDelegate);
-        c.setResolveStrategy(Closure.DELEGATE_FIRST);
-        c.call();
+        ConfigureUtil.configure(c, filterDelegate)
         return this;
     }
 

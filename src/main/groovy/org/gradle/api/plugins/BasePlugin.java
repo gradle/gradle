@@ -35,7 +35,7 @@ public class BasePlugin implements Plugin {
     public static final String CLEAN_TASK_NAME = "clean";
 
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-        project.getConvention().getPlugins().put("base", new BasePluginConvention(project, new HashMap()));
+        project.getConvention().getPlugins().put("base", new BasePluginConvention(project));
 
         configureBuildConfigurationRule(project);
         configureUploadRules(project);

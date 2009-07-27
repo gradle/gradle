@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.SourceSet;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
@@ -25,7 +26,7 @@ import java.io.File;
 import java.util.List;
 
 public class Checkstyle extends ConventionTask {
-    private List<File> srcDirs;
+    private SourceSet source;
 
     private File configFile;
 
@@ -41,10 +42,13 @@ public class Checkstyle extends ConventionTask {
 
     @TaskAction
     public void check() {
-        List<File> existingSrcDirs = new ExistingDirsFilter().findExistingDirsAndThrowStopActionIfNone(getSrcDirs());
+        SourceSet sourceSet = getSource();
+        sourceSet.stopActionIfEmpty();
+
         File resultFile = getResultFile();
         resultFile.getParentFile().mkdirs();
-        antCheckstyle.checkstyle(getAnt(), existingSrcDirs, getConfigFile(), resultFile, getClasspath());
+
+        antCheckstyle.checkstyle(getAnt(), sourceSet, getConfigFile(), resultFile, getClasspath());
     }
 
     public File getConfigFile() {
@@ -63,12 +67,12 @@ public class Checkstyle extends ConventionTask {
         this.resultFile = resultFile;
     }
 
-    public List<File> getSrcDirs() {
-        return srcDirs;
+    public SourceSet getSource() {
+        return source;
     }
 
-    public void setSrcDirs(List<File> srcDirs) {
-        this.srcDirs = srcDirs;
+    public void setSource(SourceSet source) {
+        this.source = source;
     }
 
     public FileCollection getClasspath() {
