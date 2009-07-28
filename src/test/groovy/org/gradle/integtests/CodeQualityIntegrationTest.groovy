@@ -3,6 +3,7 @@ package org.gradle.integtests
 import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
+import org.hamcrest.Matcher
 
 class CodeQualityIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -27,8 +28,8 @@ usePlugin 'code-quality'
 
         inTestDirectory().withTasks('check').run()
 
-        testFile('build/checkstyle/main.xml').assertContents(containsLine(containsString('org/gradle/Class1.java')))
-        testFile('build/checkstyle/test.xml').assertContents(containsLine(containsString('org/gradle/TestClass1.java')))
+        testFile('build/checkstyle/main.xml').assertContents(containsClass('org.gradle.Class1'))
+        testFile('build/checkstyle/test.xml').assertContents(containsClass('org.gradle.TestClass1'))
     }
 
     @Test
@@ -44,8 +45,12 @@ usePlugin 'code-quality'
 
         inTestDirectory().withTasks('check').run()
 
-        testFile('build/checkstyle/main.xml').assertContents(containsLine(containsString('org/gradle/Class1.java')))
-        testFile('build/checkstyle/test.xml').assertContents(containsLine(containsString('org/gradle/TestClass1.java')))
+        testFile('build/checkstyle/main.xml').assertContents(containsClass('org.gradle.Class1'))
+        testFile('build/checkstyle/test.xml').assertContents(containsClass('org.gradle.TestClass1'))
+    }
+
+    private Matcher<String> containsClass(String classname) {
+        return containsLine(containsString(classname.replace('.', File.separator) + '.java'))
     }
 
     @Test
