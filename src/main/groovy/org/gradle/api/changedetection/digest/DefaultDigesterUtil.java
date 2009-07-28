@@ -2,8 +2,6 @@ package org.gradle.api.changedetection.digest;
 
 import java.security.MessageDigest;
 import java.io.File;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Tom Eyckmans

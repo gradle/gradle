@@ -19,8 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
-import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.apache.ivy.plugins.resolver.*

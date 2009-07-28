@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.junit.Assert
 import org.junit.Test
 import static org.junit.Assert.assertEquals
 

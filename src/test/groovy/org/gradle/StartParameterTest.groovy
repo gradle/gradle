@@ -16,9 +16,6 @@
 
 package org.gradle
 
-import org.gradle.CacheUsage
-import org.gradle.Main
-import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.ProjectDefaultsBuildExecuter
@@ -36,7 +33,6 @@ import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.groovy.scripts.StrictScriptSource
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 
 

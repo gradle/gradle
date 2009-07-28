@@ -16,14 +16,12 @@
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.HelperUtil;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 
 import java.util.HashMap;

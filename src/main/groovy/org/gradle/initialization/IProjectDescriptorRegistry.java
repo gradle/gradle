@@ -15,10 +15,7 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.IProjectRegistry;
-
-import java.io.File;
 
 /**
  * @author Hans Dockter

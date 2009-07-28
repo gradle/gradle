@@ -18,8 +18,6 @@ package org.gradle.util
 
 import org.apache.commons.io.FilenameUtils
 import org.apache.tools.ant.BuildListener
-import org.gradle.util.BootstrapUtil
-import org.gradle.util.ClasspathUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

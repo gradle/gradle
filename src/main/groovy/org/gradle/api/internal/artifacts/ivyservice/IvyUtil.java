@@ -20,12 +20,9 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ClientModule;
-import org.gradle.util.WrapUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Hans Dockter

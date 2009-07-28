@@ -20,10 +20,6 @@ import groovy.mock.interceptor.MockFor
 import org.gradle.api.GradleScriptException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.api.tasks.bundling.AntArchiveParameter
-import org.gradle.api.tasks.bundling.AntMetaArchiveParameter
-import org.gradle.api.tasks.bundling.ArchiveDetector
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.ZipFileSet

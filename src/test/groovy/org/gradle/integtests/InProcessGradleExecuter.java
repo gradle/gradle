@@ -19,7 +19,6 @@ import org.gradle.StartParameter;
 import org.gradle.Gradle;
 import org.gradle.BuildResult;
 import org.gradle.BuildListener;
-import org.gradle.util.Matchers;
 import static org.gradle.util.Matchers.*;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.api.Task;

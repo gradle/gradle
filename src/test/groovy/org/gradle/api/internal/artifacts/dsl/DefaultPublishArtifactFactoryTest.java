@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import org.jmock.integration.junit4.JUnit4Mockery;

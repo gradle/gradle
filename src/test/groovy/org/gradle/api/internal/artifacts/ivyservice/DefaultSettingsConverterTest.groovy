@@ -21,11 +21,8 @@ import org.apache.ivy.core.settings.IvySettings
 import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.gradle.api.artifacts.ResolverContainer
-import org.gradle.api.internal.artifacts.ivyservice.ClientModuleResolver
-import org.gradle.api.internal.artifacts.ivyservice.DefaultSettingsConverter
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.assertEquals

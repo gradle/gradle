@@ -15,8 +15,6 @@
  */
 package org.gradle.api;
 
-import java.io.IOException;
-
 /**
  * <code>UncheckedIOException</code> is used to wrap an
  * java.io.IOException into an unchecked exception.

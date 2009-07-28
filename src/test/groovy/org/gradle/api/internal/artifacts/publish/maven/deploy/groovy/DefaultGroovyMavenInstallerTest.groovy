@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.maven.GroovyPomFilterContainer
 import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstallerTest
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenInstaller
-import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

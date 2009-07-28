@@ -5,12 +5,10 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
 import org.junit.Before;
 import org.junit.Test;
-import org.gradle.external.javadoc.JavadocOfflineLink;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 
 /**
  * @author Melanie Pfautz

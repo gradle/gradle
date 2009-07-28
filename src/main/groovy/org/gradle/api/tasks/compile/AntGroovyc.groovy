@@ -17,8 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.codehaus.groovy.ant.Groovyc
-import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.api.tasks.compile.GroovyCompileOptions
 import org.gradle.api.tasks.util.AntTaskAccess
 import org.gradle.util.BootstrapUtil
 import org.gradle.util.GradleUtil

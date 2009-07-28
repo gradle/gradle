@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleDependencyFactory;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;

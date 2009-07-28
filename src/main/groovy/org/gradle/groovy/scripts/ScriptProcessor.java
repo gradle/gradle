@@ -15,8 +15,6 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.codehaus.groovy.control.CompilationUnit;
-
 /**
  * Compiles a script into an executable {@code Script} object.
  */

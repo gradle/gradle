@@ -22,7 +22,6 @@ import java.io.LineNumberReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 import org.mortbay.jetty.Server;
 import org.slf4j.Logger;

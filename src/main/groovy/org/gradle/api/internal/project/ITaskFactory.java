@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.TaskAction;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 

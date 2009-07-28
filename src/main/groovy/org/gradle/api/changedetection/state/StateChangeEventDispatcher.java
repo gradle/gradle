@@ -1,7 +1,6 @@
 package org.gradle.api.changedetection.state;
 
 import org.gradle.util.queues.AbstractBlockingQueueItemConsumer;
-import org.gradle.api.changedetection.state.StateFileItem;
 import org.gradle.api.changedetection.ChangeProcessor;
 
 import java.util.concurrent.BlockingQueue;

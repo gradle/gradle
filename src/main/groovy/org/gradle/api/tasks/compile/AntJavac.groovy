@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.apache.tools.ant.taskdefs.Javac
-import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.util.AntTaskAccess
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

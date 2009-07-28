@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
@@ -45,12 +44,13 @@ import java.util.Set;
  *
  * <ul>
  *
- * <li>Create a {@link Settings} instance for the build.</li>
+ * <li>Create a {@link org.gradle.api.initialization.Settings} instance for the build.</li>
  *
  * <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code> script, if
- * present, against the {@link Settings} object to configure it.</li>
+ * present, against the {@link org.gradle.api.initialization.Settings} object to configure it.</li>
  *
- * <li>Use the configured {@link Settings} object to create the hierarchy of <code>Project</code> instances.</li>
+ * <li>Use the configured {@link org.gradle.api.initialization.Settings} object to create the hierarchy of
+ * <code>Project</code> instances.</li>
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
  * present, against the project. The project are evaulated in breadth-wise order, such that a project is evaulated
@@ -645,9 +645,9 @@ public interface Project extends Comparable<Project> {
     File getProjectDir();
 
     /**
-     * <p>Resolves a file path relative to the project directory of this project.</p>
-     * <p>path.toString will be used to get a string path.  If this string can be interpreted
-     * as a relative path, the project directory will be used as a base directory.</p>
+     * <p>Resolves a file path relative to the project directory of this project.</p> <p>path.toString will be used to
+     * get a string path.  If this string can be interpreted as a relative path, the project directory will be used as a
+     * base directory.</p>
      *
      * @param path An object who's toString method value is interpreted as a path to a file.
      * @return The resolved file. Never returns null.
@@ -685,8 +685,8 @@ public interface Project extends Comparable<Project> {
      *
      * <li>A {@code Collection}. Flattened and recursively converted to files.</li>
      *
-     * <li>A {@link FileCollection}. The result of its {@link org.gradle.api.file.FileCollection#getFiles()} is included in the returned
-     * collection.</li>
+     * <li>A {@link FileCollection}. The result of its {@link org.gradle.api.file.FileCollection#getFiles()} is included
+     * in the returned collection.</li>
      *
      * <li>A Closure. Should return an {@code Object} or {@code Collection}, which are then converted to files.</li>
      *

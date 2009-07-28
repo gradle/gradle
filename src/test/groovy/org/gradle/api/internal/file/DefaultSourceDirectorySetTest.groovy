@@ -15,11 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import groovy.util.AntBuilder
-import java.io.File
-import java.util.HashSet
-import java.util.Iterator
-import java.util.Set
 import org.apache.tools.ant.Task
 import org.apache.tools.ant.types.FileSet
 import org.apache.tools.ant.types.Resource

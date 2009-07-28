@@ -21,9 +21,6 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.WarPlugin
-import org.gradle.api.plugins.WarPluginConvention
 import org.gradle.api.tasks.bundling.War
 import org.gradle.util.HelperUtil
 import org.junit.Test

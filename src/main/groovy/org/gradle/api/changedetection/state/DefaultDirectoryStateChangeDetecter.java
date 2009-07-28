@@ -4,7 +4,6 @@ import org.gradle.api.changedetection.digest.*;
 import org.gradle.api.changedetection.ChangeProcessor;
 import org.gradle.api.GradleException;
 import org.gradle.api.io.IoFactory;
-import org.gradle.api.io.DefaultIoFactory;
 import org.gradle.util.ThreadUtils;
 import org.gradle.util.Clock;
 import org.gradle.util.queues.BlockingQueueItemProducer;

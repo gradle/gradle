@@ -16,11 +16,8 @@
 package org.gradle.initialization;
 
 import org.junit.Test;
-import org.junit.Assert;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertNull;import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.*;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 
 import java.io.File;

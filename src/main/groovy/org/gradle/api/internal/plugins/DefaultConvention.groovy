@@ -16,8 +16,6 @@
  
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.internal.plugins.AbstractConvention
-
 /**
  * @author Hans Dockter
  */

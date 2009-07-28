@@ -21,8 +21,6 @@ import groovy.util.AntBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.StopActionException;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.slf4j.Logger;
 
@@ -61,9 +59,9 @@ import java.util.Set;
  *
  * There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
  * build. A task action can abort execution of the action and continue to the next action of the task by throwing a
- * {@link StopActionException}. A task action can abort execution of the task and continue to the next task by throwing
- * a {@link StopExecutionException}. Using these exceptions allows you to have precondition actions which skip execution
- * of the task, or part of the task, if not true.</p>
+ * {@link org.gradle.api.tasks.StopActionException}. A task action can abort execution of the task and continue to the
+ * next task by throwing a {@link org.gradle.api.tasks.StopExecutionException}. Using these exceptions allows you to
+ * have precondition actions which skip execution of the task, or part of the task, if not true.</p>
  *
  * <a name="dependencies"/><h3>Dependencies</h3>
  *
@@ -195,42 +193,38 @@ public interface Task extends Comparable<Task> {
     Task dependsOn(Object... paths);
 
     /**
-     * <p>Execute the task only if the closure returns true.  The closure will be evaluated at the
-     * task execution time, not during configuration.  The closure will be passed a single parameter,
-     * this task.  The closure will be coerced to a {@link org.gradle.api.specs.Spec} of type {@link Task}.
-     * </p>
-     * <p>If the closure returns false, the task will not execute, but will log a message of
-     * 'SKIPPED as onlyIf is false'.</p>
-     * <p>Typical usage:</p>
-     * <code>myTask.onlyIf{ dependsOnTaskDidWork() }
-     * </code>
-     * @see #getDidWork()
+     * <p>Execute the task only if the closure returns true.  The closure will be evaluated at the task execution time,
+     * not during configuration.  The closure will be passed a single parameter, this task.  The closure will be coerced
+     * to a {@link org.gradle.api.specs.Spec} of type {@link Task}. </p> <p>If the closure returns false, the task will
+     * not execute, but will log a message of 'SKIPPED as onlyIf is false'.</p> <p>Typical usage:</p>
+     * <code>myTask.onlyIf{ dependsOnTaskDidWork() } </code>
+     *
      * @param onlyIfClosure code to execute to determine if task should be run
+     * @see #getDidWork()
      */
     void onlyIf(Closure onlyIfClosure);
 
     /**
-     * <p>Execute the task only if the spec is satisfied.
-     * The spec will be evaluated at task execution time, not during configuration.
-     * </p>
-     * <p>If the Spec is not satisfied, the task will not execute, but will log a message of
-     * 'SKIPPED as onlyIf is false'.</p>
-     * <p>Typical usage (from Java):</p>
+     * <p>Execute the task only if the spec is satisfied. The spec will be evaluated at task execution time, not during
+     * configuration. </p> <p>If the Spec is not satisfied, the task will not execute, but will log a message of
+     * 'SKIPPED as onlyIf is false'.</p> <p>Typical usage (from Java):</p>
      * <pre>myTask.onlyIf(new Spec<Task>() {
      *    boolean isSatisfiedBy(Task task) {
      *       return task.dependsOnTaskDidWork();
      *    }
      * });
      * </pre>
-     * @see #getDidWork()
+     *
      * @param onlyIfSpec specifies if a task should be run
+     * @see #getDidWork()
      */
     void onlyIf(Spec<? super Task> onlyIfSpec);
 
     /**
-     * <p>Checks if the task actually did any work.  Even if a Task executes, it may determine that it has nothing
-     * to do.  For example, the Compile task may determine that source files have not changed since the last
-     * time a the task was run.</p>
+     * <p>Checks if the task actually did any work.  Even if a Task executes, it may determine that it has nothing to
+     * do.  For example, the Compile task may determine that source files have not changed since the last time a the
+     * task was run.</p>
+     *
      * @return true if this task did any work
      */
     boolean getDidWork();
@@ -446,9 +440,10 @@ public interface Task extends Comparable<Task> {
     void setDescription(String description);
 
     /**
-    * <p>Checks if any of the tasks that this task depends on {@link Task#getDidWork() didWork}.</p>
-    * @return true if any task this task depends on did work.
-    */
+     * <p>Checks if any of the tasks that this task depends on {@link Task#getDidWork() didWork}.</p>
+     *
+     * @return true if any task this task depends on did work.
+     */
     boolean dependsOnTaskDidWork();
 }
 

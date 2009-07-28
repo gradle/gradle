@@ -15,11 +15,8 @@
  */
 package org.gradle.integtests;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
 
 @RunWith(DistributionIntegrationTestRunner.class)
 public class DynamicObjectIntegrationTest {

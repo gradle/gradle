@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.IvyService
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider
-import org.gradle.api.internal.artifacts.dsl.DefaultConfigurationHandler
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Test
 import static org.hamcrest.Matchers.*

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;

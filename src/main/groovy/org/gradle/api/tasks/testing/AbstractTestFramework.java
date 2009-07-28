@@ -1,9 +1,6 @@
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Project;
 import org.gradle.api.testing.TestFramework;
-
-import java.util.List;
 
 /**
  * @author Tom Eyckmans

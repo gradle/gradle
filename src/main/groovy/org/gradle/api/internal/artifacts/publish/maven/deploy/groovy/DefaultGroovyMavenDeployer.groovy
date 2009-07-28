@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployer
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.RepositoryBuilder
 
 /**
  * @author Hans Dockter

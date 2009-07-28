@@ -20,10 +20,6 @@ import org.gradle.api.artifacts.maven.GroovyPomFilterContainer
 import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployerTest
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyPomFilterContainerTest
-import org.jmock.integration.junit4.JMock
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

@@ -16,10 +16,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.Rule;
 import org.gradle.api.DomainObjectContainer;
-
-import java.util.List;
 
 /**
  * <p>A {@code PluginContainer} is used to manage a set of {@link org.gradle.api.Plugin} instances.</p>

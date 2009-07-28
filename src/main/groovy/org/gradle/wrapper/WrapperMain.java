@@ -16,8 +16,6 @@
 
 package org.gradle.wrapper;
 
-import java.io.File;
-
 /**
  * @author Hans Dockter
  */

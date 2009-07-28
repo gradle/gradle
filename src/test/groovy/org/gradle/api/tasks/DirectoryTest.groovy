@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.GradleScriptException
 import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
 import org.junit.Before

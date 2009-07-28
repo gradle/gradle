@@ -20,14 +20,10 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.ResolverSettings
 import org.apache.maven.artifact.ant.RemoteRepository
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
-import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.plugins.Convention
 import org.gradle.util.HashUtil

@@ -16,7 +16,6 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 

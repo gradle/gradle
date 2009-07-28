@@ -15,10 +15,8 @@
  */
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
-
 /**
- * Loads scripts from text source into a {@link Script} object.
+ * A factory for processors which compile scripts from text source into a {@link groovy.lang.Script} object.
  *
  * @author Hans Dockter
  */

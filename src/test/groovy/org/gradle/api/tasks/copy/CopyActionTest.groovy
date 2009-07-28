@@ -1,9 +1,6 @@
 package org.gradle.api.tasks.copy
 
-import org.gradle.api.tasks.AbstractTaskTest
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.tasks.copy.*
-import org.gradle.api.plugins.DefaultConventionsToPropertiesMapping;
 import org.junit.runner.RunWith
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
@@ -11,14 +8,9 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.tasks.copy.DirectoryWalker
 import org.gradle.api.internal.tasks.copy.FileVisitor
 import org.gradle.util.HelperUtil;
-import org.jmock.Expectations
-import org.hamcrest.Matchers
 import org.gradle.api.internal.tasks.copy.CopyActionImpl
-import org.gradle.api.tasks.Copy
-import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 
 @RunWith (org.jmock.integration.junit4.JMock)

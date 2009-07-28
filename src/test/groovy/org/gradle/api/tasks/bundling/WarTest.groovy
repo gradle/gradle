@@ -21,20 +21,14 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.specs.DependencyTypeSpec
 import org.gradle.api.artifacts.specs.Type
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
-import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.tasks.bundling.*
 import static org.junit.Assert.assertEquals
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 
 /**

@@ -1,7 +1,5 @@
 package org.gradle.util.exec;
 
-import java.util.List;
-
 /**
  * @author Tom Eyckmans
  */

@@ -16,11 +16,9 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import static org.hamcrest.Matchers.*;

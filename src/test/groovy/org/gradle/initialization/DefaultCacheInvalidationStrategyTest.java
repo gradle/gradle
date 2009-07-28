@@ -23,7 +23,6 @@ import static org.junit.Assert.assertFalse;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
-import org.gradle.CacheUsage;
 
 import java.util.List;
 import java.util.ArrayList;

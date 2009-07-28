@@ -19,7 +19,6 @@ package org.gradle.api.tasks.testing.junit
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.api.tasks.testing.FormatterOptions
 import org.gradle.api.tasks.testing.JunitForkOptions
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest

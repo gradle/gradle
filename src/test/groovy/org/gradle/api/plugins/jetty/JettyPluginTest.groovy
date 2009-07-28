@@ -16,8 +16,6 @@
 package org.gradle.api.plugins.jetty
 
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.DefaultPluginRegistry
-import org.gradle.api.plugins.jetty.JettyPlugin
 import org.gradle.util.HelperUtil
 import org.junit.Test
 import static org.junit.Assert.*
@@ -25,7 +23,6 @@ import static org.hamcrest.Matchers.*
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.util.WrapUtil
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.internal.plugins.DefaultPluginRegistry
 
 public class JettyPluginTest {
     private final Project project = HelperUtil.createRootProject()

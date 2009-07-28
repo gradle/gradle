@@ -3,7 +3,6 @@ package org.gradle.integtests.testng
 import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.GradleDistribution
 import org.gradle.integtests.GradleExecuter
-import org.gradle.integtests.testng.TestNGIntegrationProject
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.integtests.testng.TestNGIntegrationProject.*

@@ -15,9 +15,6 @@
  */
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
-import groovy.lang.ExpandoMetaClass;
-import org.gradle.api.initialization.Settings
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.initialization.Settings

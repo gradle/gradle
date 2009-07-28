@@ -19,7 +19,6 @@ import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * @author Hans Dockter

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.project.TestPlugin1;
 import org.gradle.api.internal.project.TestPlugin2;
 import org.gradle.util.HelperUtil;

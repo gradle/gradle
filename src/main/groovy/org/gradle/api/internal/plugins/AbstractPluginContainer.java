@@ -16,14 +16,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.Action;
-import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.api.internal.DefaultDomainObjectContainer;
-import org.gradle.api.internal.AbstractDomainObjectCollection;
-import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter

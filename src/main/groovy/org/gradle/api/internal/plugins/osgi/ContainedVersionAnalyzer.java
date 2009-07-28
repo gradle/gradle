@@ -5,7 +5,6 @@ import aQute.lib.osgi.Analyzer;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Iterator;
 
 public class ContainedVersionAnalyzer extends Analyzer {
     public Map analyzeBundleClasspath(Jar dot, Map bundleClasspath, Map contained, Map referred, Map uses)

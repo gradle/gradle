@@ -1,8 +1,5 @@
 package org.gradle.api.changedetection.state;
 
-import org.gradle.api.changedetection.state.StateChangeEvent;
-import org.gradle.util.queues.BlockingQueueItemProducer;
-
 import java.io.File;
 
 /**

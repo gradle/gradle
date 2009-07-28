@@ -18,7 +18,6 @@ package org.gradle.api.internal.file;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.file.SourceSet;
-import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
 import java.util.LinkedHashSet;

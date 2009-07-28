@@ -23,14 +23,11 @@ import org.junit.Test;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.GFileUtils;
 import static org.gradle.util.WrapUtil.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.IProjectRegistry;
-import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
-import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.*;
 
 import java.io.File;

@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.GUtil;
 
 /**

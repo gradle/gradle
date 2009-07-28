@@ -20,10 +20,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceSet;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 
 import java.io.File;
-import java.util.List;
 
 public class Checkstyle extends ConventionTask {
     private SourceSet source;

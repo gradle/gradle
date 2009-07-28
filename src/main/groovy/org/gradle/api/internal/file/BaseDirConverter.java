@@ -18,7 +18,6 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GUtil;
 import org.gradle.util.GFileUtils;
 

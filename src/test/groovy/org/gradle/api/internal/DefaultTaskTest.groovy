@@ -17,7 +17,6 @@
 package org.gradle.api.internal
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.util.WrapUtil
 import org.junit.Before

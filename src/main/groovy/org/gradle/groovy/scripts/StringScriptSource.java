@@ -16,7 +16,6 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.Project;
-import org.gradle.util.GUtil;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 

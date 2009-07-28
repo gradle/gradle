@@ -15,14 +15,11 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.BuildInternal;
 
-import java.io.File;
-
 /**
- * Creates a {@link Project} implementation.
+ * Creates a {@link ProjectInternal} implementation.
  *
  * @author Hans Dockter
  */

@@ -17,7 +17,6 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.project.ImportsReader;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;

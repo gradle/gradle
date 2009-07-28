@@ -18,18 +18,13 @@ package org.gradle.groovy.scripts;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.After;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.FileInputStream;
 import java.util.Properties;
 import java.util.Map;
 import java.util.HashMap;

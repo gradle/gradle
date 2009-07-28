@@ -18,9 +18,6 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.BaseSettings
-import org.gradle.initialization.BuildSourceBuilder
-import org.gradle.initialization.IProjectDescriptorRegistry
 
 /**
  * @author Hans Dockter

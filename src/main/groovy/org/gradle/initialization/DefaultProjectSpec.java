@@ -16,9 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.project.IProjectRegistry;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 
 import java.io.File;
 

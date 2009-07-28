@@ -18,7 +18,6 @@ package org.gradle.api.tasks.util
 
 import org.gradle.api.tasks.AntBuilderAware
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileCollection
 
 /**
  * @author Hans Dockter

@@ -21,7 +21,6 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.util.jar.Attributes
-import hidden.org.codehaus.plexus.util.StringOutputStream;
 
 /**
  * @author Hans Dockter

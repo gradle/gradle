@@ -1,7 +1,5 @@
 package org.gradle.api.changedetection.state;
 
-import org.gradle.api.changedetection.state.StateFileItem;
-
 import java.io.File;
 
 /**

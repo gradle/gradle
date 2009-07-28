@@ -22,11 +22,8 @@ import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.invocation.Build
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.initialization.BuildSourceBuilder
-import org.gradle.initialization.CacheInvalidationStrategy
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
 import org.junit.Before

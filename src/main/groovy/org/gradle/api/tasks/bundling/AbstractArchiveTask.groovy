@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.file.DefaultFileCollection
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.AntFileCollectionBuilder
 import org.gradle.api.tasks.util.FileSet

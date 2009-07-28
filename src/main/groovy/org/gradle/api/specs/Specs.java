@@ -15,8 +15,6 @@
  */
 package org.gradle.api.specs;
 
-import org.gradle.api.internal.tasks.copy.RelativePath;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.List;

@@ -55,7 +55,6 @@ import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultBuild
-import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter

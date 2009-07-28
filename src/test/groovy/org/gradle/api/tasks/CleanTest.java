@@ -16,13 +16,8 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.api.tasks.Clean;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.HelperUtil;
 import static org.junit.Assert.*;
@@ -30,8 +25,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.After;
 import org.junit.runner.RunWith;
-import org.gradle.test.util.Check;
-import org.gradle.test.util.Check.Execute;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;

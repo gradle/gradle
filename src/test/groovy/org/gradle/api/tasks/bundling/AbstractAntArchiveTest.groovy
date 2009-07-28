@@ -16,9 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import java.util.jar.Manifest
-import org.gradle.api.tasks.bundling.Compression
-import org.gradle.api.tasks.bundling.GradleManifest
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.TarFileSet

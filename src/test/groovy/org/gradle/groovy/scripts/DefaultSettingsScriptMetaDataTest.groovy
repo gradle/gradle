@@ -16,7 +16,6 @@
  
 package org.gradle.groovy.scripts
 
-import org.gradle.groovy.scripts.DefaultSettingsScriptMetaData
 import org.gradle.initialization.DefaultSettings
 import org.junit.Test
 import static org.junit.Assert.*

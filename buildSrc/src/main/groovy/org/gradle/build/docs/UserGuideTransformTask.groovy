@@ -7,10 +7,10 @@ import org.w3c.dom.Document
 import groovy.xml.dom.DOMCategory
 import groovy.xml.MarkupBuilder
 import org.w3c.dom.Node
-import org.gradle.api.artifacts.FileCollection
 import org.gradle.api.Project
 import javax.xml.parsers.DocumentBuilder
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.FileCollection
 
 /**
  * Transforms userguide source into docbook, replacing custom xml elements.

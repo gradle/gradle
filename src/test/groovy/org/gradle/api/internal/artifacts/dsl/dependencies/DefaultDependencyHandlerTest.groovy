@@ -15,14 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.hamcrest.Matchers
-import org.jmock.integration.junit4.JMock
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

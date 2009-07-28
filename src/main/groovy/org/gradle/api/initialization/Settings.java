@@ -16,22 +16,14 @@
 
 package org.gradle.api.initialization;
 
-import groovy.lang.Closure;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.StartParameter;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.Dependency;
 
 import java.io.File;
-import java.util.List;
-import java.util.Map;
 
 /**
  * <p><code>Settings</code> declares the configuration required to instantiate and evaluate the hierarchy of {@link
- * Project} instances which are to participate in a build.</p>
+ * org.gradle.api.Project} instances which are to participate in a build.</p>
  *
  * <p>There is a one-to-one correspondence between a <code>Settings</code> instance and a <code>{@value
  * #DEFAULT_SETTINGS_FILE}</code> settings file. Before Gradle assembles the projects for a build, it creates a

@@ -15,13 +15,12 @@
  */
 package org.gradle.api.initialization;
 
-import org.gradle.api.Project;
-
 import java.io.File;
 import java.util.Set;
 
 /**
- * <p>A {@code ProjectDescriptor} declares the configuration required to create and evaluate a {@link Project}.</p>
+ * <p>A {@code ProjectDescriptor} declares the configuration required to create and evaluate a {@link
+ * org.gradle.api.Project}.</p>
  *
  * <p> A {@code ProjectDescriptor} is created when you add a project to the build from the settings script, using {@link
  * Settings#include(String[])} or {@link Settings#includeFlat(String[])}. You can access the descriptors using one of
@@ -59,7 +58,8 @@ public interface ProjectDescriptor {
     void setProjectDir(File dir);
 
     /**
-     * Returns the name of the build file for this project. This name is interpretted relative to the project directory.
+     * Returns the name of the build file for this project. This name is interpretted relative to the project
+     * directory.
      *
      * @return The build file name.
      */
@@ -78,7 +78,7 @@ public interface ProjectDescriptor {
      * @return The build file. Never returns null.
      */
     File getBuildFile();
-    
+
     /**
      * Returns the parent of this project, if any. Returns null if this project is the root project.
      *

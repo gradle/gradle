@@ -19,11 +19,8 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 
-import java.util.regex.Pattern;
 import java.util.Map;
-import java.util.Scanner;
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.io.IOException;

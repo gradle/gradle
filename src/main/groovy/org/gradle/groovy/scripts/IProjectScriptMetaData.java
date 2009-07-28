@@ -17,7 +17,6 @@ package org.gradle.groovy.scripts;
 
 import groovy.lang.Script;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectScript;
 
 /**
  * @author Hans Dockter

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.GUtil;
 
@@ -24,7 +23,7 @@ import java.io.File;
 import java.util.*;
 
 /**
- * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link Project}.
+ * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link FileResolver}.
  */
 public class PathResolvingFileCollection extends AbstractFileCollection {
     private final List<Object> files;

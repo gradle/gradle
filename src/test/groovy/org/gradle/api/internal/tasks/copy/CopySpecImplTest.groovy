@@ -1,8 +1,5 @@
 package org.gradle.api.internal.tasks.copy;
 
-import java.io.File
-import java.util.ArrayList
-import java.util.List
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.internal.file.BaseDirConverter
@@ -12,8 +9,6 @@ import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
-import org.gradle.api.internal.file.BaseDirConverter
-import org.gradle.api.internal.file.FileResolver
 
 public class CopySpecImplTest {
 

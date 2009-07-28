@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.artifacts.maven.PublishFilter
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainerTest
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyPomFilterContainer
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.hamcrest.Matcher

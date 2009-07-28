@@ -20,7 +20,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 import java.util.Collection;
 

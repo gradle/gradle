@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.tasks.AbstractTaskTest
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test;

@@ -1,6 +1,5 @@
 package org.gradle.api.tasks
 
-import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.tasks.copy.*
 
@@ -13,9 +12,6 @@ import org.junit.Test
 import org.gradle.api.InvalidUserDataException
 
 import org.gradle.api.internal.tasks.copy.FileVisitor
-
-import org.gradle.api.tasks.Copy
-
 
 
 @RunWith (org.jmock.integration.junit4.JMock)

@@ -15,12 +15,8 @@
  */
 package org.gradle.api.internal.tasks.copy;
 
-import groovy.lang.Closure
-import java.io.File
-import java.io.FilterReader
 import java.lang.reflect.Constructor
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.file.CopySpec
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

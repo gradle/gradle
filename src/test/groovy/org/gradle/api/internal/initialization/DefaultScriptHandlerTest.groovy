@@ -4,7 +4,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.internal.initialization.DefaultScriptHandler
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.WrapUtil
 import org.jmock.integration.junit4.JMock

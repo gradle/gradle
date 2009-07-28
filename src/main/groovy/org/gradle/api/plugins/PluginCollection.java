@@ -20,9 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.DomainObjectCollection;
 
-import java.util.Set;
-import java.util.Map;
-
 import groovy.lang.Closure;
 
 /**

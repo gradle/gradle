@@ -17,7 +17,6 @@ package org.gradle.api.execution;
 
 import groovy.lang.Closure;
 import org.gradle.api.Task;
-import org.gradle.api.invocation.Build;
 
 import java.util.List;
 
@@ -26,8 +25,8 @@ import java.util.List;
  * are part of the build. The <code>TaskExecutionGraph</code> maintains an execution plan of tasks to be executed (or
  * which have been executed), and you can query this plan from your build file.</p>
  *
- * <p>You can access the {@code TaskExecutionGraph} by calling {@link Build#getTaskGraph()}. In your build file you can
- * use {@code build.taskGraph} to access it.</p>
+ * <p>You can access the {@code TaskExecutionGraph} by calling {@link org.gradle.api.invocation.Build#getTaskGraph()}.
+ * In your build file you can use {@code build.taskGraph} to access it.</p>
  *
  * <p>The <code>TaskExecutionGraph</code> is populated only after all the projects in the build have been evaulated. It
  * is empty before then. You can receive a notification when the graph is populated, using {@link

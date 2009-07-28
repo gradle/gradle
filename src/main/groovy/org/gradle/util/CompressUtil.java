@@ -15,9 +15,7 @@
  */
 package org.gradle.util;
 
-import org.apache.tools.ant.taskdefs.Jar;
 import org.apache.tools.ant.taskdefs.Zip;
-import org.apache.tools.ant.taskdefs.GUnzip;
 import org.apache.tools.ant.taskdefs.Expand;
 
 import java.io.File;

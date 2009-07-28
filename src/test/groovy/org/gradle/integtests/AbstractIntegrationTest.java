@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests;
 
-import org.apache.commons.io.FileUtils;
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.util.HelperUtil;
@@ -25,7 +24,6 @@ import org.junit.Before;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 public class AbstractIntegrationTest {

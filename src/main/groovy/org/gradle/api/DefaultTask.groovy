@@ -16,11 +16,6 @@
 
 package org.gradle.api;
 
-import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.AbstractTask;
 

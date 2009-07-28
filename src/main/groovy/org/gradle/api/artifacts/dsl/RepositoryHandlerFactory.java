@@ -16,10 +16,6 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-
-import java.util.Map;
 
 /**
  * @author Hans Dockter

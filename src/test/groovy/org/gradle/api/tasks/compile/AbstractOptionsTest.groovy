@@ -1,6 +1,5 @@
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.tasks.compile.AbstractOptions
 import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*

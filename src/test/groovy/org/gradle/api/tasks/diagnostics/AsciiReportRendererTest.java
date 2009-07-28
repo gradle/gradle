@@ -15,14 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.Matchers;
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;

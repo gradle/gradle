@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.project.IProjectRegistry;
 
 /**
  * @author Hans Dockter

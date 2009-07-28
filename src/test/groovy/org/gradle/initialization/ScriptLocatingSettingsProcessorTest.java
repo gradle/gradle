@@ -32,8 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-
 @RunWith(JMock.class)
 public class ScriptLocatingSettingsProcessorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();

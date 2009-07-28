@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.specs.Spec;
-import org.apache.ivy.core.module.descriptor.Artifact;
 
 import java.util.*;
 

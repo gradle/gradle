@@ -25,7 +25,6 @@ import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Upload;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Set;
 
 /**

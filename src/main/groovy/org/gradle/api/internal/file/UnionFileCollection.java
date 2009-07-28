@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.AbstractFileCollection;
 
 import java.io.File;
 import java.util.Arrays;

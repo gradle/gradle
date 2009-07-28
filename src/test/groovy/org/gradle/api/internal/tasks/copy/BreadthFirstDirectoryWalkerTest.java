@@ -22,7 +22,6 @@ import static org.junit.Assert.*;
 import org.jmock.Mockery;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
-import org.jmock.internal.ExpectationBuilder;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;

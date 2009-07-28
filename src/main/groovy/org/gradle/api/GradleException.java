@@ -16,13 +16,6 @@
 
 package org.gradle.api;
 
-import org.gradle.util.GUtil;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.List;
-import java.util.ArrayList;
-
 /**
  * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
  *

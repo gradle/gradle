@@ -15,8 +15,6 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.CacheUsage;
-
 import java.io.File;
 
 /**

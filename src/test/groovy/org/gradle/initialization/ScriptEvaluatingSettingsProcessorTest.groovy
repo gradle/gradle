@@ -23,11 +23,9 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.After
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.gradle.groovy.scripts.*
-import org.gradle.initialization.*
 import static org.gradle.util.Matchers.*
 import static org.junit.Assert.*
 

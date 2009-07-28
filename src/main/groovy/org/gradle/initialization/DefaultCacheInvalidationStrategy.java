@@ -16,8 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.util.WrapUtil;
-import org.gradle.util.GradleUtil;
-import org.gradle.CacheUsage;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.AbstractFileFilter;

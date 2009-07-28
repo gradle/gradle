@@ -1,7 +1,6 @@
 package org.gradle.external.javadoc.optionfile;
 
 import java.util.List;
-import java.util.Collections;
 import java.io.IOException;
 
 /**

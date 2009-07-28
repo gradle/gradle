@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.util.GUtil;
 

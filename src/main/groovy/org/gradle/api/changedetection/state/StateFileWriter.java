@@ -7,7 +7,6 @@ import org.gradle.api.io.IoFactory;
 import java.io.File;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.FileWriter;
 
 /**
  * State File Format:

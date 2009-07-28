@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.ast.expr.*;
 import org.gradle.groovy.scripts.Transformer;
 
