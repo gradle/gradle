@@ -394,6 +394,16 @@
                     <literal><replaceable>buildDir</replaceable>/javadoc</literal>
                 </td>
             </tr>
+            <tr>
+                <td>dependencyCacheDirName</td>
+                <td>dependencyCacheDir</td>
+                <td>
+                    <literal>dependency-cache</literal>
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/dependency-cache</literal>
+                </td>
+            </tr>
             <xi:include href="reportingBasePluginProperties.xml"/>
         </table>
 

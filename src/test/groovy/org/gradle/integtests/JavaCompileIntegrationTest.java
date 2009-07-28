@@ -1,13 +1,3 @@
-/*=============================================================================
-                    AUTOMATED LOGIC CORPORATION
-            Copyright (c) 1999 - 2008 All Rights Reserved
-     This document contains confidential/proprietary information.
-===============================================================================
-
-   @(#)JavaCompileIntegrationTest
-
-   Author(s) sappling
-=============================================================================*/
 package org.gradle.integtests;
 
 import org.junit.Test;
