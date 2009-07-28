@@ -63,8 +63,8 @@ public class GroovyCompile extends Compile {
         List<File> classpath = null;
         if (existingSourceDirs.size() > 0) {
             classpath = GUtil.addLists(getClasspath());
-            antCompile.execute(existingSourceDirs, getIncludes(), getExcludes(), getDestinationDir(), classpath,
-                    getSourceCompatibility(), getTargetCompatibility(), getOptions(), getProject().getAnt());
+            antCompile.execute(existingSourceDirs, getIncludes(), getExcludes(), getDestinationDir(), getDependencyCacheDir(),
+                    classpath, getSourceCompatibility(), getTargetCompatibility(), getOptions(), getProject().getAnt());
             setDidWork(antCompile.getNumFilesCompiled() > 0);            
         }
         List existingGroovySourceDirs = existentDirsFilter.findExistingDirs(getGroovySourceDirs());

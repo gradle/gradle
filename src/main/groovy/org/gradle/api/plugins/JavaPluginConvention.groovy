@@ -34,6 +34,7 @@ class JavaPluginConvention {
     String srcRootName
     String classesDirName
     String testClassesDirName
+    String dependencyCacheDirName
     String docsDirName
     String javadocDirName
     String testResultsDirName
@@ -77,6 +78,7 @@ class JavaPluginConvention {
         srcRootName = 'src'
         classesDirName = 'classes'
         testClassesDirName = 'test-classes'
+        dependencyCacheDirName = 'dependency-cache'
         docsDirName = 'docs'
         javadocDirName = 'javadoc'
         testResultsDirName = 'test-results'
@@ -127,6 +129,10 @@ class JavaPluginConvention {
 
     File getTestClassesDir() {
         new File(project.buildDir, testClassesDirName)
+    }
+
+    File getDependencyCacheDir() {
+        new File(project.buildDir, dependencyCacheDirName)
     }
 
     File getDocsDir() {

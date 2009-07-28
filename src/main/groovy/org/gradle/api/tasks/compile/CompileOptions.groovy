@@ -26,13 +26,14 @@ class CompileOptions extends AbstractOptions {
     boolean deprecation = false
     boolean warnings = true
     String encoding = null
-    boolean dependencyTracking = false
     boolean optimize
 
     boolean debug = true
     DebugOptions debugOptions = new DebugOptions()
     boolean fork = false
     ForkOptions forkOptions = new ForkOptions()
+    boolean useDepend = false
+    DependOptions dependOptions = new DependOptions()
 
     String compiler = null
     boolean includeJavaRuntime = false
@@ -53,8 +54,19 @@ class CompileOptions extends AbstractOptions {
         this
     }
 
+    /**
+     * Set the dependency options from a map.  See {@link DependOptions} for
+     * a list of valid properties.  Calling this method will enable use
+     * of the depend task during a compile.
+     */
+    CompileOptions depend(Map dependArgs) {
+        useDepend = true
+        dependOptions.define(dependArgs)
+        this
+    }
+
     List excludedFieldsFromOptionMap() {
-        ['debugOptions', 'forkOptions', 'compilerArgs']
+        ['debugOptions', 'forkOptions', 'compilerArgs', 'dependOptions', 'useDepend']
     }
 
     Map fieldName2AntMap() {
@@ -62,7 +74,6 @@ class CompileOptions extends AbstractOptions {
                 warnings: 'nowarn',
                 bootClasspath: 'bootclasspath',
                 extensionDirs: 'extdirs',
-                dependencyTracking: 'depend',
                 failOnError: 'failonerror',
                 listFiles: 'listfiles',
         ]

@@ -35,8 +35,9 @@ class AntJavac {
     }
     int numFilesCompiled;
     
-    void execute(List sourceDirs, Collection includes, Collection excludes, File targetDir, Iterable classpath, 
-                 String sourceCompatibility, String targetCompatibility, CompileOptions compileOptions, AntBuilder ant) {
+    void execute(List sourceDirs, Collection includes, Collection excludes, File targetDir, File depCacheDir, 
+                 Iterable classpath, String sourceCompatibility, String targetCompatibility,
+                 CompileOptions compileOptions, AntBuilder ant) {
         createAntClassPath(ant, classpath)
         Map otherArgs = [
                 includeAntRuntime: false,
@@ -46,9 +47,34 @@ class AntJavac {
                 target: targetCompatibility,
                 source: sourceCompatibility
         ]
+
+        Map dependArgs = [
+                srcDir : sourceDirs.join(':'),
+                destDir: targetDir
+        ]
+
         targetDir.mkdirs()
+
+        Map dependOptions = dependArgs + compileOptions.dependOptions.optionMap()
+        if (compileOptions.useDepend) {
+            if (compileOptions.dependOptions.useCache) {
+                dependOptions['cache'] = depCacheDir
+            }
+            logger.debug("Running ant depend with the following options {}", dependOptions)
+            ant.depend(dependOptions) {
+                includes.each {
+                    include(name: it)
+                }
+                excludes.each {
+                    exclude(name: it)
+                }
+            }
+        }
+
         ant.project.addBuildListener(listener)
-        ant.javac(otherArgs + compileOptions.optionMap()) {
+        Map options = otherArgs + compileOptions.optionMap()
+        logger.debug("Running ant javac with the following options {}", options)
+        ant.javac(options) {
             includes.each {
                 include(name: it)
             }

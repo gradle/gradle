@@ -72,6 +72,11 @@ public class DefaultConventionsToPropertiesMapping {
             return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
         }
     },
+            "dependencyCacheDir", new ConventionValue() {
+        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+            return convention.getPlugin(JavaPluginConvention.class).getDependencyCacheDir();
+        }
+    },
             "sourceCompatibility", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
             return convention.getPlugin(JavaPluginConvention.class).getSourceCompatibility().toString();

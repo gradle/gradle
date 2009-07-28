@@ -26,6 +26,7 @@ import static org.junit.Assert.*;
 class CompileOptionsTest {
     static final Map TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
+    static final Map TEST_DEPEND_OPTION_MAP = [someDependOption: 'someDependOptionValue']
 
     CompileOptions compileOptions
 
@@ -88,7 +89,6 @@ class CompileOptionsTest {
                 listFiles: 'listfiles',
                 deprecation: 'deprecation',
                 warnings: 'nowarn',
-                dependencyTracking: 'depend',
                 debug: 'debug',
                 fork: 'fork',
                 includeJavaRuntime: 'includeJavaRuntime'
@@ -145,15 +145,29 @@ class CompileOptionsTest {
         assertTrue(debugUseCalled)
     }
 
+    @Test public void testDepend() {
+        compileOptions.useDepend = false
+        boolean dependUseCalled = false
+        compileOptions.dependOptions = [define: {Map args ->
+            dependUseCalled = true
+            assertEquals(TEST_DEPEND_OPTION_MAP, args)
+        }] as DependOptions
+        assert compileOptions.depend(TEST_DEPEND_OPTION_MAP).is(compileOptions)
+        assertTrue(compileOptions.useDepend)
+        assertTrue(dependUseCalled)
+    }
+
     @Test public void testDefine() {
         compileOptions.debug = false
         compileOptions.compiler = null
         compileOptions.bootClasspath = 'xxxx'
         compileOptions.fork = false
+        compileOptions.useDepend = false
         compileOptions.define(debug: true, compiler: 'compiler', bootClasspath: null)
         assertTrue(compileOptions.debug)
         assertEquals('compiler', compileOptions.compiler)
         assertNull(compileOptions.bootClasspath)
         assertFalse(compileOptions.fork)
+        assertFalse(compileOptions.useDepend)
     }
 }

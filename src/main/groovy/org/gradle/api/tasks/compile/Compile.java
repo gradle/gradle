@@ -46,6 +46,12 @@ public class Compile extends ConventionTask implements PatternFilterable {
     private File destinationDir;
 
     /**
+     * The directory to store cached dependency information.  Used only if
+     * options.dependOptions.useCache = true.
+     */
+    private File dependencyCacheDir;
+
+    /**
      * The sourceCompatibility used by the Java compiler for your code. (e.g. 1.5)
      */
     private String sourceCompatibility;
@@ -87,7 +93,7 @@ public class Compile extends ConventionTask implements PatternFilterable {
         }
 
         antCompile.execute(existingSourceDirs, patternSet.getIncludes(), patternSet.getExcludes(), getDestinationDir(),
-                getClasspath(), getSourceCompatibility(), getTargetCompatibility(), options, getProject().getAnt());
+                getDependencyCacheDir(), getClasspath(), getSourceCompatibility(), getTargetCompatibility(), options, getProject().getAnt());
         setDidWork(antCompile.getNumFilesCompiled() > 0);
     }
 
@@ -133,6 +139,14 @@ public class Compile extends ConventionTask implements PatternFilterable {
 
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
+    }
+
+    public File getDependencyCacheDir() {
+        return dependencyCacheDir;
+    }
+
+    public void setDependencyCacheDir(File dependencyCacheDir) {
+        this.dependencyCacheDir = dependencyCacheDir;
     }
 
     public String getSourceCompatibility() {

@@ -125,7 +125,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         context.checking(new Expectations() {
             {
                 one(antJavacCompileMock).execute(testObj.getSrcDirs(), testObj.getIncludes(), testObj.getExcludes(),
-                        testObj.getDestinationDir(), TEST_DEPENDENCY_MANAGER_CLASSPATH, testObj.getSourceCompatibility(),
+                        testObj.getDestinationDir(), testObj.getDependencyCacheDir(), TEST_DEPENDENCY_MANAGER_CLASSPATH, testObj.getSourceCompatibility(),
                         testObj.getTargetCompatibility(), testObj.getOptions(), testObj.getProject().getAnt());
             }
         });

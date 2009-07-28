@@ -55,7 +55,7 @@ public class CompileTest extends AbstractCompileTest {
         setUpMocksAndAttributes(compile);
         context.checking(new Expectations() {{
             one(antCompileMock).execute(compile.getSrcDirs(), compile.getIncludes(), compile.getExcludes(), compile.getDestinationDir(),
-                    compile.getClasspath(), compile.getSourceCompatibility(), compile.getTargetCompatibility(), compile.getOptions(),
+                    compile.getDependencyCacheDir(), compile.getClasspath(), compile.getSourceCompatibility(), compile.getTargetCompatibility(), compile.getOptions(),
                     compile.getProject().getAnt());
             one(antCompileMock).getNumFilesCompiled(); will(returnValue(numFilesCompiled));
         }});
