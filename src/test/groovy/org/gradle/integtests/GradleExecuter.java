@@ -16,6 +16,8 @@
 package org.gradle.integtests;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 public interface GradleExecuter {
     GradleExecuter inDirectory(File directory);
@@ -23,6 +25,8 @@ public interface GradleExecuter {
     GradleExecuter withSearchUpwards();
 
     GradleExecuter withTasks(String... names);
+
+    GradleExecuter withTasks(List<String> names);
 
     GradleExecuter withTaskList();
 
@@ -32,9 +36,13 @@ public interface GradleExecuter {
 
     GradleExecuter withArguments(String... args);
 
+    GradleExecuter withEnvironmentVars(Map<String, ?> environment);
+
     GradleExecuter usingSettingsFile(File settingsFile);
 
     GradleExecuter usingBuildScript(String script);
+
+    GradleExecuter usingExecutable(String script);
 
     ExecutionResult run();
 

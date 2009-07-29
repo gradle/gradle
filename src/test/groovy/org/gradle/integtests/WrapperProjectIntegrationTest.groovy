@@ -18,6 +18,8 @@ package org.gradle.integtests
 
 import org.junit.runner.RunWith
 import org.junit.Test
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -30,13 +32,11 @@ class WrapperProjectIntegrationTest {
 
     @Test
     public void wrapperSample() {
-        String nl = System.properties['line.separator']
         File wrapperSampleDir = new File(dist.samplesDir, 'wrapper-project')
 
         executer.inDirectory(wrapperSampleDir).withTasks('wrapper').run()
-        Map result = Executer.executeWrapper(dist.gradleHomeDir.absolutePath, wrapperSampleDir.absolutePath, ['hello'],
-            [:], 'build.gradle', Executer.QUIET, false)
-        String compareValue =  result.output.substring(result.output.size() - 'hello'.size() - nl.size())
-        assert compareValue == 'hello' + nl
+
+        ExecutionResult result = executer.usingExecutable('gradlew').inDirectory(wrapperSampleDir).withTasks('hello').run()
+        assertThat(result.output, containsString('hello'))
     }
 }

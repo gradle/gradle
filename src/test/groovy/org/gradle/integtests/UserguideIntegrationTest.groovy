@@ -17,12 +17,12 @@
 package org.gradle.integtests
 
 import groovy.io.PlatformLineWriter
+import junit.framework.AssertionFailedError
+import org.junit.Assert
+import org.junit.Test
+import org.junit.runner.RunWith
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.junit.Assert
-import org.junit.runner.RunWith
-import org.junit.Test
-import junit.framework.AssertionFailedError
 
 /**
  * @author Hans Dockter
@@ -35,18 +35,12 @@ class UserguideIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
+    private GradleExecuter executer;
 
     @Test
     public void apiLinks() {
-        checkApiLinks(dist.gradleHomeDir, dist.userGuideInfoDir)
-    }
-
-    @Test
-    public void userGuideSamples() {
-        checkSamples(dist.gradleHomeDir, dist.samplesDir, dist.userGuideOutputDir, dist.userGuideInfoDir)
-    }
-
-    private static def checkApiLinks(File gradleHome, File userguideInfoDir) {
+        TestFile gradleHome = dist.gradleHomeDir
+        TestFile userguideInfoDir = dist.userGuideInfoDir
         Node links = new XmlParser().parse(new File(userguideInfoDir, 'links.xml'))
         links.children().each {Node link ->
             String classname = link.'@className'
@@ -56,17 +50,18 @@ class UserguideIntegrationTest {
         }
     }
 
-    private static def checkSamples(File gradleHome, File samplesDir, File userguideOutputDir, File userguideInfoDir) {
-        return getScriptsForSamples(userguideInfoDir).each {GradleRun run ->
+    @Test
+    public void userGuideSamples() {
+        TestFile samplesDir = dist.samplesDir
+        TestFile userguideOutputDir = dist.userGuideOutputDir
+        TestFile userguideInfoDir = dist.userGuideInfoDir
+
+        Collection testRuns = getScriptsForSamples(userguideInfoDir)
+        testRuns.each {GradleRun run ->
             try {
                 logger.info("Test Id: $run.id, dir: $run.subDir, args: $run.execute")
-                Map result
-                if (run.groovyScript) {
-                    result = runGroovyScript(new File(samplesDir, "userguide/$run.subDir/$run.file"))
-                } else {
-                    result = Executer.execute(gradleHome.absolutePath, new File(samplesDir, run.subDir).absolutePath,
-                            run.execute, run.envs, run.file, run.debugLevel, run.expectFailure)
-                }
+                executer.inDirectory(new File(samplesDir, run.subDir)).withTasks(run.execute).withEnvironmentVars(run.envs)
+                ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
                 if (run.outputFile) {
                     String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.outputFile).text)
                     try {
@@ -119,14 +114,6 @@ class UserguideIntegrationTest {
         stringWriter.toString()
     }
 
-    static Map runGroovyScript(File script) {
-        StringWriter stringWriter = new StringWriter()
-        PrintWriter printWriter = new PrintWriter(stringWriter)
-        logger.info("Evaluating Groovy script: $script.absolutePath")
-        new GroovyShell(new Binding(out: printWriter)).evaluate(script)
-        [output: stringWriter, command: "groovy $script.name", unixCommand: "groovy $script.name", windowsCommand: "groovy $script.name"]
-    }
-
     static Collection getScriptsForSamples(File userguideInfoDir) {
         Node samples = new XmlParser().parse(new File(userguideInfoDir, 'samples.xml'))
         Map samplesByDir = new LinkedHashMap()
@@ -151,11 +138,11 @@ class UserguideIntegrationTest {
             List runs = dirSamples.findAll {it.args}
             if (!runs) {
                 def sample = dirSamples[0]
-                return new GradleRun(id: sample.id, subDir: sample.dir, execute: ['-t'], outputFile: null, debugLevel: Executer.LIFECYCLE, envs: sample.envs, expectFailure: sample.expectFailure)
+                return new GradleRun(id: sample.id, subDir: sample.dir, execute: ['-t'], outputFile: null, envs: sample.envs, expectFailure: sample.expectFailure)
             }
             else {
                 return runs.collect {sample ->
-                    new GradleRun(id: sample.id, subDir: sample.dir, execute: sample.args.split('\\s+'), outputFile: sample.outputFile, debugLevel: Executer.LIFECYCLE, envs: sample.envs, expectFailure: sample.expectFailure)
+                    new GradleRun(id: sample.id, subDir: sample.dir, execute: sample.args.split('\\s+'), outputFile: sample.outputFile, envs: sample.envs, expectFailure: sample.expectFailure)
                 }
             }
         }.flatten()

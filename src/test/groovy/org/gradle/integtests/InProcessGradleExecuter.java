@@ -36,6 +36,7 @@ import static org.junit.Assert.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.io.File;
 
 import junit.framework.AssertionFailedError;
@@ -65,6 +66,11 @@ public class InProcessGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withTasks(List<String> names) {
+        parameter.setTaskNames(names);
+        return this;
+    }
+
     public InProcessGradleExecuter withTaskList() {
         parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
         return this;
@@ -75,6 +81,10 @@ public class InProcessGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
+        throw new UnsupportedOperationException();
+    }
+
     public InProcessGradleExecuter usingSettingsFile(File settingsFile) {
         parameter.setSettingsFile(settingsFile);
         return this;
@@ -83,6 +93,10 @@ public class InProcessGradleExecuter implements GradleExecuter {
     public InProcessGradleExecuter usingBuildScript(String script) {
         parameter.useEmbeddedBuildFile(script);
         return this;
+    }
+
+    public GradleExecuter usingExecutable(String script) {
+        throw new UnsupportedOperationException();
     }
 
     public GradleExecuter withQuietLogging() {

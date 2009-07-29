@@ -17,9 +17,9 @@ package org.gradle.integtests;
 
 import org.gradle.util.GUtil;
 import static org.gradle.util.Matchers.*;
-import org.hamcrest.Matcher;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -33,6 +33,8 @@ public class ForkingGradleExecuter implements GradleExecuter {
     private int logLevel;
     private List<String> tasks;
     private List<String> args;
+    private Map<String, Object> environmentVars = new HashMap<String, Object>();
+    private String command;
 
     public ForkingGradleExecuter(GradleDistribution distribution) {
         logLevel = Executer.LIFECYCLE;
@@ -53,6 +55,11 @@ public class ForkingGradleExecuter implements GradleExecuter {
 
     public GradleExecuter withTasks(String... names) {
         tasks = Arrays.asList(names);
+        return this;
+    }
+
+    public GradleExecuter withTasks(List<String> names) {
+        tasks = new ArrayList<String>(names);
         return this;
     }
 
@@ -77,21 +84,51 @@ public class ForkingGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
+        environmentVars.clear();
+        environmentVars.putAll(environment);
+        return this;
+    }
+
     public GradleExecuter withQuietLogging() {
         logLevel = Executer.QUIET;
         return this;
     }
 
+    public GradleExecuter usingExecutable(String script) {
+        command = script;
+        return this;
+    }
+
     public ExecutionResult run() {
-        Map result = Executer.execute(distribution.getGradleHomeDir().getAbsolutePath(), workingDir.getAbsolutePath(),
-                GUtil.addLists(args, tasks), new HashMap(), "", logLevel, false);
+        Map result = doRun(false);
         return new ForkedExecutionResult(result);
     }
 
     public ExecutionFailure runWithFailure() {
-        Map result = Executer.execute(distribution.getGradleHomeDir().getAbsolutePath(), workingDir.getAbsolutePath(),
-                GUtil.addLists(args, tasks), new HashMap(), "", logLevel, true);
+        Map result = doRun(true);
         return new ForkedExecutionFailure(result);
+    }
+
+    private Map doRun(boolean expectFailure) {
+        String windowsCmd;
+        String unixCmd;
+        if (command != null) {
+            windowsCmd = command;
+            unixCmd = String.format("%s/%s", workingDir.getAbsolutePath(), command);
+        } else {
+            windowsCmd = "gradle";
+            unixCmd = String.format("%s/bin/gradle", distribution.getGradleHomeDir().getAbsolutePath());
+        }
+        return Executer.executeInternal(windowsCmd,
+                unixCmd,
+                distribution.getGradleHomeDir().getAbsolutePath(),
+                environmentVars,
+                workingDir.getAbsolutePath(),
+                GUtil.addLists(args, tasks),
+                "",
+                logLevel,
+                expectFailure);
     }
 
     private static class ForkedExecutionResult implements ExecutionResult {
