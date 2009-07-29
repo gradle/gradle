@@ -132,6 +132,10 @@ dependencies {
             "biz.aQute:bndlib:0.0.255@jar",
             "org.apache.maven:maven-ant-tasks:2.0.9@jar",
             "asm:asm-all:2.2.3@jar"
+    
+    compile module("org.codenarc:CodeNarc:0.6") {
+        dependency("org.slf4j:log4j-over-slf4j:1.5.3@jar")
+    }
 
     runtime "org.apache.ant:ant-junit:1.7.0@jar",
             "org.apache.ant:ant-launcher:1.7.0@jar",
@@ -143,9 +147,6 @@ dependencies {
         dependency("org.slf4j:jcl-over-slf4j:1.5.3@jar")
         dependency("com.google.collections:google-collections:0.9")
         dependency("commons-beanutils:commons-beanutils-core:1.7.0")
-    }
-    runtime module("org.codenarc:CodeNarc:0.6") {
-        dependency("org.slf4j:log4j-over-slf4j:1.5.3@jar")
     }
 
     def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
