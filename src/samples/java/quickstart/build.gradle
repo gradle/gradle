@@ -2,6 +2,10 @@
 usePlugin 'java'
 // END SNIPPET use-plugin
 
+// START SNIPPET use-eclipse-plugin
+usePlugin 'eclipse'
+// END SNIPPET use-eclipse-plugin
+
 // START SNIPPET customisation
 sourceCompatibility = 1.5
 version = '1.0'

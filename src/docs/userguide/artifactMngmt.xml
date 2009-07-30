@@ -37,7 +37,7 @@
         <code>build[ConfigurationName]</code>.
         <footnote><para>To be exact, the Base plugin provides those tasks. The BasePlugin is automatically applied, if you use
         the Java plugin.</para></footnote>
-        Executing those tasks will build or upload the artifacts belonging to
+        Execution of these tasks will build or upload the artifacts belonging to
         the respective configuration.
         </para>
         <para>Table <xref linkend="tab:configurations"/> shows the configurations added by the Java plugin. Two of the
@@ -52,22 +52,23 @@
     <section>
         <title>Uploading artifacts</title>
         <para>We have said that there is a specific upload task for each configuration. But before you can do an upload,
-            you have to configure the upload task and define where to upload. The repositories you have defined as described
-            in <xref linkend="sec:repositories"/> are not automatically used for uploading. In fact some of those repositories
-            are not even capable of uploading, there are just capable of reading from a repository. Here is an example how
+            you have to configure the upload task and define where to upload. The repositories you have defined (as described
+            in <xref linkend="sec:repositories"/>) are not automatically used for uploading. In fact, some of those repositories allow only for artifacts downloading.
+            Here is an example how
             you can configure the upload task of a configuration:
         </para>
         <sample id="uploading" dir="userguide/artifacts/uploading" title="Configuration of the upload task">
             <sourcefile file="build.gradle" snippet="uploading"/>
         </sample>
-        <para>As you can see, you can either use a reference to an exisiting repository or create a new repository.
+        <para>As you can see, you can either use a reference to an existing repository or create a new repository.
         As described in <xref linkend="sub:more_about_ivy_resolvers"/>, you can use all the Ivy resolvers suitable
         for the purpose of uploading.</para>
+        <para>Uploading to a Maven repository is described in <xref linkend="uploading_to_maven_repositories"/>.</para>
     </section>
     <section id="project_libraries">
         <title>More about project libraries</title>
         <para>If your project is supposed to be used as a library, you need to define what are the artifacts of this library
-            and what are the dependencies of this artifacts. The Java plugin adds a <code>default</code> configuration for
+            and what are the dependencies of these artifacts. The Java plugin adds a <code>default</code> configuration for
             this purpose. This configuration extends both the <code>archives</code> and the <code>runtime</code> configuration,
             with the implicit assumption that the <code>runtime</code> dependencies are the dependencies of the <code>archives</code>
             configuration. Of course this is fully customizable. You can add your own custom configuration or let the the
@@ -241,7 +242,7 @@
         </section>
         <section id='sub:installing_to_the_local_repository'>
             <title>Installing to the local repository</title>
-            <para>The Maven plugin add an <literal>install</literal> task to your project. This task depends on all the archives
+            <para>The Maven plugin adds an <literal>install</literal> task to your project. This task depends on all the archives
                 task of the <literal>archives</literal> configuration. It installs those archives to your local Maven repository.
                 If the default location for the local repository is redefined in a Maven <literal>settings.xml</literal>, this is
                 considered by this task.
@@ -264,7 +265,7 @@
                 <para>To learn about all the customizable attributes of a pom have a look here: <apilink class="org.gradle.api.artifacts.maven.MavenPom"/>.
                     If you have more than one artifact to publish, things work differently. See <xref linkend="sub:multiple_artifacts_per_project"/>. 
                 </para>
-                <para>To customize the settings for the maven Installer (see <xref
+                <para>To customize the settings for the Maven installer (see <xref
                         linkend='sub:installing_to_the_local_repository'/>), you can do:
                 </para>
                 <sample id="customizeInstaller" dir="userguide/artifacts/maven" title="Customization of Maven installer">
@@ -276,7 +277,7 @@
                 <para>Maven can only deal with one artifact per project. This is reflected in the structure of the
                     Maven pom. We think there are many situations where it makes sense to have more than one artifact per
                     project. In such a case you need to generate multiple poms. In such a case you have to explicitly declare each artifact
-                    you want to publish to a Maven repository. The MavenDeployer and the MavenInstaller
+                    you want to publish to a Maven repository. The <apilink class="org.gradle.api.artifacts.maven.MavenDeployer"/> and the MavenInstaller
                     both provide an API for this:
                 </para>
                 <sample id="multiplePoms" dir="userguide/artifacts/maven" title="Generation of multiple poms">

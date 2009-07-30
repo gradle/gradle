@@ -91,8 +91,11 @@
         
 		<section>
             <title>Creating Eclipse project</title>
-            <para>
-                To import your project into Eclipse, simply run <userinput>gradle eclipse</userinput>. More on eclipse
+            <para>To import your project into Eclipse, you need to add another plugin to your build file:</para>
+        	<sample id="javaQuickstart" dir="java/quickstart" title="Eclipse plugin">
+            	<sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
+        	</sample>
+        	<para>Now execute <userinput>gradle eclipse</userinput> command to generate Eclipse project files. More on Eclipse
                 task can be found in <xref linkend="sec:eclipse"/>.
             </para>
         </section>
