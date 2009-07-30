@@ -2,6 +2,8 @@ package org.gradle.invocation;
 
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
+import org.gradle.groovy.scripts.ScriptSourceMappingHandler;
+import org.gradle.groovy.scripts.DefaultScriptSourceMappingHandler;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.BuildInternal;
@@ -25,6 +27,7 @@ public class DefaultBuild implements BuildInternal {
     private InternalRepository internalRepository;
     private DefaultProjectRegistry<ProjectInternal> projectRegistry;
     private DefaultPluginRegistry pluginRegistry;
+    private ScriptSourceMappingHandler scriptSourceMappingHandler;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast
             = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
 
@@ -34,6 +37,7 @@ public class DefaultBuild implements BuildInternal {
         this.internalRepository = internalRepository;
         this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         this.pluginRegistry = new DefaultPluginRegistry(startParameter.getPluginPropertiesFile());
+        this.scriptSourceMappingHandler = new DefaultScriptSourceMappingHandler(startParameter.getCurrentDir());
         this.taskGraph = new DefaultTaskExecuter();
     }
 
@@ -95,6 +99,13 @@ public class DefaultBuild implements BuildInternal {
 
     public DefaultPluginRegistry getPluginRegistry() {
         return pluginRegistry;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ScriptSourceMappingHandler getScriptSourceMappingHandler() {
+        return scriptSourceMappingHandler;
     }
 
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {

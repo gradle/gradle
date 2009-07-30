@@ -61,12 +61,12 @@ public class FileScriptSourceTest {
 
     @Test
     public void encodesScriptFileBaseNameToClassName() {
-        assertThat(source.getClassName(), equalTo("build_script"));
+        assertThat(source.getClassName(), startsWith("build_script"));
 
         source = new FileScriptSource("<file-type>", new File(testDir, "name with-some^reserved\nchars"));
-        assertThat(source.getClassName(), equalTo("name_with_some_reserved_chars"));
+        assertThat(source.getClassName(), startsWith("name_with_some_reserved_chars"));
 
         source = new FileScriptSource("<file-type>", new File(testDir, "123"));
-        assertThat(source.getClassName(), equalTo("_123"));
+        assertThat(source.getClassName(), startsWith("_123"));
     }
 }

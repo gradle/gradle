@@ -18,6 +18,8 @@ package org.gradle.groovy.scripts;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * A {@link ScriptSource} which loads the script from a file.
@@ -38,9 +40,15 @@ public class FileScriptSource implements ScriptSource {
         return GFileUtils.readFileToString(sourceFile);
     }
 
+    /**
+     * Returns the class name for use for this script source.  The
+     * name is intended to be unique to support mapping class names
+     * to source files even if many sources have the same file name
+     * (e.g. build.gradle).
+     */
     public String getClassName() {
-        String name = sourceFile.getName();
-        StringBuilder className = new StringBuilder();
+        String name = sourceFile.getName()+'_'+getId();
+        StringBuilder className = new StringBuilder(name.length());
         for (int i = 0; i < name.length(); i++) {
             char ch = name.charAt(i);
             if (Character.isJavaIdentifierPart(ch)) {
@@ -53,7 +61,30 @@ public class FileScriptSource implements ScriptSource {
         if (!Character.isJavaIdentifierStart(className.charAt(0))) {
             className.insert(0, '_');
         }
+
         return className.toString();
+    }
+
+    /**
+     * Returns a (mostly) unique id for this file of the form
+     * "xxxx-xx-xx-xxxxxx".
+     */
+    private String getId()
+    {
+        String path;
+        try
+        {
+            path = sourceFile.getCanonicalPath();
+        }
+        catch (IOException e)
+        {
+            // if we cannot get the canonical path for some reason, fall back to the
+            // absolute path
+            path = sourceFile.getAbsolutePath();
+        }
+
+        UUID uuid = UUID.nameUUIDFromBytes(path.getBytes());
+        return uuid.toString();
     }
 
     public File getSourceFile() {
