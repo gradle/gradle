@@ -44,24 +44,25 @@ public class CopyActionImpl implements CopyAction {
     private boolean didWork;
 
     // following are only injected for test purposes
-    private DirectoryWalker testWalker;
-    private FileVisitor testVisitor;
+    private DirectoryWalker directoryWalker;
+    private CopyVisitor visitor;
 
     public CopyActionImpl(FileResolver resolver) {
         rootSpec = new CopySpecImpl(resolver);
-    }
-
-    // Only used for testing
-    public CopyActionImpl(FileResolver resolver, FileVisitor testVisitor, DirectoryWalker testWalker) {
-        this(resolver);
-        this.testVisitor = testVisitor;
-        this.testWalker = testWalker;
     }
 
     public void configureRootSpec() {
         if (globalExcludes != null && !rootSpec.getAllExcludes().containsAll(Arrays.asList(globalExcludes))) {
             rootSpec.exclude(globalExcludes);
         }
+    }
+
+    public void setVisitor(CopyVisitor visitor) {
+        this.visitor = visitor;
+    }
+
+    public void setDirectoryWalker(DirectoryWalker directoryWalker) {
+        this.directoryWalker = directoryWalker;
     }
 
     public void execute() {
@@ -82,7 +83,6 @@ public class CopyActionImpl implements CopyAction {
         }
     }
 
-
     private void copySingleSpec(CopySpecImpl spec) {
         File destDir = spec.getDestDir();
         if (destDir == null) {
@@ -98,14 +98,14 @@ public class CopyActionImpl implements CopyAction {
     }
 
     private void copySingleSource(CopySpecImpl spec, File source) {
-        FileVisitor visitor = testVisitor;
+        CopyVisitor visitor = this.visitor;
         if (visitor == null) {
             visitor = new CopyVisitor(spec.getDestDir(),
                     spec.getRemapClosures(),
                     spec.getRenameMappers(),
                     spec.getFilterChain() );
         }
-        DirectoryWalker walker = testWalker;
+        DirectoryWalker walker = directoryWalker;
         if (walker == null) {
             walker = new BreadthFirstDirectoryWalker(caseSensitive, visitor);
         }

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.tasks.AntBuilderAware;
+import org.gradle.api.tasks.StopActionException;
+
 import java.io.File;
 import java.util.Set;
 
@@ -24,7 +27,7 @@ import java.util.Set;
  *
  * <p>You can obtain a {@code FileCollection} instance using {@link org.gradle.api.Project#files}.</p>
  */
-public interface FileCollection extends Iterable<File> {
+public interface FileCollection extends Iterable<File>, AntBuilderAware {
     /**
      * Returns the content of this collection, asserting it contains exactly one file.
      *
@@ -41,18 +44,30 @@ public interface FileCollection extends Iterable<File> {
     Set<File> getFiles();
 
     /**
-     * Returns the contents of this collection as a path. This can be used, for example, in an Ant <path> element.
+     * Returns the contents of this collection as a platform-specific path. This can be used, for example, in an Ant
+     * <path> element.
      *
      * @return The path. Returns an empty string if this collection is empty.
      */
     String getAsPath();
 
     /**
-     * Returns a {@code FileCollection} which contains the union of this collection and the given collection. The
-     * returned collection is live, and tracks changes to both source collections.
+     * <p>Returns a {@code FileCollection} which contains the union of this collection and the given collection. The
+     * returned collection is live, and tracks changes to both source collections.</p>
+     *
+     * <p>You can call this method in your build script using the + operator.</p>
      *
      * @param collection The other collection. Should not be null.
      * @return A new collection containing the union.
      */
     FileCollection plus(FileCollection collection);
+
+    /**
+     * Throws a {@link StopActionException} if this collection is empty.
+     *
+     * @return this
+     * @throws StopActionException When this collection is empty.
+     */
+    FileCollection stopActionIfEmpty() throws StopActionException;
+
 }

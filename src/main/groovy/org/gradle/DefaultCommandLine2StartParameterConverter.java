@@ -102,7 +102,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     public StartParameter convert(String[] args) {
         StartParameter startParameter = new StartParameter();
 
-        OptionSet options = null;
+        OptionSet options;
         try {
             options = parser.parse(args);
         } catch (OptionException e) {

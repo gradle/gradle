@@ -39,8 +39,11 @@ abstract class AbstractSourceSet implements SourceSet {
             FileSet fileset = new FileSet(sourceDir);
             fileset.setIncludes(patternSet.getIncludes());
             fileset.setExcludes(patternSet.getExcludes());
-            if (!fileset.getFiles().isEmpty()) {
+            try {
+                fileset.stopActionIfEmpty();
                 return this;
+            } catch (StopActionException e) {
+                // Ignore
             }
         }
         throw new StopActionException("No source files to operate on.");

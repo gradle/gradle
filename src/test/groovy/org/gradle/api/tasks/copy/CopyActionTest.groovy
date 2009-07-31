@@ -28,7 +28,9 @@ public class CopyActionTest  {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         walker = context.mock(BreadthFirstDirectoryWalker.class)
         visitor = context.mock(CopyVisitor.class)
-        copyAction = new CopyActionImpl(project.fileResolver, visitor, walker)
+        copyAction = new CopyActionImpl(project.fileResolver)
+        copyAction.visitor = visitor
+        copyAction.directoryWalker = walker
     }
 
     def executeWith(Closure c) {

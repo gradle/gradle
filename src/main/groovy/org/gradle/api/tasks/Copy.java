@@ -16,20 +16,22 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.internal.tasks.copy.*;
+import groovy.lang.Closure;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.TaskAction;
+import org.gradle.api.file.CopyAction;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.*;
-import org.gradle.api.TaskAction;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.CopyAction;
 import org.gradle.api.internal.tasks.copy.CopyActionImpl;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.internal.tasks.copy.CopySpecImpl;
 import org.slf4j.Logger;
-import groovy.lang.Closure;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FilterReader;
 import java.util.List;
 import java.util.Map;
 
@@ -67,15 +69,10 @@ public class Copy extends ConventionTask implements CopyAction {
     CopyActionImpl copyAction;
 
     public Copy(Project project, String name) {
-        this(project, name, null, null);
-    }
-
-    // Only used for testing
-    Copy(Project project, String name, FileVisitor testVisitor, DirectoryWalker testWalker) {
         super(project, name);
 
         FileResolver fileResolver = ((ProjectInternal) project).getFileResolver();
-        copyAction = new CopyActionImpl(fileResolver, testVisitor, testWalker);
+        copyAction = new CopyActionImpl(fileResolver);
 
         doLast(new TaskAction() {
             public void execute(Task task) {

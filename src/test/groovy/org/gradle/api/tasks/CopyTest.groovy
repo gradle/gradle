@@ -28,7 +28,9 @@ public class CopyTest extends AbstractTaskTest {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         walker = context.mock(BreadthFirstDirectoryWalker.class)
         visitor = context.mock(CopyVisitor.class)
-        copyTask = new Copy(project, AbstractTaskTest.TEST_TASK_NAME, visitor, walker)
+        copyTask = new Copy(project, AbstractTaskTest.TEST_TASK_NAME)
+        copyTask.copyAction.visitor = visitor
+        copyTask.copyAction.directoryWalker = walker
     }
 
     public AbstractTask getTask() {

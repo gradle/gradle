@@ -51,7 +51,7 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
         excludes = Specs.satisfyNone();
     }
 
-    public void addIncludes(List<String> includes) {
+    public void addIncludes(Iterable<String> includes) {
         List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>();
         for (String include : includes) {
             matchers.add(PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include));
@@ -59,7 +59,7 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
         this.includes = Specs.or(true, matchers);
     }
 
-    public void addExcludes(List<String> excludes){
+    public void addExcludes(Iterable<String> excludes){
         List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>();
         for (String exclude : excludes) {
             matchers.add(PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude));

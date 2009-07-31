@@ -16,7 +16,9 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.StopActionException;
 import org.gradle.util.GUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.util.Collection;
@@ -54,5 +56,17 @@ public abstract class AbstractFileCollection implements FileCollection {
 
     public FileCollection plus(FileCollection collection) {
         return new UnionFileCollection(this, collection);
+    }
+
+    public Object addToAntBuilder(Object node, String childNodeName) {
+        new AntFileCollectionBuilder(this).addToAntBuilder(node, childNodeName);
+        return this;
+    }
+
+    public FileCollection stopActionIfEmpty() throws StopActionException {
+        if (getFiles().isEmpty()) {
+            throw new StopActionException(String.format("%s does not contain any files.", StringUtils.capitalize(getDisplayName())));
+        }
+        return this;
     }
 }

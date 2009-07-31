@@ -24,7 +24,7 @@ import org.gradle.api.tasks.StopActionException;
  */
 public interface SourceSet extends AntBuilderAware {
     /**
-     * Stops a {@link StopActionException} if this source set is empty.
+     * Throws a {@link StopActionException} if this source set is empty.
      *
      * @return this
      */

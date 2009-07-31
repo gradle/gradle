@@ -28,9 +28,7 @@ import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.util.AntFileCollectionBuilder
 import org.gradle.api.internal.ConventionTask
 
 /**
@@ -145,14 +143,14 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     @Test public void testFiles() {
         List files = ['a' as File, 'b' as File]
         FileCollection fileCollection = archiveTask.files(files as File[])
-        assertThat(archiveTask.resourceCollections, hasItem(reflectionEquals(new AntFileCollectionBuilder(fileCollection))))
+        assertThat(archiveTask.resourceCollections, hasItem(fileCollection))
         assertEquals(files.collect(new LinkedHashSet()) {it.canonicalFile}, fileCollection.files)
     }
 
     @Test public void testIncludeFileCollection() {
         FileCollection fileCollection = [:] as FileCollection
         assertSame(fileCollection, archiveTask.files(fileCollection))
-        assertThat(archiveTask.resourceCollections, hasItem(reflectionEquals(new AntFileCollectionBuilder(fileCollection))))
+        assertThat(archiveTask.resourceCollections, hasItem(fileCollection))
     }
 
     @Test public void testAntDirective() {

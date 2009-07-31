@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.tasks
 
 /**
+ * An {@code AntBuilderAware} represents an object which can add itself to Ant tasks, using an
+ * {@link org.gradle.api.AntBuilder}.
+ *
  * @author Hans Dockter
  */
 interface AntBuilderAware {

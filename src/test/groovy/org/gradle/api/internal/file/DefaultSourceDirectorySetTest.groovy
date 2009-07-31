@@ -15,26 +15,24 @@
  */
 package org.gradle.api.internal.file;
 
-import org.apache.tools.ant.Task
-import org.apache.tools.ant.types.FileSet
-import org.apache.tools.ant.types.Resource
+
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.SourceSet
+import org.gradle.api.tasks.StopActionException
 import org.gradle.util.GFileUtils
 import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import org.jmock.integration.junit4.JMock
 import org.junit.runner.RunWith
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.api.tasks.StopActionException
-import org.gradle.api.file.SourceSet
-import org.gradle.api.InvalidUserDataException
+import static org.gradle.api.tasks.AntBuilderAwareUtil.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith (JMock)
 public class DefaultSourceDirectorySetTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final AntBuilder ant = new AntBuilder()
     private final File testDir = HelperUtil.makeNewTestDir()
     private FileResolver resolver
     private DefaultSourceDirectorySet set
@@ -42,7 +40,6 @@ public class DefaultSourceDirectorySetTest {
     @Before
     public void setUp() {
         resolver = {src -> new File(testDir, src as String)} as FileResolver
-        ant.antProject.addTaskDefinition('test', FileListTask)
         set = new DefaultSourceDirectorySet(resolver)
     }
 
@@ -169,24 +166,5 @@ public class DefaultSourceDirectorySetTest {
 
         assertSetContains(filteredSet, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
-
-    private def assertSetContains(SourceSet set, Object ... filenames) {
-        FileListTask task = ant.test {
-            set.addToAntBuilder(ant, 'thingo')
-        }
-
-        assertThat(task.filenames, equalTo(filenames as Set))
-    }
 }
 
-public static class FileListTask extends Task {
-    final Set<String> filenames = new HashSet<String>()
-
-    public void addConfiguredThingo(FileSet fileset) {
-        Iterator<Resource> iterator = fileset.iterator()
-        while (iterator.hasNext()) {
-            Resource resource = iterator.next()
-            filenames.add(resource.getName().replace(File.separator, '/'))
-        }
-    }
-}

@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.tasks.copy;
 
-import java.util.List;
 import java.io.File;
 import java.io.IOException;
 
 public interface DirectoryWalker {
-    void addIncludes(List<String> includes);
+    void addIncludes(Iterable<String> includes);
 
-    void addExcludes(List<String> excludes);
+    void addExcludes(Iterable<String> excludes);
 
     void start(File baseDir) throws IOException;
 }

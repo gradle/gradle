@@ -16,7 +16,9 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.util.WrapUtil;
+import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
+import org.gradle.api.tasks.StopActionException;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -85,7 +87,7 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
-    public void canAddCollections() {
+    public void canAddCollectionsTogether() {
         File file1 = new File("f1");
         File file2 = new File("f2");
         File file3 = new File("f3");
@@ -94,7 +96,33 @@ public class AbstractFileCollectionTest {
         TestFileCollection collection2 = new TestFileCollection(file2, file3);
         FileCollection sum = collection1.plus(collection2);
         assertThat(sum, instanceOf(UnionFileCollection.class));
-        assertThat(sum.getFiles(), equalTo(WrapUtil.toLinkedSet(file1, file2, file3)));
+        assertThat(sum.getFiles(), equalTo(toLinkedSet(file1, file2, file3)));
+    }
+
+    @Test
+    public void canAddToAntBuilder() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+
+        TestFileCollection collection = new TestFileCollection(file1, file2);
+        assertSetContains(collection, toSet("f1", "f2"));
+    }
+
+    @Test
+    public void throwsStopExceptionWhenEmpy() {
+        TestFileCollection collection = new TestFileCollection();
+        try {
+            collection.stopActionIfEmpty();
+            fail();
+        } catch (StopActionException e) {
+            assertThat(e.getMessage(), equalTo("Collection-display-name does not contain any files."));
+        }
+    }
+
+    @Test
+    public void doesNotThrowStopExceptionWhenNotEmpty() {
+        TestFileCollection collection = new TestFileCollection(new File("f1"));
+        collection.stopActionIfEmpty();
     }
 
     private class TestFileCollection extends AbstractFileCollection {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
  
-package org.gradle.api.tasks.util
+package org.gradle.api.internal.file
 
 import org.gradle.api.tasks.AntBuilderAware
 import org.gradle.api.file.FileCollection

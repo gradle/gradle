@@ -19,6 +19,8 @@ package org.gradle.api.tasks.util
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.tasks.AntBuilderAware
+import org.gradle.api.internal.tasks.copy.BreadthFirstDirectoryWalker
+import org.gradle.api.internal.tasks.copy.FileVisitor
 
 /**
  * @author Hans Dockter
@@ -47,10 +49,12 @@ class FileSet extends AbstractFileCollection implements PatternFilterable, AntBu
     }
 
     public Set<File> getFiles() {
-        def ant = new AntBuilder()
-        def fileset = addToAntBuilder(ant)
-        Set files = new HashSet()
-        fileset.directoryScanner.includedFiles.each { files.add(new File(dir, it)) }
+        Set<File> files = new LinkedHashSet<File>()
+        FileVisitor visitor = [visitFile: {file, path -> files.add(file)}, visitDir: {file, path -> }] as FileVisitor
+        BreadthFirstDirectoryWalker walker = new BreadthFirstDirectoryWalker(true, visitor)
+        walker.addIncludes(patternSet.includes)
+        walker.addExcludes(patternSet.excludes)
+        walker.start(dir)
         files
     }
 

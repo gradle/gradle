@@ -23,5 +23,4 @@ import java.io.File;
 public interface FileVisitor {
     public void visitDir(File dir, RelativePath path);
     public void visitFile(File file, RelativePath path);
-    public boolean getDidWork();
 }
