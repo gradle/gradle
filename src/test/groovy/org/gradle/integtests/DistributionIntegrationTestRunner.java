@@ -29,13 +29,16 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 
 public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
+    private static final String NOFORK_SYS_PROP = "org.gradle.integtest.nofork";
+    private static final String IGNORE_SYS_PROP = "org.gradle.integtest.ignore";
+
     public DistributionIntegrationTestRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
     }
 
     @Override
     public void run(final RunNotifier notifier) {
-        if (System.getProperty("org.gradle.integtest.ignore") != null) {
+        if (System.getProperty(IGNORE_SYS_PROP) != null) {
             notifier.fireTestIgnored(Description.createTestDescription(getTestClass().getJavaClass(),
                     "System property to ignore integration tests is set."));
         } else {
@@ -58,7 +61,9 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
     private void attachDistribution(Object target) throws Exception {
         GradleDistribution distribution = getDist();
         injectValue(target, distribution, GradleDistribution.class);
-        injectValue(target, new ForkingGradleExecuter(distribution), GradleExecuter.class);
+        boolean noFork = System.getProperty(NOFORK_SYS_PROP) != null;
+        GradleExecuter executer = noFork ? new QuickGradleExecuter(distribution) : new ForkingGradleExecuter(distribution);
+        injectValue(target, executer, GradleExecuter.class);
     }
 
     private void injectValue(Object target, Object value, Class<?> type) throws IllegalAccessException {

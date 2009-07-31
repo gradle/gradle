@@ -87,8 +87,7 @@ public class AbstractIntegrationTest {
     }
 
     protected GradleExecuter inDirectory(File directory) {
-        StartParameter parameter = startParameter();
-        return new InProcessGradleExecuter(parameter).inDirectory(directory);
+        return new InProcessGradleExecuter(startParameter()).inDirectory(directory);
     }
 
     protected GradleExecuter usingBuildFile(File file) {
@@ -98,9 +97,7 @@ public class AbstractIntegrationTest {
     }
 
     protected GradleExecuter usingBuildScript(String script) {
-        StartParameter parameter = startParameter();
-        parameter.useEmbeddedBuildFile(script);
-        return new InProcessGradleExecuter(parameter);
+        return new InProcessGradleExecuter(startParameter()).usingBuildScript(script);
     }
 
     protected GradleExecuter usingProjectDir(File projectDir) {

@@ -16,28 +16,34 @@
 package org.gradle.integtests;
 
 import org.gradle.util.GUtil;
+import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.util.exec.ExecHandle;
 import static org.gradle.util.Matchers.*;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import org.apache.tools.ant.taskdefs.condition.Os;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.util.*;
 
 // todo: implement more of the unsupported methods
-public class ForkingGradleExecuter implements GradleExecuter {
+public class ForkingGradleExecuter extends AbstractGradleExecuter {
+    private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final GradleDistribution distribution;
     private File workingDir;
-    private int logLevel;
+    private boolean quiet;
     private List<String> tasks;
     private List<String> args;
     private Map<String, Object> environmentVars = new HashMap<String, Object>();
     private String command;
 
     public ForkingGradleExecuter(GradleDistribution distribution) {
-        logLevel = Executer.LIFECYCLE;
         tasks = new ArrayList<String>();
         args = new ArrayList<String>();
         this.distribution = distribution;
@@ -53,30 +59,9 @@ public class ForkingGradleExecuter implements GradleExecuter {
         throw new UnsupportedOperationException();
     }
 
-    public GradleExecuter withTasks(String... names) {
-        tasks = Arrays.asList(names);
-        return this;
-    }
-
     public GradleExecuter withTasks(List<String> names) {
         tasks = new ArrayList<String>(names);
         return this;
-    }
-
-    public GradleExecuter withTaskList() {
-        throw new UnsupportedOperationException();
-    }
-
-    public GradleExecuter withDependencyList() {
-        throw new UnsupportedOperationException();
-    }
-
-    public GradleExecuter usingSettingsFile(File settingsFile) {
-        throw new UnsupportedOperationException();
-    }
-
-    public GradleExecuter usingBuildScript(String script) {
-        throw new UnsupportedOperationException();
     }
 
     public GradleExecuter withArguments(String... args) {
@@ -91,7 +76,7 @@ public class ForkingGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withQuietLogging() {
-        logLevel = Executer.QUIET;
+        quiet = true;
         return this;
     }
 
@@ -110,6 +95,10 @@ public class ForkingGradleExecuter implements GradleExecuter {
         return new ForkedExecutionFailure(result);
     }
 
+    private List<String> getLoggingArgs() {
+        return quiet ? Collections.singletonList("-q") : Collections.<String>emptyList();
+    }
+
     private Map doRun(boolean expectFailure) {
         String windowsCmd;
         String unixCmd;
@@ -120,15 +109,52 @@ public class ForkingGradleExecuter implements GradleExecuter {
             windowsCmd = "gradle";
             unixCmd = String.format("%s/bin/gradle", distribution.getGradleHomeDir().getAbsolutePath());
         }
-        return Executer.executeInternal(windowsCmd,
-                unixCmd,
-                distribution.getGradleHomeDir().getAbsolutePath(),
-                environmentVars,
-                workingDir.getAbsolutePath(),
-                GUtil.addLists(args, tasks),
-                "",
-                logLevel,
-                expectFailure);
+        return executeInternal(windowsCmd, unixCmd, distribution.getGradleHomeDir(), environmentVars, workingDir,
+                GUtil.addLists(getLoggingArgs(), args, tasks), expectFailure);
+    }
+
+    static Map executeInternal(String windowsCommandSnippet, String unixCommandSnippet, File gradleHome, Map envs,
+                               File workingDir, List tasknames, boolean expectFailure) {
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+
+        ExecHandleBuilder builder = new ExecHandleBuilder();
+        builder.standardOutput(outStream);
+        builder.errorOutput(errStream);
+        builder.inheritEnvironment();
+        builder.environment("GRADLE_HOME", gradleHome.toString());
+        builder.environment(envs);
+        builder.execDirectory(workingDir);
+
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            builder.execCommand("cmd");
+            builder.arguments("/c", windowsCommandSnippet);
+            builder.environment("Path", String.format("%s\\bin;%s", gradleHome, System.getenv("Path")));
+            builder.environment("GRADLE_EXIT_CONSOLE", "true");
+        } else {
+            builder.execCommand(unixCommandSnippet);
+        }
+
+        builder.arguments(tasknames);
+
+        LOG.info(String.format("Execute in %s with: %s %s", builder.getExecDirectory(), builder.getExecCommand(),
+                builder.getArguments()));
+
+        ExecHandle proc = builder.getExecHandle();
+        proc.startAndWaitForFinish();
+
+        int exitValue = proc.getExitCode();
+        String output = outStream.toString();
+        String error = errStream.toString();
+        boolean failed = exitValue != 0;
+
+        LOG.info("OUTPUT: " + output);
+        LOG.info("ERROR: " + error);
+
+        if (failed != expectFailure) {
+            throw new RuntimeException(String.format("Integrationtests failed with: %s %s", output, error));
+        }
+        return GUtil.map("output", output, "error", error);
     }
 
     private static class ForkedExecutionResult implements ExecutionResult {

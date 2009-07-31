@@ -15,34 +15,32 @@
  */
 package org.gradle.integtests;
 
-import org.gradle.StartParameter;
-import org.gradle.Gradle;
-import org.gradle.BuildResult;
+import junit.framework.AssertionFailedError;
 import org.gradle.BuildListener;
-import static org.gradle.util.Matchers.*;
-import org.gradle.execution.BuiltInTasksBuildExecuter;
-import org.gradle.api.Task;
+import org.gradle.BuildResult;
+import org.gradle.Gradle;
+import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.logging.LogLevel;
+import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.invocation.Build;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.execution.BuiltInTasksBuildExecuter;
+import static org.gradle.util.Matchers.*;
 import org.hamcrest.Matcher;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import java.util.List;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
-import java.io.File;
-
-import junit.framework.AssertionFailedError;
+import java.util.List;
 
 // todo: implement more of the unsupported methods
-public class InProcessGradleExecuter implements GradleExecuter {
+public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final StartParameter parameter;
     private final List<String> tasks = new ArrayList<String>();
     private final List<Task> planned = new ArrayList<Task>();
@@ -81,10 +79,6 @@ public class InProcessGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
-        throw new UnsupportedOperationException();
-    }
-
     public InProcessGradleExecuter usingSettingsFile(File settingsFile) {
         parameter.setSettingsFile(settingsFile);
         return this;
@@ -95,17 +89,9 @@ public class InProcessGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    public GradleExecuter usingExecutable(String script) {
-        throw new UnsupportedOperationException();
-    }
-
     public GradleExecuter withQuietLogging() {
         parameter.setLogLevel(LogLevel.QUIET);
         return this;
-    }
-
-    public GradleExecuter withArguments(String... args) {
-        throw new UnsupportedOperationException();
     }
 
     public ExecutionResult run() {
