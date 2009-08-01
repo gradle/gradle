@@ -23,10 +23,10 @@ import org.gradle.api.TaskAction;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.CopyActionImpl;
+import org.gradle.api.internal.file.CopySpecImpl;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.copy.CopyActionImpl;
-import org.gradle.api.internal.tasks.copy.CopySpecImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

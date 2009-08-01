@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy;
+package org.gradle.api.internal.file.pattern;
 
-import java.io.File;
-import java.io.IOException;
-
-public interface DirectoryWalker {
-    void addIncludes(Iterable<String> includes);
-
-    void addExcludes(Iterable<String> excludes);
-
-    void start(File baseDir) throws IOException;
+public class PatternStepFactory {
+    public static PatternStep getStep(String source, boolean isLast, boolean caseSensitive) {
+        if (source.equals("**")) {
+            return new GreedyPatternStep();
+        } else {
+            return new RegExpPatternStep(source, isLast, caseSensitive);
+        }
+    }
 }

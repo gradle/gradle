@@ -1,4 +1,4 @@
-package org.gradle.api.internal.tasks.copy;
+package org.gradle.api.internal.file;
 
 import org.junit.Test;
 import static org.junit.Assert.*;

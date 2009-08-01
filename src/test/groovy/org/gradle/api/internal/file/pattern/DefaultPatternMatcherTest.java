@@ -1,8 +1,8 @@
-package org.gradle.api.internal.tasks.copy.pattern;
+package org.gradle.api.internal.file.pattern;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.gradle.api.internal.tasks.copy.RelativePath;
+import org.gradle.api.internal.file.RelativePath;
 
 import java.util.List;
 

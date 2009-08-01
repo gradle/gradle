@@ -13,21 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy;
+package org.gradle.api.internal.file;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import java.io.FilterReader;
+import java.io.Reader;
+import java.io.StringReader;
 
-public class RegExpNameMapperTest {
-    @Test public void testRenameWithCapture() {
-        RegExpNameMapper mapper = new RegExpNameMapper("(.+).java","$1Test.java");
-        assertEquals("SourceTest.java", mapper.transform("Source.java"));
-        assertEquals("SecondTest.java", mapper.transform("Second.java"));
+public class FilterChain extends FilterReader {
+    private FilterReader tail;
+
+    protected FilterChain() {
+        super(new StringReader(""));
+        tail = this;
     }
 
-    @Test public void testRenameNoMatch() {
-        RegExpNameMapper mapper = new RegExpNameMapper("(.+).java","$1Test.java");
-        String noMatch = "NoMatch";
-        assertEquals(noMatch, mapper.transform(noMatch));
+    public void setHead(Reader in) {
+        this.in = in;
+    }
+
+    public void setChain(FilterReader chain) {
+        this.tail = chain;
+    }
+
+    public FilterReader getChain() {
+        return tail;
+    }
+
+    public boolean hasChain() {
+        return tail != this;
     }
 }

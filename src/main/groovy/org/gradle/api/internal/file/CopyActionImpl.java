@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy;
+package org.gradle.api.internal.file;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gradle.api.*;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.internal.file.FileResolver;
 
 import java.util.List;
 import java.util.Map;

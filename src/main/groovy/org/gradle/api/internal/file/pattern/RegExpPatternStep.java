@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy.pattern;
+package org.gradle.api.internal.file.pattern;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

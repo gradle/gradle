@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy;
-
-import java.io.File;
+package org.gradle.api.internal.file.pattern;
 
 /**
  * @author Steve Appling
  */
-public interface FileVisitor {
-    public void visitDir(File dir, RelativePath path);
-    public void visitFile(File file, RelativePath path);
+public class GreedyPatternStep implements PatternStep{
+    public boolean matches(String candidate, boolean isFile) {
+        return true;
+    }
+
+    public boolean isGreedy() {
+        return true;
+    }
 }

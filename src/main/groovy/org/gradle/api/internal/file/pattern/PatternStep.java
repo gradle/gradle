@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy.pattern;
+package org.gradle.api.internal.file.pattern;
 
 /**
  * @author Steve Appling
  */
-public class GreedyPatternStep implements PatternStep{
-    public boolean matches(String candidate, boolean isFile) {
-        return true;
-    }
-
-    public boolean isGreedy() {
-        return true;
-    }
+public interface PatternStep {
+    public boolean matches(String candidate, boolean isFile);
+    public boolean isGreedy();
 }

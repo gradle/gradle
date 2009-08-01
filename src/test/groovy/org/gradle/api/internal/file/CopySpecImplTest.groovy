@@ -1,9 +1,7 @@
-package org.gradle.api.internal.tasks.copy;
+package org.gradle.api.internal.file;
 
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
-import org.gradle.api.internal.file.BaseDirConverter
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.HelperUtil
 import org.hamcrest.Matchers
 import org.junit.Before

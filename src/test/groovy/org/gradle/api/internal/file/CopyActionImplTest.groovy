@@ -1,20 +1,17 @@
-package org.gradle.api.tasks.copy
+package org.gradle.api.internal.file
 
-import org.gradle.api.internal.tasks.copy.*
-import org.junit.runner.RunWith
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.tasks.copy.FileVisitor
-import org.gradle.util.HelperUtil;
-import org.gradle.api.internal.tasks.copy.CopyActionImpl
-import org.gradle.api.internal.project.ProjectInternal
+import org.junit.runner.RunWith
+import static org.junit.Assert.*
 
 @RunWith (org.jmock.integration.junit4.JMock)
-public class CopyActionTest  {
+public class CopyActionImplTest  {
     CopyActionImpl copyAction;
     BreadthFirstDirectoryWalker walker;
     FileVisitor visitor;

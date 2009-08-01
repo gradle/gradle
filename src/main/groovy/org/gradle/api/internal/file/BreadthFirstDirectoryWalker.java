@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy;
+package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.tasks.copy.pattern.PatternMatcherFactory;
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.slf4j.Logger;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.copy;
+package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;

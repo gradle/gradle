@@ -19,8 +19,9 @@ package org.gradle.api.tasks.util
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.tasks.AntBuilderAware
-import org.gradle.api.internal.tasks.copy.BreadthFirstDirectoryWalker
-import org.gradle.api.internal.tasks.copy.FileVisitor
+
+import org.gradle.api.internal.file.FileVisitor
+import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
 
 /**
  * @author Hans Dockter

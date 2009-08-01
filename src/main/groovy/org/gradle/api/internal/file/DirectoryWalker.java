@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy.pattern;
+package org.gradle.api.internal.file;
 
-/**
- * @author Steve Appling
- */
-public interface PatternStep {
-    public boolean matches(String candidate, boolean isFile);
-    public boolean isGreedy();
+import java.io.File;
+import java.io.IOException;
+
+public interface DirectoryWalker {
+    void addIncludes(Iterable<String> includes);
+
+    void addExcludes(Iterable<String> excludes);
+
+    void start(File baseDir) throws IOException;
 }

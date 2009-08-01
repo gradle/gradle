@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy.pattern;
+package org.gradle.api.internal.file.pattern;
 
-import org.gradle.api.internal.tasks.copy.RelativePath;
+import org.gradle.api.internal.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
 /**

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy;
+package org.gradle.api.internal.file;
 
 import java.lang.reflect.Constructor
 import org.gradle.api.InvalidUserDataException
@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory
 import java.lang.*
 import java.util.*
 import org.gradle.api.Transformer
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.ConfigureUtil
 
 /**

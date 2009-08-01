@@ -1,18 +1,16 @@
 package org.gradle.api.tasks
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.tasks.copy.*
-
-import org.junit.runner.RunWith
+import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
+import org.gradle.api.internal.file.CopyVisitor
+import org.gradle.api.internal.file.FileVisitor
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.api.InvalidUserDataException
-
-import org.gradle.api.internal.tasks.copy.FileVisitor
-
+import org.junit.runner.RunWith
+import static org.junit.Assert.*
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyTest extends AbstractTaskTest {

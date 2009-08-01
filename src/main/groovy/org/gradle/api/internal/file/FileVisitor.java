@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.copy.pattern;
+package org.gradle.api.internal.file;
 
-public class PatternStepFactory {
-    public static PatternStep getStep(String source, boolean isLast, boolean caseSensitive) {
-        if (source.equals("**")) {
-            return new GreedyPatternStep();
-        } else {
-            return new RegExpPatternStep(source, isLast, caseSensitive);
-        }
-    }
+import java.io.File;
+
+/**
+ * @author Steve Appling
+ */
+public interface FileVisitor {
+    public void visitDir(File dir, RelativePath path);
+    public void visitFile(File file, RelativePath path);
 }
