@@ -40,7 +40,7 @@ public class JUnitIntegrationTest {
                 "@org.junit.Test public void broken() { org.junit.Assert.fail(); }",
                 "}");
 
-        ExecutionFailure failure = executer.withTasks("libs").runWithFailure();
+        ExecutionFailure failure = executer.withTasks("build").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasDescription("Execution failed for task ':test'.");

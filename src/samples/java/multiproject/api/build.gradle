@@ -7,8 +7,6 @@ buildscript {
     }
 }
 
-dependsOn ':shared'
-
 configurations {
    spi
 }

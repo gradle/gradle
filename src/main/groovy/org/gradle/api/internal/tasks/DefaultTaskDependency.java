@@ -68,7 +68,7 @@ public class DefaultTaskDependency implements TaskDependency {
         for (Object value : flattened) {
             addValue(value);
         }
-        return this;
+            return this;
     }
 
     private void addValue(Object dependency) {

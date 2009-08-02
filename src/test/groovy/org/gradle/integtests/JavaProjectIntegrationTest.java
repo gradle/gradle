@@ -37,7 +37,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("src/main/java/org/gradle/ok.java").write("package org.gradle; class ok { }");
         testFile("src/test/java/org/gradle/broken.java").write("broken");
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("libs").runWithFailure();
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasDescription("Execution failed for task ':compileTests'");

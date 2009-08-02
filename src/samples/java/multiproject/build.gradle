@@ -2,6 +2,8 @@
 subprojects {
     usePlugin 'java'
     usePlugin 'eclipse'
+    
+    dependsOnChildren()
 
     repositories {
        mavenCentral()

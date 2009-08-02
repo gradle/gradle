@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -224,6 +225,7 @@ public class DefaultConfigurationTest {
                 equalTo(false));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void filesWithSpec() {
         final Set<File> fileSet = toSet(new File("somePath"));
@@ -232,9 +234,11 @@ public class DefaultConfigurationTest {
         assertThat(configuration.getState(), equalTo(Configuration.State.RESOLVED));
     }
 
+
+    @SuppressWarnings("unchecked")
     @Test
     public void fileCollectionWithSpec() {
-        Spec spec = context.mock(Spec.class);
+        Spec<Dependency> spec = context.mock(Spec.class);
         DefaultConfiguration.ConfigurationFileCollection fileCollection = (DefaultConfiguration.ConfigurationFileCollection)
                 configuration.fileCollection(spec);
         assertThat(fileCollection.getDependencySpec(), sameInstance(spec));
@@ -260,6 +264,7 @@ public class DefaultConfigurationTest {
                 equalTo(false));
     }
 
+    @SuppressWarnings("unchecked")
     private void prepareForFilesBySpec(final Set<File> fileSet) {
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         prepareResolve(resolvedConfiguration, false);
@@ -284,6 +289,7 @@ public class DefaultConfigurationTest {
         }});
     }
 
+    @SuppressWarnings("unchecked")
     private void makeResolveReturnFileSet(final Set<File> fileSet) {
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         context.checking(new Expectations() {{
@@ -322,7 +328,7 @@ public class DefaultConfigurationTest {
         final PublishInstruction publishInstruction = createAnonymousPublishInstruction();
         final List<DependencyResolver> dependencyResolvers = toList(context.mock(DependencyResolver.class, "publish"));
         context.checking(new Expectations() {{
-            allowing(ivyServiceStub).publish(new LinkedHashSet(otherConfiguration.getHierarchy()), publishInstruction, dependencyResolvers);
+            allowing(ivyServiceStub).publish(new LinkedHashSet<Configuration>(otherConfiguration.getHierarchy()), publishInstruction, dependencyResolvers);
         }});
         otherConfiguration.publish(dependencyResolvers, publishInstruction);
     }
@@ -355,6 +361,7 @@ public class DefaultConfigurationTest {
                 projectDependenciesBuildInstruction);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void buildArtifacts() {
         final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
@@ -384,6 +391,7 @@ public class DefaultConfigurationTest {
                 equalTo(toSet(artifactTaskMock, otherConfTaskMock)));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void buildDependencies() {
         final Task dependencyProjectUploadTaskStub = context.mock(Task.class, "dependencyProjectUploadTask");
@@ -394,6 +402,7 @@ public class DefaultConfigurationTest {
                 equalTo(toSet(otherConfTaskMock, dependencyProjectUploadTaskStub)));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void buildDependenciesWithRebuildDisabled() {
         final Task dependencyProjectUploadTaskStub = context.mock(Task.class, "dependencyProjectUploadTask");
@@ -404,6 +413,7 @@ public class DefaultConfigurationTest {
                 equalTo(WrapUtil.<Task>toSet()));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void buildDependenciesWithAdditonalProjectDependencyTasks() {
         final Task dependencyProjectUploadTaskStub = context.mock(Task.class, "dependencyProjectUploadTask");
@@ -463,6 +473,64 @@ public class DefaultConfigurationTest {
         configuration.addDependency(projectDependencyStub);
         configuration.setExtendsFrom(toSet(otherConfiguration));
     }
+
+    @SuppressWarnings("unchecked")
+    @Test public void taskDependencyFromProjectDependencyUsingNeeded() {
+        Configuration superConfig = configurationContainer.add("superConf");
+        configuration.extendsFrom(superConfig);
+
+        final ProjectDependency projectDependencyStub = context.mock(ProjectDependency.class);
+        superConfig.addDependency(projectDependencyStub);
+
+        final Project projectStub = context.mock(Project.class);
+        final TaskContainer taskContainerStub = context.mock(TaskContainer.class);
+        final Task taskStub = context.mock(Task.class);
+        final String taskName = "testit";
+
+        context.checking(new Expectations() {{
+            allowing(projectDependencyStub).getDependencyProject(); will(returnValue(projectStub));
+            allowing(projectStub).getTasks(); will(returnValue(taskContainerStub));
+            allowing(taskContainerStub).findByName(taskName); will(returnValue(taskStub));
+        }});
+
+        TaskDependency td = configuration.getTaskDependencyFromProjectDependency(true, taskName);
+        Task unusedTask = context.mock(Task.class, "unused");
+
+        assertThat((Set<Task>) td.getDependencies(unusedTask), equalTo(toSet(taskStub)));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test public void taskDependencyFromProjectDependencyUsingDependents() {
+        final String configName = configuration.getName();
+        final String taskName = "testit";
+        final Task tdTask = context.mock(Task.class, "tdTask");
+        final Project taskProject = context.mock(Project.class, "taskProject");
+        final Project rootProject = context.mock(Project.class, "rootProject");
+        final Project dependentProject = context.mock(Project.class, "dependentProject");
+        final Task desiredTask = context.mock(Task.class, "desiredTask");
+        final Set<Task> taskSet = toSet(desiredTask);
+        final ConfigurationHandler configHandler = context.mock(ConfigurationHandler.class);
+        final Configuration dependentConfig = context.mock(Configuration.class);
+        final ProjectDependency projectDependency = context.mock(ProjectDependency.class);
+        final Set<ProjectDependency> projectDependencies = toSet(projectDependency);
+
+
+        context.checking(new Expectations() {{
+            allowing(tdTask).getProject(); will(returnValue(taskProject));
+            allowing(taskProject).getRootProject(); will(returnValue(rootProject));
+            allowing(rootProject).getTasksByName(taskName, true); will(returnValue(taskSet));
+            allowing(desiredTask).getProject(); will(returnValue(dependentProject));
+            allowing(dependentProject).getConfigurations(); will(returnValue(configHandler));
+            allowing(configHandler).findByName(configName); will(returnValue(dependentConfig));
+
+            allowing(dependentConfig).getAllDependencies(ProjectDependency.class); will(returnValue(projectDependencies));
+            allowing(projectDependency).getDependencyProject(); will(returnValue(taskProject));
+        }});
+
+        TaskDependency td = configuration.getTaskDependencyFromProjectDependency(false, taskName);
+        assertThat((Set<Task>) td.getDependencies(tdTask), equalTo(toSet(desiredTask)));
+    }
+
 
     @Test
     public void getDependencies() {
@@ -593,7 +661,7 @@ public class DefaultConfigurationTest {
     @Test
     public void copyWithSpec() {
         prepareConfigurationForCopyTest();
-        Set<Dependency> expectedDependenciesToCopy = new HashSet(configuration.getDependencies());
+        Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getDependencies());
         configuration.addDependency(HelperUtil.createDependency("group3", "name3", "version3"));
 
         Configuration copiedConfiguration = configuration.copy(new Spec<Dependency>() {
@@ -608,7 +676,7 @@ public class DefaultConfigurationTest {
     @Test
     public void copyWithClosure() {
         prepareConfigurationForCopyTest();
-        Set<Dependency> expectedDependenciesToCopy = new HashSet(configuration.getDependencies());
+        Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getDependencies());
         configuration.addDependency(HelperUtil.createDependency("group3", "name3", "version3"));
 
         Closure specClosure = HelperUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
@@ -653,7 +721,7 @@ public class DefaultConfigurationTest {
     @Test
     public void copyRecursiveWithSpec() {
         prepareConfigurationForCopyRecursiveTest();
-        Set<Dependency> expectedDependenciesToCopy = new HashSet(configuration.getAllDependencies());
+        Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getAllDependencies());
         configuration.addDependency(HelperUtil.createDependency("group3", "name3", "version3"));
 
         Closure specClosure = HelperUtil.toClosure("{ element ->  !element.group.equals(\"group3\")}");
@@ -665,7 +733,7 @@ public class DefaultConfigurationTest {
     @Test
     public void copyRecursiveWithClosure() {
         prepareConfigurationForCopyRecursiveTest();
-        Set<Dependency> expectedDependenciesToCopy = new HashSet(configuration.getAllDependencies());
+        Set<Dependency> expectedDependenciesToCopy = new HashSet<Dependency>(configuration.getAllDependencies());
         configuration.addDependency(HelperUtil.createDependency("group3", "name3", "version3"));
 
         Configuration copiedConfiguration = configuration.copyRecursive(new Spec<Dependency>() {
@@ -704,7 +772,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void propertyChangeWithNonUnresolvedState_shouldThrowEx() {
-        makeResolveReturnFileSet(new HashSet());
+        makeResolveReturnFileSet(new HashSet<File>());
         configuration.resolve();
         assertInvalidUserDataException(new Executer() {
             public void execute() {

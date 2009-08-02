@@ -41,7 +41,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
     @Test public void testOptimizedBuild() {
         File javaprojectDir = new File(dist.samplesDir, 'java/onlyif')
         // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'dists').run()
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
@@ -54,7 +54,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
         removeFile(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
         removeFile(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
 
-        executer.inDirectory(javaprojectDir).withTasks('dists').run()
+        executer.inDirectory(javaprojectDir).withTasks('test').run()
 
         // assert that tests did not run
         // (since neither compile nor compileTests should have done anything)
@@ -64,7 +64,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
         // remove a compiled class file
         removeFile(javaprojectDir, 'build/classes/org/gradle/Person.class')
 
-        executer.inDirectory(javaprojectDir).withTasks('dists').run()
+        executer.inDirectory(javaprojectDir).withTasks('test').run()
 
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
@@ -74,7 +74,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
     @Test public void testNoOptCommandLine() {
         File javaprojectDir = new File(dist.samplesDir, 'java/onlyif')
         // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'dists').run()
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'test').run()
 
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
@@ -84,7 +84,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
         removeFile(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
         removeFile(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
 
-        executer.inDirectory(javaprojectDir).withTasks('dists').withArguments('-o').run()
+        executer.inDirectory(javaprojectDir).withTasks('test').withArguments('-o').run()
 
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')

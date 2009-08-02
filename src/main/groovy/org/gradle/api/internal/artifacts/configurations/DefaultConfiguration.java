@@ -6,6 +6,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -209,6 +210,54 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (Configuration configuration : getExtendsFrom()) {
             taskDependency.add(configuration.getBuildDependencies());
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
+        return new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+                if (useDependedOn) {
+                    addTaskDependenciesFromProjectsIDependOn(taskName,  taskDependency);
+                } else {
+                    Project thisProject = task.getProject();
+                    addTaskDependenciesFromProjectsDependingOnMe(thisProject, taskName, taskDependency);
+                }
+                return taskDependency.getDependencies(task);
+            }
+        };
+    }
+
+    private void addTaskDependenciesFromProjectsIDependOn(final String taskName, final DefaultTaskDependency taskDependency)  {
+        Set<ProjectDependency> projectDependencies = getAllDependencies(ProjectDependency.class);
+        for (ProjectDependency projectDependency : projectDependencies) {
+            Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
+            if (nextTask != null) {
+                taskDependency.add(nextTask);
+            }
+        }
+    }
+
+    private void addTaskDependenciesFromProjectsDependingOnMe(final Project thisProject, final String taskName, final DefaultTaskDependency taskDependency) {
+        Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
+        for (Task nextTask : tasksWithName) {
+            Configuration configuration = nextTask.getProject().getConfigurations().findByName(getName());
+            if (doesConfigurationDependOnProject(configuration, thisProject)) {
+                taskDependency.add(nextTask);
+            }
+        }
+    }
+
+    private static boolean doesConfigurationDependOnProject(Configuration configuration, Project project) {
+        Set<ProjectDependency> projectDependencies = configuration.getAllDependencies(ProjectDependency.class);
+        for (ProjectDependency projectDependency : projectDependencies) {
+            if (projectDependency.getDependencyProject().equals(project)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public TaskDependency getBuildArtifacts() {

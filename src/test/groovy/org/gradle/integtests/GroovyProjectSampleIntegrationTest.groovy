@@ -43,7 +43,7 @@ class GroovyProjectSampleIntegrationTest {
         File testProjectDir = new File(groovyProjectDir, TEST_PROJECT_NAME)
 
         // Build libs
-        executer.inDirectory(groovyProjectDir).withTasks('clean', 'libs').run()
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
         mainFiles.each { new TestFile(testProjectDir, packagePrefix, it + ".class").assertExists() }
         excludedFiles.each { new TestFile(testProjectDir, false, packagePrefix, it + ".class").assertDoesNotExist() }
 
@@ -71,7 +71,7 @@ class GroovyProjectSampleIntegrationTest {
     @Test
     public void groovyProjectQuickstartSample() {
         File groovyProjectDir = new File(dist.samplesDir, 'groovy/quickstart')
-        executer.inDirectory(groovyProjectDir).withTasks('clean', 'libs').run()
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
         new TestFile(groovyProjectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml').assertExists()
@@ -84,7 +84,7 @@ class GroovyProjectSampleIntegrationTest {
     @Test
     public void groovy1_5_6Sample() {
         File groovyProjectDir = new File(dist.samplesDir, 'groovy/groovy-1.5.6')
-        executer.inDirectory(groovyProjectDir).withTasks('clean', 'libs').run()
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
         
         // Check tests have run
         new TestFile(groovyProjectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml').assertExists()

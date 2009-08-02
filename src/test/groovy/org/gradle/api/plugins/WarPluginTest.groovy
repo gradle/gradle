@@ -73,8 +73,7 @@ class WarPluginTest {
 
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         assertThat(task, instanceOf(War))
-        assertDependsOn(task, JavaPlugin.TEST_TASK_NAME,
-                              JavaPlugin.COMPILE_TASK_NAME,
+        assertDependsOn(task, JavaPlugin.COMPILE_TASK_NAME,
                               JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
@@ -87,7 +86,7 @@ class WarPluginTest {
         warPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customWar', type: War)
-        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.TEST_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME,
+        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.COMPILE_TASK_NAME,
                               JavaPlugin.PROCESS_RESOURCES_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))

@@ -20,6 +20,7 @@ import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matchers
 import org.junit.After
@@ -67,11 +68,15 @@ class SamplesJavaMultiProjectIntegrationTest {
 
     @Test
     public void multiProjectjavaProjectSample() {
+        // Build and test projects
+        executer.inDirectory(javaprojectDir).withTasks('build').run()
+
+        assertEverythingBuilt()
+    }
+
+    private void assertEverythingBuilt() {
         String packagePrefix = 'build/classes/org/gradle'
         String testPackagePrefix = 'build/test-classes/org/gradle'
-
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('dists').run()
 
         // Check classes and resources
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
@@ -131,13 +136,20 @@ class SamplesJavaMultiProjectIntegrationTest {
         String testPackagePrefix = 'build/test-classes/org/gradle'
 
         // Partial build using current directory
-        executer.inDirectory(javaprojectDir.file("$SERVICES_NAME/$WEBAPP_NAME")).withTasks('libs').run()
+        executer.inDirectory(javaprojectDir.file("$SERVICES_NAME/$WEBAPP_NAME")).withTasks(JavaPlugin.BUILD_NEEDED_TASK_NAME).run()
         checkPartialWebAppBuild(packagePrefix, javaprojectDir, testPackagePrefix)
 
         // Partial build using task path
         executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:compile".toString()).run()
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
         assertDoesNotExist(javaprojectDir, false, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
+    }
+
+
+    @Test
+    public void buildDependents() {
+        executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:${JavaPlugin.BUILD_DEPENDENTS_TASK_NAME}".toString()).run()
+        assertEverythingBuilt()
     }
 
     @Test

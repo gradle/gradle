@@ -16,10 +16,7 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Action;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -61,6 +58,9 @@ public class JavaPlugin implements Plugin {
     public static final String LIBS_TASK_NAME = "libs";
     public static final String DISTS_TASK_NAME = "dists";
     public static final String JAVADOC_TASK_NAME = "javadoc";
+    public static final String BUILD_TASK_NAME = "build";
+    public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
+    public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
 
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
@@ -89,6 +89,10 @@ public class JavaPlugin implements Plugin {
         configureTestCompile(project);
 
         configureArchives(project);
+
+        configureBuild(project);
+        configureBuildNeeded(project);
+        configureBuildDependents(project);
     }
 
     private void configureTestCompile(Project project) {
@@ -102,7 +106,7 @@ public class JavaPlugin implements Plugin {
             public void execute(Compile compile) {
                 compile.setClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
                 compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
-                addDependsOnProjectDependencies(compile, COMPILE_CONFIGURATION_NAME);
+                addDependsOnProjectBuildDependencies(compile, COMPILE_CONFIGURATION_NAME);
             }
         });
 
@@ -121,8 +125,7 @@ public class JavaPlugin implements Plugin {
             public void execute(Javadoc javadoc) {
                 javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
                 javadoc.setConfiguration(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
-                // todo - not sure we want this
-                addDependsOnProjectDependencies(javadoc, COMPILE_CONFIGURATION_NAME);
+                addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
             }
         });
         project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class).setDescription("Generates the javadoc for the source code.");
@@ -141,7 +144,6 @@ public class JavaPlugin implements Plugin {
             public void execute(AbstractArchiveTask task) {
                 if (task instanceof Jar) {
                     task.conventionMapping(DefaultConventionsToPropertiesMapping.JAR);
-                    task.dependsOn(TEST_TASK_NAME);
                     task.dependsOn(PROCESS_RESOURCES_TASK_NAME);
                     task.dependsOn(COMPILE_TASK_NAME);
                 }
@@ -193,6 +195,28 @@ public class JavaPlugin implements Plugin {
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
     }
 
+    private void configureBuild(Project project) {
+        DefaultTask buildTask = project.getTasks().add(BUILD_TASK_NAME, DefaultTask.class);
+        buildTask.setDescription("Builds and tests this project");
+        buildTask.dependsOn(DISTS_TASK_NAME);
+        buildTask.dependsOn(TEST_TASK_NAME);
+        addDependsOnProjectBuildDependencies(buildTask, TEST_RUNTIME_CONFIGURATION_NAME);
+    }
+
+    private void configureBuildNeeded(Project project) {
+        DefaultTask buildTask = project.getTasks().add(BUILD_NEEDED_TASK_NAME, DefaultTask.class);
+        buildTask.setDescription("Builds and tests this project and all projects it depends on");
+        buildTask.dependsOn(BUILD_TASK_NAME);
+        addDependsOnTaskInOtherProjects(buildTask, true, BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
+    }
+
+    private void configureBuildDependents(Project project) {
+        DefaultTask buildTask = project.getTasks().add(BUILD_DEPENDENTS_TASK_NAME, DefaultTask.class);
+        buildTask.setDescription("Builds and tests this project and all projects that depend on it");
+        buildTask.dependsOn(BUILD_TASK_NAME);
+        addDependsOnTaskInOtherProjects(buildTask, false, BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
+    }
+
     private void configureTest(final Project project) {
         project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
             public void execute(Test test) {
@@ -202,7 +226,7 @@ public class JavaPlugin implements Plugin {
                 test.dependsOn(PROCESS_RESOURCES_TASK_NAME);
                 test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
                 test.setConfiguration(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME));
-                addDependsOnProjectDependencies(test, TEST_RUNTIME_CONFIGURATION_NAME);
+                addDependsOnProjectBuildDependencies(test, TEST_RUNTIME_CONFIGURATION_NAME);
             }
         });
         project.getTasks().add(TEST_TASK_NAME, Test.class).setDescription("Runs the tests.");
@@ -243,7 +267,7 @@ public class JavaPlugin implements Plugin {
         compileTests.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         configureCompileInternal(compileTests, propertyMapping);
         compileTests.setClasspath(configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME));
-        addDependsOnProjectDependencies(compileTests, TEST_COMPILE_CONFIGURATION_NAME);
+        addDependsOnProjectBuildDependencies(compileTests, TEST_COMPILE_CONFIGURATION_NAME);
         return compileTests;
     }
 
@@ -252,10 +276,26 @@ public class JavaPlugin implements Plugin {
         return compile;
     }
 
-    private void addDependsOnProjectDependencies(final Task task, String configurationName) {
+    private void addDependsOnProjectBuildDependencies(final Task task, String configurationName) {
         Project project = task.getProject();
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getBuildDependencies());
+    }
+
+    /**
+     * Adds a dependency on tasks with the specified name in other projects.  The other projects are determined from
+     * project lib dependencies using the specified configuration name. These may be projects this project depends on
+     * or projects that depend on this project based on the useDependOn argument.
+     * @param task Task to add dependencies to
+     * @param useDependedOn if true, add tasks from projects this project depends on, otherwise use projects
+     *                      that depend on this one.
+     * @param otherProjectTaskName name of task in other projects
+     * @param configurationName name of configuration to use to find the other projects
+     */
+    private void addDependsOnTaskInOtherProjects(final Task task, boolean useDependedOn, String otherProjectTaskName, String configurationName) {
+        Project project = task.getProject();
+        final Configuration configuration = project.getConfigurations().getByName(configurationName);
+        task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
     }
 
     protected JavaPluginConvention java(Convention convention) {
