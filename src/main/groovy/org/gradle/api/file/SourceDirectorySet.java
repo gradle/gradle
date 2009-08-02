@@ -18,19 +18,19 @@ package org.gradle.api.file;
 /**
  * A {@code SourceDirectorySet} represents a set of source files composed from a set of source directories.
  */
-public interface SourceDirectorySet extends SourceSet {
+public interface SourceDirectorySet extends FileTree {
 
     /**
      * Adds the given source directory to this set.
      *
      * @param srcDir The source directory. This is treated as for {@link org.gradle.api.Project#file(Object)}
      */
-    SourceSet srcDir(Object srcDir);
+    FileTree srcDir(Object srcDir);
 
     /**
      * Adds the given source directories to this set.
      *
      * @param srcDirs The source directories. This is treated as for {@link org.gradle.api.Project#files(Object[])}
      */
-    SourceSet srcDirs(Object... srcDirs);
+    FileTree srcDirs(Object... srcDirs);
 }

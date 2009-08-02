@@ -19,7 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.file.CompositeSourceSet
+import org.gradle.api.internal.file.UnionFileTree
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.tasks.bundling.GradleManifest
 
@@ -59,12 +59,12 @@ class JavaPluginConvention {
      * All java source for this project. This includes, for example, source which is directly compiled, and source which
      * is indirectly compiled through joint compilation.
      */
-    CompositeSourceSet allJavaSrc
+    UnionFileTree allJavaSrc
     /**
      * All java test source for this project. This includes, for example, source which is directly compiled, and source which
      * is indirectly compiled through joint compilation.
      */
-    CompositeSourceSet allJavaTestSrc
+    UnionFileTree allJavaTestSrc
 
     private JavaVersion srcCompat
     private JavaVersion targetCompat
@@ -87,12 +87,12 @@ class JavaPluginConvention {
         resourceDirNames << 'main/resources'
         testSrcDirNames << 'test/java'
         testResourceDirNames << 'test/resources'
-        src = new DefaultSourceDirectorySet(project.fileResolver)
+        src = new DefaultSourceDirectorySet('main java source', project.fileResolver)
         src.srcDirs { -> srcDirs }
-        allJavaSrc = new CompositeSourceSet('main java source', src)
-        testSrc = new DefaultSourceDirectorySet(project.fileResolver)
+        allJavaSrc = new UnionFileTree('main java source', src)
+        testSrc = new DefaultSourceDirectorySet('test java source', project.fileResolver)
         testSrc.srcDirs {-> testSrcDirs }
-        allJavaTestSrc = new CompositeSourceSet('test java source', testSrc)
+        allJavaTestSrc = new UnionFileTree('test java source', testSrc)
     }
 
     File mkdir(File parent = null, String name) {

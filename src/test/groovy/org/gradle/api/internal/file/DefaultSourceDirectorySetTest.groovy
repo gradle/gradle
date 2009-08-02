@@ -17,7 +17,7 @@ package org.gradle.api.internal.file;
 
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.SourceSet
+import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.StopActionException
 import org.gradle.util.GFileUtils
 import org.gradle.util.HelperUtil
@@ -40,7 +40,7 @@ public class DefaultSourceDirectorySetTest {
     @Before
     public void setUp() {
         resolver = {src -> new File(testDir, src as String)} as FileResolver
-        set = new DefaultSourceDirectorySet(resolver)
+        set = new DefaultSourceDirectorySet('<display-name>', resolver)
     }
 
     @Test
@@ -105,7 +105,7 @@ public class DefaultSourceDirectorySetTest {
             set.stopActionIfEmpty()
             fail()
         } catch (StopActionException e) {
-            assertThat(e.message, equalTo('No source files to operate on.'))
+            assertThat(e.message, equalTo('No files found in <display-name>.'))
         }
     }
 
@@ -119,7 +119,7 @@ public class DefaultSourceDirectorySetTest {
             set.stopActionIfEmpty()
             fail()
         } catch (StopActionException e) {
-            assertThat(e.message, equalTo('No source files to operate on.'))
+            assertThat(e.message, equalTo('No files found in <display-name>.'))
         }
     }
 
@@ -141,7 +141,7 @@ public class DefaultSourceDirectorySetTest {
 
         set.srcDir 'dir1'
 
-        SourceSet filteredSet = set.matching {
+        FileTree filteredSet = set.matching {
             include '**/file1.txt'
             exclude 'subdir2/**'
         }
@@ -159,7 +159,7 @@ public class DefaultSourceDirectorySetTest {
 
         set.srcDir 'dir1'
 
-        SourceSet filteredSet = set.matching { include '**/file1.txt' }
+        FileTree filteredSet = set.matching { include '**/file1.txt' }
         assertSetContains(filteredSet, 'subdir/file1.txt')
 
         set.srcDir 'dir2'

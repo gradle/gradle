@@ -21,7 +21,9 @@ import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Test
-import org.gradle.util.HelperUtil;
+import org.gradle.util.HelperUtil
+import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.UnionFileTree;
 
 /**
  * @author Hans Dockter
@@ -69,18 +71,46 @@ class FileSetTest extends AbstractTestForPatternSet {
     @Test public void testCanScanForFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
-        File excluded1 = new File(testDir, 'subDir/excluded1')
-        [included1, included2, excluded1].each {File file ->
+        File excluded1 = new File(testDir, 'subDir/notincluded')
+        File ignored1 = new File(testDir, 'ignored')
+        [included1, included2, excluded1, ignored1].each {File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }
 
-        fileSet.include('**/*included*')
-        fileSet.exclude('**/*excluded*')
+        fileSet.include('*/*included*')
+        fileSet.exclude('**/not*')
 
         Set f1 = fileSet.files
         Set f2 = [included1, included2] as Set
         assertThat(f1, equalTo(f2))
+    }
+
+    @Test public void testCanFilterFileSet() {
+        File included1 = new File(testDir, 'subDir/included1')
+        File included2 = new File(testDir, 'subDir2/included2')
+        File excluded1 = new File(testDir, 'subDir/notincluded')
+        File ignored1 = new File(testDir, 'ignored')
+        [included1, included2, excluded1, ignored1].each {File file ->
+            file.parentFile.mkdirs()
+            file.text = 'some text'
+        }
+
+        FileSet filtered = fileSet.matching {
+            include('*/*included*')
+            exclude('**/not*')
+        }
+
+        Set f1 = filtered.files
+        Set f2 = [included1, included2] as Set
+        assertThat(f1, equalTo(f2))
+    }
+
+    @Test public void testCanAddFileSets() {
+        FileTree other = new FileSet(testDir)
+        FileTree sum = fileSet + other
+        assertThat(sum, instanceOf(UnionFileTree))
+        assertThat(sum.sourceCollections, equalTo([fileSet, other] as Set))
     }
 
     @Test public void testDisplayName() {

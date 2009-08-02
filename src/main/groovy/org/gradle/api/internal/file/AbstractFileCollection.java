@@ -32,6 +32,11 @@ public abstract class AbstractFileCollection implements FileCollection {
      */
     public abstract String getDisplayName();
 
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
     public File getSingleFile() throws IllegalStateException {
         Collection<File> files = getFiles();
         if (files.isEmpty()) {

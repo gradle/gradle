@@ -17,14 +17,14 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.SourceSet;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
 
 public class Checkstyle extends ConventionTask {
-    private SourceSet source;
+    private FileTree source;
 
     private File configFile;
 
@@ -40,13 +40,13 @@ public class Checkstyle extends ConventionTask {
 
     @TaskAction
     public void check() {
-        SourceSet sourceSet = getSource();
-        sourceSet.stopActionIfEmpty();
+        FileTree source = getSource();
+        source.stopActionIfEmpty();
 
         File resultFile = getResultFile();
         resultFile.getParentFile().mkdirs();
 
-        antCheckstyle.checkstyle(getAnt(), sourceSet, getConfigFile(), resultFile, getClasspath());
+        antCheckstyle.checkstyle(getAnt(), source, getConfigFile(), resultFile, getClasspath());
     }
 
     public File getConfigFile() {
@@ -65,11 +65,11 @@ public class Checkstyle extends ConventionTask {
         this.resultFile = resultFile;
     }
 
-    public SourceSet getSource() {
+    public FileTree getSource() {
         return source;
     }
 
-    public void setSource(SourceSet source) {
+    public void setSource(FileTree source) {
         this.source = source;
     }
 

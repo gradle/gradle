@@ -390,11 +390,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return name != null ? name.hashCode() : 0;
     }
 
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
     public String getDisplayName() {
         return String.format("configuration '%s'", name);
     }

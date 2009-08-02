@@ -16,22 +16,54 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.file.SourceSet;
+import org.gradle.api.tasks.util.FileSet;
+import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
-public class DefaultSourceDirectorySet extends AbstractSourceSet implements SourceDirectorySet {
+public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final PathResolvingFileCollection srcDirs;
+    private final String displayName;
 
     public DefaultSourceDirectorySet(FileResolver resolver) {
+        this("source set", resolver);
+    }
+
+    public DefaultSourceDirectorySet(String displayName, FileResolver resolver) {
+        this.displayName = displayName;
         srcDirs = new PathResolvingFileCollection(resolver);
     }
 
     public Set<File> getSrcDirs() {
         return srcDirs.getFiles();
+    }
+
+    protected PatternSet getPatternSet() {
+        return new PatternSet();
+    }
+
+    @Override
+    protected Iterable<? extends FileTree> getSourceCollections() {
+        List<FileTree> source = new ArrayList<FileTree>();
+        PatternSet patternSet = getPatternSet();
+        for (File sourceDir : getExistingSourceDirs()) {
+            FileSet fileset = new FileSet(sourceDir);
+            fileset.setIncludes(patternSet.getIncludes());
+            fileset.setExcludes(patternSet.getExcludes());
+            source.add(fileset);
+        }
+        return source;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
     }
 
     protected Set<File> getExistingSourceDirs() {
@@ -46,12 +78,12 @@ public class DefaultSourceDirectorySet extends AbstractSourceSet implements Sour
         return existingSourceDirs;
     }
 
-    public SourceSet srcDir(Object srcDir) {
+    public FileTree srcDir(Object srcDir) {
         srcDirs.add(srcDir);
         return this;
     }
 
-    public SourceSet srcDirs(Object... srcDirs) {
+    public FileTree srcDirs(Object... srcDirs) {
         for (Object srcDir : srcDirs) {
             this.srcDirs.add(srcDir);
         }

@@ -19,7 +19,7 @@ package org.gradle.api.plugins
 import org.gradle.api.Project
 
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.file.CompositeSourceSet
+import org.gradle.api.internal.file.UnionFileTree
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 
 /**
@@ -43,11 +43,11 @@ class GroovyPluginConvention {
     /**
      * All groovy source for this project.
      */
-    CompositeSourceSet allGroovySrc
+    UnionFileTree allGroovySrc
     /**
      * All groovy test source for this project.
      */
-    CompositeSourceSet allGroovyTestSrc
+    UnionFileTree allGroovyTestSrc
 
     GroovyPluginConvention(Project project) {
         this.project = project
@@ -55,15 +55,15 @@ class GroovyPluginConvention {
         groovyTestSrcDirNames << 'test/groovy'
         groovydocDirName = 'groovydoc'
 
-        groovySrc = new DefaultSourceDirectorySet(project.fileResolver)
+        groovySrc = new DefaultSourceDirectorySet('main groovy source', project.fileResolver)
         groovySrc.srcDirs {-> groovySrcDirs}
-        allGroovySrc = new CompositeSourceSet('main groovy source')
+        allGroovySrc = new UnionFileTree('main groovy source')
         allGroovySrc.add(groovySrc.matching {include '**/*.groovy'})
         javaConvention.allJavaSrc.add(groovySrc.matching {include '**/*.java'})
 
-        groovyTestSrc = new DefaultSourceDirectorySet(project.fileResolver)
+        groovyTestSrc = new DefaultSourceDirectorySet('test groovy source', project.fileResolver)
         groovyTestSrc.srcDirs {-> groovyTestSrcDirs}
-        allGroovyTestSrc = new CompositeSourceSet('test groovy source')
+        allGroovyTestSrc = new UnionFileTree('test groovy source')
         allGroovyTestSrc.add(groovyTestSrc.matching {include '**/*.groovy'})
         javaConvention.allJavaTestSrc.add(groovyTestSrc.matching {include '**/*.java'})
     }

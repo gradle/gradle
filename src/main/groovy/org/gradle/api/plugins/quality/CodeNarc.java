@@ -16,7 +16,7 @@
 package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
-import org.gradle.api.file.SourceSet;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
 
@@ -25,7 +25,7 @@ import java.io.File;
 public class CodeNarc extends ConventionTask {
     private AntCodeNarc antCodeNarc = new AntCodeNarc();
 
-    private SourceSet source;
+    private FileTree source;
     private File reportFile;
     private File configFile;
 
@@ -35,7 +35,7 @@ public class CodeNarc extends ConventionTask {
 
     @TaskAction
     public void check() {
-        SourceSet source = getSource();
+        FileTree source = getSource();
         source.stopActionIfEmpty();
 
         File reportFile = getReportFile();
@@ -44,11 +44,11 @@ public class CodeNarc extends ConventionTask {
         antCodeNarc.execute(getAnt(), source, getConfigFile(), reportFile);
     }
 
-    public SourceSet getSource() {
+    public FileTree getSource() {
         return source;
     }
 
-    public void setSource(SourceSet source) {
+    public void setSource(FileTree source) {
         this.source = source;
     }
 

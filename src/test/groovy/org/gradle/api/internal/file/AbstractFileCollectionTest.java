@@ -31,6 +31,12 @@ import java.util.Set;
 
 public class AbstractFileCollectionTest {
     @Test
+    public void usesDisplayNameAsToString() {
+        TestFileCollection collection = new TestFileCollection();
+        assertThat(collection.toString(), equalTo("collection-display-name"));
+    }
+    
+    @Test
     public void canIterateOverFiles() {
         File file1 = new File("f1");
         File file2 = new File("f2");

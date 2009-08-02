@@ -17,17 +17,10 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 
-import java.io.File;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
-/**
- * A {@link org.gradle.api.file.FileCollection} which contains the union of the given source collections. Maintains
- * file ordering.
- */
-public class UnionFileCollection extends AbstractFileCollection {
+public class UnionFileCollection extends CompositeFileCollection {
     private final List<FileCollection> sourceCollections;
 
     public UnionFileCollection(FileCollection... sourceCollections) {
@@ -38,11 +31,8 @@ public class UnionFileCollection extends AbstractFileCollection {
         return "file collection";
     }
 
-    public Set<File> getFiles() {
-        Set<File> files = new LinkedHashSet<File>();
-        for (FileCollection collection : sourceCollections) {
-            files.addAll(collection.getFiles());
-        }
-        return files;
+    @Override
+    protected Iterable<FileCollection> getSourceCollections() {
+        return sourceCollections;
     }
 }

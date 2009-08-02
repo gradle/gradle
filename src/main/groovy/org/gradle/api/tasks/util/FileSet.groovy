@@ -17,17 +17,19 @@
 package org.gradle.api.tasks.util
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.AbstractFileCollection
-import org.gradle.api.tasks.AntBuilderAware
-
-import org.gradle.api.internal.file.FileVisitor
 import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
+import org.gradle.api.internal.file.FileVisitor
+import org.gradle.api.tasks.AntBuilderAware
+import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.file.UnionFileTree
 
 /**
  * @author Hans Dockter
  */
 // todo rename dir to base
-class FileSet extends AbstractFileCollection implements PatternFilterable, AntBuilderAware {
+class FileSet extends AbstractFileCollection implements FileTree, PatternFilterable, AntBuilderAware {
     final PatternSet patternSet = new PatternSet()
     File dir
 
@@ -57,6 +59,23 @@ class FileSet extends AbstractFileCollection implements PatternFilterable, AntBu
         walker.addExcludes(patternSet.excludes)
         walker.start(dir)
         files
+    }
+
+    FileTree plus(FileTree fileTree) {
+        return new UnionFileTree(this, fileTree)
+    }
+
+    FileTree matching(Closure filterConfigClosure) {
+        PatternSet patternSet = new PatternSet()
+        ConfigureUtil.configure(filterConfigClosure, patternSet)
+        if (this.patternSet.includes && patternSet.includes || this.patternSet.excludes && patternSet.excludes) {
+            // todo - implement this bit
+            throw new UnsupportedOperationException('Not implemented yet. Coming soon.')
+        }
+        FileSet filtered = new FileSet(dir)
+        filtered.includes = this.patternSet.includes + patternSet.includes
+        filtered.excludes = this.patternSet.excludes + patternSet.excludes
+        filtered
     }
 
     public Set<String> getIncludes() {

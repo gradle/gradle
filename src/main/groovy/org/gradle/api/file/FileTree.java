@@ -16,31 +16,32 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
-import org.gradle.api.tasks.AntBuilderAware;
-import org.gradle.api.tasks.StopActionException;
 
 /**
- * A {@code SourceSet} represents a read-only set of source files.
+ * A {@code FileTree} represents a read-only hierarchy of files. It extends {@code FileCollection} to add hierarchy
+ * query and manipulation methods.
  */
-public interface SourceSet extends AntBuilderAware {
+public interface FileTree extends FileCollection {
     /**
-     * Throws a {@link StopActionException} if this source set is empty.
-     *
-     * @return this
-     */
-    SourceSet stopActionIfEmpty() throws StopActionException;
-
-    /**
-     * <p>Restricts the contents of this set to those source files matching the given filter. The filtered set is live,
-     * so that any changes to this source set are reflected in the filtered set.</p>
+     * <p>Restricts the contents of this tree to those files matching the given filter. The filtered tree is live, so
+     * that any changes to this tree are reflected in the filtered tree.</p>
      *
      * <p>The given closure is ued to configure the filter. A {@link org.gradle.api.tasks.util.PatternFilterable} is
      * passed to the closure as it's delegate. Only files which match the specified include patterns will be included in
-     * the filtered set. Any files which match the specified exclude patterns will be excluded from the filtered
-     * set.</p>
+     * the filtered tree. Any files which match the specified exclude patterns will be excluded from the filtered
+     * tree.</p>
      *
      * @param filterConfigClosure the closure to use to configure the filter.
-     * @return The source set.
+     * @return The filtered tree.
      */
-    SourceSet matching(Closure filterConfigClosure);
+    FileTree matching(Closure filterConfigClosure);
+
+    /**
+     * Returns a {@code FileTree} which contains the union of this tree and the given tree. The returned tree is live,
+     * so that changes to either this tree or the other source tree are reflected in the returned tree.
+     *
+     * @param fileTree The tree. Should not be null.
+     * @return The union of this tree and the given tree.
+     */
+    FileTree plus(FileTree fileTree);
 }
