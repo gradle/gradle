@@ -148,6 +148,7 @@ public class UserGuideTransformTask extends DefaultTask {
                     String title = element.'@title' 
 
                     Element exampleElement = doc.createElement('example')
+                    exampleElement.setAttribute('id', sampleId)
                     Element titleElement = doc.createElement('title')
                	   	titleElement.appendChild(doc.createTextNode(title))
                	   	exampleElement.appendChild(titleElement);
