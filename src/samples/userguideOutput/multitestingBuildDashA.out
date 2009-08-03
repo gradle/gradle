@@ -1,0 +1,13 @@
+:api:compile
+:api:processResources
+:api:jar
+:api:libs
+:api:dists
+:api:compileTests
+:api:processTestResources
+:api:test
+:api:build
+
+BUILD SUCCESSFUL
+
+Total time: 3.36 secs

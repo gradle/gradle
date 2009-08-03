@@ -113,6 +113,44 @@
             </tr>
             <tr>
                 <td>
+                    <literal>build</literal>
+                </td>
+                <td>
+                    <literal>test</literal> and <literal>dists</literal>
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>buildNeeded</literal>
+                </td>
+                <td>
+                    <literal>build</literal> and <literal>build</literal> tasks in all project lib dependencies of the
+                    <literal>testRuntime</literal> configuration.
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>buildDependents</literal>
+                </td>
+                <td>
+                    <literal>build</literal> and <literal>build</literal> tasks in all projects with a project lib
+                    dependency on this project in a <literal>testRuntime</literal> configuration.
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>build</literal>
+                </td>
+                <td>
+                    <literal>test</literal> and <literal>dists</literal>
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+            <tr>
+                <td>
                     <literal>build<replaceable>ConfigurationName</replaceable></literal>
                 </td>
                 <td>

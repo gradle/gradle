@@ -17,3 +17,6 @@ project(':services:personService') {
     }
 }
 
+dependsOnChildren()
+
+

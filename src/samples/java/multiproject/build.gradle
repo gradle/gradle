@@ -2,8 +2,6 @@
 subprojects {
     usePlugin 'java'
     usePlugin 'eclipse'
-    
-    dependsOnChildren()
 
     repositories {
        mavenCentral()
@@ -17,4 +15,6 @@ subprojects {
     version = '1.0'
     manifest.mainAttributes(provider: 'gradle')
 }
+
+dependsOnChildren()
 // END SNIPPET configuration-injection

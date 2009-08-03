@@ -338,7 +338,7 @@
                 <title>The nature of project dependencies</title>
                 <para>Let's change the naming of our tasks and execute the build.
                 </para>
-                <sample id="multiprojectMessagesDifferentTaskNames" dir="userguide/multiproject/dependencies/messagesDifferentTaskNames/messages" title="Project dependencies">
+                <sample id="multiprojectMessagesDifferentTaskNames" dir="userguide/multiproject/dependencies/messagesDifferentTaskNames/messages" title="Project execution dependencies">
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>
                     <output args="-q consume"/>
@@ -353,7 +353,7 @@
                     creates dependencies between tasks with equal names. To deal with the scenario above you would do
                     the following:
                 </para>
-                <sample id="multiprojectMessagesTaskDependencies" dir="userguide/multiproject/dependencies/messagesTaskDependencies/messages" title="Project dependencies">
+                <sample id="multiprojectMessagesTaskDependencies" dir="userguide/multiproject/dependencies/messagesTaskDependencies/messages" title="Cross project task dependencies">
                     <sourcefile file="consumer/build.gradle"/>
                     <sourcefile file="producer/build.gradle"/>
                     <output args="-q consume"/>
@@ -504,9 +504,9 @@
         <para>What if one projects needs the jar produced by another project in its compile path. And not just the jar
             but also the transitive dependencies of this jar. Obviously this is a very common use case for Java
             multi-project builds. As already mentioned in <xref linkend='sub:project_dependencies'/>, Gradle
-            offers project dependencies for this.
+            offers project lib dependencies for this.
         </para>
-        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java" includeLocation="true" title="Project dependencies">
+        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java" includeLocation="true" title="Project lib dependencies">
             <layout>
                 settings.gradle
                 build.gradle
@@ -536,7 +536,7 @@
                 </para>
             </footnote>
         </para>
-        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java" title="Project dependencies">
+        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java" title="Project lib dependencies">
             <sourcefile file="settings.gradle"/>
             <sourcefile file="build.gradle"/>
         </sample>
@@ -576,10 +576,64 @@
         </para>
         <section id="disable_dependency_projects">
             <title>Disable the build of dependency projects.</title>
-            <para>Sometimes you don't want that dependeny projects get rebuild when doing a partial build.
-                To disable the build of the dependency projects you can start gradle with the <code>-a</code> option.
+            <para>Sometimes you don't want depended on projects to be built when doing a partial build.
+                To disable the build of the depended on projects you can run gradle with the <code>-a</code> option.
             </para>
         </section>
+    </section>
+    <section id="sec:multiproject_build_and_test">
+        <title>Multi-Project Building and Testing</title>
+        <para>The <literal>build</literal> task of the Java plugin is typically used to compile, test, and perform
+            code style checks (if the CodeQuality plugin is used) of a single project.  In multi-project builds
+            you may often want to do all of these tasks across a range of projects.  The <literal>buildNeeded</literal>
+            and <literal>buildDependents</literal> tasks can help with this.
+        </para>
+        <para>Let's use the project structure shown in the first example in section <xref linkend='sec:project_jar_dependencies'/>.  In this
+            example :services:personservice depends on both :api and :shared.  The :api project also depends on
+            :shared.
+        </para>
+        <para>Assume you are working on a single project, the :api project.  You have been making changes, but
+            have not built the entire project since performing a clean.  You want to build any necessary supporting
+            jars, but only perform code quality and unit tests on the project you have changed.
+            The <literal>build</literal> task does this.
+        </para>
+        <sample id="multitestingBuild" dir="userguide/multiproject/dependencies/java" title="Build and Test Single Project">
+            <output args=":api:build"/>
+        </sample>
+
+        <para>While you are working in a typical development cycle repeatedly building and testing changes to a
+            the :api project (knowing that you are only changing files in this one project), you may not want to
+            even suffer the expense of :shared:compile checking to see what has changed in the :shared project.
+            Adding the <literal>-a</literal> option will cause gradle to use cached jars to resolve any project lib
+            dependencies and not try to re-build the depended on projects.
+        </para>
+        <sample id="multitestingBuildDashA" dir="userguide/multiproject/dependencies/java" title="Partial Build and Test Single Project">
+            <output args="-a :api:build"/>
+        </sample>
+
+        <para>If you have just gotten the latest version of source from your version control system which included changes
+            in other projects that :api depends on, you might want to not only build all the projects you depend on,
+            but test them as well. The <literal>buildNeeded</literal> task also tests all the projects from the
+            project lib dependencies of the testRuntime configuration.
+        </para>
+        <sample id="multitestingBuildNeeded" dir="userguide/multiproject/dependencies/java" title="Build and Test Depended On Projects">
+            <output args=":api:buildNeeded"/>
+        </sample>
+
+        <para>You also might want to refactor some part of the :api project that is used in other projects.
+            If you make these types of changes, it is not sufficient to test just the :api,
+            project, you also need to test all projects that depend on the :api project.
+            The <literal>buildDependents</literal> task also tests all the projects that have a project lib dependency
+            (in the testRuntime configuration) on the specified project.
+        </para>
+        <sample id="multitestingBuildDependents" dir="userguide/multiproject/dependencies/java" title="Build and Test Dependent Projects">
+            <output args=":api:buildDependents"/>
+        </sample>
+        <para>Finally, you may want to build and test everything in all projects.  If the root project has declared
+        <literal>dependsOnChildren()</literal> (as this one does), then any task you run agains the root project
+        will cause that same named task to be run on all the children.  So you can just run
+        <literal>gradle build</literal> to build and test all projects.
+        </para>
     </section>
     <section id='sec:property_and_method_inheritance'>
         <title>Property and method inheritance</title>

@@ -1,0 +1,17 @@
+:shared:compile
+:shared:processResources
+:shared:jar
+:shared:uploadDefaultInternal
+:api:compile
+:api:processResources
+:api:jar
+:api:libs
+:api:dists
+:api:compileTests
+:api:processTestResources
+:api:test
+:api:build
+
+BUILD SUCCESSFUL
+
+Total time: 4.141 secs
