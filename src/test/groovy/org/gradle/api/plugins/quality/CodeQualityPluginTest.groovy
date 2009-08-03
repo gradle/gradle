@@ -12,7 +12,6 @@ import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.hamcrest.Matcher
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.bundling.Jar
 
 class CodeQualityPluginTest {
     private final Project project = HelperUtil.createRootProject()
@@ -60,17 +59,9 @@ class CodeQualityPluginTest {
 
         task = project.tasks[CodeQualityPlugin.CHECK_TASK]
         assertDependsOn(task, CodeQualityPlugin.CHECKSTYLE_TASK, CodeQualityPlugin.CHECKSTYLE_TESTS_TASK)
-    }
 
-    @Test public void addsCheckToDependenciesOfAllJarTasks() {
-        def jar1 = project.tasks.add('jar1', Jar)
-
-        plugin.use(project, project.plugins)
-
-        def jar2 = project.tasks.add('jar2', Jar)
-
-        assertDependsOn(jar1, hasItem(CodeQualityPlugin.CHECK_TASK))
-        assertDependsOn(jar2, hasItem(CodeQualityPlugin.CHECK_TASK))
+        task = project.tasks[JavaPlugin.BUILD_TASK_NAME]
+        assertDependsOn(task, hasItem(CodeQualityPlugin.CHECK_TASK))
     }
 
     @Test public void addsConventionObjectWhenGroovyPluginApplied() {

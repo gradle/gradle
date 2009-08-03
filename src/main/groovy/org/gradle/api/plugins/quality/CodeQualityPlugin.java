@@ -22,7 +22,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.plugins.*;
 
 import java.util.Set;
@@ -65,11 +64,6 @@ public class CodeQualityPlugin implements Plugin {
         project.getTasks().getByName(CHECK_TASK).dependsOn(new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 return project.getTasks().withType(CodeNarc.class).getAll();
-            }
-        });
-        project.getTasks().withType(Jar.class).allTasks(new Action<Jar>() {
-            public void execute(Jar jar) {
-                jar.dependsOn(CHECK_TASK);
             }
         });
     }
@@ -117,6 +111,8 @@ public class CodeQualityPlugin implements Plugin {
                 return convention.getPlugin(JavaCodeQualityPluginConvention.class).getCheckstyleTestResultFile();
             }
         });
+
+        addToBuildTask(project);
     }
 
     private void configureForGroovyPlugin(final Project project) {
@@ -162,5 +158,14 @@ public class CodeQualityPlugin implements Plugin {
                 return convention.getPlugin(GroovyCodeQualityPluginConvention.class).getCodeNarcTestReportFile();
             }
         });
+
+        addToBuildTask(project);
+    }
+
+    private void addToBuildTask(Project project) {
+        Task buildTask = project.getTasks().findByName(JavaPlugin.BUILD_TASK_NAME);
+        if (buildTask != null) {
+            buildTask.dependsOn(CHECK_TASK);
+        }
     }
 }
