@@ -19,6 +19,7 @@ package org.gradle.api.tasks.bundling
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.ZipFileSet
 import org.gradle.api.InvalidUserDataException
+import org.apache.commons.io.FileUtils
 
 /**
  * @author Hans Dockter
@@ -37,8 +38,10 @@ class AntTar extends AbstractAntArchive {
         AntBuilder ant = parameter.ant
 
         List unpackedMergeGroupFileSets = []
+        List tempDirs = []
         parameter.mergeGroupFileSets.each {FileSet fileSet ->
             File tmpDir = File.createTempFile('gradle_', 'tarMergeGroup')
+            tempDirs << tmpDir
             tmpDir.delete()
             tmpDir.mkdirs()
             ant.copy(todir: tmpDir) {
@@ -56,9 +59,6 @@ class AntTar extends AbstractAntArchive {
             addResourceCollections(unpackedMergeGroupFileSets, delegate)
             addMergeFileSets(parameter.mergeFileSets, delegate)
         }
-        unpackedMergeGroupFileSets.each {FileSet fileSet ->
-            ant.delete(dir: fileSet.dir)
-        }
-
+        tempDirs.each { FileUtils.deleteQuietly(it) }
     }
 }

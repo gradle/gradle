@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller
 import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyPomFilterContainer;
+import org.gradle.util.DeleteOnExit;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +94,7 @@ public class DefaultResolverFactory implements ResolverFactory {
         }
         tmpFile.delete();
         tmpFile.mkdir();
+        DeleteOnExit.addFile(tmpFile);
         return tmpFile;
     }
 
