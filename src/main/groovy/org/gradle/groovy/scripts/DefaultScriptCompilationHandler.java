@@ -18,11 +18,9 @@ package org.gradle.groovy.scripts;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.MultipleCompilationErrorsException;
+import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.runtime.InvokerHelper;
+import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.util.Clock;
@@ -93,8 +91,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         try {
             scriptClass = groovyClassLoader.parseClass(scriptText == null ? "" : scriptText, scriptName);
         } catch (MultipleCompilationErrorsException e) {
+            SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
+            Integer lineNumber = syntaxError==null ? null : syntaxError.getLine();
+
             throw new GradleScriptException(String.format("Could not compile %s.", source.getDisplayName()), e, source,
-                    e.getErrorCollector().getSyntaxError(0).getLine());
+                    lineNumber);
         } catch (CompilationFailedException e) {
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
         }
