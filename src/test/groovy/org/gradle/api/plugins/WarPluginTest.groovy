@@ -27,15 +27,25 @@ import org.junit.Test
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.instanceOf
+import static org.hamcrest.Matchers.hasItem
+import static org.hamcrest.Matchers.hasItems
 import static org.junit.Assert.*
+import org.junit.Before
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 
 /**
  * @author Hans Dockter
  */
 // todo Make test stronger
 class WarPluginTest {
-    private final Project project = HelperUtil.createRootProject()
-    private final WarPlugin warPlugin = new WarPlugin()
+    private Project project // = HelperUtil.createRootProject()
+    private WarPlugin warPlugin// = new WarPlugin()
+
+    @Before
+    public void setUp() {
+        project = HelperUtil.createRootProject()
+        warPlugin = new WarPlugin()
+    }
 
     @Test public void appliesJavaPluginAndAddsConvention() {
         warPlugin.use(project, project.getPlugins())
@@ -82,12 +92,25 @@ class WarPluginTest {
         assertDependsOn(task, JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME)
     }
 
+    @Test public void dependsOnRuntimeConfig() {
+        warPlugin.use(project, project.getPlugins())
+        Configuration runtimeConfig = project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
+
+        Project childProject = HelperUtil.createChildProject(project, 'child', HelperUtil.makeNewTestDir('child'))
+        JavaPlugin javaPlugin = new JavaPlugin()
+        javaPlugin.use(childProject, childProject.getPlugins())
+
+        runtimeConfig.addDependency(new DefaultProjectDependency(childProject, 'compile'))
+
+        def task = project.tasks[WarPlugin.WAR_TASK_NAME]
+        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, hasItem(':child:uploadCompileInternal'))
+    }
+
     @Test public void appliesMappingsToArchiveTasks() {
         warPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customWar', type: War)
-        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.COMPILE_TASK_NAME,
-                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME)))
+        assertThat(task.dependsOn, hasItems(JavaPlugin.COMPILE_TASK_NAME,JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
 

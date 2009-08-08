@@ -55,6 +55,7 @@ import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultBuild
+import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository
 
 /**
  * @author Hans Dockter
@@ -86,7 +87,9 @@ class HelperUtil {
                 serviceRegistryFactory,
                 new StringScriptSource("embedded build file", "embedded"))
 
-        DefaultBuild build = new DefaultBuild(startParameter, null, null)
+        DefaultInternalRepository internalRepo = new DefaultInternalRepository()
+        internalRepo.setName('testInternalRepo') 
+        DefaultBuild build = new DefaultBuild(startParameter, null, internalRepo)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)
