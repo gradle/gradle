@@ -16,7 +16,7 @@ public class DefaultPatternMatcherTest {
         PatternStep step;
 
         // parse forward slash pattern
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a", "b", "c"});
+        matcher = new DefaultPatternMatcher(true, true, "a", "b", "c");
         steps = matcher.getStepsForTest();
         assertEquals(3, steps.size());
         step = steps.get(2);
@@ -27,14 +27,14 @@ public class DefaultPatternMatcherTest {
         assertFalse(step.matches("somethingelse", true));
 
         // check greedy
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a", "**", "c"});
+        matcher = new DefaultPatternMatcher(true, true, "a", "**", "c");
         steps = matcher.getStepsForTest();
         step = steps.get(1);
         assertTrue(step.isGreedy());
     }
 
     @Test public void testEmpty() {
-        DefaultPatternMatcher matcher = new DefaultPatternMatcher(true, true, new String[]{});
+        DefaultPatternMatcher matcher = new DefaultPatternMatcher(true, true);
         List<PatternStep> steps = matcher.getStepsForTest();
         assertEquals(0, steps.size());
 
@@ -47,21 +47,21 @@ public class DefaultPatternMatcherTest {
         assertFalse(matcher.isSatisfiedBy(path));
 
         // non-empty matcher, empty path
-        matcher = new DefaultPatternMatcher(true, true, new String[]{"a"});
+        matcher = new DefaultPatternMatcher(true, true, "a");
         path = new RelativePath(true);
         assertFalse(matcher.isSatisfiedBy(path));
 
     }
 
     @Test public void testLiterals() {
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a"});
+        matcher = new DefaultPatternMatcher(true, true, "a");
         path = new RelativePath(true, "a");
         assertTrue(matcher.isSatisfiedBy(path));
 
         path = new RelativePath(true, "b");
         assertFalse(matcher.isSatisfiedBy(path));
         
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a", "b"});
+        matcher = new DefaultPatternMatcher(true, true, "a", "b");
         path = new RelativePath(true, "a", "b");
         assertTrue(matcher.isSatisfiedBy(path));
 
@@ -81,39 +81,39 @@ public class DefaultPatternMatcherTest {
     }
 
     @Test public void testPartials() {
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a", "b", "c"});
+        matcher = new DefaultPatternMatcher(true, true, "a", "b", "c");
         path = new RelativePath(false, "a", "b");
         assertTrue(matcher.isSatisfiedBy(path));
 
         path = new RelativePath(true, "a", "b");
         assertFalse(matcher.isSatisfiedBy(path));
 
-        matcher = new DefaultPatternMatcher(false, true, new String[] {"a", "b", "c"});
+        matcher = new DefaultPatternMatcher(false, true, "a", "b", "c");
         path = new RelativePath(false, "a", "b");
         assertFalse(matcher.isSatisfiedBy(path));
 
     }
 
     @Test public void testWildCards() {
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"*"});
+        matcher = new DefaultPatternMatcher(true, true, "*");
         path = new RelativePath(true, "anything");
         assertTrue(matcher.isSatisfiedBy(path));
 
         path = new RelativePath(true, "anything", "b");
         assertFalse(matcher.isSatisfiedBy(path));
 
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"any??ing"});
+        matcher = new DefaultPatternMatcher(true, true, "any??ing");
         path = new RelativePath(true, "anything");
         assertTrue(matcher.isSatisfiedBy(path));
     }
 
     @Test public void testGreedy() {
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a","**"});
+        matcher = new DefaultPatternMatcher(true, true, "a","**");
         path = new RelativePath(true, "a", "b", "c");
         assertTrue(matcher.isSatisfiedBy(path));
 
         //leading greedy
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"**", "c"});
+        matcher = new DefaultPatternMatcher(true, true, "**", "c");
         path = new RelativePath(true, "a", "b", "c");
         assertTrue(matcher.isSatisfiedBy(path));
         
@@ -121,7 +121,7 @@ public class DefaultPatternMatcherTest {
         assertFalse(matcher.isSatisfiedBy(path));
 
         // inner greedy
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a", "**", "c"});
+        matcher = new DefaultPatternMatcher(true, true, "a", "**", "c");
         path = new RelativePath(true, "a", "b", "c");
         assertTrue(matcher.isSatisfiedBy(path));
 
@@ -135,12 +135,12 @@ public class DefaultPatternMatcherTest {
         assertFalse(matcher.isSatisfiedBy(path));
 
         // fake trail
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a", "**", "c", "d"});
+        matcher = new DefaultPatternMatcher(true, true, "a", "**", "c", "d");
         path = new RelativePath(true, "a", "b", "c", "e", "c", "d");
         assertTrue(matcher.isSatisfiedBy(path));
         
         // multiple greedies
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a", "**", "c", "**", "e"});
+        matcher = new DefaultPatternMatcher(true, true, "a", "**", "c", "**", "e");
         path = new RelativePath(true, "a", "b", "c", "d", "e");
         assertTrue(matcher.isSatisfiedBy(path));
 
@@ -151,7 +151,7 @@ public class DefaultPatternMatcherTest {
         assertTrue(matcher.isSatisfiedBy(path));
 
         // Missing greedy
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a", "**", "c"});
+        matcher = new DefaultPatternMatcher(true, true, "a", "**", "c");
         path = new RelativePath(true, "a", "c");
         assertTrue(matcher.isSatisfiedBy(path));
 
@@ -160,7 +160,7 @@ public class DefaultPatternMatcherTest {
     }
 
     @Test public void testTypical() {
-        matcher = new DefaultPatternMatcher(true, true, new String[]{"**", "CVS", "*"});
+        matcher = new DefaultPatternMatcher(true, true, "**", "CVS", "*");
         path = new RelativePath(true, "CVS", "Repository");
         assertTrue(matcher.isSatisfiedBy(path));
 
@@ -170,14 +170,14 @@ public class DefaultPatternMatcherTest {
         path = new RelativePath(true, "org", "gradle", "CVS", "foo", "bar", "Entries");
         assertFalse(matcher.isSatisfiedBy(path));
 
-        matcher = new DefaultPatternMatcher(true, true, new String[]{"src", "main", "**"});
+        matcher = new DefaultPatternMatcher(true, true, "src", "main", "**");
         path = new RelativePath(true, "src", "main", "groovy", "org");
         assertTrue(matcher.isSatisfiedBy(path));
 
         path = new RelativePath(true, "src", "test", "groovy", "org");
         assertFalse(matcher.isSatisfiedBy(path));
 
-        matcher = new DefaultPatternMatcher(true, true, new String[]{"**", "test", "**"});
+        matcher = new DefaultPatternMatcher(true, true, "**", "test", "**");
         // below fails, trailing ** not ignored
         path = new RelativePath(true, "src", "main", "test");
         assertTrue(matcher.isSatisfiedBy(path));
@@ -190,11 +190,11 @@ public class DefaultPatternMatcherTest {
     }
 
     @Test public void testCase() {
-        matcher = new DefaultPatternMatcher(true, true, new String[] {"a", "b"});
+        matcher = new DefaultPatternMatcher(true, true, "a", "b");
         assertTrue(matcher.isSatisfiedBy(new RelativePath(true, "a", "b")));
         assertFalse(matcher.isSatisfiedBy(new RelativePath(true, "A", "B")));
 
-        matcher = new DefaultPatternMatcher(true, false, new String[] {"a", "b"});
+        matcher = new DefaultPatternMatcher(true, false, "a", "b");
         assertTrue(matcher.isSatisfiedBy(new RelativePath(true, "a", "b")));
         assertTrue(matcher.isSatisfiedBy(new RelativePath(true, "A", "B")));
     }

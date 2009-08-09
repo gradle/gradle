@@ -15,22 +15,26 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.tasks.util.PatternFilterable;
+
 /**
  * A {@code SourceDirectorySet} represents a set of source files composed from a set of source directories.
  */
-public interface SourceDirectorySet extends FileTree {
+public interface SourceDirectorySet extends FileTree, PatternFilterable {
 
     /**
      * Adds the given source directory to this set.
      *
      * @param srcDir The source directory. This is treated as for {@link org.gradle.api.Project#file(Object)}
+     * @return this
      */
-    FileTree srcDir(Object srcDir);
+    SourceDirectorySet srcDir(Object srcDir);
 
     /**
      * Adds the given source directories to this set.
      *
      * @param srcDirs The source directories. This is treated as for {@link org.gradle.api.Project#files(Object[])}
+     * @return this
      */
-    FileTree srcDirs(Object... srcDirs);
+    SourceDirectorySet srcDirs(Object... srcDirs);
 }

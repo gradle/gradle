@@ -23,7 +23,8 @@ import org.junit.Before
 import org.junit.Test
 import org.gradle.util.HelperUtil
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.UnionFileTree;
+import org.gradle.api.internal.file.UnionFileTree
+import static org.gradle.api.tasks.AntBuilderAwareUtil.*
 
 /**
  * @author Hans Dockter
@@ -71,6 +72,18 @@ class FileSetTest extends AbstractTestForPatternSet {
     @Test public void testCanScanForFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
+        [included1, included2].each {File file ->
+            file.parentFile.mkdirs()
+            file.text = 'some text'
+        }
+
+        assertThat(fileSet.files, equalTo([included1, included2] as Set))
+        assertSetContains(fileSet, 'subDir/included1', 'subDir2/included2')
+    }
+
+    @Test public void testCanLimitFilesUsingPatterns() {
+        File included1 = new File(testDir, 'subDir/included1')
+        File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
         File ignored1 = new File(testDir, 'ignored')
         [included1, included2, excluded1, ignored1].each {File file ->
@@ -81,9 +94,8 @@ class FileSetTest extends AbstractTestForPatternSet {
         fileSet.include('*/*included*')
         fileSet.exclude('**/not*')
 
-        Set f1 = fileSet.files
-        Set f2 = [included1, included2] as Set
-        assertThat(f1, equalTo(f2))
+        assertThat(fileSet.files, equalTo([included1, included2] as Set))
+        assertSetContains(fileSet, 'subDir/included1', 'subDir2/included2')
     }
 
     @Test public void testCanFilterFileSet() {
@@ -101,9 +113,30 @@ class FileSetTest extends AbstractTestForPatternSet {
             exclude('**/not*')
         }
 
-        Set f1 = filtered.files
-        Set f2 = [included1, included2] as Set
-        assertThat(f1, equalTo(f2))
+        assertThat(filtered.files, equalTo([included1, included2] as Set))
+        assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
+    }
+    
+    @Test public void testCanFilterAndLimitFileSet() {
+        File included1 = new File(testDir, 'subDir/included1')
+        File included2 = new File(testDir, 'subDir2/included2')
+        File excluded1 = new File(testDir, 'subDir/notincluded')
+        File excluded2 = new File(testDir, 'subDir/excluded')
+        File ignored1 = new File(testDir, 'ignored')
+        [included1, included2, excluded1, excluded2, ignored1].each {File file ->
+            file.parentFile.mkdirs()
+            file.text = 'some text'
+        }
+
+        fileSet.exclude '**/excluded*'
+
+        FileSet filtered = fileSet.matching {
+            include('*/*included*')
+            exclude('**/not*')
+        }
+
+        assertThat(filtered.files, equalTo([included1, included2] as Set))
+        assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
     }
 
     @Test public void testCanAddFileSets() {

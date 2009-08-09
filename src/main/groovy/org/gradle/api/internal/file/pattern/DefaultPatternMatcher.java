@@ -29,7 +29,7 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
     private List<PatternStep> steps;
     private boolean partialMatchDirs;
 
-    public DefaultPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String[] patternParts) {
+    public DefaultPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String... patternParts) {
         this.partialMatchDirs = partialMatchDirs;
         steps = new ArrayList<PatternStep>();
         compile(caseSensitive, patternParts);

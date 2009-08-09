@@ -21,6 +21,7 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.io.IOException;
@@ -29,6 +30,50 @@ public class Matchers {
     @Factory
     public static <T> Matcher<T> reflectionEquals(T equalsTo) {
         return new ReflectionEqualsMatcher<T>(equalsTo);
+    }
+
+    @Factory
+    public static <T extends CharSequence> Matcher<T> matchesRegexp(final String pattern) {
+        return new BaseMatcher<T>() {
+            public boolean matches(Object o) {
+                return Pattern.compile(pattern).matcher((CharSequence) o).matches();
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("matches regexp ").appendValue(pattern);
+            }
+        };
+    }
+
+    @Factory
+    public static <T> Matcher<T> strictlyEqual(final T other) {
+        return new BaseMatcher<T>() {
+            public boolean matches(Object o) {
+                if (!o.equals(other)) {
+                    return false;
+                }
+                if (!other.equals(o)) {
+                    return false;
+                }
+                if (!o.equals(o)) {
+                    return false;
+                }
+                if (other.equals(null)) {
+                    return false;
+                }
+                if (other.equals(new Object())) {
+                    return false;
+                }
+                if (o.hashCode() != other.hashCode()) {
+                    return false;
+                }
+                return true;
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("strictly equals ").appendValue(other);
+            }
+        };
     }
 
     @Factory

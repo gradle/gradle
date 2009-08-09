@@ -85,11 +85,4 @@ abstract class AbstractTestForPatternSet {
         assertEquals(patternSet.includes as String[], antPatternSet.getIncludePatterns())
         assertEquals(patternSet.excludes as String[], antPatternSet.getExcludePatterns())
     }
-
-    @Test public void testAddToAntBuilder() {
-        preparePatternSetForAntBuilderTest(patternSet)
-        AntBuilder antBuilder = new AntBuilder()
-        patternSet.addToAntBuilder(antBuilder, null)
-//        checkPatternSetForAntBuilderTest(antBuilder.collectorTarget.children[0].realThing, patternSet)
-    }
 }

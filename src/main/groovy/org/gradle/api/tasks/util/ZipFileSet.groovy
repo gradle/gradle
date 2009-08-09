@@ -46,7 +46,7 @@ class ZipFileSet extends FileSet {
         }
         removeEmptyArgs(args)
         node.zipfileset(args) {
-            patternSet.addIncludesAndExcludesToBuilder(delegate)
+            patternSet.addToAntBuilder(node)
         }
     }
 

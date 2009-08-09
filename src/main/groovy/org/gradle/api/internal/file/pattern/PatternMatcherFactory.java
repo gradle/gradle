@@ -30,21 +30,21 @@ public class PatternMatcherFactory {
         }
 
         if (pattern.length() == 0) {
-            return new DefaultPatternMatcher(partialMatchDirs, true, new String[] {});
+            return new DefaultPatternMatcher(partialMatchDirs, true);
         } else {
             String[] parts = pattern.split("\\\\|/");
             if (parts.length == 2) {
                 if ("**".equals(parts[0])) {
                     if ("**".equals(parts[1])) {
                         // don't need second **
-                        return new DefaultPatternMatcher(partialMatchDirs, caseSensitive, new String[] {"**"});
+                        return new DefaultPatternMatcher(partialMatchDirs, caseSensitive, "**");
                     } else {
                         // common name only case
-                        return new NameOnlyPatternMatcher(partialMatchDirs, true, parts[1]);
+                        return new NameOnlyPatternMatcher(partialMatchDirs, caseSensitive, parts[1]);
                     }
                 }
             }
-            return new DefaultPatternMatcher(partialMatchDirs, true, parts);
+            return new DefaultPatternMatcher(partialMatchDirs, caseSensitive, parts);
         }
     }
 }

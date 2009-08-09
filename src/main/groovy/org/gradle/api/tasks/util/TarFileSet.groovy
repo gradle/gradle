@@ -50,7 +50,7 @@ class TarFileSet extends ZipFileSet {
         }
         removeEmptyArgs(args)
         node.tarfileset(args) {
-            patternSet.addIncludesAndExcludesToBuilder(delegate)
+            patternSet.addToAntBuilder(node)
         }
     }
 }

@@ -9,6 +9,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import org.gradle.api.tasks.util.PatternSet
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyActionImplTest  {
@@ -53,8 +54,7 @@ public class CopyActionImplTest  {
         context.checking({
             one(walker).start(project.file('src1'))
             one(walker).start(project.file('src2'))
-            allowing(walker).addIncludes(Collections.emptyList())
-            allowing(walker).addExcludes(Collections.emptyList())
+            exactly(2).of(walker).match(new PatternSet())
             allowing(visitor).getDidWork();  will(returnValue(true))
         })
         executeWith {
@@ -67,8 +67,7 @@ public class CopyActionImplTest  {
     @Test public void includeExclude() {
         context.checking( {
             one(walker).start(project.file('src1'))
-            allowing(walker).addIncludes(['a.b', 'c.d', 'e.f'] as List)
-            allowing(walker).addExcludes(['g.h'] as List)
+            one(walker).match(new PatternSet(includes: ['a.b', 'c.d', 'e.f'], excludes: ['g.h']))
             allowing(visitor).getDidWork();  will(returnValue(true))
         })
 
@@ -85,8 +84,7 @@ public class CopyActionImplTest  {
     @Test void testDidWorkTrue() {
         context.checking( {
             one(walker).start(project.file('src1'))
-            allowing(walker).addIncludes([] as List)
-            allowing(walker).addExcludes([] as List)
+            one(walker).match(new PatternSet())
             allowing(visitor).getDidWork();  will(returnValue(true))
         })
 
@@ -101,8 +99,7 @@ public class CopyActionImplTest  {
     @Test void testDidWorkFalse() {
         context.checking( {
             one(walker).start(project.file('src1'))
-            allowing(walker).addIncludes([] as List)
-            allowing(walker).addExcludes([] as List)
+            one(walker).match(new PatternSet())
             allowing(visitor).getDidWork();  will(returnValue(false))
         })
 
@@ -150,7 +147,6 @@ public class CopyActionImplTest  {
         assertEquals(['*.a', '*.c'], specs.get(1).getAllIncludes())
         assertEquals(project.file('dest'), specs.get(1).getDestDir())
     }
-
 
     @Test public void globalExcludes() {
         try {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gradle.api.*;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.CopySpec;
 
@@ -106,10 +107,13 @@ public class CopyActionImpl implements CopyAction {
         }
         DirectoryWalker walker = directoryWalker;
         if (walker == null) {
-            walker = new BreadthFirstDirectoryWalker(caseSensitive, visitor);
+            walker = new BreadthFirstDirectoryWalker(visitor);
         }
-        walker.addIncludes(spec.getAllIncludes());
-        walker.addExcludes(spec.getAllExcludes());
+        PatternSet patterns = new PatternSet();
+        patterns.setCaseSensitive(caseSensitive);
+        patterns.include(spec.getAllIncludes());
+        patterns.exclude(spec.getAllExcludes());
+        walker.match(patterns);
 
         try {
             walker.start(source);

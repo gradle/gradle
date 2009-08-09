@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.util.PatternSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Directory walker supporting {@link Spec}s for includes and excludes.
@@ -40,31 +39,16 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
     private static Logger logger = LoggerFactory.getLogger(BreadthFirstDirectoryWalker.class);
 
     private FileVisitor visitor;
-    private Spec<RelativePath> includes;
-    private Spec<RelativePath> excludes;
-    private boolean caseSensitive;
+    private Spec<RelativePath> spec;
 
-    public BreadthFirstDirectoryWalker(boolean caseSensitive, FileVisitor visitor) {
-        this.caseSensitive = caseSensitive;
+    public BreadthFirstDirectoryWalker(FileVisitor visitor) {
+        spec = Specs.satisfyAll();
         this.visitor = visitor;
-        includes = Specs.satisfyAll();
-        excludes = Specs.satisfyNone();
     }
 
-    public void addIncludes(Iterable<String> includes) {
-        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>();
-        for (String include : includes) {
-            matchers.add(PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include));
-        }
-        this.includes = Specs.or(true, matchers);
-    }
-
-    public void addExcludes(Iterable<String> excludes){
-        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>();
-        for (String exclude : excludes) {
-            matchers.add(PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude));
-        }
-        this.excludes = Specs.or(false, matchers);
+    public BreadthFirstDirectoryWalker match(PatternSet patternSet) {
+        spec = patternSet.getAsSpec();
+        return this;
     }
 
     /**
@@ -120,7 +104,7 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
     }
 
     boolean isAllowed(RelativePath path) {
-        return includes.isSatisfiedBy(path) && !excludes.isSatisfiedBy(path);
+        return spec.isSatisfiedBy(path);
     }
 
     private void notifyDir(File dir, RelativePath path) {

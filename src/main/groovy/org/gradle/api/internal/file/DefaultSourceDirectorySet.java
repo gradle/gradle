@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.util.FileSet;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
@@ -30,6 +31,7 @@ import java.util.Set;
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final PathResolvingFileCollection srcDirs;
     private final String displayName;
+    private final PatternSet patternSet = new PatternSet();
 
     public DefaultSourceDirectorySet(FileResolver resolver) {
         this("source set", resolver);
@@ -44,18 +46,50 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         return srcDirs.getFiles();
     }
 
-    protected PatternSet getPatternSet() {
-        return new PatternSet();
+    public Set<String> getIncludes() {
+        return patternSet.getIncludes();
+    }
+
+    public Set<String> getExcludes() {
+        return patternSet.getExcludes();
+    }
+
+    public PatternFilterable setIncludes(Iterable<String> includes) {
+        patternSet.setIncludes(includes);
+        return this;
+    }
+
+    public PatternFilterable setExcludes(Iterable<String> excludes) {
+        patternSet.setExcludes(excludes);
+        return this;
+    }
+
+    public PatternFilterable include(String... includes) {
+        patternSet.include(includes);
+        return this;
+    }
+
+    public PatternFilterable include(Iterable<String> includes) {
+        patternSet.include(includes);
+        return this;
+    }
+
+    public PatternFilterable exclude(Iterable<String> excludes) {
+        patternSet.exclude(excludes);
+        return this;
+    }
+
+    public PatternFilterable exclude(String... excludes) {
+        patternSet.exclude(excludes);
+        return this;
     }
 
     @Override
     protected Iterable<? extends FileTree> getSourceCollections() {
         List<FileTree> source = new ArrayList<FileTree>();
-        PatternSet patternSet = getPatternSet();
         for (File sourceDir : getExistingSourceDirs()) {
             FileSet fileset = new FileSet(sourceDir);
-            fileset.setIncludes(patternSet.getIncludes());
-            fileset.setExcludes(patternSet.getExcludes());
+            fileset.getPatternSet().copyFrom(patternSet);
             source.add(fileset);
         }
         return source;
@@ -78,12 +112,12 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         return existingSourceDirs;
     }
 
-    public FileTree srcDir(Object srcDir) {
+    public SourceDirectorySet srcDir(Object srcDir) {
         srcDirs.add(srcDir);
         return this;
     }
 
-    public FileTree srcDirs(Object... srcDirs) {
+    public SourceDirectorySet srcDirs(Object... srcDirs) {
         for (Object srcDir : srcDirs) {
             this.srcDirs.add(srcDir);
         }

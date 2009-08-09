@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.tasks.util.PatternSet;
+
 import java.io.File;
 import java.io.IOException;
 
 public interface DirectoryWalker {
-    void addIncludes(Iterable<String> includes);
-
-    void addExcludes(Iterable<String> excludes);
+    DirectoryWalker match(PatternSet patternSet);
 
     void start(File baseDir) throws IOException;
 }

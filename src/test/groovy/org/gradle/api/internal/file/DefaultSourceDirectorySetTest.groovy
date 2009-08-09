@@ -72,6 +72,25 @@ public class DefaultSourceDirectorySetTest {
     }
 
     @Test
+    public void canLimitFilesFromAllSourceDirectories() {
+        File srcDir1 = new File(testDir, 'dir1')
+        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
+        GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
+        GFileUtils.touch(new File(srcDir1, 'subdir/ignored.txt'))
+        File srcDir2 = new File(testDir, 'dir2')
+        GFileUtils.touch(new File(srcDir2, 'subdir2/file1.txt'))
+        GFileUtils.touch(new File(srcDir2, 'subdir2/file2.txt'))
+        GFileUtils.touch(new File(srcDir2, 'subdir2/ignored.txt'))
+
+        set.srcDir 'dir1'
+        set.srcDir 'dir2'
+        set.include '**/file*'
+        set.exclude '**/file2*'
+
+        assertSetContains(set, 'subdir/file1.txt', 'subdir2/file1.txt')
+    }
+
+    @Test
     public void ignoresSourceDirectoriesWhichDoNotExist() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
@@ -144,6 +163,25 @@ public class DefaultSourceDirectorySetTest {
         FileTree filteredSet = set.matching {
             include '**/file1.txt'
             exclude 'subdir2/**'
+        }
+
+        assertSetContains(filteredSet, 'subdir/file1.txt')
+    }
+
+    @Test
+    public void canLimitAndFilterSourceFiles() {
+        File srcDir1 = new File(testDir, 'dir1')
+        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
+        GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
+        GFileUtils.touch(new File(srcDir1, 'subdir/ignored.txt'))
+        GFileUtils.touch(new File(srcDir1, 'subdir2/file1.txt'))
+
+        set.srcDir 'dir1'
+        set.include '**/*file?.txt'
+
+        FileTree filteredSet = set.matching {
+            include 'subdir/**'
+            exclude '**/file2.txt'
         }
 
         assertSetContains(filteredSet, 'subdir/file1.txt')

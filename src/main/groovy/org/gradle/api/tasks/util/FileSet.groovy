@@ -21,16 +21,15 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
 import org.gradle.api.internal.file.FileVisitor
-import org.gradle.api.tasks.AntBuilderAware
-import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.file.UnionFileTree
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Hans Dockter
  */
 // todo rename dir to base
-class FileSet extends AbstractFileCollection implements FileTree, PatternFilterable, AntBuilderAware {
-    final PatternSet patternSet = new PatternSet()
+class FileSet extends AbstractFileCollection implements FileTree, PatternFilterable {
+    PatternSet patternSet = new PatternSet()
     File dir
 
     FileSet() {
@@ -54,10 +53,8 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
     public Set<File> getFiles() {
         Set<File> files = new LinkedHashSet<File>()
         FileVisitor visitor = [visitFile: {file, path -> files.add(file)}, visitDir: {file, path -> }] as FileVisitor
-        BreadthFirstDirectoryWalker walker = new BreadthFirstDirectoryWalker(true, visitor)
-        walker.addIncludes(patternSet.includes)
-        walker.addExcludes(patternSet.excludes)
-        walker.start(dir)
+        BreadthFirstDirectoryWalker walker = new BreadthFirstDirectoryWalker(visitor)
+        walker.match(patternSet).start(dir)
         files
     }
 
@@ -66,15 +63,10 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
     }
 
     FileTree matching(Closure filterConfigClosure) {
-        PatternSet patternSet = new PatternSet()
+        PatternSet patternSet = this.patternSet.intersect()
         ConfigureUtil.configure(filterConfigClosure, patternSet)
-        if (this.patternSet.includes && patternSet.includes || this.patternSet.excludes && patternSet.excludes) {
-            // todo - implement this bit
-            throw new UnsupportedOperationException('Not implemented yet. Coming soon.')
-        }
         FileSet filtered = new FileSet(dir)
-        filtered.includes = this.patternSet.includes + patternSet.includes
-        filtered.excludes = this.patternSet.excludes + patternSet.excludes
+        filtered.patternSet = patternSet
         filtered
     }
 
@@ -125,8 +117,7 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
 
     def addToAntBuilder(node, String childNodeName = null) {
         node."${childNodeName ?: 'fileset'}"(dir: dir.absolutePath) {
-            patternSet.addIncludesAndExcludesToBuilder(delegate)
+            patternSet.addToAntBuilder(node)
         }
     }
-
 }

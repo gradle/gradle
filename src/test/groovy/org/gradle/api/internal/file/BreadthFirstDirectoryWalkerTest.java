@@ -15,57 +15,52 @@
  */
 package org.gradle.api.internal.file;
 
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import static org.junit.Assert.*;
-import org.jmock.Mockery;
+import org.gradle.api.tasks.util.PatternSet;
 import org.jmock.Expectations;
+import org.jmock.Mockery;
 import org.jmock.Sequence;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
-import org.gradle.util.HelperUtil;
-import org.gradle.api.Project;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 
 @RunWith(JMock.class)
 public class BreadthFirstDirectoryWalkerTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private Project project;
     private CopyVisitor visitor;
-    private CopyActionImpl copyAction;
     private BreadthFirstDirectoryWalker walker;
 
     @Before
     public void setUp() {
-        project = HelperUtil.createRootProject();
         visitor = context.mock(CopyVisitor.class);
-        copyAction = context.mock(CopyActionImpl.class);
     }
 
     @Test public void rootDirEmpty() throws IOException {
         final MockFile root = new MockFile(context, "root", false);
 
-        walker = new BreadthFirstDirectoryWalker(true, visitor);
+        walker = new BreadthFirstDirectoryWalker(visitor);
         root.setExpectations();
 
         walker.start(root.getMock());
     }
 
-
     @Test public void testIsAllowedBothIncludeExclude() {
-        walker = new BreadthFirstDirectoryWalker(true, visitor);
+        walker = new BreadthFirstDirectoryWalker(visitor);
 
-        walker.addIncludes(Arrays.asList(new String[]{ "*.java"}));
-        walker.addExcludes(Arrays.asList(new String[]{ "*Test.java"}));
+        PatternSet patterns = new PatternSet();
+        patterns.include("*.java");
+        patterns.exclude("*Test.java");
+        walker.match(patterns);
 
         assertTrue(walker.isAllowed(new RelativePath(true, "Fred.java")));
         assertFalse(walker.isAllowed(new RelativePath(true, "Fred")));
@@ -73,9 +68,11 @@ public class BreadthFirstDirectoryWalkerTest {
     }
 
     @Test public void testIsAllowedOnlyInclude() {
-        walker = new BreadthFirstDirectoryWalker(true, visitor);
+        walker = new BreadthFirstDirectoryWalker(visitor);
 
-        walker.addIncludes(Arrays.asList(new String[]{ "*.java"}));
+        PatternSet patterns = new PatternSet();
+        patterns.include("*.java");
+        walker.match(patterns);
 
         assertTrue(walker.isAllowed(new RelativePath(true, "Fred.java")));
         assertFalse(walker.isAllowed(new RelativePath(true, "Fred")));
@@ -83,23 +80,25 @@ public class BreadthFirstDirectoryWalkerTest {
     }
 
     @Test public void testIsAllowedOnlyExclude() {
-        walker = new BreadthFirstDirectoryWalker(true, visitor);
+        walker = new BreadthFirstDirectoryWalker(visitor);
 
-        walker.addExcludes(Arrays.asList(new String[]{ "*.bak"}));
+        PatternSet patterns = new PatternSet();
+        patterns.exclude("*.bak");
+        walker.match(patterns);
 
         assertTrue(walker.isAllowed(new RelativePath(true, "Fred.java")));
         assertFalse(walker.isAllowed(new RelativePath(true, "Fred.bak")));
     }
 
     @Test public void testIsAllowedNoIncludeExclude() {
-        walker = new BreadthFirstDirectoryWalker(true, visitor);
+        walker = new BreadthFirstDirectoryWalker(visitor);
 
         assertTrue(walker.isAllowed(new RelativePath(true, "Fred.java")));
         assertTrue(walker.isAllowed(new RelativePath(true, "Fred.bak")));
     }
 
     @Test public void walkSingleFile() throws IOException {
-        walker = new BreadthFirstDirectoryWalker(true, visitor);
+        walker = new BreadthFirstDirectoryWalker(visitor);
 
         final MockFile root = new MockFile(context, "root", false);
         final MockFile fileToCopy = root.addFile("file.txt");
@@ -126,7 +125,7 @@ public class BreadthFirstDirectoryWalkerTest {
      */
     @Test public void walkBreadthFirst() throws IOException {
 
-        walker = new BreadthFirstDirectoryWalker(true, visitor);
+        walker = new BreadthFirstDirectoryWalker(visitor);
 
         final MockFile root = new MockFile(context, "root", false);
         final MockFile rootFile1 = root.addFile("rootFile1");

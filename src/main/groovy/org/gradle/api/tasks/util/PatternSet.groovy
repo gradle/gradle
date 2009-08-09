@@ -18,6 +18,13 @@ package org.gradle.api.tasks.util
 
 import org.gradle.api.tasks.AntBuilderAware
 import org.gradle.util.GUtil
+import org.gradle.api.internal.file.RelativePath
+import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
+import org.gradle.api.internal.file.pattern.PatternMatcherFactory
+import org.gradle.api.specs.AndSpec
+import org.gradle.api.specs.NotSpec
+import org.gradle.api.specs.OrSpec
 
 /**
  * @author Hans Dockter
@@ -34,6 +41,59 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
 
     private Set includes = [] as LinkedHashSet
     private Set excludes = [] as LinkedHashSet
+    def boolean caseSensitive = true
+
+    def boolean equals(Object o) {
+        if (o.is(this)) {
+            return true
+        }
+        if (o == null || o.getClass() != getClass()) {
+            return false
+        }
+        return o.includes.equals(includes) && o.excludes.equals(excludes)
+    }
+
+    def int hashCode() {
+        return includes.hashCode() ^ excludes.hashCode()
+    }
+
+    public PatternSet copyFrom(PatternSet sourcePattern) {
+        setIncludes(sourcePattern.includes)
+        setExcludes(sourcePattern.excludes)
+        this
+    }
+
+    public PatternSet intersect() {
+        return new IntersectionPatternSet(this)
+    }
+    
+    public Spec<RelativePath> getAsSpec() {
+        Spec<RelativePath> includeSpec = Specs.satisfyAll()
+
+        if (includes) {
+            List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>()
+            for (String include: includes) {
+                matchers.add(PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include))
+            }
+            includeSpec = new OrSpec<RelativePath>(matchers as Spec[])
+        }
+
+        if (!excludes) {
+            return includeSpec
+        }
+
+        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>()
+        for (String exclude: excludes) {
+            matchers.add(PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude))
+        }
+        Spec<RelativePath> excludeSpec = new NotSpec<RelativePath>(new OrSpec<RelativePath>(matchers as Spec[]))
+
+        if (!includes) {
+            return excludeSpec
+        }
+
+        return new AndSpec<RelativePath>([includeSpec, excludeSpec] as Spec[])
+    }
 
     public Set<String> getIncludes() {
         includes
@@ -81,8 +141,42 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     def addToAntBuilder(node, String childNodeName = null) {
-        node."${childNodeName ?: 'patternset'}"() {
-            addIncludesAndExcludesToBuilder(delegate)
+        node.and {
+            if (includes) {
+                or {
+                    includes.each {
+                        filename(name: it, casesensitive: this.caseSensitive)
+                    }
+                }
+            }
+            if (excludes) {
+                not {
+                    or {
+                        excludes.each {
+                            filename(name: it, casesensitive: this.caseSensitive)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+class IntersectionPatternSet extends PatternSet {
+    private final PatternSet other
+
+    def IntersectionPatternSet(PatternSet other) {
+        this.other = other
+    }
+
+    def Spec<RelativePath> getAsSpec() {
+        return new AndSpec<RelativePath>([super.getAsSpec(), other.getAsSpec()] as Spec[])
+    }
+
+    def addToAntBuilder(Object node, String childNodeName) {
+        node.and {
+            super.addToAntBuilder(node, null)
+            other.addToAntBuilder(node, null)
         }
     }
 }
