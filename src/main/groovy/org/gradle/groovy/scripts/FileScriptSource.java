@@ -16,10 +16,9 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.util.GFileUtils;
+import org.gradle.util.HashUtil;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
 
 /**
  * A {@link ScriptSource} which loads the script from a file.
@@ -47,7 +46,7 @@ public class FileScriptSource implements ScriptSource {
      * (e.g. build.gradle).
      */
     public String getClassName() {
-        String name = sourceFile.getName()+'_'+getId();
+        String name = sourceFile.getName();
         StringBuilder className = new StringBuilder(name.length());
         for (int i = 0; i < name.length(); i++) {
             char ch = name.charAt(i);
@@ -61,30 +60,19 @@ public class FileScriptSource implements ScriptSource {
         if (!Character.isJavaIdentifierStart(className.charAt(0))) {
             className.insert(0, '_');
         }
+        className.append('_');
+        className.append(getId());
 
         return className.toString();
     }
 
     /**
-     * Returns a (mostly) unique id for this file of the form
-     * "xxxx-xx-xx-xxxxxx".
+     * Returns a (mostly) unique id for this file.
      */
     private String getId()
     {
-        String path;
-        try
-        {
-            path = sourceFile.getCanonicalPath();
-        }
-        catch (IOException e)
-        {
-            // if we cannot get the canonical path for some reason, fall back to the
-            // absolute path
-            path = sourceFile.getAbsolutePath();
-        }
-
-        UUID uuid = UUID.nameUUIDFromBytes(path.getBytes());
-        return uuid.toString();
+        String path = GFileUtils.canonicalise(sourceFile).getAbsolutePath();
+        return HashUtil.createHash(path);
     }
 
     public File getSourceFile() {

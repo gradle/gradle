@@ -17,6 +17,7 @@ package org.gradle.groovy.scripts;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import org.junit.After;
 import static org.junit.Assert.*;
@@ -61,12 +62,25 @@ public class FileScriptSourceTest {
 
     @Test
     public void encodesScriptFileBaseNameToClassName() {
-        assertThat(source.getClassName(), startsWith("build_script"));
+        assertThat(source.getClassName(), matchesRegexp("build_script_[0-9a-z]+"));
 
         source = new FileScriptSource("<file-type>", new File(testDir, "name with-some^reserved\nchars"));
-        assertThat(source.getClassName(), startsWith("name_with_some_reserved_chars"));
+        assertThat(source.getClassName(), matchesRegexp("name_with_some_reserved_chars_[0-9a-z]+"));
 
         source = new FileScriptSource("<file-type>", new File(testDir, "123"));
-        assertThat(source.getClassName(), startsWith("_123"));
+        assertThat(source.getClassName(), matchesRegexp("_123_[0-9a-z]+"));
+
+        source = new FileScriptSource("<file-type>", new File(testDir, "-"));
+        assertThat(source.getClassName(), matchesRegexp("__[0-9a-z]+"));
+    }
+    
+    @Test
+    public void filesWithSameNameAndDifferentPathHaveDifferentClassName() {
+        ScriptSource source1 = new FileScriptSource("<file-type>", new File(testDir, "build.gradle"));
+        ScriptSource source2 = new FileScriptSource("<file-type>", new File(testDir, "subdir/build.gradle"));
+        assertThat(source1.getClassName(), not(equalTo(source2.getClassName())));
+
+        ScriptSource source3 = new FileScriptSource("<file-type>", new File(testDir, "build.gradle"));
+        assertThat(source1.getClassName(), equalTo(source3.getClassName()));
     }
 }
