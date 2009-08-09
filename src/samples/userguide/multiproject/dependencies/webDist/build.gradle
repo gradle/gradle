@@ -20,7 +20,10 @@ task explodedDist(dependsOn: libs) << {
     File explodedDist = mkdir(buildDir, 'explodedDist')
     subprojects.each {project ->
         project.tasks.withType(Jar).each {archiveTask ->
-            ant.copy(file: archiveTask.archivePath, todir: explodedDist)
+            copy {
+                from archiveTask.archivePath
+                into explodedDist
+            }
         }
     }
 }

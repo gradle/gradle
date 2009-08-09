@@ -24,7 +24,7 @@ import org.gradle.build.docs.SampleElementValidator
  * Uploading distributions to Gradle's release and snapshot repository at codehaus: codehausUserName, codehausUserPassword
  * Uploading the userguide and the javadoc to Gradle's website: websiteFtpUserName, websiteFtpUserPassword
  * Using the build to create a new distribution and install it on the local machine: gradle_installPath
- * Creating a JDK-1.4 compatible distribtution with retro-translator: gradle_retroLibsDir (This dir shoud contain rt.jar, jce.jar and jsse.jar from
+ * Creating a JDK-1.4 compatible distribution with retro-translator: gradle_retroLibsDir (This dir should contain rt.jar, jce.jar and jsse.jar from
  * a JDK 1.4).
  */
 
@@ -417,10 +417,10 @@ task samples(type: ExtractSnippetsTask) {
     snippetsDir = project.snippetsDir
 }
 samples << {
-    ant.copy(todir: explodedDistSamplesDir) {
-        fileset(dir: samplesSrcDir) {
-            include(name: 'userguide/tutorial/antChecksumFiles/**')
-        }
+    copy {
+        from samplesSrcDir
+        into explodedDistSamplesDir
+        include 'userguide/tutorial/antChecksumFiles/**'
     }
 }
 
@@ -441,8 +441,10 @@ task userguideStyleSheets << {
     ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
         globmapper(from: 'docbook-xsl-1.74.3/*', to: '*')
     }
-    ant.copy(todir: docbookDir) {
-        fileset(dir: new File(srcDocsDir, 'stylesheets'), includes: '*.xsl')
+    copy {
+        from new File(srcDocsDir, 'stylesheets')
+        into docbookDir
+        include '*.xsl'
     }
 }
 userguideStyleSheets.skipProperties << 'skip.userguide'
@@ -459,7 +461,11 @@ task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
-    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: userguideHtmlDir)
+    copy {
+        from userguideSrcDir
+        into userguideHtmlDir
+        include 'style.css'
+    }
 }
 userguideHtml.skipProperties << 'skip.userguide'
 
@@ -478,8 +484,11 @@ task userguideSingleHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
-    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: userguideSingleHtmlFile.parentFile)
-    ant.copy(file: new File(userguideSrcDir, 'print.css'), todir: userguideSingleHtmlFile.parentFile)
+    copy {
+        from userguideSrcDir
+        into userguideSingleHtmlFile.parentFile
+        include 'style.css'
+    }
 }
 userguideSingleHtml.skipProperties << 'skip.userguide'
 
@@ -501,8 +510,12 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
-    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: pdfSourceHtml.parentFile)
-    ant.copy(file: new File(userguideSrcDir, 'print.css'), todir: pdfSourceHtml.parentFile)
+    copy {
+        from userguideSrcDir
+        into pdfSourceHtml.parentFile
+        include 'style.css'
+        include 'print.css'
+    }
 
     def uris = configurations.userGuideTask.files.collect {it.toURI().toURL()}
     def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
@@ -542,7 +555,11 @@ distDocs.doFirst {
 distDocs << {
     explodedDistDir.mkdirs()
 
-    ant.copy(file: new File(userguideSrcDir, 'style.css'), todir: docbookDir)
+    copy {
+        from userguideSrcDir
+        into docbookDir
+        include 'style.css'
+    }
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
         arg(value: '-in')
         arg(value: new File(docbookSrc , 'gettingStarted.xml'))
@@ -675,10 +692,9 @@ task developerBuild(dependsOn: [clean, integTest])
 task ide << {
     def libDir = file('lib')
     ant.delete(dir: libDir)
-    [configurations.runtime, configurations.testRuntime].each {config ->
-        config.files(DependencySpecs.type(Type.EXTERNAL)).each {file ->
-            ant.copy(file: file, todir: libDir)
-        }
+    copy {
+        from configurations.testRuntime.files(DependencySpecs.type(Type.EXTERNAL))
+        into libDir
     }
 }
 
