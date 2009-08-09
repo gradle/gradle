@@ -506,7 +506,7 @@
             multi-project builds. As already mentioned in <xref linkend='sub:project_dependencies'/>, Gradle
             offers project lib dependencies for this.
         </para>
-        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java" includeLocation="true" title="Project lib dependencies">
+        <sample id="javadependencies_1" dir="userguide/multiproject/dependencies/java" includeLocation="true" title="Project lib dependencies">
             <layout>
                 settings.gradle
                 build.gradle
@@ -536,7 +536,7 @@
                 </para>
             </footnote>
         </para>
-        <sample id="javadependencies" dir="userguide/multiproject/dependencies/java" title="Project lib dependencies">
+        <sample id="javadependencies_2" dir="userguide/multiproject/dependencies/java" title="Project lib dependencies">
             <sourcefile file="settings.gradle"/>
             <sourcefile file="build.gradle"/>
         </sample>
@@ -588,7 +588,7 @@
             you may often want to do all of these tasks across a range of projects.  The <literal>buildNeeded</literal>
             and <literal>buildDependents</literal> tasks can help with this.
         </para>
-        <para>Let's use the project structure shown in the first example in section <xref linkend='sec:project_jar_dependencies'/>.  In this
+        <para>Let's use the project structure shown in <xref linkend='javadependencies_2'/>.  In this
             example :services:personservice depends on both :api and :shared.  The :api project also depends on
             :shared.
         </para>

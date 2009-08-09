@@ -142,7 +142,7 @@
             property to a build script, which is an instance of a slf4j logger. Here is the code of the logging
             integration test, which shows you how to use the logger, as well as working with standard out redirection.
         </para>
-        <sample id="logging" dir="logging/project1" title="Sending your own log message">
+        <sample id="logging_ex" dir="logging/project1" title="Sending your own log message">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>Strictly speaking, <emphasis>QUIET</emphasis> and <emphasis>LIFECYCLE</emphasis> are not log levels, but they are markers. But logically Gradle
