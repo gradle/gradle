@@ -17,8 +17,11 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.InvalidUserDataException;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * A {@link ScriptSource} which loads the script from a file.
@@ -71,7 +74,12 @@ public class FileScriptSource implements ScriptSource {
      */
     private String getId()
     {
-        String path = GFileUtils.canonicalise(sourceFile).getAbsolutePath();
+        String path;
+        try {
+            path = GFileUtils.canonicalise(sourceFile).getAbsolutePath();
+        } catch (UncheckedIOException e) {
+            throw new InvalidUserDataException("Invalid source file '"+sourceFile+"'", e);
+        }
         return HashUtil.createHash(path);
     }
 

@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts;
 import org.apache.commons.io.FileUtils;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
+import org.gradle.api.InvalidUserDataException;
 import static org.hamcrest.Matchers.*;
 import org.junit.After;
 import static org.junit.Assert.*;
@@ -64,8 +65,13 @@ public class FileScriptSourceTest {
     public void encodesScriptFileBaseNameToClassName() {
         assertThat(source.getClassName(), matchesRegexp("build_script_[0-9a-z]+"));
 
-        source = new FileScriptSource("<file-type>", new File(testDir, "name with-some^reserved\nchars"));
-        assertThat(source.getClassName(), matchesRegexp("name_with_some_reserved_chars_[0-9a-z]+"));
+        source = new FileScriptSource("<file-type>", new File(testDir, "name with-some^invalid\nchars"));
+        try {
+            source.getClassName();
+            fail();
+        } catch  (Exception e) {
+            assertThat(e, instanceOf(InvalidUserDataException.class));
+        }
 
         source = new FileScriptSource("<file-type>", new File(testDir, "123"));
         assertThat(source.getClassName(), matchesRegexp("_123_[0-9a-z]+"));
