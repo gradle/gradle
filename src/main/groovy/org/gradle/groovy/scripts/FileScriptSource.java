@@ -21,7 +21,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.InvalidUserDataException;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * A {@link ScriptSource} which loads the script from a file.
