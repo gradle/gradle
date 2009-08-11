@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.*;
 import org.gradle.api.Project;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolverContainer;
@@ -34,10 +35,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.net.URLClassLoader;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 /**
  * @author Hans Dockter
@@ -58,6 +59,25 @@ public class BuildSourceBuilder {
     public BuildSourceBuilder(GradleFactory gradleFactory, CacheInvalidationStrategy cacheInvalidationStrategy) {
         this.gradleFactory = gradleFactory;
         this.cacheInvalidationStrategy = cacheInvalidationStrategy;
+    }
+
+    public URLClassLoader buildAndCreateClassLoader(StartParameter startParameter)
+    {
+        Set<File> classpath = createBuildSourceClasspath(startParameter);
+        Iterator<File> classpathIterator = classpath.iterator();
+        URL[] urls = new URL[classpath.size()];
+        for (int i = 0; i < urls.length; i++)
+        {
+            try
+            {
+                urls[i] = classpathIterator.next().toURI().toURL();
+            }
+            catch (MalformedURLException e)
+            {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return new URLClassLoader(urls, Thread.currentThread().getContextClassLoader());
     }
 
     public Set<File> createBuildSourceClasspath(StartParameter startParameter) {

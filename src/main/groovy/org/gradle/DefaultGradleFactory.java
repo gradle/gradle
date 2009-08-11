@@ -88,9 +88,8 @@ public class DefaultGradleFactory implements GradleFactory {
                 new BuildScriptEvaluator());
         Gradle gradle = new Gradle(
                 startParameter,
-                settingsFinder,
-                new DefaultGradlePropertiesLoader(),
-                new ScriptLocatingSettingsProcessor(
+                new SettingsHandler(
+                        settingsFinder,
                         new PropertiesLoadingSettingsProcessor(
                                 new ScriptEvaluatingSettingsProcessor(
                                         new DefaultSettingsScriptMetaData(),
@@ -98,16 +97,18 @@ public class DefaultGradleFactory implements GradleFactory {
                                                 new DefaultScriptCompilationHandler(cachePropertiesHandler),
                                                 startParameter.getCacheUsage()),
                                         importsReader,
-                                        new SettingsFactory(
-                                                new DefaultProjectDescriptorRegistry(),
-                                                new BuildSourceBuilder(new DefaultGradleFactory(
-                                                        new LoggingConfigurer() {
-                                                            public void configure(LogLevel logLevel) {
-                                                                // do nothing
-                                                            }
+                                        new SettingsFactory(new DefaultProjectDescriptorRegistry()))
+                        ),
+                        new BuildSourceBuilder(
+                                new DefaultGradleFactory(new LoggingConfigurer() {
+                                                             public void configure(LogLevel logLevel) {
+                                                             // do nothing
+                                                             }
                                                         },
-                                                        commandLine2StartParameterConverter), new DefaultCacheInvalidationStrategy())))
-                )),
+                                commandLine2StartParameterConverter),
+                                new DefaultCacheInvalidationStrategy()
+                        )),
+                new DefaultGradlePropertiesLoader(),
                 new BuildLoader(
                         new ProjectFactory(
                                 new DefaultProjectServiceRegistryFactory(

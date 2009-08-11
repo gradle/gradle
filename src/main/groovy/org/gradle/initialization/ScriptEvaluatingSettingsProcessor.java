@@ -27,6 +27,8 @@ import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URLClassLoader;
+
 
 /**
  * @author Hans Dockter
@@ -55,21 +57,25 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         this.settingsFactory = settingsFactory;
     }
 
-    public SettingsInternal process(ISettingsFinder settingsFinder, StartParameter startParameter,
+    public SettingsInternal process(SettingsLocation settingsLocation,
+                                    URLClassLoader buildSourceClassLoader,
+                                    StartParameter startParameter,
                                     IGradlePropertiesLoader propertiesLoader) {
         Clock settingsProcessingClock = new Clock();
-        SettingsInternal settings = settingsFactory.createSettings(settingsFinder.getSettingsDir(),
-                settingsFinder.getSettingsScriptSource(), propertiesLoader.getGradleProperties(), startParameter);
-        applySettingsScript(settingsFinder, settings);
+        SettingsInternal settings = settingsFactory.createSettings(settingsLocation.getSettingsDir(),
+                settingsLocation.getSettingsScriptSource(), propertiesLoader.getGradleProperties(), startParameter, buildSourceClassLoader);
+        applySettingsScript(settingsLocation, buildSourceClassLoader, settings);
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
         return settings;
     }
 
-    private void applySettingsScript(ISettingsFinder settingsFinder, SettingsInternal settings) {
-        ScriptSource source = new ImportsScriptSource(settingsFinder.getSettingsScriptSource(), importsReader,
-                settingsFinder.getSettingsDir());
+    private void applySettingsScript(SettingsLocation settingsLocation, ClassLoader buildSourceClassLoader, SettingsInternal settings) {
+        ScriptSource source = new ImportsScriptSource(settingsLocation.getSettingsScriptSource(), importsReader,
+                settingsLocation.getSettingsDir());
         try {
-            Script settingsScript = scriptProcessorFactory.createProcessor(source).process(ScriptWithSource.class);
+            ScriptProcessor processor = scriptProcessorFactory.createProcessor(source);
+            processor.setClassloader(buildSourceClassLoader);
+            Script settingsScript = processor.process(ScriptWithSource.class);
             settingsScriptMetaData.applyMetaData(settingsScript, settings);
             Clock clock = new Clock();
             settingsScript.run();

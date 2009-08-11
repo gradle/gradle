@@ -23,9 +23,12 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.gradle.StartParameter;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.api.internal.SettingsInternal;
 
 import java.io.File;
+import java.net.URLClassLoader;
+import java.net.URL;
 
 @RunWith(JMock.class)
 public class PropertiesLoadingSettingsProcessorTest {
@@ -34,22 +37,22 @@ public class PropertiesLoadingSettingsProcessorTest {
     @Test
     public void loadsPropertiesThenDelegatesToBackingSettingsProcessor() {
         final SettingsProcessor delegate = context.mock(SettingsProcessor.class);
-        final ISettingsFinder settingsFinder = context.mock(ISettingsFinder.class);
+        final URLClassLoader urlClassLoader = new URLClassLoader(new URL[0]);
         final IGradlePropertiesLoader propertiesLoader = context.mock(IGradlePropertiesLoader.class);
         final StartParameter startParameter = new StartParameter();
         final SettingsInternal settings = context.mock(SettingsInternal.class);
         final File settingsDir = new File("root");
+        final ScriptSource settingsScriptSource = context.mock(ScriptSource.class);
+        final SettingsLocation settingsLocation = new SettingsLocation(settingsDir, settingsScriptSource);
 
         PropertiesLoadingSettingsProcessor processor = new PropertiesLoadingSettingsProcessor(delegate);
 
         context.checking(new Expectations() {{
-            allowing(settingsFinder).getSettingsDir();
-            will(returnValue(settingsDir));
             one(propertiesLoader).loadProperties(settingsDir, startParameter);
-            one(delegate).process(settingsFinder, startParameter, propertiesLoader);
+            one(delegate).process(settingsLocation, urlClassLoader, startParameter, propertiesLoader);
             will(returnValue(settings));
         }});
 
-        assertThat(processor.process(settingsFinder, startParameter, propertiesLoader), sameInstance(settings));
+        assertThat(processor.process(settingsLocation, urlClassLoader, startParameter, propertiesLoader), sameInstance(settings));
     }
 }

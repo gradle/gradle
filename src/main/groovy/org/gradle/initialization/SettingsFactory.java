@@ -22,24 +22,23 @@ import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
 import java.util.Map;
+import java.net.URLClassLoader;
 
 /**
  * @author Hans Dockter
  */
 public class SettingsFactory {
     private IProjectDescriptorRegistry projectDescriptorRegistry;
-    private BuildSourceBuilder buildSourceBuilder;
 
-    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry,
-                           BuildSourceBuilder buildSourceBuilder) {
+    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
-        this.buildSourceBuilder = buildSourceBuilder;
     }
 
     public SettingsInternal createSettings(File settingsDir, ScriptSource settingsScript,
-                                           Map<String, String> gradleProperties, StartParameter startParameter) {
+                                           Map<String, String> gradleProperties, StartParameter startParameter,
+                                           URLClassLoader classloader) {
         DefaultSettings settings = new DefaultSettings(projectDescriptorRegistry,
-                buildSourceBuilder, settingsDir, settingsScript, startParameter);
+                classloader, settingsDir, settingsScript, startParameter);
         settings.getAdditionalProperties().putAll(gradleProperties);
         return settings;
     }

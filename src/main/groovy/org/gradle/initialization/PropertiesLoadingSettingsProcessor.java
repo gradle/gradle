@@ -18,6 +18,8 @@ package org.gradle.initialization;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.StartParameter;
 
+import java.net.URLClassLoader;
+
 public class PropertiesLoadingSettingsProcessor implements SettingsProcessor {
     private final SettingsProcessor processor;
 
@@ -25,9 +27,11 @@ public class PropertiesLoadingSettingsProcessor implements SettingsProcessor {
         this.processor = processor;
     }
 
-    public SettingsInternal process(ISettingsFinder settingsFinder, StartParameter startParameter,
+    public SettingsInternal process(SettingsLocation settingsLocation,
+                                    URLClassLoader buildSourceClassLoader,
+                                    StartParameter startParameter,
                                     IGradlePropertiesLoader propertiesLoader) {
-        propertiesLoader.loadProperties(settingsFinder.getSettingsDir(), startParameter);
-        return processor.process(settingsFinder, startParameter, propertiesLoader);
+        propertiesLoader.loadProperties(settingsLocation.getSettingsDir(), startParameter);
+        return processor.process(settingsLocation, buildSourceClassLoader, startParameter, propertiesLoader);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,21 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
+import org.gradle.groovy.scripts.ScriptSource;
 
-/**
- * @author Hans Dockter
- */
-public interface ISettingsFinder {
-    SettingsLocation find(StartParameter startParameter);
+import java.io.File;
+
+public class SettingsLocation
+{
+    private File settingsDir;
+    private ScriptSource settingsScriptSource;
+
+    public SettingsLocation(File settingsDir, ScriptSource settingsScriptSource) {
+        this.settingsDir = settingsDir;
+        this.settingsScriptSource = settingsScriptSource;
+    }
+
+    public File getSettingsDir() { return settingsDir; }
+    public ScriptSource getSettingsScriptSource() { return settingsScriptSource; }
 }
+

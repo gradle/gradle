@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle;
 
 import org.gradle.api.Task;
@@ -55,27 +54,25 @@ import org.slf4j.LoggerFactory;
  * @author Hans Dockter
  */
 public class Gradle {
-    private static Logger logger = LoggerFactory.getLogger(Gradle.class);
+    private static final Logger logger = LoggerFactory.getLogger(Gradle.class);
 
     private static GradleFactory factory = new DefaultGradleFactory(new DefaultLoggingConfigurer(), new DefaultCommandLine2StartParameterConverter());
 
     private StartParameter startParameter;
-    private ISettingsFinder settingsFinder;
+    private SettingsHandler settingsHandler;
     private IGradlePropertiesLoader gradlePropertiesLoader;
-    private SettingsProcessor settingsProcessor;
     private BuildLoader buildLoader;
     private BuildConfigurer buildConfigurer;
 
     private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(
             BuildListener.class);
 
-    public Gradle(StartParameter startParameter, ISettingsFinder settingsFinder,
-                  IGradlePropertiesLoader gradlePropertiesLoader, SettingsProcessor settingsProcessor,
+    public Gradle(StartParameter startParameter, SettingsHandler settingsHandler,
+                  IGradlePropertiesLoader gradlePropertiesLoader,
                   BuildLoader buildLoader, BuildConfigurer buildConfigurer) {
         this.startParameter = startParameter;
-        this.settingsFinder = settingsFinder;
+        this.settingsHandler = settingsHandler;
         this.gradlePropertiesLoader = gradlePropertiesLoader;
-        this.settingsProcessor = settingsProcessor;
         this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
     }
@@ -142,7 +139,9 @@ public class Gradle {
         Throwable failure = null;
         Build build = null;
         try {
-            settings = loadSettings(startParameter);
+            settings = settingsHandler.findAndLoadSettings(startParameter, gradlePropertiesLoader);
+            fireSettingsEvaluated(settings);        
+
             build = runSpecification.run(settings, startParameter);
         } catch (Throwable t) {
             failure = t;
@@ -189,12 +188,6 @@ public class Gradle {
                 fireTaskGraphPrepared(graph);
             }
         });
-    }
-
-    private SettingsInternal loadSettings(StartParameter startParameter) {
-        SettingsInternal settings = settingsProcessor.process(settingsFinder, startParameter, gradlePropertiesLoader);
-        fireSettingsEvaluated(settings);
-        return settings;
     }
 
     /**

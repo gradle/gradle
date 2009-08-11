@@ -47,6 +47,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     ScriptSource scriptSourceMock
     IGradlePropertiesLoader propertiesLoaderMock
     Map expectedGradleProperties
+    URLClassLoader urlClassLoader
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
@@ -58,6 +59,7 @@ class ScriptEvaluatingSettingsProcessorTest {
         expectedStartParameter = new StartParameter()
         expectedGradleProperties = [a: 'b']
         propertiesLoaderMock = [getGradleProperties: { expectedGradleProperties } ] as IGradlePropertiesLoader
+        urlClassLoader = new URLClassLoader(new URL[0]);
         initExpectedSettings()
     }
 
@@ -76,7 +78,7 @@ class ScriptEvaluatingSettingsProcessorTest {
         expectedSettings.setProjectDescriptorRegistry(projectDescriptorRegistry)
         expectedSettings.setStartParameter(expectedStartParameter)
         context.checking {
-            one(settingsFactory).createSettings(TEST_ROOT_DIR, scriptSourceMock, expectedGradleProperties, expectedStartParameter)
+            one(settingsFactory).createSettings(TEST_ROOT_DIR, scriptSourceMock, expectedGradleProperties, expectedStartParameter, urlClassLoader)
             will(returnValue(expectedSettings))
         }
     }
@@ -84,8 +86,6 @@ class ScriptEvaluatingSettingsProcessorTest {
     private void initSettingsFinder() {
         expectedSettingsFinder = new DefaultSettingsFinder()
         scriptSourceMock = context.mock(ScriptSource)
-        expectedSettingsFinder.setSettingsScriptSource(scriptSourceMock)
-        expectedSettingsFinder.setSettingsDir(TEST_ROOT_DIR)
     }
 
     @After
@@ -106,7 +106,8 @@ class ScriptEvaluatingSettingsProcessorTest {
         context.checking {
             allowing(scriptSourceMock).getText(); will(returnValue(""))
         }
-        assertSame(expectedSettings, settingsProcessor.process(expectedSettingsFinder, expectedStartParameter, propertiesLoaderMock))
+        SettingsLocation settingsLocation = new SettingsLocation(TEST_ROOT_DIR, scriptSourceMock)
+        assertSame(expectedSettings, settingsProcessor.process(settingsLocation, urlClassLoader, expectedStartParameter, propertiesLoaderMock))
     }
 
     private void prepareScriptProcessorMock() {
@@ -117,6 +118,7 @@ class ScriptEvaluatingSettingsProcessorTest {
             one(scriptProcessorMock).createProcessor(withParam(reflectionEquals(expectedScriptSource)))
             will(returnValue(processor))
 
+            one(processor).setClassloader(urlClassLoader)
             one(processor).process(ScriptWithSource.class)
             will(returnValue(expectedScript))
 

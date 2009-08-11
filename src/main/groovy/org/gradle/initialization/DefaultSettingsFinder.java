@@ -16,7 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 
@@ -27,15 +26,13 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class DefaultSettingsFinder implements ISettingsFinder {
-    private File settingsDir;
-    private ScriptSource settingsScriptSource;
     private List<ISettingsFileSearchStrategy> settingsFileSearchStrategies;
 
     public DefaultSettingsFinder(List<ISettingsFileSearchStrategy> settingsFileSearchStrategies) {
         this.settingsFileSearchStrategies = settingsFileSearchStrategies;
     }
 
-    public void find(StartParameter startParameter) {
+    public SettingsLocation find(StartParameter startParameter) {
         File settingsFile = null;
         for (ISettingsFileSearchStrategy settingsFileSearchStrategy : settingsFileSearchStrategies) {
             settingsFile = settingsFileSearchStrategy.find(startParameter);
@@ -44,27 +41,11 @@ public class DefaultSettingsFinder implements ISettingsFinder {
             }
         }
         if (settingsFile == null) {
-            settingsDir = startParameter.getCurrentDir();
-            settingsScriptSource = new StringScriptSource("empty settings file", "");
+            return new SettingsLocation(startParameter.getCurrentDir(),
+                                       new StringScriptSource("empty settings file", ""));
         } else {
-            settingsDir = settingsFile.getParentFile();
-            settingsScriptSource = new FileScriptSource("settings file", settingsFile);
+            return new SettingsLocation(settingsFile.getParentFile(),
+                                       new FileScriptSource("settings file", settingsFile));
         }
-    }
-
-    public File getSettingsDir() {
-        return settingsDir;
-    }
-
-    public void setSettingsDir(File settingsDir) {
-        this.settingsDir = settingsDir;
-    }
-
-    public ScriptSource getSettingsScriptSource() {
-        return settingsScriptSource;
-    }
-
-    public void setSettingsScriptSource(ScriptSource settingsScriptSource) {
-        this.settingsScriptSource = settingsScriptSource;
     }
 }

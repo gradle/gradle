@@ -28,7 +28,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -37,8 +36,8 @@ import static org.hamcrest.Matchers.*
 class DefaultSettingsTest {
     File settingsDir
     StartParameter startParameter
+    URLClassLoader expectedClassLoader
     Map gradleProperties
-    BuildSourceBuilder buildSourceBuilderMock
     ScriptSource scriptSourceMock
     DefaultSettings settings
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
@@ -49,18 +48,18 @@ class DefaultSettingsTest {
         settingsDir = new File('/somepath/root').absoluteFile
         gradleProperties = [someGradleProp: 'someValue']
         startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
-        buildSourceBuilderMock = context.mock(BuildSourceBuilder)
+        expectedClassLoader = new URLClassLoader(new URL[0])
+
         scriptSourceMock = context.mock(ScriptSource)
 
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-        settings = new DefaultSettings(projectDescriptorRegistry, buildSourceBuilderMock, settingsDir, scriptSourceMock, startParameter)
+        settings = new DefaultSettings(projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter)
     }
 
     @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
         assertEquals(settingsDir, settings.getSettingsDir())
 
-        assert settings.buildSourceBuilder.is(buildSourceBuilderMock)
         assertNull(settings.getRootProject().getParent())
         assertEquals(settingsDir, settings.getRootProject().getProjectDir())
         assertEquals(settings.getRootProject().getProjectDir().getName(), settings.getRootProject().getName())
@@ -147,16 +146,10 @@ class DefaultSettingsTest {
     }
 
     @Test public void testCreateClassLoader() {
-        File depFile1 = 'dep1' as File
         StartParameter expectedStartParameter = settings.startParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
-        context.checking {
-            one(buildSourceBuilderMock).createBuildSourceClasspath(expectedStartParameter)
-            will(returnValue([depFile1] as Set))
-        }
         URLClassLoader createdClassLoader = settings.createClassLoader()
-        Set urls = createdClassLoader.URLs as Set
-        assertThat(urls, hasItem(depFile1.toURI().toURL()))
+        assertSame(createdClassLoader, expectedClassLoader)
     }
 
     @Test public void testCanGetAndSetDynamicProperties() {

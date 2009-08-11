@@ -17,7 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.SettingsInternal;
@@ -29,8 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URLClassLoader;
-import java.net.URL;
-import java.net.MalformedURLException;
 import java.util.*;
 
 /**
@@ -41,11 +38,11 @@ public class BaseSettings implements SettingsInternal {
 
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
 
-    private BuildSourceBuilder buildSourceBuilder;
-
     private ScriptSource settingsScript;
 
     private StartParameter startParameter;
+
+    private URLClassLoader classloader;
 
     private File settingsDir;
 
@@ -59,13 +56,13 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public BaseSettings(IProjectDescriptorRegistry projectDescriptorRegistry,
-                        BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript,
+                        URLClassLoader classloader, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
-        this.buildSourceBuilder = buildSourceBuilder;
+        this.classloader = classloader;
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         dynamicObjectHelper = new DynamicObjectHelper(this);
     }
@@ -137,25 +134,12 @@ public class BaseSettings implements SettingsInternal {
     // todo We don't have command query separation here. This is a temporary thing. If our new classloader handling works out, which
     // adds simply the build script jars to the context classloader we can remove the return argument and simplify our design.
     public URLClassLoader createClassLoader() {
-        ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
         File toolsJar = ClasspathUtil.getToolsJar();
         if (toolsJar != null) {
-            ClasspathUtil.addUrl((URLClassLoader) parentClassLoader, Collections.singleton(toolsJar));
+            ClasspathUtil.addUrl((URLClassLoader) classloader.getParent(), Collections.singleton(toolsJar));
         }
-        
-        StartParameter buildSrcStartParameter = startParameter.newBuild();
-        buildSrcStartParameter.setCurrentDir(new File(getRootDir(), DEFAULT_BUILD_SRC_DIR));
-        Set<File> additionalClasspath = buildSourceBuilder.createBuildSourceClasspath(buildSrcStartParameter);
-        logger.debug("Adding to classpath: {}", additionalClasspath);
-        List<URL> urls = new ArrayList<URL>();
-        for (File file : additionalClasspath) {
-            try {
-                urls.add(file.toURI().toURL());
-            } catch (MalformedURLException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-        return new URLClassLoader(urls.toArray(new URL[urls.size()]), parentClassLoader);
+
+        return classloader;
     }
 
     public ProjectDescriptor getRootProject() {
@@ -168,14 +152,6 @@ public class BaseSettings implements SettingsInternal {
 
     public File getRootDir() {
         return rootProjectDescriptor.getProjectDir();
-    }
-
-    public BuildSourceBuilder getBuildSourceBuilder() {
-        return buildSourceBuilder;
-    }
-
-    public void setBuildSourceBuilder(BuildSourceBuilder buildSourceBuilder) {
-        this.buildSourceBuilder = buildSourceBuilder;
     }
 
     public StartParameter getStartParameter() {

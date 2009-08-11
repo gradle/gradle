@@ -27,6 +27,8 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Map;
+import java.net.URLClassLoader;
+import java.net.URL;
 
 /**
  * @author Hans Dockter
@@ -42,16 +44,15 @@ public class SettingsFactoryTest {
         final File expectedSettingsDir = new File("settingsDir");
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
-        BuildSourceBuilder expectedBuildSourceBuilder = context.mock(BuildSourceBuilder.class);
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry, expectedBuildSourceBuilder);
+        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry);
+        final URLClassLoader urlClassLoader = new URLClassLoader(new URL[0]);
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(expectedSettingsDir,
-                expectedScriptSource, expectedGradleProperties, expectedStartParameter);
+                expectedScriptSource, expectedGradleProperties, expectedStartParameter, urlClassLoader);
 
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
-        assertSame(expectedBuildSourceBuilder, settings.getBuildSourceBuilder());
         assertEquals(expectedGradleProperties, settings.getAdditionalProperties());
         assertSame(expectedSettingsDir, settings.getSettingsDir());
         assertSame(expectedScriptSource, settings.getSettingsScript());

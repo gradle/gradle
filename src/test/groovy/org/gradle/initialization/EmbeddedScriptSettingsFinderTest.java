@@ -24,9 +24,9 @@ public class EmbeddedScriptSettingsFinderTest {
         StartParameter parameter = new StartParameter();
         parameter.setSettingsScriptSource(settingsScriptSource);
 
-        settingsFinder.find(parameter);
+        SettingsLocation settingsLocation = settingsFinder.find(parameter);
 
-        assertThat(settingsFinder.getSettingsScriptSource(), sameInstance(settingsScriptSource));
+        assertThat(settingsLocation.getSettingsScriptSource(), sameInstance(settingsScriptSource));
     }
 
     @Test
@@ -37,9 +37,9 @@ public class EmbeddedScriptSettingsFinderTest {
         parameter.setSettingsScriptSource(settingsScriptSource);
         parameter.setCurrentDir(currentDir);
 
-        settingsFinder.find(parameter);
+        SettingsLocation settingsLocation = settingsFinder.find(parameter);
 
-        assertThat(settingsFinder.getSettingsDir(), equalTo(currentDir.getCanonicalFile()));
+        assertThat(settingsLocation.getSettingsDir(), equalTo(currentDir.getCanonicalFile()));
     }
 
     @Test
@@ -49,15 +49,12 @@ public class EmbeddedScriptSettingsFinderTest {
 
         context.checking(new Expectations() {{
             one(delegate).find(parameter);
-            one(delegate).getSettingsDir();
-            will(returnValue(settingsDir));
-            one(delegate).getSettingsScriptSource();
-            will(returnValue(settingsScriptSource));
+            will(returnValue(new SettingsLocation(settingsDir, settingsScriptSource)));
         }});
 
-        settingsFinder.find(parameter);
+        SettingsLocation settingsLocation = settingsFinder.find(parameter);
 
-        assertThat(settingsFinder.getSettingsDir(), sameInstance(settingsDir));
-        assertThat(settingsFinder.getSettingsScriptSource(), sameInstance(settingsScriptSource));
+        assertThat(settingsLocation.getSettingsDir(), sameInstance(settingsDir));
+        assertThat(settingsLocation.getSettingsScriptSource(), sameInstance(settingsScriptSource));
     }
 }

@@ -26,8 +26,9 @@ public class DefaultSettings extends BaseSettings {
     public DefaultSettings() {}
 
     DefaultSettings(IProjectDescriptorRegistry projectDescriptorRegistry,
-                    BuildSourceBuilder buildSourceBuilder, File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
-        super(projectDescriptorRegistry, buildSourceBuilder, settingsDir, settingsScript, startParameter)
+                    URLClassLoader classloader, File settingsDir,
+                    ScriptSource settingsScript, StartParameter startParameter) {
+      super(projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter)
     }
 
     def propertyMissing(String property) {

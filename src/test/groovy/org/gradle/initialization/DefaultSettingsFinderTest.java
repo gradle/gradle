@@ -57,9 +57,9 @@ public class DefaultSettingsFinderTest {
             allowing(searchStrategyMock1).find(TEST_START_PARAMETER);
             will(returnValue(TEST_SETTINGSFILE));
         }});
-        defaultSettingsFinder.find(TEST_START_PARAMETER);
-        assertEquals(TEST_SETTINGSFILE.getParentFile(), defaultSettingsFinder.getSettingsDir());
-        assertEquals(TEST_SETTINGSFILE, defaultSettingsFinder.getSettingsScriptSource().getSourceFile());
+        SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
+        assertEquals(TEST_SETTINGSFILE.getParentFile(), settingsLocation.getSettingsDir());
+        assertEquals(TEST_SETTINGSFILE, settingsLocation.getSettingsScriptSource().getSourceFile());
     }
 
     @Test
@@ -70,9 +70,9 @@ public class DefaultSettingsFinderTest {
             allowing(searchStrategyMock2).find(TEST_START_PARAMETER);
             will(returnValue(TEST_SETTINGSFILE));
         }});
-        defaultSettingsFinder.find(TEST_START_PARAMETER);
-        assertEquals(TEST_SETTINGSFILE.getParentFile(), defaultSettingsFinder.getSettingsDir());
-        assertEquals(TEST_SETTINGSFILE, defaultSettingsFinder.getSettingsScriptSource().getSourceFile());
+        SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
+        assertEquals(TEST_SETTINGSFILE.getParentFile(), settingsLocation.getSettingsDir());
+        assertEquals(TEST_SETTINGSFILE, settingsLocation.getSettingsScriptSource().getSourceFile());
     }
 
     @Test
@@ -83,10 +83,10 @@ public class DefaultSettingsFinderTest {
             allowing(searchStrategyMock2).find(TEST_START_PARAMETER);
             will(returnValue(null));
         }});
-        defaultSettingsFinder.find(TEST_START_PARAMETER);
-        assertEquals(TEST_START_PARAMETER.getCurrentDir(), defaultSettingsFinder.getSettingsDir());
+        SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
+        assertEquals(TEST_START_PARAMETER.getCurrentDir(), settingsLocation.getSettingsDir());
         ScriptSource expectedSettingsSource = new StringScriptSource("empty settings file", "");
-        assertThat(defaultSettingsFinder.getSettingsScriptSource(), Matchers.reflectionEquals(
+        assertThat(settingsLocation.getSettingsScriptSource(), Matchers.reflectionEquals(
                 expectedSettingsSource));
     }
 }
