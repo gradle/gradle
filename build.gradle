@@ -201,15 +201,16 @@ processResources.doLast {
 checkstyleConfigDir = "$projectDir/config/checkstyle"
 checkstyleFilteredConfigDir = new File(checkstyleResultFile.parentFile, "filteredConfig")
 checkstyleConfigFileName = new File(checkstyleFilteredConfigDir, "checkstyle.xml")
-checkstyle.doFirst {
+task checkstyleFilter << {
     ant.mkdir dir: checkstyleFilteredConfigDir
     copy {
-        from checkstyleConfigDir
-        include "checkstyle.xml"
+        from "$checkstyleConfigDir/checkstyle.xml"
         filter(ReplaceTokens, tokens: [checkstyleConfigDir: checkstyleConfigDir as String])
         into checkstyleFilteredConfigDir
     }
 }
+
+[checkstyle, checkstyleTests]*.dependsOn checkstyleFilter
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
