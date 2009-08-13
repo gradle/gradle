@@ -32,24 +32,31 @@ import java.util.Map;
  *   <li>content filters
  * </ul>
  *
- * CopySpecs may be nested by passing a closure to one of the from methods.  The
+ * <p>CopySpecs may be nested by passing a closure to one of the from methods.  The
  * closure creates a child CopySpec and delegates methods in the closure to the child.
  * Child CopySpecs inherit any values specified in the parent.  Only the leaf CopySpecs
- * will be used in any copy operations.
- * This allows constructs like:
+ * will be used in any copy operations.</p>
+ * <p>This allows constructs like:</p>
  * <pre>
  * into('webroot')
  * exclude('**&#47;.svn/**')
  * from('src/main/webapp') {
  *    include '**&#47;*.jsp'
+ *    filter(ReplaceTokens, tokens:[copyright:'2009', version:'2.3.1'])
+ * }
+ * from('src/main/webapp') {
+ *    exclude '**&#47;*.jsp'
  * }
  * from('src/main/js') {
  *    include '**&#47;*.js'
  * }
  * </pre>
  *
- * In this example, the <code>into</code> and <code>exclude</code> specifications at the
- * root level are inherited by the two child CopySpecs. 
+ * <p>In this example, the <code>into</code> and <code>exclude</code> specifications at the
+ * root level are inherited by the three child CopySpecs.  The filter replacing tokens will
+ * only apply to files of type *.jsp, other files in 'src/main/webapp' will be copied without
+ * filtering.</p>
+ *
  * @author Steve Appling
  */
 public interface CopySpec {

@@ -54,11 +54,14 @@ import java.util.Map;
  *       include '**&#47;*.xml'
  *       filter(ReplaceTokens, tokens:[version:'2.3.1'])
  *    }
+ *    from('src/main/config') {
+ *       exclude '**&#47;*.properties', '**&#47;*.xml'  
+ *    }
  *    from('src/main/languages') {
  *       rename 'EN_US_(*.)', '$1'
  *    }
  *    into 'build/target/config'
- *    exclude '**&#47;*.bak', '**&#47;CVS/'
+ *    exclude '**&#47;*.bak'
  * }
  * </pre>
  * @author Steve Appling
@@ -104,7 +107,8 @@ public class Copy extends ConventionTask implements CopyAction {
 
 
     /**
-     * Set the exclude patterns used by all Copy tasks.
+     * Set the exclude patterns used by all copies.  This applies to Copy tasks
+     * as well as Project.copy.
      * This is typically used to set VCS type excludes like:
      * <pre>
      * Copy.globalExclude( '**&#47;.svn/' )

@@ -18,6 +18,7 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.CopyAction;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Build;
@@ -1065,4 +1066,39 @@ public interface Project extends Comparable<Project> {
      * @param configureClosure the closure to use to configure the build script classpath.
      */
     void buildscript(Closure configureClosure);
+
+    /**
+     * Copy the specified files.  The closure configures a {@link org.gradle.api.file.CopySpec CopySpec}.
+     * Note that the sources used in the {@code from()} method may be one or more:
+     * <ul>
+     *    <li>File Objects</li>
+     *    <li>String paths relative to the project root</li>
+     *    <li>Any FileCollection (like a configuration)</li>
+     *    <li>Any Iterable<File></li>
+     * </ul>
+     * Example:
+     * <pre>
+     * copy {
+     *    from configurations.runtime
+     *    into 'build/deploy/lib'
+     * }
+     * </pre>
+     * Note that CopySpecs can be nested:
+     * <pre>
+     * copy {
+     *    into('build/webroot')
+     *    exclude('**&#47;.svn/**')
+     *    from('src/main/webapp') {
+     *       include '**&#47;*.jsp'
+     *       filter(ReplaceTokens, tokens:[copyright:'2009', version:'2.3.1'])
+     *    }
+     *    from('src/main/js') {
+     *       include '**&#47;*.js'
+     *    }
+     * }
+     * </pre>
+     * @param closure Closure to configure the CopySpec
+     * @return CopyAction that can be used to check if the copy did any work.
+     */
+    CopyAction copy(Closure closure);
 }
