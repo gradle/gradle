@@ -15,6 +15,7 @@ import org.apache.ivy.plugins.resolver.*
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.SampleElementValidator
+import org.apache.tools.ant.filters.ReplaceTokens
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -196,6 +197,19 @@ processResources.doLast {
 }
 
 [compile, compileTests]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
+
+checkstyleConfigDir = "$projectDir/config/checkstyle"
+checkstyleFilteredConfigDir = new File(checkstyleResultFile.parentFile, "filteredConfig")
+checkstyleConfigFileName = new File(checkstyleFilteredConfigDir, "checkstyle.xml")
+checkstyle.doFirst {
+    ant.mkdir dir: checkstyleFilteredConfigDir
+    copy {
+        from checkstyleConfigDir
+        include "checkstyle.xml"
+        filter(ReplaceTokens, tokens: [checkstyleConfigDir: checkstyleConfigDir as String])
+        into checkstyleFilteredConfigDir
+    }
+}
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
