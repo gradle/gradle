@@ -121,7 +121,7 @@ public class CopyActionImplTest  {
         List specs = copyAction.getLeafSyncSpecs()
         assertEquals(1, specs.size())
 
-        assertEquals([project.file('parentdir'), project.file('childdir')],
+        assertEquals([project.file('parentdir'), project.file('childdir')] as Set,
                 specs.get(0).getAllSourceDirs())
     }
 
@@ -139,11 +139,11 @@ public class CopyActionImplTest  {
         List specs = copyAction.getLeafSyncSpecs()
         assertEquals(2, specs.size())
 
-        assertEquals([project.file('src1')], specs.get(0).getAllSourceDirs())
+        assertEquals([project.file('src1')] as Set, specs.get(0).getAllSourceDirs())
         assertEquals(['*.a', '*.b'], specs.get(0).getAllIncludes())
         assertEquals(project.file('dest'), specs.get(0).getDestDir())
 
-        assertEquals([project.file('src2')], specs.get(1).getAllSourceDirs())
+        assertEquals([project.file('src2')] as Set, specs.get(1).getAllSourceDirs())
         assertEquals(['*.a', '*.c'], specs.get(1).getAllIncludes())
         assertEquals(project.file('dest'), specs.get(1).getDestDir())
     }

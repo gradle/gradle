@@ -47,21 +47,21 @@ public class CopySpecImplTest {
     @Test public void testAbsoluteFromList() {
         List<File> sources = getAbsoluteTestSources();
         spec.from(sources);
-        assertEquals(sources, spec.getAllSourceDirs());
+        assertEquals(sources as Set, spec.getAllSourceDirs());
     }
 
     @Test public void testRelativeFromList() {
         List<File> sources = getRelativeTestSources();
         spec.from(sources);
 
-        List<File> resolvedSources = sources.collect { new File(baseFile, it.path)}
+        Set<File> resolvedSources = sources.collect { new File(baseFile, it.path)} as Set
         assertEquals(resolvedSources, spec.getAllSourceDirs());
     }
 
     @Test public void testFromArray() {
         List<File> sources = getAbsoluteTestSources();
         spec.from(sources as File[]);
-        assertEquals(sources, spec.getAllSourceDirs());
+        assertEquals(sources as Set, spec.getAllSourceDirs());
     }
 
     @Test public void testHierarchical() {
@@ -73,7 +73,7 @@ public class CopySpecImplTest {
         childSpec.from(childFile.path);
 
         sources.add(childFile);
-        assertEquals(sources, childSpec.getAllSourceDirs());
+        assertEquals(sources as Set, childSpec.getAllSourceDirs());
     }
 
     @Test public void testSourceWithClosure() {
@@ -84,12 +84,12 @@ public class CopySpecImplTest {
             into destFile
         }
 
-        ArrayList specs = spec.getLeafSyncSpecs()
+        List specs = spec.getLeafSyncSpecs()
         assertEquals(1, specs.size())
         CopySpecImpl theSpec = specs.get(0)
-        ArrayList resultingSources = theSpec.getAllSourceDirs()
+        Set resultingSources = theSpec.getAllSourceDirs()
         assertEquals(1, resultingSources.size())
-        assertEquals(sourceFile, resultingSources.get(0))
+        assertEquals(sourceFile, resultingSources.iterator().next())
 
         assertEquals(destFile, theSpec.getDestDir()) 
     }
@@ -102,10 +102,10 @@ public class CopySpecImplTest {
             into destFile
         }
 
-        ArrayList specs = spec.getLeafSyncSpecs()
+        List specs = spec.getLeafSyncSpecs()
         assertEquals(1, specs.size())
         CopySpecImpl theSpec = specs.get(0)
-        ArrayList resultingSources = theSpec.getAllSourceDirs()
+        Set resultingSources = theSpec.getAllSourceDirs()
         assertEquals(sources, new HashSet(resultingSources))
 
         assertEquals(destFile, theSpec.getDestDir())

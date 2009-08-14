@@ -43,6 +43,10 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
         return "file collection";
     }
 
+    public List<?> getSources() {
+        return files;
+    }
+    
     public Set<File> getFiles() {
         Set<File> result = new LinkedHashSet<File>();
         List<Object> flattened = new ArrayList<Object>();

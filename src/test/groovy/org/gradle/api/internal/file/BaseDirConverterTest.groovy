@@ -24,6 +24,7 @@ import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import org.gradle.api.file.FileCollection
 
 /**
  * @author Hans Dockter
@@ -153,5 +154,17 @@ class BaseDirConverterTest {
     @Test public void testWithRelativeFile() {
         File relativeFile = new File('relative')
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
+    }
+    
+    @Test public void testFiles() {
+        FileCollection collection = baseDirConverter.resolveFiles('a', 'b')
+        assertThat(collection, instanceOf(PathResolvingFileCollection))
+        assertThat(collection.sources, equalTo(['a', 'b']))
+    }
+
+    @Test public void testFilesReturnsSourceFileCollection() {
+        FileCollection source = baseDirConverter.resolveFiles('a')
+        FileCollection collection = baseDirConverter.resolveFiles(source)
+        assertThat(collection, sameInstance(source))
     }
 }

@@ -19,18 +19,18 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.*;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
+import org.gradle.api.file.CopyAction;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectHelper;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.PathResolvingFileCollection;
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.file.BaseDirConverter;
 import org.gradle.api.internal.file.CopyActionImpl;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -39,7 +39,6 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.file.CopyAction;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.*;
@@ -694,7 +693,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public FileCollection files(Object... paths) {
-        return new PathResolvingFileCollection(fileResolver, paths);
+        return fileResolver.resolveFiles(paths);
     }
 
     public File relativePath(Object path) {

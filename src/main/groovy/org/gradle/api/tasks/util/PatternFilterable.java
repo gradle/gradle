@@ -18,8 +18,8 @@ package org.gradle.api.tasks.util;
 import java.util.Set;
 
 /**
- * A {@code PatternFilterable} represents some container which Ant-style include and exclude patterns can be applied
- * to.
+ * A {@code PatternFilterable} represents some file container which Ant-style include and exclude patterns can be
+ * applied to.
  */
 public interface PatternFilterable {
     Set<String> getIncludes();

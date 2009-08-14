@@ -15,28 +15,28 @@
  */
 package org.gradle.api.internal.file;
 
-import java.lang.reflect.Constructor
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.CopySpec
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import java.lang.*
-import java.util.*
-import org.gradle.api.Transformer
-import org.gradle.util.ConfigureUtil
+import groovy.lang.Closure;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.util.ConfigureUtil;
+import org.gradle.util.ReflectionUtil;
+
+import java.io.File;
+import java.io.FilterReader;
+import java.io.Reader;
+import java.lang.reflect.Constructor;
+import java.util.*;
 
 /**
  * @author Steve Appling
  */
 public class CopySpecImpl implements CopySpec {
-
-    private static Logger logger = LoggerFactory.getLogger(CopySpecImpl.class);
-
     private FileResolver resolver;
-    private List<File> sourceDirs;
+    private PathResolvingFileCollection sourceDirs;
     private File destDir;
-    private List<String> includeList;
-    private List<String> excludeList;
+    private PatternSet patternSet;
     private List<Closure> remapClosureList;
     private List<CopySpecImpl> childSpecs;
     private CopySpecImpl parentSpec;
@@ -50,54 +50,45 @@ public class CopySpecImpl implements CopySpec {
 
     public CopySpecImpl(FileResolver resolver) {
         this.resolver = resolver;
-        sourceDirs = new ArrayList<File>();
+        sourceDirs = new PathResolvingFileCollection(resolver);
         remapClosureList = new ArrayList<Closure>();
         childSpecs = new ArrayList<CopySpecImpl>();
-        includeList = new ArrayList<String>();
-        excludeList = new ArrayList<String>();
+        patternSet = new PatternSet();
         renameMappers  = new ArrayList<Transformer<String>>();
         filterChain = new FilterChain();
     }
 
-    CopySpec from(Object... sourcePaths) {
-        from(Arrays.asList(sourcePaths))
+    public CopySpec from(Object... sourcePaths) {
+        for (Object sourcePath : sourcePaths) {
+            sourceDirs.add(sourcePath);
+        }
+        return this;
     }
 
     public CopySpec from(Object sourcePath, Closure c) {
-        from([sourcePath], c);
-    }
-
-    CopySpec from(Iterable<Object> sourcePaths) {
-        for (Iterator it = sourcePaths.iterator(); it.hasNext(); ) {
-            sourceDirs.add(resolver.resolve(it.next()))
-        }
-        return this
-    }
-
-    CopySpec from(Iterable<Object> sourcePaths, Closure c) {
         CopySpec result = this;
         if (c==null) {
-            from(sourcePaths)
+            from(sourcePath);
         } else {
             CopySpecImpl child = new CopySpecImpl(resolver, this);
-            child.from(sourcePaths);
+            child.from(sourcePath);
             childSpecs.add(child);
-            ConfigureUtil.configure(c, child)
+            ConfigureUtil.configure(c, child);
             result = child;
         }
         return result;
     }
 
-    public List<File> getSourceDirs() {
-        return sourceDirs;
+    public Set<File> getSourceDirs() {
+        return sourceDirs.getFiles();
     }
 
-    public List<File> getAllSourceDirs() {
-        List<File> result = new ArrayList<File>();
+    public Set<File> getAllSourceDirs() {
+        Set<File> result = new LinkedHashSet<File>();
         if (parentSpec != null) {
             result.addAll(parentSpec.getAllSourceDirs());
         }
-        result.addAll(sourceDirs);
+        result.addAll(getSourceDirs());
         return result;
     }
 
@@ -114,7 +105,7 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpec into(Object destDir) {
-        this.destDir = resolver.resolve(destDir)
+        this.destDir = resolver.resolve(destDir);
         return this;
     }
 
@@ -127,7 +118,21 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpec include(String ... includes) {
-        includeList.addAll(Arrays.asList(includes));
+        patternSet.include(includes);
+        return this;
+    }
+
+    public CopySpec include(Iterable<String> includes) {
+        patternSet.include(includes);
+        return this;
+    }
+
+    public Set<String> getIncludes() {
+        return patternSet.getIncludes();
+    }
+
+    public CopySpec setIncludes(Iterable<String> includes) {
+        patternSet.setIncludes(includes);
         return this;
     }
 
@@ -136,12 +141,26 @@ public class CopySpecImpl implements CopySpec {
         if (parentSpec != null) {
             result.addAll(parentSpec.getAllIncludes());
         }
-        result.addAll(includeList);
+        result.addAll(getIncludes());
         return result;
     }
 
     public CopySpec exclude(String ... excludes) {
-        excludeList.addAll(Arrays.asList(excludes));
+        patternSet.exclude(excludes);
+        return this;
+    }
+
+    public CopySpec exclude(Iterable<String> excludes) {
+        patternSet.exclude(excludes);
+        return this;
+    }
+
+    public Set<String> getExcludes() {
+        return patternSet.getExcludes();
+    }
+
+    public CopySpecImpl setExcludes(Iterable<String> excludes) {
+        patternSet.setExcludes(excludes);
         return this;
     }
 
@@ -155,7 +174,7 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpec filter(Class<FilterReader> filterType) {
-        filter( null, filterType)
+        filter(null, filterType);
         return this;
     }
 
@@ -166,9 +185,7 @@ public class CopySpecImpl implements CopySpec {
             filterChain.setChain(result);
 
             if (map != null) {
-                map.each { key, value ->
-                    result[key] = value
-                }
+                ReflectionUtil.setFromMap(result, map);
             }
         } catch (Throwable th) {
             throw new InvalidUserDataException("Error - Invalid filter specification for "+filterType.getName());
@@ -178,11 +195,6 @@ public class CopySpecImpl implements CopySpec {
 
     public List<Transformer<String>> getRenameMappers() {
         return renameMappers;
-    }
-
-    public CopySpec filterChain(Closure c) {
-        ConfigureUtil.configure(c, filterDelegate)
-        return this;
     }
 
     public CopySpec remapTarget(Closure closure) {
@@ -199,7 +211,7 @@ public class CopySpecImpl implements CopySpec {
         if (parentSpec != null) {
             result.addAll(parentSpec.getAllExcludes());
         }
-        result.addAll(excludeList);
+        result.addAll(getExcludes());
         return result;
     }
 

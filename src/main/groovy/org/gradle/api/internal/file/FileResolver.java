@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.PathValidation;
+import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 
@@ -23,4 +24,6 @@ public interface FileResolver {
     File resolve(Object path);
 
     File resolve(Object path, PathValidation validation);
+
+    FileCollection resolveFiles(Object... paths);
 }

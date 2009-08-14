@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
+import org.gradle.api.file.FileCollection;
 import org.gradle.util.GUtil;
 import org.gradle.util.GFileUtils;
 
@@ -81,5 +82,12 @@ public class BaseDirConverter implements FileResolver {
             }
         }
         return file;
+    }
+
+    public FileCollection resolveFiles(Object... paths) {
+        if (paths.length == 1 && paths[0] instanceof FileCollection) {
+            return (FileCollection) paths[0];
+        }
+        return new PathResolvingFileCollection(this, paths);
     }
 }

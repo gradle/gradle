@@ -20,6 +20,8 @@ import groovy.lang.Closure;
 import java.io.FilterReader;
 import java.util.Map;
 
+import org.gradle.api.tasks.util.PatternFilterable;
+
 /**
  * A set of specifications for copying files.  This includes:
  * <ul>
@@ -38,16 +40,16 @@ import java.util.Map;
  * will be used in any copy operations.</p>
  * <p>This allows constructs like:</p>
  * <pre>
- * into('webroot')
- * exclude('**&#47;.svn/**')
- * from('src/main/webapp') {
+ * into 'webroot'
+ * exclude '**&#47;.svn/**'
+ * from 'src/main/webapp' {
  *    include '**&#47;*.jsp'
  *    filter(ReplaceTokens, tokens:[copyright:'2009', version:'2.3.1'])
  * }
- * from('src/main/webapp') {
+ * from 'src/main/webapp' {
  *    exclude '**&#47;*.jsp'
  * }
- * from('src/main/js') {
+ * from 'src/main/js' {
  *    include '**&#47;*.js'
  * }
  * </pre>
@@ -59,44 +61,25 @@ import java.util.Map;
  *
  * @author Steve Appling
  */
-public interface CopySpec {
+public interface CopySpec extends PatternFilterable {
     /**
-     * Specifies sources for a copy.
-     * The toString() method of each sourcePath is used to get a path.
-     * The paths are evaluated like {@link org.gradle.api.Project#file(Object) Project.file() }.
-     * Relative paths will be evaluated relative to the project directory.
+     * Specifies sources for a copy. The given source paths are evaluated as for
+     * {@link org.gradle.api.Project#files(Object[])} Project.files() }.
+     *
      * @param sourcePaths Paths to source directories for the copy
      */
     CopySpec from(Object... sourcePaths);
 
     /**
-     * Specifies the source for a copy and creates a child CopySpec.
-     * SourcePath.toString is used as the path.
-     * The source is set on the child CopySpec, not on this one.
-     * This may be a path to a single file to copy or to a directory.  If the path is to a directory,
-     * then the contents of the directory will be copied.
-     * The paths are evaluated like {@link org.gradle.api.Project#file(Object) Project.file() }.
+     * Specifies the sources for a copy and creates a child CopySpec. The source is set on the child CopySpec, not on
+     * this one. This may be a path to a single file to copy or to a directory.  If the path is to a directory, then
+     * the contents of the directory will be copied. The paths are evaluated as for
+     * {@link org.gradle.api.Project#files(Object[]) Project.files() }.
+     *
      * @param sourcePath Path to source for the copy
      * @param c closure for configuring the child CopySpec
      */
     CopySpec from(Object sourcePath, Closure c);
-
-    /**
-     * Specifies sources for a copy.
-     * The paths are evaluated like {@link org.gradle.api.Project#file(Object) Project.file() }.
-     * @param sourcePaths Paths to source directories for the copy
-     */
-    CopySpec from(Iterable<Object> sourcePaths);
-
-    /**
-     * Specifies sources for a copy and creates a child
-     * CopySpec which is configured with the Closure. The sources are
-     * set on the child CopySpec, not on this one.
-     * The paths are evaluated like {@link org.gradle.api.Project#file(Object) Project.file() }.
-     * @param sourcePaths Paths to source directories for the copy
-     * @param c Closure for configuring the child CopySpec
-     */
-    CopySpec from(Iterable<Object> sourcePaths, Closure c);
 
     /**
      * Specifies the destination directory for a copy.

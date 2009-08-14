@@ -686,16 +686,17 @@ public interface Project extends Comparable<Project> {
      *
      * <li>A {@code Collection}. Flattened and recursively converted to files.</li>
      *
-     * <li>A {@link FileCollection}. The result of its {@link org.gradle.api.file.FileCollection#getFiles()} is included
-     * in the returned collection.</li>
+     * <li>A {@link FileCollection}. The contents of the collection are included in the returned collection.</li>
      *
-     * <li>A Closure. Should return an {@code Object} or {@code Collection}, which are then converted to files.</li>
+     * <li>A Closure. Should return an {@code Object} or {@code Collection}, which are then recursively converted to
+     * files.</li>
      *
-     * <li>An Object. Its {@code toString()} value is treated the same way as a String.<li>
+     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as per a call to {@link
+     * #file(Object)}.</li>
      *
      * </ul>
      *
-     * <p>The returned {@code FileCollection} is 'live', in that it evaluates the above each time the contents of the
+     * <p>The returned {@code FileCollection} is live, in that it evaluates the above each time the contents of the
      * collection is queried.</p>
      *
      * @param paths The paths to the files. May be empty.

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.file;
 
-import java.util.List;
-
 /**
  * @author Steve Appling
  */
@@ -38,9 +36,4 @@ public interface CopyAction extends CopySpec {
      * @param caseSensitive
      */
     void setCaseSensitive(boolean caseSensitive);
-
-    List<? extends CopySpec> getLeafSyncSpecs();
-
-    CopySpec getRootSyncSpec();
-
 }

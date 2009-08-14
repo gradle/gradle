@@ -15,30 +15,25 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.CopyAction;
+import org.gradle.api.tasks.util.PatternSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gradle.api.*;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.file.CopyAction;
-import org.gradle.api.file.CopySpec;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Arrays;
 import java.io.File;
 import java.io.IOException;
-import java.io.FilterReader;
-
-import groovy.lang.Closure;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Steve Appling
  */
-public class CopyActionImpl implements CopyAction {
+public class CopyActionImpl extends CopySpecImpl implements CopyAction {
     private static Logger logger = LoggerFactory.getLogger(CopyActionImpl.class);
     private static String[] globalExcludes;
 
-    private CopySpecImpl rootSpec;
     private boolean caseSensitive = true;
 
     private boolean didWork;
@@ -48,12 +43,12 @@ public class CopyActionImpl implements CopyAction {
     private CopyVisitor visitor;
 
     public CopyActionImpl(FileResolver resolver) {
-        rootSpec = new CopySpecImpl(resolver);
+        super(resolver);
     }
 
     public void configureRootSpec() {
-        if (globalExcludes != null && !rootSpec.getAllExcludes().containsAll(Arrays.asList(globalExcludes))) {
-            rootSpec.exclude(globalExcludes);
+        if (globalExcludes != null && !getAllExcludes().containsAll(Arrays.asList(globalExcludes))) {
+            exclude(globalExcludes);
         }
     }
 
@@ -77,7 +72,7 @@ public class CopyActionImpl implements CopyAction {
     private void copyAllSpecs() {
         configureRootSpec();
 
-        List<CopySpecImpl> specList = (List<CopySpecImpl>) getLeafSyncSpecs();
+        List<CopySpecImpl> specList = getLeafSyncSpecs();
         for (CopySpecImpl spec : specList) {
             copySingleSpec(spec);
         }
@@ -90,8 +85,7 @@ public class CopyActionImpl implements CopyAction {
             throw new InvalidUserDataException("Error - no destination for Copy task, use 'into' to specify a target directory.");
         }
         else {
-            List<File> sources = spec.getAllSourceDirs();
-            for (File source : sources) {
+            for (File source : spec.getAllSourceDirs()) {
                 copySingleSource(spec, source);
             }
         }
@@ -123,16 +117,8 @@ public class CopyActionImpl implements CopyAction {
         didWork = visitor.getDidWork();
     }
 
-   public void setCaseSensitive(boolean caseSensitive) {
+    public void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
-    }
-
-    public List<? extends CopySpec> getLeafSyncSpecs() {
-        return rootSpec.getLeafSyncSpecs();
-    }
-
-    public CopySpec getRootSyncSpec() {
-        return rootSpec;
     }
 
     /**
@@ -146,71 +132,5 @@ public class CopyActionImpl implements CopyAction {
      */
     public static void globalExclude(String... excludes) {
         globalExcludes = excludes;
-    }
-
-    // Following 4 methods are used only to get convention src and dest
-    public List getSrcDirs() {
-        List<File> srcDirs = rootSpec.getSourceDirs();
-        return srcDirs.size()>0 ? srcDirs : null;
-    }
-
-    public void setSrcDirs(List srcDirs) {
-        rootSpec.from(srcDirs);
-    }
-
-    public File getDestinationDir() {
-        return rootSpec.getDestDir();
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        rootSpec.into(destinationDir);
-    }
-
-    // -------------------------------------------------
-    // ------ Delegate SyncSpec methods to rootSpec ----
-    // -------------------------------------------------
-
-    public CopySpec from(Object... sourcePaths) {
-        return rootSpec.from(sourcePaths);
-    }
-
-    public CopySpec from(Object sourcePath, Closure c) {
-        return rootSpec.from(sourcePath, c);
-    }
-
-    public CopySpec from(Iterable<Object> sourcePaths) {
-        return rootSpec.from(sourcePaths);
-    }
-
-    public CopySpec from(Iterable<Object> sourcePaths, Closure c) {
-        return rootSpec.from(sourcePaths, c);
-    }
-
-    public CopySpec into(Object destDir) {
-        return rootSpec.into(destDir);
-    }
-
-    public CopySpec include(String... includes) {
-        return rootSpec.include(includes);
-    }
-
-    public CopySpec exclude(String... excludes) {
-        return rootSpec.exclude(excludes);
-    }
-
-    public CopySpec remapTarget(Closure closure) {
-        return rootSpec.remapTarget(closure);
-    }
-
-    public CopySpec rename(String sourceRegEx, String replaceWith) {
-        return rootSpec.rename(sourceRegEx, replaceWith);
-    }
-
-    public CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType) {
-        return rootSpec.filter(map, filterType);
-    }
-
-    public CopySpec filter(Class<FilterReader> filterType) {
-        return rootSpec.filter(filterType);
     }
 }

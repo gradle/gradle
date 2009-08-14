@@ -5,13 +5,13 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
 import org.gradle.api.internal.file.CopyVisitor
 import org.gradle.api.internal.file.FileVisitor
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
-import org.gradle.api.tasks.util.PatternSet
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyTest extends AbstractTaskTest {
@@ -27,7 +27,7 @@ public class CopyTest extends AbstractTaskTest {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         walker = context.mock(BreadthFirstDirectoryWalker.class)
         visitor = context.mock(CopyVisitor.class)
-        copyTask = new Copy(project, AbstractTaskTest.TEST_TASK_NAME)
+        copyTask = createTask(Copy.class)
         copyTask.copyAction.visitor = visitor
         copyTask.copyAction.directoryWalker = walker
     }
@@ -126,7 +126,7 @@ public class CopyTest extends AbstractTaskTest {
         List specs = copyTask.getLeafSyncSpecs()
         assertEquals(1, specs.size())
 
-        assertEquals([project.file('parentdir'), project.file('childdir')],
+        assertEquals([project.file('parentdir'), project.file('childdir')] as Set,
                 specs.get(0).getAllSourceDirs())
     }
 
@@ -144,11 +144,11 @@ public class CopyTest extends AbstractTaskTest {
         List specs = copyTask.getLeafSyncSpecs()
         assertEquals(2, specs.size())
 
-        assertEquals([project.file('src1')], specs.get(0).getAllSourceDirs())
+        assertEquals([project.file('src1')] as Set, specs.get(0).getAllSourceDirs())
         assertEquals(['*.a', '*.b'], specs.get(0).getAllIncludes())
         assertEquals(project.file('dest'), specs.get(0).getDestDir())
 
-        assertEquals([project.file('src2')], specs.get(1).getAllSourceDirs())
+        assertEquals([project.file('src2')] as Set, specs.get(1).getAllSourceDirs())
         assertEquals(['*.a', '*.c'], specs.get(1).getAllIncludes())
         assertEquals(project.file('dest'), specs.get(1).getDestDir())
     }
