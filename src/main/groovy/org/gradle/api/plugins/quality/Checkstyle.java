@@ -22,6 +22,8 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
+import java.util.Map;
+import java.util.HashMap;
 
 public class Checkstyle extends ConventionTask {
     private FileTree source;
@@ -31,6 +33,8 @@ public class Checkstyle extends ConventionTask {
     private File resultFile;
 
     private FileCollection classpath;
+
+    private Map<String, Object> properties = new HashMap<String, Object>();
 
     private AntCheckstyle antCheckstyle = new AntCheckstyle();
 
@@ -46,7 +50,7 @@ public class Checkstyle extends ConventionTask {
         File resultFile = getResultFile();
         resultFile.getParentFile().mkdirs();
 
-        antCheckstyle.checkstyle(getAnt(), source, getConfigFile(), resultFile, getClasspath());
+        antCheckstyle.checkstyle(getAnt(), source, getConfigFile(), resultFile, getClasspath(), getProperties());
     }
 
     public File getConfigFile() {
@@ -79,5 +83,13 @@ public class Checkstyle extends ConventionTask {
 
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, Object> properties) {
+        this.properties = properties;
     }
 }
