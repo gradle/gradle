@@ -39,6 +39,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.util.FileSet;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.*;
@@ -695,6 +696,17 @@ public abstract class AbstractProject implements ProjectInternal {
     public FileCollection files(Object... paths) {
         return fileResolver.resolveFiles(paths);
     }
+
+    public FileSet fileSet(Map<String,Object> args) {
+        return new FileSet(args, fileResolver);
+    }
+
+    public FileSet fileSet(Closure closure) {
+        FileSet result = new FileSet(fileResolver);
+        ConfigureUtil.configure(closure, result);
+        return result;
+    }
+
 
     public File relativePath(Object path) {
         File result = findRelativePath(path);

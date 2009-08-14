@@ -150,7 +150,7 @@ public class CopyActionImplTest  {
 
     @Test public void globalExcludes() {
         try {
-            CopyActionImpl.globalExclude('**/.svn/')
+            CopyActionImpl.setGlobalExcludes('**/.svn/')
 
             project.configure(copyAction) {
                 from 'src1'
@@ -166,7 +166,7 @@ public class CopyActionImplTest  {
 
         } finally {
             // clear the list of global excludes so test doesn't have side effects
-            CopyActionImpl.globalExclude(null)
+            CopyActionImpl.setGlobalExcludes(null)
         }
     }
 }

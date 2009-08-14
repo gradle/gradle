@@ -23,6 +23,10 @@ import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
 import org.gradle.api.internal.file.FileVisitor
 import org.gradle.api.internal.file.UnionFileTree
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.api.internal.file.CopyActionImpl
+import org.gradle.api.tasks.WorkResult
 
 /**
  * @author Hans Dockter
@@ -32,18 +36,47 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
     PatternSet patternSet = new PatternSet()
     File dir
 
+    /* Note, FileResolver is needed to support the copy operation.  This is set if the FileSet
+     is constructed using one of the Project.fileSet methods.  There are currently several uses
+     of FileSet where they are constructed without an appropriate resolver.  In these cases, the
+     IdentityFileResolver is used, but these instances will probably not have the best copy semantics.
+     FileSet.copy will evaluate the sources and destinations relative to the current working
+     directory, not the project.
+
+     TODO - we need to find a way to consistently get the projects FileResolver into all FileCollections
+     */
+    FileResolver resolver
+
     FileSet() {
-        this((File) null)
+        this((FileResolver)null)
+    }
+
+    FileSet(FileResolver resolver) {
+        if (resolver != null) {
+            this.resolver = resolver
+        } else {
+            this.resolver = new IdentityFileResolver()
+        }
     }
 
     FileSet(File dir) {
-        this.dir = dir
+        this((FileResolver)null)
+        from(dir)
     }
 
-    FileSet(Map args) {
+    FileSet(Map args, FileResolver resolver=null) {
+        this(resolver)
         transformToFile(args).each {String key, value ->
             this."$key" = value
         }
+    }
+
+    public void setDir(Object baseDir) {
+        from(baseDir)
+    }
+
+    public void from(Object baseDir) {
+        dir = resolver.resolve(baseDir);
     }
 
     public String getDisplayName() {
@@ -68,6 +101,16 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
         FileSet filtered = new FileSet(dir)
         filtered.patternSet = patternSet
         filtered
+    }
+
+    public WorkResult copy(Closure closure) {
+        CopyActionImpl action = new CopyActionImpl(resolver)
+        action.from(dir)
+        action.include(getIncludes())
+        action.exclude(getExcludes())
+        ConfigureUtil.configure(closure, action)
+        action.execute()
+        return action
     }
 
     public Set<String> getIncludes() {

@@ -18,7 +18,6 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.CopyAction;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Build;
@@ -26,6 +25,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.util.FileSet;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -705,6 +706,33 @@ public interface Project extends Comparable<Project> {
     FileCollection files(Object... paths);
 
     /**
+     * Create a new {@code FileSet} using the provided map of arguments.  The map will be
+     * applied as properties on the new {@code FileSet}.  Example:
+     * <pre>
+     * fileSet(dir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
+     * </pre>
+     * <p>See the GroovyDoc for org.gradle.api.tasks.util.FileSet for more information</p>
+     * @param args map of property assignments to {@code FileSet} object
+     * @return new {@code FileSet}
+     */
+    FileSet fileSet(Map<String,Object> args);
+
+    /**
+     * Create a new {@code FileSet} using the provided closure.  The closure will be
+     * used to configure the new {@code FileSet}.  Example:
+     * <pre>
+     * fileSet{
+     *    from 'src'
+     *    exclude '**&#47;.svn/**'
+     * }.copy { into 'dest'}
+     * </pre>
+     * <p>See the GroovyDoc for org.gradle.api.tasks.util.FileSet for more information</p>
+     * @param closure Closure to configure the {@code FileSet} object
+     * @return new {@code FileSet}
+     */
+    FileSet fileSet(Closure closure);
+
+    /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
      *
      * @param path The path to convert.
@@ -1099,7 +1127,7 @@ public interface Project extends Comparable<Project> {
      * }
      * </pre>
      * @param closure Closure to configure the CopySpec
-     * @return CopyAction that can be used to check if the copy did any work.
+     * @return {@link WorkResult} that can be used to check if the copy did any work.
      */
-    CopyAction copy(Closure closure);
+    WorkResult copy(Closure closure);
 }

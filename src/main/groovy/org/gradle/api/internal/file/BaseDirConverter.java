@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.FileCollection;
 import org.gradle.util.GUtil;
 import org.gradle.util.GFileUtils;
 
@@ -27,7 +25,7 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-public class BaseDirConverter implements FileResolver {
+public class BaseDirConverter extends AbstractFileResolver {
     private final File baseDir;
 
     public BaseDirConverter(File baseDir) {
@@ -44,50 +42,15 @@ public class BaseDirConverter implements FileResolver {
                     "Neither path nor baseDir may be null or empty string. path='%s' basedir='%s'", path, baseDir));
         }
 
-        File file;
-        if (path instanceof File) {
-            file = (File) path;
-        } else {
-            file = new File(path.toString());
-        }
+        File file = convertObjectToFile(path);
 
         if (!file.isAbsolute()) {
             file = new File(baseDir, path.toString());
         }
         file = GFileUtils.canonicalise(file);
 
-        if (validation != PathValidation.NONE) {
-            switch (validation) {
-                case EXISTS:
-                    if (!file.exists()) {
-                        throw new InvalidUserDataException(String.format("File '%s' does not exist.", file));
-                    }
-                    break;
-                case FILE:
-                    if (!file.exists()) {
-                        throw new InvalidUserDataException(String.format("File '%s' does not exist.", file));
-                    }
-                    if (!file.isFile()) {
-                        throw new InvalidUserDataException(String.format("File '%s' is not a file.", file));
-                    }
-                    break;
-                case DIRECTORY:
-                    if (!file.exists()) {
-                        throw new InvalidUserDataException(String.format("Directory '%s' does not exist.", file));
-                    }
-                    if (!file.isDirectory()) {
-                        throw new InvalidUserDataException(String.format("Directory '%s' is not a directory.", file));
-                    }
-                    break;
-            }
-        }
-        return file;
-    }
+        validate(file, validation);
 
-    public FileCollection resolveFiles(Object... paths) {
-        if (paths.length == 1 && paths[0] instanceof FileCollection) {
-            return (FileCollection) paths[0];
-        }
-        return new PathResolvingFileCollection(this, paths);
+        return file;
     }
 }

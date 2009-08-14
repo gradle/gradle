@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.tasks.WorkResult;
+
 import java.io.File;
 
 /**
  * @author Steve Appling
  */
-public interface FileVisitor {
+public interface FileVisitor extends WorkResult{
     public void visitDir(File dir, RelativePath path);
     public void visitFile(File file, RelativePath path);
 }

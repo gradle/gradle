@@ -122,15 +122,19 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
     }
 
     /**
-     * Set the exclude patterns used by all Copy tasks.
+     * Set the exclude patterns used by all copies.  This applies to Copy tasks
+     * as well as Project.copy.
      * This is typically used to set VCS type excludes like:
      * <pre>
-     * Copy.globalExclude( '**\\.svn\\' )
+     * Copy.globalExclude( '**&#47;.svn/' )
      * </pre>
      * Note that there are no global excludes by default.
-     * @param excludes
+     * Unlike CopySpec.exclude, this does not add a new exclude pattern, it sets
+     * (or resets) the exclude patterns.  You can't use sequential calls to
+     * this method to add multiple global exclude patterns.
+     * @param excludes exclude patterns to use
      */
-    public static void globalExclude(String... excludes) {
+    public static void setGlobalExcludes(String... excludes) {
         globalExcludes = excludes;
     }
 }

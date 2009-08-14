@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.file;
+package org.gradle.api.internal.file;
 
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.PathValidation;
+import java.io.File;
 
 /**
+ * FileResolver that uses the file provided to it or constructs one from the toString of the provided object.
+ * Used in cases where a FileResolver is needed by the infrastructure, but no base directory can be known.
  * @author Steve Appling
  */
-public interface CopyAction extends CopySpec, WorkResult {
+public class IdentityFileResolver extends AbstractFileResolver{
+    public File resolve(Object path) {
+        return resolve(path, PathValidation.NONE);
+    }
 
-    /**
-     * Execute the copy
-     */
-    void execute();
+    public File resolve(Object path, PathValidation validation) {
+        File file = convertObjectToFile(path);
 
-    /**
-     * Set case sensitivity for comparisons.
-     * @param caseSensitive
-     */
-    void setCaseSensitive(boolean caseSensitive);
+        validate(file, validation);
+        return file;
+    }
 }

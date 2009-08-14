@@ -118,8 +118,8 @@ public class Copy extends ConventionTask implements CopyAction {
      * this method to add multiple global exclude patterns.
      * @param excludes exclude patterns to use
      */
-    public static void globalExclude(String... excludes) {
-        CopyActionImpl.globalExclude(excludes);
+    public static void setGlobalExcludes(String... excludes) {
+        CopyActionImpl.setGlobalExcludes(excludes);
     }
 
 

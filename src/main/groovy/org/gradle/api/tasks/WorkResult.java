@@ -13,23 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.file;
+package org.gradle.api.tasks;
 
-import org.gradle.api.tasks.WorkResult;
-
-/**
- * @author Steve Appling
- */
-public interface CopyAction extends CopySpec, WorkResult {
-
-    /**
-     * Execute the copy
-     */
-    void execute();
-
-    /**
-     * Set case sensitivity for comparisons.
-     * @param caseSensitive
-     */
-    void setCaseSensitive(boolean caseSensitive);
+public interface WorkResult {
+    public boolean getDidWork();
 }

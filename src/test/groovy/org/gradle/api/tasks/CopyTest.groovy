@@ -179,7 +179,7 @@ public class CopyTest extends AbstractTaskTest {
 
     @Test public void globalExcludes() {
         try {
-            Copy.globalExclude('**/.svn/')
+            Copy.setGlobalExcludes('**/.svn/')
 
             project.configure(copyTask) {
                 from 'src1'
@@ -195,7 +195,7 @@ public class CopyTest extends AbstractTaskTest {
 
         } finally {
             // clear the list of global excludes so test doesn't have side effects
-            Copy.globalExclude(null)
+            Copy.setGlobalExcludes(null)
         }
     }
 }
