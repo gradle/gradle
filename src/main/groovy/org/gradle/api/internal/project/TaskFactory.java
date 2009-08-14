@@ -15,25 +15,24 @@
  */
 package org.gradle.api.internal.project;
 
+import groovy.lang.Closure;
 import org.gradle.api.*;
-import org.gradle.api.DefaultTask;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.DefaultClassGenerator;
 import org.gradle.util.GUtil;
-import org.codehaus.groovy.control.CompilationFailedException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.util.*;
-
-import groovy.lang.*;
+import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class TaskFactory implements ITaskFactory {
     public static final String GENERATE_CONVENTION_GETTERS = "generateGetters";
-    private final Map<Class, Class> generatedClasses = new HashMap<Class, Class>();
+    private final ClassGenerator generator = new DefaultClassGenerator();
 
     public Task createTask(Project project, Map args) {
         checkTaskArgsAndCreateDefaultValues(args);
@@ -65,14 +64,14 @@ public class TaskFactory implements ITaskFactory {
         return task;
     }
 
-    private Task createTaskObject(Project project, Class type, String name, boolean generateGetters) {
+    private Task createTaskObject(Project project, Class<? extends Task> type, String name, boolean generateGetters) {
         if (!Task.class.isAssignableFrom(type)) {
             throw new GradleException(String.format(
                     "Cannot create task of type '%s' as it does not implement the Task interface.",
                     type.getSimpleName()));
         }
 
-        Constructor constructor;
+        Constructor<? extends Task> constructor;
         try {
             constructor = type.getDeclaredConstructor(Project.class, String.class);
         } catch (NoSuchMethodException e) {
@@ -82,7 +81,7 @@ public class TaskFactory implements ITaskFactory {
         }
 
         if (generateGetters && ConventionTask.class.isAssignableFrom(type)) {
-            Class<?> generatedType = generateSubclass(type);
+            Class<? extends Task> generatedType = generator.generate(type);
             try {
                 constructor = generatedType.getDeclaredConstructor(Project.class, String.class);
             } catch (NoSuchMethodException e) {
@@ -91,58 +90,13 @@ public class TaskFactory implements ITaskFactory {
         }
 
         try {
-            return (Task) constructor.newInstance(project, name);
+            return constructor.newInstance(project, name);
         } catch (InvocationTargetException e) {
             throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()),
                     e.getCause());
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()), e);
         }
-    }
-
-    private Class generateSubclass(Class type) {
-        Class generatedClass = generatedClasses.get(type);
-        if (generatedClass != null) {
-            return generatedClass;
-        }
-
-        String className = type.getSimpleName() + "_WithConventionMapping";
-
-        Formatter src = new Formatter();
-        if (type.getPackage() != null) {
-            src.format("package %s;%n", type.getPackage().getName());
-        }
-        src.format("public class %s extends %s {%n", className, type.getName().replaceAll("\\$", "."));
-        src.format("public %s(org.gradle.api.Project project, String name) { super(project, name); }%n", className);
-        MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
-        List<MetaProperty> properties = metaClass.getProperties();
-        for (MetaProperty property : properties) {
-            if (property.getName().equals("metaClass")) {
-                continue;
-            }
-            if (property instanceof MetaBeanProperty) {
-                MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
-                MetaMethod getter = metaBeanProperty.getGetter();
-                if (getter != null && !Modifier.isFinal(getter.getModifiers()) && ConventionTask.class.isAssignableFrom(getter.getDeclaringClass().getTheClass())) {
-                    String returnTypeName = getter.getReturnType().getCanonicalName();
-                    src.format("public %s %s() { return conv(super.%s(), '%s'); }%n", returnTypeName,
-                            getter.getName(), getter.getName(), property.getName());
-                }
-            }
-        }
-        src.format("void setProperty(String name, Object value) { defineProperty(name, value); }%n");
-        src.format("def propertyMissing(String name) { property(name); }%n");
-        src.format("}");
-
-        GroovyClassLoader classLoader = new GroovyClassLoader(type.getClassLoader());
-        try {
-            generatedClass = classLoader.parseClass(src.toString());
-        } catch (CompilationFailedException e) {
-            throw new GradleException(String.format("Could not generate a proxy class for task class %s.",
-                    type.getName()), e);
-        }
-        generatedClasses.put(type, generatedClass);
-        return generatedClass;
     }
 
     private void checkTaskArgsAndCreateDefaultValues(Map args) {
