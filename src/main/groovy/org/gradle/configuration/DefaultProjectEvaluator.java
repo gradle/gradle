@@ -15,18 +15,14 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.BuildListener;
-import org.gradle.BuildResult;
-import org.gradle.StartParameter;
+import org.gradle.BuildAdapter;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Build;
 
-public class DefaultProjectEvaluator implements ProjectEvaluator, BuildListener {
+public class DefaultProjectEvaluator extends BuildAdapter implements ProjectEvaluator {
     private ProjectEvaluationListener listener;
     private final ProjectEvaluator[] evaluators;
 
@@ -51,22 +47,7 @@ public class DefaultProjectEvaluator implements ProjectEvaluator, BuildListener 
         }
     }
 
-    public void buildStarted(StartParameter startParameter) {
-    }
-
-    public void settingsEvaluated(Settings settings) {
-    }
-
     public void projectsLoaded(Build build) {
         listener = ((BuildInternal) build).getProjectEvaluationBroadcaster();
-    }
-
-    public void projectsEvaluated(Build build) {
-    }
-
-    public void taskGraphPopulated(TaskExecutionGraph graph) {
-    }
-
-    public void buildFinished(BuildResult result) {
     }
 }

@@ -24,15 +24,15 @@ import org.gradle.api.execution.TaskExecutionGraph;
  * build.</p>
  *
  * @author Hans Dockter
- * @see Gradle#addBuildListener(BuildListener)
+ * @see Build#addBuildListener(BuildListener)
  */
 public interface BuildListener {
     /**
      * <p>Called when the build is started.</p>
      *
-     * @param startParameter The {@link StartParameter} used to create the Gradle instance. Never null.
+     * @param build The build which is being started. Never null.
      */
-    void buildStarted(StartParameter startParameter);
+    void buildStarted(Build build);
 
     /**
      * <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is

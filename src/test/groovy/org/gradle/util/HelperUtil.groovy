@@ -89,7 +89,7 @@ class HelperUtil {
 
         DefaultInternalRepository internalRepo = new DefaultInternalRepository()
         internalRepo.setName('testInternalRepo') 
-        DefaultBuild build = new DefaultBuild(startParameter, null, internalRepo)
+        DefaultBuild build = new DefaultBuild(startParameter, internalRepo)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)

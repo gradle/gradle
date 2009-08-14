@@ -42,7 +42,7 @@ public class DefaultBuildTest {
     private final StartParameter parameter = new StartParameter(){{
         setPluginPropertiesFile(new File("plugin.properties"));   
     }};
-    private final DefaultBuild build = new DefaultBuild(parameter, null, null);
+    private final DefaultBuild build = new DefaultBuild(parameter, null);
 
     @Test
     public void usesGradleVersion() {

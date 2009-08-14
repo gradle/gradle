@@ -20,6 +20,7 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.StartParameter;
+import org.gradle.BuildListener;
 
 import java.io.File;
 
@@ -113,4 +114,12 @@ public interface Build {
      * @param closure The closure to execute.
      */
     void afterProject(Closure closure);
+
+    /**
+     * <p>Adds a {@link BuildListener} to this Build instance. The listener is notified of events which occur during the
+     * execution of the build.</p>
+     *
+     * @param buildListener The listener to add.
+     */
+    void addBuildListener(BuildListener buildListener);
 }

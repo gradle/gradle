@@ -37,6 +37,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.invocation.DefaultBuild
 
 /**
  * @author Hans Dockter
@@ -49,7 +50,6 @@ class BuildLoaderTest {
     File testDir
     File rootProjectDir
     File childProjectDir
-    ClassLoader testClassLoader
     IProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
     StartParameter startParameter = new StartParameter()
     ProjectDescriptor rootDescriptor
@@ -57,13 +57,13 @@ class BuildLoaderTest {
     ProjectDescriptor childDescriptor
     ProjectInternal childProject
     InternalRepository internalRepository
+    BuildInternal build
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp()  {
-        testClassLoader = new URLClassLoader([] as URL[])
         projectFactory = context.mock(IProjectFactory)
         internalRepository = context.mock(InternalRepository)
-        buildLoader = new BuildLoader(projectFactory, internalRepository)
+        buildLoader = new BuildLoader(projectFactory)
         testDir = HelperUtil.makeNewTestDir()
         (rootProjectDir = new File(testDir, 'root')).mkdirs()
         (childProjectDir = new File(rootProjectDir, 'child')).mkdirs()
@@ -73,6 +73,7 @@ class BuildLoaderTest {
         rootProject = project(rootDescriptor, null)
         childDescriptor = descriptor('child', rootDescriptor, childProjectDir)
         childProject = project(childDescriptor, rootProject)
+        build = new DefaultBuild(startParameter, internalRepository)
     }
 
     @After
@@ -91,9 +92,8 @@ class BuildLoaderTest {
             will(returnValue(rootProject))
         }
 
-        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+        buildLoader.load(rootDescriptor, build, [:])
 
-        assertThat(build.buildScriptClassLoader, sameInstance(testClassLoader))
         assertThat(build.startParameter, sameInstance(startParameter))
         assertThat(build.rootProject, sameInstance(rootProject))
         assertThat(build.defaultProject, sameInstance(rootProject))
@@ -103,7 +103,7 @@ class BuildLoaderTest {
     @Test public void createsBuildWithMultipleProjects() {
         expectProjectsCreated()
 
-        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+        buildLoader.load(rootDescriptor, build, [:])
 
         assertThat(build.rootProject, sameInstance(rootProject))
         assertThat(build.defaultProject, sameInstance(rootProject))
@@ -114,7 +114,7 @@ class BuildLoaderTest {
     @Test public void setsExternalPropertiesOnEachProject() {
         expectProjectsCreated()
 
-        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [buildDirName: 'target', prop: 'value'])
+        buildLoader.load(rootDescriptor, build, [buildDirName: 'target', prop: 'value'])
 
         assertThat(build.rootProject.buildDirName, equalTo('target'))
         assertThat(build.rootProject.prop, equalTo('value'))
@@ -129,7 +129,7 @@ class BuildLoaderTest {
 
         expectProjectsCreated()
 
-        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+        buildLoader.load(rootDescriptor, build, [:])
 
         assertThat(build.rootProject.buildDirName, equalTo('target/root'))
         assertThat(build.rootProject.prop, equalTo('rootValue'))
@@ -148,7 +148,7 @@ class BuildLoaderTest {
             will(returnValue(childProject))
         }
 
-        BuildInternal build = buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+        buildLoader.load(rootDescriptor, build, [:])
         assertThat(build.defaultProject, sameInstance(childProject))
     }
 
@@ -163,7 +163,7 @@ class BuildLoaderTest {
         }
 
         try {
-            buildLoader.load(rootDescriptor, testClassLoader, startParameter, [:])
+            buildLoader.load(rootDescriptor, build, [:])
             fail()
         } catch (GradleException e) {
             assertThat(e.message, equalTo('Could not select the default project for this build. <error>'))

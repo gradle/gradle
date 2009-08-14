@@ -36,7 +36,8 @@ public class BuildResultLogger implements BuildListener {
         buildTimeClock = new Clock();
     }
 
-    public void buildStarted(StartParameter startParameter) {
+    public void buildStarted(Build build) {
+        StartParameter startParameter = build.getStartParameter();
         logger.info("Starting Build");
         logger.debug("Gradle home: " + startParameter.getGradleHomeDir());
         logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());

@@ -18,6 +18,7 @@ package org.gradle.invocation;
 
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
+import org.gradle.BuildListener;
 import org.gradle.groovy.scripts.ScriptSourceMappingHandler;
 import org.gradle.groovy.scripts.DefaultScriptSourceMappingHandler;
 import org.gradle.api.ProjectEvaluationListener;
@@ -46,10 +47,10 @@ public class DefaultBuild implements BuildInternal {
     private ScriptSourceMappingHandler scriptSourceMappingHandler;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast
             = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
+    private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(BuildListener.class);
 
-    public DefaultBuild(StartParameter startParameter, ClassLoader buildScriptClassLoader, InternalRepository internalRepository) {
+    public DefaultBuild(StartParameter startParameter, InternalRepository internalRepository) {
         this.startParameter = startParameter;
-        this.buildScriptClassLoader = buildScriptClassLoader;
         this.internalRepository = internalRepository;
         this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         this.pluginRegistry = new DefaultPluginRegistry(startParameter.getPluginPropertiesFile());
@@ -105,6 +106,10 @@ public class DefaultBuild implements BuildInternal {
         return buildScriptClassLoader;
     }
 
+    public void setBuildScriptClassLoader(ClassLoader buildScriptClassLoader) {
+        this.buildScriptClassLoader = buildScriptClassLoader;
+    }
+
     public InternalRepository getInternalRepository() {
         return internalRepository;
     }
@@ -143,5 +148,14 @@ public class DefaultBuild implements BuildInternal {
 
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
         return projectEvaluationListenerBroadcast.getSource();
+    }
+
+    public void addBuildListener(BuildListener buildListener)
+    {
+        buildListeners.add(buildListener);
+    }
+
+    public BuildListener getBuildListenerBroadcaster() {
+        return buildListeners.getSource();
     }
 }

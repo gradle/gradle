@@ -43,10 +43,8 @@ public class MainTest {
         Gradle.injectCustomFactory(gradleFactoryMock);
         context.checking(new Expectations() {{
             one(gradleFactoryMock).newInstance(startParameter); will(returnValue(gradleMock));
-            one(gradleMock).addBuildListener(with(notNullValue(BuildExceptionReporter.class)));
-            one(gradleMock).addBuildListener(with(notNullValue(BuildResultLogger.class)));
-            one(gradleMock).run();
-            will(returnValue(buildResult));
+            allowing(gradleMock).addBuildListener(with(any(BuildListener.class)));
+            one(gradleMock).run(); will(returnValue(buildResult));
         }});
     }
 

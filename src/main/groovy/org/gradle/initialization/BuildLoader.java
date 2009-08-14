@@ -16,16 +16,13 @@
 
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.invocation.DefaultBuild;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -39,33 +36,29 @@ import java.util.Properties;
  * @author Hans Dockter
  */
 public class BuildLoader {
-    private static Logger logger = LoggerFactory.getLogger(BuildLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(BuildLoader.class);
 
     private final IProjectFactory projectFactory;
-    private final InternalRepository internalRepository;
 
-    public BuildLoader(IProjectFactory projectFactory, InternalRepository internalRepository) {
+    public BuildLoader(IProjectFactory projectFactory) {
         this.projectFactory = projectFactory;
-        this.internalRepository = internalRepository;
     }
 
     /**
      * Creates the {@link BuildInternal} and {@link ProjectInternal} instances for the given root project,
      * ready for the projects to be evaluated.
      */
-    public BuildInternal load(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
-                              StartParameter startParameter, Map<String, String> externalProjectProperties) {
+    public void load(ProjectDescriptor rootProjectDescriptor, BuildInternal build, 
+                     Map<String, String> externalProjectProperties) {
         logger.debug("Loading Project objects");
         Clock clock = new Clock();
-        DefaultBuild build = createProjects(rootProjectDescriptor, buildScriptClassLoader, startParameter,
-                externalProjectProperties);
-        attachDefaultProject(startParameter, build);
+        createProjects(rootProjectDescriptor, build, externalProjectProperties);
+        attachDefaultProject(build);
         logger.debug("Timing: Loading projects took: " + clock.getTime());
-        return build;
     }
 
-    private void attachDefaultProject(StartParameter startParameter, DefaultBuild build) {
-        ProjectSpec selector = startParameter.getDefaultProjectSelector();
+    private void attachDefaultProject(BuildInternal build) {
+        ProjectSpec selector = build.getStartParameter().getDefaultProjectSelector();
         ProjectInternal defaultProject;
         try {
             defaultProject = selector.selectProject(build.getRootProject().getProjectRegistry());
@@ -76,16 +69,13 @@ public class BuildLoader {
         build.setDefaultProject(defaultProject);
     }
 
-    private DefaultBuild createProjects(ProjectDescriptor rootProjectDescriptor, ClassLoader buildScriptClassLoader,
-                                        StartParameter startParameter,
-                                        Map<String, String> externalProjectProperties) {
-        DefaultBuild build = new DefaultBuild(startParameter, buildScriptClassLoader, internalRepository);
+    private void createProjects(ProjectDescriptor rootProjectDescriptor, BuildInternal build,
+                                Map<String, String> externalProjectProperties) {
         ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, build);
         build.setRootProject(rootProject);
 
         addPropertiesToProject(externalProjectProperties, rootProject);
         addProjects(rootProject, rootProjectDescriptor, build, externalProjectProperties);
-        return build;
     }
 
     private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, BuildInternal build,

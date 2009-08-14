@@ -81,8 +81,6 @@ class DefaultProjectTest {
 
     ProjectEvaluator projectEvaluator
 
-    ClassLoader buildScriptClassLoader
-
     IProjectRegistry projectRegistry
 
     File rootDir
@@ -146,10 +144,9 @@ class DefaultProjectTest {
         }
 
         testScript = new EmptyScript()
-        buildScriptClassLoader = new URLClassLoader([] as URL[])
         StartParameter parameter = new StartParameter()
         parameter.pluginPropertiesFile = new File('plugin.properties')
-        build = new DefaultBuild(parameter, buildScriptClassLoader, null)
+        build = new DefaultBuild(parameter, null)
 
         testTask = new DefaultTask()
         

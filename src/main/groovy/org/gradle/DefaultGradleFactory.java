@@ -31,6 +31,7 @@ import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.util.WrapUtil;
+import org.gradle.invocation.DefaultBuild;
 
 /**
  * @author Hans Dockter
@@ -86,8 +87,11 @@ public class DefaultGradleFactory implements GradleFactory {
                                 startParameter.getCacheUsage()),
                         new DefaultProjectScriptMetaData()),
                 new BuildScriptEvaluator());
+        DefaultBuild build = new DefaultBuild(startParameter, internalRepository);
+        build.addBuildListener(internalRepository);
+        build.addBuildListener(projectEvaluator);
         Gradle gradle = new Gradle(
-                startParameter,
+                build,
                 new SettingsHandler(
                         settingsFinder,
                         new PropertiesLoadingSettingsProcessor(
@@ -117,11 +121,8 @@ public class DefaultGradleFactory implements GradleFactory {
                                         new DefaultPublishArtifactFactory(),
                                         dependencyFactory,
                                         projectEvaluator),
-                                startParameter.getBuildScriptSource()),
-                        internalRepository),
-                new BuildConfigurer(new ProjectDependencies2TaskResolver()));
-        gradle.addBuildListener(internalRepository);
-        gradle.addBuildListener(projectEvaluator);
+                                startParameter.getBuildScriptSource())),
+              new BuildConfigurer(new ProjectDependencies2TaskResolver()));
         return gradle;
     }
 }

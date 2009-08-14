@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -42,28 +44,28 @@ public class SettingsHandler
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
-    public SettingsInternal findAndLoadSettings(StartParameter startParameter, IGradlePropertiesLoader gradlePropertiesLoader)
+    public SettingsInternal findAndLoadSettings(BuildInternal build, IGradlePropertiesLoader gradlePropertiesLoader)
     {
+        StartParameter startParameter = build.getStartParameter();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(startParameter, gradlePropertiesLoader);
-        if (startParameter.getDefaultProjectSelector().containsProject(settings.getProjectRegistry())) {
-            return settings;
+        if (!startParameter.getDefaultProjectSelector().containsProject(settings.getProjectRegistry())) {
+            // The settings we found did not include the desired default project. Try again with an empty settings file.
+
+            StartParameter noSearchParameter = startParameter.newInstance();
+            noSearchParameter.setSettingsScriptSource(new StringScriptSource("empty settings file", ""));
+            settings = findSettingsAndLoadIfAppropriate(noSearchParameter, gradlePropertiesLoader);
+            if (settings == null) // not using an assert to make sure it is not disabled
+                throw new InternalError("Empty settings file does not contain expected project");
+
+            // Set explicit build file, if required
+            if (noSearchParameter.getBuildFile() != null) {
+                ProjectDescriptor rootProject = settings.getRootProject();
+                assert noSearchParameter.getBuildFile().getParentFile().equals(rootProject.getProjectDir());
+                rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
+            }
         }
 
-        // The settings we found did not include the desired default project. Try again with an empty settings file.
-
-        StartParameter noSearchParameter = startParameter.newInstance();
-        noSearchParameter.setSettingsScriptSource(new StringScriptSource("empty settings file", ""));
-        settings = findSettingsAndLoadIfAppropriate(noSearchParameter, gradlePropertiesLoader);
-        if (settings == null) // not using an assert to make sure it is not disabled
-            throw new InternalError("Empty settings file does not contain expected project");
-
-        // Set explicit build file, if required
-        if (noSearchParameter.getBuildFile() != null) {
-            ProjectDescriptor rootProject = settings.getRootProject();
-            assert noSearchParameter.getBuildFile().getParentFile().equals(rootProject.getProjectDir());
-            rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
-        }
-
+        build.setBuildScriptClassLoader(settings.createClassLoader());
         return settings;
     }
 

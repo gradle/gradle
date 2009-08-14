@@ -20,9 +20,6 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.invocation.Build;
-import org.gradle.api.initialization.Settings;
 import org.gradle.util.GUtil;
 
 import java.util.Formatter;
@@ -30,7 +27,7 @@ import java.util.Formatter;
 /**
  * A {@link BuildListener} which reports the build exception, if any.
  */
-public class BuildExceptionReporter implements BuildListener {
+public class BuildExceptionReporter extends BuildAdapter {
     private final Logger logger;
     private StartParameter startParameter;
 
@@ -40,21 +37,6 @@ public class BuildExceptionReporter implements BuildListener {
 
     public void setStartParameter(StartParameter startParameter) {
         this.startParameter = startParameter;
-    }
-
-    public void buildStarted(StartParameter startParameter) {
-    }
-
-    public void settingsEvaluated(Settings settings) {
-    }
-
-    public void projectsLoaded(Build build) {
-    }
-
-    public void projectsEvaluated(Build build) {
-    }
-
-    public void taskGraphPopulated(TaskExecutionGraph graph) {
     }
 
     public void buildFinished(BuildResult result) {

@@ -16,17 +16,12 @@
 package org.gradle.integtests;
 
 import junit.framework.AssertionFailedError;
-import org.gradle.BuildListener;
-import org.gradle.BuildResult;
-import org.gradle.Gradle;
-import org.gradle.StartParameter;
+import org.gradle.*;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Build;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import static org.gradle.util.Matchers.*;
@@ -111,28 +106,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private class ListenerImpl implements BuildListener {
+    private class ListenerImpl extends BuildAdapter {
         private TaskListenerImpl listener = new TaskListenerImpl();
-
-        public void buildStarted(StartParameter startParameter) {
-        }
-
-        public void settingsEvaluated(Settings settings) {
-        }
-
-        public void projectsLoaded(Build build) {
-        }
-
-        public void projectsEvaluated(Build build) {
-        }
 
         public void taskGraphPopulated(TaskExecutionGraph graph) {
             planned.clear();
             planned.addAll(graph.getAllTasks());
             graph.addTaskExecutionListener(listener);
-        }
-
-        public void buildFinished(BuildResult result) {
         }
     }
 

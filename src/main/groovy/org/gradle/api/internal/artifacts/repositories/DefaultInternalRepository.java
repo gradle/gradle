@@ -22,7 +22,6 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.CacheUsage;
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.repositories.InternalRepository;
@@ -64,7 +63,7 @@ public class DefaultInternalRepository extends FileSystemResolver implements Int
         return dir;
     }
 
-    public void buildStarted(StartParameter startParameter) {
+    public void buildStarted(Build build) {
     }
 
     public void settingsEvaluated(Settings settings) {

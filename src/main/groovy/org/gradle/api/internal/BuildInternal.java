@@ -22,7 +22,12 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.invocation.Build;
 import org.gradle.execution.TaskExecuter;
 import org.gradle.groovy.scripts.ScriptSourceMappingHandler;
+import org.gradle.BuildListener;
 
+/**
+ * An internal interface for build that exposed objects and concepts that are not intended for public
+ * consumption.  
+ */
 public interface BuildInternal extends Build {
     /**
      * {@inheritDoc}
@@ -56,7 +61,35 @@ public interface BuildInternal extends Build {
     ClassLoader getBuildScriptClassLoader();
 
     /**
+     * Set once the buildSrc module has been built.  This allows scripts to use
+     * classes defined in the buildSrc project.
+     * @param buildScriptClassLoader A ClassLoader that can load classes from the
+     *                               buildSrc project.
+     */
+    void setBuildScriptClassLoader(ClassLoader buildScriptClassLoader);
+
+
+    /**
      * Returns the broadcaster for {@link ProjectEvaluationListener} events for this build
      */
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
+
+    /**
+     * Called by the BuildLoader after the default project is determined.  Until the BuildLoader
+     * is executed, {@link #getDefaultProject()} will return null.
+     * @param defaultProject The default project for this build.
+     */
+    void setDefaultProject(ProjectInternal defaultProject);
+
+    /**
+     * Called by the BuildLoader after the root project is determined.  Until the BuildLoader
+     * is executed, {@link #getRootProject()} will return null.
+      @param rootProject The root project for this build.
+     */
+    void setRootProject(ProjectInternal rootProject);
+
+    /**
+     * Returns the broadcaster for {@link BuildListener} events
+     */
+    BuildListener getBuildListenerBroadcaster();
 }
