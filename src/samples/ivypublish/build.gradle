@@ -27,15 +27,36 @@ uploadArchives {
     repositories {
         add project.repositories.repo
     }
-}
-
-retrieveFromAnt {
-    dependsOn uploadArchives
     doLast {
-        Assert.assertEquals(new File("$buildDir/antRetrieve").listFiles().collect { it.name } as Set,
-                ["ivypublish.jar", "ivypublishSource.jar"] as Set)
+        File repoDir = new File("$buildDir/repo")
+        Assert.assertEquals(["ivypublish-1.0.jar", "ivy-1.0.xml", "ivypublishSource-1.0.jar"] as Set,
+            repoDir.listFiles().collect { it.name } as Set)
+        Assert.assertEquals(jar.archivePath.size(), new File(repoDir, 'ivypublish-1.0.jar').size())
+        Assert.assertEquals(sourceJar.archivePath.size(), new File(repoDir, 'ivypublishSource-1.0.jar').size())
     }
 }
+
+// It would be nice to test if the stuff published by Gradle can be read by a native ivy ant script.
+// The tasks below are supposed to do this. But due to a serious Ivy bugs we can't do it at the
+// moment (e.g. https://issues.apache.org/jira/browse/IVY-1110). As soon as this bug is fixed, we
+// should uncomment the below.
+
+//ivyConfigure.doLast {
+//    def cacheDir = ant.properties['ivy.cache.dir'] + '/org.gradle.test'
+//    println cacheDir
+//    ant.delete(dir: cacheDir, verbose: true)
+//}
+//
+//retrieveFromAnt {
+//    dependsOn uploadArchives
+//    doLast {
+//        File retrieveDir = new File("$buildDir/antRetrieve")
+//        Assert.assertEquals(retrieveDir.listFiles().collect { it.name } as Set,
+//                ["ivypublish.jar", "ivypublishSource.jar"] as Set)
+//        Assert.assertEquals(jar.archivePath.size(), new File(retrieveDir, 'ivypublish.jar').size())
+//        Assert.assertEquals(sourceJar.archivePath.size(), new File(retrieveDir, 'ivypublishSource.jar').size())
+//    }
+//}
 
 
 

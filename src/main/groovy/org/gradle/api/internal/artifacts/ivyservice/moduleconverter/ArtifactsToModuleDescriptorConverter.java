@@ -16,9 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.ivyservice.IvyArtifactFilePathVariableProvider;
 
 import java.util.Set;
 
@@ -26,6 +24,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface ArtifactsToModuleDescriptorConverter {
-    void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations, IvySettings ivySettings,
-                      IvyArtifactFilePathVariableProvider filePathVariableProvider);
+    void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations);
 }

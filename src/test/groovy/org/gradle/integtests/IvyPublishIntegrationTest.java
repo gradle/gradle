@@ -33,6 +33,6 @@ public class IvyPublishIntegrationTest {
     public void testResolve() {
         // the actual testing is done in the build script.
         File projectDir = new File(dist.getSamplesDir(), "ivypublish");
-        executer.inDirectory(projectDir).withTasks("clean", "retrieveFromAnt").run();
+        executer.inDirectory(projectDir).withTasks("clean", "uploadArchives").run();
     }
 }

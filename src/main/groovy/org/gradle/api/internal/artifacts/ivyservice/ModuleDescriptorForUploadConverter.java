@@ -15,16 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.util.GUtil;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultIvyArtifactFilePathVariableProvider implements IvyArtifactFilePathVariableProvider {
-    public String createVariableName(Artifact artifact) {
-        return artifact.getName() + artifact.getType() + artifact.getExt() +
-                GUtil.elvis(artifact.getAttribute(Dependency.CLASSIFIER), "");
-    }
+public interface ModuleDescriptorForUploadConverter {
+    ModuleDescriptor createModuleDescriptor(ModuleDescriptor moduleDescriptor);
 }

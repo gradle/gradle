@@ -22,7 +22,6 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.ivyservice.IvyArtifactFilePathVariableProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
@@ -95,16 +94,15 @@ public class DefaultModuleDescriptorConverterTest {
     private void convertForPublishInternal(final Set<Configuration> configurations, boolean publishDescriptor) {
         commonSetUp();
         moduleDescriptorConverter.setArtifactsToModuleDescriptorConverter(context.mock(ArtifactsToModuleDescriptorConverter.class));
-        final IvyArtifactFilePathVariableProvider filePathVariableProviderDummy = context.mock(IvyArtifactFilePathVariableProvider.class);
 
         defineCommonExpectations(configurations, new HashMap());
         context.checking(new Expectations() {{
             one(moduleDescriptorConverter.getArtifactsToModuleDescriptorConverter()).
-                    addArtifacts(moduleDescriptorDummy, configurations, ivySettingsDummy, filePathVariableProviderDummy);
+                    addArtifacts(moduleDescriptorDummy, configurations);
         }});
 
         DefaultModuleDescriptor actualModuleDescriptor = (DefaultModuleDescriptor)
-                moduleDescriptorConverter.convertForPublish(configurations, publishDescriptor, moduleDummy, ivySettingsDummy, filePathVariableProviderDummy);
+                moduleDescriptorConverter.convertForPublish(configurations, publishDescriptor, moduleDummy, ivySettingsDummy);
 
         assertThat(actualModuleDescriptor, equalTo(moduleDescriptorDummy));
     }
