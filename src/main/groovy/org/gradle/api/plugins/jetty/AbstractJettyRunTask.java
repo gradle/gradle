@@ -49,10 +49,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import java.util.*;
 
 public abstract class AbstractJettyRunTask extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(AbstractJettyRunTask.class);
@@ -345,6 +342,14 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         if (getOverrideWebXml() != null) {
             webAppConfig.setOverrideDescriptor(getOverrideWebXml().getCanonicalPath());
         }
+
+        // Don't treat JCL or Log4j as system classes
+        Set<String> systemClasses = new LinkedHashSet<String>(Arrays.asList(webAppConfig.getSystemClasses()));
+        systemClasses.remove("org.apache.commons.logging.");
+        systemClasses.remove("org.apache.log4j.");
+        webAppConfig.setSystemClasses(systemClasses.toArray(new String[systemClasses.size()]));
+
+        webAppConfig.setParentLoaderPriority(false);
 
         logger.info("Context path = " + webAppConfig.getContextPath());
         logger.info("Tmp directory = " + " determined at runtime");
