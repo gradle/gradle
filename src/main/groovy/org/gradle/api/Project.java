@@ -269,32 +269,35 @@ public interface Project extends Comparable<Project> {
     String getName();
 
     /**
-     * <p>Returns the group of this project. Gradle always uses the toString() value of a group.</p>
+     * <p>Returns the group of this project. Gradle always uses the toString() value of a group. The group defaults to
+     * {@value #DEFAULT_GROUP}.</p>
      *
      * <p>You can access this property in your build file using <code>group</code></p>
      *
-     * @return The group of this project. Defaults to {@link #DEFAULT_GROUP }
+     * @return The group of this project. Never returns null.
      */
     Object getGroup();
 
     /**
-     * <p>Returns the version of this project. Gradle always uses the toString() value of a version.</p>
+     * <p>Returns the version of this project. Gradle always uses the toString() value of a version. The version
+     * defaults to {@value #DEFAULT_VERSION}.</p>
      *
      * <p>You can access this property in your build file using <code>version</code></p>
      *
-     * @return The version of this project. Defaults to {@link #DEFAULT_VERSION }
+     * @return The version of this project. Never returns null.
      */
     Object getVersion();
 
     /**
-     * <p>Returns the status of this project. Gradle always uses the toString() value of a version.</p>
+     * <p>Returns the status of this project. Gradle always uses the toString() value of a version. The status defaults
+     * to {@value #DEFAULT_STATUS}.</p>
      *
      * <p>You can access this property in your build file using <code>status</code></p>
      *
      * The status of the project is only relevant, if you upload libraries together with a module descriptor. The status
      * specified here, will be part of this module descriptor.
      *
-     * @return The status of this project. Defaults to {@link #DEFAULT_STATUS }
+     * @return The status of this project. Never returns null.
      */
     Object getStatus();
 
@@ -706,20 +709,21 @@ public interface Project extends Comparable<Project> {
     FileCollection files(Object... paths);
 
     /**
-     * Create a new {@code FileSet} using the provided map of arguments.  The map will be
-     * applied as properties on the new {@code FileSet}.  Example:
+     * Create a new {@code FileSet} using the provided map of arguments.  The map will be applied as properties on the
+     * new {@code FileSet}.  Example:
      * <pre>
      * fileSet(dir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
      * </pre>
      * <p>See the GroovyDoc for org.gradle.api.tasks.util.FileSet for more information</p>
+     *
      * @param args map of property assignments to {@code FileSet} object
      * @return new {@code FileSet}
      */
-    FileSet fileSet(Map<String,Object> args);
+    FileSet fileSet(Map<String, Object> args);
 
     /**
-     * Create a new {@code FileSet} using the provided closure.  The closure will be
-     * used to configure the new {@code FileSet}.  Example:
+     * Create a new {@code FileSet} using the provided closure.  The closure will be used to configure the new {@code
+     * FileSet}.  Example:
      * <pre>
      * fileSet{
      *    from 'src'
@@ -727,6 +731,7 @@ public interface Project extends Comparable<Project> {
      * }.copy { into 'dest'}
      * </pre>
      * <p>See the GroovyDoc for org.gradle.api.tasks.util.FileSet for more information</p>
+     *
      * @param closure Closure to configure the {@code FileSet} object
      * @return new {@code FileSet}
      */
@@ -1097,15 +1102,10 @@ public interface Project extends Comparable<Project> {
     void buildscript(Closure configureClosure);
 
     /**
-     * Copy the specified files.  The closure configures a {@link org.gradle.api.file.CopySpec CopySpec}.
-     * Note that the sources used in the {@code from()} method may be one or more:
-     * <ul>
-     *    <li>File Objects</li>
-     *    <li>String paths relative to the project root</li>
-     *    <li>Any FileCollection (like a configuration)</li>
-     *    <li>Any Iterable<File></li>
-     * </ul>
-     * Example:
+     * Copy the specified files.  The closure configures a {@link org.gradle.api.file.CopySpec CopySpec}. Note that the
+     * sources used in the {@code from()} method may be one or more: <ul> <li>File Objects</li> <li>String paths
+     * relative to the project root</li> <li>Any FileCollection (like a configuration)</li> <li>Any Iterable<File></li>
+     * </ul> Example:
      * <pre>
      * copy {
      *    from configurations.runtime
@@ -1126,6 +1126,7 @@ public interface Project extends Comparable<Project> {
      *    }
      * }
      * </pre>
+     *
      * @param closure Closure to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
      */

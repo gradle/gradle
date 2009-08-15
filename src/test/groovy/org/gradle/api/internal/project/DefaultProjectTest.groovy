@@ -273,6 +273,21 @@ class DefaultProjectTest {
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
 
+    @Test public void testNullGroupVersionAndStatus() {
+        project.version = 'version'
+        project.group = 'group'
+        project.status = 'status'
+        assertEquals('version', project.version)
+        assertEquals('group', project.group)
+        assertEquals('status', project.status)
+        project.version = null
+        project.group = null
+        project.status = null
+        assertEquals(Project.DEFAULT_VERSION, project.version)
+        assertEquals(Project.DEFAULT_GROUP, project.group)
+        assertEquals(Project.DEFAULT_STATUS, project.status)
+    }
+    
     @Test public void testExecutesActionBeforeEvaluation() {
         ProjectAction listener = context.mock(ProjectAction)
         context.checking {

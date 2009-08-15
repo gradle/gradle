@@ -78,11 +78,11 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private final String name;
 
-    private Object group = DEFAULT_GROUP;
+    private Object group;
 
-    private Object version = DEFAULT_VERSION;
+    private Object version;
 
-    private Object status = DEFAULT_STATUS;
+    private Object status;
 
     private final Map<String, Project> childProjects = new HashMap<String, Project>();
 
@@ -280,7 +280,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Object getGroup() {
-        return group;
+        return group == null ? DEFAULT_GROUP : group;
     }
 
     public void setGroup(Object group) {
@@ -288,7 +288,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Object getVersion() {
-        return version;
+        return version == null ? DEFAULT_VERSION : version;
     }
 
     public void setVersion(Object version) {
@@ -296,7 +296,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Object getStatus() {
-        return status;
+        return status == null ? DEFAULT_STATUS : status;
     }
 
     public void setStatus(Object status) {
