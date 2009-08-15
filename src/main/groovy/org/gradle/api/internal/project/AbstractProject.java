@@ -35,6 +35,8 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.Directory;
@@ -43,8 +45,6 @@ import org.gradle.api.tasks.util.FileSet;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
@@ -53,8 +53,8 @@ import java.util.*;
  * @author Hans Dockter
  */
 public abstract class AbstractProject implements ProjectInternal {
-    private static Logger logger = LoggerFactory.getLogger(AbstractProject.class);
-    private static Logger buildLogger = LoggerFactory.getLogger(Project.class);
+    private static Logger logger = Logging.getLogger(AbstractProject.class);
+    private static Logger buildLogger = Logging.getLogger(Project.class);
 
     public enum State {
         CREATED, INITIALIZING, INITIALIZED

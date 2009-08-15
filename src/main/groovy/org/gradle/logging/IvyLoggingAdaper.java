@@ -16,31 +16,32 @@
 package org.gradle.logging;
 
 import org.apache.ivy.util.AbstractMessageLogger;
-import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 /**
- * This class is for integrating Ivy log statements into our logging system. We don't want to have a dependency on logback.
- * This would be bad for embedded usage. We only want one on slf4j. But slf4j has no constants for log levels. As we
- * want to avoid the execution of if statements for each Ivy request, we use Map which delegates Ivy log statements to
- * Sl4j action classes. 
+ * This class is for integrating Ivy log statements into our logging system. We don't want to have a dependency on
+ * logback. This would be bad for embedded usage. We only want one on slf4j. But slf4j has no constants for log levels.
+ * As we want to avoid the execution of if statements for each Ivy request, we use Map which delegates Ivy log
+ * statements to Sl4j action classes.
  *
  * @author Hans Dockter
  */
 public class IvyLoggingAdaper extends AbstractMessageLogger {
+    private final Logger logger = Logging.getLogger(IvyLoggingAdaper.class);
 
     public void log(String msg, int level) {
-        Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(level).log(msg);
+        logger.log(Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(level), msg);
     }
 
     public void rawlog(String msg, int level) {
         log(msg, level);
     }
 
-    public void doProgress() { }
-
-    public void doEndProgress(String msg) {
-        LogLevel.INFO.log(msg);
+    public void doProgress() {
     }
 
+    public void doEndProgress(String msg) {
+        logger.info(msg);
+    }
 }

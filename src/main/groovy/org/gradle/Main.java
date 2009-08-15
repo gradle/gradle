@@ -16,14 +16,14 @@
 package org.gradle;
 
 import org.gradle.util.GradleVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.Logger;
 
 /**
  * @author Hans Dockter
  */
 public class Main {
-    private static Logger logger = LoggerFactory.getLogger(Main.class);
+    private static Logger logger = Logging.getLogger(Main.class);
 
     public static final String GRADLE_HOME_PROPERTY_KEY = "gradle.home";
     public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";

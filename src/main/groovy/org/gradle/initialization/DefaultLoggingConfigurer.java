@@ -28,12 +28,15 @@ import org.gradle.api.logging.Logging;
 import org.gradle.logging.IvyLoggingAdaper;
 import org.gradle.logging.MarkerFilter;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultLoggingConfigurer implements LoggingConfigurer {
     public void configure(LogLevel logLevel) {
+        SLF4JBridgeHandler.install();
+        
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         lc.shutdownAndReset();
         ch.qos.logback.classic.Logger rootLogger = lc.getLogger(LoggerContext.ROOT_NAME);

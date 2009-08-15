@@ -15,14 +15,13 @@
  */
 package org.gradle;
 
-import org.slf4j.Logger;
-import org.gradle.util.Clock;
-import org.gradle.api.logging.Logging;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Build;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.invocation.Build;
+import org.gradle.api.logging.Logger;
+import org.gradle.util.Clock;
 
 /**
  * A {@link BuildListener} which logs the final result of the build.
@@ -72,10 +71,10 @@ public class BuildResultLogger implements BuildListener {
 
     public void buildFinished(BuildResult result) {
         if (result.getFailure() == null) {
-            logger.info(Logging.LIFECYCLE, String.format("%nBUILD SUCCESSFUL%n"));
+            logger.lifecycle(String.format("%nBUILD SUCCESSFUL%n"));
         } else {
             logger.error(String.format("%nBUILD FAILED%n"));
         }
-        logger.info(Logging.LIFECYCLE, String.format("Total time: %s", buildTimeClock.getTime()));
+        logger.lifecycle(String.format("Total time: %s", buildTimeClock.getTime()));
     }
 }

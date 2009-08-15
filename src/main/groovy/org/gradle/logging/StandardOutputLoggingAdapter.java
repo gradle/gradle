@@ -16,13 +16,11 @@
 package org.gradle.logging;
 
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.LogLevel;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
-import org.slf4j.Marker;
 
 /**
  * @author Hans Dockter
@@ -55,12 +53,7 @@ public class StandardOutputLoggingAdapter extends OutputStream {
     /**
      * The priority to use when writing to the Category.
      */
-    private Level level;
-
-    /**
-     * The marker to use when writing to the Category.
-     */
-    private Marker marker;
+    private LogLevel level;
 
     /**
      * Creates the OutputStream to flush to the given Category.
@@ -69,7 +62,7 @@ public class StandardOutputLoggingAdapter extends OutputStream {
      * @param level the Level to use when writing to the Logger
      * @throws IllegalArgumentException if cat == null or priority == null
      */
-    public StandardOutputLoggingAdapter(Logger log, Level level)
+    public StandardOutputLoggingAdapter(Logger log, LogLevel level)
             throws IllegalArgumentException {
         this(log, level, 2048);
     }
@@ -82,7 +75,7 @@ public class StandardOutputLoggingAdapter extends OutputStream {
      * @param bufferLength The initial buffer length to use
      * @throws IllegalArgumentException if cat == null or priority == null
      */
-    public StandardOutputLoggingAdapter(Logger log, Level level, int bufferLength)
+    public StandardOutputLoggingAdapter(Logger log, LogLevel level, int bufferLength)
             throws IllegalArgumentException {
         bufferIncrement = bufferLength;
         if (log == null) {
@@ -165,7 +158,7 @@ public class StandardOutputLoggingAdapter extends OutputStream {
                 length -= lineSeparator.length;
             }
             String message = new String(buf, 0, length);
-            logger.filterAndLog(Logger.FQCN, marker, level, message, null, null);
+            logger.log(level, message);
         }
         reset();
     }
@@ -177,20 +170,12 @@ public class StandardOutputLoggingAdapter extends OutputStream {
         count = 0;
     }
 
-    public Level getLevel() {
+    public LogLevel getLevel() {
         return level;
     }
 
-    public void setLevel(Level level) {
+    public void setLevel(LogLevel level) {
         this.level = level;
-    }
-
-    public Marker getMarker() {
-        return marker;
-    }
-
-    public void setMarker(Marker marker) {
-        this.marker = marker;
     }
 }
 

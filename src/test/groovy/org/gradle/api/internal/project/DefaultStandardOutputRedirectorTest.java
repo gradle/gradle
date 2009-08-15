@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.api.logging.LogLevel;
-import org.junit.Test;
+import org.gradle.api.logging.StandardOutputLogging;
+import static org.junit.Assert.*;
 import org.junit.Before;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertEquals;
-import ch.qos.logback.classic.Level;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -46,7 +44,7 @@ public class DefaultStandardOutputRedirectorTest {
         standardOutputRedirector.on(LogLevel.DEBUG);
         assertSame(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
         assertSame(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
-        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get().getStandardOutputLoggingAdapter().getLevel(), Level.DEBUG);
-        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get().getStandardOutputLoggingAdapter().getLevel(), Level.ERROR);
+        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get().getStandardOutputLoggingAdapter().getLevel(), LogLevel.DEBUG);
+        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get().getStandardOutputLoggingAdapter().getLevel(), LogLevel.ERROR);
     }
 }

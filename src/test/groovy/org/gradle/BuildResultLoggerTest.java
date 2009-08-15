@@ -21,8 +21,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.Logger;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class BuildResultLoggerTest {
@@ -39,8 +38,8 @@ public class BuildResultLoggerTest {
     @Test
     public void logsBuildSuccessAndTotalTime() {
         context.checking(new Expectations(){{
-            one(logger).info(Logging.LIFECYCLE, String.format("%nBUILD SUCCESSFUL%n"));
-            one(logger).info(with(equal(Logging.LIFECYCLE)), with(startsWith("Total time:")));
+            one(logger).lifecycle(String.format("%nBUILD SUCCESSFUL%n"));
+            one(logger).lifecycle(with(startsWith("Total time:")));
         }});
 
         listener.buildFinished(new BuildResult(null, null, null));
@@ -50,7 +49,7 @@ public class BuildResultLoggerTest {
     public void logsBuildFailedAndTotalTime() {
         context.checking(new Expectations(){{
             one(logger).error(String.format("%nBUILD FAILED%n"));
-            one(logger).info(with(equal(Logging.LIFECYCLE)), with(startsWith("Total time:")));
+            one(logger).lifecycle(with(startsWith("Total time:")));
         }});
 
         listener.buildFinished(new BuildResult(null, null, new RuntimeException()));

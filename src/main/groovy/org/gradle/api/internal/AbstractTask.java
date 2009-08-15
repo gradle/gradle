@@ -24,17 +24,12 @@ import org.gradle.api.*;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.logging.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +40,8 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public abstract class AbstractTask implements TaskInternal {                                               
-    private static Logger logger = LoggerFactory.getLogger(AbstractTask.class);
-    private static Logger buildLogger = LoggerFactory.getLogger(Task.class);
+    private static Logger logger = Logging.getLogger(AbstractTask.class);
+    private static Logger buildLogger = Logging.getLogger(Task.class);
 
     private ProjectInternal project;
 
@@ -200,7 +195,7 @@ public abstract class AbstractTask implements TaskInternal {
             if (onlyIfSpec == null ||
                     project.getBuild().getStartParameter().isNoOpt() ||
                     onlyIfSpec.isSatisfiedBy(this)) {
-                logger.info(Logging.LIFECYCLE, "{}", path);
+                logger.lifecycle(path);
                 didWork = true;   // assume true unless changed during execution
                 standardOutputCapture.start();
                 for (TaskAction action : actions) {
@@ -220,7 +215,7 @@ public abstract class AbstractTask implements TaskInternal {
                 }
                 standardOutputCapture.stop();
             } else {
-                logger.info(Logging.LIFECYCLE, "{} SKIPPED as onlyIf is false", path);
+                logger.lifecycle("{} SKIPPED as onlyIf is false", path);
             }
         }
         executing = false;
@@ -246,7 +241,7 @@ public abstract class AbstractTask implements TaskInternal {
             logger.info("Skipping execution as task is disabled.");
         }
         if (!enabled || trueSkips.size() > 0) {
-            logger.info(Logging.LIFECYCLE, "{} SKIPPED", path);
+            logger.lifecycle("{} SKIPPED", path);
             return true;
         }
         return false;

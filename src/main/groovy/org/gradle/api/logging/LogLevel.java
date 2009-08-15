@@ -15,60 +15,94 @@
  */
 package org.gradle.api.logging;
 
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-
 /**
  * @author Hans Dockter
  */
 public enum LogLevel {
     QUIET {
-        public void log(String message) {
-            logger.info(Logging.QUIET, message);
+        boolean isEnabled(Logger logger) {
+            return logger.isQuietEnabled();
         }
-        public void log(String message, Throwable t) {
-            logger.debug(Logging.QUIET, message, t);
+        void log(Logger logger, String message) {
+            logger.quiet(message);
+        }
+        void log(Logger logger, String message, Object... objects) {
+            logger.quiet(message, objects);
+        }
+        void log(Logger logger, String message, Throwable throwable) {
+            logger.quiet(message, throwable);
         }},
     LIFECYCLE {
-        public void log(String message) {
-            logger.info(Logging.LIFECYCLE, message);
+        boolean isEnabled(Logger logger) {
+            return logger.isLifecycleEnabled();
         }
-        public void log(String message, Throwable t) {
-            logger.debug(Logging.LIFECYCLE, message, t);
+        void log(Logger logger, String message) {
+            logger.lifecycle(message);
+        }
+        void log(Logger logger, String message, Object... objects) {
+            logger.lifecycle(message, objects);
+        }
+        void log(Logger logger, String message, Throwable throwable) {
+            logger.lifecycle(message, throwable);
         }},
     INFO {
-        public void log(String message) {
+        boolean isEnabled(Logger logger) {
+            return logger.isInfoEnabled();
+        }
+        void log(Logger logger, String message) {
             logger.info(message);
         }
-        public void log(String message, Throwable t) {
-            logger.debug(message, t);
+        void log(Logger logger, String message, Object... objects) {
+            logger.info(message, objects);
+        }
+        void log(Logger logger, String message, Throwable throwable) {
+            logger.info(message, throwable);
         }},
     DEBUG {
-        public void log(String message) {
+        boolean isEnabled(Logger logger) {
+            return logger.isDebugEnabled();
+        }
+        void log(Logger logger, String message) {
             logger.debug(message);
         }
-        public void log(String message, Throwable t) {
-            logger.debug(message, t);
+        void log(Logger logger, String message, Object... objects) {
+            logger.debug(message, objects);
+        }
+        void log(Logger logger, String message, Throwable throwable) {
+            logger.debug(message, throwable);
         }},
     WARN {
-        public void log(String message) {
+        boolean isEnabled(Logger logger) {
+            return logger.isWarnEnabled();
+        }
+        void log(Logger logger, String message) {
             logger.warn(message);
         }
-        public void log(String message, Throwable t) {
-            logger.debug(message, t);
+        void log(Logger logger, String message, Object... objects) {
+            logger.warn(message, objects);
+        }
+        void log(Logger logger, String message, Throwable throwable) {
+            logger.warn(message, throwable);
         }},
     ERROR {
-        public void log(String message) {
+        boolean isEnabled(Logger logger) {
+            return logger.isErrorEnabled();
+        }
+        void log(Logger logger, String message) {
             logger.error(message);
         }
-        public void log(String message, Throwable t) {
-            logger.debug(message, t);
+        void log(Logger logger, String message, Object... objects) {
+            logger.error(message, objects);
+        }
+        void log(Logger logger, String message, Throwable throwable) {
+            logger.error(message, throwable);
         }};
 
-    private static Logger logger = LoggerFactory.getLogger(LogLevel.class);
+    abstract boolean isEnabled(Logger logger);
 
-    public abstract void log(String message);
+    abstract void log(Logger logger, String message);
 
-    public abstract void log(String message, Throwable t);
+    abstract void log(Logger logger, String message, Object... objects);
 
+    abstract void log(Logger logger, String message, Throwable throwable);
 }

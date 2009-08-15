@@ -15,7 +15,6 @@
  */
 package org.gradle.api.logging;
 
-import ch.qos.logback.classic.Level;
 import org.gradle.api.InvalidUserDataException;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -71,8 +70,8 @@ public class DefaultStandardOutputCaptureTest {
         standardOutputCapture.start();
         assertSame(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
         assertSame(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
-        assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), Level.DEBUG);
-        assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), Level.ERROR);
+        assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), LogLevel.DEBUG);
+        assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), LogLevel.ERROR);
         standardOutputCapture.stop();
         assertEquals(oldState, StandardOutputLogging.getStateSnapshot());
     }

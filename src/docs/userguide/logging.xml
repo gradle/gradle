@@ -110,59 +110,60 @@
 
         </table>
     </section>
-    <section id='sec:external_tools'>
-        <title>External tools and standard output</title>
-        <para>Internally, Gradle uses Ant and Ivy. Both have their own logging system. Gradle injects an adapter
-            into the Ant and Ivy logging systems to redirect their logging output into the Gradle logging system. There is a 1:1
-            mapping from the Ant/Ivy log levels to the Gradle log levels, except the Ant/Ivy <emphasis>TRACE</emphasis> level, which is
-            mapped to Gradle <emphasis>DEBUG</emphasis>. This means the default Gradle log level does not show any Ant/Ivy output unless it
-            is an error or a warning.
-        </para>
-        <para>There are many tools out there which still use standard output for logging. Gradle redirects by default
-            standard out to the
-            <emphasis>QUIET</emphasis>
-            level and standard err to the
-            <emphasis>ERROR</emphasis>
-            level. This behavior is configurable. Gradle provides a couple of switches for this. To change the log
-            level, standard out is redirected to, when your build script gets evaluated, the project object offers a
-            method called <apilink class="org.gradle.api.Project" method="captureStandardOutput"/>. To change the log
-            level for standard out during task execution,
-            tasks offer a method also with the name <apilink class="org.gradle.api.Task" method="captureStandardOutput"/>.
-            Tasks and projects also offer a method
-            <literal>disableStandardOutputCapture</literal>
-            which causes the standard out to be send to the default standard out. If you need more fine grained control
-            on how standard out is redirected you can use the class
-            <apilink class="org.gradle.api.logging.StandardOutputLogging"/>.
-        </para>
-    </section>
     <section id='sec:sending_your_own_log_messages'>
-        <title>Sending your own log messages</title>
-        <para>Gradle provides a
-            <literal>logger</literal>
-            property to a build script, which is an instance of a slf4j logger. Here is the code of the logging
-            integration test, which shows you how to use the logger, as well as working with standard out redirection.
-        </para>
-        <sample id="logging_ex" dir="logging/project1" title="Sending your own log message">
-            <sourcefile file="build.gradle"/>
+        <title>Writing your own log messages</title>
+        <para>A simple option for logging in your build file is to write messages to standard output. Gradle redirects
+            anything written to standard output to it's logging system at the <literal>QUIET</literal> log level.</para>
+        <sample id="logging_to_stdout" dir="logging/project1" title="Using stdout to write log messages">
+            <sourcefile file="build.gradle" snippet="use-println"/>
         </sample>
-        <para>Strictly speaking, <emphasis>QUIET</emphasis> and <emphasis>LIFECYCLE</emphasis> are not log levels, but they are markers. But logically Gradle
-            treats them as log levels. In a future version of Gradle we want to provide a logger which provides
-            additional log methods
-            <literal>quiet</literal>
-            and <literal>lifecycle</literal>.
+        <para>Gradle also provides a <literal>logger</literal> property to a build script, which is an instance of
+            <apilink class="org.gradle.api.logging.Logger"/>. This interface extends the SLF4J
+            <classname>Logger</classname> interface and adds a few Gradle specific methods to it. Below is an example
+            of how this is used in the build script:
         </para>
-        <para>You can also hook into Gradle's logging system from within other classes (classes from the buildSrc
-            directory for example). Simply use a slf4j logger.
+        <sample id="logging_ex" dir="logging/project1" title="Writing your own log messages">
+            <sourcefile file="build.gradle" snippet="use-logger"/>
+        </sample>
+        <para>You can also hook into Gradle's logging system from within other classes used in the build (classes from
+            the <filename>buildSrc</filename> directory for example). Simply use an SLF4J logger. You can use this
+            logger the same way as you use the provided logger in the build script.
         </para>
-        <programlisting><![CDATA[
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;	
+        <sample id="logging_with_slf4j" dir="logging/project1" title="Using SLF4J to write log messages">
+            <sourcefile file="build.gradle" snippet="use-slf4j"/>
+        </sample>
+    </section>
 
-public class MyClass {
-    private static Logger logger = LoggerFactory.getLogger(MyClass.class);
-	...
-]]></programlisting>
-        <para>You can use this logger the same way as you use the provided logger in the build script.
+    <section id='sec:external_tools'>
+        <title>Logging from external tools and libraries</title>
+        <para>Internally, Gradle uses Ant and Ivy. Both have their own logging system. Gradle redirects their logging
+            output into the Gradle logging system. There is a 1:1 mapping from the Ant/Ivy log levels to the Gradle log
+            levels, except the Ant/Ivy <literal>TRACE</literal> log level, which is mapped to Gradle
+            <literal>DEBUG</literal> log level. This means the default Gradle log level will not show any Ant/Ivy output
+            unless it is an error or a warning.
+        </para>
+        <para>There are many tools out there which still use standard output for logging. By default, Gradle redirects
+            standard output to the <literal>QUIET</literal> log level and standard error to the <literal>ERROR</literal>
+            level. This behavior is configurable. Gradle provides a couple of switches for this. To change the log
+            level that standard out is redirected to when your build script gets evaluated, the project object offers a
+            method called <apilink class="org.gradle.api.Project" method="captureStandardOutput"/>.</para>
+        <sample id="project_stdout_capture" dir="logging/project1" title="Configuring standard output capture">
+            <sourcefile file="build.gradle" snippet="capture-stdout"/>
+        </sample>
+        <para>
+            To change the log level for standard out during task execution, tasks offer a method also with the name
+            <apilink class="org.gradle.api.Task" method="captureStandardOutput"/>.</para>
+        <sample id="task_stdout_capture" dir="logging/project1" title="Configuring standard output capture for a task">
+            <sourcefile file="build.gradle" snippet="task-capture-stdout"/>
+        </sample>
+        <para>
+            Tasks and projects also offer a method <literal>disableStandardOutputCapture()</literal> which causes the
+            standard output to be send to the default standard output. If you need more fine grained control on how
+            standard output is redirected you can use the class <apilink class="org.gradle.api.logging.StandardOutputLogging"/>.
+        </para>
+        <para>Gradle also provides integration with the Java Util Logging, Jakarta Commons Logging and Log4j logging
+            toolkits. Any log messages which your build classes write using these logging toolkits will be redirected to
+            Gradle's logging system.
         </para>
     </section>
 </chapter>

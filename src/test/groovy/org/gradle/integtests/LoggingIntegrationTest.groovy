@@ -27,8 +27,6 @@ import org.junit.Test
 // todo To make this test stronger, we should check against the output of a file appender. Right now Gradle does not provided this easily but eventually will.
 @RunWith(DistributionIntegrationTestRunner.class)
 class LoggingIntegrationTest {
-    final static String PREFIX = "276hfe7qlk3sl'aspeie"
-    
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
@@ -36,39 +34,57 @@ class LoggingIntegrationTest {
     @Test
     public void loggingSamples() {
         File loggingDir = new File(dist.samplesDir, 'logging')
-        List quietOuts = ['Out', 'Log', 'TaskOut', 'Project2Out', 'Project2ScriptClassPathOut']
-        List lifecycleOuts = ['TaskOut']
-        List infoOuts = ['Out', 'Log', 'TaskOut', 'Project2ScriptClassPathOut']
-        List debugOuts = ['Log']
-        List warnOuts = ['Log']
-        List errorOuts = ['Log']
-        List allOuts = [quietOuts, warnOuts, lifecycleOuts, infoOuts, debugOuts]
-        List allPrefixes = ['quiet', 'warn', 'lifecycle', 'info', 'debug']
+        List quietMessages = [
+                'An info log message which is always logged.',
+                'A message which is logged at QUIET level',
+                'A task message which is logged at QUIET level',
+                'quietProject2Out',
+                'quietProject2ScriptClassPathOut'
+        ]
+        List errorMessages = [
+                'An error log message.'
+        ]
+        List warningMessages = [
+                'A warning log message.'
+        ]
+        List lifecycleMessages = [
+                'A lifecycle info log message.',
+                'An info message logged from Ant',
+                'A task message which is logged at LIFECYCLE level'
+        ]
+        List infoMessages = [
+                'An info log message.',
+                'A message which is logged at INFO level',
+                'A task message which is logged at INFO level',
+                'An info log message logged using SLF4j',
+                'An info log message logged using JCL',
+                'An info log message logged using Log4j',
+                'An info log message logged using JUL',
+                'infoProject2ScriptClassPathOut'
+        ]
+        List debugMessages = [
+                'A debug log message.'
+        ]
+        List traceMessages = [
+                'A trace log message.'
+        ]
+        List allOuts = [errorMessages, quietMessages, warningMessages, lifecycleMessages, infoMessages, debugMessages, traceMessages]
 
-        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-q').run(),
-            errorOuts, allOuts, 0, allPrefixes)
-        checkOutput(executer.withArguments().run(),
-            errorOuts, allOuts, 2, allPrefixes)
-        checkOutput(executer.withArguments('-i').run(),
-            errorOuts, allOuts, 3, allPrefixes)
-        checkOutput(executer.withArguments('-d').run(),
-            errorOuts, allOuts, 4, allPrefixes)
+        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-q').run(), allOuts, 1)
+        checkOutput(executer.withArguments().run(), allOuts, 3)
+        checkOutput(executer.withArguments('-i').run(), allOuts, 4)
+        checkOutput(executer.withArguments('-d').run(), allOuts, 5)
     }
 
-    static void checkOutput(ExecutionResult result, List errorOuts, List allOuts, includedIndex, List allPrefixes) {
-        checkOuts(true, result.error, errorOuts, PREFIX + 'error')
-        allOuts.eachWithIndex {outList, i ->
-            boolean includes = false
-            if (i <= includedIndex) {
-                includes = true
-            }
-            checkOuts(includes, result.output, outList, PREFIX + allPrefixes[i]) 
+    static void checkOutput(ExecutionResult result, List allOuts, int includedIndex) {
+        allOuts.eachWithIndex {List outList, i ->
+            checkOuts(i <= includedIndex, i == 0 ? result.error : result.output, outList)
         }
     }
 
-    static void checkOuts(boolean shouldContain, String result, List outs, String prefix) {
-        outs.each { expectedOut ->
-            def matcher = containsString(prefix + expectedOut)
+    static void checkOuts(boolean shouldContain, String result, List outs) {
+        outs.each {String expectedOut ->
+            def matcher = containsString(expectedOut)
             if (!shouldContain) {
                 matcher = not(matcher)
             }

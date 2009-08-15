@@ -15,29 +15,14 @@
  */
 package org.gradle.api.logging;
 
-import ch.qos.logback.classic.Level;
 import org.gradle.logging.StandardOutputLoggingAdapter;
-import org.slf4j.LoggerFactory;
 
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class StandardOutputLogging {
-    private static Map<LogLevel, Level> logLevelToLevel = new HashMap() {
-        {
-            put(LogLevel.DEBUG, Level.DEBUG);
-            put(LogLevel.INFO, Level.INFO);
-            put(LogLevel.WARN, Level.WARN);
-            put(LogLevel.ERROR, Level.ERROR);
-            put(LogLevel.LIFECYCLE, Level.INFO);
-            put(LogLevel.QUIET, Level.INFO);
-        }
-    };
-
     public static class LoggingPrintStream extends PrintStream {
         private StandardOutputLoggingAdapter standardOutputLoggingAdapter;
 
@@ -58,8 +43,7 @@ public class StandardOutputLogging {
     public static final ThreadLocal<LoggingPrintStream> OUT_LOGGING_STREAM = new ThreadLocal<LoggingPrintStream>() {
         @Override
         protected LoggingPrintStream initialValue() {
-            return new LoggingPrintStream(new StandardOutputLoggingAdapter((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console out"),
-                    Level.INFO));
+            return new LoggingPrintStream(new StandardOutputLoggingAdapter(Logging.getLogger("Console out"), LogLevel.INFO));
         }
 
     };
@@ -68,10 +52,8 @@ public class StandardOutputLogging {
         @Override
         protected LoggingPrintStream initialValue() {
             return new LoggingPrintStream(
-                    new StandardOutputLoggingAdapter((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("Console out"),
-                            Level.ERROR));
+                    new StandardOutputLoggingAdapter(Logging.getLogger("Console out"), LogLevel.ERROR));
         }
-
     };
 
     static StandardOutputLoggingAdapter getOutAdapter() {
@@ -92,8 +74,8 @@ public class StandardOutputLogging {
      * @param outLogLevel Log level for System.out
      */
     public static void on(LogLevel outLogLevel) {
-        convert(getOutAdapter(), outLogLevel);
-        convert(getErrAdapter(), LogLevel.ERROR);
+        getOutAdapter().setLevel(outLogLevel);
+        getErrAdapter().setLevel(LogLevel.ERROR);
         redirect(OUT_LOGGING_STREAM.get(), ERR_LOGGING_STREAM.get());
     }
 
@@ -103,7 +85,7 @@ public class StandardOutputLogging {
      * @param outLogLevel Log level for System.out
      */
     public static void onOut(LogLevel outLogLevel) {
-        convert(getOutAdapter(), outLogLevel);
+        getOutAdapter().setLevel(outLogLevel);
         System.setOut(OUT_LOGGING_STREAM.get());
     }
 
@@ -113,7 +95,7 @@ public class StandardOutputLogging {
      * @param errLogLevel Log level for System.err
      */
     public static void onErr(LogLevel errLogLevel) {
-        convert(getErrAdapter(), errLogLevel);
+        getErrAdapter().setLevel(errLogLevel);
         System.setErr(ERR_LOGGING_STREAM.get());
     }
 
@@ -169,16 +151,5 @@ public class StandardOutputLogging {
     private static void redirect(PrintStream outStream, PrintStream errStream) {
         System.setOut(outStream);
         System.setErr(errStream);
-    }
-
-    private static void convert(StandardOutputLoggingAdapter adapter, LogLevel logLevel) {
-        if (logLevel == LogLevel.LIFECYCLE) {
-            adapter.setMarker(Logging.LIFECYCLE);
-        } else if (logLevel == LogLevel.QUIET) {
-            adapter.setMarker(Logging.QUIET);
-        } else {
-            adapter.setMarker(null);
-        }
-        adapter.setLevel(logLevelToLevel.get(logLevel));
     }
 }

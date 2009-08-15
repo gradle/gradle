@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.project
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.gradle.groovy.scripts.ScriptWithSource
 
 /**
@@ -27,8 +25,6 @@ import org.gradle.groovy.scripts.ScriptWithSource
  * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
  */
 abstract class ProjectScript extends ScriptWithSource {
-    static Logger logger = LoggerFactory.getLogger(ProjectScript)
-
     void setProperty(String property, newValue) {
         if ("metaClass".equals(property)) {
             setMetaClass((MetaClass) newValue)

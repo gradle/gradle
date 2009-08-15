@@ -18,6 +18,8 @@ package org.gradle.logging;
 import org.apache.tools.ant.BuildLogger;
 import org.apache.tools.ant.BuildEvent;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.LogLevel;
 
 import java.io.PrintStream;
 
@@ -25,6 +27,8 @@ import java.io.PrintStream;
  * @author Hans Dockter
  */
 public class AntLoggingAdapter implements BuildLogger {
+    private final Logger logger = Logging.getLogger(AntLoggingAdapter.class);
+
     public void setMessageOutputLevel(int level) {
         // ignore
     }
@@ -71,10 +75,11 @@ public class AntLoggingAdapter implements BuildLogger {
             message.append("[ant:").append(event.getTask().getTaskName()).append("] ");
         }
         message.append(event.getMessage());
+        LogLevel level = Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority());
         if (event.getException() != null) {
-            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(message.toString(), event.getException());
+            logger.log(level, message.toString(), event.getException());
         } else {
-            Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority()).log(message.toString());
+            logger.log(level, message.toString());
         }
     }
 }

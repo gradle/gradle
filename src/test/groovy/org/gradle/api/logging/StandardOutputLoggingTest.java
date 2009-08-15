@@ -15,13 +15,10 @@
  */
 package org.gradle.api.logging;
 
-import org.junit.Test;
-import org.junit.Before;
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import org.slf4j.Marker;
-import ch.qos.logback.classic.Level;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter
@@ -47,15 +44,15 @@ public class StandardOutputLoggingTest {
     public void on() {
         setToNonDefaultValues(true, true);
         StandardOutputLogging.on(LogLevel.INFO);
-        checkOut(Level.INFO, null);
-        checkErr(Level.ERROR);
+        checkOut(LogLevel.INFO);
+        checkErr(LogLevel.ERROR);
     }
 
     @Test
     public void onOut() {
         setToNonDefaultValues(true, false);
         StandardOutputLogging.onOut(LogLevel.INFO);
-        checkOut(Level.INFO, null);
+        checkOut(LogLevel.INFO);
         assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
     }
 
@@ -63,7 +60,7 @@ public class StandardOutputLoggingTest {
     public void onOutWithLifecycle() {
         setToNonDefaultValues(true, false);
         StandardOutputLogging.onOut(LogLevel.LIFECYCLE);
-        checkOut(Level.INFO, Logging.LIFECYCLE);
+        checkOut(LogLevel.LIFECYCLE);
         assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
     }
 
@@ -71,7 +68,7 @@ public class StandardOutputLoggingTest {
     public void onOutWithQuiet() {
         setToNonDefaultValues(true, false);
         StandardOutputLogging.onOut(LogLevel.QUIET);
-        checkOut(Level.INFO, Logging.QUIET);
+        checkOut(LogLevel.QUIET);
         assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
     }
 
@@ -79,7 +76,7 @@ public class StandardOutputLoggingTest {
     public void onErr() {
         setToNonDefaultValues(false, true);
         StandardOutputLogging.onErr(LogLevel.ERROR);
-        checkErr(Level.ERROR);
+        checkErr(LogLevel.ERROR);
         assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
     }
 
@@ -124,15 +121,13 @@ public class StandardOutputLoggingTest {
         assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
     }
 
-    private void checkOut(Level expectedOut, Marker expectedOutMarker) {
+    private void checkOut(LogLevel expectedOut) {
         assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
         assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), expectedOut);
-        assertEquals(StandardOutputLogging.getOutAdapter().getMarker(), expectedOutMarker);
     }
 
-    private void checkErr(Level expectedErr) {
+    private void checkErr(LogLevel expectedErr) {
         assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
         assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), expectedErr);
-        assertEquals(StandardOutputLogging.getErrAdapter().getMarker(), null);
     }
 }
