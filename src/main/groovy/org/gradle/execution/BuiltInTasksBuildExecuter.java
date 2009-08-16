@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.ITaskFactory;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
@@ -30,6 +31,8 @@ import java.util.Map;
  * A {@link BuildExecuter} which executes the built-in tasks which are executable from the command-line.
  */
 public class BuiltInTasksBuildExecuter implements BuildExecuter {
+    private BuildInternal build;
+
     public enum Options {
         TASKS {
             @Override
@@ -70,12 +73,13 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
         this.options = options;
     }
 
-    public void select(Project project) {
+    public void select(BuildInternal build) {
+        this.build = build;
         task = new AnnotationProcessingTaskFactory(new ITaskFactory() {
             public Task createTask(Project project, Map args) {
                 return options.createTask(project);
             }
-        }).createTask(project, Collections.EMPTY_MAP);
+        }).createTask(build.getDefaultProject(), Collections.EMPTY_MAP);
     }
 
     public String getDisplayName() {
@@ -86,7 +90,7 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
         return task;
     }
 
-    public void execute(TaskExecuter executer) {
-        executer.execute(Collections.singleton(task));
+    public void execute() {
+        build.getTaskGraph().execute(Collections.singleton(task));
     }
 }

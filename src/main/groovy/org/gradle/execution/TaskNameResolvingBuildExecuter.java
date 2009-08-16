@@ -18,6 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.internal.BuildInternal;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -28,8 +29,8 @@ import java.util.*;
  */
 public class TaskNameResolvingBuildExecuter implements BuildExecuter {
     private final List<String> names;
-    private final List<Collection<Task>> tasks = new ArrayList<Collection<Task>>();
     private final String description;
+    private TaskExecuter executer;
 
     public TaskNameResolvingBuildExecuter(Collection<String> names) {
         this.names = new ArrayList<String>(names);
@@ -40,18 +41,29 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
         }
     }
 
-    public void select(Project project) {
+    public void select(BuildInternal build) {
+        this.executer = build.getTaskGraph();
+        for (Collection<Task> tasksForName : select(build, names)) {
+            executer.addTasks(tasksForName);
+        }
+    }
+
+    static List<Collection<Task>> select(BuildInternal build, Iterable<String> names) {
         Set<String> unknownTasks = new LinkedHashSet<String>();
+        Project project = build.getDefaultProject();
+        List<Collection<Task>> matches = new ArrayList<Collection<Task>>();
         for (String taskName : names) {
             Set<Task> tasksForName = findTasks(project, taskName);
             if (tasksForName.size() == 0) {
                 unknownTasks.add(taskName);
             }
-            tasks.add(tasksForName);
+            else {
+                matches.add(tasksForName);
+            }
         }
 
         if (unknownTasks.size() == 0) {
-            return;
+            return matches;
         }
         if (unknownTasks.size() == 1) {
             throw new UnknownTaskException(String.format("Task %s not found in %s.", GUtil.toString(unknownTasks), project));
@@ -60,7 +72,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
         }
     }
 
-    private Set<Task> findTasks(Project project, String taskName) {
+    private static Set<Task> findTasks(Project project, String taskName) {
         if (!taskName.contains(Project.PATH_SEPARATOR)) {
             return project.getTasksByName(taskName, true);
         }
@@ -73,18 +85,11 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
         }
     }
 
-    public Iterable<Task> getTasks() {
-        return new HashSet<Task>(GUtil.flatten(tasks));
-    }
-
     public String getDisplayName() {
         return description;
     }
 
-    public void execute(TaskExecuter executer) {
-        for (Collection<Task> tasksForName : tasks) {
-            executer.addTasks(tasksForName);
-        }
+    public void execute() {
         executer.execute();
     }
 }

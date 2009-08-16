@@ -15,20 +15,19 @@
  */
 package org.gradle.execution;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
+import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.api.Project;
-import org.gradle.api.tasks.diagnostics.TaskReportTask;
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
-import org.gradle.api.tasks.diagnostics.DependencyReportTask;
-import org.gradle.api.internal.project.ProjectInternal;
 
 import java.util.Collections;
 
@@ -36,18 +35,17 @@ import java.util.Collections;
 public class BuiltInTasksBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS);
-    private final Project rootProject = context.mock(ProjectInternal.class, "root");
-    private final Project project = context.mock(ProjectInternal.class, "project");
-    private TaskExecuter taskExecuter;
+    private final BuildInternal build = context.mock(BuildInternal.class);
+    private final ProjectInternal project = context.mock(ProjectInternal.class, "project");
+    private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
 
     @Before
     public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-        taskExecuter = context.mock(TaskExecuter.class);
-
         context.checking(new Expectations(){{
-            allowing(project).getRootProject();
-            will(returnValue(rootProject));
+            allowing(build).getDefaultProject();
+            will(returnValue(project));
+            allowing(build).getTaskGraph();
+            will(returnValue(taskExecuter));
             allowing(project).absolutePath(with(notNullValue(String.class)));
             will(returnValue(":path"));
             allowing(project).getConvention();
@@ -57,7 +55,7 @@ public class BuiltInTasksBuildExecuterTest {
 
     @Test
     public void executesTaskReportTask() {
-        executer.select(project);
+        executer.select(build);
         assertThat(executer.getTask(), instanceOf(TaskReportTask.class));
 
         context.checking(new Expectations(){{
@@ -65,14 +63,14 @@ public class BuiltInTasksBuildExecuterTest {
         }});
 
         assertThat(executer.getDisplayName(), equalTo("task list"));
-        executer.execute(taskExecuter);
+        executer.execute();
     }
 
     @Test
     public void executesPropertyReportTask() {
         executer.setOptions(BuiltInTasksBuildExecuter.Options.PROPERTIES);
         
-        executer.select(project);
+        executer.select(build);
         assertThat(executer.getTask(), instanceOf(PropertyReportTask.class));
 
         context.checking(new Expectations() {{
@@ -80,14 +78,14 @@ public class BuiltInTasksBuildExecuterTest {
         }});
 
         assertThat(executer.getDisplayName(), equalTo("property list"));
-        executer.execute(taskExecuter);
+        executer.execute();
     }
 
     @Test
     public void executesDependencyReportTask() {
         executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
 
-        executer.select(project);
+        executer.select(build);
         assertThat(executer.getTask(), instanceOf(DependencyReportTask.class));
 
         context.checking(new Expectations() {{
@@ -95,6 +93,6 @@ public class BuiltInTasksBuildExecuterTest {
         }});
 
         assertThat(executer.getDisplayName(), equalTo("dependency list"));
-        executer.execute(taskExecuter);
+        executer.execute();
     }
 }

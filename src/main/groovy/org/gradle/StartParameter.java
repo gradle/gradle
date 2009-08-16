@@ -20,9 +20,7 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.ProjectDefaultsBuildExecuter;
-import org.gradle.execution.TaskNameResolvingBuildExecuter;
+import org.gradle.execution.*;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StrictScriptSource;
@@ -232,11 +230,14 @@ public class StartParameter {
      * @return The {@link BuildExecuter}. Never returns null.
      */
     public BuildExecuter getBuildExecuter() {
-        if (buildExecuter != null) {
-            return buildExecuter;
+        BuildExecuter executer = buildExecuter;
+        if (executer == null) {
+            executer = new DefaultBuildExecuter(taskNames);
         }
-        return GUtil.isTrue(taskNames) ? new TaskNameResolvingBuildExecuter(taskNames)
-                : new ProjectDefaultsBuildExecuter();
+        if (dryRun) {
+            executer = new DryRunBuildExecuter(executer);
+        }
+        return executer;
     }
 
     /**

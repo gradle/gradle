@@ -27,11 +27,14 @@ public interface ProjectSpec {
 
     /**
      * Returns the single project in the given registry which meets this spec.
-     * @return the project. Never not return null.
+     * @return the project. Never returns null.
      * @throws InvalidUserDataException When project cannot be selected due to some user input mismatch.
      */
     <T extends ProjectIdentifier> T selectProject(IProjectRegistry<? extends T> registry) throws
             InvalidUserDataException;
 
+    /**
+     * Returns the display name of this spec. Used for logging and error messages.
+     */
     String getDisplayName();
 }

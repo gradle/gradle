@@ -19,17 +19,16 @@ package org.gradle;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.TaskExecuter;
 import org.gradle.initialization.*;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -44,8 +43,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,7 +59,6 @@ public class GradleTest {
     private BuildConfigurer buildConfigurerMock;
     private DefaultProject expectedRootProject;
     private DefaultProject expectedCurrentProject;
-    private URLClassLoader expectedClassLoader;
     private SettingsInternal settingsMock;
     private List<String> expectedTaskNames;
     private List<Iterable<Task>> expectedTasks;
@@ -92,9 +88,8 @@ public class GradleTest {
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         buildMock = context.mock(BuildInternal.class);
         buildBroadcaster = context.mock(BuildListener.class);
-        testGradleProperties = WrapUtil.toMap("prop1", "value1");
+        testGradleProperties = toMap("prop1", "value1");
         boolean expectedSearchUpwards = false;
-        expectedClassLoader = new URLClassLoader(new URL[0]);
 
         File expectedRootDir = new File("rootDir");
         File expectedCurrentDir = new File(expectedRootDir, "currentDir");
@@ -117,8 +112,6 @@ public class GradleTest {
             {
                 allowing(gradlePropertiesLoaderMock).getGradleProperties();
                 will(returnValue(testGradleProperties));
-                allowing(settingsMock).createClassLoader();
-                will(returnValue(expectedClassLoader));
                 allowing(settingsMock).getRootProject();
                 will(returnValue(expectedRootProjectDescriptor));
                 allowing(buildMock).getRootProject();
@@ -136,10 +129,10 @@ public class GradleTest {
     }
 
     private void expectTasks(String... tasks) {
-        expectedTaskNames = WrapUtil.toList(tasks);
+        expectedTaskNames = toList(tasks);
         expectedTasks = new ArrayList<Iterable<Task>>();
         for (String task : tasks) {
-            expectedTasks.add(WrapUtil.toSortedSet(expectedCurrentProject.createTask(task)));
+            expectedTasks.add(toSortedSet(expectedCurrentProject.createTask(task)));
         }
     }
 
@@ -164,7 +157,8 @@ public class GradleTest {
         expectTasksRunWithDagRebuild();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
-            one(taskExecuterMock).addTaskExecutionListener(with(any(TaskExecutionListener.class)));
+            one(taskExecuterMock).getAllTasks();
+            will(returnValue(toList()));
         }});
         expectedStartParams.setDryRun(true);
         BuildResult buildResult = gradle.run();
@@ -177,9 +171,6 @@ public class GradleTest {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
         expectBuildListenerCallbacks();
-        context.checking(new Expectations() {{
-            one(taskExecuterMock).addTaskExecutionListener(with(any(TaskExecutionListener.class)));
-        }});
         BuildResult buildResult = gradle.getBuildAndRunAnalysis();
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat(buildResult.getFailure(), nullValue());
@@ -314,7 +305,7 @@ public class GradleTest {
 
     @Test
     public void testRunWithUnknownTask() {
-        expectedStartParams.setTaskNames(WrapUtil.toList("unknown"));
+        expectedStartParams.setTaskNames(toList("unknown"));
         expectSettingsBuilt();
         context.checking(new Expectations() {
             {

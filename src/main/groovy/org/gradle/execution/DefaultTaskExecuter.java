@@ -20,6 +20,8 @@ import groovy.lang.Closure;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
@@ -42,6 +44,11 @@ public class DefaultTaskExecuter implements TaskExecuter {
             TaskExecutionListener.class);
     private final Set<Task> executionPlan = new LinkedHashSet<Task>();
     private boolean populated;
+    private Spec<? super Task> filter = Specs.satisfyAll();
+
+    public void useFilter(Spec<? super Task> filter) {
+        this.filter = filter;
+    }
 
     public void addTasks(Iterable<? extends Task> tasks) {
         assert tasks != null;
@@ -83,6 +90,11 @@ public class DefaultTaskExecuter implements TaskExecuter {
 
         while (!queue.isEmpty()) {
             Task task = queue.get(0);
+            if (!filter.isSatisfiedBy(task)) {
+                // Filtered - skip
+                queue.remove(0);
+                continue;
+            }
             if (executionPlan.contains(task)) {
                 // Already in plan - skip
                 queue.remove(0);

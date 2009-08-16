@@ -64,6 +64,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return this;
     }
 
+    public GradleExecuter withDryRun() {
+        parameter.setDryRun(true);
+        return this;
+    }
+
     public InProcessGradleExecuter withTaskList() {
         parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
         return this;

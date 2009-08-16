@@ -24,19 +24,19 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class GUtil {
-    public static List flatten(Object[] elements, List addTo, boolean flattenMaps) {
+    public static <T extends Collection> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
         return flatten(Arrays.asList(elements), addTo, flattenMaps);
     }
 
-    public static List flatten(Object[] elements, List addTo) {
+    public static <T extends Collection> T flatten(Object[] elements, T addTo) {
         return flatten(Arrays.asList(elements), addTo);
     }
 
-    public static List flatten(Collection elements, List addTo) {
+    public static <T extends Collection> T flatten(Collection elements, T addTo) {
         return flatten(elements, addTo, true);
     }
 
-    public static List flatten(Collection elements, List addTo, boolean flattenMaps) {
+    public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMaps) {
         Iterator iter = elements.iterator();
         while (iter.hasNext()) {
             Object element = iter.next();

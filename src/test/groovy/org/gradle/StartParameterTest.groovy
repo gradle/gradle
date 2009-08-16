@@ -16,10 +16,11 @@
 
 package org.gradle
 
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.BuildExecuter
-import org.gradle.execution.ProjectDefaultsBuildExecuter
-import org.gradle.execution.TaskNameResolvingBuildExecuter
+import org.gradle.execution.DefaultBuildExecuter
+import org.gradle.execution.DryRunBuildExecuter
 import org.gradle.groovy.scripts.FileScriptSource
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
@@ -33,8 +34,6 @@ import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
-
 
 /**
  * @author Hans Dockter
@@ -71,15 +70,15 @@ class StartParameterTest {
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
 
         assertThat(parameter.buildFile, nullValue())
-        
         assertThat(parameter.settingsScriptSource, nullValue())
 
         assertThat(parameter.logLevel, equalTo(LogLevel.LIFECYCLE))
-        assertThat(parameter.taskNames, notNullValue())
-        assertThat(parameter.projectProperties, notNullValue())
-        assertThat(parameter.systemPropertiesArgs, notNullValue())
-        assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
+        assertThat(parameter.taskNames, isEmpty())
+        assertThat(parameter.projectProperties, isEmptyMap())
+        assertThat(parameter.systemPropertiesArgs, isEmptyMap())
+        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
+        assertFalse(parameter.dryRun)
     }
 
     @Test public void testSetCurrentDir() {
@@ -159,19 +158,15 @@ class StartParameterTest {
     @Test public void testSetTaskNames() {
         StartParameter parameter = new StartParameter()
         parameter.setTaskNames(Arrays.asList("a", "b"))
-        assertThat(parameter.buildExecuter, reflectionEquals(new TaskNameResolvingBuildExecuter(Arrays.asList("a", "b"))))
+        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
     }
 
-    @Test public void testSetTaskNamesToEmptyOrNullListUsesProjectDefaultTasks() {
+    @Test public void testSetTaskNamesUsesDefaultExecuter() {
         StartParameter parameter = new StartParameter()
 
         parameter.setBuildExecuter({} as BuildExecuter)
-        parameter.setTaskNames(Collections.emptyList())
-        assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
-
-        parameter.setBuildExecuter({} as BuildExecuter)
-        parameter.setTaskNames(null)
-        assertThat(parameter.buildExecuter, instanceOf(ProjectDefaultsBuildExecuter))
+        parameter.setTaskNames([])
+        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
     }
 
     @Test public void testUseEmbeddedBuildFile() {
@@ -197,6 +192,17 @@ class StartParameterTest {
         assertThat(parameter.defaultImportsFile, equalTo(new File("imports")))
         assertThat(parameter.pluginPropertiesFile, equalTo(new File("plugins")))
     }
+
+    @Test public void testWrapsExecuterWhenDryRunIsTrue() {
+        StartParameter parameter = new StartParameter()
+        def originalExecuter = [:] as BuildExecuter
+        parameter.buildExecuter = originalExecuter
+        parameter.dryRun = true
+        assertThat(parameter.buildExecuter, instanceOf(DryRunBuildExecuter))
+        assertThat(parameter.buildExecuter.delegate, sameInstance(originalExecuter))
+        parameter.dryRun = false
+        assertThat(parameter.buildExecuter, sameInstance(originalExecuter))
+    }
     
     @Test public void testNewBuild() {
         StartParameter parameter = new StartParameter()
@@ -214,6 +220,7 @@ class StartParameterTest {
         parameter.settingsFile = new File("settings file")
         parameter.taskNames.add("t1");
         parameter.defaultProjectSelector = [:] as ProjectSpec
+        parameter.dryRun = true
 
         StartParameter newParameter = parameter.newBuild();
 
@@ -226,8 +233,9 @@ class StartParameterTest {
         assertThat(newParameter.defaultImportsFile, equalTo(parameter.defaultImportsFile));
 
         assertThat(newParameter.buildFile, nullValue())
-        assertTrue(newParameter.taskNames.empty)
+        assertThat(newParameter.taskNames, isEmpty())
         assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
         assertThat(newParameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(newParameter.currentDir)))
+        assertFalse(newParameter.dryRun)
     }
 }

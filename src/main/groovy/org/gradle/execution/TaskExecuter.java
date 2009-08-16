@@ -15,13 +15,20 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.specs.Spec;
 
 public interface TaskExecuter extends TaskExecutionGraph {
     /**
-     * Adds the given tasks and their dependencies to this graph. Tasks are executed in an arbitrary order. The
-     * tasks are executed before any tasks from a subsequent call to this method are executed. 
+     * Sets the filter to use when adding tasks to this graph. Only those tasks which are accepted by the given filter
+     * will be added to this graph.
+     */
+    void useFilter(Spec<? super Task> filter);
+
+    /**
+     * Adds the given tasks and their dependencies to this graph. Tasks are executed in an arbitrary order. The tasks
+     * are executed before any tasks from a subsequent call to this method are executed.
      */
     void addTasks(Iterable<? extends Task> tasks);
 

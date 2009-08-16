@@ -16,15 +16,12 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.CircularReferenceException;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.*;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.specs.Spec;
 import static org.gradle.util.HelperUtil.*;
 import org.gradle.util.TestClosure;
 import static org.gradle.util.WrapUtil.*;
@@ -342,6 +339,37 @@ public class DefaultTaskExecuterTest {
         taskExecuter.execute();
     }
 
+    @Test
+    public void doesNotAddFilteredTasks() {
+        final Task a = createTask("a", createTask("a-dep"));
+        Task b = createTask("b");
+        Spec<Task> spec = new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return element != a;
+            }
+        };
+
+        taskExecuter.useFilter(spec);
+        taskExecuter.addTasks(toList(a, b));
+        assertThat(taskExecuter.getAllTasks(), equalTo(toList(b)));
+    }
+
+    @Test
+    public void doesNotAddFilteredDependencies() {
+        final Task a = createTask("a", createTask("a-dep"));
+        Task b = createTask("b");
+        Task c = createTask("c", a, b);
+        Spec<Task> spec = new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return element != a;
+            }
+        };
+
+        taskExecuter.useFilter(spec);
+        taskExecuter.addTasks(toList(c));
+        assertThat(taskExecuter.getAllTasks(), equalTo(toList(b, c)));
+    }
+    
     private Task createTask(String name, final Task... dependsOn) {
         final TaskInternal task = new DefaultTask(root, name);
         task.dependsOn((Object[]) dependsOn);

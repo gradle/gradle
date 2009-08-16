@@ -15,16 +15,17 @@
  */
 package org.gradle;
 
-import org.gradle.api.Task;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.initialization.*;
+import org.gradle.initialization.BuildLoader;
+import org.gradle.initialization.DefaultLoggingConfigurer;
+import org.gradle.initialization.IGradlePropertiesLoader;
+import org.gradle.initialization.SettingsHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +79,7 @@ public class Gradle {
     public BuildResult run() {
         return doBuild(new RunSpecification() {
             public void run(BuildInternal build, ProjectDescriptor rootProject) {
-                loadAndConfigureAndRun(build, rootProject, build.getStartParameter().isDryRun());
+                loadAndConfigureAndRun(build, rootProject);
             }
         });
     }
@@ -107,20 +108,9 @@ public class Gradle {
     public BuildResult getBuildAndRunAnalysis() {
         return doBuild(new RunSpecification() {
             public void run(BuildInternal build, ProjectDescriptor rootProject) {
-                loadAndConfigureAndRun(build, rootProject, true);
+                loadAndConfigureAndRun(build, rootProject);
             }
         });
-    }
-
-    private TaskExecutionListener createDisableTaskListener() {
-        return new TaskExecutionListener() {
-            public void beforeExecute(Task task) {
-                task.setEnabled(false);
-            }
-
-            public void afterExecute(Task task, Throwable failure) {
-            }
-        };
     }
 
     private BuildResult doBuild(RunSpecification runSpecification) {
@@ -142,19 +132,16 @@ public class Gradle {
         return buildResult;
     }
 
-    private void loadAndConfigureAndRun(BuildInternal build, ProjectDescriptor rootProject, boolean disableTasks) {
+    private void loadAndConfigureAndRun(BuildInternal build, ProjectDescriptor rootProject) {
         loadAndConfigure(build, rootProject);
-        if (disableTasks) {
-            build.getTaskGraph().addTaskExecutionListener(createDisableTaskListener());
-        }
         attachTaskGraphListener();
 
         // Execute build
         BuildExecuter executer = build.getStartParameter().getBuildExecuter();
 
-        executer.select(build.getDefaultProject());
+        executer.select(build);
         logger.info(String.format("Starting build for %s.", executer.getDisplayName()));
-        executer.execute(build.getTaskGraph());
+        executer.execute();
     }
 
     private void loadAndConfigure(BuildInternal build, ProjectDescriptor rootProject) {

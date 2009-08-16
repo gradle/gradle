@@ -68,4 +68,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter withTasks(List<String> names) {
         throw new UnsupportedOperationException();
     }
+
+    public GradleExecuter withDryRun() {
+        throw new UnsupportedOperationException();
+    }
 }
