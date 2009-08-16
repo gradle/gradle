@@ -44,7 +44,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final List<String> TEST_INCLUDES = WrapUtil.toList("incl");
     public static final List<String> TEST_EXCLUDES = WrapUtil.toList("excl");
 
-    abstract Compile getCompile();
+    protected abstract Compile getCompile();
 
     @Test public void testCompile() {
         Compile compile = getCompile();
@@ -82,7 +82,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.setSrcDirs(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
-        compile.existentDirsFilter = new ExistingDirsFilter(){
+        setupExistingDirsFilter(compile, new ExistingDirsFilter(){
             @Override
             public List<File> checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir,
                                                                                       Collection<File> dirFiles) {
@@ -90,7 +90,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
                 assertSame(dirFiles, compile.getSrcDirs());
                 return compile.getSrcDirs();
             }
-        };
+        });
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(TEST_TARGET_DIR);
@@ -105,6 +105,10 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
                 return new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH);
             }
         });
+    }
+
+    protected void setupExistingDirsFilter(Compile compile, ExistingDirsFilter existingDirsFilter) {
+        compile.existentDirsFilter = existingDirsFilter;
     }
 
     protected ExistingDirsFilter getGroovyCompileExistingDirsFilterMock(final Compile compile) {

@@ -1,0 +1,39 @@
+// START SNIPPET use-plugin
+usePlugin 'scala'
+// END SNIPPET use-plugin
+
+// START SNIPPET customisation
+sourceCompatibility = 1.5
+version = '1.0'
+manifest.mainAttributes(
+    'Implementation-Title': 'Gradle Quickstart',
+    'Implementation-Version': version
+)
+// END SNIPPET customisation
+
+// START SNIPPET repo
+repositories {
+    mavenRepo urls: 'http://scala-tools.org/repo-releases/'
+    mavenCentral()
+}
+// END SNIPPET repo
+
+// START SNIPPET dependencies
+dependencies {
+    // Libraries needed to run the scala tools
+    scalaTools 'org.scala-lang:scala-compiler:2.7.5'
+    scalaTools 'org.scala-lang:scala-library:2.7.5'
+
+    compile 'org.scala-lang:scala-library:2.7.5'
+    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+// END SNIPPET dependencies
+
+// START SNIPPET upload
+uploadArchives {
+    repositories {
+       flatDir(dirs: file('repos'))
+    }
+}
+// END SNIPPET upload
