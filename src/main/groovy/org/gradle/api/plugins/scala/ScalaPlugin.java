@@ -90,7 +90,6 @@ public class ScalaPlugin implements Plugin {
             }
         });
         compileTests.setDependsOn(WrapUtil.toSet(COMPILE_TASK_NAME));
-        compileTests.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         addDependsOnProjectDependencies(compileTests, TEST_COMPILE_CONFIGURATION_NAME);
     }
 

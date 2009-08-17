@@ -164,6 +164,60 @@
         </para>
     </section>
     <section>
+        <title>Skipping tasks</title>
+        <para>Gradle offers multiple ways to skip the execution of a task.</para>
+
+        <section>
+            <title>Using a predicate</title>
+            <para>You can use the <literal>onlyIf()</literal> method to attach a predicate to a task. The task's
+                actions are only executed if the predicate evaluates to true. You implement the predicate as a closure.
+                The closure is passed the task as a parameter, and should return true if the task should execute
+                and false if the task should be skipped. The predicate is evaluated just before the task is due
+                to be executed.
+                </para>
+            <sample id="taskOnlyIf" dir="userguide/tutorial/taskOnlyIf" title="Skipping a task using a predicate">
+                <sourcefile file="build.gradle"/>
+                <output args="hello -PskipHello"/>
+            </sample>
+        </section>
+
+        <section>
+        <title>Using StopExecutionException</title>
+        <para>If the rules for skipping a task can't be expressed with predicate, you can use the
+            <apilink class="org.gradle.api.tasks.StopExecutionException"/>. If this exception is thrown by an action,
+            the further execution of this action as well as the execution of
+            any following action of this task is skipped. The build continues with executing the next task.
+        </para>
+        <sample id="stopExecutionException" dir="userguide/tutorial/stopExecutionException" title="Skipping tasks with StopExecutionException">
+            <sourcefile file="build.gradle"/>
+            <output args="-q myTask"/>
+        </sample>
+        <para>This feature is helpful if you work with tasks provided by Gradle. It allows you to add
+            <emphasis>conditional</emphasis> execution of the built-in actions of such a task.
+            <footnote>
+                <para>You might be wondering why there is neither an import for the
+                    <literal>StopExecutionException</literal>
+                    nor do we access it via its fully qualified name. The reason is, that Gradle adds a set of default imports
+                    to your script. These imports are customizable (see <xref linkend='ide_support'/>).
+                </para>
+            </footnote>
+        </para>
+        </section>
+
+        <section>
+        <title>Enabling and disabling tasks</title>
+        <para>Every task has also an <literal>enabled</literal>
+            flag which defaults to <literal>true</literal>. Setting it to <literal>false</literal> prevents the
+            execution of any of the task's actions.
+        </para>
+        <sample id="disableTask" dir="userguide/tutorial/disableTask" title="Enabling and disabling tasks">
+            <sourcefile file="build.gradle"/>
+            <output args="disableMe"/>
+        </sample>
+        </section>
+    </section>
+    
+    <section>
         <title>Task rules</title>
         <para>Sometimes you want to have a task which behavior depends on a large or infinite number value range
             of parameters. A very nice and expressive way to provide such tasks are task rules: 

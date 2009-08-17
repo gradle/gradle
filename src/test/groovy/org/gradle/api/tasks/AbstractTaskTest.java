@@ -78,7 +78,6 @@ public abstract class AbstractTaskTest {
         assertEquals(TEST_TASK_NAME, getTask().getName());
         assertNull(getTask().getDescription());
         assertSame(project, getTask().getProject());
-        assertNotNull(getTask().getSkipProperties());
         assertEquals(new DefaultStandardOutputCapture(true, LogLevel.QUIET), getTask().getStandardOutputCapture());
         assertEquals(new HashMap(), getTask().getAdditionalProperties());
     }
@@ -341,60 +340,6 @@ public abstract class AbstractTaskTest {
         getTask().setEnabled(false);
         getTask().execute();
         assert getTask().isExecuted();
-    }
-
-    @Test
-    public void testSkipProperties() {
-        getTask().setActions(new ArrayList());
-        getTask().setSkipProperties(WrapUtil.toList("prop1"));
-        final List<Boolean> actionsCalled = WrapUtil.toList(false);
-        TaskAction action1 = new TaskAction() {
-            public void execute(Task task) {
-                actionsCalled.set(0, true);
-            }
-        };
-        getTask().doFirst(action1);
-        System.setProperty(getTask().getSkipProperties().get(0), "true");
-        getTask().execute();
-        assertFalse(actionsCalled.get(0));
-        assertTrue(getTask().isExecuted());
-
-        System.setProperty(getTask().getSkipProperties().get(0), "");
-        getTask().setExecuted(false);
-        getTask().execute();
-        assertFalse(actionsCalled.get(0));
-        assertTrue(getTask().isExecuted());
-
-        System.setProperty(getTask().getSkipProperties().get(0), "false");
-        getTask().setExecuted(false);
-        getTask().execute();
-        assertTrue(actionsCalled.get(0));
-        assertTrue(getTask().isExecuted());
-        System.getProperties().remove(getTask().getSkipProperties().get(0));
-    }
-
-    @Test
-    public void testAutoSkipProperties() {
-        getTask().setActions(new ArrayList());
-        final List<Boolean> actionsCalled = WrapUtil.toList(false);
-        TaskAction action1 = new TaskAction() {
-            public void execute(Task task) {
-                actionsCalled.set(0, true);
-            }
-        };
-        getTask().doFirst(action1);
-
-        System.setProperty("skip." + getTask().getName(), "true");
-        getTask().execute();
-        assertFalse(actionsCalled.get(0));
-        assertTrue(getTask().isExecuted());
-
-        System.setProperty("skip." + getTask().getName(), "false");
-        getTask().setExecuted(false);
-        getTask().execute();
-        assertTrue(actionsCalled.get(0));
-        assertTrue(getTask().isExecuted());
-        System.getProperties().remove("skip." + getTask().getName());
     }
 
     public AbstractProject getProject() {

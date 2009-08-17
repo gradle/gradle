@@ -1,9 +1,7 @@
 :compile
 compiling source
-:libs
-building libs
-:test
-running tests
+:dist
+building the distribution
 
 BUILD SUCCESSFUL
 

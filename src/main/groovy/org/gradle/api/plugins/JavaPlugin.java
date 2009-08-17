@@ -97,7 +97,7 @@ public class JavaPlugin implements Plugin {
 
     private void configureTestCompile(Project project) {
         configureCompileTests(project.getTasks().add(COMPILE_TESTS_TASK_NAME, Compile.class),
-                (Compile) project.getTasks().getByName(COMPILE_TASK_NAME), DefaultConventionsToPropertiesMapping.TEST_COMPILE,
+                DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations()).setDescription("Compiles the Java test source code.");
     }
 
@@ -133,7 +133,6 @@ public class JavaPlugin implements Plugin {
 
     private void configureProcessTestResources(Project project) {
         ConventionTask processTestResources = project.getTasks().add(PROCESS_TEST_RESOURCES_TASK_NAME, Copy.class);
-        processTestResources.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         processTestResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
         processTestResources.setDescription(
                 "Process and copy the test resources into the binary directory of the compiled test sources.");
@@ -262,9 +261,8 @@ public class JavaPlugin implements Plugin {
         configurations.add(DISTS_CONFIGURATION_NAME);
     }
 
-    protected Compile configureCompileTests(Compile compileTests, final Compile compile, Map propertyMapping, ConfigurationContainer configurations) {
+    protected Compile configureCompileTests(Compile compileTests, Map propertyMapping, ConfigurationContainer configurations) {
         compileTests.setDependsOn(WrapUtil.toSet(COMPILE_TASK_NAME));
-        compileTests.getSkipProperties().add(Task.AUTOSKIP_PROPERTY_PREFIX + TEST_TASK_NAME);
         configureCompileInternal(compileTests, propertyMapping);
         compileTests.setClasspath(configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME));
         addDependsOnProjectBuildDependencies(compileTests, TEST_COMPILE_CONFIGURATION_NAME);

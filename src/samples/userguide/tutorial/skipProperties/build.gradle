@@ -1,4 +1,0 @@
-task skipMe << {
-    println 'This should not be printed if the mySkipProperty system property is set to true.'
-}
-skipMe.skipProperties << 'mySkipProperty'

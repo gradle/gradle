@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.IConventionAware;
 import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -93,7 +92,6 @@ public class GroovyPlugin implements Plugin {
     private void configureTestCompile(JavaPlugin javaPlugin, Project project) {
         GroovyCompile compileTests = (GroovyCompile) javaPlugin.configureCompileTests(
                 project.getTasks().replace(COMPILE_TESTS_TASK_NAME, GroovyCompile.class),
-                (Compile) project.getTasks().getByName(COMPILE_TASK_NAME),
                 DefaultConventionsToPropertiesMapping.TEST_COMPILE,
                 project.getConfigurations());
         compileTests.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));

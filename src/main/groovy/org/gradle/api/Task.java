@@ -319,16 +319,6 @@ public interface Task extends Comparable<Task> {
     Task configure(Closure configureClosure);
 
     /**
-     * <p>Returns the list of skip properties. The returned list can be used to add further skip properties. If a system
-     * property with the same key as one of the skip properties is set to a value different than <i>false</i>, none of
-     * the task actions are executed. It has the same effect as disabling the task. Therefore when starting gradle it is
-     * enough to say <code>gradle -Dskip.test</code> to skip a task. You may, but don't need to assign a value.</p>
-     *
-     * @return List of skip properties. Returns empty list when no skip properties are assigned.
-     */
-    List<String> getSkipProperties();
-
-    /**
      * <p>Returns the <code>AntBuilder</code> for this task.  You can use this in your build file to execute ant
      * tasks.</p>
      *

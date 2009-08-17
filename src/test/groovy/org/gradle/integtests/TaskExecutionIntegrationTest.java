@@ -178,12 +178,16 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "task b(dependsOn: a) << { fail() }",
                 "defaultTasks 'b'"
         );
+
+        // project defaults
         usingBuildFile(buildFile).withDryRun().run().assertTasksExecuted(":a", ":b");
+        // named tasks
         usingBuildFile(buildFile).withDryRun().withTasks("b").run().assertTasksExecuted(":a", ":b");
     }
 
     @Test
     public void excludesTasksWhenExcludePatternSpecified() {
+        testFile("settings.gradle").write("include 'sub'");
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "task a",
@@ -192,10 +196,23 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "task d(dependsOn: c)",
                 "defaultTasks 'd'"
         );
-        usingBuildFile(buildFile).withTasks("d", "!c").run().assertTasksExecuted(":d");
-        usingBuildFile(buildFile).withTasks("d", "!b").run().assertTasksExecuted(":a", ":c", ":d");
-        usingBuildFile(buildFile).withTasks("d", "!d").run().assertTasksExecuted();
-        usingBuildFile(buildFile).withTasks("!b").run().assertTasksExecuted(":a", ":c", ":d");
-        usingBuildFile(buildFile).withTasks("d", "!unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"));
+        testFile("sub/build.gradle").writelns(
+                "task c",
+                "task d(dependsOn: c)"
+        );
+
+        // Exclude entire branch
+        usingBuildFile(buildFile).withTasks(":d", "^c").run().assertTasksExecuted(":d");
+        // Exclude direct dependency
+        usingBuildFile(buildFile).withTasks(":d", "^b").run().assertTasksExecuted(":a", ":c", ":d");
+        // Exclude using paths and multi-project
+        usingBuildFile(buildFile).withTasks("d", "^c").run().assertTasksExecuted(":d", ":sub:d");
+        usingBuildFile(buildFile).withTasks("d", "^sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d");
+        usingBuildFile(buildFile).withTasks("d", "^:sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d");
+        usingBuildFile(buildFile).withTasks("d", "^d").run().assertTasksExecuted();
+        // Project defaults
+        usingBuildFile(buildFile).withTasks("^b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d");
+        // Unknown task
+        usingBuildFile(buildFile).withTasks("d", "^unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"));
     }
 }

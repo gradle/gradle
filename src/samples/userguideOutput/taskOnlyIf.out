@@ -1,4 +1,4 @@
-:autoskip SKIPPED
+:hello SKIPPED as onlyIf is false
 
 BUILD SUCCESSFUL
 

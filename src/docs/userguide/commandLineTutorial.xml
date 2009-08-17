@@ -26,11 +26,11 @@
             regardless of why it is included in the build: whether it was specified on the command-line, or it a
             dependency of another task, or both. Let's look at an example.</para>
             <para>Below three tasks are defined. Both <literal>libs</literal> and <literal>test</literal> depend on <literal>compile</literal>
-            task. Execution of <userinput>gradle -q libs test</userinput> command for this build script results in <literal>compile</literal>
+            task. Execution of <userinput>gradle libs test</userinput> command for this build script results in <literal>compile</literal>
             task being executed only once.</para> 
         <sample id="multipleTasksFromCommandLine" dir="userguide/tutorial/multipleTasksFromCommandLine" title="Executing multiple tasks">
             <sourcefile file="build.gradle"/>
-            <output args="-q libs test"/>
+            <output args="libs test"/>
         </sample>
         <para>Because each task is executed once only, executing <userinput>gradle libs libs</userinput> is exactly the same
         as executing <userinput>gradle libs</userinput>.</para>
@@ -41,13 +41,14 @@
         <para>When you run the <command>gradle</command> command, it looks for a build file in the current directory.
             You can use the <option>-b</option> option to select another build file. For example:
         </para>
-        <screen>
-> gradle -b subproject/build.gradle
-        </screen>
+        <sample id="selectProjectUsingBuildFile" dir="userguide/tutorial/selectProject" title="Selecting the project using a build file">
+            <sourcefile file="subdir/myproject.gradle"/>
+            <output args="-q -b subdir/myproject.gradle hello"/>
+        </sample>
         <para>Alternatively, you can use the <option>-p</option> option to specify the project directory to use:</para>
-        <screen>
-> gradle -p subproject
-        </screen>
+        <sample id="selectProjectUsingProjectDir" dir="userguide/tutorial/selectProject" title="Selecting the project using project directory">
+            <output args="-q -p subdir hello"/>
+        </sample>
     </section>
 
     <section>
@@ -81,7 +82,22 @@
             number of reporting tasks to your project.
         </para>
     </section>
-    
+
+    <section id="sec:excluding_tasks_from_the_command_line">
+        <title>Excluding tasks</title>
+        <para>You can exclude a task from being executed by listing the task on the command-line, prefixed by a
+            <literal>^</literal> character. For example, <literal>^test</literal> will exclude the
+            <literal>test</literal> task.</para>
+        <para>Let's look at an example. The build file below defines </para>
+        <sample id="excludeTask" dir="userguide/tutorial/excludeTasks" title="Excluding tasks">
+            <sourcefile file="build.gradle"/>
+            <output args="dist ^test"/>
+        </sample>
+        <para>You can see from the output of this example, that the <literal>test</literal> task is not executed. Notice
+            that the <literal>test</literal> task's dependencies, such as <literal>compileTests</literal> are not
+            executed either, unless they are required by another task.</para>
+    </section>
+
     <section>
         <title>Dry Run</title>
         <para>Sometimes you are interested in which tasks are executed in which order for a given set of tasks specified on the

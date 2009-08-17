@@ -1,7 +1,0 @@
-task autoskip << {
-    println 'This should not be printed if the skip.autoskip system property is set.'
-}
-task depends(dependsOn: autoskip) << {
-    println "This should not be printed if the skip.autoskip system property is set."
-}
-depends.skipProperties << 'skip.autoskip'

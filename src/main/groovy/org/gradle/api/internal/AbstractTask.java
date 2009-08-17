@@ -49,8 +49,6 @@ public abstract class AbstractTask implements TaskInternal {
 
     private List<TaskAction> actions = new ArrayList<TaskAction>();
 
-    private List<String> skipProperties = new ArrayList<String>();
-
     private boolean executing;
 
     private boolean executed;
@@ -113,14 +111,6 @@ public abstract class AbstractTask implements TaskInternal {
 
     public void setActions(List<TaskAction> actions) {
         this.actions = actions;
-    }
-
-    public List<String> getSkipProperties() {
-        return skipProperties;
-    }
-
-    public void setSkipProperties(List<String> skipProperties) {
-        this.skipProperties = skipProperties;
     }
 
     public TaskDependency getTaskDependencies() {
@@ -224,23 +214,8 @@ public abstract class AbstractTask implements TaskInternal {
     }
 
     private boolean isSkipped() {
-        List trueSkips = new ArrayList();
-        if (enabled) {
-            List<String> allSkipProperties = new ArrayList<String>(skipProperties);
-            allSkipProperties.add(Task.AUTOSKIP_PROPERTY_PREFIX + name);
-            for (String skipProperty : allSkipProperties) {
-                String propValue = System.getProperty(skipProperty);
-                if (propValue != null && !(propValue.toUpperCase().equals("FALSE"))) {
-                    trueSkips.add(skipProperty);
-                }
-            }
-            if (trueSkips.size() > 0) {
-                logger.info("Skipping execution as following skip properties are true: " + trueSkips);
-            }
-        } else {
+        if (!enabled) {
             logger.info("Skipping execution as task is disabled.");
-        }
-        if (!enabled || trueSkips.size() > 0) {
             logger.lifecycle("{} SKIPPED", path);
             return true;
         }

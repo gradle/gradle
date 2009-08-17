@@ -1,0 +1,15 @@
+task compile << {
+    println "compiling source"
+}
+
+task compileTests(dependsOn: compile) << {
+    println "compiling tests"
+}
+
+task test(dependsOn: [compile, compileTests]) << {
+    println "running unit tests"
+}
+
+task dist(dependsOn: [compile, test]) << {
+    println "building the distribution"
+}
