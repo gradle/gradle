@@ -37,14 +37,15 @@ public class DefaultOutputHistoryReaderTest {
     
     private DefaultOutputHistoryReader outputHistoryReader = new DefaultOutputHistoryReader();
     private Project projectStub = context.mock(Project.class);
-    private static final String HISTORY_FILE_PATH = OutputHistoryWriter.HISTORY_DIR_NAME + "/" + ":someProjectPath:someTaskName";
+    private static final String TASK_PATH = ":someProjectPath:someTaskName";
+    private static final String HISTORY_FILE_PATH = OutputHistoryWriter.HISTORY_DIR_NAME + "/" + TASK_PATH;
     private File historyDir = HelperUtil.makeNewTestDir();
 
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
             allowing(taskStub).getPath();
-            will(returnValue(HISTORY_FILE_PATH));
+            will(returnValue(TASK_PATH));
             allowing(taskStub).getProject();
             will(returnValue(projectStub));
             allowing(projectStub).getBuildDir();

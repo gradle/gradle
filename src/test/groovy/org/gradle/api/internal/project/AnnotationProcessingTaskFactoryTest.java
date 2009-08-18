@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskAction;
 import static org.gradle.util.Matchers.*;
+import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -162,6 +163,7 @@ public class AnnotationProcessingTaskFactoryTest {
         final Runnable action;
 
         public TestTask(Runnable action) {
+            super(HelperUtil.createRootProject(), "someName");
             this.action = action;
         }
 
@@ -181,6 +183,7 @@ public class AnnotationProcessingTaskFactoryTest {
         private final Runnable action;
 
         public TaskWithProtectedMethod(Runnable action) {
+            super(HelperUtil.createRootProject(), "someName");
             this.action = action;
         }
 
