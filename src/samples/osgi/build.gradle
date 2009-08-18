@@ -1,12 +1,23 @@
-group = 'gradle'
+group = 'gradle_tooling'
 version = '1.0'
-usePlugin('java')
-usePlugin('osgi')
+
+usePlugin 'groovy'
+usePlugin 'osgi'
 
 repositories {
-    flatDir(dirs: "$rootDir/lib")
+    mavenRepo(urls: 'http://repository.jboss.org/maven2/')
 }
 
 dependencies {
-    compile ":somestuff:1.0@tar.gz"
+    groovy group: 'org.codehaus.groovy', name: 'groovy-all', version: '1.6.0'
+    compile( 'org.eclipse:osgi:3.4.3.R34x_v20081215-1030' )
+}
+
+
+configure(jar.osgi) {
+    version = '1.0'
+    name = 'Example Gradle Activator'
+    instruction 'Bundle-Activator', 'org.gradle.GradleActivator'
+    instruction 'Import-Package', '*'
+    instruction 'Export-Package', '*'
 }
