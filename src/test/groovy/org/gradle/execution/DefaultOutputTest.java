@@ -15,14 +15,13 @@
  */
 package org.gradle.execution;
 
-import static org.hamcrest.Matchers.equalTo;
+import org.gradle.api.Task;
 import org.hamcrest.Matchers;
-import static org.junit.Assert.assertThat;
-import org.junit.Test;
+import static org.hamcrest.Matchers.equalTo;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.gradle.api.Task;
-import static org.gradle.util.WrapUtil.toList;
+import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 /**
  * @author Hans Dockter

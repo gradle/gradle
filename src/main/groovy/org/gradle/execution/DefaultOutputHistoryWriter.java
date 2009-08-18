@@ -25,11 +25,16 @@ import java.io.File;
  */
 public class DefaultOutputHistoryWriter implements OutputHistoryWriter {
     public void taskSuccessfullyExecuted(Task task) {
-        GFileUtils.writeStringToFile(new File(task.getProject().getBuildDir(), OutputHistoryWriter.HISTORY_DIR_NAME + "/" +
-                task.getPath()), "" + System.currentTimeMillis());
+        File historyFile = createHistoryFile(task);
+        GFileUtils.writeStringToFile(historyFile, "" + System.currentTimeMillis());
     }
 
     public void taskFailed(Task task) {
-        new File(task.getProject().getBuildDir(), task.getPath()).delete();
+        createHistoryFile(task).delete();
+    }
+
+    private File createHistoryFile(Task task) {
+        return new File(task.getProject().getBuildDir(), OutputHistoryWriter.HISTORY_DIR_NAME + "/" +
+                task.getPath());
     }
 }

@@ -15,8 +15,6 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.Task;
-
 /**
  * @author Hans Dockter
  */
