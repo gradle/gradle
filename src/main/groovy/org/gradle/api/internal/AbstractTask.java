@@ -30,6 +30,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.execution.OutputHandler;
+import org.gradle.execution.DefaultOutputHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,19 +72,21 @@ public abstract class AbstractTask implements TaskInternal {
 
     private Spec<? super Task> onlyIfSpec;
 
+    private OutputHandler outputHandler;
+
     protected AbstractTask() {
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(new DefaultConvention());
+        outputHandler = new DefaultOutputHandler(this);
     }
 
     public AbstractTask(Project project, String name) {
+        this();
         assert project != null;
         assert name != null;
         this.project = (ProjectInternal) project;
         this.name = name;
         path = project.absolutePath(name);
-        dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new DefaultConvention());
     }
 
     public AntBuilder getAnt() {
@@ -133,6 +137,10 @@ public abstract class AbstractTask implements TaskInternal {
         this.onlyIfSpec = onlyIfSpec;
     }
 
+    public OutputHandler getOutput() {
+        return outputHandler;
+    }
+
     public boolean isExecuted() {
         return executed;
     }
@@ -173,6 +181,10 @@ public abstract class AbstractTask implements TaskInternal {
         return path;
     }
 
+    public void setOutputHandler(OutputHandler outputHandler) {
+        this.outputHandler = outputHandler;
+    }
+
     public Task deleteAllActions() {
         actions = new ArrayList<TaskAction>();
         return this;
@@ -200,9 +212,11 @@ public abstract class AbstractTask implements TaskInternal {
                     } catch (Throwable t) {
                         executing = false;
                         standardOutputCapture.stop();
+                        outputHandler.writeHistory(false);
                         throw new GradleScriptException(String.format("Execution failed for %s.", this), t, project.getBuildScriptSource());
                     }
                 }
+                outputHandler.writeHistory(true);
                 standardOutputCapture.stop();
             } else {
                 logger.lifecycle("{} SKIPPED as onlyIf is false", path);

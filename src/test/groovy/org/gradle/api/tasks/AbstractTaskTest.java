@@ -30,7 +30,9 @@ import org.gradle.test.util.Check;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
+import org.gradle.execution.OutputHandler;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -78,6 +80,7 @@ public abstract class AbstractTaskTest {
         assertEquals(TEST_TASK_NAME, getTask().getName());
         assertNull(getTask().getDescription());
         assertSame(project, getTask().getProject());
+        assertNotNull(getTask().getOutput());
         assertEquals(new DefaultStandardOutputCapture(true, LogLevel.QUIET), getTask().getStandardOutputCapture());
         assertEquals(new HashMap(), getTask().getAdditionalProperties());
     }
@@ -175,10 +178,13 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testBasicExecute() {
+        final OutputHandler outputMockHandler = context.mock(OutputHandler.class);
+        getTask().setOutputHandler(outputMockHandler);
         final Sequence captureOutput = context.sequence("captureOutput");
         final StandardOutputCapture standardOutputCaptureMock = context.mock(StandardOutputCapture.class);
         getTask().setStandardOutputCapture(standardOutputCaptureMock);
         context.checking(new Expectations() {{
+            one(outputMockHandler).writeHistory(true);
             one(standardOutputCaptureMock).start(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
             one(standardOutputCaptureMock).stop(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
         }});
@@ -205,11 +211,14 @@ public abstract class AbstractTaskTest {
     }
 
     @Test
-    public void testCaptureOutputWithException() {
+    public void testExecutionWithException() {
+        final OutputHandler outputMockHandler = context.mock(OutputHandler.class);
+        getTask().setOutputHandler(outputMockHandler);
         final Sequence captureOutput = context.sequence("captureOutput");
         final StandardOutputCapture standardOutputCaptureMock = context.mock(StandardOutputCapture.class);
         getTask().setStandardOutputCapture(standardOutputCaptureMock);
         context.checking(new Expectations() {{
+            one(outputMockHandler).writeHistory(false);
             one(standardOutputCaptureMock).start(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
             one(standardOutputCaptureMock).stop(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
         }});
