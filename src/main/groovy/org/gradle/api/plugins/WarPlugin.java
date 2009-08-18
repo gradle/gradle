@@ -36,7 +36,6 @@ import org.gradle.api.tasks.bundling.War;
 public class WarPlugin implements Plugin {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
-    public static final String ECLIPSE_WTP_TASK_NAME = "eclipseWtp";
     public static final String WAR_TASK_NAME = "war";
 
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {

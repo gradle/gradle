@@ -93,7 +93,7 @@ public class JettyPlugin implements Plugin {
     private void configureJettyRun(final Project project) {
         project.getTasks().withType(JettyRun.class).whenTaskAdded(new Action<JettyRun>() {
             public void execute(JettyRun jettyRun) {
-                jettyRun.dependsOn(JavaPlugin.COMPILE_TESTS_TASK_NAME);
+                jettyRun.dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME);
                 jettyRun.setConfiguration(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME));
                 jettyRun.getConventionMapping().put("webXml", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
