@@ -303,7 +303,6 @@ task retroTranslateLibs(dependsOn: explodedDist) << {
 }
 retroTranslateLibs {
     enabled = project.hasProperty('gradle_retroLibsDir')
-    skipProperties << 'skip.archive_all-jdk14_zip'
 }
 
 void retroExe(File file, Closure fileSet) {
@@ -456,7 +455,6 @@ userguideSrc.doFirst {
     userguideSrc.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
     userguideSrc.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
 }
-userguideSrc.skipProperties << 'skip.userguide'
 
 task userguideStyleSheets << {
     ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
@@ -468,7 +466,6 @@ task userguideStyleSheets << {
         include '*.xsl'
     }
 }
-userguideStyleSheets.skipProperties << 'skip.userguide'
 
 task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
@@ -488,7 +485,6 @@ task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
         include 'style.css'
     }
 }
-userguideHtml.skipProperties << 'skip.userguide'
 
 task userguideSingleHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     userguideSingleHtmlFile.parentFile.mkdirs()
@@ -511,7 +507,6 @@ task userguideSingleHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
         include 'style.css'
     }
 }
-userguideSingleHtml.skipProperties << 'skip.userguide'
 
 task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     File pdfSourceHtml = new File(docbookSrc, 'userguidePdf.html')
@@ -548,7 +543,6 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
         renderer.createPDF(it)
     }
 }
-userguidePdf.skipProperties << 'skip.userguide'
 
 task uploadDocs(dependsOn: [userguide, javadoc, groovydoc]) << {
     ftp(action: 'mkdir', remotedir: docsRemoteDir)
