@@ -22,7 +22,7 @@
             the tasks that the Java plugin has added to your project.
         </para></tip>
         <para>Executing
-            <userinput>gradle libs</userinput> will compile, test and jar your code. Gradle looks for your
+            <userinput>gradle build</userinput> will compile, test and jar your code. Gradle looks for your
             production source code under <filename>src/main/java</filename> and your test source code under
             <filename>src/test/java</filename>. In addition, any files under <filename>src/main/resources</filename>
             will be included in the JAR file as resources, and any files under <filename>src/test/resources</filename>
@@ -155,7 +155,7 @@
 
             <para>Notice that our sample applies the Java plugin to each subproject. This means the tasks and
                 configuration properties we have seen in the previous section are available in each subproject.
-                So, you can compile, test, and JAR all the projects by running <userinput>gradle libs</userinput> from
+                So, you can compile, test, and JAR all the projects by running <userinput>gradle build</userinput> from
                 the root project directory.</para>
         </section>
 

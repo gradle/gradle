@@ -47,7 +47,7 @@
         <sample id="groovyQuickstart" dir="groovy/quickstart" title="Groovy example - complete build file">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>Running <userinput>gradle libs</userinput> will compile, test and JAR your project.</para>
+        <para>Running <userinput>gradle build</userinput> will compile, test and JAR your project.</para>
     </section>
 
     <section>

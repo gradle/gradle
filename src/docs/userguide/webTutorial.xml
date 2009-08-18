@@ -32,7 +32,7 @@
         <sample id="webQuickstart" dir="webApplication/quickstart" includeLocation="true" title="War plugin">
             <sourcefile file="build.gradle" snippet="use-war-plugin"/>
         </sample>
-        <para>This also applies the Java plugin to your project. Running <userinput>gradle libs</userinput> will compile,
+        <para>This also applies the Java plugin to your project. Running <userinput>gradle build</userinput> will compile,
             test and WAR your project. Gradle will look for the source files to include in the WAR file in
             <filename>src/main/webapp</filename>. Your compiled classes, and their runtime dependencies are also
             included in the WAR file.
