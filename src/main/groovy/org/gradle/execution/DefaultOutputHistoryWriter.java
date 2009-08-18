@@ -35,6 +35,6 @@ public class DefaultOutputHistoryWriter implements OutputHistoryWriter {
 
     private File createHistoryFile(Task task) {
         return new File(task.getProject().getBuildDir(), OutputHistoryWriter.HISTORY_DIR_NAME + "/" +
-                task.getPath());
+                HistoryPathConverter.convertTaskPath(task.getPath()));
     }
 }

@@ -40,7 +40,8 @@ public class DefaultOutputHistoryWriterTest {
     private Task taskStub = context.mock(Task.class);
     private Project projectStub = context.mock(Project.class);
     private static final String TASK_PATH = ":someProjectPath:someTaskName";
-    private static final String HISTORY_FILE_PATH = OutputHistoryWriter.HISTORY_DIR_NAME + "/" + TASK_PATH;
+    private static final String CONVERTED_TASK_PATH = TASK_PATH.replace(":", "/");
+    private static final String HISTORY_FILE_PATH = OutputHistoryWriter.HISTORY_DIR_NAME + "/" + CONVERTED_TASK_PATH;
 
     @Before
     public void setUp() {

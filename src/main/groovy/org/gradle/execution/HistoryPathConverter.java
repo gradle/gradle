@@ -15,22 +15,11 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.Task;
-import org.gradle.util.GFileUtils;
-
-import java.io.File;
-
 /**
  * @author Hans Dockter
  */
-public class DefaultOutputHistoryReader implements OutputHistoryReader {
-    public OutputHistory readHistory(Task task) {
-        File historyFile = new File(task.getProject().getBuildDir(), OutputHistoryWriter.HISTORY_DIR_NAME + "/" +
-                HistoryPathConverter.convertTaskPath(task.getPath()));
-        if (historyFile.isFile()) {
-            long timestamp = Long.parseLong(GFileUtils.readFileToString(historyFile));
-            return new DefaultOutputHistory(true, timestamp);
-        }
-        return new DefaultOutputHistory();
+public class HistoryPathConverter {
+    static String convertTaskPath(String taskPath) {
+        return taskPath.replace(":", "/");
     }
 }
