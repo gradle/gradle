@@ -32,8 +32,8 @@ public class DefaultBuildExecuter extends DelegatingBuildExecuter {
     public DefaultBuildExecuter(Collection<String> names) {
         List<String> taskNames = new ArrayList<String>();
         for (String taskName : names) {
-            if (taskName.startsWith("^")) {
-                excludedTaskNames.add(taskName.substring(1));
+            if (taskName.endsWith("-")) {
+                excludedTaskNames.add(taskName.substring(0, taskName.length() - 1));
             } else {
                 taskNames.add(taskName);
             }
