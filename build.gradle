@@ -205,18 +205,8 @@ processResources.doLast {
 [compile, compileTests]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 checkstyleConfigDir = "$projectDir/config/checkstyle"
-checkstyleFilteredConfigDir = new File(checkstyleResultFile.parentFile, "filteredConfig")
-checkstyleConfigFileName = new File(checkstyleFilteredConfigDir, "checkstyle.xml")
-task checkstyleFilter << {
-    ant.mkdir dir: checkstyleFilteredConfigDir
-    copy {
-        from "$checkstyleConfigDir/checkstyle.xml"
-        filter(ReplaceTokens, tokens: [checkstyleConfigDir: checkstyleConfigDir as String])
-        into checkstyleFilteredConfigDir
-    }
-}
-
-[checkstyle, checkstyleTests]*.dependsOn checkstyleFilter
+checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
+[checkstyle, checkstyleTests].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
@@ -244,10 +234,9 @@ explodedDistLibDir = new File(explodedDistDir, 'lib')
 samplesSrcDir = new File(srcRoot, 'samples')
 userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
 
-task explodedDistBase(dependsOn: [libs, javadoc, groovydoc]) << {
-    [explodedDistDir, explodedDistSamplesDir, explodedDistLibDir]*.mkdirs()
+task explodedDistBase(dependsOn: libs, description: 'Builds a minimal distribution image') << {
+    [explodedDistDir, explodedDistLibDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
-    File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
 
     ant {
         logger.info('Generate lib dir')
@@ -260,13 +249,6 @@ task explodedDistBase(dependsOn: [libs, javadoc, groovydoc]) << {
         copy(file: wrapperJar.archivePath, toDir: explodedDistLibDir)
         logger.info('Generate start scripts')
         StartScriptsGenerator.generate("$archivesBaseName-${version}.jar", explodedDistBinDir, archivesBaseName)
-        logger.info('Generate and copy samples.')
-        WrapperProjectCreator.createProject(explodedDistSamplesDir, binZip.archivePath.parentFile,
-                version.toString())
-        logger.info('Copy binary sources.')
-        copy(toDir: explodedDistSrcDir) {
-            (srcDirs + resourceDirs + groovySrcDirs).findAll {it.isDirectory()}.each {dir -> fileset(dir: dir)}
-        }
         logger.info('Copy and generate top level files.')
         copy(toDir: explodedDistDir) {fileset(dir: new File(srcRoot, 'toplevel'))}
         // Set permissions (important for running integration tests against the exploded dist)
@@ -274,7 +256,16 @@ task explodedDistBase(dependsOn: [libs, javadoc, groovydoc]) << {
     }
 }
 
-task explodedDist(dependsOn: [explodedDistBase, 'userguide', 'distDocs'])
+task docs(dependsOn: [javadoc, groovydoc, 'userguide', 'distDocs'])
+
+task explodedDist(dependsOn: [explodedDistBase, docs, 'samples'], description: 'Builds a complete distribution image') << {
+    logger.info('Copy binary sources.')
+    File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
+    copy {
+        into explodedDistSrcDir
+        from srcDirs, resourceDirs, groovySrcDirs
+    }
+}
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 
@@ -442,6 +433,8 @@ samples << {
         into explodedDistSamplesDir
         include 'userguide/tutorial/antChecksumFiles/**'
     }
+    WrapperProjectCreator.createProject(explodedDistSamplesDir, binZip.archivePath.parentFile,
+            version.toString())
 }
 
 task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
@@ -640,9 +633,11 @@ integTest.doFirst {
     }
 }
 
-task nightlyBuild(dependsOn: [integTest, uploadDocs])
+task testedDists(dependsOn: [dists, check, test, integTest])
 
-task install(dependsOn: integTest, description: 'Installs the distribution into directory $gradle_installPath') << {
+task nightlyBuild(dependsOn: [testedDists, uploadDocs])
+
+task install(dependsOn: binZip, description: 'Installs the distribution into directory $gradle_installPath') << {
     ant.delete(dir: installDir)
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
         windowsInstall()
@@ -685,7 +680,7 @@ void asternixInstall() {
 }
 
 uploadDists {
-    dependsOn 'integTest'
+    dependsOn testedDists
 }.doFirst {
     it.repositories.add(new WebdavResolver()) {
         name = 'gradleReleases'
@@ -702,7 +697,7 @@ build.taskGraph.whenReady {graph ->
     }
 }
 
-task developerBuild(dependsOn: [clean, integTest])
+task developerBuild(dependsOn: [clean, testedDists])
 
 task ide << {
     def libDir = file('lib')
