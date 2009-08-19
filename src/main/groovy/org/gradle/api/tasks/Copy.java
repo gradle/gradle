@@ -264,4 +264,11 @@ public class Copy extends ConventionTask implements CopyAction {
     public CopySpec filter(Class<FilterReader> filterType) {
         return copyAction.filter(filterType);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CopySpec filter(Closure closure) {
+        return copyAction.filter(closure);
+    }
 }

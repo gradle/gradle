@@ -20,26 +20,47 @@ import java.io.Reader;
 import java.io.StringReader;
 
 public class FilterChain extends FilterReader {
-    private FilterReader tail;
+    private ChainableFilterReader input;
+    private Reader tail;
 
     protected FilterChain() {
         super(new StringReader(""));
-        tail = this;
+        input = new ChainableFilterReader();
+        in = tail = input;
     }
 
-    public void setHead(Reader in) {
-        this.in = in;
+    public void setInputSource(Reader in) {
+        input.setInput(in);
     }
 
-    public void setChain(FilterReader chain) {
-        this.tail = chain;
-    }
-
-    public FilterReader getChain() {
+    public Reader getLastFilter() {
         return tail;
     }
 
-    public boolean hasChain() {
-        return tail != this;
+    public void addFilter(Reader newFilter) {
+        tail = newFilter;
+        in = tail;
     }
+
+    public boolean hasFilters() {
+        if (tail != input) {
+            return true;
+        } else {
+            Reader mySource = input.getInput();
+            if (mySource instanceof FilterChain) {
+                return ((FilterChain)mySource).hasFilters();
+            }
+        }
+        return false;
+    }
+
+    public FilterChain findFirstFilterChain() {
+        Reader myInput = input.getInput();
+        if (myInput instanceof FilterChain) {
+            return ((FilterChain)myInput).findFirstFilterChain();
+        } else {
+            return this;
+        }
+    }
+
 }

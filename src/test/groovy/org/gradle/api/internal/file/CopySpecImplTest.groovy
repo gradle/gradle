@@ -113,13 +113,13 @@ public class CopySpecImplTest {
 
     @Test public void testNoArgFilter() {
         spec.filter(StripJavaComments)
-        assertThat(spec.filterChain.chain, Matchers.instanceOf(StripJavaComments))
+        assertThat(spec.filterChain.getLastFilter(), Matchers.instanceOf(StripJavaComments))
     }
 
     @Test public void testArgFilter() {
         spec.filter(HeadFilter, lines:15, skip:2)
 
-        org.apache.tools.ant.filters.HeadFilter filter = spec.filterChain.chain
+        org.apache.tools.ant.filters.HeadFilter filter = spec.filterChain.getLastFilter()
         assertThat(filter, Matchers.instanceOf(HeadFilter))
         assertEquals(15, filter.lines)
         assertEquals(2, filter.skip)
@@ -129,8 +129,8 @@ public class CopySpecImplTest {
         spec.filter(StripJavaComments)
         spec.filter(HeadFilter, lines:15, skip:2)
         
-        assertThat(spec.filterChain.chain, Matchers.instanceOf(org.apache.tools.ant.filters.HeadFilter))
-        assertThat(spec.filterChain.chain.in, Matchers.instanceOf(org.apache.tools.ant.filters.StripJavaComments))
+        assertThat(spec.filterChain.getLastFilter(), Matchers.instanceOf(org.apache.tools.ant.filters.HeadFilter))
+        assertThat(spec.filterChain.getLastFilter().in, Matchers.instanceOf(org.apache.tools.ant.filters.StripJavaComments))
     }
 
 

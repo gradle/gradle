@@ -30,16 +30,16 @@ public class CopyVisitor implements FileVisitor {
     private File baseDestDir, currentDestDir;
     private List<Closure> remapClosures;
     private List<Transformer<String>> nameMappers;
-    private FilterChain filter;
+    private FilterChain filterChain;
     private boolean didWork = false;
 
 
-    public CopyVisitor(File baseDestDir, List<Closure> remapClosures, List<Transformer<String>> nameMappers, FilterChain filter) {
+    public CopyVisitor(File baseDestDir, List<Closure> remapClosures, List<Transformer<String>> nameMappers, FilterChain filterChain) {
         this.baseDestDir = baseDestDir;
         this.remapClosures = remapClosures;
         this.nameMappers = nameMappers;
         currentDestDir = baseDestDir;
-        this.filter = filter;
+        this.filterChain = filterChain;
     }
 
    public void visitDir(File dir, RelativePath path) {
@@ -99,7 +99,7 @@ public class CopyVisitor implements FileVisitor {
 
     void copyFile(File srcFile, File destFile) throws IOException {
         didWork = true;
-        if (filter.hasChain()) {
+        if (filterChain.hasFilters()) {
             copyFileFiltered(srcFile, destFile);
         } else {
             copyFileStreams(srcFile,  destFile);
@@ -110,10 +110,10 @@ public class CopyVisitor implements FileVisitor {
 
     private void copyFileFiltered(File srcFile, File destFile) throws IOException {
         FileReader inReader = new FileReader(srcFile);
-        filter.setHead(inReader);
+        filterChain.findFirstFilterChain().setInputSource(inReader);
         FileWriter fWriter = new FileWriter(destFile);
         try {
-            IOUtils.copyLarge(filter.getChain(), fWriter);
+            IOUtils.copyLarge(filterChain, fWriter);
             fWriter.flush();
         } finally {
             IOUtils.closeQuietly(inReader);

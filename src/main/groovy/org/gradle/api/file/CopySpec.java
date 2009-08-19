@@ -134,4 +134,9 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     CopySpec filter(Class<FilterReader> filterType);
+
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec filter(Closure closure);
 }

@@ -106,8 +106,8 @@ public class CopyVisitorTest {
 
     @Test public void testFilter() throws IOException {
         FilterChain filters = new FilterChain();
-        ReplaceTokens filter = new ReplaceTokens(filters.getChain());
-        filters.setChain(filter);
+        ReplaceTokens filter = new ReplaceTokens(filters.getLastFilter());
+        filters.addFilter(filter);
         ReplaceTokens.Token token = new ReplaceTokens.Token();
         token.setKey("MAGIC");
         token.setValue("42");

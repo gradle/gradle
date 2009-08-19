@@ -170,6 +170,9 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public FilterChain getFilterChain() {
+        if (parentSpec != null) {
+            filterChain.setInputSource(parentSpec.getFilterChain());
+        }
         return filterChain;
     }
 
@@ -178,11 +181,17 @@ public class CopySpecImpl implements CopySpec {
         return this;
     }
 
+    public CopySpec filter(Closure closure) {
+        LineFilter newFilter = new LineFilter(filterChain.getLastFilter(), closure);
+        filterChain.addFilter(newFilter);
+        return this;
+    }
+
     public CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType ) {
         try {
             Constructor<FilterReader> constructor = filterType.getConstructor(Reader.class);
-            FilterReader result = constructor.newInstance(  filterChain.getChain() );
-            filterChain.setChain(result);
+            FilterReader result = constructor.newInstance(  filterChain.getLastFilter() );
+            filterChain.addFilter(result);
 
             if (map != null) {
                 ReflectionUtil.setFromMap(result, map);

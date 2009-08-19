@@ -87,4 +87,11 @@ public interface CopyProcessingSpec {
      * @param filterType Class of filter to add
      */
     CopyProcessingSpec filter(Class<FilterReader> filterType);
+
+    /**
+     * Adds a content filter based on the provided closure.  The Closure will be called with each line
+     * (stripped of line endings) and should return a String to replace the line. 
+     * @param closure to implement line based filtering
+     */
+    CopyProcessingSpec filter(Closure closure); 
 }
