@@ -211,10 +211,6 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
         return conventionAwareHelper.conventionMapping(mapping);
     }
 
-    public Object conventionProperty(String name) {
-        return conventionAwareHelper.getConventionValue(name);
-    }
-
     public void setConventionMapping(Map<String, ConventionValue> conventionMapping) {
         conventionAwareHelper.setConventionMapping(conventionMapping);
     }

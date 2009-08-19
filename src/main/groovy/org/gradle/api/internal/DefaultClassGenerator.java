@@ -21,18 +21,23 @@ import org.gradle.api.GradleException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultClassGenerator implements ClassGenerator {
     private final Map<Class, Class> generatedClasses = new HashMap<Class, Class>();
+
+    public DefaultClassGenerator() {
+
+    }
 
     public <T> Class<? extends T> generate(Class<T> type) {
         Class generatedClass = generatedClasses.get(type);
         if (generatedClass != null) {
             return generatedClass;
+        }
+        if (type.getAnnotation(NoConventionMapping.class) != null) {
+            generatedClasses.put(type, type);
+            return type;
         }
 
         String className = type.getSimpleName() + "_WithConventionMapping";
@@ -41,7 +46,8 @@ public class DefaultClassGenerator implements ClassGenerator {
         if (type.getPackage() != null) {
             src.format("package %s;%n", type.getPackage().getName());
         }
-        src.format("public class %s extends %s {%n", className, type.getName().replaceAll("\\$", "."));
+        src.format("public class %s extends %s implements org.gradle.api.internal.IConventionAware {%n",
+                className, type.getName().replaceAll("\\$", "."));
         for (Constructor<?> constructor : type.getConstructors()) {
             if (Modifier.isPublic(constructor.getModifiers())) {
                 src.format("public %s(", className);
@@ -62,20 +68,45 @@ public class DefaultClassGenerator implements ClassGenerator {
                 src.format("); }%n");
             }
         }
+
+        if (!IConventionAware.class.isAssignableFrom(type)) {
+            src.format("private final org.gradle.api.internal.ConventionAwareHelper helper = new org.gradle.api.internal.ConventionAwareHelper(this)%n");
+            src.format("public Object conventionMapping(Map<String, org.gradle.api.tasks.ConventionValue> mapping) { return helper.conventionMapping(mapping); }%n");
+            src.format("public void setConventionMapping(java.util.Map<String, org.gradle.api.tasks.ConventionValue> conventionMapping) { helper.setConventionMapping(conventionMapping) }%n");
+            src.format("public java.util.Map<String, ConventionValue> getConventionMapping() { return helper.getConventionMapping() }%n");
+            src.format("public Object conv(Object internalValue, String propertyName) { return helper.getConventionValue(internalValue, propertyName) }%n");
+        }
+
+        Class noMappingClass = Object.class;
+        for (Class<?> c = type.getSuperclass(); c != null && noMappingClass == Object.class; c = c.getSuperclass()) {
+            if (c.getAnnotation(NoConventionMapping.class) != null) {
+                noMappingClass = c;
+            }
+        }
+
+        Collection<String> skipProperties = Arrays.asList("metaClass", "conventionMapping");
+
         MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
-        List<MetaProperty> properties = metaClass.getProperties();
-        for (MetaProperty property : properties) {
-            if (property.getName().equals("metaClass")) {
+        for (MetaProperty property : (List<MetaProperty>) metaClass.getProperties()) {
+            if (skipProperties.contains(property.getName())) {
                 continue;
             }
             if (property instanceof MetaBeanProperty) {
                 MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                 MetaMethod getter = metaBeanProperty.getGetter();
-                if (getter != null && !Modifier.isFinal(getter.getModifiers()) && ConventionTask.class.isAssignableFrom(getter.getDeclaringClass().getTheClass())) {
-                    String returnTypeName = getter.getReturnType().getCanonicalName();
-                    src.format("public %s %s() { return conv(super.%s(), '%s'); }%n", returnTypeName,
-                            getter.getName(), getter.getName(), property.getName());
+                if (getter == null) {
+                    continue;
                 }
+                if (Modifier.isFinal(getter.getModifiers())) {
+                    continue;
+                }
+                Class declaringClass = getter.getDeclaringClass().getTheClass();
+                if (declaringClass.isAssignableFrom(noMappingClass)) {
+                    continue;
+                }
+                String returnTypeName = getter.getReturnType().getCanonicalName();
+                src.format("public %s %s() { return conv(super.%s(), '%s'); }%n", returnTypeName,
+                        getter.getName(), getter.getName(), property.getName());
             }
         }
         src.format("void setProperty(String name, Object value) { defineProperty(name, value); }%n");

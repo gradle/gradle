@@ -44,10 +44,6 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
         return (Task) conventionAwareHelper.conventionMapping(GUtil.map(property, mapping));
     }
 
-    public Object conventionProperty(String name) {
-        return conventionAwareHelper.getConventionValue(name);
-    }
-
     public void setConventionMapping(Map<String, ConventionValue> conventionMapping) {
         conventionAwareHelper.setConventionMapping(conventionMapping);
     }

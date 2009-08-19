@@ -112,13 +112,6 @@ public class TaskFactoryTest {
     }
 
     @Test
-    public void testCachesGeneratedSubclass() {
-        Task task1 = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestConventionTask.class)));
-        Task task2 = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestConventionTask.class)));
-        assertEquals(task1.getClass(), task2.getClass());
-    }
-
-    @Test
     public void doesNotApplyConventionMappingToGettersDefinedByTaskInterface() {
         TestConventionTask task = (TestConventionTask) checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestConventionTask.class)));
         task.conventionMapping(GUtil.map("description", new ConventionValue() {
@@ -213,10 +206,6 @@ public class TaskFactoryTest {
 
         public void setProperty(String property) {
             this.property = property;
-        }
-
-        public String[] getArrayProperty() {
-            return null;
         }
     }
 

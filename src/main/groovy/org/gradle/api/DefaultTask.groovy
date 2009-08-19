@@ -17,11 +17,13 @@
 package org.gradle.api;
 
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.AbstractTask
+import org.gradle.api.internal.NoConventionMapping;
 
 /**
  * @author Hans Dockter
  */
+@NoConventionMapping
 class DefaultTask extends AbstractTask {
     DefaultTask() {
         super();
