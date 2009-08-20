@@ -16,40 +16,30 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-import org.gradle.api.Rule
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.internal.artifacts.IvyService
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
-import org.gradle.util.ConfigureUtil
-import org.gradle.api.artifacts.Configuration
 
 /**
  * @author Hans Dockter
  */
 class DefaultConfigurationHandler extends DefaultConfigurationContainer implements ConfigurationHandler {
-    private boolean configuring
-
     def DefaultConfigurationHandler(IvyService ivyService,
                                     ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         super(ivyService, projectDependenciesBuildInstruction)
-        addRule([apply: {String name ->
-            if (configuring) {
-                add(name)
-            }
-        }] as Rule)
-    }
-
-    void configure(Closure configureClosure) {
-        configuring = true
-        try {
-            ConfigureUtil.configure(configureClosure, this)
-        } finally {
-            configuring = false
-        }
     }
 
     // These are here to make Groovy 1.6 happy
+
+    public Configuration add(String name) {
+        super.add(name)
+    }
+
+    public Configuration add(String name, Closure configureClosure) {
+        super.add(name, configureClosure)
+    }
 
     public Configuration findByName(String name) {
         super.findByName(name)

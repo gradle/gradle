@@ -1,8 +1,8 @@
 usePlugin('java')
 
 task check << {
-    classesDirName = 'output'
+    source.main.classesDir = new File(buildDir, 'output')
     println(processResources.destinationDir.name)
     println(compile.destinationDir.name)
-    println(convention.classesDirName)
+    println(convention.source.main.classesDir.name)
 }

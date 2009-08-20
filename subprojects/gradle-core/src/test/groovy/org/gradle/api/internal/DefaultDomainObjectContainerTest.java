@@ -43,6 +43,12 @@ public class DefaultDomainObjectContainerTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
 
     @Test
+    public void usesTypeNameToGenerateDisplayName() {
+        assertThat(container.getTypeDisplayName(), equalTo("Bean"));
+        assertThat(container.getDisplayName(), equalTo("Bean container"));
+    }
+
+    @Test
     public void canGetAllDomainObjectsForEmptyContainer() {
         assertTrue(container.getAll().isEmpty());
     }
@@ -506,6 +512,18 @@ public class DefaultDomainObjectContainerTest {
         assertTrue(container.getAsDynamicObject().hasMethod("bean", toClosure("{ }")));
     }
 
+    @Test
+    public void addRuleByClosure() {
+        String testPropertyKey = "org.gradle.test.addRuleByClosure";
+        String expectedTaskName = "someTaskName";
+        Closure ruleClosure = HelperUtil.toClosure(String.format("{ taskName -> System.setProperty('%s', '%s') }",
+                testPropertyKey, expectedTaskName));
+        container.addRule("description", ruleClosure);
+        container.getRules().get(0).apply(expectedTaskName);
+        assertThat(System.getProperty(testPropertyKey), equalTo(expectedTaskName));
+        System.getProperties().remove(testPropertyKey);
+    }
+
     private void addRuleFor(final Bean bean) {
         container.addRule(new Rule() {
             public String getDescription() {
@@ -528,17 +546,5 @@ public class DefaultDomainObjectContainerTest {
         public void setBeanProperty(String beanProperty) {
             this.beanProperty = beanProperty;
         }
-    }
-
-    @Test
-    public void addRuleByClosure() {
-        String testPropertyKey = "org.gradle.test.addRuleByClosure";
-        String expectedTaskName = "someTaskName";
-        Closure ruleClosure = HelperUtil.toClosure(String.format("{ taskName -> System.setProperty('%s', '%s') }",
-                testPropertyKey, expectedTaskName));
-        container.addRule("description", ruleClosure);
-        container.getRules().get(0).apply(expectedTaskName);
-        assertThat(System.getProperty(testPropertyKey), equalTo(expectedTaskName));
-        System.getProperties().remove(testPropertyKey);
     }
 }

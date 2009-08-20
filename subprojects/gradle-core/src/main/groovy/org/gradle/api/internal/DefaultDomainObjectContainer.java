@@ -56,7 +56,7 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
     }
 
     public String getDisplayName() {
-        return "domain object container";
+        return String.format("%s container", getTypeDisplayName());
     }
 
     public Map<String, T> getAsMap() {
@@ -140,7 +140,11 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
     }
 
     protected UnknownDomainObjectException createNotFoundException(String name) {
-        return new UnknownDomainObjectException(String.format("%s with name '%s' not found.", type.getSimpleName(), name));
+        return new UnknownDomainObjectException(String.format("%s with name '%s' not found.", getTypeDisplayName(), name));
+    }
+
+    protected String getTypeDisplayName() {
+        return type.getSimpleName();
     }
 
     protected interface Store<S> {

@@ -62,7 +62,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
         assertDoesNotExist(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
 
         // remove a compiled class file
-        removeFile(javaprojectDir, 'build/classes/org/gradle/Person.class')
+        removeFile(javaprojectDir, 'build/classes/main/org/gradle/Person.class')
 
         executer.inDirectory(javaprojectDir).withTasks('test').run()
 
@@ -102,6 +102,8 @@ public class SamplesJavaOnlyIfIntegrationTest {
     }
 
     private static void removeFile(File baseDir, String path) {
-        new TestFile(baseDir).file(path).delete();
+        TestFile file = new TestFile(baseDir).file(path)
+        file.assertExists()
+        file.delete()
     }
 }

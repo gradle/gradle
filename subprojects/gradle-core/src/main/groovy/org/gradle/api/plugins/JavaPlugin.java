@@ -20,15 +20,16 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.Copy;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.tasks.util.FileSet;
+import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.Tar;
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -68,6 +70,9 @@ public class JavaPlugin implements Plugin {
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
     public static final String DISTS_CONFIGURATION_NAME = "dists";
 
+    public static final String MAIN_SOURCE_SET_NAME = "main";
+    public static final String TEST_SOURCE_SET_NAME = "test"; 
+
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         projectPluginsHandler.usePlugin(BasePlugin.class, project);
         projectPluginsHandler.usePlugin(ReportingBasePlugin.class, project);
@@ -77,6 +82,7 @@ public class JavaPlugin implements Plugin {
         convention.getPlugins().put("java", javaConvention);
 
         configureConfigurations(project);
+        configureSourceSets(javaConvention);
 
         configureJavaDoc(project);
 
@@ -93,6 +99,22 @@ public class JavaPlugin implements Plugin {
         configureBuild(project);
         configureBuildNeeded(project);
         configureBuildDependents(project);
+    }
+
+    private void configureSourceSets(final JavaPluginConvention pluginConvention) {
+        pluginConvention.getSource().allObjects(new Action<SourceSet>() {
+            public void execute(final SourceSet sourceSet) {
+                ConventionMapping conventionMapping = ((IConventionAware) sourceSet).getConventionMapping();
+                conventionMapping.map("classesDir", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        String classesDirName = String.format("classes/%s", sourceSet.getName());
+                        return new File(pluginConvention.getProject().getBuildDir(), classesDirName);
+                    }
+                });
+            }
+        });
+        pluginConvention.getSource().add(MAIN_SOURCE_SET_NAME);
+        pluginConvention.getSource().add(TEST_SOURCE_SET_NAME);
     }
 
     private void configureTestCompile(Project project) {
@@ -188,7 +210,9 @@ public class JavaPlugin implements Plugin {
         jar.setDescription("Generates a jar archive with all the compiled classes.");
         jar.conventionMapping("resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList((Object) new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
+                File classesDir = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
+                        JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
+                return WrapUtil.toList((Object) new FileSet(classesDir));
             }
         });
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
@@ -246,7 +270,7 @@ public class JavaPlugin implements Plugin {
                 return "classes dir";
             }
             public Set<File> getFiles() {
-                File classesDir = project.getConvention().getPlugin(JavaPluginConvention.class).getClassesDir();
+                File classesDir = project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
                 return Collections.singleton(classesDir);
             }
         });

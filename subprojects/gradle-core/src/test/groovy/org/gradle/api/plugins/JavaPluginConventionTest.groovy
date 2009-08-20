@@ -25,6 +25,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 
 /**
  * @author Hans Dockter
@@ -40,6 +41,7 @@ class JavaPluginConventionTest {
     }
 
     @Test public void defaultValues() {
+        assertThat(convention.source, instanceOf(DefaultSourceSetContainer))
         assertThat(convention.manifest, notNullValue())
         assertEquals([], convention.metaInf)
         assertEquals([], convention.floatingSrcDirs)
@@ -47,8 +49,6 @@ class JavaPluginConventionTest {
         assertEquals([], convention.floatingResourceDirs)
         assertEquals([], convention.floatingTestResourceDirs)
         assertEquals('src', convention.srcRootName)
-        assertEquals('classes', convention.classesDirName)
-        assertEquals('test-classes', convention.testClassesDirName)
         assertEquals('dependency-cache', convention.dependencyCacheDirName)
         assertEquals('docs', convention.docsDirName)
         assertEquals('javadoc', convention.javadocDirName)
@@ -62,6 +62,16 @@ class JavaPluginConventionTest {
         assertEquals(JavaVersion.VERSION_1_5, convention.targetCompatibility)
     }
 
+    @Test public void canConfigureSourceSets() {
+        File dir = new File('classes-dir')
+        convention.source {
+            main {
+                classesDir = dir
+            }
+        }
+        assertThat(convention.source.main.classesDir, equalTo(dir))
+    }
+    
     @Test public void testDefaultDirs() {
         checkDirs(convention.srcRootName)
     }
@@ -82,8 +92,6 @@ class JavaPluginConventionTest {
         assertEquals([new File(convention.srcRoot, convention.testSrcDirNames[0])] + convention.floatingTestSrcDirs, convention.testSrcDirs)
         assertEquals([new File(convention.srcRoot, convention.resourceDirNames[0])] + convention.floatingResourceDirs, convention.resourceDirs)
         assertEquals([new File(convention.srcRoot, convention.testResourceDirNames[0])] + convention.floatingTestResourceDirs, convention.testResourceDirs)
-        assertEquals(new File(project.buildDir, convention.classesDirName), convention.classesDir)
-        assertEquals(new File(project.buildDir, convention.testClassesDirName), convention.testClassesDir)
         assertEquals(new File(project.buildDir, convention.dependencyCacheDirName), convention.dependencyCacheDir)
         assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
         assertEquals(new File(convention.docsDir, convention.javadocDirName), convention.javadocDir)

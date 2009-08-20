@@ -28,7 +28,7 @@ public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObje
         super(type);
     }
 
-    public DefaultPluginCollection(Class<T> type, Store<T> store) {
+    protected DefaultPluginCollection(Class<T> type, Store<T> store) {
         super(type, store);
     }
 

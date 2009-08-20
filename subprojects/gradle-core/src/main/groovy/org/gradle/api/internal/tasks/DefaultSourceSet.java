@@ -25,17 +25,23 @@ import org.gradle.api.internal.file.FileResolver;
 import java.io.File;
 
 public class DefaultSourceSet implements SourceSet {
+    private final String name;
     private File classesDir;
     private FileCollection compileClasspath;
     private FileCollection runtimeClasspath;
     private SourceDirectorySet javaSource;
     private SourceDirectorySet resources;
 
-    public DefaultSourceSet(String displayName, FileResolver resolver) {
+    public DefaultSourceSet(String name, String displayName, FileResolver resolver) {
+        this.name = name;
         compileClasspath = new DefaultFileCollection();
         runtimeClasspath = new DefaultFileCollection();
         javaSource = new DefaultSourceDirectorySet(String.format("%s java source", displayName), resolver);
         resources = new DefaultSourceDirectorySet(String.format("%s resources", displayName), resolver);
+    }
+
+    public String getName() {
+        return name;
     }
 
     public File getClassesDir() {

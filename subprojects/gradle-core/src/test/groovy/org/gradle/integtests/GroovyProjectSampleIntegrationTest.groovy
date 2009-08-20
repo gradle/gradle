@@ -32,8 +32,8 @@ class GroovyProjectSampleIntegrationTest {
 
     @Test
     public void groovyProjectSamples() {
-        String packagePrefix = 'build/classes/org/gradle'
-        String testPackagePrefix = 'build/test-classes/org/gradle'
+        String packagePrefix = 'build/classes/main/org/gradle'
+        String testPackagePrefix = 'build/classes/test/org/gradle'
 
         List mainFiles = ['JavaPerson', 'GroovyPerson', 'GroovyJavaPerson']
         List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']

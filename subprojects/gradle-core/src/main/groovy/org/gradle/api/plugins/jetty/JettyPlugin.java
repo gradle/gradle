@@ -102,7 +102,7 @@ public class JettyPlugin implements Plugin {
                 });
                 jettyRun.getConventionMapping().map("classesDirectory", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return getJavaConvention(project).getClassesDir();
+                        return getJavaConvention(project).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
                     }
                 });
                 jettyRun.getConventionMapping().map("webAppSourceDirectory", new ConventionValue() {

@@ -93,6 +93,6 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("src/main/resources/org/gradle/resource.file").write("test resource");
 
         usingBuildFile(buildFile).withTasks("dists").run();
-        testFile("build/classes/org/gradle/resource.file").assertExists();
+        testFile("build/classes/main/org/gradle/resource.file").assertExists();
     }
 }

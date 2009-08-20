@@ -2,8 +2,8 @@
 
 <classpath>
   <classpathentry kind="src" path="src/main/java"/>
-  <classpathentry kind="src" path="src/test/java" output="build/test-classes"/>
-  <classpathentry kind="output" path="build/classes"/>
+  <classpathentry kind="src" path="src/test/java" output="build/classes/test"/>
+  <classpathentry kind="output" path="build/classes/main"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
   <classpathentry kind="src" path="/api" combineaccessrules="false"/>
   <classpathentry kind="src" path="/shared" combineaccessrules="false"/>

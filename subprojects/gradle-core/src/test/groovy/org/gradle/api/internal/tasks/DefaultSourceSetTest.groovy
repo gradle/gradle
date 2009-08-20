@@ -10,7 +10,7 @@ import org.gradle.api.internal.file.DefaultFileCollection
 import org.gradle.api.internal.file.FileResolver
 
 class DefaultSourceSetTest {
-    private final SourceSet sourceSet = new DefaultSourceSet('<set-display-name>', [:] as FileResolver)
+    private final SourceSet sourceSet = new DefaultSourceSet('name', '<set-display-name>', [:] as FileResolver)
 
     @Test public void defaultValues() {
         assertThat(sourceSet.classesDir, nullValue())

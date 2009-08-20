@@ -80,7 +80,7 @@ public class OsgiPlugin implements Plugin {
     private OsgiManifest createDefaultOsgiManifest(Project project) {
         OsgiHelper osgiHelper = new OsgiHelper();
         OsgiManifest osgiManifest = new DefaultOsgiManifest();
-        osgiManifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getClassesDir());
+        osgiManifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir());
         osgiManifest.setVersion(osgiHelper.getVersion((String) project.property("version")));
         osgiManifest.setName(project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName());
         osgiManifest.setSymbolicName(osgiHelper.getBundleSymbolicName(project));

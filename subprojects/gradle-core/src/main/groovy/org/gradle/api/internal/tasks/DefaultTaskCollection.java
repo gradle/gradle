@@ -61,8 +61,8 @@ public class DefaultTaskCollection<T extends Task> extends DefaultDomainObjectCo
     }
 
     @Override
-    public String getDisplayName() {
-        return "task container";
+    public String getTypeDisplayName() {
+        return "task";
     }
 
     @Override

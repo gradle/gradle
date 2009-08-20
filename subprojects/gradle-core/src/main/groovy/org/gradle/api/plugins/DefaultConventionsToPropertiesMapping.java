@@ -26,6 +26,7 @@ import org.gradle.util.WrapUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -45,7 +46,7 @@ public class DefaultConventionsToPropertiesMapping {
     },
             "classesDir", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
         }
     });
 
@@ -57,7 +58,7 @@ public class DefaultConventionsToPropertiesMapping {
     },
             "destinationDir", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
         }
     });
 
@@ -69,7 +70,7 @@ public class DefaultConventionsToPropertiesMapping {
     },
             "destinationDir", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
         }
     },
             "dependencyCacheDir", new ConventionValue() {
@@ -96,7 +97,7 @@ public class DefaultConventionsToPropertiesMapping {
     },
             "destinationDir", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getTestClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getClassesDir();
         }
     });
 
@@ -108,7 +109,7 @@ public class DefaultConventionsToPropertiesMapping {
     },
             "destinationDir", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getTestClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getClassesDir();
         }
     },
             "sourceCompatibility", new ConventionValue() {
@@ -125,7 +126,7 @@ public class DefaultConventionsToPropertiesMapping {
     public final static Map TEST = GUtil.map(
             "testClassesDir", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getTestClassesDir();
+            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getClassesDir();
         }
     },
             "testResultsDir", new ConventionValue() {
@@ -175,7 +176,7 @@ public class DefaultConventionsToPropertiesMapping {
         },
                 "baseDir", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return convention.getPlugin(JavaPluginConvention.class).getClassesDir();
+                return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
             }
         },
                 "manifest", new ConventionValue() {
@@ -197,7 +198,9 @@ public class DefaultConventionsToPropertiesMapping {
                 "baseDir", null,
                 "classesFileSets", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList((Object) new FileSet(convention.getPlugin(JavaPluginConvention.class).getClassesDir()));
+                File classesDir = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
+                        JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
+                return WrapUtil.toList((Object) new FileSet(classesDir));
             }
         },      "resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

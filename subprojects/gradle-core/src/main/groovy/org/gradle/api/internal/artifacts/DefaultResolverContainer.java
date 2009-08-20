@@ -56,8 +56,8 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
     }
 
     @Override
-    public String getDisplayName() {
-        return "resolver container";
+    public String getTypeDisplayName() {
+        return "resolver";
     }
 
     public DependencyResolver add(Object userDescription) {

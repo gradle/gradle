@@ -25,42 +25,56 @@ import java.io.File;
  */
 public interface SourceSet {
     /**
+     * Returns the name of this source set.
+     * @return The name. Never returns null.
+     */
+    String getName();
+
+    /**
      * Returns the classpath used to compile this source.
+     * @return The classpath. Never returns null.
      */
     FileCollection getCompileClasspath();
 
     /**
      * Sets the classpath used to compile this source.
+     * @param classpath The classpath. Should not be null.
      */
     void setCompileClasspath(FileCollection classpath);
 
     /**
      * Returns the classpath used to execute this source.
+     * @return The classpath. Never returns null.
      */
     FileCollection getRuntimeClasspath();
 
     /**
      * Sets the classpath used to execute this source.
+     * @param classpath The classpath. Should not be null.
      */
     void setRuntimeClasspath(FileCollection classpath);
 
     /**
      * Returns the directory to assemble the compiled classes into.
+     * @return The classes dir. Never returns null.
      */
     File getClassesDir();
 
     /**
      * Sets the directory to assemble the compiled classes into.
+     * @param classesDir the classes dir. Should not be null.
      */
-    void setClassesDir(File file);
+    void setClassesDir(File classesDir);
 
     /**
      * Returns the non-Java resources which are to be copied into the compiled class output directory.
+     * @return the resources. Never returns null.
      */
     SourceDirectorySet getResources();
 
     /**
      * Returns the Java source which is to be compiled into the compiled class output directory.
+     * @return the Java source. Never returns null.
      */
     SourceDirectorySet getJavaSource();
 }

@@ -22,6 +22,8 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.UnionFileTree
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.tasks.bundling.GradleManifest
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 
 /**
  * @author Hans Dockter
@@ -33,7 +35,6 @@ class JavaPluginConvention {
 
     String srcRootName
     String classesDirName
-    String testClassesDirName
     String dependencyCacheDirName
     String docsDirName
     String javadocDirName
@@ -47,6 +48,8 @@ class JavaPluginConvention {
     List floatingTestSrcDirs = []
     List floatingResourceDirs = []
     List floatingTestResourceDirs = []
+    final SourceSetContainer source
+    
     /**
      * All java source to be compiled for this project.
      */
@@ -73,11 +76,10 @@ class JavaPluginConvention {
 
     JavaPluginConvention(Project project) {
         this.project = project
+        source = new DefaultSourceSetContainer(project.fileResolver)
         manifest = new GradleManifest()
         metaInf = []
         srcRootName = 'src'
-        classesDirName = 'classes'
-        testClassesDirName = 'test-classes'
         dependencyCacheDirName = 'dependency-cache'
         docsDirName = 'docs'
         javadocDirName = 'javadoc'
@@ -95,6 +97,10 @@ class JavaPluginConvention {
         allJavaTestSrc = new UnionFileTree('test java source', testSrc)
     }
 
+    def source(Closure closure) {
+        source.configure(closure)
+    }
+    
     File mkdir(File parent = null, String name) {
         if (!name) {throw new InvalidUserDataException('You must specify the name of the directory')}
         File baseDir = parent ?: project.buildDir
@@ -121,14 +127,6 @@ class JavaPluginConvention {
 
     List getTestResourceDirs() {
         testResourceDirNames.collect {new File(srcRoot, it)} + floatingTestResourceDirs
-    }
-
-    File getClassesDir() {
-        new File(project.buildDir, classesDirName)
-    }
-
-    File getTestClassesDir() {
-        new File(project.buildDir, testClassesDirName)
     }
 
     File getDependencyCacheDir() {

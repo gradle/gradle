@@ -6,7 +6,7 @@
     <wb-resource deploy-path="/" source-path="src/main/webapp"/>
     <wb-resource deploy-path="/WEB-INF/classes" source-path="src/main/java"/>
     <wb-resource deploy-path="/WEB-INF/classes" source-path="src/main/resources"/>
-    <property name="java-output-path" value="build/classes"/>
+    <property name="java-output-path" value="build/classes/main"/>
     <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib//$cachePath/commons-collections/commons-collections/jars/commons-collections-3.2.jar">
       <dependency-type>uses</dependency-type>
     </dependent-module>

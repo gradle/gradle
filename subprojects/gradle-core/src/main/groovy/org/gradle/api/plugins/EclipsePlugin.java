@@ -98,12 +98,12 @@ public class EclipsePlugin implements Plugin {
                 },
                 "outputDirectory", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return java(convention).getClassesDir();
+                        return java(convention).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
                     }
                 },
                 "testOutputDirectory", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return java(convention).getTestClassesDir();
+                        return java(convention).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getClassesDir();
                     }
                 },
                 "classpathLibs", new ConventionValue() {
@@ -147,7 +147,7 @@ public class EclipsePlugin implements Plugin {
                 },
                 "outputDirectory", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return java(convention).getClassesDir();
+                        return java(convention).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
                     }
                 },
                 "deployName", new ConventionValue() {

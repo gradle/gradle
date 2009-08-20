@@ -15,22 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.AutoCreateDomainObjectContainer;
 import org.gradle.api.internal.artifacts.IvyService;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<Configuration> 
+public class DefaultConfigurationContainer extends AutoCreateDomainObjectContainer<Configuration> 
         implements ConfigurationContainer, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     
@@ -46,37 +39,19 @@ public class DefaultConfigurationContainer extends DefaultDomainObjectContainer<
         this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
-    public Configuration add(String name, Closure configureClosure) {
-        if (findByName(name) != null) {
-            throw new InvalidUserDataException(String.format("Cannot add configuration '%s' as a configuration with that name already exists.",
-                    name));
-        }
-        DefaultConfiguration configuration = new DefaultConfiguration(name, this, ivyService,
-                projectDependenciesBuildInstruction);
-        addObject(name, configuration);
-        ConfigureUtil.configure(configureClosure, configuration);
-        return configuration;
-    }
-
-    public Configuration add(String name) {
-        return add(name, null);
+    @Override
+    protected Configuration create(String name) {
+        return new DefaultConfiguration(name, this, ivyService, projectDependenciesBuildInstruction);
     }
 
     @Override
-    public String getDisplayName() {
-        return "configuration container";
+    public String getTypeDisplayName() {
+        return "configuration";
     }
 
     @Override
     protected UnknownDomainObjectException createNotFoundException(String name) {
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
-    }
-
-    @Override
-    public String toString() {
-        return "DefaultConfigurationContainer{" +
-                "configurations=" + getAll() +
-                '}';
     }
 
     public IvyService getIvyService() {

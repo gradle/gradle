@@ -75,8 +75,8 @@ class SamplesJavaMultiProjectIntegrationTest {
     }
 
     private void assertEverythingBuilt() {
-        String packagePrefix = 'build/classes/org/gradle'
-        String testPackagePrefix = 'build/test-classes/org/gradle'
+        String packagePrefix = 'build/classes/main/org/gradle'
+        String testPackagePrefix = 'build/classes/test/org/gradle'
 
         // Check classes and resources
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
@@ -132,8 +132,8 @@ class SamplesJavaMultiProjectIntegrationTest {
 
     @Test
     public void multiProjectPartialBuild() {
-        String packagePrefix = 'build/classes/org/gradle'
-        String testPackagePrefix = 'build/test-classes/org/gradle'
+        String packagePrefix = 'build/classes/main/org/gradle'
+        String testPackagePrefix = 'build/classes/test/org/gradle'
 
         // Partial build using current directory
         executer.inDirectory(javaprojectDir.file("$SERVICES_NAME/$WEBAPP_NAME")).withTasks(JavaPlugin.BUILD_NEEDED_TASK_NAME).run()

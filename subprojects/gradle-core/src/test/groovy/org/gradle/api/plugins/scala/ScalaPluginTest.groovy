@@ -50,13 +50,13 @@ public class ScalaPluginTest {
         def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.java.classesDir))
+        assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.main.classesDir))
         assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaSrcDirs as Object[]))
 
         task = project.tasks[JavaPlugin.COMPILE_TESTS_TASK_NAME]
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.srcDirs, hasItems(project.convention.plugins.java.testSrcDirs as Object[]))
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.java.testClassesDir))
+        assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.test.classesDir))
         assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaTestSrcDirs as Object[]))
     }
 
@@ -65,7 +65,7 @@ public class ScalaPluginTest {
 
         def task = project.createTask('otherCompile', type: ScalaCompile)
         assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.java.classesDir))
+        assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.main.classesDir))
         assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaSrcDirs as Object[]))
     }
 
