@@ -42,16 +42,38 @@ targetCompatibility = 1.5
 svn = new Svn(project)
 
 type = 'jar'
-version = new Version(svn, project, false)
+
 group = 'org.gradle'
 buildTime = new Date()
 versionModifier = null
 
-repositories {
-    mavenCentral()
-    add(new URLResolver()) {
-        name = 'sf_gradleRepo'
-        addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
+def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
+allprojects {
+    repositories {
+        mavenCentral()
+        add(new URLResolver()) {
+            name = 'sf_gradleRepo'
+            addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
+        }
+    }
+    usePlugin 'java'
+    version = new Version(svn, project, false)
+    dependencies {
+        testCompile "junit:junit:4.5", FIRST_LEVEL_JMOCK
+        testCompile module("org.jmock:jmock:2.4.0") {
+            dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3')
+            dependencies(FIRST_LEVEL_JMOCK as Object[])
+        }
+        // todo - these should not be here
+        testCompile 'org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3'
+    }
+    task ide << {
+        def libDir = file('lib')
+        ant.delete(dir: libDir)
+        copy {
+            from configurations.testRuntime.files(DependencySpecs.type(Type.EXTERNAL))
+            into libDir
+        }
     }
 }
 
@@ -64,9 +86,11 @@ configurations {
     retrotranslatorAntTask
     userGuideStyleSheets
     userGuideTask
+    wrapper
 }
 
 dependencies {
+    wrapper project(':gradle-wrapper')
 
     // todo: Improve dependency handling for xUnit jars
     ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
@@ -156,14 +180,8 @@ dependencies {
         }
     }
 
-    def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
-    testCompile "junit:junit:4.5", "xmlunit:xmlunit:1.2", FIRST_LEVEL_JMOCK
-    testCompile module("org.jmock:jmock:2.4.0") {
-        dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3')
-        dependencies(FIRST_LEVEL_JMOCK as Object[])
-    }
-    // todo - these should not be here
-    testCompile 'org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3'
+
+    testCompile "xmlunit:xmlunit:1.2"
     distLib "junit:junit:4.5"
 }
 
@@ -215,14 +233,6 @@ test {
     exclude 'org/gradle/integtests/**/*IntegrationTest.*'
 }
 
-task wrapperJar(type: Jar) {
-    appendix = 'wrapper'
-    fileSet(dir: classesDir) {
-        include 'org/gradle/wrapper/'
-    }
-    manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.WrapperMain')
-}
-
 jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
 
 explodedDistDir = new File(distsDir, 'exploded')
@@ -238,22 +248,27 @@ task explodedDistBase(dependsOn: libs, description: 'Builds a minimal distributi
     [explodedDistDir, explodedDistLibDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
 
-    ant {
-        logger.info('Generate lib dir')
-        configurations.distLib.each {File file ->
-            copy(file: file, todir: explodedDistLibDir)
-        }
-        // todo: find out why Ivy does not include the jar in the resolve
-        delete { fileset(dir:explodedDistLibDir, includes:"$archivesBaseName-*.jar") }
-        copy(file: jar.archivePath, toDir: explodedDistLibDir)
-        copy(file: wrapperJar.archivePath, toDir: explodedDistLibDir)
-        logger.info('Generate start scripts')
-        StartScriptsGenerator.generate("$archivesBaseName-${version}.jar", explodedDistBinDir, archivesBaseName)
-        logger.info('Copy and generate top level files.')
-        copy(toDir: explodedDistDir) {fileset(dir: new File(srcRoot, 'toplevel'))}
-        // Set permissions (important for running integration tests against the exploded dist)
-        chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
+    logger.info('Generate lib dir')
+    copy {
+        from configurations.distLib.files
+        into explodedDistLibDir        
     }
+    removeAnyExistingOldGradleLibs()
+    copy {
+        from configurations.wrapper.files
+        from jar.archivePath
+        into explodedDistLibDir
+    }
+    logger.info('Generate start scripts')
+    StartScriptsGenerator.generate("$archivesBaseName-${version}.jar", explodedDistBinDir, archivesBaseName)
+    logger.info('Copy and generate top level files.')
+    copy { from(new File(srcRoot, 'toplevel')).into explodedDistDir }
+    // Set permissions (important for running integration tests against the exploded dist)
+    ant.chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
+}
+
+def removeAnyExistingOldGradleLibs() {
+    ant.delete { fileset(dir: explodedDistLibDir, includes: "$archivesBaseName-*.jar") }
 }
 
 task docs(dependsOn: [javadoc, groovydoc, 'userguide', 'distDocs'])
@@ -698,15 +713,6 @@ build.taskGraph.whenReady {graph ->
 }
 
 task developerBuild(dependsOn: [clean, testedDists])
-
-task ide << {
-    def libDir = file('lib')
-    ant.delete(dir: libDir)
-    copy {
-        from configurations.testRuntime.files(DependencySpecs.type(Type.EXTERNAL))
-        into libDir
-    }
-}
 
 task release(dependsOn: [uploadDists, uploadDocs]) << {
     svn.release()

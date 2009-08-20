@@ -18,7 +18,6 @@ package org.gradle.wrapper;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-import org.gradle.api.tasks.wrapper.Wrapper;
 
 /**
  * @author Hans Dockter
@@ -42,14 +41,14 @@ public class PathAssemblerTest {
 
     @Test
     public void gradleHomeWithGradleUserHomeBase() {
-        String gradleHome = pathAssembler.gradleHome(Wrapper.PathBase.GRADLE_USER_HOME.toString(), testPath, testName,
+        String gradleHome = pathAssembler.gradleHome(PathAssembler.GRADLE_USER_HOME_STRING, testPath, testName,
                 testVersion);
         assertEquals(TEST_GRADLE_USER_HOME + "/" + testPath + "/" + testName + "-" + testVersion, gradleHome);
     }
 
     @Test
     public void gradleHomeWithProjectBase() {
-        String gradleHome = pathAssembler.gradleHome(Wrapper.PathBase.PROJECT.toString(), testPath, testName, testVersion);
+        String gradleHome = pathAssembler.gradleHome(PathAssembler.PROJECT_STRING, testPath, testName, testVersion);
         assertEquals(currentDirPath() + "/" + testPath + "/" + testName + "-" + testVersion, gradleHome);
     }
 
@@ -60,13 +59,13 @@ public class PathAssemblerTest {
 
     @Test
     public void distZipWithGradleUserHomeBase() {
-        String gradleHome = pathAssembler.distZip(Wrapper.PathBase.GRADLE_USER_HOME.toString(), testPath, testName, testVersion, testClassifier);
+        String gradleHome = pathAssembler.distZip(PathAssembler.GRADLE_USER_HOME_STRING, testPath, testName, testVersion, testClassifier);
         assertEquals(TEST_GRADLE_USER_HOME + "/" + testPath + "/" + testName + "-" + testVersion + "-" + testClassifier + ".zip", gradleHome);
     }
 
     @Test
     public void distZipWithProjectBase() {
-        String gradleHome = pathAssembler.distZip(Wrapper.PathBase.PROJECT.toString(), testPath, testName, testVersion, testClassifier);
+        String gradleHome = pathAssembler.distZip(PathAssembler.PROJECT_STRING, testPath, testName, testVersion, testClassifier);
         assertEquals(currentDirPath() + "/" + testPath + "/" + testName + "-" + testVersion + "-" + testClassifier + ".zip", gradleHome);
     }
 

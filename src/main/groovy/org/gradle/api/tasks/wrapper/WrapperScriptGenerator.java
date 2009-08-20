@@ -22,7 +22,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.tools.ant.taskdefs.Chmod;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.AntUtil;
-import org.gradle.wrapper.WrapperMain;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +35,7 @@ public class WrapperScriptGenerator {
     public static final String CURRENT_DIR_UNIX = "`dirname \"$0\"`";
     public static final String WINDOWS_NL = "\n";
     public static final String CURRENT_DIR_WINDOWS = "%DIRNAME%";
+    private static final String FULLY_QUALIFIED_WRAPPER_NAME = "org.gradle.wrapper.WrapperMain";
 
     public void generate(String jarPath, String wrapperPropertiesPath, File scriptDestinationDir) {
         try {
@@ -51,7 +51,7 @@ public class WrapperScriptGenerator {
         String unixWrapperScriptTail = IOUtils.toString(Wrapper.class.getResourceAsStream("unixWrapperScriptTail.txt"));
 
         String fillingUnix = "" + UNIX_NL +
-                "STARTER_MAIN_CLASS=" + WrapperMain.class.getName() + UNIX_NL +
+                "STARTER_MAIN_CLASS=" + FULLY_QUALIFIED_WRAPPER_NAME + UNIX_NL +
                 "CLASSPATH=" + CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(jarPath) + UNIX_NL +
                 "WRAPPER_PROPERTIES=" + CURRENT_DIR_UNIX + "/" + FilenameUtils.separatorsToUnix(wrapperPropertiesPath) + UNIX_NL;
 
@@ -73,7 +73,7 @@ public class WrapperScriptGenerator {
         String windowsWrapperScriptHead = IOUtils.toString(Wrapper.class.getResourceAsStream("windowsWrapperScriptHead.txt"));
         String windowsWrapperScriptTail = IOUtils.toString(Wrapper.class.getResourceAsStream("windowsWrapperScriptTail.txt"));
         String fillingWindows = "" + WINDOWS_NL +
-                "set STARTER_MAIN_CLASS=" + WrapperMain.class.getName() + WINDOWS_NL +
+                "set STARTER_MAIN_CLASS=" + FULLY_QUALIFIED_WRAPPER_NAME + WINDOWS_NL +
                 "set CLASSPATH=" + CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(jarPath) + WINDOWS_NL +
                 "set WRAPPER_PROPERTIES=" + CURRENT_DIR_WINDOWS + "\\" + FilenameUtils.separatorsToWindows(wrapperPropertiesPath) + WINDOWS_NL;
         String windowsScript = windowsWrapperScriptHead + fillingWindows + windowsWrapperScriptTail;

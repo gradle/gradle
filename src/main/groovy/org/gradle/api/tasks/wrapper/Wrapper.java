@@ -21,7 +21,6 @@ import org.gradle.api.*;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GUtil;
-import org.gradle.wrapper.Install;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +37,18 @@ import java.util.Properties;
  * @author Hans Dockter
  */
 public class Wrapper extends DefaultTask {
+    // Properties used by the gradle-wrapper
+    static final String URL_ROOT_PROPERTY = "urlRoot";
+    static final String DISTRIBUTION_BASE_PROPERTY = "distributionBase";
+    static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
+    static final String DISTRIBUTION_PATH_PROPERTY = "distributionPath";
+    static final String DISTRIBUTION_VERSION_PROPERTY = "distributionVersion";
+    static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
+    static final String DISTRIBUTION_NAME_PROPERTY = "distributionName";
+    static final String DISTRIBUTION_CLASSIFIER_PROPERTY = "distributionClassifier";
+    static final String WRAPPER_DIR = "gradle-wrapper";
+    static final String WRAPPER_JAR = WRAPPER_DIR + ".jar";
+    static final String WRAPPER_PROPERTIES = WRAPPER_DIR + ".properties";
     
     public static final String DEFAULT_URL_ROOT = "http://dist.codehaus.org/gradle";
     public static final String WRAPPER_JAR_BASE_NAME = "gradle-wrapper";
@@ -87,8 +98,8 @@ public class Wrapper extends DefaultTask {
         }
         String wrapperDir = (GUtil.isTrue(jarPath) ? jarPath + "/" : "");
         new File(getProject().getProjectDir(), wrapperDir).mkdirs();
-        String wrapperJar = wrapperDir + Install.WRAPPER_JAR;
-        String wrapperPropertiesPath = wrapperDir + Install.WRAPPER_PROPERTIES;
+        String wrapperJar = wrapperDir + WRAPPER_JAR;
+        String wrapperPropertiesPath = wrapperDir + WRAPPER_PROPERTIES;
         File jarFileDestination = new File(getProject().getProjectDir(), wrapperJar);
         File propertiesFileDestination = new File(getProject().getProjectDir(), wrapperPropertiesPath);
         File jarFileSource = new File(getProject().getBuild().getGradleHomeDir() + "/lib",
@@ -107,14 +118,14 @@ public class Wrapper extends DefaultTask {
 
     private void writeProperties(File propertiesFileDestination) {
         Properties wrapperProperties = new Properties();
-        wrapperProperties.put(org.gradle.wrapper.Wrapper.URL_ROOT_PROPERTY, urlRoot);
-        wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_BASE_PROPERTY, distributionBase.toString());
-        wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_PATH_PROPERTY, distributionPath);
-        wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_NAME_PROPERTY, archiveName);
-        wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_CLASSIFIER_PROPERTY, archiveClassifier);
-        wrapperProperties.put(org.gradle.wrapper.Wrapper.DISTRIBUTION_VERSION_PROPERTY, gradleVersion);
-        wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
-        wrapperProperties.put(org.gradle.wrapper.Wrapper.ZIP_STORE_PATH_PROPERTY, archivePath);
+        wrapperProperties.put(URL_ROOT_PROPERTY, urlRoot);
+        wrapperProperties.put(DISTRIBUTION_BASE_PROPERTY, distributionBase.toString());
+        wrapperProperties.put(DISTRIBUTION_PATH_PROPERTY, distributionPath);
+        wrapperProperties.put(DISTRIBUTION_NAME_PROPERTY, archiveName);
+        wrapperProperties.put(DISTRIBUTION_CLASSIFIER_PROPERTY, archiveClassifier);
+        wrapperProperties.put(DISTRIBUTION_VERSION_PROPERTY, gradleVersion);
+        wrapperProperties.put(ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
+        wrapperProperties.put(ZIP_STORE_PATH_PROPERTY, archivePath);
         GUtil.saveProperties(wrapperProperties, propertiesFileDestination);
     }
 

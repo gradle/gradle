@@ -15,7 +15,6 @@
  */
 package org.gradle.wrapper;
 
-import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -40,13 +39,17 @@ public class WrapperTest {
 
     JUnit4Mockery context = new JUnit4Mockery();
 
+    private File propertiesDir = new File("propertiesDir");
+    private File propertiesFile;
+
     @Before
     public void setUp() throws IOException {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         wrapper = new Wrapper();
         bootstrapMainStarterMock = context.mock(BootstrapMainStarter.class);
         installMock = context.mock(Install.class);
-        File propertiesFile = new File(HelperUtil.makeNewTestDir(), "wrapper.properties");
+        propertiesDir.mkdirs();
+        propertiesFile = new File(propertiesDir, "wrapper.properties");
         Properties testProperties = new Properties();
         testProperties.load(WrapperTest.class.getResourceAsStream("/org/gradle/wrapper/wrapper.properties"));
         testProperties.store(new FileOutputStream(propertiesFile), null);
@@ -55,7 +58,8 @@ public class WrapperTest {
 
     @After
     public void tearDown() {
-        HelperUtil.deleteTestDir();
+        propertiesFile.delete();
+        propertiesDir.delete();
         System.getProperties().remove(Wrapper.WRAPPER_PROPERTIES_PROPERTY);
     }
 
