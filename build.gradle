@@ -1,4 +1,3 @@
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.apache.tools.ant.taskdefs.condition.Os
@@ -32,23 +31,29 @@ import org.apache.tools.ant.filters.ReplaceTokens
 defaultTasks "clean", "dists"
 
 usePlugin 'groovy'
-usePlugin 'code-quality'
-
-archivesBaseName = 'gradle'
-
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
 
 svn = new Svn(project)
 
 type = 'jar'
 
-group = 'org.gradle'
 buildTime = new Date()
 versionModifier = null
 
-def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
+explodedDistDir = new File(distsDir, 'exploded')
+explodedDistDocsDir = new File(explodedDistDir, 'docs')
+explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
+explodedDistGroovydocsDir = new File(explodedDistDocsDir, 'groovydoc')
+explodedDistSamplesDir = new File(explodedDistDir, 'samples')
+explodedDistLibDir = new File(explodedDistDir, 'lib')
+samplesSrcDir = new File(srcRoot, 'samples')
+userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
+
+
 allprojects {
+    group = 'org.gradle'
+
+    archivesBaseName = 'gradle'
+
     repositories {
         mavenCentral()
         add(new URLResolver()) {
@@ -56,8 +61,20 @@ allprojects {
             addArtifactPattern('http://gradle.sourceforge.net/gradleRepo/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
         }
     }
-    usePlugin 'java'
+
     version = new Version(svn, project, false)
+}
+
+def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
+subprojects {
+    sourceCompatibility = 1.5
+    targetCompatibility = 1.5
+
+    archivesBaseName = 'gradle'
+
+    usePlugin 'groovy'
+    usePlugin 'code-quality'
+
     dependencies {
         testCompile "junit:junit:4.5", FIRST_LEVEL_JMOCK
         testCompile module("org.jmock:jmock:2.4.0") {
@@ -67,11 +84,33 @@ allprojects {
         // todo - these should not be here
         testCompile 'org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3'
     }
-    task ide << {
-        def libDir = file('lib')
+
+    checkstyleConfigDir = "$rootDir/config/checkstyle"
+    checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
+    [checkstyle, checkstyleTests].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
+    [codenarc, codenarcTests]*.configFile = "$rootDir/config/codenarc.xml" as File
+
+    groovydoc.destinationDir = explodedDistGroovydocsDir
+
+    javadoc {
+        dependsOn compile
+        destinationDir = explodedDistJavadocsDir
+        // todo: include only the public packages
+        options.subPackages 'org.gradle'
+        exclude 'org.gradle.api.internal'
+        // todo: make this true
+        failOnError = false
+    }
+    javadoc.doFirst {
+        javadoc.title = "Gradle API $version"
+        javadoc.options.docTitle = javadoc.title
+    }
+
+    task ide << { task ->
+        def libDir = task.project.file('lib')
         ant.delete(dir: libDir)
         copy {
-            from configurations.testRuntime.files(DependencySpecs.type(Type.EXTERNAL))
+            from task.project.configurations.testRuntime.files(DependencySpecs.type(Type.EXTERNAL))
             into libDir
         }
     }
@@ -80,7 +119,6 @@ allprojects {
 configurations {
     distLib {
         visible = false
-        extendsFrom getByName('default')
     }
     ftpAntTask
     retrotranslatorAntTask
@@ -90,7 +128,7 @@ configurations {
 }
 
 dependencies {
-    wrapper project(':gradle-wrapper')
+    wrapper project(':gradle-wrapper'), project(':gradle-core')
 
     // todo: Improve dependency handling for xUnit jars
     ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
@@ -115,75 +153,14 @@ dependencies {
         }
     }
 
-    compile module("commons-httpclient:commons-httpclient:3.0") {
-        dependencies("commons-codec:commons-codec:1.2@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar")
-    }
-
-    // Needed by the eclipse plugin
-    compile module("dom4j:dom4j:1.6.1") {
-        dependencies("jaxen:jaxen:1.1@jar")
-    }
-
-    compile "org.mortbay.jetty:jetty-plus:6.1.14@jar",
-            "org.mortbay.jetty:jetty-util:6.1.14@jar",
-            "javax.servlet:servlet-api:2.5@jar"
-
-    compile module("org.mortbay.jetty:jetty:6.1.14") {
-        // todo - these should be runtime dependencies
-        dependencies("javax.servlet:servlet-api:2.5@jar",
-                "org.apache.ant:ant:1.7.0@jar",
-                // todo jsp stuff should be a module
-                "org.mortbay.jetty:jsp-api-2.1:6.1.14@jar",
-                "org.mortbay.jetty:jsp-2.1:6.1.14@jar",
-                "org.eclipse.jdt:core:3.1.1@jar",
-                "org.mortbay.jetty:jetty-util:6.1.14@jar",
-                "org.mortbay.jetty:jetty-naming:6.1.14@jar",
-                "org.mortbay.jetty:jetty-annotations:6.1.14@jar")
-    }
-
-    compile module("org.apache.ivy:ivy:2.1.0-rc2") {
-        dependencies("jsch:jsch:0.1.31")
-    }
-
-    compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",
-            "org.apache.ant:ant:1.7.0@jar",
-            "ch.qos.logback:logback-classic:0.9.9@jar",
-            "org.slf4j:slf4j-api:1.5.3@jar",
-            "org.slf4j:jul-to-slf4j:1.5.3@jar",
-            "ch.qos.logback:logback-core:0.9.9@jar",
-            "commons-io:commons-io:1.4@jar",
-            "commons-lang:commons-lang:2.3@jar",
-            "commons-codec:commons-codec:1.2@jar",
-            "slide:webdavlib:2.0@jar",
-            "biz.aQute:bndlib:0.0.255@jar",
-            "org.apache.maven:maven-ant-tasks:2.0.9@jar",
-            "asm:asm-all:2.2.3@jar"
-
-    runtime "org.slf4j:log4j-over-slf4j:1.5.3@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar"
-    
-    compile module("org.codenarc:CodeNarc:0.6") {
-        dependency("org.slf4j:log4j-over-slf4j:1.5.3@jar")
-    }
-
-    runtime "org.apache.ant:ant-junit:1.7.0@jar",
-            "org.apache.ant:ant-launcher:1.7.0@jar",
-            "org.apache.ant:ant-nodeps:1.7.0@jar",
-            "org.apache.ant:ant-trax:1.7.0@jar",
-            "junit:junit:4.5"
-    runtime module("checkstyle:checkstyle:5.0") {
-        dependency("antlr:antlr:2.7.7")
-        dependency("org.slf4j:jcl-over-slf4j:1.5.3@jar")
-        dependency("com.google.collections:google-collections:0.9")
-        module("commons-beanutils:commons-beanutils-core:1.7.0") {
-            dependency("commons-collections:commons-collections:2.0")
-            dependency("org.slf4j:jcl-over-slf4j:1.5.3@jar")
-        }
-    }
-
-
-    testCompile "xmlunit:xmlunit:1.2"
     distLib "junit:junit:4.5"
 }
+
+jar.enabled = false
+task javadoc(overwrite: true, dependsOn: subprojects*.javadoc)
+task groovydoc(overwrite: true, dependsOn: subprojects*.groovydoc)
+task check(overwrite: true, dependsOn: subprojects*.check)
+task test(overwrite: true, dependsOn: subprojects*.test)
 
 distributionUploadUrl = null
 docsRemoteDir = ''
@@ -209,42 +186,7 @@ build.taskGraph.whenReady {graph ->
     ])
 }
 
-processResources.doLast {
-    File versionPropertiesDestination = new File(classesDir, GradleVersion.FILE_NAME)
-    logger.info('Write version properties to: {}', versionPropertiesDestination.absoluteFile)
-    Properties versionProperties = new Properties()
-    versionProperties.putAll([
-            (GradleVersion.VERSION): version.toString(),
-            (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime)
-    ])
-    versionProperties.store(new FileOutputStream(versionPropertiesDestination), '')
-}
-
-[compile, compileTests]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
-
-checkstyleConfigDir = "$projectDir/config/checkstyle"
-checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
-[checkstyle, checkstyleTests].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
-
-test {
-    // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'])
-
-    exclude 'org/gradle/integtests/**/*IntegrationTest.*'
-}
-
-jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
-
-explodedDistDir = new File(distsDir, 'exploded')
-explodedDistDocsDir = new File(explodedDistDir, 'docs')
-explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
-explodedDistGroovydocsDir = new File(explodedDistDocsDir, 'groovydoc')
-explodedDistSamplesDir = new File(explodedDistDir, 'samples')
-explodedDistLibDir = new File(explodedDistDir, 'lib')
-samplesSrcDir = new File(srcRoot, 'samples')
-userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
-
-task explodedDistBase(dependsOn: libs, description: 'Builds a minimal distribution image') << {
+task explodedDistBase(dependsOn: [libs, configurations.wrapper.buildDependencies], description: 'Builds a minimal distribution image') << {
     [explodedDistDir, explodedDistLibDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
 
@@ -260,7 +202,7 @@ task explodedDistBase(dependsOn: libs, description: 'Builds a minimal distributi
         into explodedDistLibDir
     }
     logger.info('Generate start scripts')
-    StartScriptsGenerator.generate("$archivesBaseName-${version}.jar", explodedDistBinDir, archivesBaseName)
+    StartScriptsGenerator.generate(project('gradle-core').jar.archiveName, explodedDistBinDir, archivesBaseName)
     logger.info('Copy and generate top level files.')
     copy { from(new File(srcRoot, 'toplevel')).into explodedDistDir }
     // Set permissions (important for running integration tests against the exploded dist)
@@ -404,22 +346,6 @@ artifacts {
     tasks.findAll {task -> task.name.matches('.*Zip') }.each {
         dists it
     }
-}
-
-groovydoc.destinationDir = explodedDistGroovydocsDir
-
-javadoc {
-    dependsOn compile
-    destinationDir = explodedDistJavadocsDir
-    // todo: include only the public packages
-    options.subPackages 'org.gradle'
-    exclude 'org.gradle.api.internal'
-    // todo: make this true
-    failOnError = false
-}
-javadoc.doFirst {
-    javadoc.title = "Gradle API $version"
-    javadoc.options.docTitle = javadoc.title
 }
 
 srcDocsDir = file('src/docs')
@@ -629,7 +555,7 @@ websiteDocs << {
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
 integTestDistDir = new File(buildDir, 'integtest')
-task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc]) {
+task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc, project('gradle-core').compileTests, project('gradle-core').processTestResources, project('gradle-core').processResources]) {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
@@ -637,6 +563,8 @@ task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc]) {
 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
     exclude '**/Abstract*'
+    testClassesDir = project('gradle-core').testClassesDir
+    configuration = project('gradle-core').getConfigurations().getByName('testRuntime')
 }
 integTest.doFirst {
     ant {

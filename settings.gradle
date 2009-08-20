@@ -1,2 +1,3 @@
-include 'gradle-wrapper'
+include 'gradle-wrapper','gradle-core'
+project(':gradle-core').projectDir = new File(settingsDir, 'subprojects/gradle-core')
 project(':gradle-wrapper').projectDir = new File(settingsDir, 'subprojects/gradle-wrapper')

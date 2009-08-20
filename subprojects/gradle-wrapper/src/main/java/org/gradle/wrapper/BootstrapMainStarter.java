@@ -27,7 +27,7 @@ public class BootstrapMainStarter {
     public void start(String[] args, String gradleHome, String version) throws Exception {
         System.setProperty("gradle.home", gradleHome);
         boolean debug = WrapperMain.isDebug();
-        File gradleJar = new File(gradleHome, "lib/gradle-" + version + ".jar");
+        File gradleJar = new File(gradleHome, "lib/gradle-core-" + version + ".jar");
         if (debug) {
             System.out.println("gradleJar = " + gradleJar.getAbsolutePath());
         }
