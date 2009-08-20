@@ -1,7 +1,6 @@
 import java.text.DateFormat
 
 usePlugin 'groovy'
-usePlugin 'code-quality'
 
 dependencies {
     def ANT_GROOVY = ["org.apache.ant:ant:1.7.0@jar", "org.apache.ant:ant-junit:1.7.0@jar", "org.apache.ant:ant-launcher:1.7.0@jar"]

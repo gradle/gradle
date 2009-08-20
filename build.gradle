@@ -48,7 +48,6 @@ explodedDistLibDir = new File(explodedDistDir, 'lib')
 samplesSrcDir = new File(srcRoot, 'samples')
 userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
 
-
 allprojects {
     group = 'org.gradle'
 
@@ -155,6 +154,8 @@ dependencies {
 
     distLib "junit:junit:4.5"
 }
+
+clean.dependsOn subprojects*.clean
 
 jar.enabled = false
 task javadoc(overwrite: true, dependsOn: subprojects*.javadoc)
@@ -578,7 +579,7 @@ integTest.doFirst {
 
 task testedDists(dependsOn: [dists, check, test, integTest])
 
-task nightlyBuild(dependsOn: [testedDists, uploadDocs])
+task nightlyBuild(dependsOn: [clean, testedDists, uploadDocs])
 
 task install(dependsOn: binZip, description: 'Installs the distribution into directory $gradle_installPath') << {
     ant.delete(dir: installDir)
@@ -641,6 +642,7 @@ build.taskGraph.whenReady {graph ->
 }
 
 task developerBuild(dependsOn: [clean, testedDists])
+task ciBuild(dependsOn: [clean, testedDists])
 
 task release(dependsOn: [uploadDists, uploadDocs]) << {
     svn.release()
