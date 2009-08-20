@@ -19,6 +19,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.DefaultClassGenerator;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
@@ -49,7 +50,7 @@ public class TaskFactoryTest {
 
     @Before
     public void setUp() {
-        taskFactory = new TaskFactory();
+        taskFactory = new TaskFactory(new DefaultClassGenerator());
         testProject = new DefaultProject("projectName");
         empyArgMap = new HashMap();
     }
@@ -99,11 +100,11 @@ public class TaskFactoryTest {
 
         assertThat(task.getProperty(), nullValue());
 
-        task.conventionMapping(GUtil.map("property", new ConventionValue() {
+        task.getConventionMapping().map("property", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return "conventionValue";
             }
-        }));
+        });
 
         assertThat(task.getProperty(), equalTo("conventionValue"));
 
@@ -114,11 +115,11 @@ public class TaskFactoryTest {
     @Test
     public void doesNotApplyConventionMappingToGettersDefinedByTaskInterface() {
         TestConventionTask task = (TestConventionTask) checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestConventionTask.class)));
-        task.conventionMapping(GUtil.map("description", new ConventionValue() {
+        task.getConventionMapping().map("description", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 throw new UnsupportedOperationException();
             }
-        }));
+        });
         assertThat(task.getDescription(), nullValue());
     }
 

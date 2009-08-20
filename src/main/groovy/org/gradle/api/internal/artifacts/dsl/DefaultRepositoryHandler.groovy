@@ -19,20 +19,19 @@ import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.internal.artifacts.DefaultResolverContainer
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
-import org.gradle.api.plugins.Convention
-import org.gradle.util.HashUtil
-import org.gradle.util.WrapUtil
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
+import org.gradle.api.internal.artifacts.DefaultResolverContainer
+import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
+import org.gradle.util.HashUtil
+import org.gradle.util.WrapUtil
 
 /**
  * @author Hans Dockter
  */
 class DefaultRepositoryHandler extends DefaultResolverContainer implements RepositoryHandler {
-    DefaultRepositoryHandler(ResolverFactory resolverFactory, Convention convention) {
-        super(resolverFactory, convention)
+    DefaultRepositoryHandler(ResolverFactory resolverFactory) {
+        super(resolverFactory)
     }
 
     FileSystemResolver flatDir(Map args) {

@@ -25,6 +25,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.BeanDynamicObject
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactoryTest
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
@@ -57,7 +58,6 @@ import groovy.lang.*
 import java.util.*
 import org.gradle.api.*
 import org.gradle.api.artifacts.dsl.*
-import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -112,7 +112,6 @@ class DefaultProjectTest {
     StandardOutputRedirector outputRedirectorMock;
     StandardOutputRedirector outputRedirectorOtherProjectsMock;
 
-
     @Before
     void setUp() {
         context.imposteriser = ClassImposteriser.INSTANCE
@@ -133,7 +132,7 @@ class DefaultProjectTest {
           resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction ->
             assertSame(build.startParameter.projectDependenciesBuildInstruction, projectDependenciesBuildInstruction)
             configurationContainerMock}] as ConfigurationContainerFactory
-        repositoryHandlerMock =  context.mock(RepositoryHandler.class);
+        repositoryHandlerMock =  context.mock(DefaultRepositoryHandlerFactoryTest.ConventionAwareRepositoryHandler.class);
         context.checking {
           allowing(repositoryHandlerFactoryMock).createRepositoryHandler(withParam(any(Convention))); will(returnValue(repositoryHandlerMock))
         }
@@ -195,9 +194,8 @@ class DefaultProjectTest {
 
   @Test void testRepositories() {
       context.checking {
-        allowing(repositoryHandlerFactoryMock).createRepositoryHandler(withParam(any(Convention))); will(returnValue(repositoryHandlerMock))
-        one(repositoryHandlerMock).getConventionMapping(); will(returnValue([:]))
-        one(repositoryHandlerMock).setConventionMapping([:])
+          allowing(repositoryHandlerFactoryMock).createRepositoryHandler(withParam(any(Convention))); will(returnValue(repositoryHandlerMock))
+          ignoring(repositoryHandlerMock)
       }
       assertThat(project.createRepositoryHandler(), sameInstance(repositoryHandlerMock))
   }
@@ -267,7 +265,7 @@ class DefaultProjectTest {
         assertEquals([], project.getDefaultTasks())
         assert project.configurations.is(configurationContainerMock)
         assert project.repositoryHandlerFactory.is(repositoryHandlerFactoryMock)
-        assert project.repositories.is(repositoryHandlerMock)
+        assertSame(repositoryHandlerMock, project.repositories)
         assert projectRegistry.is(project.projectRegistry)
         assertEquals AbstractProject.State.CREATED, project.state
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName

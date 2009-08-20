@@ -21,18 +21,18 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.TaskAction;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.DefaultClassGenerator;
 import org.gradle.api.internal.project.*;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.OutputHandler;
 import org.gradle.test.util.Check;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.execution.OutputHandler;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -50,8 +50,8 @@ public abstract class AbstractTaskTest {
 
     private AbstractProject project;
 
-    private JUnit4Mockery context = new JUnit4Mockery();
-    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory());
+    protected JUnit4Mockery context = new JUnit4Mockery();
+    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new DefaultClassGenerator()));
 
     @Before
     public void setUp() {

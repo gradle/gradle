@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -67,9 +68,10 @@ public class ProjectFactoryTest {
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
     private PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory.class);
     private ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
+    private ClassGenerator classGenerator = context.mock(ClassGenerator.class);
     private ProjectServiceRegistryFactory serviceRegistryFactory = new DefaultProjectServiceRegistryFactory(
             repositoryHandlerFactory, configurationContainerFactory, publishArtifactFactoryMock, dependencyFactoryMock,
-            projectEvaluator);
+            projectEvaluator, classGenerator);
     private PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private IProjectRegistry projectRegistry = new DefaultProjectRegistry();
     private BuildInternal build = context.mock(BuildInternal.class);

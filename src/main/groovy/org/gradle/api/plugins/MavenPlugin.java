@@ -15,9 +15,9 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Project;
-import org.gradle.api.Plugin;
 import org.gradle.api.Action;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -30,8 +30,8 @@ import org.gradle.api.tasks.Upload;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows project artifacts to be deployed to a Maven repository, or installed
@@ -70,7 +70,7 @@ public class MavenPlugin implements Plugin {
         Map mapping = GUtil.map(
                 "mavenPomDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return ((MavenPluginConvention) convention.getPlugins().get("maven")).getPomDir();
+                        return convention.getPlugin(MavenPluginConvention.class).getPomDir();
                     }
                 },
                 "configurationContainer", new ConventionValue() {
@@ -80,10 +80,10 @@ public class MavenPlugin implements Plugin {
                 },
                 "mavenScopeMappings", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return ((MavenPluginConvention) convention.getPlugins().get("maven")).getConf2ScopeMappings();
+                        return convention.getPlugin(MavenPluginConvention.class).getConf2ScopeMappings();
                     }
                 });
-        project.getRepositories().conventionMapping(mapping);
+        ((IConventionAware) project.getRepositories()).getConventionMapping().map(mapping);
     }
 
     private void addConventionObject(Project project, Map<String, ?> customValues) {

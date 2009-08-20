@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.configuration.ProjectEvaluator;
@@ -48,10 +49,11 @@ public class DefaultProjectServiceRegistryFactoryTest {
     private final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
     private final PublishArtifactFactory publishArtifactFactory = context.mock(PublishArtifactFactory.class);
     private final ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
-
+    private final ClassGenerator classGenerator = context.mock(ClassGenerator.class);
+    
     private final DefaultProjectServiceRegistryFactory factory = new DefaultProjectServiceRegistryFactory(
             repositoryHandlerFactory, configurationContainerFactory, publishArtifactFactory, dependencyFactory,
-            projectEvaluator);
+            projectEvaluator, classGenerator);
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ConfigurationHandler configurationHandler = context.mock(ConfigurationHandler.class);
 

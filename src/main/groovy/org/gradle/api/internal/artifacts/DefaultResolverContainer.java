@@ -20,31 +20,26 @@ import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.ConventionAwareHelper;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultResolverContainer extends DefaultDomainObjectContainer<DependencyResolver>
-        implements ResolverContainer, IConventionAware {
-    private ConventionAwareHelper conventionAwareHelper;
-
+        implements ResolverContainer {
     private ResolverFactory resolverFactory;
 
     private List<String> resolverNames = new ArrayList<String>();
@@ -55,11 +50,9 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
 
     private ConfigurationContainer configurationContainer = null;
 
-    public DefaultResolverContainer(ResolverFactory resolverFactory, Convention convention) {
+    public DefaultResolverContainer(ResolverFactory resolverFactory) {
         super(DependencyResolver.class);
         this.resolverFactory = resolverFactory;
-        conventionAwareHelper = new ConventionAwareHelper(this);
-        conventionAwareHelper.setConvention(convention);
     }
 
     @Override
@@ -192,7 +185,7 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
     }
 
     public ConfigurationContainer getConfigurationContainer() {
-        return (ConfigurationContainer) conv(configurationContainer, "configurationContainer");
+        return configurationContainer;
     }
 
     public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
@@ -207,32 +200,8 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
         return resolverFactory.createMavenInstaller(name, getMavenPomDir(), getConfigurationContainer(), getMavenScopeMappings());
     }
 
-    public Object conventionMapping(Map<String, ConventionValue> mapping) {
-        return conventionAwareHelper.conventionMapping(mapping);
-    }
-
-    public void setConventionMapping(Map<String, ConventionValue> conventionMapping) {
-        conventionAwareHelper.setConventionMapping(conventionMapping);
-    }
-
-    public Map<String, ConventionValue> getConventionMapping() {
-        return conventionAwareHelper.getConventionMapping();
-    }
-
-    public ConventionAwareHelper getConventionAwareHelper() {
-        return conventionAwareHelper;
-    }
-
-    public void setConventionAwareHelper(ConventionAwareHelper conventionAwareHelper) {
-        this.conventionAwareHelper = conventionAwareHelper;
-    }
-
-    public Object conv(Object internalValue, String propertyName) {
-        return conventionAwareHelper.getConventionValue(internalValue, propertyName);
-    }
-
     public Conf2ScopeMappingContainer getMavenScopeMappings() {
-        return (Conf2ScopeMappingContainer) conv(mavenScopeMappings, "mavenScopeMappings");
+        return mavenScopeMappings;
     }
 
     public void setMavenScopeMappings(Conf2ScopeMappingContainer mavenScopeMappings) {
@@ -240,7 +209,7 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
     }
 
     public File getMavenPomDir() {
-        return (File) conv(mavenPomDir, "mavenPomDir");
+        return mavenPomDir;
     }
 
     public void setMavenPomDir(File mavenPomDir) {

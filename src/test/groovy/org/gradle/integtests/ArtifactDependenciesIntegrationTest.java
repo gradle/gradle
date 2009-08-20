@@ -15,9 +15,8 @@
  */
 package org.gradle.integtests;
 
-import org.junit.Test;
 import static org.hamcrest.Matchers.*;
-import org.apache.commons.io.FileUtils;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +38,6 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
     @Test
     public void canNestModules() throws IOException {
         File buildFile = getTestBuildFile("projectWithNestedModules.gradle");
-        System.out.println(FileUtils.readFileToString(buildFile));
         testFile("projectA-1.2.jar").touch();
         testFile("projectB-1.5.jar").touch();
         testFile("projectC-2.0.jar").touch();

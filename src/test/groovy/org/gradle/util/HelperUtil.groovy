@@ -56,6 +56,7 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultBuild
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository
+import org.gradle.api.internal.DefaultClassGenerator
 
 /**
  * @author Hans Dockter
@@ -72,7 +73,7 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory())
+        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), new DefaultClassGenerator())
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory([new SelfResolvingDependencyFactory()] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory())
         StartParameter startParameter = new StartParameter()
         startParameter.pluginPropertiesFile = new File('plugin.properties')
@@ -81,7 +82,8 @@ class HelperUtil {
                 new DefaultConfigurationContainerFactory(startParameter.projectDependenciesBuildInstruction),
                 new DefaultPublishArtifactFactory(),
                 dependencyFactory,
-                new DefaultProjectEvaluator()
+                new DefaultProjectEvaluator(),
+                new DefaultClassGenerator()
         )
         IProjectFactory projectFactory = new ProjectFactory(
                 serviceRegistryFactory,

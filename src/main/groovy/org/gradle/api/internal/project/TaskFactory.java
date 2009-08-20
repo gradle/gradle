@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.DefaultClassGenerator;
 import org.gradle.util.GUtil;
 
 import java.lang.reflect.Constructor;
@@ -31,8 +30,12 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class TaskFactory implements ITaskFactory {
-    public static final String GENERATE_CONVENTION_GETTERS = "generateGetters";
-    private final ClassGenerator generator = new DefaultClassGenerator();
+    public static final String GENERATE_SUBCLASS = "generateSubclass";
+    private final ClassGenerator generator;
+
+    public TaskFactory(ClassGenerator generator) {
+        this.generator = generator;
+    }
 
     public Task createTask(Project project, Map args) {
         checkTaskArgsAndCreateDefaultValues(args);
@@ -43,8 +46,8 @@ public class TaskFactory implements ITaskFactory {
         }
 
         Class type = (Class) args.get(Task.TASK_TYPE);
-        Boolean generateGetters = Boolean.valueOf(args.get(GENERATE_CONVENTION_GETTERS).toString());
-        Task task = createTaskObject(project, type, name, generateGetters);
+        Boolean generateSubclass = Boolean.valueOf(args.get(GENERATE_SUBCLASS).toString());
+        Task task = createTaskObject(project, type, name, generateSubclass);
 
         Object dependsOnTasks = args.get(Task.TASK_DEPENDS_ON);
         task.dependsOn(dependsOnTasks);
@@ -103,7 +106,7 @@ public class TaskFactory implements ITaskFactory {
         setIfNull(args, Task.TASK_NAME, "");
         setIfNull(args, Task.TASK_TYPE, DefaultTask.class);
         setIfNull(args, Task.TASK_DEPENDS_ON, new ArrayList());
-        setIfNull(args, GENERATE_CONVENTION_GETTERS, "true");
+        setIfNull(args, GENERATE_SUBCLASS, "true");
     }
 
     private void setIfNull(Map map, String key, Object defaultValue) {

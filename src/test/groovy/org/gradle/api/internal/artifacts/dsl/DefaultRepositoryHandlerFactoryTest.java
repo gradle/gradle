@@ -17,10 +17,15 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.Convention;
-import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.Expectations;
+import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,15 +35,36 @@ import org.junit.runner.RunWith;
  */
 @RunWith(JMock.class)
 public class DefaultRepositoryHandlerFactoryTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
+    private JUnit4Mockery context = new JUnit4Mockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
     private ResolverFactory repositoryFactoryMock = context.mock(ResolverFactory.class);
+    private ClassGenerator classGeneratorMock = context.mock(ClassGenerator.class);
     private Convention convention = new DefaultConvention();
 
     @Test
-    public void createRepositoryHandler() {
-        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(repositoryFactoryMock);
+    public void createsARepositoryHandlerAndSetsConvention() {
+        final ConventionAwareRepositoryHandler repositoryHandlerMock = context.mock(ConventionAwareRepositoryHandler.class);
+        final ConventionMapping conventionMappingMock = context.mock(ConventionMapping.class);
+
+        context.checking(new Expectations() {{
+            one(classGeneratorMock).newInstance(DefaultRepositoryHandler.class, repositoryFactoryMock);
+            will(returnValue(repositoryHandlerMock));
+            allowing(repositoryHandlerMock).getConventionMapping();
+            will(returnValue(conventionMappingMock));
+            one(conventionMappingMock).setConvention(convention);
+        }});
+
+        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(
+                repositoryFactoryMock, classGeneratorMock);
         DefaultRepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(convention);
-        assertThat(repositoryHandler.getResolverFactory(), Matchers.sameInstance(repositoryFactoryMock));
-        assertThat(repositoryHandler.getConventionAwareHelper().getConvention(), Matchers.sameInstance(convention));
+        assertThat(repositoryHandler, sameInstance((Object) repositoryHandlerMock));
+    }
+
+    public static abstract class ConventionAwareRepositoryHandler extends DefaultRepositoryHandler
+            implements IConventionAware {
+        protected ConventionAwareRepositoryHandler(ResolverFactory resolverFactory) {
+            super(resolverFactory);
+        }
     }
 }

@@ -23,13 +23,11 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolverContainer
+import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
-import org.gradle.api.internal.ConventionTestHelper
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
-import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Before
 import org.junit.Test
@@ -61,7 +59,7 @@ class DefaultResolverContainerTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     ResolverContainer createResolverContainer() {
-        return new DefaultResolverContainer(resolverFactoryMock, new DefaultConvention())
+        return new DefaultResolverContainer(resolverFactoryMock)
     }
 
     @Before public void setUp() {
@@ -211,11 +209,5 @@ class DefaultResolverContainerTest {
             will(returnValue(expectedResolver))
         }
         expectedResolver
-    }
-
-    @Test
-    public void testConventionAwareness() {
-        ConventionTestHelper conventionTestHelper = new ConventionTestHelper()
-        resolverContainer.setConventionAwareHelper(conventionTestHelper.conventionAwareHelperMock)
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -48,7 +49,7 @@ import java.util.Map;
 
 // todo - compose this
 public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegistryFactory {
-    private final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory());
+    private final ITaskFactory taskFactory;
     private final RepositoryHandlerFactory repositoryHandlerFactory;
     private final ConfigurationContainerFactory configurationContainerFactory;
     private final PublishArtifactFactory publishArtifactFactory;
@@ -59,12 +60,14 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
                                                 ConfigurationContainerFactory configurationContainerFactory,
                                                 PublishArtifactFactory publishArtifactFactory,
                                                 DependencyFactory dependencyFactory,
-                                                ProjectEvaluator projectEvaluator) {
+                                                ProjectEvaluator projectEvaluator,
+                                                ClassGenerator classGenerator) {
         this.repositoryHandlerFactory = repositoryHandlerFactory;
         this.configurationContainerFactory = configurationContainerFactory;
         this.publishArtifactFactory = publishArtifactFactory;
         this.dependencyFactory = dependencyFactory;
         this.projectEvaluator = projectEvaluator;
+        taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(classGenerator));
     }
 
     public ProjectServiceRegistry create(ProjectInternal project) {

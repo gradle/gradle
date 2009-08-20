@@ -16,51 +16,33 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.ConventionValue;
-import org.gradle.util.GUtil;
-
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public abstract class ConventionTask extends DefaultTask implements IConventionAware {
-    private ConventionAwareHelper conventionAwareHelper;
-    
+    private ConventionMapping conventionMapping;
+
     public ConventionTask(Project project, String name) {
         super(project, name);
-        conventionAwareHelper = new ConventionAwareHelper(this);
-        conventionAwareHelper.setConvention(project.getConvention());
-    }
-
-    public Task conventionMapping(Map<String, ConventionValue> mapping) {
-        return (Task) conventionAwareHelper.conventionMapping(mapping);
+        conventionMapping = new ConventionAwareHelper(this);
+        conventionMapping.setConvention(project.getConvention());
     }
 
     public Task conventionMapping(String property, ConventionValue mapping) {
-        return (Task) conventionAwareHelper.conventionMapping(GUtil.map(property, mapping));
+        conventionMapping.map(property, mapping);
+        return this;
     }
 
-    public void setConventionMapping(Map<String, ConventionValue> conventionMapping) {
-        conventionAwareHelper.setConventionMapping(conventionMapping);
+    public ConventionMapping getConventionMapping() {
+        return conventionMapping;
     }
 
-    public Map<String, ConventionValue> getConventionMapping() {
-        return conventionAwareHelper.getConventionMapping();
-    }
-
-    public ConventionAwareHelper getConventionAwareHelper() {
-        return conventionAwareHelper;
-    }
-
-    public void setConventionAwareHelper(ConventionAwareHelper conventionAwareHelper) {
-        this.conventionAwareHelper = conventionAwareHelper;
-    }
-
-    public Object conv(Object internalValue, String propertyName) {
-        return conventionAwareHelper.getConventionValue(internalValue, propertyName);
+    public void setConventionMapping(ConventionMapping mapping) {
+        this.conventionMapping = mapping;
     }
 }

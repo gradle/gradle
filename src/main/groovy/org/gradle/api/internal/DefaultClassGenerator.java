@@ -18,16 +18,19 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.gradle.api.GradleException;
+import org.gradle.api.Task;
+import org.gradle.util.ReflectionUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class DefaultClassGenerator implements ClassGenerator {
-    private final Map<Class, Class> generatedClasses = new HashMap<Class, Class>();
+    // This is static (for now), as these classes are expensive to generate, and also Groovy gets confused
+    private static final Map<Class, Class> generatedClasses = new HashMap<Class, Class>();
 
-    public DefaultClassGenerator() {
-
+    public <T> T newInstance(Class<T> type, Object... parameters) {
+        return type.cast(ReflectionUtil.newInstance(generate(type), parameters));
     }
 
     public <T> Class<? extends T> generate(Class<T> type) {
@@ -35,6 +38,16 @@ public class DefaultClassGenerator implements ClassGenerator {
         if (generatedClass != null) {
             return generatedClass;
         }
+
+        if (Modifier.isPrivate(type.getModifiers())) {
+            throw new GradleException(String.format("Cannot create a proxy class for private class '%s'.",
+                    type.getSimpleName()));
+        }
+        if (Modifier.isAbstract(type.getModifiers())) {
+            throw new GradleException(String.format("Cannot create a proxy class for abstract class '%s'.",
+                    type.getSimpleName()));
+        }
+        
         if (type.getAnnotation(NoConventionMapping.class) != null) {
             generatedClasses.put(type, type);
             return type;
@@ -46,8 +59,8 @@ public class DefaultClassGenerator implements ClassGenerator {
         if (type.getPackage() != null) {
             src.format("package %s;%n", type.getPackage().getName());
         }
-        src.format("public class %s extends %s implements org.gradle.api.internal.IConventionAware {%n",
-                className, type.getName().replaceAll("\\$", "."));
+        src.format("public class %s extends %s implements org.gradle.api.internal.IConventionAware {%n", className,
+                type.getName().replaceAll("\\$", "."));
         for (Constructor<?> constructor : type.getConstructors()) {
             if (Modifier.isPublic(constructor.getModifiers())) {
                 src.format("public %s(", className);
@@ -70,11 +83,11 @@ public class DefaultClassGenerator implements ClassGenerator {
         }
 
         if (!IConventionAware.class.isAssignableFrom(type)) {
-            src.format("private final org.gradle.api.internal.ConventionAwareHelper helper = new org.gradle.api.internal.ConventionAwareHelper(this)%n");
-            src.format("public Object conventionMapping(Map<String, org.gradle.api.tasks.ConventionValue> mapping) { return helper.conventionMapping(mapping); }%n");
-            src.format("public void setConventionMapping(java.util.Map<String, org.gradle.api.tasks.ConventionValue> conventionMapping) { helper.setConventionMapping(conventionMapping) }%n");
-            src.format("public java.util.Map<String, ConventionValue> getConventionMapping() { return helper.getConventionMapping() }%n");
-            src.format("public Object conv(Object internalValue, String propertyName) { return helper.getConventionValue(internalValue, propertyName) }%n");
+            src.format(
+                    "private org.gradle.api.internal.ConventionMapping mapping = new org.gradle.api.internal.ConventionAwareHelper(this)%n");
+            src.format(
+                    "public void setConventionMapping(org.gradle.api.internal.ConventionMapping conventionMapping) { this.mapping = conventionMapping }%n");
+            src.format("public org.gradle.api.internal.ConventionMapping getConventionMapping() { return mapping }%n");
         }
 
         Class noMappingClass = Object.class;
@@ -105,20 +118,24 @@ public class DefaultClassGenerator implements ClassGenerator {
                     continue;
                 }
                 String returnTypeName = getter.getReturnType().getCanonicalName();
-                src.format("public %s %s() { return conv(super.%s(), '%s'); }%n", returnTypeName,
-                        getter.getName(), getter.getName(), property.getName());
+                src.format("public %s %s() { return conventionMapping.getConventionValue(super.%s(), '%s'); }%n",
+                        returnTypeName, getter.getName(), getter.getName(), property.getName());
             }
         }
-        src.format("void setProperty(String name, Object value) { defineProperty(name, value); }%n");
-        src.format("def propertyMissing(String name) { property(name); }%n");
+
+        // todo - make this generic
+        if (Task.class.isAssignableFrom(type)) {
+            src.format("void setProperty(String name, Object value) { defineProperty(name, value); }%n");
+            src.format("def propertyMissing(String name) { property(name); }%n");
+        }
         src.format("}");
 
         GroovyClassLoader classLoader = new GroovyClassLoader(type.getClassLoader());
         try {
             generatedClass = classLoader.parseClass(src.toString());
         } catch (CompilationFailedException e) {
-            throw new GradleException(String.format("Could not generate a proxy class for class %s.",
-                    type.getName()), e);
+            throw new GradleException(String.format("Could not generate a proxy class for class %s.", type.getName()),
+                    e);
         }
         generatedClasses.put(type, generatedClass);
         return generatedClass;

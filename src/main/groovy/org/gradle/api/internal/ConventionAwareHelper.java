@@ -24,11 +24,12 @@ import org.gradle.util.ReflectionUtil;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Collections;
 
 /**
  * @author Hans Dockter
  */
-public class ConventionAwareHelper {
+public class ConventionAwareHelper implements ConventionMapping {
     private Convention convention;
 
     private IConventionAware source;
@@ -41,14 +42,12 @@ public class ConventionAwareHelper {
         this.source = source;
     }
 
-    // todo Why do we need this method?
-    public Object convention(Convention convention, Map<String, ConventionValue> conventionMapping) {
-        this.convention = convention;
-        this.conventionMapping = conventionMapping;
-        return source;
+    public ConventionMapping map(String propertyName, ConventionValue value) {
+        map(Collections.singletonMap(propertyName, value));
+        return this;
     }
 
-    public Object conventionMapping(Map<String, ConventionValue> mapping) {
+    public ConventionMapping map(Map<String, ConventionValue> mapping) {
         Iterator keySetIterator = mapping.keySet().iterator();
         while (keySetIterator.hasNext()) {
             String propertyName = (String) keySetIterator.next();
@@ -57,7 +56,7 @@ public class ConventionAwareHelper {
             }
         }
         this.conventionMapping.putAll(mapping);
-        return source;
+        return this;
     }
 
     public Object getConventionValue(String propertyName) {
@@ -65,7 +64,7 @@ public class ConventionAwareHelper {
         return getConventionValue(value, propertyName);
     }
 
-    public Object getConventionValue(Object internalValue, String propertyName) {
+    public <T> T getConventionValue(T internalValue, String propertyName) {
         Object returnValue = internalValue;
         if (internalValue == null && conventionMapping.keySet().contains(propertyName)) {
             if (!conventionMappingCache.keySet().contains(propertyName)) {
@@ -74,7 +73,7 @@ public class ConventionAwareHelper {
             }
             returnValue = conventionMappingCache.get(propertyName);
         }
-        return returnValue;
+        return (T) returnValue;
     }
 
     public Convention getConvention() {

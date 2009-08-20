@@ -60,7 +60,7 @@ public class GroovyPlugin implements Plugin {
         project.getTasks().withType(Groovydoc.class).allTasks(new Action<Groovydoc>() {
             public void execute(Groovydoc groovydoc) {
                 groovydoc.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
-                groovydoc.conventionMapping(GUtil.map("srcDirs", new ConventionValue() {
+                groovydoc.getConventionMapping().map(GUtil.map("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return groovy(convention).getGroovySrcDirs();
                     }

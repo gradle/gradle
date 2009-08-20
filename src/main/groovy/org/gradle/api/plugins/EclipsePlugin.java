@@ -85,7 +85,7 @@ public class EclipsePlugin implements Plugin {
 
     private EclipseClasspath configureEclipseClasspath(final Project project) {
         EclipseClasspath eclipseClasspath = project.getTasks().add(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class);
-        eclipseClasspath.conventionMapping(GUtil.map(
+        eclipseClasspath.getConventionMapping().map(GUtil.map(
                 "srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
@@ -137,7 +137,7 @@ public class EclipsePlugin implements Plugin {
     private void configureEclipseWtpModuleForWarProjects(final Project project, final War war) {
         final EclipseWtp eclipseWtp = project.getTasks().add(ECLIPSE_WTP_TASK_NAME, EclipseWtp.class);
 
-        eclipseWtp.conventionMapping(GUtil.map(
+        eclipseWtp.getConventionMapping().map(GUtil.map(
                 "warResourceMappings", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         Map resourceMappings = WrapUtil.toMap("/WEB-INF/classes", GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs()));

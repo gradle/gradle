@@ -15,22 +15,20 @@
  */
 package org.gradle.api.artifacts.dsl;
 
+import groovy.lang.Closure;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 
 import java.util.Map;
-
-import groovy.lang.Closure;
 
 /**
  * @author Hans Dockter
  */
-public interface RepositoryHandler extends ResolverContainer, IConventionAware, ResolverProvider {
+public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
     final String DEFAULT_MAVEN_DEPLOYER_NAME = "mavenDeployer";
     final String DEFAULT_MAVEN_INSTALLER_NAME = "mavenInstaller";
 

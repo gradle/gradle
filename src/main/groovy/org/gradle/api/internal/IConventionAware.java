@@ -16,31 +16,17 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.tasks.ConventionValue;
-
-import java.util.Map;
-
 /**
- * Allows default values for the properties of this object to be declared. Most implementations are generated at
- * run-time from existing classes, by {@link org.gradle.api.internal.DefaultClassGenerator}.
+ * <p>Allows default values for the properties of this object to be declared. Most implementations are generated at
+ * run-time from existing classes, by a {@link org.gradle.api.internal.ClassGenerator} implementation.</p>
+ *
+ * <p>Each getter of an {@code IConventionAware} object should use the mappings to determine the value for the property,
+ * when no value has been explicitly set for the property.</p>
  *
  * @author Hans Dockter
  */
 public interface IConventionAware {
-    Object conventionMapping(Map<String, ConventionValue> mapping);
+    void setConventionMapping(ConventionMapping mapping);
 
-    void setConventionMapping(Map<String, ConventionValue> conventionMapping);
-
-    Map<String, ConventionValue> getConventionMapping();
-
-    /**
-     * Returns a value for a property of a convention aware object. If the internal value is different to null, this
-     * method returns the internal value. Otherwise the value from the convention mapping for this property is returned.
-     * If no such mapping exists for this property, null is returned.
-     *
-     * @param internalValue The internal value of the property
-     * @param propertyName The name of the propery of the convention aware object
-     * @return The value of a property
-     */
-    Object conv(Object internalValue, String propertyName);
+    ConventionMapping getConventionMapping();
 }

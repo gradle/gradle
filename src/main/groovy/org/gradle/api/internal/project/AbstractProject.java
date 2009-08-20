@@ -23,10 +23,7 @@ import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.BeanDynamicObject;
-import org.gradle.api.internal.BuildInternal;
-import org.gradle.api.internal.DynamicObject;
-import org.gradle.api.internal.DynamicObjectHelper;
+import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.file.BaseDirConverter;
 import org.gradle.api.internal.file.CopyActionImpl;
@@ -194,7 +191,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public RepositoryHandler createRepositoryHandler() {
         RepositoryHandler handler = repositoryHandlerFactory.createRepositoryHandler(getConvention());
-        handler.setConventionMapping(repositoryHandler.getConventionMapping());
+        ((IConventionAware) handler).setConventionMapping(((IConventionAware) repositoryHandler).getConventionMapping());
         return handler;
     }
 

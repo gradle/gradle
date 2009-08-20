@@ -16,8 +16,11 @@
  
 package org.gradle.api.tasks;
 
+import org.gradle.api.internal.ConventionAwareHelper;
+import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.ConventionTestHelper;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
@@ -29,9 +32,13 @@ public abstract class AbstractConventionTaskTest extends AbstractTaskTest {
     
     @Test
     public void testConventionAwareness() {
-        ConventionTestHelper conventionTestHelper = new ConventionTestHelper();
-        ConventionTask task = this.getTask();
-        task.setConventionAwareHelper(conventionTestHelper.getConventionAwareHelperMock());
+        ConventionTask task = getTask();
+        assertThat(task.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
+        assertThat(task.getConventionMapping().getConvention(), sameInstance(getProject().getConvention()));
+
+        ConventionMapping conventionMapping = context.mock(ConventionMapping.class);
+        task.setConventionMapping(conventionMapping);
+        assertThat(task.getConventionMapping(), sameInstance(conventionMapping));
     }
 }
 

@@ -44,7 +44,7 @@ public class WarPlugin implements Plugin {
 
         project.getTasks().withType(War.class).allTasks(new Action<War>() {
             public void execute(War task) {
-                task.conventionMapping(DefaultConventionsToPropertiesMapping.WAR);
+                task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.WAR);
                 final Configuration configuration = task.getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
                 task.dependsOn(configuration.getBuildDependencies());
             }

@@ -24,12 +24,9 @@ import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
-import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.api.plugins.Convention
 import org.gradle.util.HashUtil
 import org.junit.Test
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertSame
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -40,7 +37,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
     private DefaultRepositoryHandler repositoryHandler
 
     public ResolverContainer createResolverContainer() {
-        repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock, new DefaultConvention());
+        repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock);
         return repositoryHandler;
     }
 
@@ -167,7 +164,6 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
 
     @Test
     void resolverAccess() {
-        Convention conventionDummy = context.mock(Convention)
         DependencyResolver dependencyResolverStub = context.mock(DependencyResolver)
         context.checking {
             allowing(dependencyResolverStub).getName()
@@ -176,7 +172,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
             allowing(resolverFactoryMock).createResolver(dependencyResolverStub)
             will(returnValue(dependencyResolverStub))
         }
-        DefaultRepositoryHandler repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock, conventionDummy)
+        DefaultRepositoryHandler repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock)
         repositoryHandler.add(dependencyResolverStub)
 
         dependencyResolverStub == repositoryHandler.resolverName

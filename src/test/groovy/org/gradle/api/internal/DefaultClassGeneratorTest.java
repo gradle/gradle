@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.GroovyRuntimeException;
+import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
-import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -34,12 +35,12 @@ public class DefaultClassGeneratorTest {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
         assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
         Bean bean = generatedClass.newInstance();
-        ((IConventionAware) bean).conventionMapping(toMap("property", (ConventionValue) null));
+        ((IConventionAware) bean).getConventionMapping().map("property", null);
     }
 
     @Test
-    public void testCachesGeneratedSubclass() {
-        assertEquals(generator.generate(Bean.class), generator.generate(Bean.class));
+    public void cachesGeneratedSubclass() {
+        assertSame(generator.generate(Bean.class), generator.generate(Bean.class));
     }
     
     @Test
@@ -53,6 +54,47 @@ public class DefaultClassGeneratorTest {
     }
 
     @Test
+    public void canConstructInstance() throws Exception {
+        Bean bean = generator.newInstance(BeanWithConstructor.class, "value");
+        assertThat(bean.getClass(), sameInstance((Object) generator.generate(BeanWithConstructor.class)));
+        assertThat(bean.getProperty(), equalTo("value"));
+
+        bean = generator.newInstance(BeanWithConstructor.class);
+        assertThat(bean.getProperty(), equalTo("default value"));
+    }
+
+    @Test
+    public void reportsConstructionFailure() {
+        try {
+            generator.newInstance(UnconstructableBean.class);
+            fail();
+        } catch (UnsupportedOperationException e) {
+            assertThat(e, sameInstance(UnconstructableBean.failure));
+        }
+
+        try {
+            generator.newInstance(Bean.class, "arg1", 2);
+            fail();
+        } catch (GroovyRuntimeException e) {
+            // expected
+        }
+
+        try {
+            generator.newInstance(AbstractBean.class);
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), equalTo("Cannot create a proxy class for abstract class 'AbstractBean'."));
+        }
+
+        try {
+            generator.newInstance(PrivateBean.class);
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), equalTo("Cannot create a proxy class for private class 'PrivateBean'."));
+        }
+    }
+    
+    @Test
     public void appliesConventionMappingToEachGetter() throws Exception {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
         assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
@@ -61,11 +103,11 @@ public class DefaultClassGeneratorTest {
 
         assertThat(bean.getProperty(), nullValue());
 
-        conventionAware.conventionMapping(GUtil.map("property", new ConventionValue() {
+        conventionAware.getConventionMapping().map("property", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return "conventionValue";
             }
-        }));
+        });
 
         assertThat(bean.getProperty(), equalTo("conventionValue"));
 
@@ -83,16 +125,8 @@ public class DefaultClassGeneratorTest {
         Class<? extends ConventionAwareBean> generatedClass = generator.generate(ConventionAwareBean.class);
         assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
         ConventionAwareBean bean = generatedClass.newInstance();
-        bean.conventionMapping(GUtil.map(
-                "property", new ConventionValue(){
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        throw new UnsupportedOperationException();
-                    }
-                }));
-        
-        assertSame(bean.mapping, bean.getConventionMapping());
+        assertSame(bean, bean.getConventionMapping());
 
-        // Check conv() is not overridden
         bean.setProperty("value");
         assertEquals("[value]", bean.getProperty());
     }
@@ -101,7 +135,7 @@ public class DefaultClassGeneratorTest {
     public void doesNotOverrideMethodsFromSuperclassesMarkedWithAnnotation() throws Exception {
         BeanSubClass bean = generator.generate(BeanSubClass.class).newInstance();
         IConventionAware conventionAware = (IConventionAware) bean;
-        conventionAware.conventionMapping(GUtil.map(
+        conventionAware.getConventionMapping().map(GUtil.map(
                 "property", new ConventionValue(){
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         throw new UnsupportedOperationException();
@@ -155,27 +189,39 @@ public class DefaultClassGeneratorTest {
         }
     }
 
-    public static class ConventionAwareBean extends Bean implements IConventionAware {
+    public static class ConventionAwareBean extends Bean implements IConventionAware, ConventionMapping {
         Map<String, ConventionValue> mapping = new HashMap<String, ConventionValue>();
 
-        public Object conv(Object internalValue, String propertyName) {
-            if (internalValue instanceof String) {
-                return "[" + internalValue + "]";
+        public Convention getConvention() {
+            throw new UnsupportedOperationException();
+        }
+
+        public void setConvention(Convention convention) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ConventionMapping map(Map<String, ConventionValue> properties) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ConventionMapping map(String propertyName, ConventionValue value) {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> T getConventionValue(T actualValue, String propertyName) {
+            if (actualValue instanceof String) {
+                return (T)("[" + actualValue + "]");
             } else {
                 throw new UnsupportedOperationException();
             }
         }
 
-        public Object conventionMapping(Map<String, ConventionValue> mapping) {
+        public ConventionMapping getConventionMapping() {
             return this;
         }
 
-        public Map<String, ConventionValue> getConventionMapping() {
-            return mapping;
-        }
-
-        public void setConventionMapping(Map<String, ConventionValue> conventionMapping) {
-            this.mapping = conventionMapping;
+        public void setConventionMapping(ConventionMapping conventionMapping) {
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -218,4 +264,18 @@ public class DefaultClassGeneratorTest {
             return null;
         }
     }
+
+    public static class UnconstructableBean {
+        static UnsupportedOperationException failure = new UnsupportedOperationException();
+
+        public UnconstructableBean() {
+            throw failure;
+        }
+    }
+
+    public static abstract class AbstractBean {
+        abstract void implementMe();
+    }
+
+    private static class PrivateBean {}
 }

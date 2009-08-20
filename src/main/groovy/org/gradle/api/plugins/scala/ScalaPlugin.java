@@ -66,7 +66,7 @@ public class ScalaPlugin implements Plugin {
         project.getTasks().withType(ScalaCompile.class).allTasks(new Action<ScalaCompile>() {
             public void execute(ScalaCompile compile) {
                 compile.setClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
-                compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
+                compile.getConventionMapping().map(DefaultConventionsToPropertiesMapping.COMPILE);
                 compile.conventionMapping("scalaSrcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return scala(convention).getScalaSrcDirs();
@@ -83,7 +83,7 @@ public class ScalaPlugin implements Plugin {
         ScalaCompile compileTests = project.getTasks().replace(COMPILE_TESTS_TASK_NAME, ScalaCompile.class);
         compileTests.setDescription("Compiles the Scala test source code.");
         compileTests.setClasspath(project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME));
-        compileTests.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_COMPILE);
+        compileTests.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TEST_COMPILE);
         compileTests.conventionMapping("scalaSrcDirs", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return scala(convention).getScalaTestSrcDirs();

@@ -44,12 +44,12 @@ public class ConventionAwareHelperTest {
     @Test public void testConventionMapping() {
         final List expectedList1 = WrapUtil.toList("a");
         final List expectedList2 = WrapUtil.toList("b");
-        assertSame(testTask, conventionAware.conventionMapping(WrapUtil.<String, ConventionValue>toMap("list1", new ConventionValue() {
+        assertSame(conventionAware, conventionAware.map(WrapUtil.<String, ConventionValue>toMap("list1", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return expectedList1;
             }
         })));
-        assertSame(testTask, conventionAware.conventionMapping(WrapUtil.<String, ConventionValue>toMap("list2", new ConventionValue() {
+        assertSame(conventionAware, conventionAware.map(WrapUtil.<String, ConventionValue>toMap("list2", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return expectedList2;
             }
@@ -60,12 +60,12 @@ public class ConventionAwareHelperTest {
     }
 
     @Test (expected = InvalidUserDataException.class) public void testIllegalMapping() {
-        conventionAware.conventionMapping(WrapUtil.<String, ConventionValue>toMap("unknownProp", null));
+        conventionAware.map(WrapUtil.<String, ConventionValue>toMap("unknownProp", null));
     }
 
     @Test public void testOverwriteProperties() {
         final List conventionList1 = WrapUtil.toList("a");
-        conventionAware.conventionMapping(WrapUtil.<String, ConventionValue>toMap("list1", new ConventionValue() {
+        conventionAware.map(WrapUtil.<String, ConventionValue>toMap("list1", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return conventionList1;
             }
@@ -77,7 +77,7 @@ public class ConventionAwareHelperTest {
     }
 
     @Test public void testCachedProperties() {
-        Object value = conventionAware.conventionMapping(WrapUtil.<String, ConventionValue>toMap("list1", new ConventionValue() {
+        Object value = conventionAware.map(WrapUtil.<String, ConventionValue>toMap("list1", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return WrapUtil.toList("a");
             }

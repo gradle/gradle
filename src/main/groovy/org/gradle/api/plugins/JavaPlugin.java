@@ -105,7 +105,7 @@ public class JavaPlugin implements Plugin {
         project.getTasks().withType(Compile.class).allTasks(new Action<Compile>() {
             public void execute(Compile compile) {
                 compile.setClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
-                compile.conventionMapping(DefaultConventionsToPropertiesMapping.COMPILE);
+                compile.getConventionMapping().map(DefaultConventionsToPropertiesMapping.COMPILE);
                 addDependsOnProjectBuildDependencies(compile, COMPILE_CONFIGURATION_NAME);
             }
         });
@@ -115,7 +115,7 @@ public class JavaPlugin implements Plugin {
 
     private void configureProcessResources(Project project) {
         Copy processResources = project.getTasks().add(PROCESS_RESOURCES_TASK_NAME, Copy.class);
-        processResources.conventionMapping(DefaultConventionsToPropertiesMapping.RESOURCES);
+        processResources.getConventionMapping().map(DefaultConventionsToPropertiesMapping.RESOURCES);
         processResources.setDescription(
                 "Process and copy the resources into the binary directory of the compiled sources.");
     }
@@ -123,7 +123,7 @@ public class JavaPlugin implements Plugin {
     private void configureJavaDoc(final Project project) {
         project.getTasks().withType(Javadoc.class).allTasks(new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
-                javadoc.conventionMapping(DefaultConventionsToPropertiesMapping.JAVADOC);
+                javadoc.getConventionMapping().map(DefaultConventionsToPropertiesMapping.JAVADOC);
                 javadoc.setConfiguration(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
                 addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
             }
@@ -133,7 +133,7 @@ public class JavaPlugin implements Plugin {
 
     private void configureProcessTestResources(Project project) {
         ConventionTask processTestResources = project.getTasks().add(PROCESS_TEST_RESOURCES_TASK_NAME, Copy.class);
-        processTestResources.conventionMapping(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
+        processTestResources.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TEST_RESOURCES);
         processTestResources.setDescription(
                 "Process and copy the test resources into the binary directory of the compiled test sources.");
     }
@@ -142,16 +142,16 @@ public class JavaPlugin implements Plugin {
         project.getTasks().withType(AbstractArchiveTask.class).allTasks(new Action<AbstractArchiveTask>() {
             public void execute(AbstractArchiveTask task) {
                 if (task instanceof Jar) {
-                    task.conventionMapping(DefaultConventionsToPropertiesMapping.JAR);
+                    task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.JAR);
                     task.dependsOn(PROCESS_RESOURCES_TASK_NAME);
                     task.dependsOn(COMPILE_TASK_NAME);
                 }
                 else if (task instanceof Tar) {
-                    task.conventionMapping(DefaultConventionsToPropertiesMapping.TAR);
+                    task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TAR);
                     task.dependsOn(LIBS_TASK_NAME);
                 }
                 else if (task instanceof Zip) {
-                    task.conventionMapping(DefaultConventionsToPropertiesMapping.ZIP);
+                    task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.ZIP);
                     task.dependsOn(LIBS_TASK_NAME);
                 }
             }
@@ -223,7 +223,7 @@ public class JavaPlugin implements Plugin {
                 test.dependsOn(PROCESS_TEST_RESOURCES_TASK_NAME);
                 test.dependsOn(COMPILE_TASK_NAME);
                 test.dependsOn(PROCESS_RESOURCES_TASK_NAME);
-                test.conventionMapping(DefaultConventionsToPropertiesMapping.TEST);
+                test.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TEST);
                 test.setConfiguration(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME));
                 addDependsOnProjectBuildDependencies(test, TEST_RUNTIME_CONFIGURATION_NAME);
             }
@@ -270,7 +270,7 @@ public class JavaPlugin implements Plugin {
     }
 
     protected Compile configureCompileInternal(Compile compile, Map propertyMapping) {
-        compile.conventionMapping(propertyMapping);
+        compile.getConventionMapping().map(propertyMapping);
         return compile;
     }
 

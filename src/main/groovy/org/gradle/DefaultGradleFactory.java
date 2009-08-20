@@ -26,6 +26,8 @@ import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.project.DefaultProjectServiceRegistryFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectFactory;
+import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.DefaultClassGenerator;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
@@ -90,6 +92,7 @@ public class DefaultGradleFactory implements GradleFactory {
         DefaultBuild build = new DefaultBuild(startParameter, internalRepository);
         build.addBuildListener(internalRepository);
         build.addBuildListener(projectEvaluator);
+        ClassGenerator classGenerator = new DefaultClassGenerator();
         Gradle gradle = new Gradle(
                 build,
                 new SettingsHandler(
@@ -116,11 +119,12 @@ public class DefaultGradleFactory implements GradleFactory {
                 new BuildLoader(
                         new ProjectFactory(
                                 new DefaultProjectServiceRegistryFactory(
-                                        new DefaultRepositoryHandlerFactory(resolverFactory),
+                                        new DefaultRepositoryHandlerFactory(resolverFactory, classGenerator),
                                         configurationContainerFactory,
                                         new DefaultPublishArtifactFactory(),
                                         dependencyFactory,
-                                        projectEvaluator),
+                                        projectEvaluator,
+                                        classGenerator),
                                 startParameter.getBuildScriptSource())),
               new BuildConfigurer(new ProjectDependencies2TaskResolver()));
         return gradle;

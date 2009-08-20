@@ -19,6 +19,10 @@ package org.gradle.util;
  * @author Hans Dockter
  */
 class ReflectionUtil {
+    static <T> T newInstance(Class cl, Object... args) {
+        return cl.newInstance(args)
+    }
+
     static void setFromMap(Object object, Map args) {
         args.each { key, value ->
             object."$key" = value

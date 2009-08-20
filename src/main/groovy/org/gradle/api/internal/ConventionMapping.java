@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.dsl;
+package org.gradle.api.internal;
 
+import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.plugins.Convention;
 
+import java.util.Map;
+
 /**
- * @author Hans Dockter
+ * <p>A {@code ConventionMapping} maintains the convention mappings for the properties of a particular object.</p>
  */
-public interface RepositoryHandlerFactory {
-    /**
-     * Creates a repository handler. The returned handler will also implement {@link
-     * org.gradle.api.internal.IConventionAware}.
-     */
-    RepositoryHandler createRepositoryHandler(Convention convention);
+public interface ConventionMapping {
+    Convention getConvention();
+
+    void setConvention(Convention convention);
+
+    ConventionMapping map(String propertyName, ConventionValue value);
+
+    ConventionMapping map(Map<String, ConventionValue> properties);
+
+    <T> T getConventionValue(T actualValue, String propertyName);
 }
