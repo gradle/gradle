@@ -102,8 +102,8 @@ public class Wrapper extends DefaultTask {
         String wrapperPropertiesPath = wrapperDir + WRAPPER_PROPERTIES;
         File jarFileDestination = new File(getProject().getProjectDir(), wrapperJar);
         File propertiesFileDestination = new File(getProject().getProjectDir(), wrapperPropertiesPath);
-        File jarFileSource = new File(getProject().getBuild().getGradleHomeDir() + "/lib",
-                WRAPPER_JAR_BASE_NAME + "-" + getProject().getBuild().getGradleVersion() + ".jar");
+        File jarFileSource = new File(getProject().getGradle().getGradleHomeDir() + "/lib",
+                WRAPPER_JAR_BASE_NAME + "-" + getProject().getGradle().getGradleVersion() + ".jar");
         propertiesFileDestination.delete();
         jarFileDestination.delete();
         writeProperties(propertiesFileDestination);

@@ -1,5 +1,5 @@
 // START SNIPPET evaluate-events
-build.afterProject {project, exception ->
+gradle.afterProject {project, exception ->
     if (exception) {
         println "Evaluation of $project FAILED"
     } else {

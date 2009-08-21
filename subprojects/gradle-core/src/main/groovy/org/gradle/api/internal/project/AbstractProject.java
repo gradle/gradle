@@ -199,7 +199,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return rootProject;
     }
 
-    public BuildInternal getBuild() {
+    public BuildInternal getGradle() {
         return build;
     }
 

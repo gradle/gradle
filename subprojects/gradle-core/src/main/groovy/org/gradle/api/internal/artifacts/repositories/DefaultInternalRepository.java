@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Build;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.util.GradleUtil;
 
 import java.io.File;
@@ -63,7 +63,7 @@ public class DefaultInternalRepository extends FileSystemResolver implements Int
         return dir;
     }
 
-    public void buildStarted(Build build) {
+    public void buildStarted(Gradle gradle) {
     }
 
     public void settingsEvaluated(Settings settings) {
@@ -74,10 +74,10 @@ public class DefaultInternalRepository extends FileSystemResolver implements Int
         configure(dir);
     }
 
-    public void projectsLoaded(Build build) {
+    public void projectsLoaded(Gradle gradle) {
     }
 
-    public void projectsEvaluated(Build build) {
+    public void projectsEvaluated(Gradle gradle) {
     }
 
     public void taskGraphPopulated(TaskExecutionGraph graph) {

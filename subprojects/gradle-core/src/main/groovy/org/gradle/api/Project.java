@@ -20,7 +20,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.invocation.Build;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.Convention;
@@ -968,13 +968,13 @@ public interface Project extends Comparable<Project> {
     Logger getLogger();
 
     /**
-     * <p>Returns the {@link Build} which this project belongs to.</p>
+     * <p>Returns the {@link org.gradle.api.invocation.Gradle} which this project belongs to.</p>
      *
-     * <p>You can use this property in your build file using <code>build</code>.</p>
+     * <p>You can use this property in your build file using <code>gradle</code>.</p>
      *
-     * @return The build. Never returns null.
+     * @return The Gradle object. Never returns null.
      */
-    Build getBuild();
+    Gradle getGradle();
 
     /**
      * Disables redirection of standard output during project evaluation. By default redirection is enabled.

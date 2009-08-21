@@ -43,7 +43,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier {
 
     StandardOutputRedirector getStandardOutputRedirector();
 
-    BuildInternal getBuild();
+    BuildInternal getGradle();
 
     ScriptClassLoaderProvider getClassLoaderProvider();
 

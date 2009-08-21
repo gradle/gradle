@@ -1,4 +1,4 @@
-build.taskGraph.whenReady {taskGraph ->
+gradle.taskGraph.whenReady {taskGraph ->
     if (taskGraph.hasTask(':release')) {
         version = '1.0'
     } else {

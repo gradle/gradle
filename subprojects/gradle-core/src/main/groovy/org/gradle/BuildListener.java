@@ -16,23 +16,23 @@
 package org.gradle;
 
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Build;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.execution.TaskExecutionGraph;
 
 /**
- * <p>A {@code BuildListener} is notified of the major lifecycle events as a {@link Gradle} instance executes a
+ * <p>A {@code BuildListener} is notified of the major lifecycle events as a {@link GradleLauncher} instance executes a
  * build.</p>
  *
  * @author Hans Dockter
- * @see Build#addBuildListener(BuildListener)
+ * @see org.gradle.api.invocation.Gradle#addBuildListener(BuildListener)
  */
 public interface BuildListener {
     /**
      * <p>Called when the build is started.</p>
      *
-     * @param build The build which is being started. Never null.
+     * @param gradle The build which is being started. Never null.
      */
-    void buildStarted(Build build);
+    void buildStarted(Gradle gradle);
 
     /**
      * <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is
@@ -46,17 +46,17 @@ public interface BuildListener {
      * <p>Called when the projects for the build have been created from the settings. None of the projects have been
      * evaluated.</p>
      *
-     * @param build The build which has been loaded. Never null.
+     * @param gradle The build which has been loaded. Never null.
      */
-    void projectsLoaded(Build build);
+    void projectsLoaded(Gradle gradle);
 
     /**
      * <p>Called when all projects for the build have been evaluated. The project objects are fully configured and are
      * ready to use to populate the task graph.</p>
      *
-     * @param build The build which has been evaluated. Never null.
+     * @param gradle The build which has been evaluated. Never null.
      */
-    void projectsEvaluated(Build build);
+    void projectsEvaluated(Gradle gradle);
 
     /**
      * <p>Called when the task graph for the build has been populated. The task graph is fully configured and is ready

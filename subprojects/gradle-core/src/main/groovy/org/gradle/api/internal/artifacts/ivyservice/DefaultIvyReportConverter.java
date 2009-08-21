@@ -321,8 +321,8 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
     }
 
     /*
-    * Gradle has a different notion of equality then Ivy. We need to map the download reports to
-    * moduleRevisionIds that are only use fields relevant for Gradle equality.
+    * GradleLauncher has a different notion of equality then Ivy. We need to map the download reports to
+    * moduleRevisionIds that are only use fields relevant for GradleLauncher equality.
     */
     private ModuleRevisionId normalize(ModuleRevisionId moduleRevisionId) {
         return ModuleRevisionId.newInstance(

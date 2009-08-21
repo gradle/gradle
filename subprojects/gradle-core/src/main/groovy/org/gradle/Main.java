@@ -75,12 +75,12 @@ public class Main {
         BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(logger);
         try {
             exceptionReporter.setStartParameter(startParameter);
-            Gradle gradle = Gradle.newInstance(startParameter);
+            GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
 
-            gradle.addBuildListener(exceptionReporter);
-            gradle.addBuildListener(resultLogger);
+            gradleLauncher.addBuildListener(exceptionReporter);
+            gradleLauncher.addBuildListener(resultLogger);
 
-            BuildResult buildResult = gradle.run();
+            BuildResult buildResult = gradleLauncher.run();
             if (buildResult.getFailure() != null) {
                 buildCompleter.exit(buildResult.getFailure());
             }

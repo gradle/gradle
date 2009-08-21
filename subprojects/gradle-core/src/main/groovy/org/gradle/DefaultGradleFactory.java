@@ -59,11 +59,11 @@ public class DefaultGradleFactory implements GradleFactory {
         return commandLine2StartParameterConverter.convert(commandLineArgs);
     }
 
-    public Gradle newInstance(String[] commandLineArgs) {
+    public GradleLauncher newInstance(String[] commandLineArgs) {
         return newInstance(commandLine2StartParameterConverter.convert(commandLineArgs));
     }
 
-    public Gradle newInstance(StartParameter startParameter) {
+    public GradleLauncher newInstance(StartParameter startParameter) {
         loggingConfigurer.configure(startParameter.getLogLevel());
         ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
         CachePropertiesHandler cachePropertiesHandler = new DefaultCachePropertiesHandler();
@@ -93,7 +93,7 @@ public class DefaultGradleFactory implements GradleFactory {
         build.addBuildListener(internalRepository);
         build.addBuildListener(projectEvaluator);
         ClassGenerator classGenerator = new DefaultClassGenerator();
-        Gradle gradle = new Gradle(
+        GradleLauncher gradleLauncher = new GradleLauncher(
                 build,
                 new SettingsHandler(
                         settingsFinder,
@@ -127,6 +127,6 @@ public class DefaultGradleFactory implements GradleFactory {
                                         classGenerator),
                                 startParameter.getBuildScriptSource())),
               new BuildConfigurer(new ProjectDependencies2TaskResolver()));
-        return gradle;
+        return gradleLauncher;
     }
 }

@@ -19,7 +19,7 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.invocation.Build;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskExecuter;
 import org.gradle.groovy.scripts.ScriptSourceMappingHandler;
 import org.gradle.BuildListener;
@@ -28,7 +28,7 @@ import org.gradle.BuildListener;
  * An internal interface for build that exposed objects and concepts that are not intended for public
  * consumption.  
  */
-public interface BuildInternal extends Build {
+public interface BuildInternal extends Gradle {
     /**
      * {@inheritDoc}
      */

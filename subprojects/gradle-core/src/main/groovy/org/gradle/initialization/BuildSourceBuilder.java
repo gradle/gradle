@@ -85,7 +85,7 @@ public class BuildSourceBuilder {
 
         logger.debug("Starting to build the build sources.");
         if (!startParameter.getCurrentDir().isDirectory()) {
-            logger.debug("Build source dir does not exist. We leave.");
+            logger.debug("Gradle source dir does not exist. We leave.");
             return new HashSet<File>();
         }
         logger.info("================================================" + " Start building buildSrc");
@@ -94,7 +94,7 @@ public class BuildSourceBuilder {
 
             // todo Remove this redundancy. We have defined the buildResolverDir already somewhere else.
             // We should get the build resolver dir from the root project. But as we need to get the dir before
-            // the build is executed, the Gradle class should offer distinct methods for gettting an evaluated
+            // the build is executed, the GradleLauncher class should offer distinct methods for gettting an evaluated
             // project tree and running a build against such a tree. In the case of a valid cache, this would also
             // save the time to build the dag.
             File buildResolverDir = new File(startParameter.getCurrentDir(), Project.TMP_DIR_NAME + "/" + ResolverContainer.INTERNAL_REPOSITORY_NAME);
@@ -111,16 +111,16 @@ public class BuildSourceBuilder {
             }
 
             if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
-                logger.debug("Build script file does not exists. Using default one.");
+                logger.debug("Gradle script file does not exists. Using default one.");
                 startParameterArg.useEmbeddedBuildFile(getDefaultScript());
             }
 
-            Gradle gradle = gradleFactory.newInstance(startParameterArg);
+            GradleLauncher gradleLauncher = gradleFactory.newInstance(startParameterArg);
             BuildResult buildResult;
             if (executeBuild) {
-                buildResult = gradle.run();
+                buildResult = gradleLauncher.run();
             } else {
-                buildResult = gradle.getBuildAnalysis();
+                buildResult = gradleLauncher.getBuildAnalysis();
             }
             buildResult.rethrowFailure();
 
@@ -131,10 +131,10 @@ public class BuildSourceBuilder {
             } else {
                 logger.info("Building buildSrc has not produced any artifacts.");
             }
-            Configuration runtimeConfiguration = buildResult.getBuild().getRootProject().getConfigurations().getByName(
+            Configuration runtimeConfiguration = buildResult.getGradle().getRootProject().getConfigurations().getByName(
                     JavaPlugin.RUNTIME_CONFIGURATION_NAME);
             buildSourceClasspath.addAll(runtimeConfiguration.getFiles());
-            logger.debug("Build source classpath is: {}", buildSourceClasspath);
+            logger.debug("Gradle source classpath is: {}", buildSourceClasspath);
             logger.info("================================================" + " Finished building buildSrc");
             return buildSourceClasspath;
         } finally {

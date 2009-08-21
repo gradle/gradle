@@ -20,7 +20,7 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.BuildInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Build;
+import org.gradle.api.invocation.Gradle;
 
 public class DefaultProjectEvaluator extends BuildAdapter implements ProjectEvaluator {
     private ProjectEvaluationListener listener;
@@ -47,7 +47,7 @@ public class DefaultProjectEvaluator extends BuildAdapter implements ProjectEval
         }
     }
 
-    public void projectsLoaded(Build build) {
-        listener = ((BuildInternal) build).getProjectEvaluationBroadcaster();
+    public void projectsLoaded(Gradle gradle) {
+        listener = ((BuildInternal) gradle).getProjectEvaluationBroadcaster();
     }
 }

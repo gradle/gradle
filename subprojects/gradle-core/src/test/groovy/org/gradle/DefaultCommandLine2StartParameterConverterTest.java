@@ -89,7 +89,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
         } else {
             System.getProperties().remove("gradle.home");
         }
-        Gradle.injectCustomFactory(null);
+        GradleLauncher.injectCustomFactory(null);
     }
 
     @Test

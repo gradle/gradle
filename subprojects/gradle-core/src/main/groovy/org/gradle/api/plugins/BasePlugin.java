@@ -82,7 +82,7 @@ public class BasePlugin implements Plugin {
                 for (Configuration configuration : configurations) {
                     if (taskName.equals(configuration.getUploadInternalTaskName())) {
                         Upload uploadInternal = createUploadTask(configuration.getUploadInternalTaskName(), configuration, project);
-                        uploadInternal.getRepositories().add(project.getBuild().getInternalRepository());
+                        uploadInternal.getRepositories().add(project.getGradle().getInternalRepository());
                     }
                 }
             }

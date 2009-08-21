@@ -95,9 +95,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     public ExecutionResult run() {
-        Gradle gradle = Gradle.newInstance(parameter);
-        gradle.addBuildListener(new ListenerImpl());
-        BuildResult result = gradle.run();
+        GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
+        gradleLauncher.addBuildListener(new ListenerImpl());
+        BuildResult result = gradleLauncher.run();
         result.rethrowFailure();
         return new InProcessExecutionResult(tasks);
     }

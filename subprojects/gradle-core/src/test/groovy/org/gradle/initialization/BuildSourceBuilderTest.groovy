@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
-import org.gradle.api.invocation.Build
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
@@ -39,7 +39,7 @@ import static org.junit.Assert.assertEquals
 class BuildSourceBuilderTest {
     BuildSourceBuilder buildSourceBuilder
     GradleFactory gradleFactoryMock
-    Gradle gradleMock
+    GradleLauncher gradleMock
     Project rootProjectMock
     Configuration configurationMock
     ConfigurationHandler configurationHandlerStub
@@ -60,7 +60,7 @@ class BuildSourceBuilderTest {
         (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
         (testBuildResolverDir = new File(testBuildSrcDir, Project.TMP_DIR_NAME + '/' + ResolverContainer.INTERNAL_REPOSITORY_NAME)).mkdir()
         gradleFactoryMock = context.mock(GradleFactory)
-        gradleMock = context.mock(Gradle)
+        gradleMock = context.mock(GradleLauncher)
         rootProjectMock = context.mock(Project)
         configurationHandlerStub = context.mock(ConfigurationHandler)
         configurationMock = context.mock(Configuration)
@@ -76,7 +76,7 @@ class BuildSourceBuilderTest {
         testDependencies = ['dep1' as File, 'dep2' as File]
         expectedArtifactPath = "$testBuildResolverDir.absolutePath/$BuildSourceBuilder.BUILD_SRC_ORG" +
                 "/$BuildSourceBuilder.BUILD_SRC_MODULE/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}-${BuildSourceBuilder.BUILD_SRC_REVISION}.jar"
-        Build build = context.mock(Build)
+        Gradle build = context.mock(Gradle)
         context.checking {
             allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationHandlerStub))
             allowing(configurationHandlerStub).getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))

@@ -105,7 +105,7 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
             services.add(new Service(ProjectPluginsContainer.class) {
                 @Override
                 protected Object create() {
-                    return new DefaultProjectsPluginContainer(project.getBuild().getPluginRegistry());
+                    return new DefaultProjectsPluginContainer(project.getGradle().getPluginRegistry());
                 }
             });
 
@@ -177,7 +177,7 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
                     if (project.getParent() != null) {
                         parentClassLoader = project.getParent().getClassLoaderProvider().getClassLoader();
                     } else {
-                        parentClassLoader = project.getBuild().getBuildScriptClassLoader();
+                        parentClassLoader = project.getGradle().getBuildScriptClassLoader();
                     }
                     return new DefaultScriptHandler(repositoryHandler, dependencyHandler,
                             configurationContainer, parentClassLoader);
@@ -228,11 +228,11 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
 
         private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
             public InternalRepository getInternalRepository() {
-                return project.getBuild().getInternalRepository();
+                return project.getGradle().getInternalRepository();
             }
 
             public File getGradleUserHomeDir() {
-                return project.getBuild().getGradleUserHomeDir();
+                return project.getGradle().getGradleUserHomeDir();
             }
 
             public Map getClientModuleRegistry() {

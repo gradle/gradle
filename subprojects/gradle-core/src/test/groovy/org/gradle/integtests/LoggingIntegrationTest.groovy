@@ -24,7 +24,7 @@ import org.junit.Test
 /**
  * @author Hans Dockter
  */
-// todo To make this test stronger, we should check against the output of a file appender. Right now Gradle does not provided this easily but eventually will.
+// todo To make this test stronger, we should check against the output of a file appender. Right now GradleLauncher does not provided this easily but eventually will.
 @RunWith(DistributionIntegrationTestRunner.class)
 class LoggingIntegrationTest {
     // Injected by test runner

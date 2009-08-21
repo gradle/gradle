@@ -65,7 +65,7 @@ public class WrapperTest extends AbstractTaskTest {
         File testGradleHomeLib = new File(testGradleHome, "lib");
         testGradleHomeLib.mkdirs();
         createSourceWrapperJar(testGradleHomeLib);
-        getProject().getBuild().getStartParameter().setGradleHomeDir(testGradleHome);
+        getProject().getGradle().getStartParameter().setGradleHomeDir(testGradleHome);
         targetWrapperJarPath = "jarPath";
         expectedTargetWrapperJar = new File(getProject().getProjectDir(),
                 targetWrapperJarPath + "/" + Wrapper.WRAPPER_JAR);
@@ -79,7 +79,7 @@ public class WrapperTest extends AbstractTaskTest {
     }
 
     private void createSourceWrapperJar(File testGradleHomeLib) {
-        File sourceWrapperExplodedDir = new File(testGradleHomeLib, Wrapper.WRAPPER_JAR_BASE_NAME + "-" + getProject().getBuild().getGradleVersion());
+        File sourceWrapperExplodedDir = new File(testGradleHomeLib, Wrapper.WRAPPER_JAR_BASE_NAME + "-" + getProject().getGradle().getGradleVersion());
         sourceWrapperExplodedDir.mkdirs();
         GFileUtils.writeStringToFile(new File(sourceWrapperExplodedDir, TEST_FILE_NAME), TEST_TEXT);
         sourceWrapperJar = new File(testGradleHomeLib, sourceWrapperExplodedDir.getName() + ".jar");

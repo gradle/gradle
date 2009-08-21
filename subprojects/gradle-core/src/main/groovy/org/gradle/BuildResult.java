@@ -16,20 +16,20 @@
 package org.gradle;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.invocation.Build;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.initialization.Settings;
 
 /**
- * <p>A {@code BuildResult} packages up the results of a build executed by a {@link Gradle} instance.</p>
+ * <p>A {@code BuildResult} packages up the results of a build executed by a {@link GradleLauncher} instance.</p>
  */
 public class BuildResult {
     private final Settings settings;
     private final Throwable failure;
-    private final Build build;
+    private final Gradle gradle;
 
-    public BuildResult(Settings settings, Build build, Throwable failure) {
+    public BuildResult(Settings settings, Gradle gradle, Throwable failure) {
         this.settings = settings;
-        this.build = build;
+        this.gradle = gradle;
         this.failure = failure;
     }
 
@@ -37,8 +37,8 @@ public class BuildResult {
         return settings;
     }
 
-    public Build getBuild() {
-        return build;
+    public Gradle getGradle() {
+        return gradle;
     }
 
     public Throwable getFailure() {

@@ -62,7 +62,7 @@ public class BuildScriptCompilerTest {
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
-            allowing(project).getBuild();
+            allowing(project).getGradle();
             will(returnValue(build));
 
             allowing(project).getBuildScriptSource();

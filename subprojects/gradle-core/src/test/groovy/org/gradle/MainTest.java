@@ -37,14 +37,14 @@ public class MainTest {
     }};
 
     private void setUpGradle(final BuildResult buildResult, final StartParameter startParameter) {
-        final Gradle gradleMock = context.mock(Gradle.class);
+        final GradleLauncher gradleMockLauncher = context.mock(GradleLauncher.class);
         final GradleFactory gradleFactoryMock = context.mock(GradleFactory.class);
 
-        Gradle.injectCustomFactory(gradleFactoryMock);
+        GradleLauncher.injectCustomFactory(gradleFactoryMock);
         context.checking(new Expectations() {{
-            one(gradleFactoryMock).newInstance(startParameter); will(returnValue(gradleMock));
-            allowing(gradleMock).addBuildListener(with(any(BuildListener.class)));
-            one(gradleMock).run(); will(returnValue(buildResult));
+            one(gradleFactoryMock).newInstance(startParameter); will(returnValue(gradleMockLauncher));
+            allowing(gradleMockLauncher).addBuildListener(with(any(BuildListener.class)));
+            one(gradleMockLauncher).run(); will(returnValue(buildResult));
         }});
     }
 
@@ -76,6 +76,8 @@ public class MainTest {
             fail();
         } catch (BuildCompletedError e) {
             assertThat(e.getCause(), nullValue());
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
     }
 

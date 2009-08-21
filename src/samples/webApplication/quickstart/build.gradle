@@ -14,7 +14,7 @@ dependencies {
     compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
 }
 
-build.taskGraph.whenReady {graph ->
+gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(runTest) || graph.hasTask(runWarTest)) {
         [jettyRun, jettyRunWar]*.daemon = true
     }

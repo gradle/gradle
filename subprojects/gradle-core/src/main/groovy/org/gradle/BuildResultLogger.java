@@ -19,7 +19,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Build;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.util.Clock;
 
@@ -35,8 +35,8 @@ public class BuildResultLogger implements BuildListener {
         buildTimeClock = new Clock();
     }
 
-    public void buildStarted(Build build) {
-        StartParameter startParameter = build.getStartParameter();
+    public void buildStarted(Gradle gradle) {
+        StartParameter startParameter = gradle.getStartParameter();
         logger.info("Starting Build");
         logger.debug("Gradle home: " + startParameter.getGradleHomeDir());
         logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
@@ -54,14 +54,14 @@ public class BuildResultLogger implements BuildListener {
                 settingsInternal.getSettingsScript().getDisplayName()));
     }
 
-    public void projectsLoaded(Build build) {
-        ProjectInternal projectInternal = (ProjectInternal) build.getRootProject();
+    public void projectsLoaded(Gradle gradle) {
+        ProjectInternal projectInternal = (ProjectInternal) gradle.getRootProject();
         logger.info(String.format("Projects loaded. Root project using %s.",
                 projectInternal.getBuildScriptSource().getDisplayName()));
         logger.info(String.format("Included projects: %s", projectInternal.getAllprojects()));
     }
 
-    public void projectsEvaluated(Build build) {
+    public void projectsEvaluated(Gradle gradle) {
         logger.info("All projects evaluated.");
     }
 

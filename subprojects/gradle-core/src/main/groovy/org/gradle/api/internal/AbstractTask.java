@@ -195,7 +195,7 @@ public abstract class AbstractTask implements TaskInternal {
         logger.debug("Starting to execute Task: {}", path);
         if (!isSkipped()) {
             if (onlyIfSpec == null ||
-                    project.getBuild().getStartParameter().isNoOpt() ||
+                    project.getGradle().getStartParameter().isNoOpt() ||
                     onlyIfSpec.isSatisfiedBy(this)) {
                 logger.lifecycle(path);
                 didWork = true;   // assume true unless changed during execution

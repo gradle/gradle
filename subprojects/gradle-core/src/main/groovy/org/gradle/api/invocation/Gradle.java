@@ -27,12 +27,12 @@ import java.io.File;
 import groovy.lang.Closure;
 
 /**
- * <p>A {@code Build} represents an invocation of Gradle.</p>
+ * <p>A {@code Gradle} represents an invocation of Gradle.</p>
  *
- * <p>You can obtain a {@code Build} instance by calling {@link Project#getBuild()}. In your build file you can use
- * {@code build} to access it.</p>
+ * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}. In your build file you can use
+ * {@code Gradle} to access it.</p>
  */
-public interface Build {
+public interface Gradle {
     /**
      * <p>Returns the current Gradle version.</p>
      *

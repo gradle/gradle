@@ -16,21 +16,21 @@
 package org.gradle;
 
 /**
- * <p>A {@code GradleFactory} is responsible for creating a {@link Gradle} instance for a build, from a {@link
+ * <p>A {@code GradleFactory} is responsible for creating a {@link GradleLauncher} instance for a build, from a {@link
  * StartParameter}.</p>
  *
  * @author Hans Dockter
  */
 public interface GradleFactory {
     /**
-     * Creates a new {@link Gradle} instance for the given parameters.
+     * Creates a new {@link GradleLauncher} instance for the given parameters.
      *
      * @param startParameter The parameters to use for the build.
      * @return The new instance.
      */
-    Gradle newInstance(StartParameter startParameter);
+    GradleLauncher newInstance(StartParameter startParameter);
 
-    Gradle newInstance(final String[] commandLineArgs);
+    GradleLauncher newInstance(final String[] commandLineArgs);
 
     StartParameter createStartParameter(String[] commandLineArgs);
 }

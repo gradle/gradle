@@ -15,7 +15,7 @@
  */
 package org.gradle;
 
-import org.gradle.api.invocation.Build;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.execution.TaskExecutionGraph;
 
@@ -25,16 +25,16 @@ import org.gradle.api.execution.TaskExecutionGraph;
  */
 public class BuildAdapter implements BuildListener
 {
-    public void buildStarted(Build build) {
+    public void buildStarted(Gradle gradle) {
     }
 
     public void settingsEvaluated(Settings settings) {
     }
 
-    public void projectsLoaded(Build build) {
+    public void projectsLoaded(Gradle gradle) {
     }
 
-    public void projectsEvaluated(Build build) {
+    public void projectsEvaluated(Gradle gradle) {
     }
 
     public void taskGraphPopulated(TaskExecutionGraph graph) {

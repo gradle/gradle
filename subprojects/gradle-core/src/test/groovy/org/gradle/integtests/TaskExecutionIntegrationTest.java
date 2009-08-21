@@ -110,12 +110,12 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     public void taskCanAccessTaskGraph() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("import org.gradle.integtests.TaskExecutionIntegrationTest",
-                "task a(dependsOn: 'b') << { task ->", "    assertTrue(build.taskGraph.hasTask(task))",
-                "    assertTrue(build.taskGraph.hasTask(':a'))", "    assertTrue(build.taskGraph.hasTask(a))",
-                "    assertTrue(build.taskGraph.hasTask(':b'))", "    assertTrue(build.taskGraph.hasTask(b))",
-                "    assertTrue(build.taskGraph.allTasks.contains(task))",
-                "    assertTrue(build.taskGraph.allTasks.contains(tasks.getByName('b')))", "}", "task b",
-                "build.taskGraph.whenReady { graph ->", "    assertTrue(graph.hasTask(':a'))",
+                "task a(dependsOn: 'b') << { task ->", "    assertTrue(gradle.taskGraph.hasTask(task))",
+                "    assertTrue(gradle.taskGraph.hasTask(':a'))", "    assertTrue(gradle.taskGraph.hasTask(a))",
+                "    assertTrue(gradle.taskGraph.hasTask(':b'))", "    assertTrue(gradle.taskGraph.hasTask(b))",
+                "    assertTrue(gradle.taskGraph.allTasks.contains(task))",
+                "    assertTrue(gradle.taskGraph.allTasks.contains(tasks.getByName('b')))", "}", "task b",
+                "gradle.taskGraph.whenReady { graph ->", "    assertTrue(graph.hasTask(':a'))",
                 "    assertTrue(graph.hasTask(a))", "    assertTrue(graph.hasTask(':b'))",
                 "    assertTrue(graph.hasTask(b))", "    assertTrue(graph.allTasks.contains(a))",
                 "    assertTrue(graph.allTasks.contains(b))",
@@ -129,9 +129,9 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     public void executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "build.taskGraph.whenReady { assertFalse(project.hasProperty('graphReady')); graphReady = true }",
+                "gradle.taskGraph.whenReady { assertFalse(project.hasProperty('graphReady')); graphReady = true }",
                 "task a << { task -> project.executedA = task }", "task b << { ",
-                "    assertSame(a, project.executedA);", "    assertTrue(build.taskGraph.hasTask(':a'))", "}",
+                "    assertSame(a, project.executedA);", "    assertTrue(gradle.taskGraph.hasTask(':a'))", "}",
                 "task c(dependsOn: a)", "task d(dependsOn: a)", "task e(dependsOn: [a, d])");
         usingBuildFile(buildFile).withTasks("a", "b").run().assertTasksExecuted(":a", ":b");
         usingBuildFile(buildFile).withTasks("a", "a").run().assertTasksExecuted(":a");

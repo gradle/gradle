@@ -68,7 +68,7 @@ public class GradleTest {
 
     private Map testGradleProperties = new HashMap();
 
-    private Gradle gradle;
+    private GradleLauncher gradleLauncher;
 
     private TaskExecuter taskExecuterMock;
 
@@ -106,7 +106,7 @@ public class GradleTest {
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
         expectedStartParams.setGradleUserHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleUserHomeDir"));
 
-        gradle = new Gradle(buildMock, settingsHandlerMock, gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock);
+        gradleLauncher = new GradleLauncher(buildMock, settingsHandlerMock, gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock);
         
         context.checking(new Expectations() {
             {
@@ -146,7 +146,7 @@ public class GradleTest {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
         expectBuildListenerCallbacks();
-        BuildResult buildResult = gradle.run();
+        BuildResult buildResult = gradleLauncher.run();
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat(buildResult.getFailure(), nullValue());
     }
@@ -161,7 +161,7 @@ public class GradleTest {
             will(returnValue(toList()));
         }});
         expectedStartParams.setDryRun(true);
-        BuildResult buildResult = gradle.run();
+        BuildResult buildResult = gradleLauncher.run();
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat(buildResult.getFailure(), nullValue());
     }
@@ -171,7 +171,7 @@ public class GradleTest {
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
         expectBuildListenerCallbacks();
-        BuildResult buildResult = gradle.getBuildAndRunAnalysis();
+        BuildResult buildResult = gradleLauncher.getBuildAndRunAnalysis();
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat(buildResult.getFailure(), nullValue());
     }
@@ -184,10 +184,10 @@ public class GradleTest {
             one(buildLoaderMock).load(expectedRootProjectDescriptor, buildMock, testGradleProperties);
             one(buildConfigurerMock).process(expectedRootProject);
         }});
-        BuildResult buildResult = gradle.getBuildAnalysis();
+        BuildResult buildResult = gradleLauncher.getBuildAnalysis();
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat(buildResult.getFailure(), nullValue());
-        assertThat((BuildInternal) buildResult.getBuild(), sameInstance(buildMock));
+        assertThat((BuildInternal) buildResult.getGradle(), sameInstance(buildMock));
     }
 
     @Test
@@ -200,10 +200,10 @@ public class GradleTest {
             will(throwException(exception));
             one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
         }});
-        BuildResult buildResult = gradle.getBuildAnalysis();
+        BuildResult buildResult = gradleLauncher.getBuildAnalysis();
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat((RuntimeException) buildResult.getFailure(), sameInstance(exception));
-        assertThat((BuildInternal) buildResult.getBuild(), sameInstance(buildMock));
+        assertThat((BuildInternal) buildResult.getGradle(), sameInstance(buildMock));
     }
 
     @Test
@@ -215,7 +215,7 @@ public class GradleTest {
             one(buildConfigurerMock).process(expectedRootProject);
         }});
 
-        gradle.getBuildAnalysis();
+        gradleLauncher.getBuildAnalysis();
     }
 
     @Test
@@ -224,7 +224,7 @@ public class GradleTest {
         expectTasksRunWithDagRebuild();
         expectBuildListenerCallbacks();
 
-        gradle.run();
+        gradleLauncher.run();
     }
 
     @Test
@@ -237,7 +237,7 @@ public class GradleTest {
             one(buildBroadcaster).buildFinished(with(result(null, sameInstance(failure))));
         }});
 
-        BuildResult buildResult = gradle.run();
+        BuildResult buildResult = gradleLauncher.run();
         assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
     }
 
@@ -253,7 +253,7 @@ public class GradleTest {
             one(buildBroadcaster).buildFinished(with(result(settingsMock, sameInstance(failure))));
         }});
 
-        BuildResult buildResult = gradle.run();
+        BuildResult buildResult = gradleLauncher.run();
         assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
     }
 
@@ -318,7 +318,7 @@ public class GradleTest {
                 one(buildConfigurerMock).process(expectedRootProject);
             }
         });
-        BuildResult buildResult = gradle.run();
+        BuildResult buildResult = gradleLauncher.run();
         assertThat(buildResult.getFailure(), notNullValue());
         assertThat(buildResult.getFailure().getClass(), equalTo((Object) UnknownTaskException.class));
     }
@@ -328,8 +328,8 @@ public class GradleTest {
     public void testNewInstanceFactory() {
         StartParameter startParameter = new StartParameter();
         startParameter.setGradleHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleHomeDir"));
-        Gradle gradle = Gradle.newInstance(startParameter);
-        assertThat(gradle, notNullValue());
+        GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
+        assertThat(gradleLauncher, notNullValue());
     }
 
     private Matcher<BuildResult> result(final Settings expectedSettings, final Matcher<? extends Throwable> exceptionMatcher) {

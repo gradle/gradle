@@ -148,7 +148,7 @@ public class DefaultProjectServiceRegistryFactoryTest {
             allowing(project).getParent();
             will(returnValue(null));
             
-            allowing(project).getBuild();
+            allowing(project).getGradle();
             will(returnValue(build));
 
             allowing(build).getBuildScriptClassLoader();

@@ -238,7 +238,7 @@
                 <output args="-q test"/>
             </sample>
             <para>You can also add a <apilink class="org.gradle.api.ProjectEvaluationListener"/> to the
-                <apilink class="org.gradle.api.invocation.Build"/> to receive these events.
+                <apilink class="org.gradle.api.invocation.Gradle"/> to receive these events.
             </para>
         </section>
 

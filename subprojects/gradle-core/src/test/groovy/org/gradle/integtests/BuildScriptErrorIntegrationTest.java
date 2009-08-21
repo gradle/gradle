@@ -109,7 +109,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     public void reportsTaskGraphReadyEventFailsWithRuntimeException() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "build.taskGraph.whenReady {",
+                "gradle.taskGraph.whenReady {",
                 "throw new RuntimeException('broken closure')",
                 "}",
                 "task a");

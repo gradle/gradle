@@ -34,7 +34,6 @@ import org.gradle.api.internal.file.PathResolvingFileCollection
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.invocation.Build
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
 import org.gradle.api.plugins.Convention
@@ -60,6 +59,7 @@ import org.gradle.api.*
 import org.gradle.api.artifacts.dsl.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.invocation.Gradle
 
 /**
  * @author Hans Dockter
@@ -106,7 +106,7 @@ class DefaultProjectTest {
     ProjectPluginsContainer projectPluginsHandlerMock = context.mock(ProjectPluginsContainer)
     PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory)
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
-    Build build;
+    Gradle build;
     Convention convention = new DefaultConvention();
 
     StandardOutputRedirector outputRedirectorMock;
@@ -259,7 +259,7 @@ class DefaultProjectTest {
         assertEquals(new File(projectDir, TEST_BUILD_FILE_NAME), project.buildFile)
         assertSame projectEvaluator, project.projectEvaluator
         assertSame antBuilderFactoryMock, project.antBuilderFactory
-        assertSame project.build, build
+        assertSame project.gradle, build
         assertNotNull(project.ant)
         assertNotNull(project.convention)
         assertEquals([], project.getDefaultTasks())

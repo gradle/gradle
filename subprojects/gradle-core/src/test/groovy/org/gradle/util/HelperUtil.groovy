@@ -108,7 +108,7 @@ class HelperUtil {
                 parentProject.buildFile,
                 new StringScriptSource("test build file", null),
                 parentProject.projectRegistry,
-                parentProject.build,
+                parentProject.gradle,
                 parentProject."_service_registry_factory_"
         )
         parentProject.addChildProject project

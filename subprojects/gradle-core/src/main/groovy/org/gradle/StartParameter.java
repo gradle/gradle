@@ -36,16 +36,16 @@ import java.io.File;
 import java.util.*;
 
 /**
- * <p>{@code StartParameter} defines the configuration used by a {@link Gradle} instance to execute a build. The
+ * <p>{@code StartParameter} defines the configuration used by a {@link GradleLauncher} instance to execute a build. The
  * properties of {@code StartParameter} generally correspond to the command-line options of Gradle. You pass a {@code
- * StartParameter} instance to {@link Gradle#newInstance(StartParameter)} when you create a new {@code Gradle}
+ * StartParameter} instance to {@link GradleLauncher#newInstance(StartParameter)} when you create a new {@code Gradle}
  * instance.</p>
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing
  * one using {@link #newInstance} or {@link #newBuild}.</p>
  *
  * @author Hans Dockter
- * @see Gradle
+ * @see GradleLauncher
  */
 public class StartParameter {
     public enum ShowStacktrace { INTERNAL_EXCEPTIONS, ALWAYS, ALWAYS_FULL }  

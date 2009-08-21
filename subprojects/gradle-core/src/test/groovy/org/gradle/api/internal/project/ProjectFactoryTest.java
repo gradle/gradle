@@ -217,6 +217,6 @@ public class ProjectFactoryTest {
     private void checkProjectResources(DefaultProject project) {
         assertSame(projectRegistry, project.getProjectRegistry());
         assertSame(repositoryHandler, project.getRepositories());
-        assertSame(build, project.getBuild());
+        assertSame(build, project.getGradle());
     }
 }

@@ -30,12 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <p>{@code Gradle} is the main entry point for embedding Gradle. You use this class to manage a Gradle build, as
+ * <p>{@code GradleLauncher} is the main entry point for embedding Gradle. You use this class to manage a Gradle build, as
  * follows:</p>
  * <ol>
  * <li>Optionally create a {@link StartParameter} instance and configure it with the desired properties. The properties of {@code
  * StartParameter} generally correspond to the command-line options of Gradle.</li>
- * <li>Obtain a {@code Gradle} instance by calling {@link #newInstance}, passing in the {@code StartParameter}, or an array of
+ * <li>Obtain a {@code GradleLauncher} instance by calling {@link #newInstance}, passing in the {@code StartParameter}, or an array of
  * Strings that will be treated as command line arguments.</li>
  * <li>Call {@link #run} to execute the build. This will return a {@link BuildResult}. Note that if the build fails, the
  * resulting exception will be contained in the {@code BuildResult}.</li>
@@ -44,8 +44,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author Hans Dockter
  */
-public class Gradle {
-    private static final Logger logger = LoggerFactory.getLogger(Gradle.class);
+public class GradleLauncher {
+    private static final Logger logger = LoggerFactory.getLogger(GradleLauncher.class);
 
     private static GradleFactory factory = new DefaultGradleFactory(new DefaultLoggingConfigurer(), new DefaultCommandLine2StartParameterConverter());
 
@@ -60,7 +60,7 @@ public class Gradle {
      * {@link #newInstance(String[])} instead.  Note that this method is package-protected to discourage
      * it's direct use.
      */
-    public Gradle(BuildInternal build, SettingsHandler settingsHandler,
+    public GradleLauncher(BuildInternal build, SettingsHandler settingsHandler,
                   IGradlePropertiesLoader gradlePropertiesLoader,
                   BuildLoader buildLoader, BuildConfigurer buildConfigurer) {
         this.build = build;
@@ -71,7 +71,7 @@ public class Gradle {
     }
 
     /**
-     * <p>Executes the build for this Gradle instance and returns the result. Note that when the build fails, the
+     * <p>Executes the build for this GradleLauncher instance and returns the result. Note that when the build fails, the
      * exception is available using {@link BuildResult#getFailure()}.</p>
      *
      * @return The result. Never returns null.
@@ -86,7 +86,7 @@ public class Gradle {
 
     /**
      * Evaluates the settings and all the projects. The information about available tasks and projects is accessible
-     * via the {@link org.gradle.api.invocation.Build#getRootProject()} object.
+     * via the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
      *
      * @return A BuildResult object. Never returns null.
      */
@@ -100,8 +100,8 @@ public class Gradle {
 
     /**
      * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via the
-     * {@link org.gradle.api.invocation.Build#getRootProject()} object. Fills the execution plan without running the build.
-     * The tasks to be executed tasks are available via {@link org.gradle.api.invocation.Build#getTaskGraph()}.
+     * {@link org.gradle.api.invocation.Gradle#getRootProject()} object. Fills the execution plan without running the build.
+     * The tasks to be executed tasks are available via {@link org.gradle.api.invocation.Gradle#getTaskGraph()}.
      *
      * @return A BuildResult object. Never returns null.
      */
@@ -165,22 +165,22 @@ public class Gradle {
     }
 
     /**
-     * Returns a Gradle instance based on the passed start parameter.
+     * Returns a GradleLauncher instance based on the passed start parameter.
      *
-     * @param startParameter The start parameter object the Gradle instance is initialized with
+     * @param startParameter The start parameter object the GradleLauncher instance is initialized with
      */
-    public static Gradle newInstance(final StartParameter startParameter) {
+    public static GradleLauncher newInstance(final StartParameter startParameter) {
         return factory.newInstance(startParameter);
     }
 
     /**
-     * Returns a Gradle instance based on the passed command line syntax arguments. Certain command line arguments
+     * Returns a GradleLauncher instance based on the passed command line syntax arguments. Certain command line arguments
      * won't have any effect if you choose this method (e.g. -v, -h). If you want to act upon, you better
      * use {@link #createStartParameter(String[])} in conjunction with {@link #newInstance(String[])}.
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
      */
-    public static Gradle newInstance(final String[] commandLineArgs) {
+    public static GradleLauncher newInstance(final String[] commandLineArgs) {
         return factory.newInstance(commandLineArgs);
     }
 
