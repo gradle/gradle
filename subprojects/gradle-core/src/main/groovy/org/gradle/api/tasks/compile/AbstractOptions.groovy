@@ -51,7 +51,7 @@ abstract class AbstractOptions {
     // todo: change modifier to private when GROOVY-2565 is fixed.
     protected Map addValueToMapIfNotNull(Map map, Field field) {
         def value = this."${field.name}"
-        if (value != null) {map[antProperty(field.name)] = antValue(field.name, value)}
+        if (value != null) {map.put(antProperty(field.name), antValue(field.name, value))}
         map
     }
 

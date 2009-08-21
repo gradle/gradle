@@ -9,12 +9,10 @@ import org.gradle.build.release.Svn
 import org.gradle.build.release.Version
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
-import org.gradle.util.GradleVersion
 import org.apache.ivy.plugins.resolver.*
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.SampleElementValidator
-import org.apache.tools.ant.filters.ReplaceTokens
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -48,10 +46,15 @@ explodedDistLibDir = new File(explodedDistDir, 'lib')
 samplesSrcDir = new File(srcRoot, 'samples')
 userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
 
+archivesBaseName = 'gradle'
+
 allprojects {
     group = 'org.gradle'
 
-    archivesBaseName = 'gradle'
+    plugins.withType(JavaPlugin).whenPluginAdded {
+        sourceCompatibility = 1.5
+        targetCompatibility = 1.5
+    }
 
     repositories {
         mavenCentral()
@@ -66,10 +69,6 @@ allprojects {
 
 def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
 subprojects {
-    sourceCompatibility = 1.5
-    targetCompatibility = 1.5
-
-    archivesBaseName = 'gradle'
 
     usePlugin 'groovy'
     usePlugin 'code-quality'
@@ -104,8 +103,10 @@ subprojects {
         javadoc.title = "Gradle API $version"
         javadoc.options.docTitle = javadoc.title
     }
+}
 
-    task ide << { task ->
+allprojects {
+    task ide << {task ->
         def libDir = task.project.file('lib')
         ant.delete(dir: libDir)
         copy {
@@ -146,7 +147,7 @@ dependencies {
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.74.3@zip'
 
-    groovy module("org.codehaus.groovy:groovy-all:1.6.3") {
+    groovy module("org.codehaus.groovy:groovy-all:1.6.4") {
         module("org.apache.ant:ant:1.7.0") {
             dependencies("org.apache.ant:ant-junit:1.7.0@jar", "org.apache.ant:ant-launcher:1.7.0@jar")
         }

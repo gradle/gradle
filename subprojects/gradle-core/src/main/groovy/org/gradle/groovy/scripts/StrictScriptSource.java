@@ -49,6 +49,10 @@ public class StrictScriptSource implements ScriptSource {
         return source.getSourceFile();
     }
 
+    public String getDebugInfo() {
+        return source.getDebugInfo();
+    }
+
     public String getDisplayName() {
         return source.getDisplayName();
     }

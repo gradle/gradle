@@ -44,7 +44,6 @@ public class BuildScriptCompilerTest {
     }};
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final BuildInternal build = context.mock(BuildInternal.class);
-    private final ScriptSourceMappingHandler scriptSourceMappingHandler = context.mock(ScriptSourceMappingHandler.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final ScriptProcessorFactory scriptProcessorFactory = context.mock(ScriptProcessorFactory.class);
     private final ScriptProcessor processor = context.mock(ScriptProcessor.class);
@@ -84,11 +83,6 @@ public class BuildScriptCompilerTest {
         final ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSource, importsReader, rootDir);
 
         context.checking(new Expectations() {{
-            one(build).getScriptSourceMappingHandler();
-            will(returnValue(scriptSourceMappingHandler));
-
-            one(scriptSourceMappingHandler).addSource(with(reflectionEquals(expectedScriptSource)));
-            
             one(scriptProcessorFactory).createProcessor(with(reflectionEquals(expectedScriptSource)));
             will(returnValue(processor));
 

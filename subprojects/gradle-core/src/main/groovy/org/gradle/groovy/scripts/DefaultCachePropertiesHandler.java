@@ -21,34 +21,49 @@ import org.gradle.util.HashUtil;
 
 import java.io.File;
 import java.util.Properties;
+import java.util.Map;
 
 /**
+ * {@inheritDoc}
  * @author Hans Dockter
  */
 public class DefaultCachePropertiesHandler implements CachePropertiesHandler {
-    public void writeProperties(String scriptText, File scriptCacheDir) {
-        assert scriptText != null;
+    /** {@inheritDoc} */
+    public void writeProperties(ScriptSource script, File scriptCacheDir, Map<String, ?> additionalProperties) {
+        assert script != null && script.getText() != null;
 
         Properties properties = new Properties();
-        properties.put(CachePropertiesHandler.HASH_KEY, HashUtil.createHash(scriptText));
-        properties.put(CachePropertiesHandler.VERSION_KEY, new GradleVersion().getVersion());
-        
-        GUtil.saveProperties(properties, new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME));
+        for (Map.Entry<String, ?> entry : additionalProperties.entrySet()) {
+            properties.put(entry.getKey(), entry.getValue().toString());
+        }
+        properties.put(HASH_KEY, HashUtil.createHash(script.getText()));
+        properties.put(VERSION_KEY, new GradleVersion().getVersion());
+
+        GUtil.saveProperties(properties, new File(scriptCacheDir, PROPERTY_FILE_NAME));
     }
 
-    public CacheState getCacheState(String scriptText, File scriptCacheDir) {
-        assert scriptText != null;
+    /** {@inheritDoc} */
+    public CacheState getCacheState(ScriptSource script, File scriptCacheDir, Map<String, ?> additionalProperties) {
+        assert script != null && script.getText() != null;
         
-        File propertiesFile = new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME);
+        File propertiesFile = new File(scriptCacheDir, PROPERTY_FILE_NAME);
         if (!propertiesFile.isFile()) {
             return CacheState.INVALID;
         }
-        Properties properties = GUtil.loadProperties(new File(scriptCacheDir, CachePropertiesHandler.PROPERTY_FILE_NAME));
 
-        if (!properties.get(CachePropertiesHandler.VERSION_KEY).equals(new GradleVersion().getVersion())) {
+        Properties properties = GUtil.loadProperties(propertiesFile);
+
+        if (!new GradleVersion().getVersion().equals(properties.get(VERSION_KEY))) {
             return CacheState.INVALID;
         }
-        return HashUtil.createHash(scriptText).equals(properties.get(CachePropertiesHandler.HASH_KEY)) ?
+
+        for (Map.Entry<String, ?> entry : additionalProperties.entrySet()) {
+            if (!entry.getValue().toString().equals(properties.getProperty(entry.getKey()))) {
+                return CacheState.INVALID;
+            }
+        }
+
+        return HashUtil.createHash(script.getText()).equals(properties.get(HASH_KEY)) ?
                 CacheState.VALID : CacheState.INVALID;
     }
 }

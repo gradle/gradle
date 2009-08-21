@@ -40,7 +40,6 @@ public class BuildScriptCompiler implements ProjectEvaluator {
         ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader,
                 project.getRootDir());
 
-        project.getGradle().getScriptSourceMappingHandler().addSource(source);
         ScriptProcessor processor = scriptProcessorFactory.createProcessor(source);
         processor.setClassloader(project.getClassLoaderProvider().getClassLoader());
 

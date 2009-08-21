@@ -45,6 +45,10 @@ public class StringScriptSource implements ScriptSource {
         return null;
     }
 
+    public String getDebugInfo() {
+        return getClassName();
+    }
+
     public String getDisplayName() {
         return description;
     }

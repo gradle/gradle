@@ -65,8 +65,8 @@ public class GradleScriptException extends GradleException {
      * @return The location description. Never returns null.
      */
     public String getLocation() {
-        Integer lineNumber = getLineNumber();
-        String lineInfo = lineNumber != null ? String.format(" line: %s", lineNumber) : "";
+        Integer lineNum = getLineNumber();
+        String lineInfo = lineNum != null ? String.format(" line: %s", lineNum) : "";
         return StringUtils.capitalize(scriptSource.getDisplayName()) + lineInfo;
     }
 
@@ -76,21 +76,24 @@ public class GradleScriptException extends GradleException {
      * @return The line number, or null if not known.
      */
     public Integer getLineNumber() {
-        String scriptName = scriptSource.getClassName();
-        Integer lineNumber = this.lineNumber;
-        if (lineNumber == null) {
-            for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
-                for (StackTraceElement element : currentException.getStackTrace()) {
-                    if (element.getFileName() != null && element.getFileName().equals(scriptName) && element.getLineNumber() >= 0) {
-                        lineNumber = element.getLineNumber();
-                        break;
-                    }
+        if (lineNumber != null)
+            return lineNumber;
+
+        // wasn't explicitly set, so search for the line number
+        Integer foundLineNumber = null;
+        String scriptFileName = scriptSource.getDebugInfo();
+        for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
+            for (StackTraceElement element : currentException.getStackTrace()) {
+                if (scriptFileName.equals(element.getFileName()) && element.getLineNumber() >= 0) {
+                    foundLineNumber = element.getLineNumber();
+                    break;
                 }
             }
         }
-        return lineNumber;
+        return foundLineNumber;
     }
 
+    /** {@inheritDoc} */
     public String getMessage() {
         return String.format("%s%n%s", getLocation(), originalMessage);
     }

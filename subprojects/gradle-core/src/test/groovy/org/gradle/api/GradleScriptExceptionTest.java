@@ -36,7 +36,7 @@ public class GradleScriptExceptionTest {
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
-            allowing(source).getClassName();
+            allowing(source).getDebugInfo();
             will(returnValue("filename"));
             allowing(source).getDisplayName();
             will(returnValue("<description>"));

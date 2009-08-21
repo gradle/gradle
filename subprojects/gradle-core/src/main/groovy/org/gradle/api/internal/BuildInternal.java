@@ -21,7 +21,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskExecuter;
-import org.gradle.groovy.scripts.ScriptSourceMappingHandler;
 import org.gradle.BuildListener;
 
 /**
@@ -47,13 +46,6 @@ public interface BuildInternal extends Gradle {
     IProjectRegistry<ProjectInternal> getProjectRegistry();
 
     PluginRegistry getPluginRegistry();
-
-    /**
-     * Returns the handler that maps script classes to their locations (assuming
-     * they are FileScriptSources).  Used when compiling the scripts to update
-     * the mapping file.
-     */
-    ScriptSourceMappingHandler getScriptSourceMappingHandler();
 
     /**
      * Returns the root classloader to use for the build scripts of this build.

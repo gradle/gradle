@@ -27,7 +27,6 @@ import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.InputStreamClassLoader;
-import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
@@ -43,6 +42,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -64,10 +65,12 @@ public class DefaultScriptCompilationHandlerTest {
     private InputStreamClassLoader classLoader;
 
     private Class<? extends Script> expectedScriptClass;
+    private Map<String, ?> expectedProperties;
 
     private CachePropertiesHandler cachePropertiesHandlerMock;
 
     private JUnit4Mockery context = new JUnit4Mockery();
+    private String expectedClassName;
 
     @Before
     public void setUp() throws IOException, ClassNotFoundException {
@@ -81,8 +84,10 @@ public class DefaultScriptCompilationHandlerTest {
         testScript = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE
                 + "')";
         scriptSource = new StringScriptSource("script", testScript);
+        expectedClassName = scriptSource.getClassName();
         cachedFile = new File(scriptCacheDir, scriptSource.getClassName() + ".class");
         expectedScriptClass = TestBaseScript.class;
+        expectedProperties = Collections.singletonMap(DefaultScriptCompilationHandler.DEBUGINFO_KEY, scriptSource.getDebugInfo());
     }
 
     @After
@@ -99,8 +104,8 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testWriteToCache() {
         context.checking(new Expectations() {{
-            one(cachePropertiesHandlerMock).writeProperties(testScript, scriptCacheDir);
-            one(cachePropertiesHandlerMock).getCacheState(testScript, scriptCacheDir);
+            one(cachePropertiesHandlerMock).writeProperties(scriptSource, scriptCacheDir, expectedProperties);
+            one(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
             will(returnValue(CachePropertiesHandler.CacheState.VALID));
         }});
         scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
@@ -115,11 +120,11 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testWriteToCacheAndLoadFromCacheWithWhitespaceOnly() {
         final String emptyScript = "// ignore me\n";
-        StringScriptSource scriptSource = new StringScriptSource("script", emptyScript);
+        final StringScriptSource scriptSource = new StringScriptSource("script", emptyScript);
         context.checking(new Expectations() {{
-            one(cachePropertiesHandlerMock).getCacheState(emptyScript, scriptCacheDir);
+            one(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
             will(returnValue(CachePropertiesHandler.CacheState.VALID));
-            one(cachePropertiesHandlerMock).writeProperties(emptyScript, scriptCacheDir);
+            one(cachePropertiesHandlerMock).writeProperties(scriptSource, scriptCacheDir, expectedProperties);
         }});
 
         scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
@@ -134,11 +139,11 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testWriteToCacheAndLoadFromCacheWithEmptyScript() {
         final String emptyScript = "";
-        StringScriptSource scriptSource = new StringScriptSource("script", emptyScript);
+        final StringScriptSource scriptSource = new StringScriptSource("script", emptyScript);
         context.checking(new Expectations() {{
-            one(cachePropertiesHandlerMock).getCacheState(emptyScript, scriptCacheDir);
+            one(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
             will(returnValue(CachePropertiesHandler.CacheState.VALID));
-            one(cachePropertiesHandlerMock).writeProperties(emptyScript, scriptCacheDir);
+            one(cachePropertiesHandlerMock).writeProperties(scriptSource, scriptCacheDir, expectedProperties);
         }});
 
         scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
@@ -183,7 +188,7 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testLoadFromCacheWithInvalidCache() {
         context.checking(new Expectations() {{
-            allowing(cachePropertiesHandlerMock).getCacheState(testScript, scriptCacheDir);
+            allowing(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
             will(returnValue(CachePropertiesHandler.CacheState.INVALID));
         }});
         assertNull(scriptCompilationHandler.loadFromCache(scriptSource, classLoader, scriptCacheDir,
@@ -193,8 +198,8 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testLoadFromCacheWhenNotAssignableToBaseClass() {
         context.checking(new Expectations() {{
-            one(cachePropertiesHandlerMock).writeProperties(testScript, scriptCacheDir);
-            allowing(cachePropertiesHandlerMock).getCacheState(testScript, scriptCacheDir);
+            one(cachePropertiesHandlerMock).writeProperties(scriptSource, scriptCacheDir, expectedProperties);
+            allowing(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
             will(returnValue(CachePropertiesHandler.CacheState.VALID));
         }});
         scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, Script.class);
@@ -264,7 +269,7 @@ public class DefaultScriptCompilationHandlerTest {
 
     private void evaluateScript(Script script) {
         assertThat(script, instanceOf(expectedScriptClass));
-        assertEquals(script.getClass().getSimpleName(), Project.EMBEDDED_SCRIPT_ID);
+        assertEquals(script.getClass().getSimpleName(), expectedClassName);
         System.setProperty(TEST_EXPECTED_SYSTEMPROP_KEY, "not the expected value");
         script.run();
         assertEquals(TEST_EXPECTED_SYSTEMPROP_VALUE, System.getProperty(TEST_EXPECTED_SYSTEMPROP_KEY));

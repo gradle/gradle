@@ -18,7 +18,12 @@ package org.gradle.groovy.scripts;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
-import org.codehaus.groovy.control.*;
+import groovyjarjarasm.asm.ClassVisitor;
+import groovyjarjarasm.asm.ClassWriter;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
@@ -32,12 +37,14 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
+import static java.util.Collections.*;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
+    static final String DEBUGINFO_KEY = "sourcefile";
 
     private final CachePropertiesHandler cachePropertiesHandler;
 
@@ -68,17 +75,34 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         configuration.setTargetDirectory(scriptCacheDir);
         compileScript(source, classLoader, configuration, transformer);
 
-        cachePropertiesHandler.writeProperties(source.getText(), scriptCacheDir);
+        cachePropertiesHandler.writeProperties(source, scriptCacheDir, singletonMap(DEBUGINFO_KEY, source.getDebugInfo()));
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(),
                 clock.getTime());
     }
 
-    private Class compileScript(ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
+    private Class compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
                               final Transformer transformer) {
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
-            protected CompilationUnit createCompilationUnit(CompilerConfiguration config, CodeSource source) {
-                CompilationUnit compilationUnit = super.createCompilationUnit(config, source);
+            protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource) {
+                CompilationUnit compilationUnit = new CompilationUnit(compilerConfiguration, codeSource, this)
+                {
+                    // This creepy bit of code is here to put the full source path of the script into the debug info for
+                    // the class.  This makes it possible for a debugger to find the source file for the class.  By default
+                    // Groovy will only put the filename into the class, but that does not help a debugger for Gradle
+                    // because it does not know where Gradle scripts might live.
+                    @Override protected ClassVisitor createClassVisitor() {
+                        return new ClassWriter(true)
+                        {
+                            // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
+                            // insert the full path if our script source has a source file
+                            @Override public void visitSource(String sourcePath, String debugInfo) {
+                                super.visitSource(source.getDebugInfo(), debugInfo);
+                            }
+                        };
+                    }
+                };
+
                 if (transformer != null) {
                     transformer.register(compilationUnit);
                 }
@@ -99,6 +123,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         } catch (CompilationFailedException e) {
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
         }
+        
         if (scriptClass == null) {
             // Assume an empty script
             String emptySource = String.format("class %s extends %s { public Object run() { return null } }",
@@ -116,9 +141,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     public <T extends Script> T loadFromCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                                               Class<T> scriptBaseClass) {
-        String scriptText = source.getText();
-        String scriptName = source.getClassName();
-        CachePropertiesHandler.CacheState cacheState = cachePropertiesHandler.getCacheState(scriptText, scriptCacheDir);
+        CachePropertiesHandler.CacheState cacheState = cachePropertiesHandler.getCacheState(source, scriptCacheDir, singletonMap(DEBUGINFO_KEY, source.getDebugInfo()));
         if (cacheState == CachePropertiesHandler.CacheState.INVALID) {
             return null;
         }
@@ -127,7 +150,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         try {
             URLClassLoader urlClassLoader = new URLClassLoader(WrapUtil.toArray(scriptCacheDir.toURI().toURL()),
                     classLoader);
-            script = (Script) urlClassLoader.loadClass(scriptName).newInstance();
+            script = (Script) urlClassLoader.loadClass(source.getClassName()).newInstance();
         } catch (ClassNotFoundException e) {
             logger.debug("Class not in cache: ", e);
             return null;
