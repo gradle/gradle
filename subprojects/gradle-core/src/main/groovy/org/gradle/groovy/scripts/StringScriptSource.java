@@ -15,13 +15,14 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.Project;
+import org.gradle.util.HashUtil;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import java.io.File;
 
 public class StringScriptSource implements ScriptSource {
+    public static final String EMBEDDED_SCRIPT_ID = "embedded_script_";
     private final String description;
     private final String content;
 
@@ -38,14 +39,14 @@ public class StringScriptSource implements ScriptSource {
     }
 
     public String getClassName() {
-        return Project.EMBEDDED_SCRIPT_ID;
+        return EMBEDDED_SCRIPT_ID + HashUtil.createHash(content);
     }
 
     public File getSourceFile() {
         return null;
     }
 
-    public String getDebugInfo() {
+    public String getFileName() {
         return getClassName();
     }
 

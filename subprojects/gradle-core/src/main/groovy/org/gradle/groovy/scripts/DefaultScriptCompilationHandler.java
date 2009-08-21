@@ -18,8 +18,6 @@ package org.gradle.groovy.scripts;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
-import groovyjarjarasm.asm.ClassVisitor;
-import groovyjarjarasm.asm.ClassWriter;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
@@ -33,6 +31,8 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
 
 import java.io.File;
 import java.net.URLClassLoader;
@@ -75,7 +75,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         configuration.setTargetDirectory(scriptCacheDir);
         compileScript(source, classLoader, configuration, transformer);
 
-        cachePropertiesHandler.writeProperties(source, scriptCacheDir, singletonMap(DEBUGINFO_KEY, source.getDebugInfo()));
+        cachePropertiesHandler.writeProperties(source, scriptCacheDir, singletonMap(DEBUGINFO_KEY, source.getFileName()));
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(),
                 clock.getTime());
     }
@@ -97,7 +97,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                             // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
                             // insert the full path if our script source has a source file
                             @Override public void visitSource(String sourcePath, String debugInfo) {
-                                super.visitSource(source.getDebugInfo(), debugInfo);
+                                super.visitSource(source.getFileName(), debugInfo);
                             }
                         };
                     }
@@ -141,7 +141,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     public <T extends Script> T loadFromCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                                               Class<T> scriptBaseClass) {
-        CachePropertiesHandler.CacheState cacheState = cachePropertiesHandler.getCacheState(source, scriptCacheDir, singletonMap(DEBUGINFO_KEY, source.getDebugInfo()));
+        CachePropertiesHandler.CacheState cacheState = cachePropertiesHandler.getCacheState(source, scriptCacheDir, singletonMap(DEBUGINFO_KEY, source.getFileName()));
         if (cacheState == CachePropertiesHandler.CacheState.INVALID) {
             return null;
         }

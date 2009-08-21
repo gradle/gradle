@@ -71,7 +71,7 @@ public class BootstrapUtil {
     }
 
     public static List<File> getGroovyFiles() {
-        return gradleLibClasspath(WrapUtil.toList("groovy-all"));
+        return gradleLibClasspath(WrapUtil.toList("groovy"));
     }
 
     public static List<File> getAntJunitJarFiles() {

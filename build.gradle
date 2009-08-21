@@ -147,7 +147,10 @@ dependencies {
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.74.3@zip'
 
-    groovy module("org.codehaus.groovy:groovy-all:1.6.4") {
+    groovy module("org.codehaus.groovy:groovy:1.6.4") {
+        dependency("asm:asm-all:2.2.3@jar")
+        dependency("antlr:antlr:2.7.7@jar")
+        dependency("commons-cli:commons-cli:1.2@jar")
         module("org.apache.ant:ant:1.7.0") {
             dependencies("org.apache.ant:ant-junit:1.7.0@jar", "org.apache.ant:ant-launcher:1.7.0@jar")
         }

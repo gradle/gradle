@@ -6,7 +6,10 @@ repositories {
 }
 
 dependencies {
-    groovy module(':groovy-all:1.6.0') {
+    groovy module(':groovy:1.6.0') {
+        dependency("asm:asm-all:2.2.3")
+        dependency("antlr:antlr:2.7.7")
+        dependency("commons-cli:commons-cli:1.2")
         dependency(':commons-cli:1.0')
         module(':ant:1.7.0') {
             dependencies(':ant-junit:1.7.0:jar', ':ant-launcher:1.7.0')

@@ -81,7 +81,7 @@ public class GradleScriptException extends GradleException {
 
         // wasn't explicitly set, so search for the line number
         Integer foundLineNumber = null;
-        String scriptFileName = scriptSource.getDebugInfo();
+        String scriptFileName = scriptSource.getFileName();
         for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
             for (StackTraceElement element : currentException.getStackTrace()) {
                 if (scriptFileName.equals(element.getFileName()) && element.getLineNumber() >= 0) {

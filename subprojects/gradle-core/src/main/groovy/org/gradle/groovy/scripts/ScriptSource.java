@@ -37,10 +37,10 @@ public interface ScriptSource {
     File getSourceFile();
 
     /**
-     * Returns the debug info that is inserted into the class during compilation.  For a script with a source
+     * Returns the file name that is inserted into the class during compilation.  For a script with a source
      * file this is the path to the file.  Never returns null.
      */
-    String getDebugInfo();
+    String getFileName();
 
     /**
      * Returns the description for this script. Never returns null.

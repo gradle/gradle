@@ -56,8 +56,8 @@ public class ImportsScriptSource implements ScriptSource {
         return source.getSourceFile();
     }
 
-    public String getDebugInfo() {
-        return source.getDebugInfo();
+    public String getFileName() {
+        return source.getFileName();
     }
 
     public String getDisplayName() {

@@ -15,10 +15,9 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.Project;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class StringScriptSourceTest {
@@ -41,8 +40,15 @@ public class StringScriptSourceTest {
     }
 
     @Test
-    public void hasHardcodedClassName() {
-        assertThat(source.getClassName(), equalTo(Project.EMBEDDED_SCRIPT_ID));
+    public void generatesClassNameAndSourceFileNameUsingHashOfText() {
+        assertThat(source.getClassName(), matchesRegexp(StringScriptSource.EMBEDDED_SCRIPT_ID + "[a-z0-9]+"));
+        assertThat(source.getFileName(), equalTo(source.getClassName()));
+    }
+
+    @Test
+    public void sourcesWithDifferentTextHaveDifferentClassNames() {
+        assertThat(source.getClassName(), equalTo(new StringScriptSource("?", "<content>").getClassName()));
+        assertThat(source.getClassName(), not(equalTo(new StringScriptSource("?", "<other>").getClassName())));
     }
 
     @Test

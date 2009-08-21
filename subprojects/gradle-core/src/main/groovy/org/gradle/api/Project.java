@@ -166,8 +166,6 @@ public interface Project extends Comparable<Project> {
      */
     public static final String DEFAULT_BUILD_FILE = "build.gradle";
 
-    public static final String EMBEDDED_SCRIPT_ID = "embedded_script";
-
     /**
      * The hierarchy separator for project and task path names
      */

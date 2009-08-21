@@ -3,8 +3,15 @@ import java.text.DateFormat
 usePlugin 'groovy'
 
 dependencies {
-    def ANT_GROOVY = ["org.apache.ant:ant:1.7.0@jar", "org.apache.ant:ant-junit:1.7.0@jar", "org.apache.ant:ant-launcher:1.7.0@jar"]
-    groovy "org.codehaus.groovy:groovy-all:1.6.4@jar", ANT_GROOVY
+    def GROOVY_DEPENDENCIES = [
+            "asm:asm-all:2.2.3@jar",
+            "antlr:antlr:2.7.7@jar",
+            "commons-cli:commons-cli:1.2@jar",
+            "org.apache.ant:ant:1.7.0@jar",
+            "org.apache.ant:ant-junit:1.7.0@jar",
+            "org.apache.ant:ant-launcher:1.7.0@jar"
+    ]
+    groovy "org.codehaus.groovy:groovy:1.6.4@jar", GROOVY_DEPENDENCIES
 
     compile "commons-httpclient:commons-httpclient:3.0@jar", "commons-codec:commons-codec:1.2@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar"
 

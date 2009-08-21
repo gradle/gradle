@@ -86,7 +86,7 @@ public class FileScriptSource implements ScriptSource {
         return sourceFile;
     }
 
-    public String getDebugInfo() {
+    public String getFileName() {
         return GFileUtils.canonicalise(sourceFile).getPath();
     }
 
