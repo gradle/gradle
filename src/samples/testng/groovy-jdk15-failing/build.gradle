@@ -20,5 +20,5 @@ dependencies {
 }
 
 test {
-   useTestNG().options.dumpCommand() 
+   useTestNG() 
 }

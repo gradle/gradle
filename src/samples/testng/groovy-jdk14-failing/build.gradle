@@ -20,7 +20,7 @@ dependencies {
 }
 
 test {
-   useTestNG().options.dumpCommand().suiteXmlBuilder().suite(name: 'testing-testng') {
+   useTestNG().options.suiteXmlBuilder().suite(name: 'testing-testng') {
         test (name : 'testing-testng', annotations : 'javadoc', verbose:'1') {
             classes {
                 'class' (name: 'org.gradle.BadTest')
