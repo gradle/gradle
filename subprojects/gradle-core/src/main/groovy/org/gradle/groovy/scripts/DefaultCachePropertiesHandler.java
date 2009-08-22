@@ -24,7 +24,6 @@ import java.util.Properties;
 import java.util.Map;
 
 /**
- * {@inheritDoc}
  * @author Hans Dockter
  */
 public class DefaultCachePropertiesHandler implements CachePropertiesHandler {

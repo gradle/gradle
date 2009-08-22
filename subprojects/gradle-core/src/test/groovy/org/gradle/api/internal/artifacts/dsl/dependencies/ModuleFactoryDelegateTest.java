@@ -66,7 +66,7 @@ public class ModuleFactoryDelegateTest {
         final ModuleDependency dependencyDummy2 = context.mock(ModuleDependency.class, "dep2");
         letFactoryStubReturnDependency(dependencyNotation1, dependencyDummy1, null, false);
         letFactoryStubReturnDependency(dependencyNotation2, dependencyDummy2, null, false);
-        moduleFactoryDelegate.dependencies(WrapUtil.toArray(dependencyNotation1, dependencyNotation2));
+        moduleFactoryDelegate.dependencies((Object[])WrapUtil.toArray(dependencyNotation1, dependencyNotation2));
         assertThat(clientModule.getDependencies(), Matchers.equalTo(WrapUtil.toSet(dependencyDummy1, dependencyDummy2)));
     }
 
