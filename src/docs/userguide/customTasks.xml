@@ -1,0 +1,58 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id="custom_tasks">
+    <title>Implementing custom tasks</title>
+
+    <note>
+        <para>This chapter is a work in progress.</para>
+    </note>
+
+    <para>
+        Implementing a custom task in Gradle is easy.
+        You can implement a custom task in pretty much any language you like, provided it ends up compiled to Java
+        bytecode. In our examples, we are going to use Groovy as the implementation language, but you could use, for
+        example, Java or Scala.
+    </para>
+    <para>There are several places where you can put the source for the task. Two convenient options
+        are to add the task implementation to your build script, or to put the source in the
+        <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory. Gradle will
+        take care of compiling the task and making it available on the classpath of the build script.
+        See <xref linkend="organizing_build_logic"/> for more details, and other options.
+        In our examples, we will put the task implementation in the build script, to keep things simple.
+    </para>
+    <para>To implement a custom task, you extend <apilink class="org.gradle.api.DefaultTask" lang="groovy"/>.
+    </para>
+    <sample id="customTask" dir="userguide/tasks/customTask" title="Defining a custom task">
+        <sourcefile file="build.gradle" snippet="define-task"/>
+    </sample>
+
+    <para>This task doesn't do anything useful, so let's add some behaviour. To do so, we add a method to the task and mark
+        it with the <apilink class="org.gradle.api.tasks.TaskAction"/> annotation. Gradle will call the method when the
+        task executes.
+        You don't have to use a method to define the behaviour for the task. You could, for instance, call
+        <literal>doFirst()</literal> or <literal>doLast()</literal> task constructor to add behaviour.
+    </para>
+    <sample id="customTaskWithAction" dir="userguide/tasks/customTask" title="A hello world task">
+        <sourcefile file="build.gradle" snippet="add-action"/>
+        <output args="-q hello"/>
+    </sample>
+
+    <para>Let's add some properties to the task, so we can customize it.</para>
+    <sample id="customTaskWithProperty" dir="userguide/tasks/customTaskWithProperty" title="A customizable hello world task">
+        <sourcefile file="build.gradle" snippet="add-property"/>
+        <output args="-q hello greeting"/>
+    </sample>
+</chapter>

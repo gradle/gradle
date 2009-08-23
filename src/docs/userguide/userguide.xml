@@ -33,6 +33,7 @@
     <xi:include href='thisAndThat.xml'/>
     <xi:include href='projectTaskApi.xml'/>
     <xi:include href='tasks.xml'/>
+    <xi:include href='customTasks.xml'/>
     <xi:include href='logging.xml'/>
     <xi:include href='ant.xml'/>
     <xi:include href='plugins.xml'/>

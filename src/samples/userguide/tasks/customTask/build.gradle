@@ -1,0 +1,17 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
+
+// START SNIPPET add-action
+task hello(type: HelloTask)
+
+// START SNIPPET define-task
+class HelloTask extends DefaultTask {
+// END SNIPPET define-task
+    @TaskAction
+    def printGreeting() {
+        println "hello from $this"
+    }
+// START SNIPPET define-task
+}
+// END SNIPPET define-task
+// END SNIPPET add-action
