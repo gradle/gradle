@@ -86,7 +86,7 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
         Set<File> files = new LinkedHashSet<File>()
         FileVisitor visitor = [visitFile: {file, path -> files.add(file)}, visitDir: {file, path -> }] as FileVisitor
         BreadthFirstDirectoryWalker walker = new BreadthFirstDirectoryWalker(visitor)
-        walker.match(patternSet).start(dir)
+        walker.match(patternSet).start(getDir())
         files
     }
 
@@ -97,14 +97,14 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
     FileTree matching(Closure filterConfigClosure) {
         PatternSet patternSet = this.patternSet.intersect()
         ConfigureUtil.configure(filterConfigClosure, patternSet)
-        FileSet filtered = new FileSet(dir)
+        FileSet filtered = new FileSet(getDir())
         filtered.patternSet = patternSet
         filtered
     }
 
     public WorkResult copy(Closure closure) {
         CopyActionImpl action = new CopyActionImpl(resolver)
-        action.from(dir)
+        action.from(getDir())
         action.include(getIncludes())
         action.exclude(getExcludes())
         ConfigureUtil.configure(closure, action)
@@ -112,6 +112,11 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
         return action
     }
 
+    public File getDir() {
+        if (!dir) { throw new InvalidUserDataException ('A basedir must be specified in the task or via a method argument!') }
+        dir
+    }
+    
     public Set<String> getIncludes() {
         patternSet.includes
     }
@@ -151,14 +156,15 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
     }
 
     private static Map transformToFile(Map args) {
-        if (!args.dir) { throw new InvalidUserDataException ('A basedir must be specified in the task or via a method argument!') }
         Map newArgs = new HashMap(args)
-        newArgs.dir = new File(newArgs.dir.toString())
+        if (newArgs.dir) {
+            newArgs.dir = new File(newArgs.dir.toString())
+        }
         newArgs
     }
 
     def addToAntBuilder(node, String childNodeName = null) {
-        node."${childNodeName ?: 'fileset'}"(dir: dir.absolutePath) {
+        node."${childNodeName ?: 'fileset'}"(dir: getDir().absolutePath) {
             patternSet.addToAntBuilder(node)
         }
     }

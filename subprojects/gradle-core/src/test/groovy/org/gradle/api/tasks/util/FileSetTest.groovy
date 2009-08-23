@@ -61,7 +61,8 @@ class FileSetTest extends AbstractTestForPatternSet {
     }
 
     @Test(expected = InvalidUserDataException) public void testFileSetConstructionWithNoBaseDirSpecified() {
-        new FileSet([:])
+        FileSet fileSet = new FileSet([:])
+        fileSet.matching {}
     }
 
     @Test public void testFileSetConstructionWithDirAsString() {
