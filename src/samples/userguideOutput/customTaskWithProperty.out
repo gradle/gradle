@@ -1,2 +1,2 @@
-hello from task ':greeting'
-greetings from task ':greeting'
+hello from HelloTask
+greetings from HelloTask
