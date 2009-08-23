@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.api.tasks.ide.eclipse.*;
 import org.gradle.util.GUtil;
@@ -88,12 +89,14 @@ public class EclipsePlugin implements Plugin {
         eclipseClasspath.getConventionMapping().map(GUtil.map(
                 "srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
+                        SourceSet sourceSet = java(convention).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME);
+                        return GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
                     }
                 },
                 "testSrcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return GUtil.addLists(java(convention).getTestSrcDirs(), java(convention).getTestResourceDirs());
+                        SourceSet sourceSet = java(convention).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME);
+                        return GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
                     }
                 },
                 "outputDirectory", new ConventionValue() {
@@ -128,7 +131,8 @@ public class EclipsePlugin implements Plugin {
         eclipseWtpModule.conventionMapping(
                 "srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs());
+                        SourceSet sourceSet = java(convention).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME);
+                        return GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
                     }
                 });
         eclipseWtpModule.setDescription("Generates the Eclipse Wtp files.");
@@ -140,7 +144,9 @@ public class EclipsePlugin implements Plugin {
         eclipseWtp.getConventionMapping().map(GUtil.map(
                 "warResourceMappings", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        Map resourceMappings = WrapUtil.toMap("/WEB-INF/classes", GUtil.addLists(java(convention).getSrcDirs(), java(convention).getResourceDirs()));
+                        SourceSet sourceSet = java(convention).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME);
+                        List allSrcDirs = GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
+                        Map resourceMappings = WrapUtil.toMap("/WEB-INF/classes", allSrcDirs);
                         resourceMappings.put("/", WrapUtil.toList(war(convention).getWebAppDir()));
                         return resourceMappings;
                     }

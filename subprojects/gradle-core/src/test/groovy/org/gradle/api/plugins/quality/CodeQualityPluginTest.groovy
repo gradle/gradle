@@ -45,14 +45,14 @@ class CodeQualityPluginTest {
 
         def task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.source, equalTo(project.allJavaSrc))
+        assertThat(task.source, equalTo(project.source.main.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.checkstyleResultFile))
         assertDependsOn(task)
 
         task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TESTS_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.source, equalTo(project.allJavaTestSrc))
+        assertThat(task.source, equalTo(project.source.test.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleTestConfigFile))
         assertThat(task.resultFile, equalTo(project.checkstyleTestResultFile))
         assertDependsOn(task)

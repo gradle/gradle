@@ -18,9 +18,6 @@ package org.gradle.api.plugins
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.file.UnionFileTree
-import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.tasks.bundling.GradleManifest
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
@@ -34,41 +31,12 @@ class JavaPluginConvention {
     Project project
 
     String srcRootName
-    String classesDirName
     String dependencyCacheDirName
     String docsDirName
     String javadocDirName
     String testResultsDirName
     String testReportDirName
-    List srcDirNames = []
-    List resourceDirNames = []
-    List testSrcDirNames = []
-    List testResourceDirNames = []
-    List floatingSrcDirs = []
-    List floatingTestSrcDirs = []
-    List floatingResourceDirs = []
-    List floatingTestResourceDirs = []
     final SourceSetContainer source
-    
-    /**
-     * All java source to be compiled for this project.
-     */
-    SourceDirectorySet src
-    /**
-     * All java test source to be compiled for this project.
-     */
-    SourceDirectorySet testSrc
-    /**
-     * All java source for this project. This includes, for example, source which is directly compiled, and source which
-     * is indirectly compiled through joint compilation.
-     */
-    UnionFileTree allJavaSrc
-    /**
-     * All java test source for this project. This includes, for example, source which is directly compiled, and source which
-     * is indirectly compiled through joint compilation.
-     */
-    UnionFileTree allJavaTestSrc
-
     private JavaVersion srcCompat
     private JavaVersion targetCompat
     GradleManifest manifest
@@ -85,16 +53,6 @@ class JavaPluginConvention {
         javadocDirName = 'javadoc'
         testResultsDirName = 'test-results'
         testReportDirName = 'tests'
-        srcDirNames << 'main/java'
-        resourceDirNames << 'main/resources'
-        testSrcDirNames << 'test/java'
-        testResourceDirNames << 'test/resources'
-        src = new DefaultSourceDirectorySet('main java source', project.fileResolver)
-        src.srcDirs { -> srcDirs }
-        allJavaSrc = new UnionFileTree('main java source', src)
-        testSrc = new DefaultSourceDirectorySet('test java source', project.fileResolver)
-        testSrc.srcDirs {-> testSrcDirs }
-        allJavaTestSrc = new UnionFileTree('test java source', testSrc)
     }
 
     def source(Closure closure) {
@@ -111,22 +69,6 @@ class JavaPluginConvention {
 
     File getSrcRoot() {
         project.file(srcRootName)
-    }
-
-    List getSrcDirs() {
-        srcDirNames.collect {new File(srcRoot, it)} + floatingSrcDirs
-    }
-
-    List getResourceDirs() {
-        resourceDirNames.collect {new File(srcRoot, it)} + floatingResourceDirs
-    }
-
-    List getTestSrcDirs() {
-        testSrcDirNames.collect {new File(srcRoot, it)} + floatingTestSrcDirs
-    }
-
-    List getTestResourceDirs() {
-        testResourceDirNames.collect {new File(srcRoot, it)} + floatingTestResourceDirs
     }
 
     File getDependencyCacheDir() {

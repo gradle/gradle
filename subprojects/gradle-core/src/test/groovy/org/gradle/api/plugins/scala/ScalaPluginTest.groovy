@@ -49,14 +49,16 @@ public class ScalaPluginTest {
 
         def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.source.main.java.srcDirs as Object[]))
         assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.main.classesDir))
+        assertThat(task.classpath, equalTo(project.convention.plugins.java.source.main.compileClasspath))
         assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaSrcDirs as Object[]))
 
-        task = project.tasks[JavaPlugin.COMPILE_TESTS_TASK_NAME]
+        task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
         assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.testSrcDirs as Object[]))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.source.test.java.srcDirs as Object[]))
         assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.test.classesDir))
+        assertThat(task.classpath, equalTo(project.convention.plugins.java.source.test.compileClasspath))
         assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaTestSrcDirs as Object[]))
     }
 
@@ -64,8 +66,7 @@ public class ScalaPluginTest {
         scalaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('otherCompile', type: ScalaCompile)
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.main.classesDir))
+        assertThat(task.classpath, equalTo(project.convention.plugins.java.source.main.compileClasspath))
         assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaSrcDirs as Object[]))
     }
 

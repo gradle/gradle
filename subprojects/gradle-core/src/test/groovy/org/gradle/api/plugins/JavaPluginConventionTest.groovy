@@ -17,15 +17,14 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.InvalidUserDataException
-import org.junit.Before
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.HelperUtil
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
+import org.gradle.util.HelperUtil
+import org.junit.Before
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -44,20 +43,12 @@ class JavaPluginConventionTest {
         assertThat(convention.source, instanceOf(DefaultSourceSetContainer))
         assertThat(convention.manifest, notNullValue())
         assertEquals([], convention.metaInf)
-        assertEquals([], convention.floatingSrcDirs)
-        assertEquals([], convention.floatingTestSrcDirs)
-        assertEquals([], convention.floatingResourceDirs)
-        assertEquals([], convention.floatingTestResourceDirs)
         assertEquals('src', convention.srcRootName)
         assertEquals('dependency-cache', convention.dependencyCacheDirName)
         assertEquals('docs', convention.docsDirName)
         assertEquals('javadoc', convention.javadocDirName)
         assertEquals('test-results', convention.testResultsDirName)
         assertEquals('tests', convention.testReportDirName)
-        assertEquals(['main/java'], convention.srcDirNames)
-        assertEquals(['test/java'], convention.testSrcDirNames)
-        assertEquals(['main/resources'], convention.resourceDirNames)
-        assertEquals(['test/resources'], convention.testResourceDirNames)
         assertEquals(JavaVersion.VERSION_1_5, convention.sourceCompatibility)
         assertEquals(JavaVersion.VERSION_1_5, convention.targetCompatibility)
     }
@@ -83,34 +74,12 @@ class JavaPluginConventionTest {
     }
 
     private void checkDirs(String srcRootName) {
-        convention.floatingSrcDirs << 'someSrcDir' as File
-        convention.floatingTestSrcDirs << 'someTestSrcDir' as File
-        convention.floatingResourceDirs << 'someResourceDir' as File
-        convention.floatingTestResourceDirs << 'someTestResourceDir' as File
         assertEquals(new File(testDir, srcRootName), convention.srcRoot)
-        assertEquals([new File(convention.srcRoot, convention.srcDirNames[0])] + convention.floatingSrcDirs, convention.srcDirs)
-        assertEquals([new File(convention.srcRoot, convention.testSrcDirNames[0])] + convention.floatingTestSrcDirs, convention.testSrcDirs)
-        assertEquals([new File(convention.srcRoot, convention.resourceDirNames[0])] + convention.floatingResourceDirs, convention.resourceDirs)
-        assertEquals([new File(convention.srcRoot, convention.testResourceDirNames[0])] + convention.floatingTestResourceDirs, convention.testResourceDirs)
         assertEquals(new File(project.buildDir, convention.dependencyCacheDirName), convention.dependencyCacheDir)
         assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
         assertEquals(new File(convention.docsDir, convention.javadocDirName), convention.javadocDir)
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
-    }
-
-    @Test public void testSourceSetsReflectChangesToSourceDirs() {
-        SourceDirectorySet src = convention.src
-        assertThat(src.srcDirs, equalTo(convention.srcDirs as Set))
-        convention.srcDirNames << 'another'
-        assertThat(src.srcDirs, equalTo(convention.srcDirs as Set))
-    }
-    
-    @Test public void testTestSourceSetsReflectChangesToTestSourceDirs() {
-        SourceDirectorySet src = convention.testSrc
-        assertThat(src.srcDirs, equalTo(convention.testSrcDirs as Set))
-        convention.testSrcDirNames << 'another'
-        assertThat(src.srcDirs, equalTo(convention.testSrcDirs as Set))
     }
 
     @Test public void testTestReportDirIsCalculatedRelativeToReportsDir() {

@@ -26,6 +26,8 @@ import org.gradle.util.WrapUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Set;
 import java.io.File;
 
 /**
@@ -36,7 +38,8 @@ public class DefaultConventionsToPropertiesMapping {
     public final static Map<String, ConventionValue> JAVADOC = GUtil.map(
             "srcDirs", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSrcDirs();
+            Set<File> srcDirs = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getJava().getSrcDirs();
+            return new ArrayList<File>(srcDirs);
         }
     },
             "destinationDir", new ConventionValue() {
@@ -47,79 +50,6 @@ public class DefaultConventionsToPropertiesMapping {
             "classesDir", new ConventionValue() {
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
             return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
-        }
-    });
-
-    public final static Map<String, ConventionValue> RESOURCES = GUtil.map(
-            "srcDirs", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getResourceDirs();
-        }
-    },
-            "destinationDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
-        }
-    });
-
-    public final static Map<String, ConventionValue> COMPILE = GUtil.map(
-            "srcDirs", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSrcDirs();
-        }
-    },
-            "destinationDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
-        }
-    },
-            "dependencyCacheDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getDependencyCacheDir();
-        }
-    },
-            "sourceCompatibility", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSourceCompatibility().toString();
-        }
-    },
-            "targetCompatibility", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getTargetCompatibility().toString();
-        }
-    });
-
-    public final static Map TEST_RESOURCES = GUtil.map(
-            "srcDirs", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getTestResourceDirs();
-        }
-    },
-            "destinationDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getClassesDir();
-        }
-    });
-
-    public final static Map TEST_COMPILE = GUtil.map(
-            "srcDirs", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getTestSrcDirs();
-        }
-    },
-            "destinationDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getClassesDir();
-        }
-    },
-            "sourceCompatibility", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSourceCompatibility().toString();
-        }
-    },
-            "targetCompatibility", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getTargetCompatibility().toString();
         }
     });
 

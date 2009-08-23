@@ -89,56 +89,84 @@ class JavaPluginTest {
         assertTrue(configuration.transitive)
     }
 
-    @Test public void createsSourceSetsAndAppliesMappings() {
+    @Test public void createsStandardSourceSetsAndAppliesMappings() {
         javaPlugin.use(project, project.getPlugins())
 
         def set = project.source[JavaPlugin.MAIN_SOURCE_SET_NAME]
+        assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/main/java'))))
+        assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/main/resources'))))
+        assertThat(set.compileClasspath, sameInstance(project.configurations.compile))
+        assertThat(set.runtimeClasspath, sameInstance(project.configurations.runtime))
         assertThat(set.classesDir, equalTo(new File(project.buildDir, 'classes/main')))
 
         set = project.source[JavaPlugin.TEST_SOURCE_SET_NAME]
+        assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/test/java'))))
+        assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/test/resources'))))
+        assertThat(set.compileClasspath, sameInstance(project.configurations.testCompile))
+        assertThat(set.runtimeClasspath, sameInstance(project.configurations.testRuntime))
         assertThat(set.classesDir, equalTo(new File(project.buildDir, 'classes/test')))
     }
 
-    @Test public void appliesMappingsToNewSourceSets() {
+    @Test public void createsTasksAndAppliesMappingsForNewSourceSet() {
         javaPlugin.use(project, project.getPlugins())
 
         project.source.add('custom')
         def set = project.source.custom
+        assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/custom/java'))))
+        assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/custom/resources'))))
+        assertThat(set.compileClasspath, sameInstance(project.configurations.compile))
+        assertThat(set.runtimeClasspath, sameInstance(project.configurations.runtime))
         assertThat(set.classesDir, equalTo(new File(project.buildDir, 'classes/custom')))
+
+        def task = project.tasks['processCustomResources']
+        assertThat(task, instanceOf(Copy))
+        assertDependsOn(task)
+        assertThat(task.destinationDir, equalTo(project.source.custom.classesDir))
+        assertThat(task.srcDirs, equalTo(project.source.custom.resources.srcDirs))
+
+        task = project.tasks['compileCustom']
+        assertDependsOn(task)
+        assertThat(task.srcDirs, equalTo(project.source.custom.java.srcDirs as List))
+        assertThat(task.classpath, sameInstance(project.source.custom.compileClasspath))
+        assertThat(task.destinationDir, equalTo(project.source.custom.classesDir))
     }
     
-    @Test public void createsTasksAndAppliesMappings() {
+    @Test public void createsStandardTasksAndAppliesMappings() {
         javaPlugin.use(project, project.getPlugins())
 
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertDependsOn(task)
+        assertThat(task.srcDirs, equalTo(project.source.main.resources.srcDirs))
         assertThat(task.destinationDir, equalTo(project.source.main.classesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertDependsOn(task)
-        assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.srcDirs, equalTo(project.source.main.java.srcDirs as List))
+        assertThat(task.classpath, sameInstance(project.source.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.main.classesDir))
 
         task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertDependsOn(task)
+        assertThat(task.srcDirs, equalTo(project.source.test.resources.srcDirs))
         assertThat(task.destinationDir, equalTo(project.source.test.classesDir))
 
-        task = project.tasks[JavaPlugin.COMPILE_TESTS_TASK_NAME]
+        task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertDependsOn(task, JavaPlugin.COMPILE_TASK_NAME)
-        assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.srcDirs, equalTo(project.source.test.java.srcDirs as List))
+        assertThat(task.classpath, sameInstance(project.source.test.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.test.classesDir))
 
         task = project.tasks[JavaPlugin.TEST_TASK_NAME]
         assertThat(task, instanceOf(org.gradle.api.tasks.testing.Test))
-        assertDependsOn(task, JavaPlugin.COMPILE_TESTS_TASK_NAME,
+        assertDependsOn(task, JavaPlugin.COMPILE_TEST_TASK_NAME,
                               JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME,
                               JavaPlugin.COMPILE_TASK_NAME,
                               JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
-        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.source.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.source.test.classesDir))
 
         task = project.tasks[JavaPlugin.JAR_TASK_NAME]
@@ -185,10 +213,10 @@ class JavaPluginTest {
 
         def task = project.createTask('customCompile', type: Compile)
         assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
-        assertThat(task.destinationDir, equalTo(project.source.main.classesDir))
+        assertThat(task.sourceCompatibility, equalTo(project.sourceCompatibility.toString()))
 
         task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
-        assertDependsOn(task, JavaPlugin.COMPILE_TESTS_TASK_NAME,
+        assertDependsOn(task, JavaPlugin.COMPILE_TEST_TASK_NAME,
                               JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME,
                               JavaPlugin.COMPILE_TASK_NAME,
                               JavaPlugin.PROCESS_RESOURCES_TASK_NAME)

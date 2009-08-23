@@ -16,9 +16,12 @@
 package org.gradle.util;
 
 import org.gradle.api.UncheckedIOException;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * @author Hans Dockter
@@ -187,6 +190,21 @@ public class GUtil {
             }
         }
         return formatter.toString();
+    }
+
+    public static String toCamelCase(CharSequence string) {
+        if (string == null) {
+            return null;
+        }
+        StringBuilder builder = new StringBuilder();
+        Matcher matcher = Pattern.compile("[^\\w]+").matcher(string);
+        int pos = 0;
+        while (matcher.find()) {
+            builder.append(StringUtils.capitalize(string.subSequence(pos, matcher.start()).toString()));
+            pos = matcher.end();
+        }
+        builder.append(StringUtils.capitalize(string.subSequence(pos, string.length()).toString()));
+        return builder.toString();
     }
 
     public static List<String> stringifieAsList(Iterable iterable) {

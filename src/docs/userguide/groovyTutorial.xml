@@ -31,7 +31,7 @@
         </sample>
         <para>This will also apply the Java plugin to the project, if it has not already been applied. The Groovy plugin
             extends the <literal>compile</literal> task to look for source files in directory
-            <filename>src/main/groovy</filename>, and the <literal>compileTests</literal> task to look for test source
+            <filename>src/main/groovy</filename>, and the <literal>compileTest</literal> task to look for test source
             files in directory<filename>src/test/groovy</filename>. The compile tasks use joint compilation for these
             directories, which means they can contain a mixture of java and groovy source files.
         </para>

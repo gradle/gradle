@@ -7,13 +7,13 @@
 :api:jar
 :api:libs
 :api:dists
-:api:compileTests
+:api:compileTest
 :api:processTestResources
 :api:test
 :api:build
 :shared:libs
 :shared:dists
-:shared:compileTests
+:shared:compileTest
 :shared:processTestResources
 :shared:test
 :shared:build

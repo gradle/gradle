@@ -40,7 +40,7 @@
                     <literal>jettyRun</literal>
                 </td>
                 <td>
-                    <literal>compileTests</literal>
+                    <literal>compile, processResources</literal>
                 </td>
                 <td><apilink class="org.gradle.api.plugins.jetty.JettyRun"/></td>
             </tr>

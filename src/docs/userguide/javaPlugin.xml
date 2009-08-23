@@ -56,7 +56,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>compileTests</literal>
+                    <literal>compileTest</literal>
                 </td>
                 <td>
                     <literal>compile</literal>
@@ -69,7 +69,7 @@
                 </td>
                 <td>
                     <literal>compile</literal>,
-                    <literal>compileTests</literal>,
+                    <literal>compileTest</literal>,
                     <literal>processResources</literal>,
                     <literal>processTestResources</literal>
                 </td>
@@ -245,7 +245,7 @@
             <tr>
                 <td>testCompile</td>
                 <td>compile</td>
-                <td>compileTests</td>
+                <td>compileTest</td>
                 <td>Additional dependencies for compiling tests.</td>
             </tr>
             <tr>
@@ -665,7 +665,7 @@
             <emphasis>Compile</emphasis>
             task has two instances,
             <literal>compile</literal>
-            and <literal>compileTests</literal>.
+            and <literal>compileTest</literal>.
         </para>
         <table>
             <title>Java plugin - compile properties</title>
@@ -697,22 +697,22 @@
                 <td>targetCompatibility</td>
             </tr>
             <tr>
-                <td>compileTests</td>
+                <td>compileTest</td>
                 <td>srcDirs</td>
                 <td>testSrcDirs</td>
             </tr>
             <tr>
-                <td>compileTests</td>
+                <td>compileTest</td>
                 <td>destinationDir</td>
                 <td>testClassesDir</td>
             </tr>
             <tr>
-                <td>compileTests</td>
+                <td>compileTest</td>
                 <td>sourceCompatibility</td>
                 <td>sourceCompatibility</td>
             </tr>
             <tr>
-                <td>compileTests</td>
+                <td>compileTest</td>
                 <td>targetCompatibility</td>
                 <td>targetCompatibility</td>
             </tr>
@@ -729,7 +729,7 @@
         <para>The
             <literal>test</literal>
             task executes the unit tests which have been compiled by the
-            <literal>compileTests</literal>
+            <literal>compileTest</literal>
             task.
         </para>
         <table>

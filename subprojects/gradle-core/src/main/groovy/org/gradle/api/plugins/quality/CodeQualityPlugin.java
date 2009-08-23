@@ -75,7 +75,7 @@ public class CodeQualityPlugin implements Plugin {
             public void execute(Checkstyle checkstyle) {
                 checkstyle.conventionMapping("source", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getAllJavaSrc();
+                        return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getAllJava();
                     }
                 });
                 checkstyle.conventionMapping("configFile", new ConventionValue() {
@@ -98,7 +98,7 @@ public class CodeQualityPlugin implements Plugin {
         checkstyle.setDescription("Runs Checkstyle against the Java test source code.");
         checkstyle.conventionMapping("source", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return convention.getPlugin(JavaPluginConvention.class).getAllJavaTestSrc();
+                return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getAllJava();
             }
         });
         checkstyle.conventionMapping("configFile", new ConventionValue() {

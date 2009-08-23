@@ -7,7 +7,7 @@
 :api:jar
 :api:libs
 :api:dists
-:api:compileTests
+:api:compileTest
 :api:processTestResources
 :api:test
 :api:build

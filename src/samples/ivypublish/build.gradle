@@ -16,7 +16,9 @@ repositories {
 
 task sourceJar(type: Jar) {
     baseName = 'ivypublishSource'
-    fileSet(dir: srcDirs[0])
+    source.main.java.srcDirs.each {
+        fileSet(dir: it)
+    }
 }
 
 artifacts {

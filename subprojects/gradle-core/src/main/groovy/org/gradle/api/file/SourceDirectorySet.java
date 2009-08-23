@@ -17,14 +17,18 @@ package org.gradle.api.file;
 
 import org.gradle.api.tasks.util.PatternFilterable;
 
+import java.io.File;
+import java.util.Set;
+
 /**
  * <p>A {@code SourceDirectorySet} represents a set of source files composed from a set of source directories, along
  * with associated include and exclude patterns.</p>
  *
- * TODO - configure includes/excludes for individual source dirs, and syn up with CopySpec
+ * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec
  * TODO - add FileTree
- * TODO - set sourceDirs
+ * TODO - allow srcDirs = ...
  * TODO - apply global excludes
+ * TODO - allow this to be used as arg to copy.from()
  *
  */
 public interface SourceDirectorySet extends FileTree, PatternFilterable {
@@ -44,4 +48,11 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable {
      * @return this
      */
     SourceDirectorySet srcDirs(Object... srcDirs);
+
+    /**
+     * Returns the source directories which make up this set.
+     *
+     * @return The source directories. Returns an empty set when this set contains no source directories.
+     */
+    Set<File> getSrcDirs();
 }

@@ -59,13 +59,13 @@ class GroovyPluginConvention {
         groovySrc.srcDirs {-> groovySrcDirs}
         allGroovySrc = new UnionFileTree('main groovy source')
         allGroovySrc.add(groovySrc.matching {include '**/*.groovy'})
-        javaConvention.allJavaSrc.add(groovySrc.matching {include '**/*.java'})
+        javaConvention.source.main.allJava.add(groovySrc.matching {include '**/*.java'})
 
         groovyTestSrc = new DefaultSourceDirectorySet('test groovy source', project.fileResolver)
         groovyTestSrc.srcDirs {-> groovyTestSrcDirs}
         allGroovyTestSrc = new UnionFileTree('test groovy source')
         allGroovyTestSrc.add(groovyTestSrc.matching {include '**/*.groovy'})
-        javaConvention.allJavaTestSrc.add(groovyTestSrc.matching {include '**/*.java'})
+        javaConvention.source.test.allJava.add(groovyTestSrc.matching {include '**/*.java'})
     }
 
     List getGroovySrcDirs() {

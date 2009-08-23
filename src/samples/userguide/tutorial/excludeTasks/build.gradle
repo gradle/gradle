@@ -2,11 +2,11 @@ task compile << {
     println "compiling source"
 }
 
-task compileTests(dependsOn: compile) << {
-    println "compiling tests"
+task compileTest(dependsOn: compile) << {
+    println "compiling unit tests"
 }
 
-task test(dependsOn: [compile, compileTests]) << {
+task test(dependsOn: [compile, compileTest]) << {
     println "running unit tests"
 }
 

@@ -18,9 +18,11 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.DefaultFileCollection;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.UnionFileTree;
 
 import java.io.File;
 
@@ -30,6 +32,7 @@ public class DefaultSourceSet implements SourceSet {
     private FileCollection compileClasspath;
     private FileCollection runtimeClasspath;
     private SourceDirectorySet javaSource;
+    private UnionFileTree allJavaSource;
     private SourceDirectorySet resources;
 
     public DefaultSourceSet(String name, String displayName, FileResolver resolver) {
@@ -37,6 +40,7 @@ public class DefaultSourceSet implements SourceSet {
         compileClasspath = new DefaultFileCollection();
         runtimeClasspath = new DefaultFileCollection();
         javaSource = new DefaultSourceDirectorySet(String.format("%s java source", displayName), resolver);
+        allJavaSource = new UnionFileTree(String.format("%s java source", displayName), javaSource);
         resources = new DefaultSourceDirectorySet(String.format("%s resources", displayName), resolver);
     }
 
@@ -68,8 +72,12 @@ public class DefaultSourceSet implements SourceSet {
         runtimeClasspath = classpath;
     }
 
-    public SourceDirectorySet getJavaSource() {
+    public SourceDirectorySet getJava() {
         return javaSource;
+    }
+
+    public FileTree getAllJava() {
+        return allJavaSource;
     }
 
     public SourceDirectorySet getResources() {

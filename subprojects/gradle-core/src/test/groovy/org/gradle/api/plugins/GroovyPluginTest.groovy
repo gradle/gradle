@@ -60,24 +60,24 @@ class GroovyPluginTest {
 
         def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(GroovyCompile.class))
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
-        assertThat(task.groovySourceDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+        assertThat(task.srcDirs, equalTo(project.convention.plugins.java.source.main.java.srcDirs as List))
+        assertThat(task.groovySourceDirs, equalTo(project.convention.plugins.groovy.groovySrcDirs))
 
-        task = project.tasks[JavaPlugin.COMPILE_TESTS_TASK_NAME]
+        task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
         assertThat(task, instanceOf(GroovyCompile.class))
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.testSrcDirs as Object[]))
-        assertThat(task.groovySourceDirs, hasItems(project.convention.plugins.groovy.groovyTestSrcDirs as Object[]))
+        assertThat(task.srcDirs, equalTo(project.convention.plugins.java.source.test.java.srcDirs as List))
+        assertThat(task.groovySourceDirs, equalTo(project.convention.plugins.groovy.groovyTestSrcDirs))
 
         task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
         assertThat(task, instanceOf(Javadoc.class))
-        assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
-        assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
-        assertThat(((Javadoc)task).exclude, hasItem('**/*.groovy'))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.source.main.java.srcDirs as Object[]))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+        assertThat(task.exclude, hasItem('**/*.groovy'))
 
         task = project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME]
         assertThat(task, instanceOf(Groovydoc.class))
         assertThat(task.destinationDir, equalTo(project.convention.plugins.groovy.groovydocDir))
-        assertThat(task.srcDirs, not(hasItems(project.convention.plugins.java.srcDirs as Object[])))
+        assertThat(task.srcDirs, not(hasItems(project.convention.plugins.java.source.main.java.srcDirs as Object[])))
         assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
     }
 
@@ -85,17 +85,17 @@ class GroovyPluginTest {
         groovyPlugin.use(project, project.getPlugins())
         
         def task = project.createTask('otherCompile', type: GroovyCompile)
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
+        assertThat(task.classpath, sameInstance(project.convention.plugins.java.source.main.compileClasspath))
         assertThat(task.groovySourceDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
 
         task = project.createTask('otherJavadoc', type: Javadoc)
-        assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.java.srcDirs as Object[]))
-        assertThat(((Javadoc)task).srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
-        assertThat(((Javadoc)task).exclude, hasItem('**/*.groovy'))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.source.main.java.srcDirs as Object[]))
+        assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
+        assertThat(task.exclude, hasItem('**/*.groovy'))
 
         task = project.createTask('otherGroovydoc', type: Groovydoc)
         assertThat(task.destinationDir, equalTo(project.convention.plugins.groovy.groovydocDir))
-        assertThat(task.srcDirs, not(hasItems(project.convention.plugins.java.srcDirs as Object[])))
+        assertThat(task.srcDirs, not(hasItems(project.convention.plugins.java.source.main.java.srcDirs as Object[])))
         assertThat(task.srcDirs, hasItems(project.convention.plugins.groovy.groovySrcDirs as Object[]))
 
     }

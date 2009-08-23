@@ -94,7 +94,7 @@
             <output args="dist test-"/>
         </sample>
         <para>You can see from the output of this example, that the <literal>test</literal> task is not executed. Notice
-            that the <literal>test</literal> task's dependencies, such as <literal>compileTests</literal> are not
+            that the <literal>test</literal> task's dependencies, such as <literal>compileTest</literal> are not
             executed either, unless they are required by another task.</para>
     </section>
 

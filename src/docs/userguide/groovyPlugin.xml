@@ -147,7 +147,7 @@
             <emphasis>GroovyCompile</emphasis>
             task has two instances,
             <literal>compile</literal>
-            and <literal>compileTests</literal>. The task type extends the
+            and <literal>compileTest</literal>. The task type extends the
             <literal>Compile</literal>
             task (see <xref linkend='sec:compile'/>)
         </para>
@@ -166,7 +166,7 @@
                 <td>groovySrcDirs</td>
             </tr>
             <tr>
-                <td>compileTests</td>
+                <td>compileTest</td>
                 <td>groovySourceDirs</td>
                 <td>groovyTestSrcDirs</td>
             </tr>

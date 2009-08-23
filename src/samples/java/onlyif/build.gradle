@@ -17,7 +17,7 @@ dependencies {
 }
 
 compile.doLast { println "compile didWork = ${compile.didWork}" }
-compileTests.doLast { println "compileTests didWork = ${compile.didWork}" }
+compileTest.doLast { println "compileTest didWork = ${compileTest.didWork}" }
 
 test {
     options.systemProperties['property'] = 'value'

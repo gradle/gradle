@@ -7,7 +7,7 @@
 :api:jar
 :api:libs
 :api:dists
-:api:compileTests
+:api:compileTest
 :api:processTestResources
 :api:test
 :api:build
@@ -17,7 +17,7 @@
 :services:personService:jar
 :services:personService:libs
 :services:personService:dists
-:services:personService:compileTests
+:services:personService:compileTest
 :services:personService:processTestResources
 :services:personService:test
 :services:personService:build

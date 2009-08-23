@@ -22,7 +22,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.DefaultConventionsToPropertiesMapping;
 import org.gradle.api.plugins.JavaPlugin;
 import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.plugins.ProjectPluginsContainer;
@@ -41,7 +40,7 @@ public class ScalaPlugin implements Plugin {
     public static final String SCALA_DEFINE_TASK_NAME = "defineScalaAnt";
 
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-        projectPluginsHandler.usePlugin(JavaPlugin.class, project);
+        JavaPlugin javaPlugin = projectPluginsHandler.usePlugin(JavaPlugin.class, project);
 
         ScalaPluginConvention scalaPluginConvention = new ScalaPluginConvention(project);
         project.getConvention().getPlugins().put("scala", scalaPluginConvention);
@@ -50,8 +49,8 @@ public class ScalaPlugin implements Plugin {
                 setDescription("The scala tools libraries to be used for this Scala project.");
 
         configureDefine(project);
-        configureCompile(project);
-        configureCompileTests(project);
+        configureCompile(project, javaPlugin);
+        configureCompileTests(project, javaPlugin);
         configureScaladoc(project);
     }
 
@@ -62,35 +61,31 @@ public class ScalaPlugin implements Plugin {
         addDependsOnProjectDependencies(define, SCALA_TOOLS_CONFIGURATION_NAME);
     }
 
-    private void configureCompile(final Project project) {
+    private void configureCompile(final Project project, JavaPlugin javaPlugin) {
         project.getTasks().withType(ScalaCompile.class).allTasks(new Action<ScalaCompile>() {
             public void execute(ScalaCompile compile) {
-                compile.setClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
-                compile.getConventionMapping().map(DefaultConventionsToPropertiesMapping.COMPILE);
                 compile.conventionMapping("scalaSrcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return scala(convention).getScalaSrcDirs();
                     }
                 });
                 compile.setDependsOn(WrapUtil.toSet(SCALA_DEFINE_TASK_NAME));
-                addDependsOnProjectDependencies(compile, COMPILE_CONFIGURATION_NAME);
             }
         });
-        project.getTasks().replace(COMPILE_TASK_NAME, ScalaCompile.class).setDescription("Compiles the Scala source code.");
+        ScalaCompile scalaCompile = project.getTasks().replace(COMPILE_TASK_NAME, ScalaCompile.class);
+        javaPlugin.configureForSourceSet(JavaPlugin.MAIN_SOURCE_SET_NAME, scalaCompile);
+        scalaCompile.setDescription("Compiles the Scala source code.");
     }
 
-    private void configureCompileTests(final Project project) {
-        ScalaCompile compileTests = project.getTasks().replace(COMPILE_TESTS_TASK_NAME, ScalaCompile.class);
+    private void configureCompileTests(final Project project, JavaPlugin javaPlugin) {
+        ScalaCompile compileTests = project.getTasks().replace(COMPILE_TEST_TASK_NAME, ScalaCompile.class);
+        javaPlugin.configureForSourceSet(JavaPlugin.TEST_SOURCE_SET_NAME, compileTests);
         compileTests.setDescription("Compiles the Scala test source code.");
-        compileTests.setClasspath(project.getConfigurations().getByName(TEST_COMPILE_CONFIGURATION_NAME));
-        compileTests.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TEST_COMPILE);
         compileTests.conventionMapping("scalaSrcDirs", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return scala(convention).getScalaTestSrcDirs();
             }
         });
-        compileTests.setDependsOn(WrapUtil.toSet(COMPILE_TASK_NAME));
-        addDependsOnProjectDependencies(compileTests, TEST_COMPILE_CONFIGURATION_NAME);
     }
 
     private void configureScaladoc(final Project project) {
@@ -111,7 +106,7 @@ public class ScalaPlugin implements Plugin {
                 scalaDoc.setDependsOn(WrapUtil.toSet(SCALA_DEFINE_TASK_NAME));
             }
         });
-        project.getTasks().replace(SCALA_DOC_TASK_NAME, ScalaDoc.class).setDescription("Generates scaladoc for the source code.");
+        project.getTasks().add(SCALA_DOC_TASK_NAME, ScalaDoc.class).setDescription("Generates scaladoc for the source code.");
     }
 
     private void addDependsOnProjectDependencies(final Task task, String configurationName) {

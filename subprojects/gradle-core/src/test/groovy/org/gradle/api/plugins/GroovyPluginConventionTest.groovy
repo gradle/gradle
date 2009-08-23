@@ -34,7 +34,8 @@ class GroovyPluginConventionTest {
     private JavaPluginConvention javaConvention
 
     @Before public void setUp()  {
-        javaConvention = new JavaPluginConvention(project)
+        new JavaPlugin().use(project, project.plugins)
+        javaConvention = project.convention.plugins.java
         project.convention.plugins.java = javaConvention
         groovyConvention = new GroovyPluginConvention(project)
     }
