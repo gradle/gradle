@@ -48,24 +48,23 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
     FileResolver resolver
 
     FileSet() {
-        this((FileResolver)null)
+        this([:], null)
     }
 
     FileSet(FileResolver resolver) {
+        this([:], resolver)
+    }
+
+    FileSet(File dir) {
+        this([dir: dir], null)
+    }
+
+    FileSet(Map args, FileResolver resolver=null) {
         if (resolver != null) {
             this.resolver = resolver
         } else {
             this.resolver = new IdentityFileResolver()
         }
-    }
-
-    FileSet(File dir) {
-        this((FileResolver)null)
-        from(dir)
-    }
-
-    FileSet(Map args, FileResolver resolver=null) {
-        this(resolver)
         transformToFile(args).each {String key, value ->
             this."$key" = value
         }
