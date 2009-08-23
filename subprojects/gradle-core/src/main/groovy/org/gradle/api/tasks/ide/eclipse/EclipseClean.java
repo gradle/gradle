@@ -15,9 +15,8 @@
  */
 package org.gradle.api.tasks.ide.eclipse;
 
-import org.gradle.api.Project;
-import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -36,10 +35,6 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class EclipseClean extends ConventionTask {
-    public EclipseClean(Project project, String name) {
-        super(project, name);
-    }
-
     @TaskAction
     protected void deleteEclipseFiles() {
         GFileUtils.deleteQuietly(getProject().file(EclipseProject.PROJECT_FILE_NAME));

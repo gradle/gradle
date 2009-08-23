@@ -54,10 +54,6 @@ import java.util.*;
 public abstract class AbstractJettyRunTask extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(AbstractJettyRunTask.class);
 
-    public AbstractJettyRunTask(Project project, String name) {
-        super(project, name);
-    }
-
     private Iterable<File> additionalRuntimeJars = new ArrayList<File>();
 
     /**

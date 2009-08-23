@@ -16,18 +16,11 @@
  
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.Project
-
 /**
  * @author Hans Dockter
  */
 class TestArchiveTask extends AbstractArchiveTask {
-    TestArchiveTask(Project project, String name) {
-        super(project, name)
-    }
-
     public Closure createAntArchiveTask() {
         return null;
     }
-    
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.Project;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
@@ -28,10 +27,6 @@ public class CodeNarc extends ConventionTask {
     private FileTree source;
     private File reportFile;
     private File configFile;
-
-    public CodeNarc(Project project, String name) {
-        super(project, name);
-    }
 
     @TaskAction
     public void check() {

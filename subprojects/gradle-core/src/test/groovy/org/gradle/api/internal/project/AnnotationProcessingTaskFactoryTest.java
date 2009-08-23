@@ -70,7 +70,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void doesNothingToTaskWithNoExecuteAnnotations() {
-        final TaskInternal task = new DefaultTask();
+        final TaskInternal task = new DefaultTask(HelperUtil.createRootProject(), "name");
 
         expectTaskCreated(task);
 
@@ -194,6 +194,10 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     public static class TaskWithStaticMethod extends DefaultTask {
+        public TaskWithStaticMethod() {
+            super(HelperUtil.createRootProject(), "someName");
+        }
+
         @TaskAction
         public static void doStuff() {
         }
@@ -216,6 +220,10 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     public static class TaskWithParamMethod extends DefaultTask {
+        public TaskWithParamMethod() {
+            super(HelperUtil.createRootProject(), "someName");
+        }
+
         @TaskAction
         public void doStuff(int value) {
         }

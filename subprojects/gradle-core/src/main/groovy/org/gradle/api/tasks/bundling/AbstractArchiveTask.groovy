@@ -17,9 +17,10 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.file.DefaultFileCollection
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.ConfigureUtil
@@ -27,8 +28,6 @@ import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.internal.file.DefaultFileCollection
 
 /**
  * @author Hans Dockter
@@ -99,10 +98,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     private List mergeGroupFileSets = []
 
     protected ArchiveDetector archiveDetector = new ArchiveDetector()
-
-    public AbstractArchiveTask(Project project, String name) {
-        super(project, name);
-    }
 
     @TaskAction
     public void generateArchive() {

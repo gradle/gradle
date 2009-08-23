@@ -15,11 +15,9 @@
  */
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
 
@@ -27,15 +25,6 @@ public class ScalaDefine extends ConventionTask {
 
     private FileCollection classpath;
     private AntScalaDefine antScalaDefine;
-
-    public ScalaDefine(Project project, String name) {
-        super(project, name);
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                defineAntTasks();
-            }
-        });
-    }
 
     public AntScalaDefine getAntScalaDefine() {
         if (antScalaDefine == null) {
@@ -56,6 +45,7 @@ public class ScalaDefine extends ConventionTask {
         this.classpath = classpath;
     }
 
+    @TaskAction
     protected void defineAntTasks() {
         getAntScalaDefine().execute(getClasspath());
     }

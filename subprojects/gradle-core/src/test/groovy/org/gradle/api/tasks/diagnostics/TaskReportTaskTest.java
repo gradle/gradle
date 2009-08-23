@@ -20,6 +20,7 @@ import org.gradle.api.Rule;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -56,7 +57,7 @@ public class TaskReportTaskTest {
             will(returnValue(null));
         }});
 
-        task = new TaskReportTask(project, "list");
+        task = HelperUtil.createTask(TaskReportTask.class);
         task.setRenderer(renderer);
     }
 

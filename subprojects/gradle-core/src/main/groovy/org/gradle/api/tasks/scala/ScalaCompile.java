@@ -16,16 +16,12 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -44,16 +40,6 @@ public class ScalaCompile extends Compile {
     private AntScalaCompile antScalaCompile;
 
     private ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions();
-
-    public ScalaCompile(Project project, String name) {
-        super(project, name);
-        setActions(new ArrayList<TaskAction>());
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                compile();
-            }
-        });
-    }
 
     public AntScalaCompile getAntScalaCompile() {
         if (antScalaCompile == null) {

@@ -27,10 +27,16 @@ import org.gradle.api.tasks.ConventionValue;
 public abstract class ConventionTask extends DefaultTask implements IConventionAware {
     private ConventionMapping conventionMapping;
 
-    public ConventionTask(Project project, String name) {
+    protected ConventionTask() {
+        conventionMapping = new ConventionAwareHelper(this);
+        conventionMapping.setConvention(getProject().getConvention());
+    }
+
+    @Deprecated
+    protected ConventionTask(Project project, String name) {
         super(project, name);
         conventionMapping = new ConventionAwareHelper(this);
-        conventionMapping.setConvention(project.getConvention());
+        conventionMapping.setConvention(getProject().getConvention());
     }
 
     public Task conventionMapping(String property, ConventionValue mapping) {

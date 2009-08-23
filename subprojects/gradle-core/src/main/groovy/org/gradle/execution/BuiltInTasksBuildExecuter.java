@@ -15,17 +15,16 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.AnnotationProcessingTaskFactory;
-import org.gradle.api.internal.project.ITaskFactory;
+import org.gradle.api.TaskAction;
 import org.gradle.api.internal.BuildInternal;
-import org.gradle.api.tasks.diagnostics.TaskReportTask;
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.tasks.diagnostics.AbstractReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.TaskReportTask;
 
 import java.util.Collections;
-import java.util.Map;
 
 /**
  * A {@link BuildExecuter} which executes the built-in tasks which are executable from the command-line.
@@ -39,31 +38,31 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
             public String toString() {
                 return "task list";
             }
-            Task createTask(Project project) {
-                return new TaskReportTask(project, "taskList");
+            AbstractReportTask createTask() {
+                return new TaskReportTask();
             }},
         PROPERTIES {
             @Override
             public String toString() {
                 return "property list";
             }
-            Task createTask(Project project) {
-                return new PropertyReportTask(project, "propertyList");
+            AbstractReportTask createTask() {
+                return new PropertyReportTask();
             }},
         DEPENDENCIES {
             @Override
             public String toString() {
                 return "dependency list";
             }
-            Task createTask(Project project) {
-                return new DependencyReportTask(project, "dependencyList");
+            AbstractReportTask createTask() {
+                return new DependencyReportTask();
             }};
 
-        abstract Task createTask(Project project);
+        abstract AbstractReportTask createTask();
         }
 
     private Options options;
-    private Task task;
+    private AbstractReportTask task;
 
     public BuiltInTasksBuildExecuter(Options options) {
         this.options = options;
@@ -75,11 +74,14 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
 
     public void select(BuildInternal build) {
         this.build = build;
-        task = new AnnotationProcessingTaskFactory(new ITaskFactory() {
-            public Task createTask(Project project, Map args) {
-                return options.createTask(project);
+        AbstractTask.injectIntoNextInstance(build.getDefaultProject(), "reportTask");
+        task = options.createTask();
+        task.setProject(build.getDefaultProject());
+        task.doFirst(new TaskAction() {
+            public void execute(Task x) {
+                task.generate();
             }
-        }).createTask(build.getDefaultProject(), Collections.EMPTY_MAP);
+        });
     }
 
     public String getDisplayName() {

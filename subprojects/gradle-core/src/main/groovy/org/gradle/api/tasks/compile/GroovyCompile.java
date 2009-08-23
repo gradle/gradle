@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.GUtil;
 
@@ -46,10 +45,6 @@ public class GroovyCompile extends Compile {
     private List groovyJavaExcludes = null;
 
     private GroovyCompileOptions groovyOptions = new GroovyCompileOptions();
-
-    public GroovyCompile(Project project, String name) {
-        super(project, name);
-    }
 
     protected void compile() {
         if (antCompile == null) throw new InvalidUserDataException("The ant compile command must be set!");

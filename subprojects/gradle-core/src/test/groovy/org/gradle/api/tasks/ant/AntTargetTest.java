@@ -33,7 +33,7 @@ import java.util.Set;
 public class AntTargetTest {
     private final Target antTarget = new Target();
     private final DefaultProject project = HelperUtil.createRootProject();
-    private final AntTarget target = new AntTarget(project, "target");
+    private final AntTarget task = HelperUtil.createTask(AntTarget.class, project);
     private final File baseDir = HelperUtil.makeNewTestDir();
 
     @Before
@@ -47,9 +47,9 @@ public class AntTargetTest {
         testTask.setProject(antTarget.getProject());
         antTarget.addTask(testTask);
 
-        target.setTarget(antTarget);
-        target.setBaseDir(baseDir);
-        target.executeAntTarget();
+        task.setTarget(antTarget);
+        task.setBaseDir(baseDir);
+        task.executeAntTarget();
 
         assertTrue(testTask.executed);
     }
@@ -60,8 +60,8 @@ public class AntTargetTest {
         Task b = project.getTasks().add("b");
         antTarget.setDepends("a, b");
 
-        target.setTarget(antTarget);
-        Set dependencies = target.getTaskDependencies().getDependencies(target);
+        task.setTarget(antTarget);
+        Set dependencies = task.getTaskDependencies().getDependencies(task);
         assertThat(dependencies, equalTo((Set) toSet(a, b)));
     }
 
@@ -69,11 +69,11 @@ public class AntTargetTest {
     public void delegatesDescriptionToTarget() {
         antTarget.setDescription("description");
 
-        target.setTarget(antTarget);
-        assertThat(target.getDescription(), equalTo("description"));
+        task.setTarget(antTarget);
+        assertThat(task.getDescription(), equalTo("description"));
 
         antTarget.setDescription("new description");
-        assertThat(target.getDescription(), equalTo("new description"));
+        assertThat(task.getDescription(), equalTo("new description"));
     }
 
     public class TestTask extends org.apache.tools.ant.Task {

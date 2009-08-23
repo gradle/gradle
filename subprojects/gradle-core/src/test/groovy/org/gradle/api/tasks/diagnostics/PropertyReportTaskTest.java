@@ -17,12 +17,12 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +49,7 @@ public class PropertyReportTaskTest {
             will(returnValue(null));
         }});
 
-        task = new PropertyReportTask(project, "list");
+        task = HelperUtil.createTask(PropertyReportTask.class);
         task.setRenderer(renderer);
     }
 

@@ -38,7 +38,7 @@ public class ScalaDefineTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        scalaDefine = new ScalaDefine(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        scalaDefine = createTask(ScalaDefine.class);
         antScalaDefineMock = context.mock(AntScalaDefine.class);
         scalaDefine.setAntScalaDefine(antScalaDefineMock);
     }

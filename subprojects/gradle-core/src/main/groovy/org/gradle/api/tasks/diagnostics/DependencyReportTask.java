@@ -37,10 +37,6 @@ public class DependencyReportTask extends AbstractReportTask {
 
     private Set<Configuration> configurations;
 
-    public DependencyReportTask(Project project, String name) {
-        super(project, name);
-    }
-
     public ProjectReportRenderer getRenderer() {
         return renderer;
     }

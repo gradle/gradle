@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.nullValue;
 import org.jmock.Expectations;
@@ -54,8 +55,7 @@ public class DependencyReportTaskTest {
             will(returnValue(null));
         }});
 
-        task = new DependencyReportTask(this.project, "list");
-
+        task = HelperUtil.createTask(DependencyReportTask.class);
     }
 
     @Test

@@ -41,10 +41,6 @@ public class EclipseWtpModule extends ConventionTask {
 
     private List<Object> srcDirs;
 
-    public EclipseWtpModule(Project project, String name) {
-        super(project, name);
-    }
-
     @TaskAction
     protected void generateWtpModule() {
         File wtpFile = getProject().file(EclipseWtp.WTP_FILE_DIR + "/" + EclipseWtp.WTP_FILE_NAME);

@@ -31,14 +31,13 @@
 
 package org.gradle.api.plugins.jetty;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.mortbay.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.gradle.api.Project;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>The {@code JettyRunWar} deploys a WAR to an embedded Jetty web container.</p>
@@ -48,10 +47,6 @@ import org.gradle.api.Project;
  */
 public class JettyRunWar extends AbstractJettyRunWarTask {
     private static Logger logger = LoggerFactory.getLogger(JettyRunWar.class);
-
-    public JettyRunWar(Project project, String name) {
-        super(project, name);
-    }
 
     /**
      * The location of the war file.

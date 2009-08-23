@@ -16,16 +16,15 @@
 package org.gradle.api.tasks.ant;
 
 import org.apache.tools.ant.Target;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.TaskDependency;
 
+import java.io.File;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.io.File;
 
 /**
  * A task which executes an Ant target.
@@ -34,9 +33,7 @@ public class AntTarget extends ConventionTask {
     private Target target;
     private File baseDir;
 
-    public AntTarget(Project project, String name) {
-        super(project, name);
-
+    public AntTarget() {
         dependsOn(new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 return getAntTargetDependencies();

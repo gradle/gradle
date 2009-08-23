@@ -30,10 +30,6 @@ import java.util.TreeSet;
 public class TaskReportTask extends AbstractReportTask {
     private TaskReportRenderer renderer = new TaskReportRenderer();
 
-    public TaskReportTask(Project project, String name) {
-        super(project, name);
-    }
-
     public ProjectReportRenderer getRenderer() {
         return renderer;
     }

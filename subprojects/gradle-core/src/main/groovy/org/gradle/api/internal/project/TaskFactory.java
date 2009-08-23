@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.util.GUtil;
 
 import java.lang.reflect.Constructor;
@@ -74,31 +75,42 @@ public class TaskFactory implements ITaskFactory {
                     type.getSimpleName()));
         }
 
-        Constructor<? extends Task> constructor;
+        Class<? extends Task> generatedType = type;
+        if (generateGetters && ConventionTask.class.isAssignableFrom(type)) {
+            generatedType = generator.generate(type);
+        }
+
+        Constructor<? extends Task> constructor = null;
+        Object[] params = null;
         try {
-            constructor = type.getDeclaredConstructor(Project.class, String.class);
+            constructor = generatedType.getDeclaredConstructor();
+            params = new Object[0];
         } catch (NoSuchMethodException e) {
+            // Ignore
+        }
+        try {
+            constructor = generatedType.getDeclaredConstructor(Project.class, String.class);
+            params = new Object[]{project, name};
+        } catch (NoSuchMethodException e) {
+            // Ignore
+        }
+        if (constructor == null) {
             throw new GradleException(String.format(
                     "Cannot create task of type '%s' as it does not have an appropriate public constructor.",
                     type.getSimpleName()));
         }
 
-        if (generateGetters && ConventionTask.class.isAssignableFrom(type)) {
-            Class<? extends Task> generatedType = generator.generate(type);
-            try {
-                constructor = generatedType.getDeclaredConstructor(Project.class, String.class);
-            } catch (NoSuchMethodException e) {
-                throw new GradleException(e);
-            }
-        }
-
+        AbstractTask.injectIntoNextInstance(project, name);
         try {
-            return constructor.newInstance(project, name);
+            return constructor.newInstance(params);
         } catch (InvocationTargetException e) {
             throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()),
                     e.getCause());
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()), e);
+        }
+        finally {
+            AbstractTask.injectIntoNextInstance(null, null);
         }
     }
 

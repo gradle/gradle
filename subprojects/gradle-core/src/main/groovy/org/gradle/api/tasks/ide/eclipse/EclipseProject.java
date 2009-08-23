@@ -21,7 +21,6 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
 
@@ -40,10 +39,6 @@ public class EclipseProject extends ConventionTask {
     private String projectName;
 
     private ProjectType projectType = ProjectType.SIMPLE;
-
-    public EclipseProject(Project project, String name) {
-        super(project, name);
-    }
 
     @TaskAction
     protected void generateProject() {

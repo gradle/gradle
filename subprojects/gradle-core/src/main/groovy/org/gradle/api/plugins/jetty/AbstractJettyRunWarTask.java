@@ -31,17 +31,12 @@
 
 package org.gradle.api.plugins.jetty;
 
-import org.gradle.api.Project;
 import org.mortbay.xml.XmlConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractJettyRunWarTask extends AbstractJettyRunTask {
     private static Logger logger = LoggerFactory.getLogger(AbstractJettyRunWarTask.class);
-
-    public AbstractJettyRunWarTask(Project project, String name) {
-        super(project, name);
-    }
 
     public void applyJettyXml() throws Exception {
 

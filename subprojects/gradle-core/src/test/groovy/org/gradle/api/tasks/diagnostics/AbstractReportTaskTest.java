@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
 import static org.gradle.util.HelperUtil.*;
+import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -42,7 +43,9 @@ public class AbstractReportTaskTest {
     public void setUp() throws Exception {
         generator = context.mock(Runnable.class);
         renderer = context.mock(ProjectReportRenderer.class);
-        task = new TestReportTask(project, "name", generator, renderer);
+        task = HelperUtil.createTask(TestReportTask.class, project);
+        task.setGenerator(generator);
+        task.setRenderer(renderer);
     }
 
     @Test
@@ -136,18 +139,20 @@ public class AbstractReportTaskTest {
         assertTrue(file.getParentFile().isDirectory());
     }
 
-    private class TestReportTask extends AbstractReportTask {
+    public static class TestReportTask extends AbstractReportTask {
         private Runnable generator;
         private ProjectReportRenderer renderer;
 
-        public TestReportTask(Project project, String name, Runnable generator, ProjectReportRenderer renderer) {
-            super(project, name);
+        public void setGenerator(Runnable generator) {
             this.generator = generator;
-            this.renderer = renderer;
         }
 
         public ProjectReportRenderer getRenderer() {
             return renderer;
+        }
+
+        public void setRenderer(ProjectReportRenderer renderer) {
+            this.renderer = renderer;
         }
 
         public void generate(Project project) throws IOException {

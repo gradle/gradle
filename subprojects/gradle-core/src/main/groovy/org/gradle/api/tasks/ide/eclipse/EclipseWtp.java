@@ -57,10 +57,6 @@ public class EclipseWtp extends ConventionTask {
 
     private boolean failForMissingDependencies = true;
 
-    public EclipseWtp(Project project, String name) {
-        super(project, name);
-    }
-
     @TaskAction
     protected void generateWtp() {
         File wtpFile = getProject().file(WTP_FILE_DIR + "/" + WTP_FILE_NAME);

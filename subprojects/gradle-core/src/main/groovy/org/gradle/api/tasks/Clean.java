@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.slf4j.Logger;
@@ -36,10 +35,6 @@ public class Clean extends ConventionTask {
     private File dir;
 
     private ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
-
-    public Clean(Project project, String name) {
-        super(project, name);
-    }
 
     @TaskAction
     protected void clean() {

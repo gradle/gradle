@@ -47,8 +47,7 @@ class War extends Jar {
 
     File webXml
 
-    War(Project project, String name) {
-        super(project, name);
+    War() {
         extension = WAR_EXTENSION
     }
 

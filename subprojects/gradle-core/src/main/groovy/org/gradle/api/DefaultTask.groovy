@@ -30,6 +30,7 @@ class DefaultTask extends AbstractTask {
         setMetaClass(GroovySystem.getMetaClassRegistry().getMetaClass(getClass()))
     }
 
+    @Deprecated
     DefaultTask(Project project, String name) {
         super(project, name);
         setMetaClass(GroovySystem.getMetaClassRegistry().getMetaClass(getClass()))

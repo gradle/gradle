@@ -17,12 +17,12 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.TestTask;
 import org.gradle.util.WrapUtil;
-import static org.junit.Assert.assertSame;
+import org.gradle.util.HelperUtil;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +37,7 @@ public class ConventionAwareHelperTest {
     TestTask testTask;
 
     @Before public void setUp() {
-        testTask = new TestTask(new DefaultProject("someProject"), "somename");
+        testTask = HelperUtil.createTask(TestTask.class);
         conventionAware = new ConventionAwareHelper(testTask);
     }
 

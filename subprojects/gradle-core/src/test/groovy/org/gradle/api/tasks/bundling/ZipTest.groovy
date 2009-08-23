@@ -17,11 +17,9 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.tasks.AbstractTaskTest
 import org.junit.Before
+import org.junit.Test
 import static org.junit.Assert.*
-import org.junit.Test;
-
 
 /**
  * @author Hans Dockter
@@ -56,7 +54,7 @@ class ZipTest extends AbstractArchiveTaskTest {
     }
 
     @Test public void testZip() {
-        zip = new Zip(project, AbstractTaskTest.TEST_TASK_NAME)
+        zip = createTask(Zip)
         assertEquals(Zip.ZIP_EXTENSION, zip.extension)
         checkConstructor()
     }

@@ -50,7 +50,7 @@ public class ScalaDocTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        scalaDoc = new ScalaDoc(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        scalaDoc = createTask(ScalaDoc.class);
         antScalaDocMock = context.mock(AntScalaDoc.class);
         scalaDoc.setAntScalaDoc(antScalaDocMock);
     }

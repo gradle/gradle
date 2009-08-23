@@ -28,10 +28,6 @@ import java.util.TreeMap;
 public class PropertyReportTask extends AbstractReportTask {
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
 
-    public PropertyReportTask(Project project, String name) {
-        super(project, name);
-    }
-
     public ProjectReportRenderer getRenderer() {
         return renderer;
     }

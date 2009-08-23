@@ -147,7 +147,7 @@ class DefaultProjectTest {
         parameter.pluginPropertiesFile = new File('plugin.properties')
         build = new DefaultBuild(parameter, null)
 
-        testTask = new DefaultTask()
+        testTask = HelperUtil.createTask(DefaultTask)
         
         projectEvaluator = context.mock(ProjectEvaluator)
 

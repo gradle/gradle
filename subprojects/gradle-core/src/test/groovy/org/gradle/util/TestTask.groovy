@@ -16,7 +16,6 @@
 
 package org.gradle.util
 
-import org.gradle.api.Project
 import org.gradle.api.internal.ConventionTask
 
 /**
@@ -27,8 +26,4 @@ class TestTask extends ConventionTask  {
     String customProp
     List list1
     List list2
-    
-    TestTask(Project project, String name) {
-        super(project, name)
-    }
 }

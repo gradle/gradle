@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Project;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.ConventionTask;
@@ -66,10 +65,8 @@ import java.util.Set;
 public class Copy extends ConventionTask implements CopyAction {
     private CopyActionImpl copyAction;
 
-    public Copy(Project project, String name) {
-        super(project, name);
-
-        FileResolver fileResolver = ((ProjectInternal) project).getFileResolver();
+    public Copy() {
+        FileResolver fileResolver = ((ProjectInternal) getProject()).getFileResolver();
         copyAction = new CopyActionImpl(fileResolver);
     }
 

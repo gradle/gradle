@@ -20,13 +20,12 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.testing.TestFramework;
 import org.gradle.external.junit.JUnitTestFramework;
 import org.gradle.external.testng.TestNGTestFramework;
@@ -76,10 +75,6 @@ public class Test extends ConventionTask implements PatternFilterable {
     private boolean testReport = true;
 
     private boolean scanForTestClasses = true;
-
-    public Test(Project project, String name) {
-        super(project, name);
-    }
 
     @TaskAction
     protected void executeTests() {

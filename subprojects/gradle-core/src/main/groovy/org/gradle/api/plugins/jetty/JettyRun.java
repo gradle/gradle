@@ -33,7 +33,6 @@ package org.gradle.api.plugins.jetty;
 
 import hidden.org.codehaus.plexus.util.FileUtils;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.jetty.util.ScanTargetPattern;
 import org.mortbay.jetty.Handler;
@@ -65,10 +64,6 @@ import java.util.*;
  */
 public class JettyRun extends AbstractJettyRunTask {
     private static Logger logger = LoggerFactory.getLogger(JettyRun.class);
-
-    public JettyRun(Project project, String name) {
-        super(project, name);
-    }
 
     /**
      * List of other contexts to set up. Optional.

@@ -15,17 +15,14 @@
  */
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -50,16 +47,6 @@ public class ScalaDoc extends ConventionTask {
     private AntScalaDoc antScalaDoc;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
-
-    public ScalaDoc(Project project, String name) {
-        super(project, name);
-        setActions(new ArrayList<TaskAction>());
-        doFirst(new TaskAction() {
-            public void execute(Task task) {
-                generate();
-            }
-        });
-    }
 
     public AntScalaDoc getAntScalaDoc() {
         if (antScalaDoc == null) {
@@ -145,6 +132,7 @@ public class ScalaDoc extends ConventionTask {
         this.scalaDocOptions = scalaDocOptions;
     }
 
+    @TaskAction
     protected void generate() {
 
         List<File> existingSrcDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(

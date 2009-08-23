@@ -44,7 +44,7 @@ import java.util.Set;
 public abstract class AbstractTask implements TaskInternal {                                               
     private static Logger logger = Logging.getLogger(AbstractTask.class);
     private static Logger buildLogger = Logging.getLogger(Task.class);
-
+    private static ThreadLocal<TaskInfo> nextInstance = new ThreadLocal<TaskInfo>();
     private ProjectInternal project;
 
     private String name;
@@ -75,20 +75,39 @@ public abstract class AbstractTask implements TaskInternal {
     private OutputHandler outputHandler;
 
     protected AbstractTask() {
+        this(taskInfo());
+    }
+
+    private static TaskInfo taskInfo() {
+        TaskInfo taskInfo = nextInstance.get();
+        return taskInfo == null ? new TaskInfo(null, null) : taskInfo;
+    }
+
+    private AbstractTask(TaskInfo taskInfo) {
+        this(taskInfo.project, taskInfo.name);
+    }
+
+    @Deprecated
+    protected AbstractTask(Project project, String name) {
+        assert project != null;
+        assert name != null;
+        nextInstance.set(null);
+        this.project = (ProjectInternal) project;
+        this.name = name;
+        path = project.absolutePath(name);
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(new DefaultConvention());
         outputHandler = new DefaultOutputHandler(this);
     }
 
-    public AbstractTask(Project project, String name) {
-        this();
-        assert project != null;
-        assert name != null;
-        this.project = (ProjectInternal) project;
-        this.name = name;
-        path = project.absolutePath(name);
+    public static void injectIntoNextInstance(Project project, String name) {
+        if (project != null || name != null) {
+            nextInstance.set(new TaskInfo(project, name));
+        } else {
+            nextInstance.set(null);
+        }
     }
-
+    
     public AntBuilder getAnt() {
         return project.getAnt();
     }
@@ -369,5 +388,15 @@ public abstract class AbstractTask implements TaskInternal {
             }
         }
         return false;
+    }
+
+    private static class TaskInfo {
+        private final Project project;
+        private final String name;
+
+        private TaskInfo(Project project, String name) {
+            this.name = name;
+            this.project = project;
+        }
     }
 }

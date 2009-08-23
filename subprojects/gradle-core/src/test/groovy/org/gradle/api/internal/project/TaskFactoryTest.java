@@ -59,6 +59,8 @@ public class TaskFactoryTest {
     public void testCreateTask() {
         Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task")));
         assertThat(task, instanceOf(DefaultTask.class));
+        assertThat(task.getProject(), sameInstance((Project) testProject));
+        assertThat(task.getName(), equalTo("task"));
         assertTrue(task.getActions().isEmpty());
     }
 
@@ -89,9 +91,19 @@ public class TaskFactoryTest {
     }
 
     @Test
-    public void testCreateTaskWithType() {
+    public void testCreateTaskOfTypeWithNoArgsConstructor() {
         Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestDefaultTask.class)));
-        assertEquals(TestDefaultTask.class, task.getClass());
+        assertThat(task.getProject(), sameInstance((Project) testProject));
+        assertThat(task.getName(), equalTo("task"));
+        assertTrue(TestDefaultTask.class.isAssignableFrom(task.getClass()));
+    }
+
+    @Test
+    public void testCreateTaskOfTypeWithProjectAndNameCustructor() {
+        Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestDefaultTaskWithConstructor.class)));
+        assertThat(task.getProject(), sameInstance((Project) testProject));
+        assertThat(task.getName(), equalTo("task"));
+        assertTrue(TestDefaultTaskWithConstructor.class.isAssignableFrom(task.getClass()));
     }
 
     @Test
@@ -189,17 +201,16 @@ public class TaskFactoryTest {
     }
 
     public static class TestDefaultTask extends DefaultTask {
-        public TestDefaultTask(Project project, String name) {
+    }
+
+    public static class TestDefaultTaskWithConstructor extends DefaultTask {
+        public TestDefaultTaskWithConstructor(Project project, String name) {
             super(project, name);
         }
     }
 
     public static class TestConventionTask extends ConventionTask {
         private String property;
-
-        public TestConventionTask(Project project, String name) {
-            super(project, name);
-        }
 
         public String getProperty() {
             return property;
@@ -211,6 +222,8 @@ public class TaskFactoryTest {
     }
 
     public static class MissingConstructorTask extends DefaultTask {
+        public MissingConstructorTask(Integer something) {
+        }
     }
 
     public static class NotATask {

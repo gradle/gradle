@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -36,8 +35,7 @@ public class Jar extends Zip {
 
     String fileSetManifest
 
-    Jar(Project project, String name) {
-        super(project, name);
+    Jar() {
         extension = DEFAULT_EXTENSION
     }   
 

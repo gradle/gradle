@@ -31,10 +31,6 @@ import java.util.TreeSet;
 public abstract class AbstractReportTask extends ConventionTask {
     private File outputFile;
 
-    public AbstractReportTask(Project project, String name) {
-        super(project, name);
-    }
-
     @TaskAction
     public void generate() {
         try {

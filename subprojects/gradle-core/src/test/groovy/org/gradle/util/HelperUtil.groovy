@@ -57,6 +57,11 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultBuild
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository
 import org.gradle.api.internal.DefaultClassGenerator
+import org.gradle.api.internal.project.ITaskFactory
+import org.gradle.api.internal.project.AnnotationProcessingTaskFactory
+import org.gradle.api.internal.project.TaskFactory
+import org.gradle.api.Task
+import org.gradle.api.Project
 
 /**
  * @author Hans Dockter
@@ -67,6 +72,15 @@ class HelperUtil {
     public static final Closure TEST_CLOSURE = {}
     public static final String TMP_DIR_FOR_TEST = 'tmpTest'
     public static final Spec TEST_SEPC  = new AndSpec()
+    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new DefaultClassGenerator()));
+
+    static <T extends Task> T createTask(Class<T> type) {
+        return createTask(type, createRootProject())
+    }
+    
+    static <T extends Task> T createTask(Class<T> type, Project project) {
+        return taskFactory.createTask(project, [name: 'name', type: type])
+    }
 
     static DefaultProject createRootProject() {
         createRootProject(makeNewTestDir())

@@ -22,6 +22,7 @@ import org.gradle.util.WrapUtil
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -34,7 +35,7 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Before public void setUp()  {
         super.setUp()
         testCustomPropValue = new Object()
-        defaultTask = new DefaultTask(project, AbstractTaskTest.TEST_TASK_NAME)
+        defaultTask = createTask(DefaultTask.class)
     }
 
     AbstractTask getTask() {
@@ -50,6 +51,13 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertEquals('task \':taskname\'', task.toString())
     }
 
+    @Test public void testCanConstructUsingNoArgsConstructor() {
+        AbstractTask.injectIntoNextInstance(project, TEST_TASK_NAME)
+        DefaultTask task = new DefaultTask()
+        assertThat(task.project, sameInstance(project))
+        assertThat(task.name, equalTo(TEST_TASK_NAME))
+    }
+    
     @Test public void testDoFirstWithClosureDelegatesToProject() {
         Closure testAction = {}
         defaultTask.doFirst(testAction)

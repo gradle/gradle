@@ -16,7 +16,6 @@
  
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.Project
 import org.gradle.api.tasks.util.ZipFileSet
 
 /**
@@ -27,8 +26,7 @@ public class Zip extends AbstractArchiveTask {
 
     AntZip antZip = new AntZip()
 
-    Zip(Project project, String name) {
-        super(project, name)
+    Zip() {
         extension = ZIP_EXTENSION
     }
 

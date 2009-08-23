@@ -17,7 +17,6 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
@@ -25,8 +24,7 @@ import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -59,7 +57,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        scalaCompile = new ScalaCompile(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        scalaCompile = createTask(ScalaCompile.class);
         antScalaCompileMock = context.mock(AntScalaCompile.class);
         scalaCompile.setAntScalaCompile(antScalaCompileMock);
     }

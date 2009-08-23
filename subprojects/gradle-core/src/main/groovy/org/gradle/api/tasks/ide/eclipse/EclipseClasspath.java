@@ -68,10 +68,6 @@ public class EclipseClasspath extends ConventionTask {
     private static final String COMBINEACCESSRULES = "combineaccessrules";
     private static final String DEFAULT_JRE_CONTAINER = "org.eclipse.jdt.launching.JRE_CONTAINER";
 
-    public EclipseClasspath(Project project, String name) {
-        super(project, name);
-    }
-
     @TaskAction
     protected void generateClasspath() {
         File eclipseClasspathFile = getProject().file(CLASSPATH_FILE_NAME);
