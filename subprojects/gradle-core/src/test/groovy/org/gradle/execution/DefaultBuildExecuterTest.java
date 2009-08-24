@@ -52,20 +52,20 @@ public class DefaultBuildExecuterTest {
     
     @Test
     public void usesProjectDefaultExecuterWhenNoTaskNamesProvided() {
-        DefaultBuildExecuter executer = new DefaultBuildExecuter(Collections.EMPTY_LIST);
+        DefaultBuildExecuter executer = new DefaultBuildExecuter(Collections.EMPTY_LIST, Collections.EMPTY_LIST);
         assertThat(executer.getDelegate(), instanceOf(ProjectDefaultsBuildExecuter.class));
     }
 
     @Test
     public void usesNameResolvingExecuterWhenTaskNamesProvided() {
         List<String> taskNames = toList("a", "b");
-        DefaultBuildExecuter executer = new DefaultBuildExecuter(taskNames);
+        DefaultBuildExecuter executer = new DefaultBuildExecuter(taskNames, Collections.EMPTY_LIST);
         assertThat(executer.getDelegate(), reflectionEquals((Object) new TaskNameResolvingBuildExecuter(taskNames)));
     }
 
     @Test
     public void usesProjectDefaultExecuterAndNameFilterWhenExcludePatternsProvided() {
-        DefaultBuildExecuter executer = new DefaultBuildExecuter(toList("b-"));
+        DefaultBuildExecuter executer = new DefaultBuildExecuter(Collections.EMPTY_LIST, toList("b"));
         assertThat(executer.getDelegate(), instanceOf(ProjectDefaultsBuildExecuter.class));
 
         checkNameFilterApplied(executer);
@@ -73,7 +73,7 @@ public class DefaultBuildExecuterTest {
 
     @Test
     public void usesNameResolvingExecuterAndNameFilterWhenTaskNamesAndExcludePatternsProvided() {
-        DefaultBuildExecuter executer = new DefaultBuildExecuter(toList("a", "b-"));
+        DefaultBuildExecuter executer = new DefaultBuildExecuter(toList("a"), toList("b"));
         assertThat(executer.getDelegate(), reflectionEquals((Object) new TaskNameResolvingBuildExecuter(toList("a"))));
 
         checkNameFilterApplied(executer);

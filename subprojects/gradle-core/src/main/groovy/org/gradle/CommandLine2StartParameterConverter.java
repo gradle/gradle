@@ -23,5 +23,7 @@ import java.io.OutputStream;
 public interface CommandLine2StartParameterConverter {
     StartParameter convert(String[] args);
 
+    void convert(String[] args, StartParameter parameter);
+
     void showHelp(OutputStream out);
 }

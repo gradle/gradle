@@ -53,7 +53,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     public static final String DEBUG = "d";
     private static final String INFO = "i";
     private static final String QUIET = "q";
-    public static final String FULL_STACKTRACE = "f";
+    public static final String FULL_STACKTRACE = "S";
     public static final String STACKTRACE = "s";
     private static final String SYSTEM_PROP = "D";
     private static final String PROJECT_PROP = "P";
@@ -64,6 +64,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String CACHE = "C";
     private static final String DRY_RUN = "m";
     private static final String NO_OPT = "o";
+    private static final String EXCLUDE_TASK = "x";
     private static final String HELP = "h";
 
     OptionParser parser = new OptionParser() {
@@ -95,6 +96,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks"), "Specify additional tasks for building project dependencies.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild"), "Do not rebuild project dependencies.");
             acceptsAll(WrapUtil.toList(NO_OPT, "no-opt"), "Ignore any task optimization.");
+            acceptsAll(WrapUtil.toList(EXCLUDE_TASK, "exclude-task"), "Specify a task to be excluded from execution.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
         }
     };
@@ -102,6 +104,18 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     public StartParameter convert(String[] args) {
         StartParameter startParameter = new StartParameter();
 
+        String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
+        if (!GUtil.isTrue(gradleHome)) {
+            throw new CommandLineArgumentException(String.format(
+                    "The %s property is not set. Please set it and try again.", GRADLE_HOME_PROPERTY_KEY));
+        }
+        startParameter.setGradleHomeDir(new File(gradleHome));
+
+        convert(args, startParameter);
+        return startParameter;
+    }
+
+    public void convert(String[] args, StartParameter startParameter) {
         OptionSet options;
         try {
             options = parser.parse(args);
@@ -111,19 +125,13 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
 
         if (options.has(HELP)) {
             startParameter.setShowHelp(true);
-            return startParameter;
+            return;
         }
 
         if (options.has(VERSION)) {
             startParameter.setShowVersion(true);
-            return startParameter;
+            return;
         }
-
-        String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
-        if (!GUtil.isTrue(gradleHome)) {
-            throw new CommandLineArgumentException("The gradle.home property is not set. Please set it and try again.");
-        }
-        startParameter.setGradleHomeDir(new File(gradleHome));
 
         if (options.has(NO_DEFAULT_IMPORTS)) {
             startParameter.setDefaultImportsFile(null);
@@ -147,7 +155,9 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             }
         }
 
-        startParameter.setSearchUpwards(!options.has(NO_SEARCH_UPWARDS));
+        if (options.has(NO_SEARCH_UPWARDS)) {
+            startParameter.setSearchUpwards(false);
+        }
 
         if (options.has(PROJECT_DIR)) {
             startParameter.setProjectDir(new File(options.argumentOf(PROJECT_DIR)));
@@ -219,7 +229,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES));
         } else if (options.has(DEPENDENCIES)) {
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
-        } else {
+        } else if (!options.nonOptionArguments().isEmpty()) {
             startParameter.setTaskNames(options.nonOptionArguments());
         }
 
@@ -231,8 +241,11 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             startParameter.setNoOpt(true);
         }
 
+        if (options.has(EXCLUDE_TASK)) {
+            startParameter.setExcludedTaskNames(options.valuesOf(EXCLUDE_TASK));
+        }
+
         startParameter.setLogLevel(getLogLevel(options));
-        return startParameter;
     }
 
     public void showHelp(OutputStream out) {

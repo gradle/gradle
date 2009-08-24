@@ -85,17 +85,16 @@
 
     <section id="sec:excluding_tasks_from_the_command_line">
         <title>Excluding tasks</title>
-        <para>You can exclude a task from being executed by listing the task on the command-line, followed by a
-            <literal>-</literal> character. For example, <literal>test-</literal> will exclude the
-            <literal>test</literal> task.</para>
-        <para>Let's look at an example. The build file below defines </para>
+        <para>You can exclude a task from being executed using the <option>-x</option> command-line option, along with
+            the name of the task to exclude.</para>
         <sample id="excludeTask" dir="userguide/tutorial/excludeTasks" title="Excluding tasks">
             <sourcefile file="build.gradle"/>
-            <output args="dist test-"/>
+            <output args="dist -x test"/>
         </sample>
-        <para>You can see from the output of this example, that the <literal>test</literal> task is not executed. Notice
-            that the <literal>test</literal> task's dependencies, such as <literal>compileTest</literal> are not
-            executed either, unless they are required by another task.</para>
+        <para>You can see from the output of this example, that the <literal>test</literal> task is not executed. You
+            will also notice that the <literal>test</literal> task's dependencies, such as <literal>compileTest</literal>
+            are not executed either. Those dependencies of test that are required by another task, such as
+            <literal>compile</literal>, are still executed.</para>
     </section>
 
     <section>

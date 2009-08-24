@@ -48,11 +48,14 @@ import java.util.*;
  * @see GradleLauncher
  */
 public class StartParameter {
-    public enum ShowStacktrace { INTERNAL_EXCEPTIONS, ALWAYS, ALWAYS_FULL }  
+    public enum ShowStacktrace {
+        INTERNAL_EXCEPTIONS, ALWAYS, ALWAYS_FULL
+    }
 
     private List<String> taskNames = new ArrayList<String>();
-    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction =
-            new ProjectDependenciesBuildInstruction(Collections.<String>emptyList());
+    private Set<String> excludedTaskNames = new HashSet<String>();
+    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction
+            = new ProjectDependenciesBuildInstruction(Collections.<String>emptyList());
     private File currentDir;
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
@@ -232,7 +235,7 @@ public class StartParameter {
     public BuildExecuter getBuildExecuter() {
         BuildExecuter executer = buildExecuter;
         if (executer == null) {
-            executer = new DefaultBuildExecuter(taskNames);
+            executer = new DefaultBuildExecuter(taskNames, excludedTaskNames);
         }
         if (dryRun) {
             executer = new DryRunBuildExecuter(executer);
@@ -275,6 +278,24 @@ public class StartParameter {
     }
 
     /**
+     * Returns the names of the tasks to be excluded from this build. When empty, no tasks are excluded from the build.
+     *
+     * @return The names of the excluded tasks. Returns an empty set if there are no such tasks.
+     */
+    public Set<String> getExcludedTaskNames() {
+        return excludedTaskNames;
+    }
+
+    /**
+     * Sets the tasks to exclude from this build.
+     *
+     * @param excludedTaskNames The task names. Can be null.
+     */
+    public void setExcludedTaskNames(Collection<String> excludedTaskNames) {
+        this.excludedTaskNames = !GUtil.isTrue(excludedTaskNames) ? new HashSet<String>() : new HashSet<String>(excludedTaskNames);
+    }
+
+    /**
      * Returns the directory to use to select the default project, and to search for the settings file.
      *
      * @return The current directory. Never returns null.
@@ -284,8 +305,8 @@ public class StartParameter {
     }
 
     /**
-     * Sets the directory to use to select the default project, and to search for the settings file. Set to null to
-     * use the default current directory.
+     * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use
+     * the default current directory.
      *
      * @param currentDir The directory. Should not be null.
      */
@@ -350,7 +371,8 @@ public class StartParameter {
         return projectDependenciesBuildInstruction;
     }
 
-    public void setProjectDependenciesBuildInstruction(ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+    public void setProjectDependenciesBuildInstruction(
+            ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
         this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 

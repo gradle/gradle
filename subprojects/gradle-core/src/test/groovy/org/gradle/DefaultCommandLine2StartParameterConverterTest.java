@@ -15,33 +15,26 @@
  */
 package org.gradle;
 
-import static org.gradle.util.WrapUtil.toList;
-import static org.gradle.util.WrapUtil.toMap;
-import org.gradle.util.WrapUtil;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.BuiltInTasksBuildExecuter;
+import org.gradle.groovy.scripts.StrictScriptSource;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.groovy.scripts.StrictScriptSource;
-import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.BuiltInTasksBuildExecuter;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertThat;
+import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.equalTo;
+import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -56,12 +49,13 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private File expectedGradleImportsFile;
     private File expectedPluginPropertiesFile;
     private File expectedProjectDir;
-    private List expectedTaskNames = toList();
+    private List<String> expectedTaskNames = toList();
+    private Set<String> expectedExcludedTasks = toSet();
     private ProjectDependenciesBuildInstruction expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(
             WrapUtil.<String>toList()
     );
-    private Map expectedSystemProperties = new HashMap();
-    private Map expectedProjectProperties = new HashMap();
+    private Map<String, String> expectedSystemProperties = new HashMap<String, String>();
+    private Map<String, String> expectedProjectProperties = new HashMap<String, String>();
     private CacheUsage expectedCacheUsage = CacheUsage.ON;
     private boolean expectedSearchUpwards = true;
     private boolean expectedDryRun = false;
@@ -119,6 +113,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
         assertEquals(expectedShowHelp, startParameter.isShowHelp());
         assertEquals(expectedShowVersion, startParameter.isShowVersion());
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
+        assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
     }
 
     private void checkConversion(final boolean embedded, final boolean noTasks, String... args) {
@@ -236,7 +231,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test
     public void withShowFullStacktrace() {
         expectedShowStackTrace = StartParameter.ShowStacktrace.ALWAYS_FULL;
-        checkConversion("-f");
+        checkConversion("-S");
     }
 
     @Test
@@ -257,17 +252,21 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     @Test
+    public void withExcludeTask() {
+        expectedExcludedTasks.add("excluded");
+        checkConversion("-x", "excluded");
+        expectedExcludedTasks.add("excluded2");
+        checkConversion("-x", "excluded", "-x", "excluded2");
+    }
+
+    @Test
     public void withShowHelp() {
-        expectedPluginPropertiesFile = null;
-        expectedGradleImportsFile = null;
         expectedShowHelp = true;
         checkConversion("-h");
     }
 
     @Test
     public void withShowVersion() {
-        expectedPluginPropertiesFile = null;
-        expectedGradleImportsFile = null;
         expectedShowVersion = true;
         checkConversion("-v");
     }
@@ -293,6 +292,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
         checkConversion("-e", "someScript", "-csomeFile", "clean");
     }
 
+    @Test
     public void withConflictingLoggingOptionsDQ() {
         List<String> illegalOptions = toList("dq", "di", "qd", "qi", "iq", "id");
         for (String illegalOption : illegalOptions) {

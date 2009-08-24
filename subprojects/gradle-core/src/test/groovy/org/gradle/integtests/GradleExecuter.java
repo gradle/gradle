@@ -38,8 +38,6 @@ public interface GradleExecuter {
 
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
-    GradleExecuter withDryRun();
-
     GradleExecuter usingSettingsFile(File settingsFile);
 
     GradleExecuter usingBuildScript(String script);

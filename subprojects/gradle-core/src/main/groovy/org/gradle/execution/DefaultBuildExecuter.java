@@ -23,26 +23,17 @@ import org.gradle.util.GUtil;
 import java.util.*;
 
 /**
- * <p>The standard {@link BuildExecuter} implementation. Parses the set of task names provided on the command-line, and
- * delegates to the appropriate executer based on the result.</p>
+ * <p>The standard {@link BuildExecuter} implementation.</p>
  */
 public class DefaultBuildExecuter extends DelegatingBuildExecuter {
-    private final Set<String> excludedTaskNames = new HashSet<String>();
+    private final Set<String> excludedTaskNames;
 
-    public DefaultBuildExecuter(Collection<String> names) {
-        List<String> taskNames = new ArrayList<String>();
-        for (String taskName : names) {
-            if (taskName.endsWith("-")) {
-                excludedTaskNames.add(taskName.substring(0, taskName.length() - 1));
-            } else {
-                taskNames.add(taskName);
-            }
-        }
-
-        if (taskNames.isEmpty()) {
+    public DefaultBuildExecuter(Collection<String> includedTaskNames, Collection<String> excludedTaskNames) {
+        this.excludedTaskNames = new HashSet<String>(excludedTaskNames);
+        if (includedTaskNames.isEmpty()) {
             setDelegate(new ProjectDefaultsBuildExecuter());
         } else {
-            setDelegate(new TaskNameResolvingBuildExecuter(taskNames));
+            setDelegate(new TaskNameResolvingBuildExecuter(includedTaskNames));
         }
     }
 

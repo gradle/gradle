@@ -64,11 +64,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return this;
     }
 
-    public GradleExecuter withDryRun() {
-        parameter.setDryRun(true);
-        return this;
-    }
-
     public InProcessGradleExecuter withTaskList() {
         parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
         return this;
@@ -91,6 +86,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     public GradleExecuter withQuietLogging() {
         parameter.setLogLevel(LogLevel.QUIET);
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withArguments(String... args) {
+        new DefaultCommandLine2StartParameterConverter().convert(args, parameter);
         return this;
     }
 

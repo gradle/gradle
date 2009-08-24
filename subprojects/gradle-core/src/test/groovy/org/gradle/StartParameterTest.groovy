@@ -74,6 +74,7 @@ class StartParameterTest {
 
         assertThat(parameter.logLevel, equalTo(LogLevel.LIFECYCLE))
         assertThat(parameter.taskNames, isEmpty())
+        assertThat(parameter.excludedTaskNames, isEmpty())
         assertThat(parameter.projectProperties, isEmptyMap())
         assertThat(parameter.systemPropertiesArgs, isEmptyMap())
         assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
@@ -136,7 +137,7 @@ class StartParameterTest {
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
         assertThat(parameter.settingsScriptSource.source, reflectionEquals(new FileScriptSource("settings file", file.canonicalFile)))
     }
-    
+
     @Test public void testSetNullSettingsFile() {
         StartParameter parameter = new StartParameter()
         parameter.settingsFile = null
@@ -154,19 +155,27 @@ class StartParameterTest {
 
         assertThat(parameter.settingsScriptSource, sameInstance(scriptSource))
     }
-    
+
     @Test public void testSetTaskNames() {
         StartParameter parameter = new StartParameter()
-        parameter.setTaskNames(Arrays.asList("a", "b"))
+        parameter.taskNames = ['a', 'b']
         assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
+        assertThat(parameter.buildExecuter.delegate.names, equalTo(['a', 'b']))
     }
 
     @Test public void testSetTaskNamesUsesDefaultExecuter() {
         StartParameter parameter = new StartParameter()
 
         parameter.setBuildExecuter({} as BuildExecuter)
-        parameter.setTaskNames([])
+        parameter.taskNames = []
         assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
+    }
+
+    @Test public void testSetExcludedTaskNames() {
+        StartParameter parameter = new StartParameter()
+        parameter.excludedTaskNames = ['a', 'b']
+        assertThat(parameter.buildExecuter, instanceOf(DefaultBuildExecuter))
+        assertThat(parameter.buildExecuter.excludedTaskNames, equalTo(['a', 'b'] as Set))
     }
 
     @Test public void testUseEmbeddedBuildFile() {
@@ -203,7 +212,7 @@ class StartParameterTest {
         parameter.dryRun = false
         assertThat(parameter.buildExecuter, sameInstance(originalExecuter))
     }
-    
+
     @Test public void testNewBuild() {
         StartParameter parameter = new StartParameter()
 
@@ -218,7 +227,8 @@ class StartParameterTest {
         parameter.currentDir = new File("other")
         parameter.buildFile = new File("build file")
         parameter.settingsFile = new File("settings file")
-        parameter.taskNames.add("t1");
+        parameter.taskNames = ['task1']
+        parameter.excludedTaskNames = ['excluded1']
         parameter.defaultProjectSelector = [:] as ProjectSpec
         parameter.dryRun = true
 
@@ -234,6 +244,7 @@ class StartParameterTest {
 
         assertThat(newParameter.buildFile, nullValue())
         assertThat(newParameter.taskNames, isEmpty())
+        assertThat(newParameter.excludedTaskNames, isEmpty())
         assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
         assertThat(newParameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(newParameter.currentDir)))
         assertFalse(newParameter.dryRun)
