@@ -1,0 +1,41 @@
+usePlugin 'java'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    integrationTestCompile {
+        extendsFrom testCompile
+    }
+    integrationTestRuntime {
+        extendsFrom integrationTestCompile, testRuntime
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.5'
+    integrationTestCompile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    integrationTestCompile files(source.test.classesDir)
+}
+
+source {
+    integrationTest {
+        java.srcDir file('src/integration-test/java')
+        resources.srcDir file('src/integration-test/resources')
+        compileClasspath = configurations.integrationTestCompile
+        runtimeClasspath = configurations.integrationTestRuntime
+    }
+}
+
+compileIntegrationTest {
+    dependsOn compileTest
+}
+
+task integrationTest(type: Test, dependsOn: [jar, compileIntegrationTest, processIntegrationTestResources]) {
+    testClassesDir = source.integrationTest.classesDir
+    configuration = source.integrationTest.runtimeClasspath
+    options.systemProperties['jar.path'] = jar.archivePath
+}
+
+build.dependsOn integrationTest
