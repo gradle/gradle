@@ -45,10 +45,10 @@ class AntJUnitExecute {
             junitOptions.forkOptions.jvmArgs.each {
                 jvmarg(value: it)
             }
-            junitOptions.systemProperties.each {String key, String value ->
+            junitOptions.systemProperties.each {String key, value ->
                 sysproperty(key: key, value: value)
             }
-            junitOptions.forkOptions.environment.each {String key, String value ->
+            junitOptions.forkOptions.environment.each {String key, value ->
                 env(key: key, value: value)
             }
             formatter(junitOptions.formatterOptions.optionMap())
