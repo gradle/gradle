@@ -16,26 +16,12 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Rule;
+import org.gradle.util.ConfigureUtil;
 
 public abstract class AutoCreateDomainObjectContainer<T> extends DefaultDomainObjectContainer<T> {
-    private boolean configuring;
-
     protected AutoCreateDomainObjectContainer(Class<T> type) {
         super(type);
-        addRule(new Rule() {
-            public String getDescription() {
-                return "Auto add object";
-            }
-
-            public void apply(String domainObjectName) {
-                if (configuring) {
-                    add(domainObjectName);
-                }
-            }
-        });
     }
 
     protected abstract T create(String name);
@@ -56,11 +42,6 @@ public abstract class AutoCreateDomainObjectContainer<T> extends DefaultDomainOb
     }
 
     public void configure(Closure configureClosure) {
-        configuring = true;
-        try {
-            ConfigureUtil.configure(configureClosure, this);
-        } finally {
-            configuring = false;
-        }
+        ConfigureUtil.configure(configureClosure, new AutoCreateDomainObjectContainerDelegate(configureClosure.getOwner(), this), Closure.DELEGATE_FIRST);
     }
 }
