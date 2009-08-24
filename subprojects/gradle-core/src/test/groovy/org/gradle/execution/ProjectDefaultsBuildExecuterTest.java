@@ -17,7 +17,7 @@ package org.gradle.execution;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -32,15 +32,15 @@ import org.junit.runner.RunWith;
 public class ProjectDefaultsBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ProjectInternal project = context.mock(ProjectInternal.class, "[project]");
-    private final BuildInternal build = context.mock(BuildInternal.class);
+    private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
 
     @Before
     public void setUp() {
         context.checking(new Expectations(){{
-            allowing(build).getDefaultProject();
+            allowing(gradle).getDefaultProject();
             will(returnValue(project));
-            allowing(build).getTaskGraph();
+            allowing(gradle).getTaskGraph();
             will(returnValue(taskExecuter));
         }});
     }
@@ -61,7 +61,7 @@ public class ProjectDefaultsBuildExecuterTest {
         }});
 
         BuildExecuter executer = new ProjectDefaultsBuildExecuter();
-        executer.select(build);
+        executer.select(gradle);
         executer.execute();
     }
 
@@ -79,7 +79,7 @@ public class ProjectDefaultsBuildExecuterTest {
         }});
 
         BuildExecuter executer = new ProjectDefaultsBuildExecuter();
-        executer.select(build);
+        executer.select(gradle);
         assertThat(executer.getDisplayName(), equalTo("project default tasks 'a', 'b'"));
     }
 
@@ -91,7 +91,7 @@ public class ProjectDefaultsBuildExecuterTest {
 
         BuildExecuter executer = new ProjectDefaultsBuildExecuter();
         try {
-            executer.select(build);
+            executer.select(gradle);
             fail();
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("No tasks have been specified and [project] has not defined any default tasks."));

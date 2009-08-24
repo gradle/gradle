@@ -17,7 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -39,7 +39,7 @@ public class ProjectFactory implements IProjectFactory {
         this.embeddedScript = embeddedScript;
     }
 
-    public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, BuildInternal build) {
+    public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle) {
         File buildFile = projectDescriptor.getBuildFile();
         ScriptSource source;
         if (embeddedScript != null) {
@@ -56,14 +56,14 @@ public class ProjectFactory implements IProjectFactory {
                 projectDescriptor.getProjectDir(),
                 projectDescriptor.getBuildFile(),
                 source,
-                build.getProjectRegistry(),
-                build,
+                gradle.getProjectRegistry(),
+                gradle,
                 serviceRegistryFactory);
 
         if (parent != null) {
             parent.addChildProject(project);
         }
-        build.getProjectRegistry().addProject(project);
+        gradle.getProjectRegistry().addProject(project);
 
         return project;
     }

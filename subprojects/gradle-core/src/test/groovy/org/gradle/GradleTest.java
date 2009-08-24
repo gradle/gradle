@@ -21,7 +21,7 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
@@ -63,7 +63,7 @@ public class GradleTest {
     private List<String> expectedTaskNames;
     private List<Iterable<Task>> expectedTasks;
     private StartParameter expectedStartParams;
-    private BuildInternal buildMock;
+    private GradleInternal gradleMock;
     private BuildListener buildBroadcaster;
 
     private Map testGradleProperties = new HashMap();
@@ -86,7 +86,7 @@ public class GradleTest {
         taskExecuterMock = context.mock(TaskExecuter.class);
         buildLoaderMock = context.mock(BuildLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
-        buildMock = context.mock(BuildInternal.class);
+        gradleMock = context.mock(GradleInternal.class);
         buildBroadcaster = context.mock(BuildListener.class);
         testGradleProperties = toMap("prop1", "value1");
         boolean expectedSearchUpwards = false;
@@ -106,7 +106,7 @@ public class GradleTest {
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
         expectedStartParams.setGradleUserHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleUserHomeDir"));
 
-        gradleLauncher = new GradleLauncher(buildMock, settingsHandlerMock, gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock);
+        gradleLauncher = new GradleLauncher(gradleMock, settingsHandlerMock, gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock);
         
         context.checking(new Expectations() {
             {
@@ -114,15 +114,15 @@ public class GradleTest {
                 will(returnValue(testGradleProperties));
                 allowing(settingsMock).getRootProject();
                 will(returnValue(expectedRootProjectDescriptor));
-                allowing(buildMock).getRootProject();
+                allowing(gradleMock).getRootProject();
                 will(returnValue(expectedRootProject));
-                allowing(buildMock).getDefaultProject();
+                allowing(gradleMock).getDefaultProject();
                 will(returnValue(expectedCurrentProject));
-                allowing(buildMock).getTaskGraph();
+                allowing(gradleMock).getTaskGraph();
                 will(returnValue(taskExecuterMock));
-                allowing(buildMock).getStartParameter();
+                allowing(gradleMock).getStartParameter();
                 will(returnValue(expectedStartParams));
-                allowing(buildMock).getBuildListenerBroadcaster();
+                allowing(gradleMock).getBuildListenerBroadcaster();
                 will(returnValue(buildBroadcaster));
             }
         });
@@ -181,13 +181,13 @@ public class GradleTest {
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, buildMock, testGradleProperties);
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
             one(buildConfigurerMock).process(expectedRootProject);
         }});
         BuildResult buildResult = gradleLauncher.getBuildAnalysis();
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat(buildResult.getFailure(), nullValue());
-        assertThat((BuildInternal) buildResult.getGradle(), sameInstance(buildMock));
+        assertThat((GradleInternal) buildResult.getGradle(), sameInstance(gradleMock));
     }
 
     @Test
@@ -195,15 +195,15 @@ public class GradleTest {
         final RuntimeException exception = new RuntimeException();
         expectSettingsBuilt();
         context.checking(new Expectations() {{
-            one(buildBroadcaster).buildStarted(buildMock);
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, buildMock, testGradleProperties);
+            one(buildBroadcaster).buildStarted(gradleMock);
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
             will(throwException(exception));
             one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
         }});
         BuildResult buildResult = gradleLauncher.getBuildAnalysis();
         assertThat(buildResult.getSettings(), sameInstance((Settings) settingsMock));
         assertThat((RuntimeException) buildResult.getFailure(), sameInstance(exception));
-        assertThat((BuildInternal) buildResult.getGradle(), sameInstance(buildMock));
+        assertThat((GradleInternal) buildResult.getGradle(), sameInstance(gradleMock));
     }
 
     @Test
@@ -211,7 +211,7 @@ public class GradleTest {
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
-            one(buildLoaderMock).load(expectedRootProjectDescriptor, buildMock, testGradleProperties);
+            one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
             one(buildConfigurerMock).process(expectedRootProject);
         }});
 
@@ -231,8 +231,8 @@ public class GradleTest {
     public void testNotifiesListenerOnSettingsInitWithFailure() {
         final RuntimeException failure = new RuntimeException();
         context.checking(new Expectations() {{
-            one(buildBroadcaster).buildStarted(buildMock);
-            one(settingsHandlerMock).findAndLoadSettings(buildMock, gradlePropertiesLoaderMock);
+            one(buildBroadcaster).buildStarted(gradleMock);
+            one(settingsHandlerMock).findAndLoadSettings(gradleMock, gradlePropertiesLoaderMock);
             will(throwException(failure));
             one(buildBroadcaster).buildFinished(with(result(null, sameInstance(failure))));
         }});
@@ -247,9 +247,9 @@ public class GradleTest {
         expectSettingsBuilt();
         expectTasksRunWithFailure(failure);
         context.checking(new Expectations() {{
-            one(buildBroadcaster).buildStarted(buildMock);
-            one(buildBroadcaster).projectsLoaded(buildMock);
-            one(buildBroadcaster).projectsEvaluated(buildMock);
+            one(buildBroadcaster).buildStarted(gradleMock);
+            one(buildBroadcaster).projectsLoaded(gradleMock);
+            one(buildBroadcaster).projectsEvaluated(gradleMock);
             one(buildBroadcaster).buildFinished(with(result(settingsMock, sameInstance(failure))));
         }});
 
@@ -260,7 +260,7 @@ public class GradleTest {
     private void expectSettingsBuilt() {
         context.checking(new Expectations() {
             {
-                one(settingsHandlerMock).findAndLoadSettings(buildMock, gradlePropertiesLoaderMock);
+                one(settingsHandlerMock).findAndLoadSettings(gradleMock, gradlePropertiesLoaderMock);
                 will(returnValue(settingsMock));
                 one(buildBroadcaster).settingsEvaluated(settingsMock);
             }
@@ -269,9 +269,9 @@ public class GradleTest {
 
     private void expectBuildListenerCallbacks() {
         context.checking(new Expectations() {{
-            one(buildBroadcaster).buildStarted(buildMock);
-            one(buildBroadcaster).projectsLoaded(buildMock);
-            one(buildBroadcaster).projectsEvaluated(buildMock);
+            one(buildBroadcaster).buildStarted(gradleMock);
+            one(buildBroadcaster).projectsLoaded(gradleMock);
+            one(buildBroadcaster).projectsEvaluated(gradleMock);
             one(buildBroadcaster).buildFinished(with(result(settingsMock, nullValue(Throwable.class))));
         }});
     }
@@ -279,7 +279,7 @@ public class GradleTest {
     private void expectTasksRunWithDagRebuild() {
         context.checking(new Expectations() {
             {
-                one(buildLoaderMock).load(expectedRootProjectDescriptor, buildMock, testGradleProperties);
+                one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
                 one(buildConfigurerMock).process(expectedRootProject);
                 one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(taskExecuterMock).addTasks(expectedTasks.get(0));
@@ -292,7 +292,7 @@ public class GradleTest {
     private void expectTasksRunWithFailure(final Throwable failure) {
         context.checking(new Expectations() {
             {
-                one(buildLoaderMock).load(expectedRootProjectDescriptor, buildMock, testGradleProperties);
+                one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
                 one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(buildConfigurerMock).process(expectedRootProject);
                 one(taskExecuterMock).addTasks(expectedTasks.get(0));
@@ -309,11 +309,11 @@ public class GradleTest {
         expectSettingsBuilt();
         context.checking(new Expectations() {
             {
-                one(buildBroadcaster).buildStarted(buildMock);
-                one(buildBroadcaster).projectsLoaded(buildMock);
-                one(buildBroadcaster).projectsEvaluated(buildMock);
+                one(buildBroadcaster).buildStarted(gradleMock);
+                one(buildBroadcaster).projectsLoaded(gradleMock);
+                one(buildBroadcaster).projectsEvaluated(gradleMock);
                 one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
-                one(buildLoaderMock).load(expectedRootProjectDescriptor, buildMock, testGradleProperties);
+                one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
                 one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(buildConfigurerMock).process(expectedRootProject);
             }

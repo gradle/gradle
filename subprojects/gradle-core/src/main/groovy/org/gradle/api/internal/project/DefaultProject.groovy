@@ -18,7 +18,7 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.BuildInternal
+import org.gradle.api.internal.GradleInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.ConfigureUtil
 
@@ -38,7 +38,7 @@ class DefaultProject extends AbstractProject {
                           File buildFile,
                           ScriptSource buildScriptSource,
                           IProjectRegistry projectRegistry,
-                          BuildInternal build,
+                          GradleInternal build,
                           ProjectServiceRegistryFactory serviceRegistryFactory
     ) {
         super(name, parent, projectDir, buildFile, buildScriptSource, projectRegistry, build, serviceRegistryFactory);

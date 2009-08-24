@@ -16,7 +16,7 @@
 package org.gradle.execution;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
 
@@ -28,10 +28,10 @@ import java.util.List;
 public class ProjectDefaultsBuildExecuter extends DelegatingBuildExecuter {
     private List<String> defaultTasks;
 
-    public void select(BuildInternal build) {
+    public void select(GradleInternal gradle) {
         if (getDelegate() == null) {
             // Gather the default tasks from this first group project
-            ProjectInternal project = build.getDefaultProject();
+            ProjectInternal project = gradle.getDefaultProject();
             defaultTasks = project.getDefaultTasks();
             if (defaultTasks.size() == 0) {
                 throw new InvalidUserDataException(String.format(
@@ -40,7 +40,7 @@ public class ProjectDefaultsBuildExecuter extends DelegatingBuildExecuter {
             setDelegate(new TaskNameResolvingBuildExecuter(defaultTasks));
         }
 
-        super.select(build);
+        super.select(gradle);
     }
 
     @Override

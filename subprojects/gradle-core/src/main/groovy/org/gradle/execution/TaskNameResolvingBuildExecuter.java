@@ -18,7 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -41,16 +41,16 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
         }
     }
 
-    public void select(BuildInternal build) {
-        this.executer = build.getTaskGraph();
-        for (Collection<Task> tasksForName : select(build, names)) {
+    public void select(GradleInternal gradle) {
+        this.executer = gradle.getTaskGraph();
+        for (Collection<Task> tasksForName : select(gradle, names)) {
             executer.addTasks(tasksForName);
         }
     }
 
-    static List<Collection<Task>> select(BuildInternal build, Iterable<String> names) {
+    static List<Collection<Task>> select(GradleInternal gradle, Iterable<String> names) {
         Set<String> unknownTasks = new LinkedHashSet<String>();
-        Project project = build.getDefaultProject();
+        Project project = gradle.getDefaultProject();
         List<Collection<Task>> matches = new ArrayList<Collection<Task>>();
         for (String taskName : names) {
             Set<Task> tasksForName = findTasks(project, taskName);

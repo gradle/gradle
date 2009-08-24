@@ -17,7 +17,7 @@ package org.gradle.execution;
 
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import static org.gradle.util.WrapUtil.*;
@@ -36,16 +36,16 @@ import java.util.Set;
 public class TaskNameResolvingBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ProjectInternal project = context.mock(ProjectInternal.class, "[project]");
-    private final BuildInternal build = context.mock(BuildInternal.class);
+    private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final TaskContainer taskContainer = context.mock(TaskContainer.class);
     private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
 
     @Before
     public void setUp() {
         context.checking(new Expectations(){{
-            allowing(build).getDefaultProject();
+            allowing(gradle).getDefaultProject();
             will(returnValue(project));
-            allowing(build).getTaskGraph();
+            allowing(gradle).getTaskGraph();
             will(returnValue(taskExecuter));
             allowing(project).getTasks();
             will(returnValue(taskContainer));
@@ -63,7 +63,7 @@ public class TaskNameResolvingBuildExecuterTest {
         }});
 
         TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:b"));
-        executer.select(build);
+        executer.select(gradle);
         assertThat(executer.getDisplayName(), equalTo("primary task 'a:b'"));
     }
 
@@ -80,7 +80,7 @@ public class TaskNameResolvingBuildExecuterTest {
         }});
 
         TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name"));
-        executer.select(build);
+        executer.select(gradle);
         assertThat(executer.getDisplayName(), equalTo("primary task 'name'"));
     }
 
@@ -98,7 +98,7 @@ public class TaskNameResolvingBuildExecuterTest {
         }});
 
         TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name"));
-        executer.select(build);
+        executer.select(gradle);
         executer.execute();
     }
     
@@ -126,7 +126,7 @@ public class TaskNameResolvingBuildExecuterTest {
         }});
 
         TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "name2"));
-        executer.select(build);
+        executer.select(gradle);
         assertThat(executer.getDisplayName(), equalTo("primary tasks 'name1', 'name2'"));
         executer.execute();
     }
@@ -144,7 +144,7 @@ public class TaskNameResolvingBuildExecuterTest {
 
         BuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "name2"));
         try {
-            executer.select(build);
+            executer.select(gradle);
             fail();
         } catch (UnknownTaskException e) {
             assertThat(e.getMessage(), equalTo("Task 'name1' not found in [project]."));
@@ -164,7 +164,7 @@ public class TaskNameResolvingBuildExecuterTest {
 
         BuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:b", "name2"));
         try {
-            executer.select(build);
+            executer.select(gradle);
             fail();
         } catch (UnknownTaskException e) {
             assertThat(e.getMessage(), equalTo("Task 'a:b' not found in [project]."));
@@ -182,7 +182,7 @@ public class TaskNameResolvingBuildExecuterTest {
 
         BuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "name2"));
         try {
-            executer.select(build);
+            executer.select(gradle);
             fail();
         } catch (UnknownTaskException e) {
             assertThat(e.getMessage(), equalTo("Tasks 'name1', 'name2' not found in [project]."));

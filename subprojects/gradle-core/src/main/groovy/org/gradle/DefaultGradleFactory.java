@@ -33,7 +33,7 @@ import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.util.WrapUtil;
-import org.gradle.invocation.DefaultBuild;
+import org.gradle.invocation.DefaultGradle;
 
 /**
  * @author Hans Dockter
@@ -89,12 +89,12 @@ public class DefaultGradleFactory implements GradleFactory {
                                 startParameter.getCacheUsage()),
                         new DefaultProjectScriptMetaData()),
                 new BuildScriptEvaluator());
-        DefaultBuild build = new DefaultBuild(startParameter, internalRepository);
-        build.addBuildListener(internalRepository);
-        build.addBuildListener(projectEvaluator);
+        DefaultGradle gradle = new DefaultGradle(startParameter, internalRepository);
+        gradle.addBuildListener(internalRepository);
+        gradle.addBuildListener(projectEvaluator);
         ClassGenerator classGenerator = new DefaultClassGenerator();
         GradleLauncher gradleLauncher = new GradleLauncher(
-                build,
+                gradle,
                 new SettingsHandler(
                         settingsFinder,
                         new PropertiesLoadingSettingsProcessor(

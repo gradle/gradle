@@ -17,7 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -44,9 +44,9 @@ public class SettingsHandler
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
-    public SettingsInternal findAndLoadSettings(BuildInternal build, IGradlePropertiesLoader gradlePropertiesLoader)
+    public SettingsInternal findAndLoadSettings(GradleInternal gradle, IGradlePropertiesLoader gradlePropertiesLoader)
     {
-        StartParameter startParameter = build.getStartParameter();
+        StartParameter startParameter = gradle.getStartParameter();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(startParameter, gradlePropertiesLoader);
         if (!startParameter.getDefaultProjectSelector().containsProject(settings.getProjectRegistry())) {
             // The settings we found did not include the desired default project. Try again with an empty settings file.
@@ -65,7 +65,7 @@ public class SettingsHandler
             }
         }
 
-        build.setBuildScriptClassLoader(settings.createClassLoader());
+        gradle.setBuildScriptClassLoader(settings.createClassLoader());
         return settings;
     }
 

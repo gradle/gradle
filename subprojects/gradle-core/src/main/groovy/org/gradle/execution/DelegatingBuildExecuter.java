@@ -16,11 +16,11 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 
 public class DelegatingBuildExecuter implements BuildExecuter {
     private BuildExecuter delegate;
-    private BuildInternal build;
+    private GradleInternal gradle;
 
     public DelegatingBuildExecuter(BuildExecuter delegate) {
         this.delegate = delegate;
@@ -29,8 +29,8 @@ public class DelegatingBuildExecuter implements BuildExecuter {
     public DelegatingBuildExecuter() {
     }
 
-    protected BuildInternal getBuild() {
-        return build;
+    protected GradleInternal getBuild() {
+        return gradle;
     }
 
     protected BuildExecuter getDelegate() {
@@ -41,9 +41,9 @@ public class DelegatingBuildExecuter implements BuildExecuter {
         this.delegate = delegate;
     }
 
-    public void select(BuildInternal build) {
-        this.build = build;
-        delegate.select(build);
+    public void select(GradleInternal gradle) {
+        this.gradle = gradle;
+        delegate.select(gradle);
     }
 
     public String getDisplayName() {

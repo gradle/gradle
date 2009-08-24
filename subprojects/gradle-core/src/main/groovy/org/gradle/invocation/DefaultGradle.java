@@ -21,7 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
@@ -33,7 +33,7 @@ import org.gradle.util.ListenerBroadcast;
 
 import java.io.File;
 
-public class DefaultBuild implements BuildInternal {
+public class DefaultGradle implements GradleInternal {
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private TaskExecuter taskGraph;
@@ -46,7 +46,7 @@ public class DefaultBuild implements BuildInternal {
             = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
     private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(BuildListener.class);
 
-    public DefaultBuild(StartParameter startParameter, InternalRepository internalRepository) {
+    public DefaultGradle(StartParameter startParameter, InternalRepository internalRepository) {
         this.startParameter = startParameter;
         this.internalRepository = internalRepository;
         this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();

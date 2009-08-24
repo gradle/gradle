@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.Clock;
@@ -45,45 +45,45 @@ public class BuildLoader {
     }
 
     /**
-     * Creates the {@link BuildInternal} and {@link ProjectInternal} instances for the given root project,
+     * Creates the {@link org.gradle.api.internal.GradleInternal} and {@link ProjectInternal} instances for the given root project,
      * ready for the projects to be evaluated.
      */
-    public void load(ProjectDescriptor rootProjectDescriptor, BuildInternal build, 
+    public void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle,
                      Map<String, String> externalProjectProperties) {
         logger.debug("Loading Project objects");
         Clock clock = new Clock();
-        createProjects(rootProjectDescriptor, build, externalProjectProperties);
-        attachDefaultProject(build);
+        createProjects(rootProjectDescriptor, gradle, externalProjectProperties);
+        attachDefaultProject(gradle);
         logger.debug("Timing: Loading projects took: " + clock.getTime());
     }
 
-    private void attachDefaultProject(BuildInternal build) {
-        ProjectSpec selector = build.getStartParameter().getDefaultProjectSelector();
+    private void attachDefaultProject(GradleInternal gradle) {
+        ProjectSpec selector = gradle.getStartParameter().getDefaultProjectSelector();
         ProjectInternal defaultProject;
         try {
-            defaultProject = selector.selectProject(build.getRootProject().getProjectRegistry());
+            defaultProject = selector.selectProject(gradle.getRootProject().getProjectRegistry());
         } catch (InvalidUserDataException e) {
             throw new GradleException(String.format("Could not select the default project for this build. %s",
                     e.getMessage()), e);
         }
-        build.setDefaultProject(defaultProject);
+        gradle.setDefaultProject(defaultProject);
     }
 
-    private void createProjects(ProjectDescriptor rootProjectDescriptor, BuildInternal build,
+    private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle,
                                 Map<String, String> externalProjectProperties) {
-        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, build);
-        build.setRootProject(rootProject);
+        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle);
+        gradle.setRootProject(rootProject);
 
         addPropertiesToProject(externalProjectProperties, rootProject);
-        addProjects(rootProject, rootProjectDescriptor, build, externalProjectProperties);
+        addProjects(rootProject, rootProjectDescriptor, gradle, externalProjectProperties);
     }
 
-    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, BuildInternal build,
+    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle,
                              Map<String, String> externalProjectProperties) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
-            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, build);
+            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle);
             addPropertiesToProject(externalProjectProperties, childProject);
-            addProjects(childProject, childProjectDescriptor, build, externalProjectProperties);
+            addProjects(childProject, childProjectDescriptor, gradle, externalProjectProperties);
         }
     }
 

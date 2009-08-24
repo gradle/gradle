@@ -20,7 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
@@ -74,7 +74,7 @@ public class ProjectFactoryTest {
             projectEvaluator, classGenerator);
     private PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private IProjectRegistry projectRegistry = new DefaultProjectRegistry();
-    private BuildInternal build = context.mock(BuildInternal.class);
+    private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;
     private StartParameter startParameterStub = new StartParameter();
@@ -86,17 +86,17 @@ public class ProjectFactoryTest {
             will(returnValue(repositoryHandler));
         }});
         context.checking(new Expectations() {{
-            allowing(build).getStartParameter();
+            allowing(gradle).getStartParameter();
             will(returnValue(startParameterStub));
             allowing(configurationContainerFactory).createConfigurationContainer(with(any(ResolverProvider.class)),
                     with(any(DependencyMetaDataProvider.class)));
-            allowing(build).getProjectRegistry();
+            allowing(gradle).getProjectRegistry();
             will(returnValue(projectRegistry));
-            allowing(build).getPluginRegistry();
+            allowing(gradle).getPluginRegistry();
             will(returnValue(pluginRegistry));
-            allowing(build).getBuildScriptClassLoader();
+            allowing(gradle).getBuildScriptClassLoader();
             will(returnValue(buildScriptClassLoader));
-            allowing(build).getGradleUserHomeDir();
+            allowing(gradle).getGradleUserHomeDir();
             will(returnValue(new File("gradleUserHomeDir")));
         }});
 
@@ -109,7 +109,7 @@ public class ProjectFactoryTest {
         FileUtils.writeStringToFile(buildFile, "build");
         ProjectDescriptor descriptor = descriptor("somename", rootDir, buildFile, "build.gradle");
 
-        DefaultProject project = projectFactory.createProject(descriptor, null, build);
+        DefaultProject project = projectFactory.createProject(descriptor, null, gradle);
 
         assertEquals("somename", project.getName());
         assertEquals(buildFile, project.getBuildFile());
@@ -132,10 +132,10 @@ public class ProjectFactoryTest {
         ProjectDescriptor parentDescriptor = descriptor("parent");
         ProjectDescriptor projectDescriptor = descriptor("somename", projectDir, buildFile, "build.gradle");
 
-        DefaultProject rootProject = projectFactory.createProject(rootDescriptor, null, build);
-        DefaultProject parentProject = projectFactory.createProject(parentDescriptor, rootProject, build);
+        DefaultProject rootProject = projectFactory.createProject(rootDescriptor, null, gradle);
+        DefaultProject parentProject = projectFactory.createProject(parentDescriptor, rootProject, gradle);
 
-        DefaultProject project = projectFactory.createProject(projectDescriptor, parentProject, build);
+        DefaultProject project = projectFactory.createProject(projectDescriptor, parentProject, gradle);
 
         assertEquals("somename", project.getName());
         assertEquals(buildFile, project.getBuildFile());
@@ -155,8 +155,8 @@ public class ProjectFactoryTest {
         ProjectDescriptor rootDescriptor = descriptor("root");
         ProjectDescriptor parentDescriptor = descriptor("somename");
 
-        DefaultProject rootProject = projectFactory.createProject(rootDescriptor, null, build);
-        DefaultProject project = projectFactory.createProject(parentDescriptor, rootProject, build);
+        DefaultProject rootProject = projectFactory.createProject(rootDescriptor, null, gradle);
+        DefaultProject project = projectFactory.createProject(parentDescriptor, rootProject, gradle);
 
         assertThat(projectRegistry.getProject(":somename"), sameInstance((ProjectIdentifier) project));
     }
@@ -164,8 +164,8 @@ public class ProjectFactoryTest {
     @Test
     public void testUsesEmptyBuildFileWhenBuildFileIsMissing() {
 
-        DefaultProject rootProject = projectFactory.createProject(descriptor("root"), null, build);
-        DefaultProject project = projectFactory.createProject(descriptor("somename", projectDir), rootProject, build);
+        DefaultProject rootProject = projectFactory.createProject(descriptor("root"), null, gradle);
+        DefaultProject project = projectFactory.createProject(descriptor("somename", projectDir), rootProject, gradle);
 
         ScriptSource expectedScriptSource = new StringScriptSource("empty build file", "");
         assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
@@ -177,7 +177,7 @@ public class ProjectFactoryTest {
 
         ProjectFactory projectFactory = new ProjectFactory(serviceRegistryFactory, expectedScriptSource);
 
-        DefaultProject project = projectFactory.createProject(descriptor("somename"), null, build);
+        DefaultProject project = projectFactory.createProject(descriptor("somename"), null, gradle);
 
         assertEquals("somename", project.getName());
         assertEquals(new File(rootDir, "build.gradle"), project.getBuildFile());
@@ -217,6 +217,6 @@ public class ProjectFactoryTest {
     private void checkProjectResources(DefaultProject project) {
         assertSame(projectRegistry, project.getProjectRegistry());
         assertSame(repositoryHandler, project.getRepositories());
-        assertSame(build, project.getGradle());
+        assertSame(gradle, project.getGradle());
     }
 }

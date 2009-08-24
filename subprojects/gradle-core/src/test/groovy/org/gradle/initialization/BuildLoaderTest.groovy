@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.api.internal.BuildInternal
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.IProjectRegistry
@@ -37,7 +37,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.invocation.DefaultBuild
+import org.gradle.invocation.DefaultGradle
 
 /**
  * @author Hans Dockter
@@ -57,7 +57,7 @@ class BuildLoaderTest {
     ProjectDescriptor childDescriptor
     ProjectInternal childProject
     InternalRepository internalRepository
-    BuildInternal build
+    GradleInternal build
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     @Before public void setUp()  {
@@ -73,7 +73,7 @@ class BuildLoaderTest {
         rootProject = project(rootDescriptor, null)
         childDescriptor = descriptor('child', rootDescriptor, childProjectDir)
         childProject = project(childDescriptor, rootProject)
-        build = new DefaultBuild(startParameter, internalRepository)
+        build = new DefaultGradle(startParameter, internalRepository)
     }
 
     @After

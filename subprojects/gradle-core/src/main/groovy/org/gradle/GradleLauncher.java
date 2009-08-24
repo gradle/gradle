@@ -18,7 +18,7 @@ package org.gradle;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
@@ -49,7 +49,7 @@ public class GradleLauncher {
 
     private static GradleFactory factory = new DefaultGradleFactory(new DefaultLoggingConfigurer(), new DefaultCommandLine2StartParameterConverter());
 
-    private BuildInternal build;
+    private GradleInternal gradle;
     private SettingsHandler settingsHandler;
     private IGradlePropertiesLoader gradlePropertiesLoader;
     private BuildLoader buildLoader;
@@ -60,10 +60,10 @@ public class GradleLauncher {
      * {@link #newInstance(String[])} instead.  Note that this method is package-protected to discourage
      * it's direct use.
      */
-    public GradleLauncher(BuildInternal build, SettingsHandler settingsHandler,
+    public GradleLauncher(GradleInternal gradle, SettingsHandler settingsHandler,
                   IGradlePropertiesLoader gradlePropertiesLoader,
                   BuildLoader buildLoader, BuildConfigurer buildConfigurer) {
-        this.build = build;
+        this.gradle = gradle;
         this.settingsHandler = settingsHandler;
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.buildLoader = buildLoader;
@@ -78,8 +78,8 @@ public class GradleLauncher {
      */
     public BuildResult run() {
         return doBuild(new RunSpecification() {
-            public void run(BuildInternal build, ProjectDescriptor rootProject) {
-                loadAndConfigureAndRun(build, rootProject);
+            public void run(GradleInternal gradle, ProjectDescriptor rootProject) {
+                loadAndConfigureAndRun(gradle, rootProject);
             }
         });
     }
@@ -92,8 +92,8 @@ public class GradleLauncher {
      */
     public BuildResult getBuildAnalysis() {
         return doBuild(new RunSpecification() {
-            public void run(BuildInternal build, ProjectDescriptor rootProject) {
-                loadAndConfigure(build, rootProject);
+            public void run(GradleInternal gradle, ProjectDescriptor rootProject) {
+                loadAndConfigure(gradle, rootProject);
             }
         });
     }
@@ -107,59 +107,59 @@ public class GradleLauncher {
      */
     public BuildResult getBuildAndRunAnalysis() {
         return doBuild(new RunSpecification() {
-            public void run(BuildInternal build, ProjectDescriptor rootProject) {
-                loadAndConfigureAndRun(build, rootProject);
+            public void run(GradleInternal gradle, ProjectDescriptor rootProject) {
+                loadAndConfigureAndRun(gradle, rootProject);
             }
         });
     }
 
     private BuildResult doBuild(RunSpecification runSpecification) {
-        build.getBuildListenerBroadcaster().buildStarted(build);
+        gradle.getBuildListenerBroadcaster().buildStarted(gradle);
 
         SettingsInternal settings = null;
         Throwable failure = null;
         try {
-            settings = settingsHandler.findAndLoadSettings(build, gradlePropertiesLoader);
-            build.getBuildListenerBroadcaster().settingsEvaluated(settings);
+            settings = settingsHandler.findAndLoadSettings(gradle, gradlePropertiesLoader);
+            gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
             
-            runSpecification.run(build, settings.getRootProject());
+            runSpecification.run(gradle, settings.getRootProject());
         } catch (Throwable t) {
             failure = t;
         }
-        BuildResult buildResult = new BuildResult(settings, build, failure);
-        build.getBuildListenerBroadcaster().buildFinished(buildResult);
+        BuildResult buildResult = new BuildResult(settings, gradle, failure);
+        gradle.getBuildListenerBroadcaster().buildFinished(buildResult);
 
         return buildResult;
     }
 
-    private void loadAndConfigureAndRun(BuildInternal build, ProjectDescriptor rootProject) {
-        loadAndConfigure(build, rootProject);
+    private void loadAndConfigureAndRun(GradleInternal gradle, ProjectDescriptor rootProject) {
+        loadAndConfigure(gradle, rootProject);
         attachTaskGraphListener();
 
         // Execute build
-        BuildExecuter executer = build.getStartParameter().getBuildExecuter();
+        BuildExecuter executer = gradle.getStartParameter().getBuildExecuter();
 
-        executer.select(build);
+        executer.select(gradle);
         logger.info(String.format("Starting build for %s.", executer.getDisplayName()));
         executer.execute();
     }
 
-    private void loadAndConfigure(BuildInternal build, ProjectDescriptor rootProject) {
+    private void loadAndConfigure(GradleInternal gradle, ProjectDescriptor rootProject) {
         // Load build
-        buildLoader.load(rootProject, build, gradlePropertiesLoader.getGradleProperties());
-        build.getBuildListenerBroadcaster().projectsLoaded(build);
+        buildLoader.load(rootProject, gradle, gradlePropertiesLoader.getGradleProperties());
+        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
 
         // Configure build
-        buildConfigurer.process(build.getRootProject());
-        build.getBuildListenerBroadcaster().projectsEvaluated(build);
+        buildConfigurer.process(gradle.getRootProject());
+        gradle.getBuildListenerBroadcaster().projectsEvaluated(gradle);
     }
 
     private void attachTaskGraphListener() {
-        final BuildInternal theBuild = build;
-        theBuild.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
+        final GradleInternal theGradle = gradle;
+        theGradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
             public void graphPopulated(TaskExecutionGraph graph) {
-                assert theBuild.getTaskGraph() == graph;
-                theBuild.getBuildListenerBroadcaster().taskGraphPopulated(graph);
+                assert theGradle.getTaskGraph() == graph;
+                theGradle.getBuildListenerBroadcaster().taskGraphPopulated(graph);
             }
         });
     }
@@ -207,10 +207,10 @@ public class GradleLauncher {
      */
     public void addBuildListener(BuildListener buildListener)
     {
-        build.addBuildListener(buildListener);
+        gradle.addBuildListener(buildListener);
     }
 
     private static interface RunSpecification {
-        void run(BuildInternal build, ProjectDescriptor rootProject);
+        void run(GradleInternal gradle, ProjectDescriptor rootProject);
     }
 }

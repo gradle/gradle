@@ -15,7 +15,7 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
@@ -35,16 +35,16 @@ import java.util.Collections;
 public class BuiltInTasksBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS);
-    private final BuildInternal build = context.mock(BuildInternal.class);
+    private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ProjectInternal project = context.mock(ProjectInternal.class, "project");
     private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
 
     @Before
     public void setUp() {
         context.checking(new Expectations(){{
-            allowing(build).getDefaultProject();
+            allowing(gradle).getDefaultProject();
             will(returnValue(project));
-            allowing(build).getTaskGraph();
+            allowing(gradle).getTaskGraph();
             will(returnValue(taskExecuter));
             allowing(project).absolutePath(with(notNullValue(String.class)));
             will(returnValue(":path"));
@@ -55,7 +55,7 @@ public class BuiltInTasksBuildExecuterTest {
 
     @Test
     public void executesTaskReportTask() {
-        executer.select(build);
+        executer.select(gradle);
         assertThat(executer.getTask(), instanceOf(TaskReportTask.class));
 
         context.checking(new Expectations(){{
@@ -70,7 +70,7 @@ public class BuiltInTasksBuildExecuterTest {
     public void executesPropertyReportTask() {
         executer.setOptions(BuiltInTasksBuildExecuter.Options.PROPERTIES);
         
-        executer.select(build);
+        executer.select(gradle);
         assertThat(executer.getTask(), instanceOf(PropertyReportTask.class));
 
         context.checking(new Expectations() {{
@@ -85,7 +85,7 @@ public class BuiltInTasksBuildExecuterTest {
     public void executesDependencyReportTask() {
         executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
 
-        executer.select(build);
+        executer.select(gradle);
         assertThat(executer.getTask(), instanceOf(DependencyReportTask.class));
 
         context.checking(new Expectations() {{

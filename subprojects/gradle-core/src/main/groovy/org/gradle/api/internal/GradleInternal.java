@@ -24,10 +24,10 @@ import org.gradle.execution.TaskExecuter;
 import org.gradle.BuildListener;
 
 /**
- * An internal interface for build that exposed objects and concepts that are not intended for public
+ * An internal interface for Gradle that exposed objects and concepts that are not intended for public
  * consumption.  
  */
-public interface BuildInternal extends Gradle {
+public interface GradleInternal extends Gradle {
     /**
      * {@inheritDoc}
      */

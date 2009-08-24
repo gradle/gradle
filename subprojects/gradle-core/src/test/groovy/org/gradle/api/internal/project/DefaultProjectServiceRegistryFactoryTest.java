@@ -27,7 +27,7 @@ import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.TaskContainer;
@@ -143,15 +143,15 @@ public class DefaultProjectServiceRegistryFactoryTest {
     public void providesAScriptHandlerAndScriptClassLoaderProvider() {
         expectConfigurationHandlerCreated();
         context.checking(new Expectations(){{
-            BuildInternal build = context.mock(BuildInternal.class);
+            GradleInternal gradle = context.mock(GradleInternal.class);
 
             allowing(project).getParent();
             will(returnValue(null));
             
             allowing(project).getGradle();
-            will(returnValue(build));
+            will(returnValue(gradle));
 
-            allowing(build).getBuildScriptClassLoader();
+            allowing(gradle).getBuildScriptClassLoader();
             will(returnValue(null));
 
             ignoring(configurationHandler);

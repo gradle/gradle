@@ -17,7 +17,7 @@ package org.gradle.execution;
 
 import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
@@ -36,16 +36,16 @@ import java.util.List;
 @RunWith(JMock.class)
 public class DefaultBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final BuildInternal build = context.mock(BuildInternal.class);
+    private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
     private final ProjectInternal project = context.mock(ProjectInternal.class);
 
     @Before
     public void setup() {
         context.checking(new Expectations(){{
-            allowing(build).getTaskGraph();
+            allowing(gradle).getTaskGraph();
             will(returnValue(taskExecuter));
-            allowing(build).getDefaultProject();
+            allowing(gradle).getDefaultProject();
             will(returnValue(project));
         }});
     }
@@ -87,9 +87,9 @@ public class DefaultBuildExecuterTest {
             one(project).getTasksByName("b", true);
             will(returnValue(toSet(context.mock(Task.class))));
             one(taskExecuter).useFilter(with(notNullValue(Spec.class)));
-            one(delegate).select(build);
+            one(delegate).select(gradle);
         }});
 
-        executer.select(build);
+        executer.select(gradle);
     }
 }

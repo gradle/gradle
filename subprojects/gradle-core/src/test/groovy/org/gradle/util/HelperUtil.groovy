@@ -54,7 +54,7 @@ import org.gradle.groovy.scripts.ScriptWithSource
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
-import org.gradle.invocation.DefaultBuild
+import org.gradle.invocation.DefaultGradle
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository
 import org.gradle.api.internal.DefaultClassGenerator
 import org.gradle.api.internal.project.ITaskFactory
@@ -105,7 +105,7 @@ class HelperUtil {
 
         DefaultInternalRepository internalRepo = new DefaultInternalRepository()
         internalRepo.setName('testInternalRepo') 
-        DefaultBuild build = new DefaultBuild(startParameter, internalRepo)
+        DefaultGradle build = new DefaultGradle(startParameter, internalRepo)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)

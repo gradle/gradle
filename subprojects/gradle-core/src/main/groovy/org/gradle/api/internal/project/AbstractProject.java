@@ -59,7 +59,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private final Project rootProject;
 
-    private final BuildInternal build;
+    private final GradleInternal gradle;
 
     private ProjectEvaluator projectEvaluator;
 
@@ -136,7 +136,7 @@ public abstract class AbstractProject implements ProjectInternal {
         path = Project.PATH_SEPARATOR;
         rootProject = this;
         parent = null;
-        build = null;
+        gradle = null;
     }
 
     public AbstractProject(String name,
@@ -145,7 +145,7 @@ public abstract class AbstractProject implements ProjectInternal {
                            File buildFile,
                            ScriptSource buildScriptSource,
                            IProjectRegistry projectRegistry,
-                           BuildInternal build,
+                           GradleInternal gradle,
                            ProjectServiceRegistryFactory serviceRegistryFactory) {
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
@@ -156,7 +156,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.projectRegistry = projectRegistry;
         this.state = State.CREATED;
         this.buildScriptSource = buildScriptSource;
-        this.build = build;
+        this.gradle = gradle;
 
         if (parent == null) {
             path = Project.PATH_SEPARATOR;
@@ -199,8 +199,8 @@ public abstract class AbstractProject implements ProjectInternal {
         return rootProject;
     }
 
-    public BuildInternal getGradle() {
-        return build;
+    public GradleInternal getGradle() {
+        return gradle;
     }
 
     public ProjectPluginsContainer getPlugins() {

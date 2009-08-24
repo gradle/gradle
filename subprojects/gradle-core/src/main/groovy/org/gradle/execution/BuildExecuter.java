@@ -15,7 +15,7 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 
 /**
  * Selects and executes the tasks requested for a build.
@@ -25,16 +25,16 @@ public interface BuildExecuter {
     /**
      * Selects the tasks to execute, if any. This method is called before any other methods on this executer.
      */
-    void select(BuildInternal build);
+    void select(GradleInternal gradle);
 
     /**
      * Returns the description of this executer. The result is used for log and error messages. Called after {@link
-     * #select(BuildInternal)}.
+     * #select(org.gradle.api.internal.GradleInternal)}.
      */
     String getDisplayName();
 
     /**
-     * Executes the selected tasks. Called after {@link #select(BuildInternal)}.
+     * Executes the selected tasks. Called after {@link #select(org.gradle.api.internal.GradleInternal)}.
      */
     void execute();
 }

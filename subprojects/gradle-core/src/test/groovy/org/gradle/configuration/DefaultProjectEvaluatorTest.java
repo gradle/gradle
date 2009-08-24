@@ -17,7 +17,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import static org.hamcrest.Matchers.*;
@@ -41,7 +41,7 @@ public class DefaultProjectEvaluatorTest {
     private final ProjectEvaluator delegate = context.mock(ProjectEvaluator.class, "delegate");
     private final ProjectEvaluator delegate2 = context.mock(ProjectEvaluator.class, "delegate2");
     private final DefaultProjectEvaluator evaluator = new DefaultProjectEvaluator(delegate, delegate2);
-    private final BuildInternal build = context.mock(BuildInternal.class);
+    private final GradleInternal gradle = context.mock(GradleInternal.class);
 
     @Before
     public void setUp() {
@@ -54,10 +54,10 @@ public class DefaultProjectEvaluatorTest {
     @Test
     public void createsAndExecutesScriptAndNotifiesListener() {
         context.checking(new Expectations(){{
-            allowing(build).getProjectEvaluationBroadcaster();
+            allowing(gradle).getProjectEvaluationBroadcaster();
             will(returnValue(listener));
         }});
-        evaluator.projectsLoaded(build);
+        evaluator.projectsLoaded(gradle);
 
         context.checking(new Expectations() {{
             one(listener).beforeEvaluate(project);
@@ -77,10 +77,10 @@ public class DefaultProjectEvaluatorTest {
         final Throwable failure = new RuntimeException();
 
         context.checking(new Expectations(){{
-            allowing(build).getProjectEvaluationBroadcaster();
+            allowing(gradle).getProjectEvaluationBroadcaster();
             will(returnValue(listener));
         }});
-        evaluator.projectsLoaded(build);
+        evaluator.projectsLoaded(gradle);
 
         context.checking(new Expectations() {{
             one(listener).beforeEvaluate(project);

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 
 /**
  * Creates a {@link ProjectInternal} implementation.
@@ -24,5 +24,5 @@ import org.gradle.api.internal.BuildInternal;
  * @author Hans Dockter
  */
 public interface IProjectFactory {
-    ProjectInternal createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, BuildInternal build);
+    ProjectInternal createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle);
 }

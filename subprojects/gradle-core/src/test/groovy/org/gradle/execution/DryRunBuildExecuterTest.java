@@ -16,7 +16,7 @@
 package org.gradle.execution;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import static org.gradle.util.WrapUtil.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 public class DryRunBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final BuildExecuter delegate = context.mock(BuildExecuter.class);
-    private final BuildInternal build = context.mock(BuildInternal.class);
+    private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
     private final DryRunBuildExecuter executer = new DryRunBuildExecuter(delegate);
 
@@ -38,13 +38,13 @@ public class DryRunBuildExecuterTest {
         final Task task2 = context.mock(Task.class, "task2");
 
         context.checking(new Expectations() {{
-            allowing(build).getTaskGraph();
+            allowing(gradle).getTaskGraph();
             will(returnValue(taskExecuter));
 
-            one(delegate).select(build);
+            one(delegate).select(gradle);
         }});
 
-        executer.select(build);
+        executer.select(gradle);
 
         context.checking(new Expectations() {{
             one(taskExecuter).getAllTasks();

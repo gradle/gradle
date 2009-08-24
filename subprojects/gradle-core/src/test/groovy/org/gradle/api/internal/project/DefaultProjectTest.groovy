@@ -43,7 +43,7 @@ import org.gradle.api.tasks.Directory
 import org.gradle.configuration.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.invocation.DefaultBuild
+import org.gradle.invocation.DefaultGradle
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
@@ -145,7 +145,7 @@ class DefaultProjectTest {
         testScript = new EmptyScript()
         StartParameter parameter = new StartParameter()
         parameter.pluginPropertiesFile = new File('plugin.properties')
-        build = new DefaultBuild(parameter, null)
+        build = new DefaultGradle(parameter, null)
 
         testTask = HelperUtil.createTask(DefaultTask)
         

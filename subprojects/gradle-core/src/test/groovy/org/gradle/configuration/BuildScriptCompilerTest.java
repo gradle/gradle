@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.*;
 import static org.gradle.util.Matchers.*;
@@ -43,7 +43,7 @@ public class BuildScriptCompilerTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private final ProjectInternal project = context.mock(ProjectInternal.class);
-    private final BuildInternal build = context.mock(BuildInternal.class);
+    private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final ScriptProcessorFactory scriptProcessorFactory = context.mock(ScriptProcessorFactory.class);
     private final ScriptProcessor processor = context.mock(ScriptProcessor.class);
@@ -62,7 +62,7 @@ public class BuildScriptCompilerTest {
     public void setUp() {
         context.checking(new Expectations() {{
             allowing(project).getGradle();
-            will(returnValue(build));
+            will(returnValue(gradle));
 
             allowing(project).getBuildScriptSource();
             will(returnValue(scriptSource));

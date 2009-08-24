@@ -17,7 +17,7 @@ package org.gradle.execution;
 
 import org.gradle.api.Task;
 import org.gradle.api.TaskAction;
-import org.gradle.api.internal.BuildInternal;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.diagnostics.AbstractReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
@@ -30,7 +30,7 @@ import java.util.Collections;
  * A {@link BuildExecuter} which executes the built-in tasks which are executable from the command-line.
  */
 public class BuiltInTasksBuildExecuter implements BuildExecuter {
-    private BuildInternal build;
+    private GradleInternal gradle;
 
     public enum Options {
         TASKS {
@@ -72,11 +72,11 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
         this.options = options;
     }
 
-    public void select(BuildInternal build) {
-        this.build = build;
-        AbstractTask.injectIntoNextInstance(build.getDefaultProject(), "reportTask");
+    public void select(GradleInternal gradle) {
+        this.gradle = gradle;
+        AbstractTask.injectIntoNextInstance(gradle.getDefaultProject(), "reportTask");
         task = options.createTask();
-        task.setProject(build.getDefaultProject());
+        task.setProject(gradle.getDefaultProject());
         task.doFirst(new TaskAction() {
             public void execute(Task x) {
                 task.generate();
@@ -93,6 +93,6 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
     }
 
     public void execute() {
-        build.getTaskGraph().execute(Collections.singleton(task));
+        gradle.getTaskGraph().execute(Collections.singleton(task));
     }
 }
