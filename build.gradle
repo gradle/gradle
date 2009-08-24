@@ -89,20 +89,6 @@ subprojects {
     [codenarc, codenarcTests]*.configFile = "$rootDir/config/codenarc.xml" as File
 
     groovydoc.destinationDir = explodedDistGroovydocsDir
-
-    javadoc {
-        dependsOn compile
-        destinationDir = explodedDistJavadocsDir
-        // todo: include only the public packages
-        options.subPackages 'org.gradle'
-        exclude 'org.gradle.api.internal'
-        // todo: make this true
-        failOnError = false
-    }
-    javadoc.doFirst {
-        javadoc.title = "Gradle API $version"
-        javadoc.options.docTitle = javadoc.title
-    }
 }
 
 allprojects {
@@ -162,7 +148,6 @@ dependencies {
 clean.dependsOn subprojects*.clean
 
 jar.enabled = false
-task javadoc(overwrite: true, dependsOn: subprojects*.javadoc)
 task groovydoc(overwrite: true, dependsOn: subprojects*.groovydoc)
 task check(overwrite: true, dependsOn: subprojects*.check)
 task test(overwrite: true, dependsOn: subprojects*.test)
@@ -216,6 +201,21 @@ task explodedDistBase(dependsOn: [libs, configurations.wrapper.buildDependencies
 
 def removeAnyExistingOldGradleLibs() {
     ant.delete { fileset(dir: explodedDistLibDir, includes: "$archivesBaseName-*.jar") }
+}
+
+task javadoc(overwrite: true, type: Javadoc, dependsOn: subprojects*.compile) {
+    srcDirs = subprojects.inject([]) {list, project -> list + project.srcDirs + project.groovySrcDirs}
+    destinationDir = explodedDistJavadocsDir
+    configuration = files(subprojects.collect { project-> [project.configurations.compile, project.classesDir] })
+    // todo: include only the public packages
+    options.subPackages 'org.gradle'
+    exclude 'org.gradle.api.internal'
+    // todo: make this true
+    failOnError = false
+    doFirst {
+        title = "Gradle API $version"
+        options.docTitle = title
+    }
 }
 
 task docs(dependsOn: [javadoc, groovydoc, 'userguide', 'distDocs'])
