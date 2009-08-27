@@ -83,6 +83,11 @@ public class CodeQualityPlugin implements Plugin {
                         return convention.getPlugin(JavaCodeQualityPluginConvention.class).getCheckstyleConfigFile();
                     }
                 });
+                checkstyle.conventionMapping("classpath", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getCompileClasspath();
+                    }
+                });
             }
         });
 
@@ -99,6 +104,11 @@ public class CodeQualityPlugin implements Plugin {
         checkstyle.conventionMapping("source", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getAllJava();
+            }
+        });
+        checkstyle.conventionMapping("classpath", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getCompileClasspath();
             }
         });
         checkstyle.conventionMapping("configFile", new ConventionValue() {

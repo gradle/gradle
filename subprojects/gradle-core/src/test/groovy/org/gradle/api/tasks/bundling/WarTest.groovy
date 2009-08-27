@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.GradleScriptException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.specs.DependencyTypeSpec
 import org.gradle.api.artifacts.specs.Type
@@ -58,7 +57,8 @@ class WarTest extends AbstractArchiveTaskTest {
         war.manifest = new GradleManifest()
         war.metaInfResourceCollections = [new FileSet()]
         war.webInfFileSets = [new FileSet()]
-        war.webXml = 'myweb.xml' as File
+        war.webXml = new File(testDir, 'myweb.xml')
+        war.webXml.text = '<web/>'
         war.classesFileSets = [new FileSet()]
         war.additionalLibFileSets = [new FileSet()]
         war.libConfigurations = TEST_LIB_CONFIGURATIONS
@@ -141,13 +141,6 @@ class WarTest extends AbstractArchiveTaskTest {
         prepareConfigurationContainerMock(true, true)
         super.testExecute();
     }
-
-    @Override @Test(expected = GradleScriptException)
-    public void testExecuteWithNullDestinationDir() {
-        prepareConfigurationContainerMock(true, true)
-        super.testExecuteWithNullDestinationDir();
-    }
-
 
     @Test public void testWar() {
         assertEquals(War.WAR_EXTENSION, war.extension)

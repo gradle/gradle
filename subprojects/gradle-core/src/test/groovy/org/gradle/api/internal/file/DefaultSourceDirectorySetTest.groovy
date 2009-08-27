@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.file;
 
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileTree
-import org.gradle.api.tasks.StopActionException
+import org.gradle.api.tasks.StopExecutionException
 import org.gradle.util.GFileUtils
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
@@ -121,9 +120,9 @@ public class DefaultSourceDirectorySetTest {
         set.srcDir 'dir2'
 
         try {
-            set.stopActionIfEmpty()
+            set.stopExecutionIfEmpty()
             fail()
-        } catch (StopActionException e) {
+        } catch (StopExecutionException e) {
             assertThat(e.message, equalTo('No files found in <display-name>.'))
         }
     }
@@ -135,9 +134,9 @@ public class DefaultSourceDirectorySetTest {
         srcDir.mkdirs()
 
         try {
-            set.stopActionIfEmpty()
+            set.stopExecutionIfEmpty()
             fail()
-        } catch (StopActionException e) {
+        } catch (StopExecutionException e) {
             assertThat(e.message, equalTo('No files found in <display-name>.'))
         }
     }
@@ -148,7 +147,7 @@ public class DefaultSourceDirectorySetTest {
         GFileUtils.touch(new File(testDir, 'dir1/file1.txt'))
         set.srcDir 'dir2'
 
-        set.stopActionIfEmpty()
+        set.stopExecutionIfEmpty()
     }
 
     @Test

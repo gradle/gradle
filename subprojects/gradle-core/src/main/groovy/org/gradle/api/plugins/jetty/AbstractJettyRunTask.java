@@ -34,6 +34,10 @@ package org.gradle.api.plugins.jetty;
 
 
 import org.gradle.api.*;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.plugins.jetty.util.*;
 import org.gradle.api.plugins.jetty.util.JettyPluginServer;
@@ -423,6 +427,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         return null;
     }
 
+    @OutputDirectory @Optional
     public File getTmpDirectory() {
         return tmpDirectory;
     }
@@ -431,6 +436,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.tmpDirectory = tmpDirectory;
     }
 
+    @InputFile @Optional
     public File getWebDefaultXml() {
         return webDefaultXml;
     }
@@ -439,6 +445,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.webDefaultXml = webDefaultXml;
     }
 
+    @InputFile @Optional
     public File getOverrideWebXml() {
         return overrideWebXml;
     }
@@ -479,6 +486,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.reload = reload;
     }
 
+    @InputFile @Optional
     public File getJettyConfig() {
         return jettyConfig;
     }
@@ -543,6 +551,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.requestLog = requestLog;
     }
 
+    @InputFiles
     public Iterable<File> getAdditionalRuntimeJars() {
         return additionalRuntimeJars;
     }

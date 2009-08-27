@@ -16,7 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.StopActionException;
+import org.gradle.api.tasks.StopExecutionException;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -35,16 +35,16 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
         return files;
     }
 
-    public FileCollection stopActionIfEmpty() throws StopActionException {
+    public FileCollection stopExecutionIfEmpty() throws StopExecutionException {
         for (FileCollection collection : getSourceCollections()) {
             try {
-                collection.stopActionIfEmpty();
+                collection.stopExecutionIfEmpty();
                 return this;
-            } catch (StopActionException e) {
+            } catch (StopExecutionException e) {
                 // Continue
             }
         }
-        throw new StopActionException(String.format("No files found in %s.", getDisplayName()));
+        throw new StopExecutionException(String.format("No files found in %s.", getDisplayName()));
     }
     
     public Object addToAntBuilder(Object node, String childNodeName) {

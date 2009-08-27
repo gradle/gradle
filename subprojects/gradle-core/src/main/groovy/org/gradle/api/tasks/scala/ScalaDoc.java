@@ -21,6 +21,8 @@ import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.InputFiles;
 
 import java.io.File;
 import java.util.List;
@@ -59,6 +61,7 @@ public class ScalaDoc extends ConventionTask {
         this.antScalaDoc = antScalaDoc;
     }
 
+    @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -67,6 +70,7 @@ public class ScalaDoc extends ConventionTask {
         this.destinationDir = destinationDir;
     }
 
+    @InputFiles
     public List<File> getScalaSrcDirs() {
         return scalaSrcDirs;
     }
@@ -80,6 +84,7 @@ public class ScalaDoc extends ConventionTask {
      *
      * @return The classpath.
      */
+    @InputFiles
     public Iterable<File> getClasspath() {
         return classpath;
     }

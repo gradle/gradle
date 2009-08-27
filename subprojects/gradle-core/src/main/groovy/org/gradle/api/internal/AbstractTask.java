@@ -89,12 +89,10 @@ public abstract class AbstractTask implements TaskInternal {
 
     @Deprecated
     protected AbstractTask(Project project, String name) {
-        assert project != null;
-        assert name != null;
         nextInstance.set(null);
         this.project = (ProjectInternal) project;
         this.name = name;
-        path = project.absolutePath(name);
+        path = project == null ? null : project.absolutePath(name);
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(new DefaultConvention());
         outputHandler = new DefaultOutputHandler(this);

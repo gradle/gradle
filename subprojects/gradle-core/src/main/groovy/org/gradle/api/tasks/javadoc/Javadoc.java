@@ -20,6 +20,8 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
@@ -44,8 +46,6 @@ public class Javadoc extends ConventionTask {
     private JavadocExecHandleBuilder javadocExecHandleBuilder;
 
     private List<File> srcDirs;
-
-    private File classesDir;
 
     private File destinationDir;
 
@@ -74,11 +74,6 @@ public class Javadoc extends ConventionTask {
 
         final File destinationDir = getDestinationDir();
 
-        if ( !destinationDir.exists() ) {
-            if ( !destinationDir.mkdirs() )
-                throw new GradleException("Failed to create destination directory " + destinationDir.getAbsolutePath());
-        }
-
         if ( options.getDestinationDirectory() == null )
             options
                 .destinationDirectory(destinationDir);
@@ -90,8 +85,7 @@ public class Javadoc extends ConventionTask {
         // todo LIST or SET
         if ( options.getClasspath().isEmpty() || alwaysAppendDefaultClasspath ) {
             options
-                .classpath(new ArrayList(getClasspath()))
-                .classpath(getClassesDir());
+                .classpath(new ArrayList<File>(getClasspath()));
         }
 
         if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
@@ -172,6 +166,7 @@ public class Javadoc extends ConventionTask {
      *
      * @return The source directories. Never returns null.
      */
+    @InputFiles
     public List<File> getSrcDirs() {
         return srcDirs;
     }
@@ -183,15 +178,12 @@ public class Javadoc extends ConventionTask {
         this.srcDirs = new ArrayList<File>(srcDirs);
     }
 
-    public File getClassesDir() {
-        return classesDir;
-    }
-
     /**
      * <p>Returns the directory to generate the documentation into.</p>
      *
      * @return The directory.
      */
+    @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -280,6 +272,7 @@ public class Javadoc extends ConventionTask {
         this.existentDirsFilter = existentDirsFilter;
     }
 
+    @InputFiles
     public FileCollection getConfiguration() {
         return configuration;
     }

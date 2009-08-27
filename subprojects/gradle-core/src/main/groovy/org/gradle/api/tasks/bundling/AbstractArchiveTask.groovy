@@ -28,6 +28,7 @@ import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.tasks.OutputDirectory
 
 /**
  * @author Hans Dockter
@@ -250,6 +251,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         this.createIfEmpty = createIfEmpty;
     }
 
+    @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
     }

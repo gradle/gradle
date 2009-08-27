@@ -93,6 +93,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
 
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {
         compile.setSrcDirs(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
+        compile.setScalaSrcDirs(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
         setupExistingDirsFilter(scalaCompile, new ExistingDirsFilter() {
@@ -106,6 +107,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         });
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(TEST_TARGET_DIR);
+        compile.setDependencyCacheDir(new File("depCacheDir"));
 
         compile.setClasspath(new AbstractFileCollection() {
             @Override

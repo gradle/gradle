@@ -16,7 +16,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.tasks.AntBuilderAware;
-import org.gradle.api.tasks.StopActionException;
+import org.gradle.api.tasks.StopExecutionException;
 
 import java.io.File;
 import java.util.Set;
@@ -63,11 +63,10 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware {
     FileCollection plus(FileCollection collection);
 
     /**
-     * Throws a {@link StopActionException} if this collection is empty.
+     * Throws a {@link StopExecutionException} if this collection is empty.
      *
      * @return this
-     * @throws StopActionException When this collection is empty.
+     * @throws StopExecutionException When this collection is empty.
      */
-    FileCollection stopActionIfEmpty() throws StopActionException;
-
+    FileCollection stopExecutionIfEmpty() throws StopExecutionException;
 }

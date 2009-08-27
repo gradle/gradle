@@ -16,7 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.StopActionException;
+import org.gradle.api.tasks.StopExecutionException;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -27,8 +27,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 
 @RunWith(JMock.class)
 public class CompositeFileCollectionTest {
@@ -74,9 +74,9 @@ public class CompositeFileCollectionTest {
     public void stopActionThrowsExceptionWhenSetIsEmpty() {
         CompositeFileCollection set = new TestCompositeFileCollection();
         try {
-            set.stopActionIfEmpty();
+            set.stopExecutionIfEmpty();
             fail();
-        } catch (StopActionException e) {
+        } catch (StopExecutionException e) {
             assertThat(e.getMessage(), equalTo("No files found in <display name>."));
         }
     }
@@ -84,16 +84,16 @@ public class CompositeFileCollectionTest {
     @Test
     public void stopActionThrowsExceptionWhenAllSetsAreEmpty() {
         context.checking(new Expectations() {{
-            one(source1).stopActionIfEmpty();
-            will(throwException(new StopActionException()));
-            one(source2).stopActionIfEmpty();
-            will(throwException(new StopActionException()));
+            one(source1).stopExecutionIfEmpty();
+            will(throwException(new StopExecutionException()));
+            one(source2).stopExecutionIfEmpty();
+            will(throwException(new StopExecutionException()));
         }});
 
         try {
-            collection.stopActionIfEmpty();
+            collection.stopExecutionIfEmpty();
             fail();
-        } catch (StopActionException e) {
+        } catch (StopExecutionException e) {
             assertThat(e.getMessage(), equalTo("No files found in <display name>."));
         }
     }
@@ -101,12 +101,12 @@ public class CompositeFileCollectionTest {
     @Test
     public void stopActionDoesNotThrowsExceptionWhenSomeSetsAreNoEmpty() {
         context.checking(new Expectations() {{
-            one(source1).stopActionIfEmpty();
-            will(throwException(new StopActionException()));
-            one(source2).stopActionIfEmpty();
+            one(source1).stopExecutionIfEmpty();
+            will(throwException(new StopExecutionException()));
+            one(source2).stopExecutionIfEmpty();
         }});
 
-        collection.stopActionIfEmpty();
+        collection.stopExecutionIfEmpty();
     }
 
     @Test

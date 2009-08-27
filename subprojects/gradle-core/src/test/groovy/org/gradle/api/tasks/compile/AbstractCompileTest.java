@@ -94,6 +94,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(TEST_TARGET_DIR);
+        compile.setDependencyCacheDir(new File("depCacheDir"));
 
         compile.setClasspath(new AbstractFileCollection() {
             @Override

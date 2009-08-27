@@ -20,6 +20,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -79,7 +81,6 @@ public class Compile extends ConventionTask implements PatternFilterable {
         if (antCompile == null) {
             throw new InvalidUserDataException("The ant compile command must be set!");
         }
-        getDestinationDir().mkdirs();
         List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
                 getDestinationDir(), getSrcDirs());
 
@@ -92,6 +93,7 @@ public class Compile extends ConventionTask implements PatternFilterable {
         setDidWork(antCompile.getNumFilesCompiled() > 0);
     }
 
+    @InputFiles
     public Iterable<File> getClasspath() {
         return classpath;
     }
@@ -120,6 +122,7 @@ public class Compile extends ConventionTask implements PatternFilterable {
         return this;
     }
 
+    @InputFiles
     public List<File> getSrcDirs() {
         return srcDirs;
     }
@@ -128,6 +131,7 @@ public class Compile extends ConventionTask implements PatternFilterable {
         this.srcDirs = srcDirs;
     }
 
+    @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -136,6 +140,7 @@ public class Compile extends ConventionTask implements PatternFilterable {
         this.destinationDir = destinationDir;
     }
 
+    @OutputDirectory
     public File getDependencyCacheDir() {
         return dependencyCacheDir;
     }

@@ -17,7 +17,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 
 import java.io.File;
 
@@ -30,15 +30,10 @@ public class CodeNarc extends ConventionTask {
 
     @TaskAction
     public void check() {
-        FileTree source = getSource();
-        source.stopActionIfEmpty();
-
-        File reportFile = getReportFile();
-        reportFile.getParentFile().mkdirs();
-
-        antCodeNarc.execute(getAnt(), source, getConfigFile(), reportFile);
+        antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFile());
     }
 
+    @InputFiles @SkipWhenEmpty
     public FileTree getSource() {
         return source;
     }
@@ -47,6 +42,7 @@ public class CodeNarc extends ConventionTask {
         this.source = source;
     }
 
+    @InputFile
     public File getConfigFile() {
         return configFile;
     }
@@ -55,6 +51,7 @@ public class CodeNarc extends ConventionTask {
         this.configFile = configFile;
     }
 
+    @OutputFile
     public File getReportFile() {
         return reportFile;
     }

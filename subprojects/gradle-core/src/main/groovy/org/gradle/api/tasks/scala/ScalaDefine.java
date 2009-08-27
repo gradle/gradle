@@ -18,6 +18,7 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.InputFiles;
 
 import java.io.File;
 
@@ -37,6 +38,7 @@ public class ScalaDefine extends ConventionTask {
         this.antScalaDefine = antScalaDefine;
     }
 
+    @InputFiles
     public Iterable<File> getClasspath() {
         return classpath;
     }

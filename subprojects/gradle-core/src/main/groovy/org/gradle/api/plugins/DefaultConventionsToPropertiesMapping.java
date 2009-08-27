@@ -37,38 +37,42 @@ public class DefaultConventionsToPropertiesMapping {
 
     public final static Map<String, ConventionValue> JAVADOC = GUtil.map(
             "srcDirs", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            Set<File> srcDirs = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getJava().getSrcDirs();
-            return new ArrayList<File>(srcDirs);
-        }
-    },
+                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                    Set<File> srcDirs = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getJava().getSrcDirs();
+                    return new ArrayList<File>(srcDirs);
+                }
+            },
             "destinationDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getJavadocDir();
-        }
-    },
-            "classesDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
-        }
-    });
+                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                    return convention.getPlugin(JavaPluginConvention.class).getJavadocDir();
+                }
+            }
+    );
 
     public final static Map TEST = GUtil.map(
             "testClassesDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getClassesDir();
-        }
-    },
+                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                    return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.TEST_SOURCE_SET_NAME).getClassesDir();
+                }
+            },
             "testResultsDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getTestResultsDir();
-        }
-    },
+                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                    return convention.getPlugin(JavaPluginConvention.class).getTestResultsDir();
+                }
+            },
             "testReportDir", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(JavaPluginConvention.class).getTestReportDir();
-        }
-    });
+                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                    return convention.getPlugin(JavaPluginConvention.class).getTestReportDir();
+                }
+            },
+            "testSrcDirs", new ConventionValue() {
+                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                    Set<File> srcDirs = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
+                            JavaPlugin.TEST_SOURCE_SET_NAME).getJava().getSrcDirs();
+                    return new ArrayList<File>(srcDirs);
+                }
+            }
+    );
 
     public final static Map ARCHIVE = GUtil.map(
             "version", new ConventionValue() {

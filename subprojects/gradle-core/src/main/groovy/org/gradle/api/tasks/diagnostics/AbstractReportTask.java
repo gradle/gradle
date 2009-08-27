@@ -19,6 +19,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.OutputFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,6 +62,7 @@ public abstract class AbstractReportTask extends ConventionTask {
      *
      * @return The output file. May be null.
      */
+    @OutputFile
     public File getOutputFile() {
         return outputFile;
     }

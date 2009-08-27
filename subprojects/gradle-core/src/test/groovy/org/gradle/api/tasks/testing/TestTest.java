@@ -194,6 +194,7 @@ public class TestTest extends AbstractConventionTaskTest {
         test.setTestResultsDir(TEST_TEST_RESULTS_DIR);
         test.setTestReportDir(TEST_TEST_REPORT_DIR);
         test.setConfiguration(configurationMock);
+        test.setTestSrcDirs(Collections.<File>emptyList());
 
         context.checking(new Expectations() {{
             allowing(configurationMock).iterator();

@@ -18,7 +18,7 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 
 import java.io.File;
 import java.util.HashMap;
@@ -39,15 +39,10 @@ public class Checkstyle extends ConventionTask {
 
     @TaskAction
     public void check() {
-        FileTree source = getSource();
-        source.stopActionIfEmpty();
-
-        File resultFile = getResultFile();
-        resultFile.getParentFile().mkdirs();
-
-        antCheckstyle.checkstyle(getAnt(), source, getConfigFile(), resultFile, getClasspath(), getProperties());
+        antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties());
     }
 
+    @InputFile
     public File getConfigFile() {
         return configFile;
     }
@@ -56,6 +51,7 @@ public class Checkstyle extends ConventionTask {
         this.configFile = configFile;
     }
 
+    @OutputFile
     public File getResultFile() {
         return resultFile;
     }
@@ -64,6 +60,7 @@ public class Checkstyle extends ConventionTask {
         this.resultFile = resultFile;
     }
 
+    @InputFiles @SkipWhenEmpty
     public FileTree getSource() {
         return source;
     }
@@ -72,6 +69,7 @@ public class Checkstyle extends ConventionTask {
         this.source = source;
     }
 
+    @InputFiles
     public FileCollection getClasspath() {
         return classpath;
     }

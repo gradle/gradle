@@ -4,15 +4,13 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.AntBuilderAware
 
 class AntCheckstyle {
-    def checkstyle(def ant, AntBuilderAware source, File configFile, File resultFile, Iterable<File> classpath, Map<String, ?> properties) {
+    def checkstyle(def ant, AntBuilderAware source, File configFile, File resultFile, AntBuilderAware classpath, Map<String, ?> properties) {
         String propertyName = "org.gradle.checkstyle.violations"
 
         ant.typedef(resource: 'checkstyletask.properties')
         ant.checkstyle(config: configFile, failOnViolation: false, failureProperty: propertyName) {
             source.addToAntBuilder(ant, 'fileset')
-            classpath.each {
-                classpath(location: it)
-            }
+            classpath.addToAntBuilder(ant, 'classpath')
             formatter(type: 'plain', useFile: false)
             formatter(type: 'xml', toFile: resultFile)
             properties.each {key, value ->

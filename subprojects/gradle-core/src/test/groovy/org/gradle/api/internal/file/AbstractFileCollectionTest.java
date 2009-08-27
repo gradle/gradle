@@ -17,7 +17,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
-import org.gradle.api.tasks.StopActionException;
+import org.gradle.api.tasks.StopExecutionException;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -118,9 +118,9 @@ public class AbstractFileCollectionTest {
     public void throwsStopExceptionWhenEmpy() {
         TestFileCollection collection = new TestFileCollection();
         try {
-            collection.stopActionIfEmpty();
+            collection.stopExecutionIfEmpty();
             fail();
-        } catch (StopActionException e) {
+        } catch (StopExecutionException e) {
             assertThat(e.getMessage(), equalTo("Collection-display-name does not contain any files."));
         }
     }
@@ -128,7 +128,7 @@ public class AbstractFileCollectionTest {
     @Test
     public void doesNotThrowStopExceptionWhenNotEmpty() {
         TestFileCollection collection = new TestFileCollection(new File("f1"));
-        collection.stopActionIfEmpty();
+        collection.stopExecutionIfEmpty();
     }
 
     private class TestFileCollection extends AbstractFileCollection {

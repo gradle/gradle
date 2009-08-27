@@ -17,6 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
+import org.gradle.api.file.FileCollection;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -41,6 +42,7 @@ public class ScalaDefineTest extends AbstractTaskTest {
         scalaDefine = createTask(ScalaDefine.class);
         antScalaDefineMock = context.mock(AntScalaDefine.class);
         scalaDefine.setAntScalaDefine(antScalaDefineMock);
+        scalaDefine.setClasspath(context.mock(FileCollection.class));
     }
 
     @Test

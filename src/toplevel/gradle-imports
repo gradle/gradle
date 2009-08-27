@@ -11,6 +11,7 @@ import org.gradle.api.logging.*
 import org.gradle.api.initialization.*
 import org.gradle.api.invocation.*
 import org.gradle.api.plugins.*
+import org.gradle.api.plugins.quality.*
 import org.gradle.api.specs.*
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.bundling.*

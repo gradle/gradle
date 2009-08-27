@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.GUtil;
 
@@ -49,7 +50,6 @@ public class GroovyCompile extends Compile {
     protected void compile() {
         if (antCompile == null) throw new InvalidUserDataException("The ant compile command must be set!");
         if (getAntGroovyCompile() == null) throw new InvalidUserDataException("The ant groovy compile command must be set!");
-        if (getDestinationDir() == null) throw new InvalidUserDataException("The target dir is not set, compile can't be triggered!");
         if (getSourceCompatibility() == null || getTargetCompatibility() == null) {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
         }
@@ -160,6 +160,7 @@ public class GroovyCompile extends Compile {
         return this;
     }
 
+    @InputFiles
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
@@ -176,6 +177,7 @@ public class GroovyCompile extends Compile {
         this.antGroovyCompile = antGroovyCompile;
     }
 
+    @InputFiles
     public List getGroovySourceDirs() {
         return groovySourceDirs;
     }

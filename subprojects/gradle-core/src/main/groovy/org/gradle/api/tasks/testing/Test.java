@@ -19,9 +19,11 @@ package org.gradle.api.tasks.testing;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -80,11 +82,6 @@ public class Test extends ConventionTask implements PatternFilterable {
     protected void executeTests() {
         final File testClassesDir = getTestClassesDir();
 
-        if (testClassesDir == null)
-            throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!");
-        if (getTestResultsDir() == null)
-            throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!");
-
         existingDirsFilter.checkExistenceAndThrowStopActionIfNot(testClassesDir);
 
         final TestFramework testFramework = getTestFramework();
@@ -104,8 +101,8 @@ public class Test extends ConventionTask implements PatternFilterable {
 
         final Set<String> testClassNames = testClassScanner.getTestClassNames();
 
-        Collection<String> toUseIncludes = null;
-        Collection<String> toUseExcludes = null;
+        Collection<String> toUseIncludes;
+        Collection<String> toUseExcludes;
         if ( testClassNames.isEmpty() ) {
             toUseIncludes = includes;
             toUseExcludes = excludes;
@@ -133,6 +130,7 @@ public class Test extends ConventionTask implements PatternFilterable {
         }
     }
 
+    @InputFiles
     public List<File> getClasspath() {
         return GUtil.addLists(WrapUtil.toList(getTestClassesDir()), configuration);
     }
@@ -176,6 +174,7 @@ public class Test extends ConventionTask implements PatternFilterable {
     /**
      * Returns the root folder for the compiled test sources.
      */
+    @InputDirectory
     public File getTestClassesDir() {
         return testClassesDir;
     }
@@ -192,6 +191,7 @@ public class Test extends ConventionTask implements PatternFilterable {
     /**
      * Returns the root folder for the test results.
      */
+    @OutputDirectory
     public File getTestResultsDir() {
         return testResultsDir;
     }
@@ -208,6 +208,7 @@ public class Test extends ConventionTask implements PatternFilterable {
     /**
      * Returns the root folder for the test reports.
      */
+    @OutputDirectory
     public File getTestReportDir() {
         return testReportDir;
     }
@@ -370,6 +371,7 @@ public class Test extends ConventionTask implements PatternFilterable {
         }
     }
 
+    @InputFiles
     public FileCollection getConfiguration() {
         return configuration;
     }
@@ -394,6 +396,7 @@ public class Test extends ConventionTask implements PatternFilterable {
         this.testReport = false;
     }
 
+    @InputFiles
     public List<File> getTestSrcDirs() {
         return testSrcDirs;
     }

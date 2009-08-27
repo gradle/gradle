@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -52,6 +53,7 @@ public class ScalaCompile extends Compile {
         this.antScalaCompile = antScalaCompile;
     }
 
+    @InputFiles
     public List<File> getScalaSrcDirs() {
         return scalaSrcDirs;
     }

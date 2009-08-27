@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.StopActionException;
-import org.gradle.util.GUtil;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Collection;
@@ -68,9 +68,9 @@ public abstract class AbstractFileCollection implements FileCollection {
         return this;
     }
 
-    public FileCollection stopActionIfEmpty() throws StopActionException {
+    public FileCollection stopExecutionIfEmpty() {
         if (getFiles().isEmpty()) {
-            throw new StopActionException(String.format("%s does not contain any files.", StringUtils.capitalize(getDisplayName())));
+            throw new StopExecutionException(String.format("%s does not contain any files.", StringUtils.capitalize(getDisplayName())));
         }
         return this;
     }

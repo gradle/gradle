@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.GradleScriptException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.AntDirective
@@ -36,6 +35,8 @@ import org.gradle.api.internal.ConventionTask
  */
 abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
+    File testDir = HelperUtil.makeNewTestDir()
+    
     abstract AbstractArchiveTask getArchiveTask()
 
     ConventionTask getTask() {
@@ -59,7 +60,6 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     protected void configure(AbstractArchiveTask archiveTask) {
-        File testDir = HelperUtil.makeNewTestDir()
         archiveTask.baseName = 'testbasename'
         archiveTask.appendix = 'testappendix'
         archiveTask.version = '1.0'
@@ -88,11 +88,6 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
             archiveTask.execute()
         }
         assertTrue(archiveTask.destinationDir.isDirectory())
-    }
-
-    @Test (expected = GradleScriptException) public void testExecuteWithNullDestinationDir() {
-        archiveTask.destinationDir = null
-        archiveTask.execute()
     }
 
     void checkArchiveParameterEqualsArchive(AntArchiveParameter archiveParameter, AbstractArchiveTask task) {

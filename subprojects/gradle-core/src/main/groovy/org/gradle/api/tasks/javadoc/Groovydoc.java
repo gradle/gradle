@@ -21,6 +21,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 
 import java.io.File;
@@ -70,6 +72,7 @@ public class Groovydoc extends ConventionTask {
      *
      * @return The source directories. Never returns null.
      */
+    @InputFiles
     public List<File> getSrcDirs() {
         return srcDirs;
     }
@@ -86,6 +89,7 @@ public class Groovydoc extends ConventionTask {
      *
      * @return The directory.
      */
+    @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -102,6 +106,7 @@ public class Groovydoc extends ConventionTask {
      *
      * @return The classpath.
      */
+    @InputFiles
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }

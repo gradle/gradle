@@ -35,6 +35,10 @@ import hidden.org.codehaus.plexus.util.FileUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.jetty.util.ScanTargetPattern;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandler;
@@ -419,7 +423,7 @@ public class JettyRun extends AbstractJettyRunTask {
         return new JettyPluginServer();
     }
 
-
+    @InputDirectory @Optional
     public File getClassesDirectory() {
         return classesDirectory;
     }
@@ -428,6 +432,7 @@ public class JettyRun extends AbstractJettyRunTask {
         this.classesDirectory = classesDirectory;
     }
 
+    @InputFile @Optional
     public File getJettyEnvXml() {
         return jettyEnvXml;
     }
@@ -436,6 +441,7 @@ public class JettyRun extends AbstractJettyRunTask {
         this.jettyEnvXml = jettyEnvXml;
     }
 
+//    @InputFile @Optional
     public File getWebXml() {
         return webXml;
     }
@@ -444,6 +450,7 @@ public class JettyRun extends AbstractJettyRunTask {
         this.webXml = webXml;
     }
 
+    @InputDirectory
     public File getWebAppSourceDirectory() {
         return webAppSourceDirectory;
     }
@@ -468,6 +475,7 @@ public class JettyRun extends AbstractJettyRunTask {
         this.extraScanTargets = extraScanTargets;
     }
 
+    @InputFile @Optional
     public File getJettyEnvXmlFile() {
         return jettyEnvXmlFile;
     }
@@ -506,6 +514,7 @@ public class JettyRun extends AbstractJettyRunTask {
     /**
      * Returns the configuration to resolve the dependencies of the web application from.
      */
+    @InputFiles
     public FileCollection getConfiguration() {
         return configuration;
     }
