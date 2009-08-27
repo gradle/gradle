@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -36,6 +35,8 @@ import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.configuration.ProjectEvaluator;
@@ -48,7 +49,8 @@ import java.util.List;
 import java.util.Map;
 
 // todo - compose this
-public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegistryFactory {
+public class DefaultServiceRegistryFactory implements ServiceRegistryFactory
+{
     private final ITaskFactory taskFactory;
     private final RepositoryHandlerFactory repositoryHandlerFactory;
     private final ConfigurationContainerFactory configurationContainerFactory;
@@ -56,7 +58,7 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
     private final DependencyFactory dependencyFactory;
     private final ProjectEvaluator projectEvaluator;
 
-    public DefaultProjectServiceRegistryFactory(RepositoryHandlerFactory repositoryHandlerFactory,
+    public DefaultServiceRegistryFactory(RepositoryHandlerFactory repositoryHandlerFactory,
                                                 ConfigurationContainerFactory configurationContainerFactory,
                                                 PublishArtifactFactory publishArtifactFactory,
                                                 DependencyFactory dependencyFactory,
@@ -70,13 +72,52 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
         taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(classGenerator));
     }
 
-    public ProjectServiceRegistry create(ProjectInternal project) {
+    public ServiceRegistry createForProject(ProjectInternal project) {
         return new ProjectServiceRegistryImpl(project);
     }
 
-    private class ProjectServiceRegistryImpl implements ProjectServiceRegistry {
+    private class ServiceRegistryImpl implements ServiceRegistry
+    {
+        protected final List<Service> services = new ArrayList<Service>();
+
+        public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
+             for (Service service : services) {
+                 T t = service.getService(serviceType);
+                 if (t != null) {
+                     return t;
+                 }
+             }
+
+             throw new IllegalArgumentException(String.format("No service of type %s available.",
+                     serviceType.getSimpleName()));
+        }
+
+        protected abstract class Service {
+            final Class<?> serviceType;
+            Object service;
+
+            Service(Class<?> serviceType) {
+                this.serviceType = serviceType;
+            }
+
+            <T> T getService(Class<T> serviceType) {
+                if (!serviceType.isAssignableFrom(this.serviceType)) {
+                    return null;
+                }
+                if (service == null) {
+                    service = create();
+                    assert service != null;
+                }
+                return serviceType.cast(service);
+            }
+
+            protected abstract Object create();
+        }
+    }
+
+    private class ProjectServiceRegistryImpl extends ServiceRegistryImpl
+    {
         private final ProjectInternal project;
-        private final List<Service> services = new ArrayList<Service>();
 
         public ProjectServiceRegistryImpl(final ProjectInternal project) {
             this.project = project;
@@ -192,40 +233,6 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
             });
         }
 
-        public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
-            for (Service service : services) {
-                T t = service.getService(serviceType);
-                if (t != null) {
-                    return t;
-                }
-            }
-
-            throw new IllegalArgumentException(String.format("No project service of type %s available.",
-                    serviceType.getSimpleName()));
-        }
-
-        private abstract class Service {
-            final Class<?> serviceType;
-            Object service;
-
-            Service(Class<?> serviceType) {
-                this.serviceType = serviceType;
-            }
-
-            <T> T getService(Class<T> serviceType) {
-                if (!serviceType.isAssignableFrom(this.serviceType)) {
-                    return null;
-                }
-                if (service == null) {
-                    service = create();
-                    assert service != null;
-                }
-                return serviceType.cast(service);
-            }
-
-            protected abstract Object create();
-        }
-
         private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
             public InternalRepository getInternalRepository() {
                 return project.getGradle().getInternalRepository();
@@ -255,6 +262,85 @@ public class DefaultProjectServiceRegistryFactory implements ProjectServiceRegis
 
                     public String getStatus() {
                         return project.getStatus().toString();
+                    }
+                };
+            }
+        }
+    }
+
+    public ServiceRegistry createForBuild(GradleInternal gradle) {
+        return new BuildServiceRegistryImpl(gradle);
+    }
+
+    private class BuildServiceRegistryImpl extends ServiceRegistryImpl
+    {
+        private final GradleInternal gradle;
+
+        public BuildServiceRegistryImpl(final GradleInternal gradle) {
+            this.gradle = gradle;
+
+            services.add(new Service(ProjectFinder.class) {
+                @Override
+                protected Object create() {
+                    return new ProjectFinder() {
+                        public Project getProject(String path) {
+                            return gradle.getRootProject().project(path);
+                        }
+                    };
+                }
+            });
+
+            services.add(new Service(ScriptHandler.class) {
+                @Override
+                protected Object create() {
+                    RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(
+                            new DefaultConvention());
+                    ConfigurationHandler configurationContainer = configurationContainerFactory
+                            .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
+                    DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
+                            dependencyFactory, get(ProjectFinder.class));
+                    return new DefaultScriptHandler(repositoryHandler, dependencyHandler,
+                            configurationContainer, Thread.currentThread().getContextClassLoader());
+                }
+            });
+
+            services.add(new Service(ScriptClassLoaderProvider.class) {
+                @Override
+                protected Object create() {
+                    return get(ScriptHandler.class);
+                }
+            });
+        }
+
+        private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
+            public InternalRepository getInternalRepository() {
+                return gradle.getInternalRepository();
+            }
+
+            public File getGradleUserHomeDir() {
+                return gradle.getGradleUserHomeDir();
+            }
+
+            public Map getClientModuleRegistry() {
+                return new HashMap();
+            }
+
+            public Module getModule() {
+                return new Module() {
+                    public String getGroup() {
+                        return "";
+                    }
+
+                    public String getName() {
+                        return "";
+                    }
+
+                    public String getVersion() {
+                        return "";
+                    }
+
+                    public String getStatus() {
+                        return "";
                     }
                 };
             }

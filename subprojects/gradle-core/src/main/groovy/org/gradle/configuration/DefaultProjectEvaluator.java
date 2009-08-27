@@ -15,15 +15,11 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.BuildAdapter;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 
-public class DefaultProjectEvaluator extends BuildAdapter implements ProjectEvaluator {
-    private ProjectEvaluationListener listener;
+public class DefaultProjectEvaluator implements ProjectEvaluator {
     private final ProjectEvaluator[] evaluators;
 
     public DefaultProjectEvaluator(ProjectEvaluator... evaluators) {
@@ -31,6 +27,7 @@ public class DefaultProjectEvaluator extends BuildAdapter implements ProjectEval
     }
 
     public void evaluate(ProjectInternal project) {
+        ProjectEvaluationListener listener = project.getGradle().getProjectEvaluationBroadcaster();
         listener.beforeEvaluate(project);
         GradleScriptException failure = null;
         try {
@@ -45,9 +42,5 @@ public class DefaultProjectEvaluator extends BuildAdapter implements ProjectEval
         if (failure != null) {
             throw failure;
         }
-    }
-
-    public void projectsLoaded(Gradle gradle) {
-        listener = ((GradleInternal) gradle).getProjectEvaluationBroadcaster();
     }
 }

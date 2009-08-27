@@ -54,6 +54,7 @@ import java.util.Map;
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class GradleTest {
     private BuildLoader buildLoaderMock;
+    private InitScriptHandler initscriptHandlerMock;
     private SettingsHandler settingsHandlerMock;
     private IGradlePropertiesLoader gradlePropertiesLoaderMock;
     private BuildConfigurer buildConfigurerMock;
@@ -80,6 +81,7 @@ public class GradleTest {
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         HelperUtil.deleteTestDir();
+        initscriptHandlerMock = context.mock(InitScriptHandler.class);
         settingsHandlerMock = context.mock(SettingsHandler.class);
         gradlePropertiesLoaderMock = context.mock(IGradlePropertiesLoader.class);
         settingsMock = context.mock(SettingsInternal.class);
@@ -106,7 +108,7 @@ public class GradleTest {
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
         expectedStartParams.setGradleUserHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleUserHomeDir"));
 
-        gradleLauncher = new GradleLauncher(gradleMock, settingsHandlerMock, gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock);
+        gradleLauncher = new GradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock, gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock);
         
         context.checking(new Expectations() {
             {
@@ -143,6 +145,7 @@ public class GradleTest {
 
     @Test
     public void testRun() {
+        expectInitScripts();
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
         expectBuildListenerCallbacks();
@@ -153,6 +156,7 @@ public class GradleTest {
 
     @Test
     public void testDryRun() {
+        expectInitScripts();
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
         expectBuildListenerCallbacks();
@@ -168,6 +172,7 @@ public class GradleTest {
 
     @Test
     public void testGetBuildAndRunAnalysis() {
+        expectInitScripts();
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
         expectBuildListenerCallbacks();
@@ -178,6 +183,7 @@ public class GradleTest {
 
     @Test
     public void testGetBuildAnalysis() {
+        expectInitScripts();
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
@@ -193,6 +199,7 @@ public class GradleTest {
     @Test
     public void testGetBuildAnalysisWithFailure() {
         final RuntimeException exception = new RuntimeException();
+        expectInitScripts();
         expectSettingsBuilt();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
@@ -208,6 +215,7 @@ public class GradleTest {
 
     @Test
     public void testNotifiesListenerOfBuildAnalysisStages() {
+        expectInitScripts();
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
@@ -220,6 +228,7 @@ public class GradleTest {
 
     @Test
     public void testNotifiesListenerOfBuildStages() {
+        expectInitScripts();
         expectSettingsBuilt();
         expectTasksRunWithDagRebuild();
         expectBuildListenerCallbacks();
@@ -230,6 +239,7 @@ public class GradleTest {
     @Test
     public void testNotifiesListenerOnSettingsInitWithFailure() {
         final RuntimeException failure = new RuntimeException();
+        expectInitScripts();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
             one(settingsHandlerMock).findAndLoadSettings(gradleMock, gradlePropertiesLoaderMock);
@@ -244,6 +254,7 @@ public class GradleTest {
     @Test
     public void testNotifiesListenerOnBuildCompleteWithFailure() {
         final RuntimeException failure = new RuntimeException();
+        expectInitScripts();
         expectSettingsBuilt();
         expectTasksRunWithFailure(failure);
         context.checking(new Expectations() {{
@@ -257,6 +268,11 @@ public class GradleTest {
         assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
     }
 
+    private void expectInitScripts() {
+        context.checking(new Expectations() {{
+            one(initscriptHandlerMock).executeScripts(gradleMock);
+        }});
+    }
     private void expectSettingsBuilt() {
         context.checking(new Expectations() {
             {
@@ -309,6 +325,7 @@ public class GradleTest {
         expectSettingsBuilt();
         context.checking(new Expectations() {
             {
+                one(initscriptHandlerMock).executeScripts(gradleMock);
                 one(buildBroadcaster).buildStarted(gradleMock);
                 one(buildBroadcaster).projectsLoaded(gradleMock);
                 one(buildBroadcaster).projectsEvaluated(gradleMock);

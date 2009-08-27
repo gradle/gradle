@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.api.internal.artifacts.dsl;
 
-public interface ProjectServiceRegistry {
-    <T> T get(Class<T> serviceType) throws IllegalArgumentException;
+/**
+ * An implementation of ClasspathScriptTransformer for use in init scripts.  This subclass
+ * defines the script method name to be initscript {}.
+ */
+public class InitScriptClasspathScriptTransformer extends ClasspathScriptTransformer {
+    private static final String INITSCRIPT_METHOD_NAME = "initscript";
+
+    protected String getScriptMethodName() {
+        return INITSCRIPT_METHOD_NAME;
+    }
 }

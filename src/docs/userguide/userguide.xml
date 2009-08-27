@@ -52,6 +52,7 @@
     <xi:include href='buildLifecycle.xml'/>
     <xi:include href='multiproject.xml'/>
     <xi:include href='organizeBuildLogic.xml'/>
+    <xi:include href='initscripts.xml'/>
     <xi:include href='gradleWrapper.xml'/>
     <xi:include href='embedding.xml'/>
     <xi:include href='potentialTraps.xml'/>

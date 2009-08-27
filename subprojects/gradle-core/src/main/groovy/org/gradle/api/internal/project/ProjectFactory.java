@@ -28,13 +28,13 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class ProjectFactory implements IProjectFactory {
-    private ProjectServiceRegistryFactory serviceRegistryFactory;
+    private ServiceRegistryFactory serviceRegistryFactory;
     private ScriptSource embeddedScript;
 
     public ProjectFactory() {
     }
 
-    public ProjectFactory(ProjectServiceRegistryFactory serviceRegistryFactory, ScriptSource embeddedScript) {
+    public ProjectFactory(ServiceRegistryFactory serviceRegistryFactory, ScriptSource embeddedScript) {
         this.serviceRegistryFactory = serviceRegistryFactory;
         this.embeddedScript = embeddedScript;
     }

@@ -15,6 +15,8 @@
  */
 package org.gradle;
 
+import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.DefaultClassGenerator;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
@@ -23,17 +25,16 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
-import org.gradle.api.internal.project.DefaultProjectServiceRegistryFactory;
+import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.DefaultClassGenerator;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
-import org.gradle.util.WrapUtil;
 import org.gradle.invocation.DefaultGradle;
+import org.gradle.util.WrapUtil;
 
 /**
  * @author Hans Dockter
@@ -73,36 +74,47 @@ public class DefaultGradleFactory implements GradleFactory {
                         new MasterDirSettingsFinderStrategy(),
                         new ParentDirSettingsFinderStrategy()))
         );
-        ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory(startParameter.getProjectDependenciesBuildInstruction());
+        ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory(
+                startParameter.getProjectDependenciesBuildInstruction());
         DefaultInternalRepository internalRepository = new DefaultInternalRepository();
         DependencyFactory dependencyFactory = new DefaultDependencyFactory(
-                WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(), new SelfResolvingDependencyFactory()),
+                WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),
+                        new SelfResolvingDependencyFactory()),
                 new DefaultClientModuleFactory(),
                 new DefaultProjectDependencyFactory());
         ResolverFactory resolverFactory = new DefaultResolverFactory();
+        ScriptProcessorFactory scriptProcessorFactory = new DefaultScriptProcessorFactory(
+                new DefaultScriptCompilationHandler(
+                        cachePropertiesHandler),
+                startParameter.getCacheUsage());
         DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(
                 new BuildScriptCompiler(
                         importsReader,
-                        new DefaultScriptProcessorFactory(
-                                new DefaultScriptCompilationHandler(
-                                        cachePropertiesHandler),
-                                startParameter.getCacheUsage()),
+                        scriptProcessorFactory,
                         new DefaultProjectScriptMetaData()),
                 new BuildScriptEvaluator());
-        DefaultGradle gradle = new DefaultGradle(startParameter, internalRepository);
-        gradle.addBuildListener(internalRepository);
-        gradle.addBuildListener(projectEvaluator);
         ClassGenerator classGenerator = new DefaultClassGenerator();
-        GradleLauncher gradleLauncher = new GradleLauncher(
+        ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
+                new DefaultRepositoryHandlerFactory(resolverFactory, classGenerator),
+                configurationContainerFactory,
+                new DefaultPublishArtifactFactory(),
+                dependencyFactory, projectEvaluator,
+                classGenerator);
+        InitScriptHandler initScriptHandler = new InitScriptHandler(
+                new UserHomeInitScriptFinder(
+                        new DefaultInitScriptFinder()),
+                new DefaultInitScriptProcessor(scriptProcessorFactory,
+                        new DefaultInitScriptMetaData()));
+        DefaultGradle gradle = new DefaultGradle(startParameter, internalRepository, serviceRegistryFactory);
+        gradle.addBuildListener(internalRepository);
+        return new GradleLauncher(
                 gradle,
+                initScriptHandler,
                 new SettingsHandler(
                         settingsFinder,
                         new PropertiesLoadingSettingsProcessor(
                                 new ScriptEvaluatingSettingsProcessor(
-                                        new DefaultSettingsScriptMetaData(),
-                                        new DefaultScriptProcessorFactory(
-                                                new DefaultScriptCompilationHandler(cachePropertiesHandler),
-                                                startParameter.getCacheUsage()),
+                                        new DefaultSettingsScriptMetaData(), scriptProcessorFactory,
                                         importsReader,
                                         new SettingsFactory(new DefaultProjectDescriptorRegistry()))
                         ),
@@ -117,16 +129,8 @@ public class DefaultGradleFactory implements GradleFactory {
                         )),
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(
-                        new ProjectFactory(
-                                new DefaultProjectServiceRegistryFactory(
-                                        new DefaultRepositoryHandlerFactory(resolverFactory, classGenerator),
-                                        configurationContainerFactory,
-                                        new DefaultPublishArtifactFactory(),
-                                        dependencyFactory,
-                                        projectEvaluator,
-                                        classGenerator),
+                        new ProjectFactory(serviceRegistryFactory,
                                 startParameter.getBuildScriptSource())),
               new BuildConfigurer(new ProjectDependencies2TaskResolver()));
-        return gradleLauncher;
     }
 }

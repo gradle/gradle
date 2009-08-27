@@ -17,17 +17,18 @@
 package org.gradle.invocation;
 
 import groovy.lang.Closure;
-import org.gradle.StartParameter;
 import org.gradle.BuildListener;
+import org.gradle.StartParameter;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
-import org.gradle.api.internal.project.DefaultProjectRegistry;
-import org.gradle.api.internal.project.IProjectRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.*;
 import org.gradle.execution.DefaultTaskExecuter;
 import org.gradle.execution.TaskExecuter;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.ListenerBroadcast;
 
@@ -42,17 +43,23 @@ public class DefaultGradle implements GradleInternal {
     private InternalRepository internalRepository;
     private DefaultProjectRegistry<ProjectInternal> projectRegistry;
     private DefaultPluginRegistry pluginRegistry;
+    private ScriptHandler scriptHandler;
+    private ScriptClassLoaderProvider scriptClassLoaderProvider;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast
             = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
     private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(BuildListener.class);
 
-    public DefaultGradle(StartParameter startParameter, InternalRepository internalRepository) {
+    public DefaultGradle(StartParameter startParameter, InternalRepository internalRepository, ServiceRegistryFactory serviceRegistryFactory) {
         this.startParameter = startParameter;
         this.internalRepository = internalRepository;
         this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         this.pluginRegistry = new DefaultPluginRegistry(startParameter.getPluginPropertiesFile());
         this.taskGraph = new DefaultTaskExecuter();
-    }
+
+        ServiceRegistry serviceRegistry = serviceRegistryFactory.createForBuild(this);
+        scriptHandler = serviceRegistry.get(ScriptHandler.class);
+        scriptClassLoaderProvider = serviceRegistry.get(ScriptClassLoaderProvider.class);
+     }
 
     public String getGradleVersion() {
         return new GradleVersion().getVersion();
@@ -146,5 +153,17 @@ public class DefaultGradle implements GradleInternal {
 
     public BuildListener getBuildListenerBroadcaster() {
         return buildListeners.getSource();
+    }
+
+    public ScriptHandler getInitscript() {
+        return scriptHandler;
+    }
+
+    public void initscript(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getInitscript());
+    }
+
+    public ScriptClassLoaderProvider getClassLoaderProvider() {
+        return scriptClassLoaderProvider;
     }
 }

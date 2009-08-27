@@ -27,8 +27,8 @@ import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.configuration.ProjectEvaluator;
@@ -41,7 +41,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
-public class DefaultProjectServiceRegistryFactoryTest {
+public class DefaultServiceRegistryFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ConfigurationContainerFactory configurationContainerFactory = context.mock(
             ConfigurationContainerFactory.class);
@@ -49,30 +49,30 @@ public class DefaultProjectServiceRegistryFactoryTest {
     private final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
     private final PublishArtifactFactory publishArtifactFactory = context.mock(PublishArtifactFactory.class);
     private final ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
-    private final ClassGenerator classGenerator = context.mock(ClassGenerator.class);
-    
-    private final DefaultProjectServiceRegistryFactory factory = new DefaultProjectServiceRegistryFactory(
+
+    private final DefaultServiceRegistryFactory factory = new DefaultServiceRegistryFactory(
             repositoryHandlerFactory, configurationContainerFactory, publishArtifactFactory, dependencyFactory,
-            projectEvaluator, classGenerator);
+            projectEvaluator, context.mock(ClassGenerator.class));
     private final ProjectInternal project = context.mock(ProjectInternal.class);
+    private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ConfigurationHandler configurationHandler = context.mock(ConfigurationHandler.class);
 
     @Test
-    public void providesAConvention() {
-        ProjectServiceRegistry registry = factory.create(project);
+    public void projectProvidesAConvention() {
+        ServiceRegistry registry = factory.createForProject(project);
         assertThat(registry.get(Convention.class), instanceOf(DefaultConvention.class));
         assertThat(registry.get(Convention.class), sameInstance(registry.get(Convention.class)));
     }
 
     @Test
-    public void providesATaskContainer() {
-        ProjectServiceRegistry registry = factory.create(project);
+    public void projectProvidesATaskContainer() {
+        ServiceRegistry registry = factory.createForProject(project);
         assertThat(registry.get(TaskContainer.class), instanceOf(DefaultTaskContainer.class));
         assertThat(registry.get(TaskContainer.class), sameInstance(registry.get(TaskContainer.class)));
     }
 
     @Test
-    public void providesARepositoryHandler() {
+    public void projectProvidesARepositoryHandler() {
         final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
 
         context.checking(new Expectations() {{
@@ -80,22 +80,22 @@ public class DefaultProjectServiceRegistryFactoryTest {
             will(returnValue(repositoryHandler));
         }});
 
-        ProjectServiceRegistry registry = factory.create(project);
+        ServiceRegistry registry = factory.createForProject(project);
         assertThat(registry.get(RepositoryHandler.class), sameInstance(repositoryHandler));
         assertThat(registry.get(RepositoryHandler.class), sameInstance(registry.get(RepositoryHandler.class)));
     }
 
     @Test
-    public void providesARepositoryHandlerFactory() {
-        ProjectServiceRegistry registry = factory.create(project);
+    public void projectProvidesARepositoryHandlerFactory() {
+        ServiceRegistry registry = factory.createForProject(project);
         assertThat(registry.get(RepositoryHandlerFactory.class), sameInstance(repositoryHandlerFactory));
         assertThat(registry.get(RepositoryHandlerFactory.class), sameInstance(registry.get(
                 RepositoryHandlerFactory.class)));
     }
 
     @Test
-    public void providesAConfigurationHandler() {
-        ProjectServiceRegistry registry = factory.create(project);
+    public void projectProvidesAConfigurationHandler() {
+        ServiceRegistry registry = factory.createForProject(project);
 
         expectConfigurationHandlerCreated();
 
@@ -104,8 +104,8 @@ public class DefaultProjectServiceRegistryFactoryTest {
     }
 
     @Test
-    public void providesAnArtifactHandler() {
-        ProjectServiceRegistry registry = factory.create(project);
+    public void projectProvidesAnArtifactHandler() {
+        ServiceRegistry registry = factory.createForProject(project);
 
         expectConfigurationHandlerCreated();
 
@@ -114,8 +114,8 @@ public class DefaultProjectServiceRegistryFactoryTest {
     }
 
     @Test
-    public void providesADependencyHandler() {
-        ProjectServiceRegistry registry = factory.create(project);
+    public void projectProvidesADependencyHandler() {
+        ServiceRegistry registry = factory.createForProject(project);
 
         expectConfigurationHandlerCreated();
 
@@ -124,27 +124,25 @@ public class DefaultProjectServiceRegistryFactoryTest {
     }
 
     @Test
-    public void providesAnAntBuilderFactory() {
-        ProjectServiceRegistry registry = factory.create(project);
+    public void projectProvidesAnAntBuilderFactory() {
+        ServiceRegistry registry = factory.createForProject(project);
 
         assertThat(registry.get(AntBuilderFactory.class), instanceOf(DefaultAntBuilderFactory.class));
         assertThat(registry.get(AntBuilderFactory.class), sameInstance(registry.get(AntBuilderFactory.class)));
     }
 
     @Test
-    public void providesAProjectEvaluator() {
-        ProjectServiceRegistry registry = factory.create(project);
+    public void projectProvidesAProjectEvaluator() {
+        ServiceRegistry registry = factory.createForProject(project);
 
         assertThat(registry.get(ProjectEvaluator.class), sameInstance(projectEvaluator));
         assertThat(registry.get(ProjectEvaluator.class), sameInstance(registry.get(ProjectEvaluator.class)));
     }
 
     @Test
-    public void providesAScriptHandlerAndScriptClassLoaderProvider() {
+    public void projectProvidesAScriptHandlerAndScriptClassLoaderProvider() {
         expectConfigurationHandlerCreated();
         context.checking(new Expectations(){{
-            GradleInternal gradle = context.mock(GradleInternal.class);
-
             allowing(project).getParent();
             will(returnValue(null));
             
@@ -157,7 +155,7 @@ public class DefaultProjectServiceRegistryFactoryTest {
             ignoring(configurationHandler);
         }});
 
-        ProjectServiceRegistry registry = factory.create(project);
+        ServiceRegistry registry = factory.createForProject(project);
 
         assertThat(registry.get(ScriptHandler.class), instanceOf(DefaultScriptHandler.class));
         assertThat(registry.get(ScriptHandler.class), sameInstance(registry.get(
@@ -166,12 +164,46 @@ public class DefaultProjectServiceRegistryFactoryTest {
     }
 
     @Test
-    public void registryThrowsExceptionForUnknownService() {
+    public void buildProvidesAScriptHandlerAndScriptClassLoaderProvider() {
+        expectConfigurationHandlerCreated();
+        context.checking(new Expectations(){{
+            allowing(project).getParent();
+            will(returnValue(null));
+
+            allowing(project).getGradle();
+            will(returnValue(gradle));
+
+            allowing(gradle).getBuildScriptClassLoader();
+            will(returnValue(null));
+
+            ignoring(configurationHandler);
+        }});
+
+        ServiceRegistry registry = factory.createForBuild(gradle);
+
+        assertThat(registry.get(ScriptHandler.class), instanceOf(DefaultScriptHandler.class));
+        assertThat(registry.get(ScriptHandler.class), sameInstance(registry.get(
+                ScriptHandler.class)));
+        assertThat(registry.get(ScriptClassLoaderProvider.class), sameInstance((Object) registry.get(ScriptHandler.class)));
+    }
+
+    @Test
+    public void projectRegistryThrowsExceptionForUnknownService() {
         try {
-            factory.create(project).get(String.class);
+            factory.createForProject(project).get(String.class);
             fail();
         } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(), equalTo("No project service of type String available."));
+            assertThat(e.getMessage(), equalTo("No service of type String available."));
+        }
+    }
+
+    @Test
+    public void buildRegistryThrowsExceptionForUnknownService() {
+        try {
+            factory.createForBuild(gradle).get(String.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), equalTo("No service of type String available."));
         }
     }
 

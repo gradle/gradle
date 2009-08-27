@@ -47,6 +47,11 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>-S</option>, <option>--init-script</option></term>
+            <listitem><para>Specifies an initialization script.  See
+                <xref linkend="init_scripts"/> for details.</para></listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-a</option>, <option>--no-rebuild</option></term>
             <listitem><para>Do not rebuild project dependencies.
             </para></listitem>

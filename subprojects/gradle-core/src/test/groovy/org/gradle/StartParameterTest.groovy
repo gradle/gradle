@@ -58,6 +58,7 @@ class StartParameterTest {
         testObj.gradleUserHomeDir = new File('b')
         testObj.defaultImportsFile = new File('imports')
         testObj.pluginPropertiesFile = new File('plugin')
+        testObj.initScripts = [new File('init script'), new File("/path/to/another init script")]
         testObj.cacheUsage = CacheUsage.ON
 
         StartParameter startParameter = testObj.newInstance()
@@ -109,6 +110,7 @@ class StartParameterTest {
         assertThat(parameter.buildFile, nullValue())
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
+        assertThat(parameter.initScripts, equalTo(Collections.emptyList()))
     }
 
     @Test public void testSetProjectDir() {

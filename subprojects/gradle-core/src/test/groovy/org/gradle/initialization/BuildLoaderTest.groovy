@@ -35,9 +35,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.initialization.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.invocation.DefaultGradle
 
 /**
  * @author Hans Dockter
@@ -73,7 +73,11 @@ class BuildLoaderTest {
         rootProject = project(rootDescriptor, null)
         childDescriptor = descriptor('child', rootDescriptor, childProjectDir)
         childProject = project(childDescriptor, rootProject)
-        build = new DefaultGradle(startParameter, internalRepository)
+        build = context.mock(GradleInternal)
+        context.checking {
+            allowing(build).getStartParameter()
+            will(returnValue(startParameter))
+        }
     }
 
     @After
@@ -90,23 +94,19 @@ class BuildLoaderTest {
                     withParam(nullValue()),
                     withParam(notNullValue()))
             will(returnValue(rootProject))
+            one(build).setRootProject(rootProject)
+            allowing(build).getRootProject()
+            will(returnValue(rootProject))
+            one(build).setDefaultProject(rootProject)
         }
 
         buildLoader.load(rootDescriptor, build, [:])
-
-        assertThat(build.startParameter, sameInstance(startParameter))
-        assertThat(build.rootProject, sameInstance(rootProject))
-        assertThat(build.defaultProject, sameInstance(rootProject))
-        assertThat(build.internalRepository, sameInstance(internalRepository))
     }
 
     @Test public void createsBuildWithMultipleProjects() {
         expectProjectsCreated()
 
         buildLoader.load(rootDescriptor, build, [:])
-
-        assertThat(build.rootProject, sameInstance(rootProject))
-        assertThat(build.defaultProject, sameInstance(rootProject))
 
         assertThat(build.rootProject.childProjects['child'], sameInstance(childProject))
     }
@@ -139,21 +139,22 @@ class BuildLoaderTest {
     }
 
     @Test public void selectsDefaultProject() {
-        expectProjectsCreated()
+        expectProjectsCreatedNoDefaultProject()
 
         ProjectSpec selector = context.mock(ProjectSpec)
         startParameter.defaultProjectSelector = selector
         context.checking {
             one(selector).selectProject(withParam(instanceOf(IProjectRegistry)))
             will(returnValue(childProject))
+
+            one(build).setDefaultProject(childProject)
         }
 
         buildLoader.load(rootDescriptor, build, [:])
-        assertThat(build.defaultProject, sameInstance(childProject))
     }
 
     @Test public void wrapsDefaultProjectSelectionException() {
-        expectProjectsCreated()
+        expectProjectsCreatedNoDefaultProject()
 
         ProjectSpec selector = context.mock(ProjectSpec)
         startParameter.defaultProjectSelector = selector
@@ -170,7 +171,7 @@ class BuildLoaderTest {
         }
     }
 
-    private def expectProjectsCreated() {
+    private def expectProjectsCreatedNoDefaultProject() {
         context.checking {
             one(projectFactory).createProject(withParam(equalTo(rootDescriptor)),
                     withParam(nullValue()),
@@ -181,6 +182,18 @@ class BuildLoaderTest {
                     withParam(equalTo(rootProject)),
                     withParam(notNullValue()))
             will(returnValue(childProject))
+
+            one(build).setRootProject(rootProject)
+            allowing(build).getRootProject()
+            will(returnValue(rootProject))
+        }
+    }
+
+    private def expectProjectsCreated() {
+        expectProjectsCreatedNoDefaultProject()
+
+        context.checking {
+            one(build).setDefaultProject(rootProject)
         }
     }
 

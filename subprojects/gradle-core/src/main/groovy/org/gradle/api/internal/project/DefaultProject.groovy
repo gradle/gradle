@@ -39,7 +39,7 @@ class DefaultProject extends AbstractProject {
                           ScriptSource buildScriptSource,
                           IProjectRegistry projectRegistry,
                           GradleInternal build,
-                          ProjectServiceRegistryFactory serviceRegistryFactory
+                          ServiceRegistryFactory serviceRegistryFactory
     ) {
         super(name, parent, projectDir, buildFile, buildScriptSource, projectRegistry, build, serviceRegistryFactory);
     }

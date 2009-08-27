@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.initialization;
 
-public interface ProjectServiceRegistryFactory {
-    ProjectServiceRegistry create(ProjectInternal project);
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.groovy.scripts.ScriptSource;
+
+import java.util.List;
+
+/**
+ * Interface for objects that can find init scripts for a given build.
+ */
+public interface InitScriptFinder
+{
+    public List<ScriptSource> findScripts(GradleInternal gradle);
 }

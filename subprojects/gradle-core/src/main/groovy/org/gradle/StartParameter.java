@@ -72,6 +72,7 @@ public class StartParameter {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private File buildFile;
+    private List<File> initScripts = new ArrayList<File>();
     private boolean showHelp = false;
     private boolean showVersion = false;
     private boolean dryRun = false;
@@ -106,6 +107,7 @@ public class StartParameter {
         startParameter.cacheUsage = cacheUsage;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
+        startParameter.initScripts = new ArrayList<File>(initScripts); 
         startParameter.buildExecuter = buildExecuter;
         startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.logLevel = logLevel;
@@ -429,6 +431,30 @@ public class StartParameter {
             currentDir = canonicalFile.getParentFile();
             settingsScriptSource = new StrictScriptSource(new FileScriptSource("settings file", canonicalFile));
         }
+    }
+
+    /**
+     * Adds the given file to the list of init scripts that are run before the build starts.  This list is in
+     * addition to the user init script located in ${user.home}/.gradle/init.gradle.
+     * @param initScriptFile The init script to be run during the Gradle invocation.
+     */
+    public void addInitScript(File initScriptFile)
+    {
+        initScripts.add(initScriptFile);
+    }
+
+    public void setInitScripts(List<File> initScripts) {
+        this.initScripts = initScripts;
+    }
+
+    /**
+     * Returns all explicitly added init scripts that will be run before the build starts.  This list does not
+     * contain the user init script located in ${user.home}/.gradle/init.gradle, even though that init script
+     * will also be run.
+     * @return list of all explicitly added init scripts.
+     */
+    public List<File> getInitScripts() {
+        return Collections.unmodifiableList(initScripts);
     }
 
     public LogLevel getLogLevel() {

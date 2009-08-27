@@ -46,6 +46,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String PLUGIN_PROPERTIES_FILE = "l";
     private static final String DEFAULT_IMPORT_FILE = "K";
     private static final String BUILD_FILE = "b";
+    private static final String INIT_SCRIPT = "I";
     private static final String SETTINGS_FILE = "c";
     private static final String TASKS = "t";
     private static final String PROPERTIES = "r";
@@ -57,7 +58,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     public static final String STACKTRACE = "s";
     private static final String SYSTEM_PROP = "D";
     private static final String PROJECT_PROP = "P";
-    private static final String NO_DEFAULT_IMPORTS = "I";
+    private static final String NO_DEFAULT_IMPORTS = "no-imports";
     private static final String GRADLE_USER_HOME = "g";
     private static final String EMBEDDED_SCRIPT = "e";
     private static final String VERSION = "v";
@@ -69,7 +70,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
 
     OptionParser parser = new OptionParser() {
         {
-            acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS, "no-imports"), "Disable usage of default imports for build script files.");
+            acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS), "Disable usage of default imports for build script files.");
             acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"),
                     String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
             acceptsAll(WrapUtil.toList(CACHE, "cache"),
@@ -88,6 +89,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home directory.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(DEFAULT_IMPORT_FILE, "default-import-file"), "Specifies the default import file.").withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(INIT_SCRIPT, "init-script"), "Specifies an initialization script.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settings-file"), "Specifies the settings file.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(BUILD_FILE, "build-file"), "Specifies the build file.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(SYSTEM_PROP, "system-prop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
@@ -171,6 +173,11 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         if (options.hasArgument(SETTINGS_FILE)) {
             startParameter.setSettingsFile(new File(options.argumentOf(SETTINGS_FILE)));
         }
+
+        for (String script : (List<String>)options.argumentsOf(INIT_SCRIPT)) {
+            startParameter.addInitScript(new File(script));
+        }
+
         if (options.hasArgument(PLUGIN_PROPERTIES_FILE)) {
             startParameter.setPluginPropertiesFile(new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)));
         }

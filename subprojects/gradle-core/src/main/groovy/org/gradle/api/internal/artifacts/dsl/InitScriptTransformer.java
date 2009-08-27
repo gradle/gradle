@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.dsl;
 
-/**
- * An implementation of ClasspathScriptTransformer for use in build scripts.  This subclass
- * defines the script method name to be buildscript {}.
- */
-public class BuildScriptClasspathScriptTransformer extends ClasspathScriptTransformer {
-    private static final String BUILDSCRIPT_METHOD_NAME = "buildscript";
+import org.codehaus.groovy.control.CompilationUnit;
+import org.gradle.groovy.scripts.Transformer;
 
-    protected String getScriptMethodName() {
-        return BUILDSCRIPT_METHOD_NAME;
+/**
+ * Implements the transformer for an init script.  This transformer supports compiling the
+ * script while ignoring the classpath parts.
+ */
+public class InitScriptTransformer implements Transformer {
+    public void register(CompilationUnit compilationUnit) {
+        InitScriptClasspathScriptTransformer classpathScriptTransformer = new InitScriptClasspathScriptTransformer();
+        classpathScriptTransformer.invert().register(compilationUnit);
     }
 }
-
-

@@ -17,6 +17,7 @@ package org.gradle.api.invocation;
 
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.StartParameter;
@@ -122,4 +123,21 @@ public interface Gradle {
      * @param buildListener The listener to add.
      */
     void addBuildListener(BuildListener buildListener);
+
+    /**
+     * Returns the build script handler for this project. You can use this handler to manage the classpath used to
+     * compile and execute the project's build script.
+     *
+     * @return the classpath handler. Never returns null.
+     */
+    ScriptHandler getInitscript();
+
+    /**
+     * Configures the build script classpath for this project. The given closure is executed against this project's
+     * {@link ScriptHandler}. The {@link ScriptHandler} is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure the closure to use to configure the build script classpath.
+     */
+    void initscript(Closure configureClosure);
+
 }

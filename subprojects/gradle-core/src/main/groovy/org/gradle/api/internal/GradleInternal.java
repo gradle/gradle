@@ -19,6 +19,7 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskExecuter;
 import org.gradle.BuildListener;
@@ -60,6 +61,11 @@ public interface GradleInternal extends Gradle {
      */
     void setBuildScriptClassLoader(ClassLoader buildScriptClassLoader);
 
+    /**
+     * Returns the provider that has been configured by the initscript {} section
+     * in the init scripts.
+     */
+    ScriptClassLoaderProvider getClassLoaderProvider();
 
     /**
      * Returns the broadcaster for {@link ProjectEvaluationListener} events for this build

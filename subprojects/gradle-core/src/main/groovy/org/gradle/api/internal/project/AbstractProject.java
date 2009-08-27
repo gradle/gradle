@@ -146,7 +146,7 @@ public abstract class AbstractProject implements ProjectInternal {
                            ScriptSource buildScriptSource,
                            IProjectRegistry projectRegistry,
                            GradleInternal gradle,
-                           ProjectServiceRegistryFactory serviceRegistryFactory) {
+                           ServiceRegistryFactory serviceRegistryFactory) {
         assert name != null;
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.projectDir = projectDir;
@@ -168,7 +168,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
         fileResolver = new BaseDirConverter(getProjectDir());
 
-        ProjectServiceRegistry serviceRegistry = serviceRegistryFactory.create(this);
+        ServiceRegistry serviceRegistry = serviceRegistryFactory.createForProject(this);
         antBuilderFactory = serviceRegistry.get(AntBuilderFactory.class);
         taskContainer = serviceRegistry.get(TaskContainerInternal.class);
         repositoryHandlerFactory = serviceRegistry.get(RepositoryHandlerFactory.class);

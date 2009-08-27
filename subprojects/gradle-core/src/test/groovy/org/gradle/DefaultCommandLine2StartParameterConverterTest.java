@@ -51,11 +51,11 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private File expectedProjectDir;
     private List<String> expectedTaskNames = toList();
     private Set<String> expectedExcludedTasks = toSet();
-    private ProjectDependenciesBuildInstruction expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(
-            WrapUtil.<String>toList()
-    );
+    private ProjectDependenciesBuildInstruction expectedProjectDependenciesBuildInstruction
+            = new ProjectDependenciesBuildInstruction(WrapUtil.<String>toList());
     private Map<String, String> expectedSystemProperties = new HashMap<String, String>();
     private Map<String, String> expectedProjectProperties = new HashMap<String, String>();
+    private List<File> expectedInitScripts = new ArrayList<File>();
     private CacheUsage expectedCacheUsage = CacheUsage.ON;
     private boolean expectedSearchUpwards = true;
     private boolean expectedDryRun = false;
@@ -98,7 +98,8 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private void checkStartParameter(StartParameter startParameter, boolean emptyTasks) {
         assertEquals(expectedBuildFile, startParameter.getBuildFile());
         assertEquals(emptyTasks ? new ArrayList() : expectedTaskNames, startParameter.getTaskNames());
-        assertEquals(expectedProjectDependenciesBuildInstruction, startParameter.getProjectDependenciesBuildInstruction());
+        assertEquals(expectedProjectDependenciesBuildInstruction,
+                startParameter.getProjectDependenciesBuildInstruction());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
         assertEquals(expectedCacheUsage, startParameter.getCacheUsage());
         assertEquals(expectedSearchUpwards, startParameter.isSearchUpwards());
@@ -114,6 +115,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
         assertEquals(expectedShowVersion, startParameter.isShowVersion());
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
+        assertEquals(expectedInitScripts, startParameter.getInitScripts());
     }
 
     private void checkConversion(final boolean embedded, final boolean noTasks, String... args) {
@@ -142,7 +144,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test
     public void withDisabledDefaultImports() {
         expectedGradleImportsFile = null;
-        checkConversion("-I");
+        checkConversion("-no-imports");
     }
 
     @Test
@@ -319,8 +321,8 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     @Test
     public void withProjectDependencyTaskNames() {
-        expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(
-                WrapUtil.toList("task1", "task2"));
+        expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(WrapUtil.toList("task1",
+                "task2"));
         checkConversion("-Atask1", "-A task2");
     }
 
@@ -389,5 +391,16 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withMissingGradleHome() {
         System.getProperties().remove(Main.GRADLE_HOME_PROPERTY_KEY);
         checkConversion("clean");
+    }
+
+    @Test
+    public void withInitScripts() {
+        File script1 = new File("init1.gradle");
+        expectedInitScripts.add(script1);
+        checkConversion("-Iinit1.gradle");
+
+        File script2 = new File("init2.gradle");
+        expectedInitScripts.add(script2);
+        checkConversion("-Iinit1.gradle", "-Iinit2.gradle");
     }
 }

@@ -89,8 +89,8 @@ class DefaultProjectTest {
 
     ScriptSource script;
 
-    ProjectServiceRegistry serviceRegistryMock
-    ProjectServiceRegistryFactory projectServiceRegistryFactoryMock
+    ServiceRegistry serviceRegistryMock
+    ServiceRegistryFactory projectServiceRegistryFactoryMock
     TaskContainerInternal taskContainerMock
     AntBuilderFactory antBuilderFactoryMock
     AntBuilder testAntBuilder
@@ -145,17 +145,17 @@ class DefaultProjectTest {
         testScript = new EmptyScript()
         StartParameter parameter = new StartParameter()
         parameter.pluginPropertiesFile = new File('plugin.properties')
-        build = new DefaultGradle(parameter, null)
 
         testTask = HelperUtil.createTask(DefaultTask)
         
         projectEvaluator = context.mock(ProjectEvaluator)
 
-        projectServiceRegistryFactoryMock = context.mock(ProjectServiceRegistryFactory)
-        serviceRegistryMock = context.mock(ProjectServiceRegistry)
+        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory)
+        serviceRegistryMock = context.mock(ServiceRegistry)
 
         context.checking {
-            allowing(projectServiceRegistryFactoryMock).create(withParam(any(Project))); will(returnValue(serviceRegistryMock))
+            allowing(projectServiceRegistryFactoryMock).createForProject(withParam(any(Project))); will(returnValue(serviceRegistryMock))
+            allowing(projectServiceRegistryFactoryMock).createForBuild(withParam(any(Gradle))); will(returnValue(serviceRegistryMock))
             allowing(serviceRegistryMock).get(TaskContainerInternal); will(returnValue(taskContainerMock))
             allowing(taskContainerMock).getAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
             allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
@@ -170,6 +170,8 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
         }
+
+        build = new DefaultGradle(parameter, null, projectServiceRegistryFactoryMock)
 
         rootDir = new File("/path/root").absoluteFile
         projectRegistry = build.projectRegistry

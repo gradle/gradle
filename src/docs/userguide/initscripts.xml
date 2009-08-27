@@ -1,0 +1,64 @@
+<chapter id='init_scripts' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Initialization Scripts</title>
+    <para>Gradle provides a powerful mechanism to allow customizing the build based on the current environment.  This
+        mechanism also supports tools that wish to integrate with Gradle.
+    </para>
+    <section id='sec:basic_usage'>
+        <title>Basic usage</title>
+        <para>Initialization scripts (a.k.a. <firstterm>init scripts</firstterm>) are similar to other scripts in Gradle.
+            These scripts, however, are run before the build starts.  Here are several possible uses:
+            <itemizedlist>
+                <listitem>
+                    <para>Set up properties based on the current environment (such as a developer's machine vs. a
+                        continuous integration server.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Supply personal information about the user to the build, such as repository or database
+                        authentication credentials.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Define machine specific details, such as where JDKs are installed.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>Register build listeners.  External tools that wish to listen to Gradle events might find
+                        this useful.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            One main limitation of init scripts is that they cannot access classes in the buildSrc special module (see
+            <xref linkend='sec:build_sources'/> for details of this feature).
+        </para>
+        <para>There are two ways to use init scripts.  Either put a file in &lt;user home&gt;/.gradle called init.gradle,
+            or specify the file on the command line.  The command line option is <literal>-I</literal> or
+            <literal>--init-script</literal> followed by the path to the script.  The command line option can appear
+            more than once, each time adding another init script. If more than one init script is found they will all be
+            executed. This allows for a tool to specify an init script and the user to put home in their home directory
+            for defining the environment and both scripts will run when gradle is executed.
+        </para>
+    </section>
+    <section id='sec:custom_classpath'>
+        <title>External dependencies for the init script</title>
+        <para>In <xref linkend='sec:external_dependencies'/> is was explained how to add external dependencies to a
+            build script. Init scripts can similarly have external dependencies defined.  You do this using the
+            <literal>initscript()</literal> method, passing in a closure which declares the init script classpath.
+        </para>
+        <sample id="declareExternalInitDependency" dir="userguide/initScripts/externalDependency" title="Declaring external dependencies for an init script">
+            <sourcefile file="init.gradle" snippet="declare-classpath"/>
+        </sample>
+        <para>The closure passed to the <literal>initscript()</literal> method configures a
+            <apilink class="org.gradle.api.initialization.dsl.ScriptHandler"/> instance. You declare the init script
+            classpath by adding dependencies to the <literal>classpath</literal> configuration. This is the same way
+            you declare, for example, the Java compilation classpath. You can use any of the dependency types described
+            in <xref linkend='sec:how_to_declare_your_dependencies'/>, except project dependencies.</para>
+        <para>Having declared the init script classpath, you can use the classes in your init script as you would
+            any other classes on the classpath. The following example adds to the previous example, and uses classes
+            from the init script classpath.</para>
+        <sample id="externalInitDependency" dir="userguide/initScripts/externalDependency" title="An init script with external dependencies">
+            <sourcefile file="init.gradle"/>
+            <output args="--init-script init.gradle -q doNothing"/>
+        </sample>
+    </section>
+</chapter>

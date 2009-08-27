@@ -69,7 +69,7 @@ public class ProjectFactoryTest {
     private PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory.class);
     private ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
     private ClassGenerator classGenerator = context.mock(ClassGenerator.class);
-    private ProjectServiceRegistryFactory serviceRegistryFactory = new DefaultProjectServiceRegistryFactory(
+    private ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
             repositoryHandlerFactory, configurationContainerFactory, publishArtifactFactoryMock, dependencyFactoryMock,
             projectEvaluator, classGenerator);
     private PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);

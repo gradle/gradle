@@ -46,6 +46,10 @@ public class DefaultProjectEvaluatorTest {
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
+            allowing(gradle).getBuildListenerBroadcaster();
+            will(returnValue(listener));
+            allowing(project).getGradle();
+            will(returnValue(gradle));
             allowing(project).getBuildScriptSource();
             will(returnValue(scriptSource));
         }});
@@ -57,7 +61,6 @@ public class DefaultProjectEvaluatorTest {
             allowing(gradle).getProjectEvaluationBroadcaster();
             will(returnValue(listener));
         }});
-        evaluator.projectsLoaded(gradle);
 
         context.checking(new Expectations() {{
             one(listener).beforeEvaluate(project);
@@ -80,7 +83,6 @@ public class DefaultProjectEvaluatorTest {
             allowing(gradle).getProjectEvaluationBroadcaster();
             will(returnValue(listener));
         }});
-        evaluator.projectsLoaded(gradle);
 
         context.checking(new Expectations() {{
             one(listener).beforeEvaluate(project);

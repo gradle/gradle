@@ -42,7 +42,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.SelfResolvingDependenc
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.DefaultProjectServiceRegistryFactory
+import org.gradle.api.internal.project.DefaultServiceRegistryFactory
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectFactory
 import org.gradle.api.specs.AndSpec
@@ -91,7 +91,7 @@ class HelperUtil {
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory([new SelfResolvingDependencyFactory()] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory())
         StartParameter startParameter = new StartParameter()
         startParameter.pluginPropertiesFile = new File('plugin.properties')
-        DefaultProjectServiceRegistryFactory serviceRegistryFactory = new DefaultProjectServiceRegistryFactory(
+        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
                 repositoryHandlerFactory,
                 new DefaultConfigurationContainerFactory(startParameter.projectDependenciesBuildInstruction),
                 new DefaultPublishArtifactFactory(),
@@ -105,7 +105,7 @@ class HelperUtil {
 
         DefaultInternalRepository internalRepo = new DefaultInternalRepository()
         internalRepo.setName('testInternalRepo') 
-        DefaultGradle build = new DefaultGradle(startParameter, internalRepo)
+        DefaultGradle build = new DefaultGradle(startParameter, internalRepo, serviceRegistryFactory)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)

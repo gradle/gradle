@@ -22,10 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.initialization.BuildLoader;
-import org.gradle.initialization.DefaultLoggingConfigurer;
-import org.gradle.initialization.IGradlePropertiesLoader;
-import org.gradle.initialization.SettingsHandler;
+import org.gradle.initialization.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,16 +51,18 @@ public class GradleLauncher {
     private IGradlePropertiesLoader gradlePropertiesLoader;
     private BuildLoader buildLoader;
     private BuildConfigurer buildConfigurer;
+    private InitScriptHandler initScriptHandler;
 
     /**
      * Creates a new instance.  Don't call this directly, use {@link #newInstance(StartParameter)} or
      * {@link #newInstance(String[])} instead.  Note that this method is package-protected to discourage
      * it's direct use.
      */
-    public GradleLauncher(GradleInternal gradle, SettingsHandler settingsHandler,
-                  IGradlePropertiesLoader gradlePropertiesLoader,
-                  BuildLoader buildLoader, BuildConfigurer buildConfigurer) {
+    public GradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
+                  IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
+                  BuildConfigurer buildConfigurer) {
         this.gradle = gradle;
+        this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.buildLoader = buildLoader;
@@ -114,8 +113,9 @@ public class GradleLauncher {
     }
 
     private BuildResult doBuild(RunSpecification runSpecification) {
+        initScriptHandler.executeScripts(gradle);
         gradle.getBuildListenerBroadcaster().buildStarted(gradle);
-
+        
         SettingsInternal settings = null;
         Throwable failure = null;
         try {

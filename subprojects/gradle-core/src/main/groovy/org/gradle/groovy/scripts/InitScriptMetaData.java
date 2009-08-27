@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl;
+package org.gradle.groovy.scripts;
+
+import groovy.lang.Script;
+import org.gradle.api.invocation.Gradle;
 
 /**
- * An implementation of ClasspathScriptTransformer for use in build scripts.  This subclass
- * defines the script method name to be buildscript {}.
+ * @author Hans Dockter
  */
-public class BuildScriptClasspathScriptTransformer extends ClasspathScriptTransformer {
-    private static final String BUILDSCRIPT_METHOD_NAME = "buildscript";
-
-    protected String getScriptMethodName() {
-        return BUILDSCRIPT_METHOD_NAME;
-    }
+public interface InitScriptMetaData
+{
+    void applyMetaData(Script script, Gradle gradle);
 }
-
-
