@@ -42,6 +42,11 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>-S</option>, <option>--full-stacktrace</option></term>
+            <listitem><para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="logging"/>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-a</option>, <option>--no-rebuild</option></term>
             <listitem><para>Do not rebuild project dependencies.
             </para></listitem>
@@ -63,11 +68,6 @@
         <varlistentry>
             <term><option>-e</option>, <option>--embedded</option></term>
             <listitem><para>Specify an embedded build script.
-            </para></listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>-f</option>, <option>--full-stacktrace</option></term>
-            <listitem><para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="logging"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -121,6 +121,11 @@
         <varlistentry>
             <term><option>-v</option>, <option>--version</option></term>
             <listitem><para>Prints version info.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-x</option>, <option>--exclude-task</option></term>
+            <listitem><para>Specifies a task to be excluded from execution.
             </para></listitem>
         </varlistentry>
     </variablelist>
