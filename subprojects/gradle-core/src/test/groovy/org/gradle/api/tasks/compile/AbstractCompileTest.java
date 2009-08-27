@@ -38,7 +38,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final String TEST_PATTERN_2 = "pattern2";
     public static final String TEST_PATTERN_3 = "pattern3";
 
-    public static final File TEST_TARGET_DIR = new File("/targetDir");
+    public static final File TEST_TARGET_DIR = new File("targetDir");
 
     public static final List<File> TEST_DEPENDENCY_MANAGER_CLASSPATH = WrapUtil.toList(new File("jar1"));
     public static final List<String> TEST_INCLUDES = WrapUtil.toList("incl");
