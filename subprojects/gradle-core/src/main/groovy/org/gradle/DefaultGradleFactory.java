@@ -91,7 +91,7 @@ public class DefaultGradleFactory implements GradleFactory {
                 new BuildScriptCompiler(
                         importsReader,
                         scriptProcessorFactory,
-                        new DefaultProjectScriptMetaData()),
+                        new DefaultScriptMetaData()),
                 new BuildScriptEvaluator());
         ClassGenerator classGenerator = new DefaultClassGenerator();
         ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
@@ -104,7 +104,7 @@ public class DefaultGradleFactory implements GradleFactory {
                 new UserHomeInitScriptFinder(
                         new DefaultInitScriptFinder()),
                 new DefaultInitScriptProcessor(scriptProcessorFactory,
-                        new DefaultInitScriptMetaData()));
+                        new DefaultScriptMetaData()));
         DefaultGradle gradle = new DefaultGradle(startParameter, internalRepository, serviceRegistryFactory);
         gradle.addBuildListener(internalRepository);
         return new GradleLauncher(
@@ -114,7 +114,7 @@ public class DefaultGradleFactory implements GradleFactory {
                         settingsFinder,
                         new PropertiesLoadingSettingsProcessor(
                                 new ScriptEvaluatingSettingsProcessor(
-                                        new DefaultSettingsScriptMetaData(), scriptProcessorFactory,
+                                        new DefaultScriptMetaData(), scriptProcessorFactory,
                                         importsReader,
                                         new SettingsFactory(new DefaultProjectDescriptorRegistry()))
                         ),

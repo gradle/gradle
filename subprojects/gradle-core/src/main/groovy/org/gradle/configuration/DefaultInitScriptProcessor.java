@@ -27,10 +27,10 @@ import groovy.lang.Script;
  */
 public class DefaultInitScriptProcessor implements InitScriptProcessor {
     private final ScriptProcessorFactory scriptProcessorFactory;
-    private final InitScriptMetaData initScriptMetaData;
+    private final ScriptMetaData initScriptMetaData;
 
     public DefaultInitScriptProcessor(ScriptProcessorFactory scriptProcessorFactory,
-                              InitScriptMetaData initScriptMetaData) {
+                              ScriptMetaData initScriptMetaData) {
         this.scriptProcessorFactory = scriptProcessorFactory;
         this.initScriptMetaData = initScriptMetaData;
     }

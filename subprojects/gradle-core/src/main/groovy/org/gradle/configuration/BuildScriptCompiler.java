@@ -27,10 +27,10 @@ import groovy.lang.Script;
 public class BuildScriptCompiler implements ProjectEvaluator {
     private final ImportsReader importsReader;
     private final ScriptProcessorFactory scriptProcessorFactory;
-    private final IProjectScriptMetaData projectScriptMetaData;
+    private final ScriptMetaData projectScriptMetaData;
 
     public BuildScriptCompiler(ImportsReader importsReader, ScriptProcessorFactory scriptProcessorFactory,
-                               IProjectScriptMetaData projectScriptMetaData) {
+                               ScriptMetaData projectScriptMetaData) {
         this.importsReader = importsReader;
         this.scriptProcessorFactory = scriptProcessorFactory;
         this.projectScriptMetaData = projectScriptMetaData;

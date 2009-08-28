@@ -25,9 +25,9 @@ import org.junit.Test
 /**
  * @author Hans Dockter
  */
-class DefaultProjectScriptMetaDataTest {
+class DefaultScriptMetaDataTest {
     @Test public void testApplyMetaData() {
-        DefaultProjectScriptMetaData projectScriptMetaData = new DefaultProjectScriptMetaData()
+        DefaultScriptMetaData projectScriptMetaData = new DefaultScriptMetaData()
         DefaultProject testProject = new DefaultProject('someproject')
         testProject.custom = 'true'
         Script script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)

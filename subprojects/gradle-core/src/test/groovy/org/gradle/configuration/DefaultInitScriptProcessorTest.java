@@ -36,7 +36,7 @@ public class DefaultInitScriptProcessorTest {
     public void testProcess() {
         final ScriptProcessorFactory scriptProcessorFactoryMock = context.mock(ScriptProcessorFactory.class);
         final ScriptProcessor scriptProcessorMock = context.mock(ScriptProcessor.class);
-        final InitScriptMetaData initScriptMetaDataMock = context.mock(InitScriptMetaData.class);
+        final ScriptMetaData initScriptMetaDataMock = context.mock(ScriptMetaData.class);
         final ScriptSource initScriptMock = context.mock(ScriptSource.class);
         final GradleInternal gradleMock = context.mock(GradleInternal.class);
         final ScriptClassLoaderProvider buildClassLoaderProviderMock = context.mock(ScriptClassLoaderProvider.class);

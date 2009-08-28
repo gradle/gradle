@@ -42,13 +42,13 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     private ScriptProcessorFactory scriptProcessorFactory;
 
-    private ISettingsScriptMetaData settingsScriptMetaData;
+    private ScriptMetaData settingsScriptMetaData;
 
     public ScriptEvaluatingSettingsProcessor() {
 
     }
 
-    public ScriptEvaluatingSettingsProcessor(ISettingsScriptMetaData settingsScriptMetaData,
+    public ScriptEvaluatingSettingsProcessor(ScriptMetaData settingsScriptMetaData,
                                              ScriptProcessorFactory scriptProcessorFactory, ImportsReader importsReader,
                                              SettingsFactory settingsFactory) {
         this.settingsScriptMetaData = settingsScriptMetaData;
@@ -109,11 +109,11 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         return scriptProcessorFactory;
     }
 
-    public ISettingsScriptMetaData getSettingsScriptMetaData() {
+    public ScriptMetaData getSettingsScriptMetaData() {
         return settingsScriptMetaData;
     }
 
-    public void setSettingsScriptMetaData(ISettingsScriptMetaData settingsScriptMetaData) {
+    public void setSettingsScriptMetaData(ScriptMetaData settingsScriptMetaData) {
         this.settingsScriptMetaData = settingsScriptMetaData;
     }
 }

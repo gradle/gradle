@@ -47,7 +47,7 @@ public class BuildScriptCompilerTest {
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final ScriptProcessorFactory scriptProcessorFactory = context.mock(ScriptProcessorFactory.class);
     private final ScriptProcessor processor = context.mock(ScriptProcessor.class);
-    private final IProjectScriptMetaData projectScriptMetaData = context.mock(IProjectScriptMetaData.class);
+    private final ScriptMetaData projectScriptMetaData = context.mock(ScriptMetaData.class);
     private final ImportsReader importsReader = context.mock(ImportsReader.class);
     private final ClassLoader classLoader = context.mock(ClassLoader.class);
     private final ProjectScript classpathScript = context.mock(ProjectScript.class, "classpath");
