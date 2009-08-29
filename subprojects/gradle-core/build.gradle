@@ -51,7 +51,7 @@ dependencies {
 
     runtime "org.slf4j:log4j-over-slf4j:1.5.3@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar"
 
-    compile "org.codenarc:CodeNarc:0.6@jar", "org.slf4j:log4j-over-slf4j:1.5.3@jar"
+    compile "org.codenarc:CodeNarc:0.7@jar", "org.slf4j:log4j-over-slf4j:1.5.3@jar"
 
     testCompile "xmlunit:xmlunit:1.2"
 

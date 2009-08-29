@@ -11,7 +11,7 @@ class GroovyCodeQualityPluginConvention {
 
     def GroovyCodeQualityPluginConvention(Project project) {
         this.project = project
-        codeNarcConfigFileName = 'config/codenarc.xml'
+        codeNarcConfigFileName = 'config/codenarc/codenarc.xml'
         codeNarcReportFileName = 'codenarc/main.html'
         codeNarcTestReportFileName = 'codenarc/test.html'
     }

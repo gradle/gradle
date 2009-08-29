@@ -11,7 +11,7 @@ class JavaCodeQualityPluginConvention {
 
     def JavaCodeQualityPluginConvention(Project project) {
         this.project = project
-        checkstyleConfigFileName = 'config/checkstyle.xml'
+        checkstyleConfigFileName = 'config/checkstyle/checkstyle.xml'
         checkstyleResultFileName = 'checkstyle/main.xml'
         checkstyleTestResultFileName = 'checkstyle/test.xml'
     }

@@ -141,7 +141,7 @@ usePlugin 'code-quality'
     }
 
     private TestFile writeCheckstyleConfig() {
-        return testFile('config/checkstyle.xml') << '''
+        return testFile('config/checkstyle/checkstyle.xml') << '''
 <!DOCTYPE module PUBLIC
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
         "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
@@ -153,7 +153,7 @@ usePlugin 'code-quality'
     }
 
     private TestFile writeCodeNarcConfigFile() {
-        return testFile('config/codenarc.xml') << '''
+        return testFile('config/codenarc/codenarc.xml') << '''
 <ruleset xmlns="http://codenarc.org/ruleset/1.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
