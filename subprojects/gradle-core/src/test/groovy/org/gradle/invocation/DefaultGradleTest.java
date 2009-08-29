@@ -45,7 +45,7 @@ import java.io.File;
 import java.io.IOException;
 
 @RunWith(JUnit4.class)
-public class DefaultBuildTest {
+public class DefaultGradleTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final StartParameter parameter = new StartParameter() {{
         setPluginPropertiesFile(new File("plugin.properties"));

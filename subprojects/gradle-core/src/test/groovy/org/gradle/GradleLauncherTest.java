@@ -51,7 +51,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
-public class GradleTest {
+public class GradleLauncherTest {
     private BuildLoader buildLoaderMock;
     private InitScriptHandler initscriptHandlerMock;
     private SettingsHandler settingsHandlerMock;

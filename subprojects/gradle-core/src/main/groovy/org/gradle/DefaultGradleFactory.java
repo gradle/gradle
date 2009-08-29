@@ -86,7 +86,7 @@ public class DefaultGradleFactory implements GradleFactory {
                 new DefaultScriptRunnerFactory(
                         new DefaultScriptMetaData()));
         DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(
-                new BuildScriptCompiler(
+                new BuildScriptProcessor(
                         importsReader,
                         scriptProcessorFactory));
         ClassGenerator classGenerator = new DefaultClassGenerator();

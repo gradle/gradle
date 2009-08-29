@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 
 @RunWith(JMock.class)
-public class BuildScriptCompilerTest {
+public class BuildScriptProcessorTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
@@ -52,7 +52,7 @@ public class BuildScriptCompilerTest {
     private final ScriptClassLoaderProvider classLoaderProvider = context.mock(ScriptClassLoaderProvider.class);
     private final File rootDir = new File("root dir");
     private final Script buildScript = context.mock(Script.class);
-    private final BuildScriptCompiler evaluator = new BuildScriptCompiler(importsReader, scriptProcessorFactory);
+    private final BuildScriptProcessor evaluator = new BuildScriptProcessor(importsReader, scriptProcessorFactory);
 
     @Before
     public void setUp() {

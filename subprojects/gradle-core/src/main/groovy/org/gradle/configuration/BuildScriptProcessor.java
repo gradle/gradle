@@ -22,15 +22,15 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.*;
 
-public class BuildScriptCompiler implements ProjectEvaluator {
+public class BuildScriptProcessor implements ProjectEvaluator {
     private final ImportsReader importsReader;
     private final ScriptProcessorFactory scriptProcessorFactory;
 
-    public BuildScriptCompiler(ImportsReader importsReader, ScriptProcessorFactory scriptProcessorFactory) {
+    public BuildScriptProcessor(ImportsReader importsReader, ScriptProcessorFactory scriptProcessorFactory) {
         this.importsReader = importsReader;
         this.scriptProcessorFactory = scriptProcessorFactory;
     }
-    
+
     public void evaluate(ProjectInternal project) {
         ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader,
                 project.getRootDir());
