@@ -16,27 +16,87 @@
 <chapter id="eclipse_plugin">
     <title>The Eclipse Plugin</title>
     <note>
-        <para>This chapter is a work in progress</para>
+        <para>This chapter is a work in progress.</para>
     </note>
-
+    
+    <para>The Eclipse plugin generates files that are used by <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>). Both external and project dependencies are considered.</para>
+    <para>To use the plugin, include in your build script:
+<programlisting><![CDATA[
+usePlugin('eclipse')	
+]]></programlisting>
+</para>
+<para>The Eclipse plugin will create different files depending on the other plugins used. If used together with the Java Plugin, <filename>.project</filename> and <filename>.classpath</filename> files will be generated. If used with the War plugin, additional wtp files will be generated.</para>
+<section>
+        <title>Usage</title>
+<para>There are several tasks (presented in <xref linkend='eclipsetasks'/>) that the Eclipse plugin provides, but you will probably use only <literal>eclipse</literal> task by executing <userinput>gradle eclipse</userinput>.
+</para>
+    </section>
     <section>
         <title>Tasks</title>
-        <para>TBD</para>
-    </section>
-
-    <section>
-        <title>Project layout</title>
-        <para>TBD</para>
-    </section>
-
-    <section>
-        <title>Dependency management</title>
-        <para>TBD</para>
-    </section>
-
-    <section>
-        <title>Convention properties</title>
-        <para>TBD</para>
+<para>The Eclipse plugin adds the tasks shown in <xref linkend='eclipsetasks'/> to a project.
+        </para>
+        <table id='eclipsetasks'>
+            <title>Eclipse plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>eclipse</literal>
+                </td>
+                <td><literal>eclipseCp</literal>, <literal>eclipseProject</literal>, <literal>eclipseWtp</literal></td>
+                <td><literal>-</literal></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>eclipseClean</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseClean"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>eclipseCp</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseClasspath"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>eclipseProject</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseProject"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>eclipseWtp</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseWtp"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>eclipseWtpModule</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseWtpModule"/></td>
+            </tr>
+        </table>
     </section>
 
 </chapter>
