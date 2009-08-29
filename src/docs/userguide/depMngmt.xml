@@ -236,6 +236,9 @@
             </para>
             <para>Multi-project builds are discussed in <xref linkend='multi_project_builds'/>.
             </para>
+            <para>Transitive compile dependencies are disabled by default. They can be enabled by setting 
+                <literal>configurations.compile.transitive = true</literal>.
+            </para>
         </section>
         <section>
             <title>File dependencies</title>
