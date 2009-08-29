@@ -24,7 +24,7 @@
         The following tools are supported:
         <itemizedlist>
             <listitem><para><ulink url="http://checkstyle.sourceforge.net/index.html">Checkstyle</ulink></para></listitem>
-            <listitem><para><ulink url="http://codenarc.sourceforge.net/index.html"/>CodeNarc</para></listitem>
+            <listitem><para><ulink url="http://codenarc.sourceforge.net/index.html">CodeNarc</ulink></para></listitem>
         </itemizedlist>
     </para>
 

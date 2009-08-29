@@ -31,9 +31,10 @@
             One main limitation of init scripts is that they cannot access classes in the buildSrc special module (see
             <xref linkend='sec:build_sources'/> for details of this feature).
         </para>
-        <para>There are two ways to use init scripts.  Either put a file in &lt;user home&gt;/.gradle called init.gradle,
-            or specify the file on the command line.  The command line option is <literal>-I</literal> or
-            <literal>--init-script</literal> followed by the path to the script.  The command line option can appear
+        <para>There are two ways to use init scripts.  Either put a file called <filename>init.gradle</filename> in
+            <filename><replaceable>USER_HOME</replaceable>/.gradle</filename>,
+            or specify the file on the command line.  The command line option is <option>-I</option> or
+            <option>--init-script</option> followed by the path to the script.  The command line option can appear
             more than once, each time adding another init script. If more than one init script is found they will all be
             executed. This allows for a tool to specify an init script and the user to put home in their home directory
             for defining the environment and both scripts will run when gradle is executed.

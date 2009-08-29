@@ -26,10 +26,9 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-I</option>, <option>--no-imports</option></term>
-            <listitem><para>Disable usage of default imports for build script files. See
-                <xref linkend="sec:using_gradle_without_ide_support"/> for details.
-            </para></listitem>
+            <term><option>-I</option>, <option>--init-script</option></term>
+            <listitem><para>Specifies an initialization script.  See
+                <xref linkend="init_scripts"/> for details.</para></listitem>
         </varlistentry>
         <varlistentry>
             <term><option>-K</option>, <option>--default-import-file</option></term>
@@ -45,11 +44,6 @@
             <term><option>-S</option>, <option>--full-stacktrace</option></term>
             <listitem><para>Print out the full (very verbose) stacktrace for any exceptions. See <xref linkend="logging"/>.
             </para></listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>-S</option>, <option>--init-script</option></term>
-            <listitem><para>Specifies an initialization script.  See
-                <xref linkend="init_scripts"/> for details.</para></listitem>
         </varlistentry>
         <varlistentry>
             <term><option>-a</option>, <option>--no-rebuild</option></term>
@@ -131,6 +125,12 @@
         <varlistentry>
             <term><option>-x</option>, <option>--exclude-task</option></term>
             <listitem><para>Specifies a task to be excluded from execution.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>--no-imports</option></term>
+            <listitem><para>Disable usage of default imports for build script files. See
+                <xref linkend="sec:using_gradle_without_ide_support"/> for details.
             </para></listitem>
         </varlistentry>
     </variablelist>
