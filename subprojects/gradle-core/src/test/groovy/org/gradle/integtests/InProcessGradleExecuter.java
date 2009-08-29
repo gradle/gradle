@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import static org.gradle.util.Matchers.*;
 import org.hamcrest.Matcher;
@@ -30,6 +31,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,51 +41,68 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final StartParameter parameter;
     private final List<String> tasks = new ArrayList<String>();
     private final List<Task> planned = new ArrayList<Task>();
+    private OutputListenerImpl outputListener = new OutputListenerImpl();
+    private OutputListenerImpl errorListener = new OutputListenerImpl();
 
     public InProcessGradleExecuter(StartParameter parameter) {
         this.parameter = parameter;
     }
 
+    @Override
     public GradleExecuter inDirectory(File directory) {
         parameter.setCurrentDir(directory);
         return this;
     }
 
+    @Override
     public InProcessGradleExecuter withSearchUpwards() {
         parameter.setSearchUpwards(true);
         return this;
     }
 
+    @Override
     public InProcessGradleExecuter withTasks(String... names) {
         parameter.setTaskNames(Arrays.asList(names));
         return this;
     }
 
+    @Override
     public GradleExecuter withTasks(List<String> names) {
         parameter.setTaskNames(names);
         return this;
     }
 
+    @Override
     public InProcessGradleExecuter withTaskList() {
         parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
         return this;
     }
 
+    @Override
     public InProcessGradleExecuter withDependencyList() {
         parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
         return this;
     }
 
+    @Override
     public InProcessGradleExecuter usingSettingsFile(File settingsFile) {
         parameter.setSettingsFile(settingsFile);
         return this;
     }
 
-    public InProcessGradleExecuter usingBuildScript(String script) {
+    @Override
+    public GradleExecuter usingInitScript(File initScript) {
+        parameter.addInitScript(initScript);
+        return this;
+    }
+
+    @Override
+    public GradleExecuter usingBuildScript(String script) {
         parameter.useEmbeddedBuildFile(script);
         return this;
     }
 
+    @Override
     public GradleExecuter withQuietLogging() {
         parameter.setLogLevel(LogLevel.QUIET);
         return this;
@@ -97,10 +116,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     public ExecutionResult run() {
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
-        gradleLauncher.addBuildListener(new ListenerImpl());
+        gradleLauncher.addBuildListener(new BuildListenerImpl());
+        gradleLauncher.addStandardOutputListener(outputListener);
+        gradleLauncher.addStandardErrorListener(errorListener);
         BuildResult result = gradleLauncher.run();
         result.rethrowFailure();
-        return new InProcessExecutionResult(tasks);
+        return new InProcessExecutionResult(tasks, outputListener.writer.toString(), errorListener.writer.toString());
     }
 
     public ExecutionFailure runWithFailure() {
@@ -108,17 +129,25 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             run();
             throw new AssertionFailedError("expected build to fail.");
         } catch (GradleException e) {
-            return new InProcessExecutionFailure(tasks, e);
+            return new InProcessExecutionFailure(tasks, outputListener.writer.toString(), errorListener.writer.toString(), e);
         }
     }
 
-    private class ListenerImpl extends BuildAdapter {
+    private class BuildListenerImpl extends BuildAdapter {
         private TaskListenerImpl listener = new TaskListenerImpl();
 
         public void taskGraphPopulated(TaskExecutionGraph graph) {
             planned.clear();
             planned.addAll(graph.getAllTasks());
             graph.addTaskExecutionListener(listener);
+        }
+    }
+
+    private class OutputListenerImpl implements StandardOutputListener {
+        private StringWriter writer = new StringWriter();
+
+        public void onOutput(CharSequence output) {
+            writer.append(output);
         }
     }
 
@@ -140,17 +169,21 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     public static class InProcessExecutionResult implements ExecutionResult {
         private final List<String> plannedTasks;
+        private final String output;
+        private final String error;
 
-        public InProcessExecutionResult(List<String> plannedTasks) {
+        public InProcessExecutionResult(List<String> plannedTasks, String output, String error) {
             this.plannedTasks = plannedTasks;
+            this.output = output;
+            this.error = error;
         }
 
         public String getOutput() {
-            throw new UnsupportedOperationException();
+            return output;
         }
 
         public String getError() {
-            throw new UnsupportedOperationException();
+            return error;
         }
 
         public void assertTasksExecuted(String... taskPaths) {
@@ -162,8 +195,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
         private final GradleException failure;
 
-        public InProcessExecutionFailure(List<String> tasks, GradleException failure) {
-            super(tasks);
+        public InProcessExecutionFailure(List<String> tasks, String output, String error, GradleException failure) {
+            super(tasks, output, error);
             if (failure instanceof GradleScriptException) {
                 this.failure = ((GradleScriptException) failure).getReportableException();
             } else {

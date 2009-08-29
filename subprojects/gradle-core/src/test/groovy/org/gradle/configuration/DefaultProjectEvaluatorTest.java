@@ -15,17 +15,14 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,33 +70,5 @@ public class DefaultProjectEvaluatorTest {
         }});
 
         evaluator.evaluate(project);
-    }
-
-    @Test
-    public void wrapsEvaluationFailure() {
-        final Throwable failure = new RuntimeException();
-
-        context.checking(new Expectations(){{
-            allowing(gradle).getProjectEvaluationBroadcaster();
-            will(returnValue(listener));
-        }});
-
-        context.checking(new Expectations() {{
-            one(listener).beforeEvaluate(project);
-
-            one(delegate).evaluate(project);
-            will(throwException(failure));
-
-            one(listener).afterEvaluate(with(sameInstance(project)), with(notNullValue(Throwable.class)));
-        }});
-
-        try {
-            evaluator.evaluate(project);
-            fail();
-        } catch (GradleScriptException e) {
-            assertThat(e.getOriginalMessage(), equalTo("A problem occurred evaluating " + project + "."));
-            assertThat(e.getScriptSource(), sameInstance(scriptSource));
-            assertThat(e.getCause(), sameInstance(failure));
-        }
     }
 }

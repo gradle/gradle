@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
+package org.gradle.api.logging;
 
 /**
- * @author Hans Dockter
+ * <p>A {@code StandardOutputListener} receives text written by Gradle's logging system to standard output or
+ * error.</p>
  */
-public class EmptyScript extends groovy.lang.Script {
-    public Object run() {
-        return null;
-    }
+public interface StandardOutputListener {
+    /**
+     * Called when some output is written by the logging system.
+     *
+     * @param output The text.
+     */
+    void onOutput(CharSequence output);
 }

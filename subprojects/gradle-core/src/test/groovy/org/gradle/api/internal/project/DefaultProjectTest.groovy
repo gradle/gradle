@@ -171,7 +171,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
         }
 
-        build = new DefaultGradle(parameter, null, projectServiceRegistryFactoryMock)
+        build = new DefaultGradle(parameter, null, projectServiceRegistryFactoryMock, null)
 
         rootDir = new File("/path/root").absoluteFile
         projectRegistry = build.projectRegistry

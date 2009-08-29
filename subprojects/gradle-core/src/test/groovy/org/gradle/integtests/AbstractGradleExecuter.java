@@ -33,6 +33,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         throw new UnsupportedOperationException();
     }
 
+    public GradleExecuter usingInitScript(File initScript) {
+        throw new UnsupportedOperationException();
+    }
+
     public GradleExecuter usingExecutable(String script) {
         throw new UnsupportedOperationException();
     }

@@ -16,10 +16,15 @@
 package org.gradle.initialization;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.StandardOutputListener;
 
 /**
  * @author Hans Dockter
  */
 public interface LoggingConfigurer {
     void configure(LogLevel logLevel);
+
+    void addStandardOutputListener(StandardOutputListener listener);
+
+    void addStandardErrorListener(StandardOutputListener listener);
 }

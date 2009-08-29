@@ -42,7 +42,7 @@ public class BuildResultLoggerTest {
             one(logger).lifecycle(with(startsWith("Total time:")));
         }});
 
-        listener.buildFinished(new BuildResult(null, null, null));
+        listener.buildFinished(new BuildResult(null, null));
     }
 
     @Test
@@ -52,7 +52,7 @@ public class BuildResultLoggerTest {
             one(logger).lifecycle(with(startsWith("Total time:")));
         }});
 
-        listener.buildFinished(new BuildResult(null, null, new RuntimeException()));
+        listener.buildFinished(new BuildResult(null, new RuntimeException()));
     }
 
 }

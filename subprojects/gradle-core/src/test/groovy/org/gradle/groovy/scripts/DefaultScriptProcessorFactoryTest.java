@@ -16,10 +16,9 @@
 
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
-import org.apache.commons.io.FileUtils;
 import org.gradle.CacheUsage;
 import org.gradle.api.Project;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -33,7 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -55,32 +53,34 @@ public class DefaultScriptProcessorFactoryTest {
     ClassLoader originalClassLoader;
 
     ScriptCompilationHandler scriptCompilationHandlerMock;
+    ScriptRunnerFactory scriptRunnerFactoryMock;
 
-    ScriptWithSource expectedScript;
+    Script expectedScript;
 
     Mockery context = new JUnit4Mockery();
 
-    Class expectedScriptBaseClass = Script.class;
+    Class expectedScriptBaseClass = groovy.lang.Script.class;
 
     ScriptSource source;
+    private ScriptRunner expectedScriptRunner;
 
     @Before
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         scriptCompilationHandlerMock = context.mock(ScriptCompilationHandler.class);
+        scriptRunnerFactoryMock = context.mock(ScriptRunnerFactory.class);
         testClassLoader = new URLClassLoader(new URL[0]);
         testScriptFileDir = HelperUtil.makeNewTestDir("projectdir");
         testScriptFile = new File(testScriptFileDir, TEST_BUILD_FILE_NAME);
         testCacheDir = new File(new File(new File(testScriptFileDir, Project.CACHE_DIR_NAME), TEST_BUILD_FILE_NAME), "NoTransformer");
-        expectedScript = context.mock(ScriptWithSource.class);
-        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.ON);
+        expectedScript = context.mock(Script.class);
+        expectedScriptRunner = context.mock(ScriptRunner.class);
+        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.ON, scriptRunnerFactoryMock);
         source = context.mock(ScriptSource.class);
 
         context.checking(new Expectations() {{
             allowing(source).getDisplayName();
             will(returnValue("[script source]"));
-
-            allowing(expectedScript).setScriptSource(source);
         }});
 
         originalClassLoader = Thread.currentThread().getContextClassLoader();
@@ -90,14 +90,6 @@ public class DefaultScriptProcessorFactoryTest {
     @After
     public void tearDown() {
         Thread.currentThread().setContextClassLoader(originalClassLoader);
-
-        HelperUtil.deleteTestDir();
-    }
-
-    @Test
-    public void testInit() {
-        assertSame(scriptCompilationHandlerMock, scriptProcessor.getScriptCacheHandler());
-        assertEquals(CacheUsage.ON, scriptProcessor.getCacheUsage());
     }
 
     @Test
@@ -112,9 +104,14 @@ public class DefaultScriptProcessorFactoryTest {
                     null,
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
+
+            one(expectedScript).setScriptSource(source);
+
+            one(scriptRunnerFactoryMock).create(expectedScript);
+            will(returnValue(expectedScriptRunner));
         }});
 
-        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
+        assertSame(expectedScriptRunner, scriptProcessor.createProcessor(source).compile(expectedScriptBaseClass));
     }
 
     @Test
@@ -130,10 +127,15 @@ public class DefaultScriptProcessorFactoryTest {
                         null,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
+
+                one(expectedScript).setScriptSource(source);
+
+                one(scriptRunnerFactoryMock).create(expectedScript);
+                will(returnValue(expectedScriptRunner));
             }
         });
 
-        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
+        assertSame(expectedScriptRunner, scriptProcessor.createProcessor(source).compile(expectedScriptBaseClass));
     }
 
     @Test
@@ -157,10 +159,14 @@ public class DefaultScriptProcessorFactoryTest {
                 one(scriptCompilationHandlerMock).loadFromCache(source, testClassLoader, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(expectedScript));
 
+                one(expectedScript).setScriptSource(source);
+
+                one(scriptRunnerFactoryMock).create(expectedScript);
+                will(returnValue(expectedScriptRunner));
             }
         });
 
-        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
+        assertSame(expectedScriptRunner, scriptProcessor.createProcessor(source).compile(expectedScriptBaseClass));
     }
 
     @Test
@@ -173,10 +179,15 @@ public class DefaultScriptProcessorFactoryTest {
 
                 one(scriptCompilationHandlerMock).loadFromCache(source, testClassLoader, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(expectedScript));
+
+                one(expectedScript).setScriptSource(source);
+
+                one(scriptRunnerFactoryMock).create(expectedScript);
+                will(returnValue(expectedScriptRunner));
             }
         });
 
-        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
+        assertSame(expectedScriptRunner, scriptProcessor.createProcessor(source).compile(expectedScriptBaseClass));
     }
 
     @Test
@@ -196,11 +207,16 @@ public class DefaultScriptProcessorFactoryTest {
 
                 one(scriptCompilationHandlerMock).loadFromCache(source, testClassLoader, testCacheDir, expectedScriptBaseClass);
                 will(returnValue(expectedScript));
+
+                one(expectedScript).setScriptSource(source);
+
+                one(scriptRunnerFactoryMock).create(expectedScript);
+                will(returnValue(expectedScriptRunner));
             }
         });
 
-        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.REBUILD);
-        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
+        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.REBUILD, scriptRunnerFactoryMock);
+        assertSame(expectedScriptRunner, scriptProcessor.createProcessor(source).compile(expectedScriptBaseClass));
     }
 
     @Test
@@ -217,11 +233,16 @@ public class DefaultScriptProcessorFactoryTest {
                         null,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
+
+                one(expectedScript).setScriptSource(source);
+
+                one(scriptRunnerFactoryMock).create(expectedScript);
+                will(returnValue(expectedScriptRunner));
             }
         });
 
-        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.OFF);
-        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
+        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.OFF, scriptRunnerFactoryMock);
+        assertSame(expectedScriptRunner, scriptProcessor.createProcessor(source).compile(expectedScriptBaseClass));
     }
 
     @Test
@@ -237,11 +258,16 @@ public class DefaultScriptProcessorFactoryTest {
                         null,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
+
+                one(expectedScript).setScriptSource(source);
+
+                one(scriptRunnerFactoryMock).create(expectedScript);
+                will(returnValue(expectedScriptRunner));
             }
         });
 
-        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.OFF);
-        assertSame(expectedScript, scriptProcessor.createProcessor(source).process(expectedScriptBaseClass));
+        scriptProcessor = new DefaultScriptProcessorFactory(scriptCompilationHandlerMock, CacheUsage.OFF, scriptRunnerFactoryMock);
+        assertSame(expectedScriptRunner, scriptProcessor.createProcessor(source).compile(expectedScriptBaseClass));
     }
 
     @Test
@@ -259,9 +285,14 @@ public class DefaultScriptProcessorFactoryTest {
                     null,
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
+
+            one(expectedScript).setScriptSource(source);
+
+            one(scriptRunnerFactoryMock).create(expectedScript);
+            will(returnValue(expectedScriptRunner));
         }});
 
-        assertSame(expectedScript, scriptProcessor.createProcessor(source).setClassloader(classLoader).process(expectedScriptBaseClass));
+        assertSame(expectedScriptRunner, scriptProcessor.createProcessor(source).setClassloader(classLoader).compile(expectedScriptBaseClass));
     }
 
     @Test
@@ -281,17 +312,17 @@ public class DefaultScriptProcessorFactoryTest {
                     expectedCacheDir,
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
+
+            one(expectedScript).setScriptSource(source);
+
+            one(scriptRunnerFactoryMock).create(expectedScript);
+            will(returnValue(expectedScriptRunner));
         }});
 
-        assertSame(expectedScript, scriptProcessor.createProcessor(source).setTransformer(transformer).process(expectedScriptBaseClass));
+        assertSame(expectedScriptRunner, scriptProcessor.createProcessor(source).setTransformer(transformer).compile(expectedScriptBaseClass));
     }
     
     private void createBuildScriptFile() {
-        try {
-            FileUtils.writeStringToFile(testScriptFile, TEST_SCRIPT_TEXT);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        GFileUtils.writeStringToFile(testScriptFile, TEST_SCRIPT_TEXT);
     }
-
 }

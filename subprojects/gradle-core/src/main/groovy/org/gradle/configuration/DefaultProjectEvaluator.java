@@ -15,7 +15,7 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.GradleException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 
@@ -29,18 +29,20 @@ public class DefaultProjectEvaluator implements ProjectEvaluator {
     public void evaluate(ProjectInternal project) {
         ProjectEvaluationListener listener = project.getGradle().getProjectEvaluationBroadcaster();
         listener.beforeEvaluate(project);
-        GradleScriptException failure = null;
+        Throwable failure = null;
         try {
             for (ProjectEvaluator evaluator : evaluators) {
                 evaluator.evaluate(project);
             }
-        } catch (Throwable t) {
-            failure = new GradleScriptException(String.format("A problem occurred evaluating %s.", project), t,
-                    project.getBuildScriptSource());
+        } catch (GradleException t) {
+            failure = t;
         }
         listener.afterEvaluate(project, failure);
         if (failure != null) {
-            throw failure;
+            if (failure instanceof RuntimeException) {
+                throw (RuntimeException) failure;
+            }
+            throw new GradleException(failure);
         }
     }
 }

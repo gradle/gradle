@@ -39,7 +39,9 @@ class LoggingIntegrationTest {
                 'A message which is logged at QUIET level',
                 'A task message which is logged at QUIET level',
                 'quietProject2Out',
-                'quietProject2ScriptClassPathOut'
+                'quietProject2ScriptClassPathOut',
+                'settings quiet out',
+                'init quiet out'
         ]
         List errorMessages = [
                 'An error log message.'
@@ -50,7 +52,9 @@ class LoggingIntegrationTest {
         List lifecycleMessages = [
                 'A lifecycle info log message.',
                 'An info message logged from Ant',
-                'A task message which is logged at LIFECYCLE level'
+                'A task message which is logged at LIFECYCLE level',
+                'settings lifecycle log',
+                'init lifecycle log'
         ]
         List infoMessages = [
                 'An info log message.',
@@ -60,7 +64,11 @@ class LoggingIntegrationTest {
                 'An info log message logged using JCL',
                 'An info log message logged using Log4j',
                 'An info log message logged using JUL',
-                'infoProject2ScriptClassPathOut'
+                'infoProject2ScriptClassPathOut',
+                'settings info out',
+                'settings info log',
+                'init info out',
+                'init info log'
         ]
         List debugMessages = [
                 'A debug log message.'
@@ -70,10 +78,10 @@ class LoggingIntegrationTest {
         ]
         List allOuts = [errorMessages, quietMessages, warningMessages, lifecycleMessages, infoMessages, debugMessages, traceMessages]
 
-        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-q').run(), allOuts, 1)
-        checkOutput(executer.withArguments().run(), allOuts, 3)
-        checkOutput(executer.withArguments('-i').run(), allOuts, 4)
-        checkOutput(executer.withArguments('-d').run(), allOuts, 5)
+        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-q', '-I', 'init.gradle').run(), allOuts, 1)
+        checkOutput(executer.withArguments('-I', 'init.gradle').run(), allOuts, 3)
+        checkOutput(executer.withArguments('-i', '-I', 'init.gradle').run(), allOuts, 4)
+        checkOutput(executer.withArguments('-d', '-I', 'init.gradle').run(), allOuts, 5)
     }
 
     static void checkOutput(ExecutionResult result, List allOuts, int includedIndex) {

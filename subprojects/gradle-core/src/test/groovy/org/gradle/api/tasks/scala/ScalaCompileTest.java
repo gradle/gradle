@@ -106,8 +106,8 @@ public class ScalaCompileTest extends AbstractCompileTest {
             }
         });
         compile.setTargetCompatibility("1.5");
-        compile.setDestinationDir(TEST_TARGET_DIR);
-        compile.setDependencyCacheDir(new File("depCacheDir"));
+        compile.setDestinationDir(destDir);
+        compile.setDependencyCacheDir(depCacheDir);
 
         compile.setClasspath(new AbstractFileCollection() {
             @Override

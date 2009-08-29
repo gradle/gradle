@@ -39,6 +39,7 @@ public class ScalaDocTest extends AbstractTaskTest {
     private ScalaDoc scalaDoc;
     private AntScalaDoc antScalaDocMock;
     private JUnit4Mockery context = new JUnit4Mockery();
+    private File destDir;
 
     @Override
     public AbstractTask getTask() {
@@ -49,6 +50,7 @@ public class ScalaDocTest extends AbstractTaskTest {
     @Before
     public void setUp() {
         super.setUp();
+        destDir = getProject().file("destDir");
         context.setImposteriser(ClassImposteriser.INSTANCE);
         scalaDoc = createTask(ScalaDoc.class);
         antScalaDocMock = context.mock(AntScalaDoc.class);
@@ -97,7 +99,7 @@ public class ScalaDocTest extends AbstractTaskTest {
                 return docTask.getScalaSrcDirs();
             }
         };
-        docTask.setDestinationDir(TEST_TARGET_DIR);
+        docTask.setDestinationDir(destDir);
 
         docTask.setClasspath(new AbstractFileCollection() {
             @Override

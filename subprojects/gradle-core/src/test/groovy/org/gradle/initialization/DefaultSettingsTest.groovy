@@ -28,6 +28,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import org.gradle.api.internal.project.StandardOutputRedirector
+import org.gradle.api.logging.LogLevel
 
 /**
  * @author Hans Dockter
@@ -41,7 +43,8 @@ class DefaultSettingsTest {
     ScriptSource scriptSourceMock
     DefaultSettings settings
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    DefaultProjectDescriptorRegistry projectDescriptorRegistry;
+    DefaultProjectDescriptorRegistry projectDescriptorRegistry
+    StandardOutputRedirector outputRedirectorMock
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
@@ -51,13 +54,15 @@ class DefaultSettingsTest {
         expectedClassLoader = new URLClassLoader(new URL[0])
 
         scriptSourceMock = context.mock(ScriptSource)
+        outputRedirectorMock = context.mock(StandardOutputRedirector)
 
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-        settings = new DefaultSettings(projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter)
+        settings = new DefaultSettings(projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter, outputRedirectorMock)
     }
 
     @Test public void testSettings() {
         assert settings.startParameter.is(startParameter)
+        assertSame(settings, settings.getSettings())
         assertEquals(settingsDir, settings.getSettingsDir())
 
         assertNull(settings.getRootProject().getParent())
@@ -169,4 +174,20 @@ class DefaultSettingsTest {
         assertEquals('settings \'root\'', settings.toString())
     }
 
+    @Test
+    void disableStandardOutputCapture() {
+        context.checking {
+            one(outputRedirectorMock).off()
+            one(outputRedirectorMock).flush()
+        }
+        settings.disableStandardOutputCapture()
+    }
+
+    @Test
+    void captureStandardOutput() {
+        context.checking {
+            one(outputRedirectorMock).on(LogLevel.DEBUG)
+        }
+        settings.captureStandardOutput(LogLevel.DEBUG)
+    }
 }

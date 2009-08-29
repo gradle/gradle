@@ -61,10 +61,12 @@ public class AbstractIntegrationTest {
         parameter.setGradleHomeDir(testFile("gradle-home"));
 
         //todo - this should use the src/toplevel/gradle-imports file
-        testFile("gradle-home/gradle-imports").writelns("import org.gradle.api.*", "import static org.junit.Assert.*",
+        testFile("gradle-home/gradle-imports").writelns(
+                "import static org.junit.Assert.*",
                 "import static org.hamcrest.Matchers.*",
                 "import org.gradle.api.*",
                 "import org.gradle.api.file.*",
+                "import org.gradle.api.logging.*",
                 "import org.gradle.api.tasks.*");
 
         testFile("gradle-home/plugin.properties").writelns(

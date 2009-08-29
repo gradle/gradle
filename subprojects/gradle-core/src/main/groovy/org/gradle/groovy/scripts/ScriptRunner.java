@@ -15,27 +15,33 @@
  */
 package org.gradle.groovy.scripts;
 
+import groovy.lang.Script;
 import org.gradle.api.GradleScriptException;
 
 /**
- * Compiles a script into an executable {@code ScriptRunner} object.
+ * Executes a script of type T.
  */
-public interface ScriptProcessor {
+public interface ScriptRunner<T extends Script> extends Runnable {
     /**
-     * Sets the parent classloader for the script. Can be null, defaults to the context classloader.
-     */
-    ScriptProcessor setClassloader(ClassLoader classloader);
-
-    /**
-     * Sets the transformer to use to compile the script. Can be null, in which case no transformations are applied to
-     * the script.
-     */
-    ScriptProcessor setTransformer(Transformer transformer);
-
-    /**
-     * Compiles the script into a {@code ScriptRunner} of the given type.
+     * Sets the delegate for the script. Any property or method not found on the script will be delegated to this
+     * object.
      *
-     * @throws GradleScriptException On compilation failure.
+     * @param delegate The delegate. may be null.
+     * @return this
      */
-    <T extends Script> ScriptRunner<T> compile(Class<T> scriptType) throws GradleScriptException;
+    ScriptRunner setDelegate(Object delegate);
+
+    /**
+     * Returns the script which will be executed by this runner.
+     *
+     * @return the script.
+     */
+    T getScript();
+
+    /**
+     * Executes the script.
+     *
+     * @throws GradleScriptException On execution failure.
+     */
+    void run() throws GradleScriptException;
 }

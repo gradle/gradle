@@ -15,11 +15,12 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.artifacts.dsl.InitScriptClasspathScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.InitScriptTransformer;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.*;
-import groovy.lang.Script;
+import org.gradle.initialization.InitScript;
 
 /**
  * Processes (and runs) an init script for a specified build.  Handles defining
@@ -27,29 +28,29 @@ import groovy.lang.Script;
  */
 public class DefaultInitScriptProcessor implements InitScriptProcessor {
     private final ScriptProcessorFactory scriptProcessorFactory;
-    private final ScriptMetaData initScriptMetaData;
+    private final ImportsReader importsReader;
 
-    public DefaultInitScriptProcessor(ScriptProcessorFactory scriptProcessorFactory,
-                              ScriptMetaData initScriptMetaData) {
+    public DefaultInitScriptProcessor(ScriptProcessorFactory scriptProcessorFactory, ImportsReader importsReader) {
         this.scriptProcessorFactory = scriptProcessorFactory;
-        this.initScriptMetaData = initScriptMetaData;
+        this.importsReader = importsReader;
     }
 
     public void process(ScriptSource initScript, GradleInternal gradle) {
-        ScriptProcessor processor = scriptProcessorFactory.createProcessor(initScript);
+        ScriptSource withImports = new ImportsScriptSource(initScript, importsReader, null);
+        ScriptProcessor processor = scriptProcessorFactory.createProcessor(withImports);
         processor.setClassloader(gradle.getClassLoaderProvider().getClassLoader());
 
         processor.setTransformer(new InitScriptClasspathScriptTransformer());
-        Script classPathScript = processor.process(ScriptWithSource.class);
-        initScriptMetaData.applyMetaData(classPathScript, gradle);
+        ScriptRunner classPathScript = processor.compile(InitScript.class);
+        classPathScript.setDelegate(gradle);
 
         classPathScript.run();
         gradle.getClassLoaderProvider().updateClassPath();
 
         processor.setTransformer(new InitScriptTransformer());
-        Script buildScript = processor.process(ScriptWithSource.class);
-        initScriptMetaData.applyMetaData(buildScript, gradle);
+        ScriptRunner script = processor.compile(InitScript.class);
+        script.setDelegate(gradle);
 
-        buildScript.run();
+        script.run();
     }
 }

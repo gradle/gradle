@@ -82,7 +82,7 @@ class BuildSourceBuilderTest {
             allowing(configurationHandlerStub).getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
             allowing(build).getRootProject(); will(returnValue(rootProjectMock))
         }
-        expectedBuildResult = new BuildResult(null, build, null)
+        expectedBuildResult = new BuildResult(build, null)
     }
 
     @After

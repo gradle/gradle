@@ -131,8 +131,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void buildFailsWhenSpecifiedSettingsFileIsNotAFile() {
         ExecutionFailure result = inTestDirectory().usingSettingsFile(testFile("unknown")).runWithFailure();
-        result.assertThatCause(startsWith("Cannot read settings file"));
-        result.assertThatCause(endsWith("as it does not exist."));
+        result.assertThatDescription(startsWith("Cannot read settings file"));
+        result.assertThatDescription(endsWith("as it does not exist."));
     }
 
     @Test

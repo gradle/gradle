@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.DefaultStandardOutputRedirector;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
@@ -38,7 +39,7 @@ public class SettingsFactory {
                                            Map<String, String> gradleProperties, StartParameter startParameter,
                                            URLClassLoader classloader) {
         DefaultSettings settings = new DefaultSettings(projectDescriptorRegistry,
-                classloader, settingsDir, settingsScript, startParameter);
+                classloader, settingsDir, settingsScript, startParameter, new DefaultStandardOutputRedirector());
         settings.getAdditionalProperties().putAll(gradleProperties);
         return settings;
     }

@@ -24,29 +24,22 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class DefaultScriptProcessorFactory implements ScriptProcessorFactory {
-    private ScriptCompilationHandler scriptCompilationHandler;
+    private final ScriptCompilationHandler scriptCompilationHandler;
     private final CacheUsage cacheUsage;
+    private final ScriptRunnerFactory scriptRunnerFactory;
 
-    public DefaultScriptProcessorFactory(ScriptCompilationHandler scriptCompilationHandler, CacheUsage cacheUsage) {
+    public DefaultScriptProcessorFactory(ScriptCompilationHandler scriptCompilationHandler, CacheUsage cacheUsage, ScriptRunnerFactory scriptRunnerFactory) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.cacheUsage = cacheUsage;
+        this.scriptRunnerFactory = scriptRunnerFactory;
     }
 
     public ScriptProcessor createProcessor(ScriptSource source) {
         return new ScriptProcessorImpl(source);
     }
 
-
     private boolean isCacheable(File sourceFile) {
         return cacheUsage != CacheUsage.OFF && sourceFile != null && sourceFile.isFile();
-    }
-
-    public ScriptCompilationHandler getScriptCacheHandler() {
-        return scriptCompilationHandler;
-    }
-
-    public CacheUsage getCacheUsage() {
-        return cacheUsage;
     }
 
     private class ScriptProcessorImpl implements ScriptProcessor {
@@ -68,7 +61,7 @@ public class DefaultScriptProcessorFactory implements ScriptProcessorFactory {
             return this;
         }
 
-        public <T extends ScriptWithSource> T process(Class<T> scriptType) {
+        public <T extends Script> ScriptRunner<T> compile(Class<T> scriptType) {
             ClassLoader classloader = this.classloader != null ? this.classloader : Thread.currentThread().getContextClassLoader();
 
             File sourceFile = source.getSourceFile();
@@ -80,14 +73,14 @@ public class DefaultScriptProcessorFactory implements ScriptProcessorFactory {
                 script = loadWithoutCache(classloader, scriptType);
             }
             script.setScriptSource(source);
-            return script;
+            return scriptRunnerFactory.create(script);
         }
 
-        private <T extends ScriptWithSource> T loadWithoutCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
+        private <T extends Script> T loadWithoutCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
             return scriptCompilationHandler.createScriptOnTheFly(source, classLoader, transformer, scriptBaseClass);
         }
 
-        private <T extends ScriptWithSource> T loadViaCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
+        private <T extends Script> T loadViaCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
             File sourceFile = source.getSourceFile();
             File cacheDir = new File(sourceFile.getParentFile(), Project.CACHE_DIR_NAME);
             File scriptCacheDir = new File(cacheDir, sourceFile.getName());

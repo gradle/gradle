@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Script;
-
-public abstract class ScriptWithSource extends Script {
-    private ScriptSource source;
-
-    public ScriptSource getScriptSource() {
-        return source;
-    }
-
-    public void setScriptSource(ScriptSource source) {
-        this.source = source;
-    }
+public interface ScriptRunnerFactory {
+    <T extends Script> ScriptRunner<T> create(T script);
 }

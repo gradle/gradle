@@ -29,7 +29,10 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.BuildResult
 import org.gradle.StartParameter
+import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.internal.DefaultClassGenerator
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -41,27 +44,18 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultProjectDependen
 import org.gradle.api.internal.artifacts.dsl.dependencies.SelfResolvingDependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.DefaultServiceRegistryFactory
-import org.gradle.api.internal.project.IProjectFactory
-import org.gradle.api.internal.project.ProjectFactory
+import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
 import org.gradle.configuration.DefaultProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
+import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.ScriptWithSource
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultGradle
-import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository
-import org.gradle.api.internal.DefaultClassGenerator
-import org.gradle.api.internal.project.ITaskFactory
-import org.gradle.api.internal.project.AnnotationProcessingTaskFactory
-import org.gradle.api.internal.project.TaskFactory
-import org.gradle.api.Task
-import org.gradle.api.Project
+import org.gradle.api.internal.project.*
 
 /**
  * @author Hans Dockter
@@ -105,7 +99,7 @@ class HelperUtil {
 
         DefaultInternalRepository internalRepo = new DefaultInternalRepository()
         internalRepo.setName('testInternalRepo') 
-        DefaultGradle build = new DefaultGradle(startParameter, internalRepo, serviceRegistryFactory)
+        DefaultGradle build = new DefaultGradle(startParameter, internalRepo, serviceRegistryFactory, new DefaultStandardOutputRedirector())
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)
@@ -177,7 +171,7 @@ class HelperUtil {
     }
 
     static BuildResult createBuildResult(Throwable t) {
-        return new BuildResult(null, null, t);
+        return new BuildResult(null, t);
     }
 
     static ModuleDependency createDependency(String group, String name, String version) {
@@ -188,11 +182,7 @@ class HelperUtil {
       new DefaultPublishArtifact(name, extension, type, classifier, new Date(), new File(""))
     }
 
-    static Script createTestScript() {
-        new MyScript()
-    }
-
-    static Script createScript(String code) {
+    static groovy.lang.Script createScript(String code) {
         new GroovyShell().parse(code)
     }
 
@@ -206,10 +196,10 @@ class HelperUtil {
 
     static Closure toClosure(ScriptSource source) {
         CompilerConfiguration configuration = new CompilerConfiguration();
-        configuration.setScriptBaseClass(ScriptWithSource.getName());
+        configuration.setScriptBaseClass(TestScript.getName());
 
         GroovyShell shell = new GroovyShell(configuration)
-        ScriptWithSource script = shell.parse(source.getText())
+        Script script = shell.parse(source.getText())
         script.setScriptSource(source)
         return script.run()
     }
@@ -241,8 +231,13 @@ public interface TestClosure {
     Object call(Object param);
 }
 
-class MyScript extends Script {
-    Object run() {
-        return null;  
+public abstract class TestScript extends Script {
+
+    ClassLoader getContextClassloader() {
+        getClass().classLoader
+    }
+
+    StandardOutputRedirector getStandardOutputRedirector() {
+        null
     }
 }

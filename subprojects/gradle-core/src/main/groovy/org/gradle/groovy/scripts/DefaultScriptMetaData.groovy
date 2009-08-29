@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 public class DefaultScriptMetaData implements ScriptMetaData {
     Logger logger = LoggerFactory.getLogger(DefaultScriptMetaData);
     
-    public void applyMetaData(Script script, Object delegate) {
+    public void applyMetaData(groovy.lang.Script script, Object delegate) {
         ExpandoMetaClass metaClass = new ExpandoMetaClass(script.class, false)
         metaClass.methodMissing = {String name, args ->
             logger.debug("Method {} not found in script! Delegating to {}.", name, delegate)

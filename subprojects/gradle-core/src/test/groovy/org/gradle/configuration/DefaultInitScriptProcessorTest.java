@@ -27,8 +27,6 @@ import org.junit.Test;
 import java.net.URLClassLoader;
 import java.net.URL;
 
-import groovy.lang.Script;
-
 public class DefaultInitScriptProcessorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
 
@@ -36,13 +34,12 @@ public class DefaultInitScriptProcessorTest {
     public void testProcess() {
         final ScriptProcessorFactory scriptProcessorFactoryMock = context.mock(ScriptProcessorFactory.class);
         final ScriptProcessor scriptProcessorMock = context.mock(ScriptProcessor.class);
-        final ScriptMetaData initScriptMetaDataMock = context.mock(ScriptMetaData.class);
         final ScriptSource initScriptMock = context.mock(ScriptSource.class);
         final GradleInternal gradleMock = context.mock(GradleInternal.class);
         final ScriptClassLoaderProvider buildClassLoaderProviderMock = context.mock(ScriptClassLoaderProvider.class);
         final URLClassLoader classLoader = new URLClassLoader(new URL[0]);
-        final Script classPathScriptMock = new EmptyScript();
-        final Script buildScriptMock = new EmptyScript();
+        final groovy.lang.Script classPathScriptMock = new EmptyScript();
+        final groovy.lang.Script buildScriptMock = new EmptyScript();
         context.checking(new Expectations() {{
             one(scriptProcessorFactoryMock).createProcessor(initScriptMock);
             will(returnValue(gradleMock));
@@ -52,16 +49,14 @@ public class DefaultInitScriptProcessorTest {
             will(returnValue(classLoader));
             one(scriptProcessorMock).setClassloader(classLoader);
             one(scriptProcessorMock).setTransformer(with(any(InitScriptClasspathScriptTransformer.class)));
-            one(scriptProcessorMock).process(ScriptWithSource.class);
+            one(scriptProcessorMock).compile(Script.class);
             will(returnValue(classPathScriptMock));
-            one(initScriptMetaDataMock).applyMetaData(classPathScriptMock, gradleMock);
 
             one(buildClassLoaderProviderMock).updateClassPath();
 
             one(scriptProcessorMock).setTransformer(with(any(InitScriptTransformer.class)));
-            one(scriptProcessorMock).process(ScriptWithSource.class);
+            one(scriptProcessorMock).compile(Script.class);
             will(returnValue(buildScriptMock));
-            one(initScriptMetaDataMock).applyMetaData(buildScriptMock, gradleMock);
         }});
     }
 }

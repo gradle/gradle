@@ -55,7 +55,7 @@ public class SettingsHandler
             noSearchParameter.setSettingsScriptSource(new StringScriptSource("empty settings file", ""));
             settings = findSettingsAndLoadIfAppropriate(noSearchParameter, gradlePropertiesLoader);
             if (settings == null) // not using an assert to make sure it is not disabled
-                throw new InternalError("Empty settings file does not contain expected project");
+                throw new InternalError("Empty settings file does not contain expected project.");
 
             // Set explicit build file, if required
             if (noSearchParameter.getBuildFile() != null) {
@@ -78,15 +78,6 @@ public class SettingsHandler
     {
         SettingsLocation settingsLocation = findSettings(startParameter);
 
-/*
-        boolean skip = false;
-        DefaultProjectDescriptorRegistry registry = createTemporaryRegistryForSettingsDir(settingsLocation.getSettingsDir());
-        if (!startParameter.getDefaultProjectSelector().containsProject(registry) &&
-            startParameter.getSettingsScriptSource() == null && !skip) {
-            return null;
-        }
-*/
-
         // We found the desired settings file, now build the associated buildSrc before loading settings.  This allows
         // the settings script to reference classes in the buildSrc.
         StartParameter buildSrcStartParameter = startParameter.newBuild();
@@ -94,13 +85,6 @@ public class SettingsHandler
         URLClassLoader buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
         return loadSettings(settingsLocation, buildSourceClassLoader, startParameter, gradlePropertiesLoader);
-    }
-
-    private DefaultProjectDescriptorRegistry createTemporaryRegistryForSettingsDir(File settingsDir)
-    {
-        DefaultProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry();
-        new DefaultProjectDescriptor(null, settingsDir.getName(), settingsDir, registry);
-        return registry;
     }
 
     private SettingsLocation findSettings(StartParameter startParameter)

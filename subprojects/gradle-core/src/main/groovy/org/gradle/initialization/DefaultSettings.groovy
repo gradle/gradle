@@ -18,6 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.api.internal.project.StandardOutputRedirector
 
 /**
  * @author Hans Dockter
@@ -27,8 +28,8 @@ public class DefaultSettings extends BaseSettings {
 
     DefaultSettings(IProjectDescriptorRegistry projectDescriptorRegistry,
                     URLClassLoader classloader, File settingsDir,
-                    ScriptSource settingsScript, StartParameter startParameter) {
-      super(projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter)
+                    ScriptSource settingsScript, StartParameter startParameter, StandardOutputRedirector standardOutputRedirector) {
+      super(projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter, standardOutputRedirector)
     }
 
     def propertyMissing(String property) {

@@ -15,27 +15,22 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectScript;
-import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
-import org.gradle.api.logging.LogLevel;
+import org.gradle.api.internal.project.ImportsReader;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.*;
-import groovy.lang.Script;
 
 public class BuildScriptCompiler implements ProjectEvaluator {
     private final ImportsReader importsReader;
     private final ScriptProcessorFactory scriptProcessorFactory;
-    private final ScriptMetaData projectScriptMetaData;
 
-    public BuildScriptCompiler(ImportsReader importsReader, ScriptProcessorFactory scriptProcessorFactory,
-                               ScriptMetaData projectScriptMetaData) {
+    public BuildScriptCompiler(ImportsReader importsReader, ScriptProcessorFactory scriptProcessorFactory) {
         this.importsReader = importsReader;
         this.scriptProcessorFactory = scriptProcessorFactory;
-        this.projectScriptMetaData = projectScriptMetaData;
     }
-
+    
     public void evaluate(ProjectInternal project) {
         ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader,
                 project.getRootDir());
@@ -44,20 +39,15 @@ public class BuildScriptCompiler implements ProjectEvaluator {
         processor.setClassloader(project.getClassLoaderProvider().getClassLoader());
 
         processor.setTransformer(new BuildScriptClasspathScriptTransformer());
-        Script classPathScript = processor.process(ProjectScript.class);
-        projectScriptMetaData.applyMetaData(classPathScript, project);
-
-        project.getStandardOutputRedirector().on(LogLevel.QUIET);
-        try {
-            classPathScript.run();
-        } finally {
-            project.getStandardOutputRedirector().flush();
-        }
+        ScriptRunner classPathScript = processor.compile(ProjectScript.class);
+        classPathScript.setDelegate(project);
+        classPathScript.run();
         project.getClassLoaderProvider().updateClassPath();
 
         processor.setTransformer(new BuildScriptTransformer());
-        Script buildScript = processor.process(ProjectScript.class);
-        projectScriptMetaData.applyMetaData(buildScript, project);
-        project.setScript(buildScript);
+        ScriptRunner script = processor.compile(ProjectScript.class);
+        script.setDelegate(project);
+        project.setScript(script.getScript());
+        script.run();
     }
 }

@@ -37,7 +37,7 @@ public class UserHomeInitScriptFinder implements InitScriptFinder
 
         File userHomeDir = gradle.getStartParameter().getGradleUserHomeDir();
         File userInitScript = new File(userHomeDir, DEFAULT_INIT_SCRIPT_NAME);
-        scripts.add(new FileScriptSource("init script", userInitScript));
+        scripts.add(new FileScriptSource("initialization script", userInitScript));
 
         return scripts;
     }

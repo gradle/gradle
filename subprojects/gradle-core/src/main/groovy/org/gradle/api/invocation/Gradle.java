@@ -17,6 +17,8 @@ package org.gradle.api.invocation;
 
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskExecutionGraph;
@@ -31,7 +33,7 @@ import groovy.lang.Closure;
  * <p>A {@code Gradle} represents an invocation of Gradle.</p>
  *
  * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}. In your build file you can use
- * {@code Gradle} to access it.</p>
+ * {@code gradle} to access it.</p>
  */
 public interface Gradle {
     /**
@@ -125,19 +127,51 @@ public interface Gradle {
     void addBuildListener(BuildListener buildListener);
 
     /**
-     * Returns the build script handler for this project. You can use this handler to manage the classpath used to
-     * compile and execute the project's build script.
+     * Returns this {@code Gradle} instance.
+     *
+     * @return this. Never returns null.
+     */
+    Gradle getGradle();
+
+    /**
+     * Returns the init script handler for this build. You can use this handler to manage the classpath used to compile
+     * and execute the build's init scripts.
      *
      * @return the classpath handler. Never returns null.
      */
     ScriptHandler getInitscript();
 
     /**
-     * Configures the build script classpath for this project. The given closure is executed against this project's
-     * {@link ScriptHandler}. The {@link ScriptHandler} is passed to the closure as the closure's delegate.
+     * Configures the init script classpath for this build. The given closure is executed against this build's {@link
+     * ScriptHandler}. The {@link ScriptHandler} is passed to the closure as the closure's delegate.
      *
-     * @param configureClosure the closure to use to configure the build script classpath.
+     * @param configureClosure the closure to use to configure the init script classpath.
      */
     void initscript(Closure configureClosure);
 
+    /**
+     * Disables redirection of standard output during init script evaluation. By default redirection is enabled.
+     *
+     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
+     */
+    void disableStandardOutputCapture();
+
+    /**
+     * Starts redirection of standard output during to the logging system during init script evaluation. By default
+     * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
+     * ERROR level. Redirection of output at execution time can be configured via the tasks.
+     *
+     * For more fine-grained control on redirecting standard output see {@link org.gradle.api.logging.StandardOutputLogging}.
+     *
+     * @param level The level standard out should be logged to.
+     * @see #disableStandardOutputCapture()
+     */
+    void captureStandardOutput(LogLevel level);
+
+    /**
+     * Returns the logger for this build. You can use this in your init scripts to write log messages.
+     *
+     * @return The logger. Never returns null.
+     */
+    Logger getLogger();
 }

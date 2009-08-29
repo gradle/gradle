@@ -16,15 +16,18 @@
 
 package org.gradle.invocation;
 
+import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
-import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.api.internal.project.StandardOutputRedirector;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.DefaultTaskExecuter;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.HelperUtil;
@@ -33,15 +36,13 @@ import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.io.File;
 import java.io.IOException;
-
-import groovy.lang.Closure;
 
 @RunWith(JUnit4.class)
 public class DefaultBuildTest {
@@ -52,6 +53,7 @@ public class DefaultBuildTest {
     private final ScriptHandler scriptHandlerMock = context.mock(ScriptHandler.class);
     private final ServiceRegistryFactory serviceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class);
     private final ServiceRegistry serviceRegistryMock = context.mock(ServiceRegistry.class);
+    private final StandardOutputRedirector standardOutputRedirectorMock = context.mock(StandardOutputRedirector.class);
     private DefaultGradle gradle;
 
     @Before
@@ -64,7 +66,7 @@ public class DefaultBuildTest {
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider.class);
             will(returnValue(context.mock(ScriptClassLoaderProvider.class)));
         }});
-        gradle = new DefaultGradle(parameter, null, serviceRegistryFactoryMock);
+        gradle = new DefaultGradle(parameter, null, serviceRegistryFactoryMock, standardOutputRedirectorMock);
     }
     
     @Test
@@ -152,4 +154,21 @@ public class DefaultBuildTest {
         assertThat(closure.getDelegate(), instanceOf(ScriptHandler.class));
         assertThat((ScriptHandler)closure.getDelegate(), equalTo(scriptHandlerMock));
       }
+
+    @Test
+    public void captureStdOut() {
+        context.checking(new Expectations(){{
+            one(standardOutputRedirectorMock).on(LogLevel.DEBUG);
+        }});
+        gradle.captureStandardOutput(LogLevel.DEBUG);
+    }
+
+    @Test
+    public void disableStdOutCapture() {
+        context.checking(new Expectations(){{
+            one(standardOutputRedirectorMock).flush();
+            one(standardOutputRedirectorMock).off();
+        }});
+        gradle.disableStandardOutputCapture();
+    }
 }

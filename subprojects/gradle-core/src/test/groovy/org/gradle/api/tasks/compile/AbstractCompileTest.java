@@ -38,13 +38,21 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final String TEST_PATTERN_2 = "pattern2";
     public static final String TEST_PATTERN_3 = "pattern3";
 
-    public static final File TEST_TARGET_DIR = new File("targetDir");
-
     public static final List<File> TEST_DEPENDENCY_MANAGER_CLASSPATH = WrapUtil.toList(new File("jar1"));
     public static final List<String> TEST_INCLUDES = WrapUtil.toList("incl");
     public static final List<String> TEST_EXCLUDES = WrapUtil.toList("excl");
 
+    protected File destDir;
+    protected File depCacheDir;
+
     protected abstract Compile getCompile();
+
+    @Override
+    public void setUp() {
+        super.setUp();
+        destDir = getProject().file("destDir");
+        depCacheDir = getProject().file("depCache");
+    }
 
     @Test public void testCompile() {
         Compile compile = getCompile();
@@ -93,8 +101,8 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         });
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
-        compile.setDestinationDir(TEST_TARGET_DIR);
-        compile.setDependencyCacheDir(new File("depCacheDir"));
+        compile.setDestinationDir(destDir);
+        compile.setDependencyCacheDir(depCacheDir);
 
         compile.setClasspath(new AbstractFileCollection() {
             @Override

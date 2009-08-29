@@ -16,12 +16,9 @@
 
 package org.gradle.initialization;
 
-import groovy.lang.Script;
 import org.gradle.StartParameter;
-import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.groovy.scripts.ScriptProcessorFactory;
 import org.gradle.groovy.scripts.*;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
@@ -42,16 +39,12 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     private ScriptProcessorFactory scriptProcessorFactory;
 
-    private ScriptMetaData settingsScriptMetaData;
-
     public ScriptEvaluatingSettingsProcessor() {
 
     }
 
-    public ScriptEvaluatingSettingsProcessor(ScriptMetaData settingsScriptMetaData,
-                                             ScriptProcessorFactory scriptProcessorFactory, ImportsReader importsReader,
+    public ScriptEvaluatingSettingsProcessor(ScriptProcessorFactory scriptProcessorFactory, ImportsReader importsReader,
                                              SettingsFactory settingsFactory) {
-        this.settingsScriptMetaData = settingsScriptMetaData;
         this.scriptProcessorFactory = scriptProcessorFactory;
         this.importsReader = importsReader;
         this.settingsFactory = settingsFactory;
@@ -72,17 +65,11 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private void applySettingsScript(SettingsLocation settingsLocation, ClassLoader buildSourceClassLoader, SettingsInternal settings) {
         ScriptSource source = new ImportsScriptSource(settingsLocation.getSettingsScriptSource(), importsReader,
                 settingsLocation.getSettingsDir());
-        try {
-            ScriptProcessor processor = scriptProcessorFactory.createProcessor(source);
-            processor.setClassloader(buildSourceClassLoader);
-            Script settingsScript = processor.process(ScriptWithSource.class);
-            settingsScriptMetaData.applyMetaData(settingsScript, settings);
-            Clock clock = new Clock();
-            settingsScript.run();
-            logger.debug("Timing: Evaluating settings file took: {}", clock.getTime());
-        } catch (Throwable t) {
-            throw new GradleScriptException("A problem occurred evaluating the settings file.", t, source);
-        }
+        ScriptProcessor processor = scriptProcessorFactory.createProcessor(source);
+        processor.setClassloader(buildSourceClassLoader);
+        ScriptRunner settingsScript = processor.compile(SettingsScript.class);
+        settingsScript.setDelegate(settings);
+        settingsScript.run();
     }
 
     public ImportsReader getImportsReader() {
@@ -107,13 +94,5 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     public ScriptProcessorFactory getScriptProcessor() {
         return scriptProcessorFactory;
-    }
-
-    public ScriptMetaData getSettingsScriptMetaData() {
-        return settingsScriptMetaData;
-    }
-
-    public void setSettingsScriptMetaData(ScriptMetaData settingsScriptMetaData) {
-        this.settingsScriptMetaData = settingsScriptMetaData;
     }
 }

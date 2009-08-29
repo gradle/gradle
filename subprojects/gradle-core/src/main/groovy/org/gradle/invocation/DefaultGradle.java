@@ -20,6 +20,10 @@ import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
@@ -35,23 +39,30 @@ import org.gradle.util.ListenerBroadcast;
 import java.io.File;
 
 public class DefaultGradle implements GradleInternal {
+    private final Logger logger = Logging.getLogger(Gradle.class);
+
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private TaskExecuter taskGraph;
     private StartParameter startParameter;
     private ClassLoader buildScriptClassLoader;
     private InternalRepository internalRepository;
+    private StandardOutputRedirector standardOutputRedirector;
     private DefaultProjectRegistry<ProjectInternal> projectRegistry;
     private DefaultPluginRegistry pluginRegistry;
     private ScriptHandler scriptHandler;
     private ScriptClassLoaderProvider scriptClassLoaderProvider;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast
             = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
-    private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(BuildListener.class);
+    private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(
+            BuildListener.class);
 
-    public DefaultGradle(StartParameter startParameter, InternalRepository internalRepository, ServiceRegistryFactory serviceRegistryFactory) {
+    public DefaultGradle(StartParameter startParameter, InternalRepository internalRepository,
+                         ServiceRegistryFactory serviceRegistryFactory,
+                         StandardOutputRedirector standardOutputRedirector) {
         this.startParameter = startParameter;
         this.internalRepository = internalRepository;
+        this.standardOutputRedirector = standardOutputRedirector;
         this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         this.pluginRegistry = new DefaultPluginRegistry(startParameter.getPluginPropertiesFile());
         this.taskGraph = new DefaultTaskExecuter();
@@ -59,7 +70,7 @@ public class DefaultGradle implements GradleInternal {
         ServiceRegistry serviceRegistry = serviceRegistryFactory.createForBuild(this);
         scriptHandler = serviceRegistry.get(ScriptHandler.class);
         scriptClassLoaderProvider = serviceRegistry.get(ScriptClassLoaderProvider.class);
-     }
+    }
 
     public String getGradleVersion() {
         return new GradleVersion().getVersion();
@@ -146,8 +157,7 @@ public class DefaultGradle implements GradleInternal {
         return projectEvaluationListenerBroadcast.getSource();
     }
 
-    public void addBuildListener(BuildListener buildListener)
-    {
+    public void addBuildListener(BuildListener buildListener) {
         buildListeners.add(buildListener);
     }
 
@@ -165,5 +175,24 @@ public class DefaultGradle implements GradleInternal {
 
     public ScriptClassLoaderProvider getClassLoaderProvider() {
         return scriptClassLoaderProvider;
+    }
+
+    public StandardOutputRedirector getStandardOutputRedirector() {
+        return standardOutputRedirector;
+    }
+
+    public void captureStandardOutput(LogLevel level) {
+        standardOutputRedirector.on(level);
+    }
+
+    public void disableStandardOutputCapture() {
+    }
+
+    public Gradle getGradle() {
+        return this;
+    }
+
+    public Logger getLogger() {
+        return logger;
     }
 }

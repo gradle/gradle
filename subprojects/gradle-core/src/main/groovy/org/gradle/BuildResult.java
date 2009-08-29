@@ -17,24 +17,17 @@ package org.gradle;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.initialization.Settings;
 
 /**
  * <p>A {@code BuildResult} packages up the results of a build executed by a {@link GradleLauncher} instance.</p>
  */
 public class BuildResult {
-    private final Settings settings;
     private final Throwable failure;
     private final Gradle gradle;
 
-    public BuildResult(Settings settings, Gradle gradle, Throwable failure) {
-        this.settings = settings;
+    public BuildResult(Gradle gradle, Throwable failure) {
         this.gradle = gradle;
         this.failure = failure;
-    }
-
-    public Settings getSettings() {
-        return settings;
     }
 
     public Gradle getGradle() {

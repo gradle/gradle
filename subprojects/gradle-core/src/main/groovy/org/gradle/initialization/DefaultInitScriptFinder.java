@@ -35,7 +35,7 @@ public class DefaultInitScriptFinder implements InitScriptFinder
         List<File> scriptFiles = gradle.getStartParameter().getInitScripts();
         List<ScriptSource> scripts = new ArrayList<ScriptSource>(scriptFiles.size());
         for (File file : scriptFiles) {
-            scripts.add(new StrictScriptSource(new FileScriptSource("init script", file)));
+            scripts.add(new StrictScriptSource(new FileScriptSource("initialization script", file)));
         }
 
         return scripts;

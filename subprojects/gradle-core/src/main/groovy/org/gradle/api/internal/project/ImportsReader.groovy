@@ -33,9 +33,9 @@ class ImportsReader {
     }
 
     String getImports(File rootDir) {
-        File projectImportsFiles =  new File(rootDir, Main.IMPORTS_FILE_NAME)
+        File projectImportsFiles = rootDir ? new File(rootDir, Main.IMPORTS_FILE_NAME) : null
         String importsText = (defaultImportsFile ? defaultImportsFile.text : '') +
-        (projectImportsFiles.isFile() ? projectImportsFiles.text : '')
+        (projectImportsFiles && projectImportsFiles.isFile() ? projectImportsFiles.text : '')
         importsText
     }
 }

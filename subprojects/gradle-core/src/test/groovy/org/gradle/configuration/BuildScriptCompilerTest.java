@@ -15,15 +15,13 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
-import org.gradle.api.internal.project.StandardOutputRedirector;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.*;
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
@@ -47,16 +45,14 @@ public class BuildScriptCompilerTest {
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final ScriptProcessorFactory scriptProcessorFactory = context.mock(ScriptProcessorFactory.class);
     private final ScriptProcessor processor = context.mock(ScriptProcessor.class);
-    private final ScriptMetaData projectScriptMetaData = context.mock(ScriptMetaData.class);
     private final ImportsReader importsReader = context.mock(ImportsReader.class);
     private final ClassLoader classLoader = context.mock(ClassLoader.class);
-    private final ProjectScript classpathScript = context.mock(ProjectScript.class, "classpath");
-    private final ProjectScript buildScript = context.mock(ProjectScript.class, "build");
+    private final ScriptRunner classpathScriptRunner = context.mock(ScriptRunner.class, "classpath");
+    private final ScriptRunner buildScriptRunner = context.mock(ScriptRunner.class, "build");
     private final ScriptClassLoaderProvider classLoaderProvider = context.mock(ScriptClassLoaderProvider.class);
     private final File rootDir = new File("root dir");
-    private final StandardOutputRedirector standardOutputRedirector = context.mock(StandardOutputRedirector.class);
-    private final BuildScriptCompiler evaluator = new BuildScriptCompiler(importsReader, scriptProcessorFactory,
-            projectScriptMetaData);
+    private final Script buildScript = context.mock(Script.class);
+    private final BuildScriptCompiler evaluator = new BuildScriptCompiler(importsReader, scriptProcessorFactory);
 
     @Before
     public void setUp() {
@@ -72,9 +68,6 @@ public class BuildScriptCompilerTest {
 
             allowing(project).getClassLoaderProvider();
             will(returnValue(classLoaderProvider));
-
-            allowing(project).getStandardOutputRedirector();
-            will(returnValue(standardOutputRedirector));
         }});
     }
 
@@ -93,27 +86,28 @@ public class BuildScriptCompilerTest {
 
             one(processor).setTransformer(with(notNullValue(BuildScriptClasspathScriptTransformer.class)));
 
-            one(processor).process(ProjectScript.class);
-            will(returnValue(classpathScript));
+            one(processor).compile(ProjectScript.class);
+            will(returnValue(classpathScriptRunner));
 
-            one(projectScriptMetaData).applyMetaData(classpathScript, project);
+            one(classpathScriptRunner).setDelegate(project);
 
-            one(standardOutputRedirector).on(LogLevel.QUIET);
-
-            one(classpathScript).run();
-            
-            one(standardOutputRedirector).flush();
+            one(classpathScriptRunner).run();
 
             one(classLoaderProvider).updateClassPath();
             
             one(processor).setTransformer(with(notNullValue(BuildScriptTransformer.class)));
 
-            one(processor).process(ProjectScript.class);
+            one(processor).compile(ProjectScript.class);
+            will(returnValue(buildScriptRunner));
+
+            one(buildScriptRunner).setDelegate(project);
+
+            one(buildScriptRunner).getScript();
             will(returnValue(buildScript));
 
-            one(projectScriptMetaData).applyMetaData(buildScript, project);
-
             one(project).setScript(buildScript);
+
+            one(buildScriptRunner).run();
         }});
 
         evaluator.evaluate(project);

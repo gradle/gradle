@@ -41,7 +41,6 @@ class ScriptEvaluatingSettingsProcessorTest {
     SettingsFactory settingsFactory
     StartParameter expectedStartParameter
     ScriptProcessorFactory scriptProcessorMock
-    ScriptMetaData settingsScriptMetaData
     DefaultSettings expectedSettings
     MockFor settingsFactoryMocker
     ScriptSource scriptSourceMock
@@ -54,7 +53,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
         instantiateConstructorArgs()
-        settingsProcessor = new ScriptEvaluatingSettingsProcessor(settingsScriptMetaData, scriptProcessorMock, importsReader, settingsFactory)
+        settingsProcessor = new ScriptEvaluatingSettingsProcessor(scriptProcessorMock, importsReader, settingsFactory)
         initSettingsFinder()
         expectedStartParameter = new StartParameter()
         expectedGradleProperties = [a: 'b']
@@ -64,7 +63,6 @@ class ScriptEvaluatingSettingsProcessorTest {
     }
 
     private void instantiateConstructorArgs() {
-        settingsScriptMetaData = context.mock(ScriptMetaData)
         scriptProcessorMock = context.mock(ScriptProcessorFactory)
         importsReader = new ImportsReader()
         settingsFactory = context.mock(SettingsFactory)
@@ -94,7 +92,6 @@ class ScriptEvaluatingSettingsProcessorTest {
     }
 
     @Test public void testSettingsProcessor() {
-        assertSame(settingsScriptMetaData, settingsProcessor.settingsScriptMetaData)
         assertSame(scriptProcessorMock, settingsProcessor.scriptProcessor)
         assert settingsProcessor.importsReader.is(importsReader)
         assert settingsProcessor.settingsFactory.is(settingsFactory)
@@ -112,17 +109,19 @@ class ScriptEvaluatingSettingsProcessorTest {
 
     private void prepareScriptProcessorMock() {
         ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSourceMock, importsReader, TEST_ROOT_DIR);
-        Script expectedScript = new EmptyScript()
-        ScriptProcessor processor = context.mock(ScriptProcessor)
+        ScriptRunner scriptRunnerMock = context.mock(ScriptRunner)
+        ScriptProcessor processorMock = context.mock(ScriptProcessor)
         context.checking {
             one(scriptProcessorMock).createProcessor(withParam(reflectionEquals(expectedScriptSource)))
-            will(returnValue(processor))
+            will(returnValue(processorMock))
 
-            one(processor).setClassloader(urlClassLoader)
-            one(processor).process(ScriptWithSource.class)
-            will(returnValue(expectedScript))
+            one(processorMock).setClassloader(urlClassLoader)
+            one(processorMock).compile(SettingsScript.class)
+            will(returnValue(scriptRunnerMock))
 
-            one(settingsScriptMetaData).applyMetaData(expectedScript, expectedSettings)
+            one(scriptRunnerMock).setDelegate(expectedSettings)
+
+            one(scriptRunnerMock).run()
         }
     }
 }

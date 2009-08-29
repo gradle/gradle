@@ -1,0 +1,6 @@
+println 'init quiet out'
+captureStandardOutput(LogLevel.INFO)
+println 'init info out'
+
+logger.lifecycle('init lifecycle log')
+logger.info('init info log')

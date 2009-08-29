@@ -13,18 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.configuration;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.logging.LogLevel;
+package org.gradle.groovy.scripts;
 
-public class BuildScriptEvaluator implements ProjectEvaluator {
-    public void evaluate(ProjectInternal project) {
-        project.getStandardOutputRedirector().on(LogLevel.QUIET);
-        try {
-            project.getScript().run();
-        } finally {
-            project.getStandardOutputRedirector().flush();
-        }
+import org.gradle.api.internal.project.StandardOutputRedirector;
+
+/**
+ * The base class for all scripts executed by Gradle.
+ */
+public abstract class Script extends groovy.lang.Script {
+    private ScriptSource source;
+
+    public ScriptSource getScriptSource() {
+        return source;
     }
+
+    public void setScriptSource(ScriptSource source) {
+        this.source = source;
+    }
+
+    public abstract StandardOutputRedirector getStandardOutputRedirector();
+
+    public abstract ClassLoader getContextClassloader();
 }

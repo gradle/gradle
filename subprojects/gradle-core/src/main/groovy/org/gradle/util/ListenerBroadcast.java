@@ -21,7 +21,7 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.ScriptWithSource;
+import org.gradle.groovy.scripts.Script;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -149,8 +149,8 @@ public class ListenerBroadcast<T> {
         private ScriptSource findSource(Closure closure) {
             Closure c = closure;
             while (c != null) {
-                if (c.getOwner() instanceof ScriptWithSource) {
-                    return ((ScriptWithSource) c.getOwner()).getScriptSource();
+                if (c.getOwner() instanceof Script) {
+                    return ((Script) c.getOwner()).getScriptSource();
                 }
                 if (c.getOwner() instanceof Closure) {
                     c = (Closure) c.getOwner();

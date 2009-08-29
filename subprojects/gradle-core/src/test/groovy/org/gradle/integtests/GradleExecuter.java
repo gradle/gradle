@@ -40,6 +40,8 @@ public interface GradleExecuter {
 
     GradleExecuter usingSettingsFile(File settingsFile);
 
+    GradleExecuter usingInitScript(File initScript);
+
     GradleExecuter usingBuildScript(String script);
 
     GradleExecuter usingExecutable(String script);

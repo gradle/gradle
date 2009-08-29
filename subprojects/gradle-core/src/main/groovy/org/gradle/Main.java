@@ -85,7 +85,7 @@ public class Main {
                 buildCompleter.exit(buildResult.getFailure());
             }
         } catch (Throwable e) {
-            exceptionReporter.buildFinished(new BuildResult(null, null, e));
+            exceptionReporter.buildFinished(new BuildResult(null, e));
             buildCompleter.exit(e);
         }
         buildCompleter.exit(null);
