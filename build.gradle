@@ -85,8 +85,8 @@ subprojects {
 
     checkstyleConfigDir = "$rootDir/config/checkstyle"
     checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
+    codeNarcConfigFileName = "$rootDir/config/codenarc.xml"
     [checkstyle, checkstyleTests].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
-    [codenarc, codenarcTests]*.configFile = "$rootDir/config/codenarc.xml" as File
 
     groovydoc.destinationDir = explodedDistGroovydocsDir
 }
@@ -156,7 +156,7 @@ distributionUploadUrl = null
 docsRemoteDir = ''
 javadocRemoteDir = ''
 groovydocRemoteDir = ''
-build.taskGraph.whenReady {graph ->
+gradle.taskGraph.whenReady {graph ->
     String prefix = ''
     if (graph.hasTask(':release')) {
         versionModifier = ''
@@ -204,9 +204,9 @@ def removeAnyExistingOldGradleLibs() {
 }
 
 task javadoc(overwrite: true, type: Javadoc, dependsOn: subprojects*.compile) {
-    srcDirs = subprojects.inject([]) {list, project -> list + project.srcDirs + project.groovySrcDirs}
+    srcDirs = subprojects.inject([]) {list, project -> list + project.source.main.java.srcDirs + project.groovySrcDirs}
     destinationDir = explodedDistJavadocsDir
-    configuration = files(subprojects.collect { project-> [project.configurations.compile, project.classesDir] })
+    configuration = files(subprojects.collect { project-> [project.configurations.compile, project.source.main.classesDir] })
     // todo: include only the public packages
     options.subPackages 'org.gradle'
     exclude 'org.gradle.api.internal'
@@ -225,7 +225,10 @@ task explodedDist(dependsOn: [explodedDistBase, docs, 'samples'], description: '
     File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
     copy {
         into explodedDistSrcDir
-        from srcDirs, resourceDirs, groovySrcDirs
+        subprojects {
+            println "from $source.main.java.srcDirs, $source.main.resources.srcDirs, $groovySrcDirs"
+            from source.main.java.srcDirs, source.main.resources.srcDirs, groovySrcDirs
+        }
     }
 }
 
@@ -560,7 +563,7 @@ websiteDocs << {
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
 integTestDistDir = new File(buildDir, 'integtest')
-task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc, project('gradle-core').compileTests, project('gradle-core').processTestResources, project('gradle-core').processResources]) {
+task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc, project('gradle-core').compileTest, project('gradle-core').processTestResources, project('gradle-core').processResources]) {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
@@ -568,8 +571,8 @@ task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc, proje
 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
     exclude '**/Abstract*'
-    testClassesDir = project('gradle-core').testClassesDir
-    configuration = project('gradle-core').getConfigurations().getByName('testRuntime')
+    testClassesDir = project('gradle-core').source.test.classesDir
+    configuration = project('gradle-core').configurations.testRuntime
 }
 integTest.doFirst {
     ant {
@@ -595,7 +598,7 @@ task install(dependsOn: binZip, description: 'Installs the distribution into dir
     ant.move(file: "${installDir.parentFile}/$zipRootFolder", tofile: installDir)
 }
 
-build.taskGraph.whenReady { graph ->
+gradle.taskGraph.whenReady { graph ->
     if (graph.hasTask(install)) {
         // Do this early to ensure that the properties we need have been set, and fail early
         installDir = file("$gradle_installPath")
@@ -637,7 +640,7 @@ uploadDists {
         addArtifactPattern("$distributionUploadUrl/[artifact]-[revision](-[classifier]).[ext]" as String)
     }
 }
-build.taskGraph.whenReady {graph ->
+gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(uploadDists)) {
         // check properties defined and fail early
         codehausUserName
@@ -652,9 +655,10 @@ task release(dependsOn: [uploadDists, uploadDocs]) << {
     svn.release()
 }
 
-task wrapper(type: Wrapper, dependsOn: binZip) << {task ->
+task wrapper(type: Wrapper, dependsOn: binZip)
+wrapper.doFirst {task ->
     task.configure {
-        gradleVersion = customWrapperVersion ?: version
+        gradleVersion = version
         jarPath = 'wrapper'
     }
 }

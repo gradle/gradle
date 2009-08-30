@@ -69,7 +69,7 @@ dependencies {
 jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
 
 processResources.doLast {
-    File versionPropertiesDestination = new File(classesDir, GradleVersion.FILE_NAME)
+    File versionPropertiesDestination = new File(source.main.classesDir, GradleVersion.FILE_NAME)
     logger.info('Write version properties to: {}', versionPropertiesDestination.absoluteFile)
     Properties versionProperties = new Properties()
     versionProperties.putAll([
@@ -79,7 +79,7 @@ processResources.doLast {
     versionProperties.store(new FileOutputStream(versionPropertiesDestination), '')
 }
 
-[compile, compileTests]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
+[compile, compileTest]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.

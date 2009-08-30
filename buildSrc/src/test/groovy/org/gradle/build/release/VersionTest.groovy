@@ -16,32 +16,25 @@
 
 package org.gradle.build.release
 
-import org.gradle.StartParameter
-import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory
-import org.gradle.build.release.Svn
-import org.gradle.build.release.Version
-import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.initialization.DefaultProjectDescriptor
-import org.gradle.initialization.DefaultProjectDescriptorRegistry
-import org.gradle.initialization.IProjectDescriptorRegistry
-import org.gradle.invocation.DefaultBuild
-import org.gradle.logging.AntLoggingAdapter
+import groovy.mock.interceptor.StubFor
+import org.gradle.api.Project
 import org.gradle.util.GradleUtil
-import org.gradle.api.internal.project.*
-import org.gradle.configuration.ProjectEvaluator
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
  */
-class VersionTest extends GroovyTestCase {
+class VersionTest {
     Version version
     boolean trunk
-    DefaultProject project
+    Project project
     Svn svn
     File testDir
 
+    @Before
     void setUp() {
         testDir = GradleUtil.makeNewDir(new File('tmpTest'))
         File rootDir = new File(testDir, 'root')
@@ -54,27 +47,25 @@ class VersionTest extends GroovyTestCase {
         version = new Version(svn, project, false)
     }
 
-    DefaultProject createRootProject(File rootDir) {
-        IProjectFactory projectFactory = new ProjectFactory(
-                new DefaultProjectServiceRegistryFactory(
-                        new DefaultRepositoryHandlerFactory(null),
-                        new DefaultConfigurationContainerFactory(),
-                        null,
-                        null,
-                        [:] as ProjectEvaluator),
-                new StringScriptSource("embedded build file", "embedded"))
-        IProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry()
-        ProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir, registry)
-        StartParameter startParameter = new StartParameter()
-        startParameter.pluginPropertiesFile = new File('plugin.properties')
-        DefaultProject project = projectFactory.createProject(descriptor, null, new DefaultBuild(startParameter, null, null))
-        return project;
+    Project createRootProject(File rootDir) {
+        Map props = [:]
+        StubFor stub = new StubFor(Project)
+        ['previousMajor', 'previousMinor', 'previousRevision', 'versionModifier'].each { String prop ->
+            String capName = prop[0].toUpperCase() + prop.substring(1)
+            stub.demand."set$capName"(1..20) { value -> props[prop] = value }
+            stub.demand."get$capName"(1..20) { props[prop] }
+        }
+        stub.demand.hasProperty(1..20) {value -> props.containsKey(value) }
+        stub.demand.getProjectDir(1..20) { rootDir }
+        stub.proxyInstance()
     }
 
+    @After
     void tearDown() {
         GradleUtil.deleteDir(testDir)
     }
 
+    @Test
     void testFalseTrunkMinor() {
         trunk = true
         assertEquals(1, version.major)
@@ -82,6 +73,7 @@ class VersionTest extends GroovyTestCase {
         assertEquals(0, version.revision)
     }
 
+    @Test
     void testTrueTrunkMinor() {
         trunk = false
         assertEquals(1, version.major)
@@ -89,6 +81,7 @@ class VersionTest extends GroovyTestCase {
         assertEquals(4, version.revision)
     }
 
+    @Test
     void testFalseTrunkMajor() {
         version = new Version(svn, project, true)
         trunk = true
@@ -97,6 +90,7 @@ class VersionTest extends GroovyTestCase {
         assertEquals(0, version.revision)
     }
 
+    @Test
     void testTrueTrunkMajor() {
         version = new Version(svn, project, true)
         trunk = false
@@ -105,6 +99,7 @@ class VersionTest extends GroovyTestCase {
         assertEquals(4, version.revision)
     }
 
+    @Test
     void testGetLastRelease() {
         assertEquals('1.2.3', version.lastRelease)
         project.previousRevision = 0
@@ -112,6 +107,7 @@ class VersionTest extends GroovyTestCase {
         assertEquals('1.2', version.lastRelease)
     }
 
+    @Test
     void testToString() {
         trunk = false
         project.versionModifier = ''
@@ -126,6 +122,7 @@ class VersionTest extends GroovyTestCase {
         assertEquals("1.3-a", version.toString())
     }
 
+    @Test
     void testStoreCurrentVersion() {
         trunk = false
         version.storeCurrentVersion()
@@ -137,6 +134,12 @@ class VersionTest extends GroovyTestCase {
         assertEquals('2', properties.previousMinor)
         assertEquals('4', properties.previousRevision)
     }
+}
 
+abstract class ProjectImpl implements Project {
+    def propertyMissing(String name) {
+    }
 
+    def void setProperty(String name, value) {
+    }
 }

@@ -1,23 +1,19 @@
 package org.gradle.build.docs
 
-import org.gradle.api.Project
-import org.apache.tools.ant.types.FileSet
-import java.util.regex.Pattern
 import java.util.regex.Matcher
-import org.gradle.api.GradleException
+import java.util.regex.Pattern
 import org.apache.tools.ant.DirectoryScanner
+import org.apache.tools.ant.types.FileSet
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.tasks.TaskAction
 
 public class ExtractSnippetsTask extends DefaultTask {
     FileSet sourceFiles
     File destDir
     File snippetsDir
 
-    def ExtractSnippetsTask(Project project, String name) {
-        super(project, name);
-        doFirst(this.&extract)
-    }
-
+    @TaskAction
     def extract() {
         ['sourceFiles', 'destDir', 'snippetsDir'].each {
             if (getProperty(it) == null) {

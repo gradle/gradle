@@ -1,16 +1,17 @@
 package org.gradle.build.docs
 
-import org.gradle.api.GradleException
-import org.w3c.dom.Element
-import javax.xml.parsers.DocumentBuilderFactory
-import org.w3c.dom.Document
-import groovy.xml.dom.DOMCategory
 import groovy.xml.MarkupBuilder
-import org.w3c.dom.Node
-import org.gradle.api.Project
+import groovy.xml.dom.DOMCategory
 import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.file.FileCollection
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.Node
+import java.lang.*
 
 /**
  * Transforms userguide source into docbook, replacing custom xml elements.
@@ -26,11 +27,7 @@ public class UserGuideTransformTask extends DefaultTask {
     FileCollection classpath;
     SampleElementValidator validator;
 
-    def UserGuideTransformTask(Project project, String name) {
-        super(project, name);
-        doFirst(this.&transform)
-    }
-
+    @TaskAction
     def transform() {
         version = project.version.toString()
 
