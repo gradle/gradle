@@ -1,14 +1,14 @@
 task checksum << {
     fileList('../antChecksumFiles').each { File file ->
-        ant.checksum(file: file, property: file.name)
-        println "$file.name Checksum: ${ant.properties[file.name]}"
+        ant.checksum(file: file, property: "cs_$file.name")
+        println "$file.name Checksum: ${ant.properties["cs_$file.name"]}"
     }
 }
 
 task length << {
     fileList('../antChecksumFiles').each { File file ->
-        ant.length(file: file, property: file.name)
-        println "$file.name Length: ${ant.properties[file.name]}"
+        ant.length(file: file, property: "lt_$file.name")
+        println "$file.name Length: ${ant.properties["lt_$file.name"]}"
     }
 }
 
