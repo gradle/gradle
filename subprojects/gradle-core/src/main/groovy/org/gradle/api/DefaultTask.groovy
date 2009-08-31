@@ -65,18 +65,6 @@ class DefaultTask extends AbstractTask {
         actionClosure.setResolveStrategy(Closure.OWNER_FIRST);
         return new ClosureTaskAction(actionClosure);
     }
-
-    def propertyMissing(String name) {
-        property(name)
-    }
-
-    void setProperty(String name, Object value) {
-        defineProperty(name, value)
-    }
-
-    def methodMissing(String name, arguments) {
-        dynamicObjectHelper.invokeMethod(name, arguments)
-    }
 }
 
 class ClosureTaskAction implements TaskAction {

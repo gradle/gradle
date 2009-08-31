@@ -37,6 +37,11 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         this(new BeanDynamicObject(delegateObject));
     }
 
+    public DynamicObjectHelper(Object delegateObject, Convention convention) {
+        this(new BeanDynamicObject(delegateObject));
+        setConvention(convention);
+    }
+
     DynamicObjectHelper(AbstractDynamicObject delegateObject) {
         this.delegateObject = delegateObject;
     }

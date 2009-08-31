@@ -17,9 +17,8 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.util.GUtil;
 
 import java.lang.reflect.Constructor;
@@ -75,10 +74,7 @@ public class TaskFactory implements ITaskFactory {
                     type.getSimpleName()));
         }
 
-        Class<? extends Task> generatedType = type;
-        if (generateGetters && ConventionTask.class.isAssignableFrom(type)) {
-            generatedType = generator.generate(type);
-        }
+        Class<? extends Task> generatedType = generator.generate(type);
 
         Constructor<? extends Task> constructor = null;
         Object[] params = null;

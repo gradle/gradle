@@ -17,9 +17,12 @@ package org.gradle.api.internal;
 
 import groovy.lang.GroovyRuntimeException;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.internal.tasks.DynamicObjectAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
+import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -36,6 +39,15 @@ public class DefaultClassGeneratorTest {
         assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
         Bean bean = generatedClass.newInstance();
         ((IConventionAware) bean).getConventionMapping().map("property", null);
+    }
+
+    @Test
+    public void mixesInDynamicObjectAwareInterface() throws Exception {
+        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
+        assertTrue(DynamicObjectAware.class.isAssignableFrom(generatedClass));
+        Bean bean = generatedClass.newInstance();
+        ((DynamicObjectAware) bean).getAsDynamicObject().setProperty("property", "value");
+        assertThat(bean.getProperty(), equalTo("value"));
     }
 
     @Test
@@ -163,10 +175,62 @@ public class DefaultClassGeneratorTest {
     }
 
     @Test
-    public void doesNotGenerateSubclassForClassMarkedWithAnnotation() {
-        assertEquals(NoMappingBean.class, generator.generate(NoMappingBean.class));
+    public void doesNotMixInConventionMappingToClassWithAnnotation() throws Exception {
+        NoMappingBean bean = generator.generate(NoMappingBean.class).newInstance();
+        assertFalse(bean instanceof IConventionAware);
+        assertNull(bean.getInterfaceProperty());
+
+        // Check dynamic object behaviour still works
+        assertTrue(bean instanceof DynamicObjectAware);
+    }
+    
+    @Test
+    public void doesNotOverrideMethodsFromDynamicObjectAwareInterface() throws Exception {
+        DynamicObjectAwareBean bean = generator.generate(DynamicObjectAwareBean.class).newInstance();
+        assertThat(bean.getConvention(), sameInstance(bean.conv));
+        Convention newConvention = new DefaultConvention();
+        bean.setConvention(newConvention);
+        assertThat(bean.getConvention(), sameInstance(newConvention));
+        assertThat(bean.getAsDynamicObject(), sameInstance((DynamicObject) newConvention));
     }
 
+    @Test
+    public void doesNotMixInDynamicObjectToClassWithAnnotation() throws Exception {
+        Class<? extends NoDynamicBean> generatedType = generator.generate(NoDynamicBean.class);
+        assertFalse(DynamicObjectAware.class.isAssignableFrom(generatedType));
+
+        // Check convention mapping still works
+        assertTrue(IConventionAware.class.isAssignableFrom(generatedType));
+        NoDynamicBean bean = generatedType.newInstance();
+        bean.getProperty();
+    }
+    
+    @Test
+    public void usesSameConventionForDynamicObjectAndConventionMappings() throws Exception {
+        Bean bean = generator.generate(Bean.class).newInstance();
+        IConventionAware conventionAware = (IConventionAware) bean;
+        DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
+        assertThat(dynamicObjectAware.getConvention(), sameInstance(conventionAware.getConventionMapping().getConvention()));
+
+        Convention newConvention = new DefaultConvention();
+        dynamicObjectAware.setConvention(newConvention);
+        assertThat(dynamicObjectAware.getConvention(), sameInstance(newConvention));
+        assertThat(conventionAware.getConventionMapping().getConvention(), sameInstance(newConvention));
+    }
+
+    @Test
+    public void canAddDynamicPropertiesAndMethodsToJavaObject() throws Exception {
+        Bean bean = generator.generate(Bean.class).newInstance();
+        DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
+        ConventionObject conventionObject = new ConventionObject();
+        dynamicObjectAware.getConvention().getPlugins().put("plugin", conventionObject);
+
+        HelperUtil.call("{ it.conventionProperty = 'value' }", bean);
+        assertThat(conventionObject.getConventionProperty(), equalTo("value"));
+        assertThat(HelperUtil.call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
+        assertThat(HelperUtil.call("{ it.doStuff('value') }", bean), equalTo((Object) "[value]"));
+    }
+    
     public static class Bean {
         private String property;
 
@@ -225,6 +289,38 @@ public class DefaultClassGeneratorTest {
         }
     }
 
+    public static class DynamicObjectAwareBean extends Bean implements DynamicObjectAware {
+        Convention conv = new DefaultConvention();
+
+        public Convention getConvention() {
+            return conv;
+        }
+
+        public void setConvention(Convention convention) {
+            this.conv = convention;
+        }
+
+        public DynamicObject getAsDynamicObject() {
+            return conv;
+        }
+    }
+
+    public static class ConventionObject {
+        private String conventionProperty;
+
+        public String getConventionProperty() {
+            return conventionProperty;
+        }
+
+        public void setConventionProperty(String conventionProperty) {
+            this.conventionProperty = conventionProperty;
+        }
+
+        public Object doStuff(String value) {
+            return "[" + value + "]";
+        }
+    }
+
     public static class BeanWithVariousPropertyTypes {
         public String[] getArrayProperty() {
             return null;
@@ -252,6 +348,10 @@ public class DefaultClassGeneratorTest {
         public String getOverriddenProperty() {
             return null;
         }
+    }
+
+    @NoDynamicObject
+    public static class NoDynamicBean extends Bean {
     }
 
     public static class BeanSubClass extends NoMappingBean {

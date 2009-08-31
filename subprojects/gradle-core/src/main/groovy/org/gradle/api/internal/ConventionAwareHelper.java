@@ -37,9 +37,9 @@ public class ConventionAwareHelper implements ConventionMapping {
     private Map<String, ConventionValue> conventionMapping = new HashMap<String, ConventionValue>();
     private Map<String, Object> conventionMappingCache = new HashMap<String, Object>();
 
-    // todo Why not passing the convention object as an argument?
-    public ConventionAwareHelper(IConventionAware source) {
+    public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this.source = source;
+        this.convention = convention;
     }
 
     public ConventionMapping map(String propertyName, ConventionValue value) {

@@ -28,15 +28,13 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
     private ConventionMapping conventionMapping;
 
     protected ConventionTask() {
-        conventionMapping = new ConventionAwareHelper(this);
-        conventionMapping.setConvention(getProject().getConvention());
+        conventionMapping = new ConventionAwareHelper(this, getProject().getConvention());
     }
 
     @Deprecated
     protected ConventionTask(Project project, String name) {
         super(project, name);
-        conventionMapping = new ConventionAwareHelper(this);
-        conventionMapping.setConvention(getProject().getConvention());
+        conventionMapping = new ConventionAwareHelper(this, getProject().getConvention());
     }
 
     public Task conventionMapping(String property, ConventionValue mapping) {

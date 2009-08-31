@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.TestTask;
@@ -38,7 +39,7 @@ public class ConventionAwareHelperTest {
 
     @Before public void setUp() {
         testTask = HelperUtil.createTask(TestTask.class);
-        conventionAware = new ConventionAwareHelper(testTask);
+        conventionAware = new ConventionAwareHelper(testTask, new DefaultConvention());
     }
 
     @Test public void testConventionMapping() {

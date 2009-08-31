@@ -26,7 +26,18 @@ package org.gradle.api.internal;
  * @author Hans Dockter
  */
 public interface IConventionAware {
+    /**
+     * Sets the convention mapping for the properties of this object.
+     *
+     * @param mapping The mapping.
+     */
     void setConventionMapping(ConventionMapping mapping);
 
+    /**
+     * Returns the convention mapping for the properties of this object. The returned mapping object can be used to
+     * manage the mapping for individual properties.
+     *
+     * @return The mapping. Never returns null.
+     */
     ConventionMapping getConventionMapping();
 }

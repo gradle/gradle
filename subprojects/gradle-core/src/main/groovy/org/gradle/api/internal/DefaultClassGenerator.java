@@ -18,7 +18,7 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.DynamicObjectAware;
 import org.gradle.util.ReflectionUtil;
 
 import java.lang.reflect.Constructor;
@@ -27,7 +27,7 @@ import java.util.*;
 
 public class DefaultClassGenerator implements ClassGenerator {
     // This is static (for now), as these classes are expensive to generate, and also Groovy gets confused
-    private static final Map<Class, Class> generatedClasses = new HashMap<Class, Class>();
+    private static final Map<Class, Class> generatedClasses = new WeakHashMap<Class, Class>();
 
     public <T> T newInstance(Class<T> type, Object... parameters) {
         return type.cast(ReflectionUtil.newInstance(generate(type), parameters));
@@ -48,19 +48,25 @@ public class DefaultClassGenerator implements ClassGenerator {
                     type.getSimpleName()));
         }
         
-        if (type.getAnnotation(NoConventionMapping.class) != null) {
-            generatedClasses.put(type, type);
-            return type;
-        }
+        String className = type.getSimpleName() + "_Generated";
 
-        String className = type.getSimpleName() + "_WithConventionMapping";
+        boolean addConventionAware = type.getAnnotation(NoConventionMapping.class) == null;
+        boolean addDynamicAware = type.getAnnotation(NoDynamicObject.class) == null;
 
         Formatter src = new Formatter();
         if (type.getPackage() != null) {
             src.format("package %s;%n", type.getPackage().getName());
         }
-        src.format("public class %s extends %s implements org.gradle.api.internal.IConventionAware {%n", className,
-                type.getName().replaceAll("\\$", "."));
+        src.format("public class %s extends %s ", className, type.getName().replaceAll("\\$", "."));
+        if (addConventionAware) {
+            src.format("implements org.gradle.api.internal.IConventionAware ");
+        }
+        if (addDynamicAware) {
+            src.format(addConventionAware ? ", " : "implements ");
+            src.format("org.gradle.api.internal.tasks.DynamicObjectAware ");
+        }
+        src.format("{%n");
+
         for (Constructor<?> constructor : type.getConstructors()) {
             if (Modifier.isPublic(constructor.getModifiers())) {
                 src.format("public %s(", className);
@@ -82,25 +88,39 @@ public class DefaultClassGenerator implements ClassGenerator {
             }
         }
 
-        if (!IConventionAware.class.isAssignableFrom(type)) {
-            src.format(
-                    "private org.gradle.api.internal.ConventionMapping mapping = new org.gradle.api.internal.ConventionAwareHelper(this)%n");
-            src.format(
-                    "public void setConventionMapping(org.gradle.api.internal.ConventionMapping conventionMapping) { this.mapping = conventionMapping }%n");
+        if (addDynamicAware && !DynamicObjectAware.class.isAssignableFrom(type)) {
+            src.format("private org.gradle.api.internal.DynamicObjectHelper dynamicObject = new org.gradle.api.internal.DynamicObjectHelper(this, new org.gradle.api.internal.plugins.DefaultConvention())%n");
+            src.format("public void setConvention(org.gradle.api.plugins.Convention convention) { dynamicObject.setConvention(convention); getConventionMapping().setConvention(convention) }%n");
+            src.format("public org.gradle.api.plugins.Convention getConvention() { return dynamicObject.getConvention() }%n");
+            src.format("public org.gradle.api.internal.DynamicObject getAsDynamicObject() { return dynamicObject }%n");
+        }
+        if (addDynamicAware) {
+            src.format("void setProperty(String name, Object value) { getAsDynamicObject().setProperty(name, value); }%n");
+            src.format("def propertyMissing(String name) { getAsDynamicObject().getProperty(name); }%n");
+            src.format("def methodMissing(String name, Object params) { getAsDynamicObject().invokeMethod(name, (Object[])params); }%n");
+        }
+        
+        if (addConventionAware && !IConventionAware.class.isAssignableFrom(type)) {
+            if (addDynamicAware) {
+                src.format("private org.gradle.api.internal.ConventionMapping mapping = new org.gradle.api.internal.ConventionAwareHelper(this, getConvention())%n");
+            } else {
+                src.format("private org.gradle.api.internal.ConventionMapping mapping = new org.gradle.api.internal.ConventionAwareHelper(this, new org.gradle.api.internal.plugins.DefaultConvention())%n");
+            }
+            src.format("public void setConventionMapping(org.gradle.api.internal.ConventionMapping conventionMapping) { this.mapping = conventionMapping }%n");
             src.format("public org.gradle.api.internal.ConventionMapping getConventionMapping() { return mapping }%n");
         }
 
         Class noMappingClass = Object.class;
-        for (Class<?> c = type.getSuperclass(); c != null && noMappingClass == Object.class; c = c.getSuperclass()) {
+        for (Class<?> c = type; c != null && noMappingClass == Object.class; c = c.getSuperclass()) {
             if (c.getAnnotation(NoConventionMapping.class) != null) {
                 noMappingClass = c;
             }
         }
 
-        Collection<String> skipProperties = Arrays.asList("metaClass", "conventionMapping");
+        Collection<String> skipProperties = Arrays.asList("metaClass", "conventionMapping", "convention", "asDynamicObject");
 
         MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(type);
-        for (MetaProperty property : (List<MetaProperty>) metaClass.getProperties()) {
+        for (MetaProperty property : metaClass.getProperties()) {
             if (skipProperties.contains(property.getName())) {
                 continue;
             }
@@ -118,16 +138,11 @@ public class DefaultClassGenerator implements ClassGenerator {
                     continue;
                 }
                 String returnTypeName = getter.getReturnType().getCanonicalName();
-                src.format("public %s %s() { return conventionMapping.getConventionValue(super.%s(), '%s'); }%n",
+                src.format("public %s %s() { return getConventionMapping().getConventionValue(super.%s(), '%s'); }%n",
                         returnTypeName, getter.getName(), getter.getName(), property.getName());
             }
         }
 
-        // todo - make this generic
-        if (Task.class.isAssignableFrom(type)) {
-            src.format("void setProperty(String name, Object value) { defineProperty(name, value); }%n");
-            src.format("def propertyMissing(String name) { property(name); }%n");
-        }
         src.format("}");
 
         GroovyClassLoader classLoader = new GroovyClassLoader(type.getClassLoader());

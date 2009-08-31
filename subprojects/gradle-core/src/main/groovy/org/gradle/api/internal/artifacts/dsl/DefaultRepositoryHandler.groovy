@@ -25,10 +25,12 @@ import org.gradle.api.internal.artifacts.DefaultResolverContainer
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
 import org.gradle.util.HashUtil
 import org.gradle.util.WrapUtil
+import org.gradle.api.internal.NoDynamicObject
 
 /**
  * @author Hans Dockter
  */
+@NoDynamicObject
 class DefaultRepositoryHandler extends DefaultResolverContainer implements RepositoryHandler {
     DefaultRepositoryHandler(ResolverFactory resolverFactory) {
         super(resolverFactory)

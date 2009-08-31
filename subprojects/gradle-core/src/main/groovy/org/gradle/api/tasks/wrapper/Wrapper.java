@@ -92,7 +92,7 @@ public class Wrapper extends DefaultTask {
     }
 
     @TaskAction
-    private void generate() {
+    void generate() {
         if (scriptDestinationPath == null) {
             throw new InvalidUserDataException("The scriptDestinationPath property must be specified!");
         }

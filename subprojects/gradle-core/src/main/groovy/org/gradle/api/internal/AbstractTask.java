@@ -24,6 +24,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.DynamicObjectAware;
 import org.gradle.api.logging.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
@@ -41,7 +42,7 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractTask implements TaskInternal {                                               
+public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static Logger logger = Logging.getLogger(AbstractTask.class);
     private static Logger buildLogger = Logging.getLogger(Task.class);
     private static ThreadLocal<TaskInfo> nextInstance = new ThreadLocal<TaskInfo>();
@@ -93,8 +94,7 @@ public abstract class AbstractTask implements TaskInternal {
         this.project = (ProjectInternal) project;
         this.name = name;
         path = project == null ? null : project.absolutePath(name);
-        dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new DefaultConvention());
+        dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention());
         outputHandler = new DefaultOutputHandler(this);
     }
 
@@ -368,6 +368,14 @@ public abstract class AbstractTask implements TaskInternal {
 
     public Convention getConvention() {
         return dynamicObjectHelper.getConvention();
+    }
+
+    public void setConvention(Convention convention) {
+        dynamicObjectHelper.setConvention(convention);
+    }
+
+    public DynamicObject getAsDynamicObject() {
+        return dynamicObjectHelper;
     }
 
     public String getDescription() {
