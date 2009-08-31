@@ -1,17 +1,17 @@
 task checksum << {
-    fileList('../antChecksumFiles').each { File file ->
+    fileList('../antChecksumFiles').each {File file ->
         ant.checksum(file: file, property: "cs_$file.name")
         println "$file.name Checksum: ${ant.properties["cs_$file.name"]}"
     }
 }
 
 task length << {
-    fileList('../antChecksumFiles').each { File file ->
+    fileList('../antChecksumFiles').each {File file ->
         ant.length(file: file, property: "lt_$file.name")
         println "$file.name Length: ${ant.properties["lt_$file.name"]}"
     }
 }
 
 File[] fileList(String dir) {
-    file(dir).listFiles().sort()
+    file(dir).listFiles({file -> file.isFile() } as FileFilter).sort()
 }

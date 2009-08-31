@@ -1,8 +1,10 @@
 task checksum << {
     def files = file('../antChecksumFiles').listFiles().sort()
     files.each { File file ->
-        ant.checksum(file: file, property: file.name)
-        println "$file.name Checksum: ${ant.properties[file.name]}"
+        if (file.isFile()) {
+            ant.checksum(file: file, property: file.name)
+            println "$file.name Checksum: ${ant.properties[file.name]}"
+        }
     }
 }
         
