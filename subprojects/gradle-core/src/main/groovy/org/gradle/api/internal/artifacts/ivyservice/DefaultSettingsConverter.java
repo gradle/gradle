@@ -26,11 +26,9 @@ import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.util.WrapUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
@@ -39,7 +37,7 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultSettingsConverter implements SettingsConverter {
-    private static Logger logger = LoggerFactory.getLogger(DefaultSettingsConverter.class);
+    private static Logger logger = Logging.getLogger(DefaultSettingsConverter.class);
 
     private static final TransferListener TRANSFER_LISTENER = new TransferListener() {
         public void transferProgress(TransferEvent evt) {
@@ -47,13 +45,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
                 return;
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
-                logger.info(Logging.LIFECYCLE_ALLWAYS, String.format("downloading (%s) %s", getLengthText(evt), evt.getResource().getName()));
+                logger.progress(String.format("downloading (%s) %s%n", getLengthText(evt), evt.getResource().getName()));
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
-                StandardOutputLogging.printToDefaultOut(".");
+                logger.progress(".");
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
-                StandardOutputLogging.printToDefaultOut(String.format("%n"));
+                logger.progress(String.format("%n"));
             }
         }
     };

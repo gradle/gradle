@@ -32,13 +32,8 @@ import java.util.Map;
  */
 public class Logging {
     public static final BasicMarker LIFECYCLE = (BasicMarker) MarkerFactory.getDetachedMarker("LIFECYCLE");
-
-    /**
-     * When building the build sources, LIFECYCLE logging is disabled. But some events when building the build sources
-     * should be logged. /* For those we have LIFECYCLE_ALLWAYS marker.
-     */
-    public static final Marker LIFECYCLE_ALLWAYS = MarkerFactory.getDetachedMarker("LIFECYCLE_ALWAYS");
     public static final Marker DISABLED = MarkerFactory.getDetachedMarker("DISABLED");
+    public static final Marker PROGRESS = MarkerFactory.getDetachedMarker("PROGRESS");
     public static final Marker QUIET = MarkerFactory.getDetachedMarker("QUIET");
 
     /**
@@ -91,6 +86,22 @@ public class Logging {
 
         public void log(LogLevel level, String message, Throwable throwable) {
             level.log(this, message, throwable);
+        }
+
+        public boolean isProgressEnabled() {
+            return logger.isInfoEnabled(PROGRESS);
+        }
+
+        public void progress(String message) {
+            info(PROGRESS, message);
+        }
+
+        public void progress(String message, Object... objects) {
+            info(PROGRESS, message, objects);
+        }
+
+        public void progress(String message, Throwable throwable) {
+            info(PROGRESS, message, throwable);
         }
 
         public boolean isLifecycleEnabled() {

@@ -53,6 +53,34 @@ public interface Logger extends org.slf4j.Logger {
     void lifecycle(String message, Throwable throwable);
 
     /**
+     * Returns true if progress log level is enabled for this logger.
+     */
+    boolean isProgressEnabled();
+
+    /**
+     * Logs the given message at progress log level.
+     *
+     * @param message the log message.
+     */
+    void progress(String message);
+
+    /**
+     * Logs the given message at progress log level.
+     *
+     * @param message the log message.
+     * @param objects the log message parameters.
+     */
+    void progress(String message, Object... objects);
+
+    /**
+     * Logs the given message at progress log level.
+     *
+     * @param message the log message.
+     * @param throwable the exception to log.
+     */
+    void progress(String message, Throwable throwable);
+
+    /**
      * Returns true if quiet log level is enabled for this logger.
      */
     boolean isQuietEnabled();

@@ -72,6 +72,9 @@ public class LoggingTest {
         expectLogMessage(Level.INFO, Logging.LIFECYCLE, "lifecycle");
         logger.lifecycle("lifecycle");
 
+        expectLogMessage(Level.INFO, Logging.PROGRESS, "progress");
+        logger.progress("progress");
+
         expectLogMessage(Level.ERROR, null, "error");
         logger.error("error");
 
@@ -90,6 +93,7 @@ public class LoggingTest {
         assertTrue(logger.isErrorEnabled());
         assertTrue(logger.isWarnEnabled());
         assertFalse(logger.isQuietEnabled());
+        assertFalse(logger.isProgressEnabled());
         assertFalse(logger.isLifecycleEnabled());
         assertFalse(logger.isInfoEnabled());
         assertFalse(logger.isDebugEnabled());

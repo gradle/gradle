@@ -133,15 +133,6 @@ public class StandardOutputLogging {
     }
 
     /**
-     * Prints to default out (The System.out stream before Gradle was started), independent of the redirections of System.out.
-     * The message is printed via a print not a println.
-     * @param msg The message to print
-     */
-    public static void printToDefaultOut(String msg) {
-        DEFAULT_OUT.print(msg);
-    }
-
-    /**
      * Sets the values for System.out and Sytem.err.
      */
     public static void restoreState(StandardOutputState state) {

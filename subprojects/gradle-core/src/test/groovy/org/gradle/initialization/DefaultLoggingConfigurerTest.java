@@ -18,6 +18,7 @@ package org.gradle.initialization;
 import ch.qos.logback.classic.LoggerContext;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.Logging;
 import static org.hamcrest.Matchers.*;
 import org.junit.After;
 import static org.junit.Assert.*;
@@ -63,6 +64,51 @@ public class DefaultLoggingConfigurerTest {
         logger.error("error message");
 
         assertThat(listener.toString(), equalTo(String.format("error message%n")));
+    }
+
+    @Test
+    public void filtersProgressAndLowerWhenConfiguredAtQuietLevel() {
+        ListenerImpl listener = new ListenerImpl();
+        configurer.addStandardOutputListener(listener);
+        configurer.configure(LogLevel.QUIET);
+
+        logger.info(Logging.QUIET, "quiet message");
+        logger.info(Logging.PROGRESS, "<progress message>");
+        logger.info(Logging.LIFECYCLE, "lifecycle message");
+        logger.info("info message");
+        logger.debug("debug message");
+
+        assertThat(listener.toString(), equalTo(String.format("quiet message%n")));
+    }
+    
+    @Test
+    public void filtersInfoAndLowerWhenConfiguredAtLifecycleLevel() {
+        ListenerImpl listener = new ListenerImpl();
+        configurer.addStandardOutputListener(listener);
+        configurer.configure(LogLevel.LIFECYCLE);
+
+        logger.info(Logging.QUIET, "quiet message");
+        logger.info(Logging.PROGRESS, "<progress message>");
+        logger.info(Logging.LIFECYCLE, "lifecycle message");
+        logger.info("info message");
+        logger.debug("debug message");
+
+        assertThat(listener.toString(), equalTo(String.format("quiet message%n<progress message>lifecycle message%n")));
+    }
+
+    @Test
+    public void filtersDebugAndLowerWhenConfiguredAtInfoLevel() {
+        ListenerImpl listener = new ListenerImpl();
+        configurer.addStandardOutputListener(listener);
+        configurer.configure(LogLevel.INFO);
+
+        logger.info(Logging.QUIET, "quiet message");
+        logger.info(Logging.PROGRESS, "<progress message>");
+        logger.info(Logging.LIFECYCLE, "lifecycle message");
+        logger.info("info message");
+        logger.debug("debug message");
+
+        assertThat(listener.toString(), equalTo(String.format("quiet message%n<progress message>lifecycle message%ninfo message%n")));
     }
 
     private static class ListenerImpl implements StandardOutputListener {

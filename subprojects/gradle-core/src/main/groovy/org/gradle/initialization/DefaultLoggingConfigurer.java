@@ -86,7 +86,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
                     stdoutConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT,
                             FilterReply.NEUTRAL));
                 } else {
-                    stdoutConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE, Logging.LIFECYCLE_ALLWAYS));
+                    stdoutConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE, Logging.PROGRESS));
                 }
             }
             stdoutConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.DENY));
@@ -123,11 +123,21 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
     }
 
     private PatternLayout createPatternLayout(LoggerContext loggerContext, String pattern) {
-        PatternLayout patternLayout = new PatternLayout();
+        PatternLayout patternLayout = new Layout();
         patternLayout.setPattern(pattern);
         patternLayout.setContext(loggerContext);
         patternLayout.start();
         return patternLayout;
+    }
+
+    private static class Layout extends PatternLayout {
+        @Override
+        public String doLayout(LoggingEvent loggingEvent) {
+            if (loggingEvent.getMarker() == Logging.PROGRESS) {
+                return loggingEvent.getFormattedMessage();
+            }
+            return super.doLayout(loggingEvent);
+        }
     }
 
     private static class Appender extends ConsoleAppender<LoggingEvent> {

@@ -32,6 +32,19 @@ public enum LogLevel {
         void log(Logger logger, String message, Throwable throwable) {
             logger.quiet(message, throwable);
         }},
+    PROGRESS {
+        boolean isEnabled(Logger logger) {
+            return logger.isProgressEnabled();
+        }
+        void log(Logger logger, String message) {
+            logger.progress(message);
+        }
+        void log(Logger logger, String message, Object... objects) {
+            logger.progress(message, objects);
+        }
+        void log(Logger logger, String message, Throwable throwable) {
+            logger.progress(message, throwable);
+        }},
     LIFECYCLE {
         boolean isEnabled(Logger logger) {
             return logger.isLifecycleEnabled();
