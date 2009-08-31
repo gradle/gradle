@@ -100,7 +100,7 @@
             <title>Accessing the web via a proxy</title>
             <para><filename>gradle.properties</filename></para>
             <programlisting><![CDATA[
-systemProp.http.proxyHost=http://www.somehost.org
+systemProp.http.proxyHost=www.somehost.org
 systemProp.http.proxyPort=8080
 systemProp.http.proxyUser=userid
 systemProp.http.proxyPassword=password	
