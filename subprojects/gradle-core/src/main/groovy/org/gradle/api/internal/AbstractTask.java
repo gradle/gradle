@@ -50,7 +50,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String name;
 
-    private List<TaskAction> actions = new ArrayList<TaskAction>();
+    private List<Action<? super Task>> actions = new ArrayList<Action<? super Task>>();
 
     private boolean executing;
 
@@ -126,11 +126,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.name = name;
     }
 
-    public List<TaskAction> getActions() {
+    public List<Action<? super Task>> getActions() {
         return actions;
     }
 
-    public void setActions(List<TaskAction> actions) {
+    public void setActions(List<Action<? super Task>> actions) {
         this.actions = actions;
     }
 
@@ -203,7 +203,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task deleteAllActions() {
-        actions = new ArrayList<TaskAction>();
+        actions.clear();
         return this;
     }
 
@@ -217,7 +217,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 logger.lifecycle(path);
                 didWork = true;   // assume true unless changed during execution
                 standardOutputCapture.start();
-                for (TaskAction action : actions) {
+                for (Action<? super Task> action : actions) {
                     logger.debug("Executing Action:");
                     try {
                         doExecute(action);
@@ -253,7 +253,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return false;
     }
 
-    private void doExecute(TaskAction action) throws Throwable {
+    private void doExecute(Action<? super Task> action) throws Throwable {
         try {
             action.execute(this);
             // todo Due to a Groovy bug which wraps Exceptions from Java classes into InvokerInvocationExceptions we have to do this. After the Groovy bug is fixed we can remove this.
@@ -270,7 +270,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
-    public Task doFirst(TaskAction action) {
+    public Task doFirst(Action<? super Task> action) {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
@@ -278,7 +278,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
-    public Task doLast(TaskAction action) {
+    public Task doLast(Action<? super Task> action) {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }

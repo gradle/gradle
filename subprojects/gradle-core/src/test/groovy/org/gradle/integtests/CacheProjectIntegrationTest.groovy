@@ -16,9 +16,13 @@
 
 package org.gradle.integtests
 
-import org.junit.Assert
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.junit.runner.RunWith
 import org.junit.Test
+import org.junit.Before
+import org.gradle.groovy.scripts.FileScriptSource
+import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
@@ -31,21 +35,44 @@ class CacheProjectIntegrationTest {
     private GradleDistribution dist;
     private GradleExecuter executer;
 
+    TestFile projectDir
+    TestFile userHomeDir
+    TestFile buildFile
+    TestFile propertiesFile
+    TestFile classFile
+
+    @Before
+    public void setUp() {
+        projectDir = dist.getTestDir().file("project")
+        projectDir.mkdirs()
+        userHomeDir = dist.getTestDir().file("user")
+        buildFile = projectDir.file('build.gradle')
+        ScriptSource source = new FileScriptSource("build file", buildFile)
+        propertiesFile = userHomeDir.file("scriptCache/$source.className/BuildScriptTransformer/cache.properties")
+        classFile = userHomeDir.file("scriptCache/$source.className/BuildScriptTransformer/${source.className}.class")
+    }
+    
     @Test
     public void cacheProject() {
-        File cacheProjectDir = new File(dist.samplesDir, "cache-project")
-        cacheProjectDir.mkdirs();
-        createLargeBuildScript(cacheProjectDir)
-        testBuild(cacheProjectDir, "hello1", String.format("Hello 1"))
-        changeCacheVersionProperty(cacheProjectDir)
-        testBuild(cacheProjectDir, "hello2", String.format("Hello 2"))
-        modifyLargeBuildScript(cacheProjectDir)
-        testBuild(cacheProjectDir, "newTask", String.format("I am new"))
+        createLargeBuildScript()
+        testBuild("hello1", "Hello 1")
+        long modTime = classFile.lastModified()
+
+        testBuild("hello2", "Hello 2")
+        assertThat(classFile.lastModified(), equalTo(modTime))
+
+        changeCacheVersionProperty()
+        testBuild("hello2", "Hello 2")
+        assertThat(classFile.lastModified(), not(equalTo(modTime)))
+        modTime = classFile.lastModified()
+
+        modifyLargeBuildScript()
+        testBuild("newTask", "I am new")
+        assertThat(classFile.lastModified(), not(equalTo(modTime)))
     }
 
-    private def changeCacheVersionProperty(File cacheProjectDir) {
+    private def changeCacheVersionProperty() {
         Properties properties = new Properties()
-        File propertiesFile = new File(cacheProjectDir, ".gradle/cache/build.gradle/BuildScriptTransformer/cache.properties")
         FileInputStream propertiesInputStream = new FileInputStream(propertiesFile)
         properties.load(propertiesInputStream)
         propertiesInputStream.close()
@@ -55,15 +82,17 @@ class CacheProjectIntegrationTest {
         propertiesOutputStream.close()
     }
 
-    private def testBuild(File cacheProjectDir, String taskName, String expected) {
-        executer.inDirectory(cacheProjectDir).withTasks(taskName).withQuietLogging().run()
-        Assert.assertEquals(expected, new File(cacheProjectDir, TEST_FILE).text)
+    private def testBuild(String taskName, String expected) {
+        executer.inDirectory(projectDir).withArguments("--gradle-user-home", userHomeDir.getAbsolutePath()).withTasks(taskName).withQuietLogging().run()
+        assertEquals(expected, projectDir.file(TEST_FILE).text)
+        classFile.assertIsFile()
+        propertiesFile.assertIsFile()
     }
 
     // We once ran into a cache problem under windows, which was not reproducible with small build scripts. Therefore we
     // create a larger one here.
-    static createLargeBuildScript(File parentDir) {
-        File buildFile = new File(parentDir, 'build.gradle')
+    def createLargeBuildScript() {
+        File buildFile = new File(projectDir, 'build.gradle')
         String content = ""
         50.times {i ->
             content += """task 'hello$i' << {
@@ -81,8 +110,8 @@ void someMethod$i() {
         buildFile.write(content)
     }
 
-    static void modifyLargeBuildScript(File parentDir) {
-        File buildFile = new File(parentDir, 'build.gradle')
+    def void modifyLargeBuildScript() {
+        File buildFile = new File(projectDir, 'build.gradle')
         String newContent = buildFile.text + """
 task newTask << {
     File file = file('$TEST_FILE')

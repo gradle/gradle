@@ -37,7 +37,7 @@ class GeneratorTask extends DefaultTask {
     int projects = 1
 
     @TaskAction
-    private void generate() {
+    void generate() {
         ant.delete(dir: destDir)
         destDir.mkdirs()
 

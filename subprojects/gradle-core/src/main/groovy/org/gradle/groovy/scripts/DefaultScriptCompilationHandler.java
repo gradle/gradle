@@ -56,7 +56,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                                                      Transformer transformer,
                                                      Class<T> scriptBaseClass) {
         Clock clock = new Clock();
-        logger.debug("Compiling script using {} with {}.", source.getDisplayName(), transformer);
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         Class scriptClass = compileScript(source, classLoader, configuration, transformer);
         T script = scriptBaseClass.cast(InvokerHelper.createScript(scriptClass, new Binding()));
@@ -68,7 +67,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     public void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                              Transformer transformer, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
-        logger.debug("Compiling script using {} with {}.", source.getDisplayName(), transformer);
         GFileUtils.deleteDirectory(scriptCacheDir);
         scriptCacheDir.mkdirs();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
@@ -82,21 +80,24 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     private Class compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
                               final Transformer transformer) {
+        logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
+
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
-            protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource) {
-                CompilationUnit compilationUnit = new CompilationUnit(compilerConfiguration, codeSource, this)
-                {
+            protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
+                                                            CodeSource codeSource) {
+                CompilationUnit compilationUnit = new CompilationUnit(compilerConfiguration, codeSource, this) {
                     // This creepy bit of code is here to put the full source path of the script into the debug info for
                     // the class.  This makes it possible for a debugger to find the source file for the class.  By default
                     // Groovy will only put the filename into the class, but that does not help a debugger for Gradle
                     // because it does not know where Gradle scripts might live.
-                    @Override protected ClassVisitor createClassVisitor() {
-                        return new ClassWriter(true)
-                        {
+                    @Override
+                    protected ClassVisitor createClassVisitor() {
+                        return new ClassWriter(true) {
                             // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
                             // insert the full path if our script source has a source file
-                            @Override public void visitSource(String sourcePath, String debugInfo) {
+                            @Override
+                            public void visitSource(String sourcePath, String debugInfo) {
                                 super.visitSource(source.getFileName(), debugInfo);
                             }
                         };
@@ -116,14 +117,14 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             scriptClass = groovyClassLoader.parseClass(scriptText == null ? "" : scriptText, scriptName);
         } catch (MultipleCompilationErrorsException e) {
             SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
-            Integer lineNumber = syntaxError==null ? null : syntaxError.getLine();
+            Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();
 
             throw new GradleScriptException(String.format("Could not compile %s.", source.getDisplayName()), e, source,
                     lineNumber);
         } catch (CompilationFailedException e) {
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
         }
-        
+
         if (scriptClass == null) {
             // Assume an empty script
             String emptySource = String.format("class %s extends %s { public Object run() { return null } }",

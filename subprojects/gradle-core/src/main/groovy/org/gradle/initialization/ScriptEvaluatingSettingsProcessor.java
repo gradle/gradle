@@ -37,15 +37,15 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     private SettingsFactory settingsFactory;
 
-    private ScriptProcessorFactory scriptProcessorFactory;
+    private ScriptCompilerFactory scriptCompilerFactory;
 
     public ScriptEvaluatingSettingsProcessor() {
 
     }
 
-    public ScriptEvaluatingSettingsProcessor(ScriptProcessorFactory scriptProcessorFactory, ImportsReader importsReader,
+    public ScriptEvaluatingSettingsProcessor(ScriptCompilerFactory scriptCompilerFactory, ImportsReader importsReader,
                                              SettingsFactory settingsFactory) {
-        this.scriptProcessorFactory = scriptProcessorFactory;
+        this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.settingsFactory = settingsFactory;
     }
@@ -65,9 +65,9 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private void applySettingsScript(SettingsLocation settingsLocation, ClassLoader buildSourceClassLoader, SettingsInternal settings) {
         ScriptSource source = new ImportsScriptSource(settingsLocation.getSettingsScriptSource(), importsReader,
                 settingsLocation.getSettingsDir());
-        ScriptProcessor processor = scriptProcessorFactory.createProcessor(source);
-        processor.setClassloader(buildSourceClassLoader);
-        ScriptRunner settingsScript = processor.compile(SettingsScript.class);
+        ScriptCompiler compiler = scriptCompilerFactory.createCompiler(source);
+        compiler.setClassloader(buildSourceClassLoader);
+        ScriptRunner settingsScript = compiler.compile(SettingsScript.class);
         settingsScript.setDelegate(settings);
         settingsScript.run();
     }
@@ -88,11 +88,11 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         this.settingsFactory = settingsFactory;
     }
 
-    public void setScriptProcessor(ScriptProcessorFactory scriptProcessorFactory) {
-        this.scriptProcessorFactory = scriptProcessorFactory;
+    public void setScriptProcessor(ScriptCompilerFactory scriptCompilerFactory) {
+        this.scriptCompilerFactory = scriptCompilerFactory;
     }
 
-    public ScriptProcessorFactory getScriptProcessor() {
-        return scriptProcessorFactory;
+    public ScriptCompilerFactory getScriptProcessor() {
+        return scriptCompilerFactory;
     }
 }

@@ -24,28 +24,28 @@ import org.gradle.groovy.scripts.*;
 
 public class BuildScriptProcessor implements ProjectEvaluator {
     private final ImportsReader importsReader;
-    private final ScriptProcessorFactory scriptProcessorFactory;
+    private final ScriptCompilerFactory scriptCompilerFactory;
 
-    public BuildScriptProcessor(ImportsReader importsReader, ScriptProcessorFactory scriptProcessorFactory) {
+    public BuildScriptProcessor(ImportsReader importsReader, ScriptCompilerFactory scriptCompilerFactory) {
         this.importsReader = importsReader;
-        this.scriptProcessorFactory = scriptProcessorFactory;
+        this.scriptCompilerFactory = scriptCompilerFactory;
     }
 
     public void evaluate(ProjectInternal project) {
         ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader,
                 project.getRootDir());
 
-        ScriptProcessor processor = scriptProcessorFactory.createProcessor(source);
-        processor.setClassloader(project.getClassLoaderProvider().getClassLoader());
+        ScriptCompiler compiler = scriptCompilerFactory.createCompiler(source);
+        compiler.setClassloader(project.getClassLoaderProvider().getClassLoader());
 
-        processor.setTransformer(new BuildScriptClasspathScriptTransformer());
-        ScriptRunner classPathScript = processor.compile(ProjectScript.class);
+        compiler.setTransformer(new BuildScriptClasspathScriptTransformer());
+        ScriptRunner classPathScript = compiler.compile(ProjectScript.class);
         classPathScript.setDelegate(project);
         classPathScript.run();
         project.getClassLoaderProvider().updateClassPath();
 
-        processor.setTransformer(new BuildScriptTransformer());
-        ScriptRunner script = processor.compile(ProjectScript.class);
+        compiler.setTransformer(new BuildScriptTransformer());
+        ScriptRunner script = compiler.compile(ProjectScript.class);
         script.setDelegate(project);
         project.setScript(script.getScript());
         script.run();

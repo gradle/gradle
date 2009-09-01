@@ -43,8 +43,8 @@ public class BuildScriptProcessorTest {
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
-    private final ScriptProcessorFactory scriptProcessorFactory = context.mock(ScriptProcessorFactory.class);
-    private final ScriptProcessor processor = context.mock(ScriptProcessor.class);
+    private final ScriptCompilerFactory scriptCompilerFactory = context.mock(ScriptCompilerFactory.class);
+    private final ScriptCompiler compiler = context.mock(ScriptCompiler.class);
     private final ImportsReader importsReader = context.mock(ImportsReader.class);
     private final ClassLoader classLoader = context.mock(ClassLoader.class);
     private final ScriptRunner classpathScriptRunner = context.mock(ScriptRunner.class, "classpath");
@@ -52,7 +52,7 @@ public class BuildScriptProcessorTest {
     private final ScriptClassLoaderProvider classLoaderProvider = context.mock(ScriptClassLoaderProvider.class);
     private final File rootDir = new File("root dir");
     private final Script buildScript = context.mock(Script.class);
-    private final BuildScriptProcessor evaluator = new BuildScriptProcessor(importsReader, scriptProcessorFactory);
+    private final BuildScriptProcessor evaluator = new BuildScriptProcessor(importsReader, scriptCompilerFactory);
 
     @Before
     public void setUp() {
@@ -76,17 +76,17 @@ public class BuildScriptProcessorTest {
         final ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSource, importsReader, rootDir);
 
         context.checking(new Expectations() {{
-            one(scriptProcessorFactory).createProcessor(with(reflectionEquals(expectedScriptSource)));
-            will(returnValue(processor));
+            one(scriptCompilerFactory).createCompiler(with(reflectionEquals(expectedScriptSource)));
+            will(returnValue(compiler));
 
             one(classLoaderProvider).getClassLoader();
             will(returnValue(classLoader));
             
-            one(processor).setClassloader(classLoader);
+            one(compiler).setClassloader(classLoader);
 
-            one(processor).setTransformer(with(notNullValue(BuildScriptClasspathScriptTransformer.class)));
+            one(compiler).setTransformer(with(notNullValue(BuildScriptClasspathScriptTransformer.class)));
 
-            one(processor).compile(ProjectScript.class);
+            one(compiler).compile(ProjectScript.class);
             will(returnValue(classpathScriptRunner));
 
             one(classpathScriptRunner).setDelegate(project);
@@ -95,9 +95,9 @@ public class BuildScriptProcessorTest {
 
             one(classLoaderProvider).updateClassPath();
             
-            one(processor).setTransformer(with(notNullValue(BuildScriptTransformer.class)));
+            one(compiler).setTransformer(with(notNullValue(BuildScriptTransformer.class)));
 
-            one(processor).compile(ProjectScript.class);
+            one(compiler).compile(ProjectScript.class);
             will(returnValue(buildScriptRunner));
 
             one(buildScriptRunner).setDelegate(project);

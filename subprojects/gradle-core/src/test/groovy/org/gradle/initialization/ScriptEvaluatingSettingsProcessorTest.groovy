@@ -40,7 +40,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     ImportsReader importsReader
     SettingsFactory settingsFactory
     StartParameter expectedStartParameter
-    ScriptProcessorFactory scriptProcessorMock
+    ScriptCompilerFactory scriptProcessorMock
     DefaultSettings expectedSettings
     MockFor settingsFactoryMocker
     ScriptSource scriptSourceMock
@@ -63,7 +63,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     }
 
     private void instantiateConstructorArgs() {
-        scriptProcessorMock = context.mock(ScriptProcessorFactory)
+        scriptProcessorMock = context.mock(ScriptCompilerFactory)
         importsReader = new ImportsReader()
         settingsFactory = context.mock(SettingsFactory)
     }
@@ -110,9 +110,9 @@ class ScriptEvaluatingSettingsProcessorTest {
     private void prepareScriptProcessorMock() {
         ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSourceMock, importsReader, TEST_ROOT_DIR);
         ScriptRunner scriptRunnerMock = context.mock(ScriptRunner)
-        ScriptProcessor processorMock = context.mock(ScriptProcessor)
+        ScriptCompiler processorMock = context.mock(ScriptCompiler)
         context.checking {
-            one(scriptProcessorMock).createProcessor(withParam(reflectionEquals(expectedScriptSource)))
+            one(scriptProcessorMock).createCompiler(withParam(reflectionEquals(expectedScriptSource)))
             will(returnValue(processorMock))
 
             one(processorMock).setClassloader(urlClassLoader)

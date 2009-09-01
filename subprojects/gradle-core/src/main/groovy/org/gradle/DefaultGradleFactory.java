@@ -63,7 +63,6 @@ public class DefaultGradleFactory implements GradleFactory {
     public GradleLauncher newInstance(StartParameter startParameter) {
         loggingConfigurer.configure(startParameter.getLogLevel());
         ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
-        CachePropertiesHandler cachePropertiesHandler = new DefaultCachePropertiesHandler();
 
         ISettingsFinder settingsFinder = new EmbeddedScriptSettingsFinder(
                 new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
@@ -79,16 +78,16 @@ public class DefaultGradleFactory implements GradleFactory {
                 new DefaultClientModuleFactory(),
                 new DefaultProjectDependencyFactory());
         ResolverFactory resolverFactory = new DefaultResolverFactory();
-        ScriptProcessorFactory scriptProcessorFactory = new DefaultScriptProcessorFactory(
+        ScriptCompilerFactory scriptCompilerFactory = new DefaultScriptCompilerFactory(
                 new DefaultScriptCompilationHandler(
-                        cachePropertiesHandler),
+                        new DefaultCachePropertiesHandler()),
                 startParameter.getCacheUsage(),
+                startParameter.getGradleUserHomeDir(),
                 new DefaultScriptRunnerFactory(
                         new DefaultScriptMetaData()));
         DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(
                 new BuildScriptProcessor(
-                        importsReader,
-                        scriptProcessorFactory));
+                        importsReader, scriptCompilerFactory));
         ClassGenerator classGenerator = new AsmBackedClassGenerator();
         ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
                 new DefaultRepositoryHandlerFactory(resolverFactory, classGenerator),
@@ -99,7 +98,7 @@ public class DefaultGradleFactory implements GradleFactory {
         InitScriptHandler initScriptHandler = new InitScriptHandler(
                 new UserHomeInitScriptFinder(
                         new DefaultInitScriptFinder()),
-                new DefaultInitScriptProcessor(scriptProcessorFactory, importsReader));
+                new DefaultInitScriptProcessor(scriptCompilerFactory, importsReader));
         DefaultGradle gradle = new DefaultGradle(
                 startParameter,
                 internalRepository,
@@ -112,7 +111,7 @@ public class DefaultGradleFactory implements GradleFactory {
                 new SettingsHandler(
                         settingsFinder,
                         new PropertiesLoadingSettingsProcessor(
-                                new ScriptEvaluatingSettingsProcessor(scriptProcessorFactory,
+                                new ScriptEvaluatingSettingsProcessor(scriptCompilerFactory,
                                         importsReader,
                                         new SettingsFactory(new DefaultProjectDescriptorRegistry()))
                         ),

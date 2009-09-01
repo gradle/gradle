@@ -20,17 +20,17 @@ import org.gradle.api.GradleScriptException;
 /**
  * Compiles a script into an executable {@code ScriptRunner} object.
  */
-public interface ScriptProcessor {
+public interface ScriptCompiler {
     /**
      * Sets the parent classloader for the script. Can be null, defaults to the context classloader.
      */
-    ScriptProcessor setClassloader(ClassLoader classloader);
+    ScriptCompiler setClassloader(ClassLoader classloader);
 
     /**
      * Sets the transformer to use to compile the script. Can be null, in which case no transformations are applied to
      * the script.
      */
-    ScriptProcessor setTransformer(Transformer transformer);
+    ScriptCompiler setTransformer(Transformer transformer);
 
     /**
      * Compiles the script into a {@code ScriptRunner} of the given type.

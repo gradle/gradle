@@ -16,17 +16,17 @@
 package org.gradle.groovy.scripts;
 
 /**
- * A factory for processors which compile scripts from text source into a {@link groovy.lang.Script} object.
+ * A factory for script compilers.
  *
  * @author Hans Dockter
  */
-public interface ScriptProcessorFactory {
+public interface ScriptCompilerFactory {
     /**
-     * Creates a processor for the given source. The returned processor can be used to compile the script into various
+     * Creates a compiler for the given source. The returned compiler can be used to compile the script into various
      * different forms.
      *
      * @param source The script source.
-     * @return a processor which can be used to process the script.
+     * @return a compiler which can be used to compiler the script.
      */
-    ScriptProcessor createProcessor(ScriptSource source);
+    ScriptCompiler createCompiler(ScriptSource source);
 }

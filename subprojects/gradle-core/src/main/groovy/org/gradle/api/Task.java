@@ -52,7 +52,7 @@ import java.util.Set;
  *
  * <p>A <code>Task</code> is made up of a sequence of {@link TaskAction} objects. When the task is executed, each of the
  * actions is executed in turn, by calling {@link TaskAction#execute}.  You can add actions to a task by calling {@link
- * #doFirst(TaskAction)} or {@link #doLast(TaskAction)}.</p>
+ * #doFirst(Action)} or {@link #doLast(Action)}.</p>
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
  * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or
@@ -153,14 +153,14 @@ public interface Task extends Comparable<Task> {
      *
      * @return The task actions in the order they are executed. Returns an empty list if this task has no actions.
      */
-    List<TaskAction> getActions();
+    List<Action<? super Task>> getActions();
 
     /**
      * <p>Sets the sequence of {@link org.gradle.api.TaskAction} objects which will be executed by this task.</p>
      *
      * @param actions The actions.
      */
-    void setActions(List<TaskAction> actions);
+    void setActions(List<Action<? super Task>> actions);
 
     /**
      * <p>Returns a {@link TaskDependency} which contains all the tasks that this task depends on.</p>
@@ -251,7 +251,7 @@ public interface Task extends Comparable<Task> {
      * @param action The action to add
      * @return the task object this method is applied to
      */
-    Task doFirst(TaskAction action);
+    Task doFirst(Action<? super Task> action);
 
     /**
      * <p>Adds the given closure to the beginning of this task's action list. The closure is passed this task as a
@@ -268,7 +268,7 @@ public interface Task extends Comparable<Task> {
      * @param action The action to add.
      * @return the task object this method is applied to
      */
-    Task doLast(TaskAction action);
+    Task doLast(Action<? super Task> action);
 
     /**
      * <p>Adds the given closure to the end of this task's action list.  The closure is passed this task as a parameter

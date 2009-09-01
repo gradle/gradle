@@ -32,8 +32,8 @@ public class DefaultInitScriptProcessorTest {
 
     @Test
     public void testProcess() {
-        final ScriptProcessorFactory scriptProcessorFactoryMock = context.mock(ScriptProcessorFactory.class);
-        final ScriptProcessor scriptProcessorMock = context.mock(ScriptProcessor.class);
+        final ScriptCompilerFactory scriptCompilerFactoryMock = context.mock(ScriptCompilerFactory.class);
+        final ScriptCompiler scriptCompilerMock = context.mock(ScriptCompiler.class);
         final ScriptSource initScriptMock = context.mock(ScriptSource.class);
         final GradleInternal gradleMock = context.mock(GradleInternal.class);
         final ScriptClassLoaderProvider buildClassLoaderProviderMock = context.mock(ScriptClassLoaderProvider.class);
@@ -41,21 +41,21 @@ public class DefaultInitScriptProcessorTest {
         final groovy.lang.Script classPathScriptMock = new EmptyScript();
         final groovy.lang.Script buildScriptMock = new EmptyScript();
         context.checking(new Expectations() {{
-            one(scriptProcessorFactoryMock).createProcessor(initScriptMock);
+            one(scriptCompilerFactoryMock).createCompiler(initScriptMock);
             will(returnValue(gradleMock));
             allowing(gradleMock).getClassLoaderProvider();
             will(returnValue(buildClassLoaderProviderMock));
             one(buildClassLoaderProviderMock).getClassLoader();
             will(returnValue(classLoader));
-            one(scriptProcessorMock).setClassloader(classLoader);
-            one(scriptProcessorMock).setTransformer(with(any(InitScriptClasspathScriptTransformer.class)));
-            one(scriptProcessorMock).compile(Script.class);
+            one(scriptCompilerMock).setClassloader(classLoader);
+            one(scriptCompilerMock).setTransformer(with(any(InitScriptClasspathScriptTransformer.class)));
+            one(scriptCompilerMock).compile(Script.class);
             will(returnValue(classPathScriptMock));
 
             one(buildClassLoaderProviderMock).updateClassPath();
 
-            one(scriptProcessorMock).setTransformer(with(any(InitScriptTransformer.class)));
-            one(scriptProcessorMock).compile(Script.class);
+            one(scriptCompilerMock).setTransformer(with(any(InitScriptTransformer.class)));
+            one(scriptCompilerMock).compile(Script.class);
             will(returnValue(buildScriptMock));
         }});
     }

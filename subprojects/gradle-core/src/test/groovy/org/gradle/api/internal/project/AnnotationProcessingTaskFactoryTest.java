@@ -116,6 +116,17 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    public void cachesClassMetaInfo() {
+        TaskWithInputFile task = new TaskWithInputFile(null);
+        expectTaskCreated(task);
+
+        TaskWithInputFile task2 = new TaskWithInputFile(null);
+        expectTaskCreated(task2);
+
+        assertThat(task.getActions().get(0), sameInstance((Action) task2.getActions().get(0)));
+    }
+    
+    @Test
     public void failsWhenStaticMethodHasTaskActionAnnotation() {
         TaskWithStaticMethod task = new TaskWithStaticMethod();
         assertTaskCreationFails(task,

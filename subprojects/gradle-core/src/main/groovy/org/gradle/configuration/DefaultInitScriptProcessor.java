@@ -27,28 +27,28 @@ import org.gradle.initialization.InitScript;
  * the classpath based on the initscript {} configuration closure.
  */
 public class DefaultInitScriptProcessor implements InitScriptProcessor {
-    private final ScriptProcessorFactory scriptProcessorFactory;
+    private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
 
-    public DefaultInitScriptProcessor(ScriptProcessorFactory scriptProcessorFactory, ImportsReader importsReader) {
-        this.scriptProcessorFactory = scriptProcessorFactory;
+    public DefaultInitScriptProcessor(ScriptCompilerFactory scriptCompilerFactory, ImportsReader importsReader) {
+        this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
     }
 
     public void process(ScriptSource initScript, GradleInternal gradle) {
         ScriptSource withImports = new ImportsScriptSource(initScript, importsReader, null);
-        ScriptProcessor processor = scriptProcessorFactory.createProcessor(withImports);
-        processor.setClassloader(gradle.getClassLoaderProvider().getClassLoader());
+        ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
+        compiler.setClassloader(gradle.getClassLoaderProvider().getClassLoader());
 
-        processor.setTransformer(new InitScriptClasspathScriptTransformer());
-        ScriptRunner classPathScript = processor.compile(InitScript.class);
+        compiler.setTransformer(new InitScriptClasspathScriptTransformer());
+        ScriptRunner classPathScript = compiler.compile(InitScript.class);
         classPathScript.setDelegate(gradle);
 
         classPathScript.run();
         gradle.getClassLoaderProvider().updateClassPath();
 
-        processor.setTransformer(new InitScriptTransformer());
-        ScriptRunner script = processor.compile(InitScript.class);
+        compiler.setTransformer(new InitScriptTransformer());
+        ScriptRunner script = compiler.compile(InitScript.class);
         script.setDelegate(gradle);
 
         script.run();

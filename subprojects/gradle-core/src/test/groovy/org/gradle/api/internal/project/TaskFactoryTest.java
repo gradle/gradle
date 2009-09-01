@@ -137,13 +137,13 @@ public class TaskFactoryTest {
 
     @Test
     public void testCreateTaskWithAction() {
-        TaskAction action = new TaskAction() {
+        Action<Task> action = new TaskAction() {
             public void execute(Task task) {
             }
         };
 
         Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_ACTION, action)));
-        assertThat(task.getActions(), equalTo(WrapUtil.toList(action)));
+        assertThat((List)task.getActions(), equalTo((List) WrapUtil.toList(action)));
     }
 
     @Test
