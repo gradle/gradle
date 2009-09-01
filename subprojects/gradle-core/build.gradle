@@ -58,8 +58,7 @@ dependencies {
     runtime "org.apache.ant:ant-junit:1.7.0@jar",
             "org.apache.ant:ant-launcher:1.7.0@jar",
             "org.apache.ant:ant-nodeps:1.7.0@jar",
-            "org.apache.ant:ant-trax:1.7.0@jar",
-            "junit:junit:4.5"
+            "org.apache.ant:ant-trax:1.7.0@jar"
 
     def BEAN_UTILS = ["commons-beanutils:commons-beanutils-core:1.7.0@jar", "commons-collections:commons-collections:2.0@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar"]
     runtime "checkstyle:checkstyle:5.0@jar", "antlr:antlr:2.7.7@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar",

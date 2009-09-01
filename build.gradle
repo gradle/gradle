@@ -110,11 +110,10 @@ configurations {
     retrotranslatorAntTask
     userGuideStyleSheets
     userGuideTask
-    wrapper
 }
 
 dependencies {
-    wrapper project(':gradle-wrapper'), project(':gradle-core')
+    distLib project(':gradle-wrapper'), project(':gradle-core')
 
     // todo: Improve dependency handling for xUnit jars
     ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
@@ -141,8 +140,6 @@ dependencies {
             dependencies("org.apache.ant:ant-junit:1.7.0@jar", "org.apache.ant:ant-launcher:1.7.0@jar")
         }
     }
-
-    distLib "junit:junit:4.5"
 }
 
 clean.dependsOn subprojects*.clean
@@ -176,18 +173,14 @@ gradle.taskGraph.whenReady {graph ->
     ])
 }
 
-task explodedDistBase(dependsOn: [libs, configurations.wrapper.buildDependencies], description: 'Builds a minimal distribution image') << {
+task explodedDistBase(dependsOn: [libs, configurations.distLib.buildDependencies], description: 'Builds a minimal distribution image') << {
     [explodedDistDir, explodedDistLibDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
 
     logger.info('Generate lib dir')
-    copy {
-        from configurations.distLib.files
-        into explodedDistLibDir        
-    }
     removeAnyExistingOldGradleLibs()
     copy {
-        from configurations.wrapper.files
+        from configurations.distLib.files
         from jar.archivePath
         into explodedDistLibDir
     }
@@ -571,6 +564,7 @@ task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc, proje
 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
     exclude '**/Abstract*'
+    
     testClassesDir = project('gradle-core').source.test.classesDir
     configuration = project('gradle-core').configurations.testRuntime
 }

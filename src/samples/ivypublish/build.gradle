@@ -5,6 +5,15 @@ usePlugin('java')
 version = '1.0'
 group = 'org.gradle.test'
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'junit:junit:4.7'
+    }
+}
+
 ant {
     importBuild "$rootDir/build.xml"
     buildDir = owner.buildDir.toString()

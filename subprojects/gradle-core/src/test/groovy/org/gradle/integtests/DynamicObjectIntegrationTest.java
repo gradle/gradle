@@ -38,6 +38,14 @@ public class DynamicObjectIntegrationTest {
         );
         testDir.file("child/build.gradle").writelns(
                 "import static org.junit.Assert.*",
+                "buildscript {",
+                "   repositories {",
+                "      mavenCentral()",
+                "   }",
+                "   dependencies {",
+                "       classpath 'junit:junit:4.7'",
+                "   }",
+                "}",
                 "childProperty = 'child'",
                 "sharedProperty = 'shared'",
                 "task testTask << {",
@@ -73,6 +81,14 @@ public class DynamicObjectIntegrationTest {
         );
         testDir.file("child/build.gradle").writelns(
                 "import static org.junit.Assert.*",
+                "buildscript {",
+                "   repositories {",
+                "      mavenCentral()",
+                "   }",
+                "   dependencies {",
+                "       classpath 'junit:junit:4.7'",
+                "   }",
+                "}",
                 "def childMethod(p) { 'child' + p }",
                 "def sharedMethod(p) { 'shared' + p }",
                 "task testTask << {",
