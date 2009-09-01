@@ -21,7 +21,7 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.TaskAction;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.DefaultClassGenerator;
+import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator;
 import org.gradle.api.internal.project.*;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
@@ -51,7 +51,7 @@ public abstract class AbstractTaskTest {
     private AbstractProject project;
 
     protected JUnit4Mockery context = new JUnit4Mockery();
-    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new DefaultClassGenerator()));
+    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new GroovySourceGenerationBackedClassGenerator()));
 
     @Before
     public void setUp() {

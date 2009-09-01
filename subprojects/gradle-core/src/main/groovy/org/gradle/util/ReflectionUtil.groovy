@@ -19,6 +19,10 @@ package org.gradle.util;
  * @author Hans Dockter
  */
 class ReflectionUtil {
+    public static Object invoke(Object object, String method, Object... params) {
+        return object.invokeMethod(method, params)
+    }
+
     static <T> T newInstance(Class cl, Object... args) {
         return cl.newInstance(args)
     }

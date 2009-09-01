@@ -34,7 +34,7 @@ public class DefaultRepositoryHandlerFactory implements RepositoryHandlerFactory
     }
 
     public DefaultRepositoryHandler createRepositoryHandler(Convention convention) {
-        DefaultRepositoryHandler repositoryHandler = classGenerator.newInstance(DefaultRepositoryHandler.class,
+        DefaultRepositoryHandler repositoryHandler = classGenerator.newInstance(ConfigurableRepositoryHandler.class,
                 repositoryFactory);
         ((IConventionAware) repositoryHandler).getConventionMapping().setConvention(convention);
         return repositoryHandler;

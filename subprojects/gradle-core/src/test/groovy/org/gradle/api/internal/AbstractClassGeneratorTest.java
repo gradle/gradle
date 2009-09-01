@@ -25,20 +25,35 @@ import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultClassGeneratorTest {
-    private final DefaultClassGenerator generator = new DefaultClassGenerator();
+public abstract class AbstractClassGeneratorTest {
+    private ClassGenerator generator;
+
+    @Before
+    public void setUp() {
+        generator = createGenerator();
+    }
+
+    protected abstract ClassGenerator createGenerator();
 
     @Test
     public void mixesInConventionAwareInterface() throws Exception {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
         assertTrue(IConventionAware.class.isAssignableFrom(generatedClass));
+
         Bean bean = generatedClass.newInstance();
-        ((IConventionAware) bean).getConventionMapping().map("property", null);
+
+        IConventionAware conventionAware = (IConventionAware) bean;
+        assertThat(conventionAware.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
+        conventionAware.getConventionMapping().map("property", null);
+        ConventionMapping mapping = new ConventionAwareBean();
+        conventionAware.setConventionMapping(mapping);
+        assertThat(conventionAware.getConventionMapping(), sameInstance(mapping));
     }
 
     @Test
@@ -54,7 +69,7 @@ public class DefaultClassGeneratorTest {
     public void cachesGeneratedSubclass() {
         assertSame(generator.generate(Bean.class), generator.generate(Bean.class));
     }
-    
+
     @Test
     public void overridesPublicConstructors() throws Exception {
         Class<? extends Bean> generatedClass = generator.generate(BeanWithConstructor.class);
@@ -105,7 +120,7 @@ public class DefaultClassGeneratorTest {
             assertThat(e.getMessage(), equalTo("Cannot create a proxy class for private class 'PrivateBean'."));
         }
     }
-    
+
     @Test
     public void appliesConventionMappingToEachGetter() throws Exception {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
@@ -128,8 +143,12 @@ public class DefaultClassGeneratorTest {
     }
 
     @Test
-    public void handlesVariousPropertyTypes() {
-        generator.generate(BeanWithVariousPropertyTypes.class);
+    public void handlesVariousPropertyTypes() throws Exception {
+        BeanWithVariousPropertyTypes bean = generator.generate(BeanWithVariousPropertyTypes.class).newInstance();
+
+        assertThat(bean.getArrayProperty(), notNullValue());
+        assertThat(bean.getBooleanProperty(), equalTo(false));
+        assertThat(bean.getLongProperty(), equalTo(12L));
     }
 
     @Test
@@ -183,7 +202,7 @@ public class DefaultClassGeneratorTest {
         // Check dynamic object behaviour still works
         assertTrue(bean instanceof DynamicObjectAware);
     }
-    
+
     @Test
     public void doesNotOverrideMethodsFromDynamicObjectAwareInterface() throws Exception {
         DynamicObjectAwareBean bean = generator.generate(DynamicObjectAwareBean.class).newInstance();
@@ -202,9 +221,13 @@ public class DefaultClassGeneratorTest {
         // Check convention mapping still works
         assertTrue(IConventionAware.class.isAssignableFrom(generatedType));
         NoDynamicBean bean = generatedType.newInstance();
-        bean.getProperty();
+
+        // Check MOP methods not overridden
+        bean.setProperty("value");
+        assertThat(HelperUtil.call("{ it.property }", bean), equalTo((Object) "value"));
+        assertThat(HelperUtil.call("{ it.dynamicProp }", bean), equalTo((Object) "[dynamicProp]"));
     }
-    
+
     @Test
     public void usesSameConventionForDynamicObjectAndConventionMappings() throws Exception {
         Bean bean = generator.generate(Bean.class).newInstance();
@@ -230,7 +253,7 @@ public class DefaultClassGeneratorTest {
         assertThat(HelperUtil.call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
         assertThat(HelperUtil.call("{ it.doStuff('value') }", bean), equalTo((Object) "[value]"));
     }
-    
+
     public static class Bean {
         private String property;
 
@@ -323,11 +346,15 @@ public class DefaultClassGeneratorTest {
 
     public static class BeanWithVariousPropertyTypes {
         public String[] getArrayProperty() {
-            return null;
+            return new String[1];
         }
 
-        public boolean getBoooleanProperty() {
+        public boolean getBooleanProperty() {
             return false;
+        }
+
+        public long getLongProperty() {
+            return 12L;
         }
     }
 
@@ -352,6 +379,9 @@ public class DefaultClassGeneratorTest {
 
     @NoDynamicObject
     public static class NoDynamicBean extends Bean {
+        Object propertyMissing(String name) {
+            return "[" + name + "]";
+        }
     }
 
     public static class BeanSubClass extends NoMappingBean {

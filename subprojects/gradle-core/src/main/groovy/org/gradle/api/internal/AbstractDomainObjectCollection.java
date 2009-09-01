@@ -85,11 +85,11 @@ public abstract class AbstractDomainObjectCollection<T> implements DomainObjectC
         return new ContainerDynamicObject();
     }
 
-    protected Object propertyMissing(String name) {
+    public Object propertyMissing(String name) {
         return getAsDynamicObject().getProperty(name);
     }
 
-    protected Object methodMissing(String name, Object args) {
+    public Object methodMissing(String name, Object args) {
         return getAsDynamicObject().invokeMethod(name, (Object[]) args);
     }
 

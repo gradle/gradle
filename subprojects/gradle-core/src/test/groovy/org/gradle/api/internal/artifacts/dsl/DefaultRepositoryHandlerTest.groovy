@@ -46,7 +46,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareFlatDirResolverCreation(resolverName, createFlatDirTestDirs())
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.flatDir([name: resolverName] + [dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        assertEquals([expectedResolver], repositoryHandler.getResolvers())
     }
 
     @Test public void testFlatDirWithNameAndSingleDir() {
@@ -54,7 +54,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareFlatDirResolverCreation(resolverName, ['a' as File] as File[])
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.flatDir([name: resolverName] + [dirs: 'a']).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        assertEquals([expectedResolver], repositoryHandler.getResolvers())
     }
 
     @Test public void testFlatDirWithoutNameAndWithDirs() {
@@ -63,7 +63,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         prepareFlatDirResolverCreation(expectedName, expectedDirs)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.flatDir([dirs: createFlatDirTestDirsArgs()]).is(expectedResolver)
-        assertEquals([expectedResolver], repositoryHandler.resolvers)
+        assertEquals([expectedResolver], repositoryHandler.getResolvers())
     }
 
     @Test (expected = InvalidUserDataException)
@@ -73,7 +73,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
 
     @Test
     public void testMavenCentralWithNoArgs() {
-        prepareCreateMavenRepo(repositoryHandler.DEFAULT_MAVEN_CENTRAL_REPO_NAME, repositoryHandler.MAVEN_CENTRAL_URL)
+        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenCentral().is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
@@ -82,7 +82,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
     @Test
     public void testMavenCentralWithSingleUrl() {
         String testUrl2 = 'http://www.gradle2.org'
-        prepareCreateMavenRepo(repositoryHandler.DEFAULT_MAVEN_CENTRAL_REPO_NAME, repositoryHandler.MAVEN_CENTRAL_URL, testUrl2)
+        prepareCreateMavenRepo(ResolverContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME, ResolverContainer.MAVEN_CENTRAL_URL, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenCentral(urls: testUrl2).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)
@@ -93,7 +93,7 @@ class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.Def
         String testUrl1 = 'http://www.gradle1.org'
         String testUrl2 = 'http://www.gradle2.org'
         String name = 'customName'
-        prepareCreateMavenRepo(name, repositoryHandler.MAVEN_CENTRAL_URL, testUrl1, testUrl2)
+        prepareCreateMavenRepo(name, ResolverContainer.MAVEN_CENTRAL_URL, testUrl1, testUrl2)
         prepareResolverFactoryToTakeAndReturnExpectedResolver()
         assert repositoryHandler.mavenCentral(name: name, urls: [testUrl1, testUrl2]).is(expectedResolver)
         assertEquals([expectedResolver], repositoryHandler.resolvers)

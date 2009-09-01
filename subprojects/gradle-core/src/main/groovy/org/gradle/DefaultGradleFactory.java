@@ -16,7 +16,7 @@
 package org.gradle;
 
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.DefaultClassGenerator;
+import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
@@ -89,7 +89,7 @@ public class DefaultGradleFactory implements GradleFactory {
                 new BuildScriptProcessor(
                         importsReader,
                         scriptProcessorFactory));
-        ClassGenerator classGenerator = new DefaultClassGenerator();
+        ClassGenerator classGenerator = new AsmBackedClassGenerator();
         ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
                 new DefaultRepositoryHandlerFactory(resolverFactory, classGenerator),
                 configurationContainerFactory,

@@ -19,7 +19,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.DefaultClassGenerator;
+import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
@@ -50,7 +50,7 @@ public class TaskFactoryTest {
 
     @Before
     public void setUp() {
-        taskFactory = new TaskFactory(new DefaultClassGenerator());
+        taskFactory = new TaskFactory(new GroovySourceGenerationBackedClassGenerator());
         testProject = new DefaultProject("projectName");
         empyArgMap = new HashMap();
     }

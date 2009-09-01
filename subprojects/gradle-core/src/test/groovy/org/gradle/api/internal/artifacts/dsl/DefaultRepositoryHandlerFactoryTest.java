@@ -48,7 +48,7 @@ public class DefaultRepositoryHandlerFactoryTest {
         final ConventionMapping conventionMappingMock = context.mock(ConventionMapping.class);
 
         context.checking(new Expectations() {{
-            one(classGeneratorMock).newInstance(DefaultRepositoryHandler.class, repositoryFactoryMock);
+            one(classGeneratorMock).newInstance(ConfigurableRepositoryHandler.class, repositoryFactoryMock);
             will(returnValue(repositoryHandlerMock));
             allowing(repositoryHandlerMock).getConventionMapping();
             will(returnValue(conventionMappingMock));

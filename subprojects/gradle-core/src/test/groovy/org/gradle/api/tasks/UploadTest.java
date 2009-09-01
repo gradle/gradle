@@ -19,11 +19,13 @@ package org.gradle.api.tasks;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishInstruction;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -35,17 +37,26 @@ import java.io.File;
 /**
  * @author Hans Dockter
  */
-@RunWith(org.jmock.integration.junit4.JMock.class)
+@RunWith(JMock.class)
 public class UploadTest extends AbstractTaskTest {
     private Upload upload;
-    private File projectRootDir;
 
     private JUnit4Mockery context = new JUnit4Mockery();
+    private RepositoryHandler repositoriesMock;
+    private DependencyResolver repositoryDummy;
+    private Configuration configurationMock;
 
     @Before public void setUp() {
         super.setUp();
         upload = createTask(Upload.class);
-        (projectRootDir = new File(HelperUtil.makeNewTestDir(), "root")).mkdir();
+        repositoriesMock = context.mock(RepositoryHandler.class);
+        repositoryDummy = context.mock(DependencyResolver.class);
+
+        context.checking(new Expectations(){{
+            allowing(repositoriesMock).getResolvers();
+            will(returnValue(toList(repositoryDummy)));
+        }});
+        configurationMock = context.mock(Configuration.class);
     }
 
     public AbstractTask getTask() {
@@ -59,34 +70,35 @@ public class UploadTest extends AbstractTaskTest {
     }
 
     @Test public void testUploading() {
-        final Configuration configurationMock = context.mock(Configuration.class);
         final PublishInstruction publishInstruction = new PublishInstruction(true, new File("somePath"));
         upload.setUploadDescriptor(publishInstruction.isUploadDescriptor());
         upload.setDescriptorDestination(publishInstruction.getDescriptorDestination());
         upload.setConfiguration(configurationMock);
-        upload.setProject(HelperUtil.createRootProject(projectRootDir));
-        final DependencyResolver repository = upload.getRepositories().mavenCentral();
+        upload.setRepositories(repositoriesMock);
         context.checking(new Expectations() {{
-            one(configurationMock).publish(WrapUtil.toList(repository), publishInstruction);
+            one(configurationMock).publish(toList(repositoryDummy), publishInstruction);
         }});
         upload.execute();
     }
 
     @Test public void testUploadingWithUploadDescriptorFalseAndDestinationSet() {
-        final Configuration configurationMock = context.mock(Configuration.class);
         upload.setUploadDescriptor(false);
         upload.setDescriptorDestination(new File("somePath"));
         upload.setConfiguration(configurationMock);
-        upload.setProject(HelperUtil.createRootProject(projectRootDir));
-        final DependencyResolver repository = upload.getRepositories().mavenCentral();
+        upload.setRepositories(repositoriesMock);
         context.checking(new Expectations() {{
-            one(configurationMock).publish(WrapUtil.toList(repository), new PublishInstruction(false, null));
+            one(configurationMock).publish(toList(repositoryDummy), new PublishInstruction(false, null));
         }});
         upload.execute();
     }
 
     @Test public void testRepositories() {
-        final DependencyResolver repository = upload.repositories(HelperUtil.toClosure("{ mavenCentral() }")).getResolvers().get(0);
-        assertThat(upload.getRepositories().getResolvers(), equalTo(WrapUtil.toList(repository)));
+        upload.setRepositories(repositoriesMock);
+
+        context.checking(new Expectations(){{
+            one(repositoriesMock).mavenCentral();
+        }});
+
+        upload.repositories(HelperUtil.toClosure("{ mavenCentral() }"));
     }
 }

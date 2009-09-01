@@ -32,7 +32,7 @@ import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.internal.DefaultClassGenerator
+import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -66,7 +66,7 @@ class HelperUtil {
     public static final Closure TEST_CLOSURE = {}
     public static final String TMP_DIR_FOR_TEST = 'tmpTest'
     public static final Spec TEST_SEPC  = new AndSpec()
-    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new DefaultClassGenerator()));
+    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new GroovySourceGenerationBackedClassGenerator()));
 
     static <T extends Task> T createTask(Class<T> type) {
         return createTask(type, createRootProject())
@@ -81,7 +81,7 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), new DefaultClassGenerator())
+        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), new GroovySourceGenerationBackedClassGenerator())
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory([new SelfResolvingDependencyFactory()] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory())
         StartParameter startParameter = new StartParameter()
         startParameter.pluginPropertiesFile = new File('plugin.properties')
@@ -91,7 +91,7 @@ class HelperUtil {
                 new DefaultPublishArtifactFactory(),
                 dependencyFactory,
                 new DefaultProjectEvaluator(),
-                new DefaultClassGenerator()
+                new GroovySourceGenerationBackedClassGenerator()
         )
         IProjectFactory projectFactory = new ProjectFactory(
                 serviceRegistryFactory,
