@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -45,7 +46,7 @@ public class CompositeFileTreeTest {
     };
 
     @Test
-    public void matchingReturnsUnionOfFilteredSets() {
+    public void matchingWithClosureReturnsUnionOfFilteredSets() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
         final FileTree filtered1 = context.mock(FileTree.class, "filtered1");
         final FileTree filtered2 = context.mock(FileTree.class, "filtered2");
@@ -58,6 +59,26 @@ public class CompositeFileTreeTest {
         }});
 
         FileTree filtered = tree.matching(closure);
+        assertThat(filtered, instanceOf(CompositeFileTree.class));
+        CompositeFileTree filteredCompositeSet = (CompositeFileTree) filtered;
+
+        assertThat(toList(filteredCompositeSet.getSourceCollections()), equalTo(toList(filtered1, filtered2)));
+    }
+
+    @Test
+    public void matchingWithPatternSetReturnsUnionOfFilteredSets() {
+        final PatternSet patternSet = new PatternSet();
+        final FileTree filtered1 = context.mock(FileTree.class, "filtered1");
+        final FileTree filtered2 = context.mock(FileTree.class, "filtered2");
+
+        context.checking(new Expectations() {{
+            one(source1).matching(patternSet);
+            will(returnValue(filtered1));
+            one(source2).matching(patternSet);
+            will(returnValue(filtered2));
+        }});
+
+        FileTree filtered = tree.matching(patternSet);
         assertThat(filtered, instanceOf(CompositeFileTree.class));
         CompositeFileTree filteredCompositeSet = (CompositeFileTree) filtered;
 

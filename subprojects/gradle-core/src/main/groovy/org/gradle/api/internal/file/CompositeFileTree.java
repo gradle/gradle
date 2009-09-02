@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.tasks.util.PatternSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +34,22 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         return new FilteredFileTree(filterConfigClosure);
     }
 
+    public FileTree matching(PatternSet patterns) {
+        return new FilteredFileTree(patterns);
+    }
+
     private class FilteredFileTree extends CompositeFileTree {
         private final Closure closure;
+        private final PatternSet patterns;
 
         public FilteredFileTree(Closure closure) {
             this.closure = closure;
+            patterns = null;
+        }
+
+        public FilteredFileTree(PatternSet patterns) {
+            this.patterns = patterns;
+            closure = null;
         }
 
         @Override
@@ -49,7 +61,11 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         protected Iterable<? extends FileTree> getSourceCollections() {
             List<FileTree> filteredSets = new ArrayList<FileTree>();
             for (FileTree set : CompositeFileTree.this.getSourceCollections()) {
-                filteredSets.add(set.matching(closure));
+                if (closure != null) {
+                    filteredSets.add(set.matching(closure));
+                } else {
+                    filteredSets.add(set.matching(patterns));
+                }
             }
             return filteredSets;
         }

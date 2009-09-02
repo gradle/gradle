@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.tasks.util.PatternSet;
 
 /**
  * A {@code FileTree} represents a read-only hierarchy of files. It extends {@code FileCollection} to add hierarchy
@@ -26,7 +27,7 @@ public interface FileTree extends FileCollection {
      * <p>Restricts the contents of this tree to those files matching the given filter. The filtered tree is live, so
      * that any changes to this tree are reflected in the filtered tree.</p>
      *
-     * <p>The given closure is ued to configure the filter. A {@link org.gradle.api.tasks.util.PatternFilterable} is
+     * <p>The given closure is used to configure the filter. A {@link org.gradle.api.tasks.util.PatternFilterable} is
      * passed to the closure as it's delegate. Only files which match the specified include patterns will be included in
      * the filtered tree. Any files which match the specified exclude patterns will be excluded from the filtered
      * tree.</p>
@@ -35,6 +36,19 @@ public interface FileTree extends FileCollection {
      * @return The filtered tree.
      */
     FileTree matching(Closure filterConfigClosure);
+
+    /**
+     * <p>Restricts the contents of this tree to those files matching the given filter. The filtered tree is live, so
+     * that any changes to this tree are reflected in the filtered tree.</p>
+     *
+     * <p>The given pattern set is used to configure the filter. Only files which match the specified include patterns
+     * will be included in the filtered tree. Any files which match the specified exclude patterns will be excluded from
+     * the filtered tree.</p>
+     *
+     * @param patterns the pattern set to use to configure the filter.
+     * @return The filtered tree.
+     */
+    FileTree matching(PatternSet patterns);
 
     /**
      * Returns a {@code FileTree} which contains the union of this tree and the given tree. The returned tree is live,

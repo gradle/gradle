@@ -99,7 +99,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertSetContains(fileSet, 'subDir/included1', 'subDir2/included2')
     }
 
-    @Test public void testCanFilterFileSet() {
+    @Test public void testCanFilterFileSetUsingConfigureClosure() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -113,6 +113,23 @@ class FileSetTest extends AbstractTestForPatternSet {
             include('*/*included*')
             exclude('**/not*')
         }
+
+        assertThat(filtered.files, equalTo([included1, included2] as Set))
+        assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
+    }
+    
+    @Test public void testCanFilterFileSetUsingPatternSet() {
+        File included1 = new File(testDir, 'subDir/included1')
+        File included2 = new File(testDir, 'subDir2/included2')
+        File excluded1 = new File(testDir, 'subDir/notincluded')
+        File ignored1 = new File(testDir, 'ignored')
+        [included1, included2, excluded1, ignored1].each {File file ->
+            file.parentFile.mkdirs()
+            file.text = 'some text'
+        }
+
+        PatternSet patternSet = new PatternSet(includes: ['*/*included*'], excludes: ['**/not*'])
+        FileSet filtered = fileSet.matching(patternSet)
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
