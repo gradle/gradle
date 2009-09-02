@@ -74,7 +74,12 @@ public class TaskFactory implements ITaskFactory {
                     type.getSimpleName()));
         }
 
-        Class<? extends Task> generatedType = generator.generate(type);
+        Class<? extends Task> generatedType;
+        if (generateGetters) {
+            generatedType = generator.generate(type);
+        } else {
+            generatedType = type;
+        }
 
         Constructor<? extends Task> constructor = null;
         Object[] params = null;

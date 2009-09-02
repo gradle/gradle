@@ -22,7 +22,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import java.io.File;
 
 /**
- * <p>A {@code SourceSet} represents a logical group of Java source.</p>
+ * <p>A {@code SourceSet} represents a logical group of Java source and resources. Generally, </p>
  */
 public interface SourceSet {
     /**
@@ -75,21 +75,21 @@ public interface SourceSet {
     void setClassesDir(File classesDir);
 
     /**
-     * Returns the non-Java resources which are to be copied into the compiled class output directory.
+     * Returns the non-Java resources which are to be copied into the class output directory.
      *
      * @return the resources. Never returns null.
      */
     SourceDirectorySet getResources();
 
     /**
-     * Returns the Java source which is to be compiled into the compiled class output directory.
+     * Returns the Java source which is to be compiled by the Java compiler into the class output directory.
      *
      * @return the Java source. Never returns null.
      */
     SourceDirectorySet getJava();
 
     /**
-     * All java source for this project. This includes, for example, source which is directly compiled, and source which
+     * All Java source for this project. This includes, for example, source which is directly compiled, and source which
      * is indirectly compiled through joint compilation.
      *
      * @return the Java source. Never returns null.

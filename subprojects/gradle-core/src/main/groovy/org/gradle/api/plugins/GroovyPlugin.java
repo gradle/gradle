@@ -21,8 +21,12 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
+import org.gradle.api.internal.tasks.DynamicObjectAware;
 import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -47,6 +51,8 @@ public class GroovyPlugin implements Plugin {
                 setDescription("The groovy libraries to be used for this Groovy project.");
         project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(groovyConfiguration);
 
+        configureSourceSetDefaults(project);
+
         configureCompile(javaPlugin, project);
 
         configureTestCompile(javaPlugin, project);
@@ -54,6 +60,17 @@ public class GroovyPlugin implements Plugin {
         configureJavadoc(project);
 
         configureGroovydoc(project);
+    }
+
+    private void configureSourceSetDefaults(Project project) {
+        final ProjectInternal projectInternal = (ProjectInternal) project;
+        project.getConvention().getPlugin(JavaPluginConvention.class).getSource().allObjects(new Action<SourceSet>() {
+            public void execute(SourceSet sourceSet) {
+                DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(sourceSet.getName(), projectInternal.getFileResolver());
+                ((DynamicObjectAware) sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
+                groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));
+            }
+        });
     }
 
     private void configureGroovydoc(final Project project) {

@@ -16,10 +16,9 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -111,7 +110,7 @@ public class EclipsePlugin implements Plugin {
                 },
                 "classpathLibs", new ConventionValue() {
                     public Object getValue(Convention convention, final IConventionAware conventionAwareObject) {
-                        ConfigurationContainer configurationContainer = ((Task) conventionAwareObject).getProject().getConfigurations();
+                        ConfigurationContainer configurationContainer = project.getConfigurations();
                         return new ArrayList(configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME).files(DependencySpecs.type(Type.EXTERNAL)));
                     }
                 },
@@ -178,7 +177,7 @@ public class EclipsePlugin implements Plugin {
                         * ourselfes. This is not completely trivial due to configuration inheritance.
                         */
                         return new ArrayList(Specs.filterIterable(
-                                ((Task) conventionAwareObject).getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getAllDependencies(),
+                                project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getAllDependencies(),
                                 DependencySpecs.type(Type.PROJECT))
                         );
                     }
