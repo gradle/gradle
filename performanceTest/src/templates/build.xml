@@ -1,4 +1,20 @@
 <project>
+    <property name="lib.dir" location="lib/test"/>
+    <echo>lib.dir = \${lib.dir}</echo>
+
+<% if (!subprojects.empty ) {
+    ['clean', 'jar'].each { target ->
+%>
+    <target name="$target">
+        <% subprojects.each { subproject -> %>
+            <ant dir="$subproject" target="$target">
+                <property name="lib.dir" location="\${lib.dir}"/>
+            </ant>
+        <%  } %>
+    </target>
+<% }
+} else { %>
+
     <property name="build.dir" location="ant-build"/>
     <property name="src.dir" location="src/main/java"/>
     <property name="test.src.dir" location="src/test/java"/>
@@ -20,7 +36,7 @@
         <javac srcdir="\${test.src.dir}" destdir="\${test.classes.dir}">
             <classpath>
                 <path location="\${classes.dir}"/>
-                <fileset dir="lib/test"/>
+                <fileset dir="\${lib.dir}"/>
             </classpath>
         </javac>
     </target>
@@ -31,7 +47,7 @@
             <classpath>
                 <path location="\${test.classes.dir}"/>
                 <path location="\${classes.dir}"/>
-                <fileset dir="lib/test"/>
+                <fileset dir="\${lib.dir}"/>
             </classpath>
             <batchtest todir="\${test.reports.dir}">
                 <fileset dir="\${test.classes.dir}" includes="**/*Test*.class"/>
@@ -39,6 +55,10 @@
             <formatter type="xml"/>
             <formatter type="plain" usefile="false"/>
         </junit>
+        <junitreport toDir="\${build.dir}">
+            <fileset dir="\${test.reports.dir}" includes="*.xml"/>
+            <report todir="\${test.reports.dir}"/>
+        </junitreport>
     </target>
 
     <target name="jar" depends="compile, test">
@@ -46,4 +66,5 @@
             <fileset dir="\${classes.dir}"/>
         </jar>
     </target>
+<% } %>
 </project>

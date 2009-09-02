@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationCont
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
+import org.gradle.api.internal.artifacts.ivyservice.ShortcircuitEmptyConfigsIvyService;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -46,9 +47,11 @@ public class DefaultConfigurationContainerFactoryTest {
                         resolverProviderDummy,
                         dependencyMetaDataProviderStub);
 
-        assertThat(configurationContainer.getIvyService(), instanceOf(DefaultIvyService.class));
-        assertThat(((DefaultIvyService) configurationContainer.getIvyService()).getMetaDataProvider(), sameInstance(dependencyMetaDataProviderStub));
-        assertThat(((DefaultIvyService) configurationContainer.getIvyService()).getResolverProvider(), sameInstance(resolverProviderDummy));
+        assertThat(configurationContainer.getIvyService(), instanceOf(ShortcircuitEmptyConfigsIvyService.class));
+        ShortcircuitEmptyConfigsIvyService service = (ShortcircuitEmptyConfigsIvyService) configurationContainer.getIvyService();
+        assertThat(service.getIvyService(), instanceOf(DefaultIvyService.class));
+        assertThat(((DefaultIvyService) service.getIvyService()).getMetaDataProvider(), sameInstance(dependencyMetaDataProviderStub));
+        assertThat(((DefaultIvyService) service.getIvyService()).getResolverProvider(), sameInstance(resolverProviderDummy));
         assertThat(configurationContainer.getProjectDependenciesBuildInstruction(), sameInstance(projectDependenciesBuildInstructionDummy));
     }
 }

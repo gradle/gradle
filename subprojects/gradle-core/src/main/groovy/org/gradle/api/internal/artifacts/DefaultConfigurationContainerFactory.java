@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultConfigurationHandler;
 import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
+import org.gradle.api.internal.artifacts.ivyservice.ShortcircuitEmptyConfigsIvyService;
 
 /**
  * @author Hans Dockter
@@ -35,7 +36,8 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
 
     public ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider,
                                                              DependencyMetaDataProvider dependencyMetaDataProvider) {
-        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProvider, resolverProvider);
+        IvyService ivyService = new ShortcircuitEmptyConfigsIvyService(new DefaultIvyService(dependencyMetaDataProvider,
+                resolverProvider));
         return new DefaultConfigurationHandler(ivyService, projectDependenciesBuildInstruction);
     }
 }
