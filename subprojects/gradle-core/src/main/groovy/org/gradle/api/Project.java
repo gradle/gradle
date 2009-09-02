@@ -403,7 +403,7 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(TaskAction)} method. Calling this method is equivalent to
+     * action is passed to the task's {@link Task#doFirst(Action)} method. Calling this method is equivalent to
      * calling {@link #createTask(java.util.Map, String, TaskAction)} with an empty options map.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
@@ -412,7 +412,7 @@ public interface Project extends Comparable<Project> {
      * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
      *
      * @param name The name of the task to be created
-     * @param action The action to be passed to the {@link Task#doFirst(TaskAction)} method of the created task.
+     * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */
@@ -454,7 +454,7 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(TaskAction)} method. A map of creation options can be passed
+     * action is passed to the task's {@link Task#doFirst(Action)} method. A map of creation options can be passed
      * to this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the
      * available options.</p>
      *
@@ -466,7 +466,7 @@ public interface Project extends Comparable<Project> {
      *
      * @param args The task creation options.
      * @param name The name of the task to be created
-     * @param action The action to be passed to the {@link Task#doFirst(TaskAction)} method of the created task.
+     * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exsists in this project.
      */

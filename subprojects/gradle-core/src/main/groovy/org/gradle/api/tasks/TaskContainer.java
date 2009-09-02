@@ -63,7 +63,7 @@ public interface TaskContainer extends TaskCollection<Task>, DomainObjectContain
      * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The closure or {@link TaskAction} to
-     * execute when the task executes. See {@link Task#doFirst(TaskAction)}.</td><td><code>null</code></td></tr>
+     * execute when the task executes. See {@link Task#doFirst(Action)}.</td><td><code>null</code></td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
      * task?</td><td><code>false</code></td></tr>
