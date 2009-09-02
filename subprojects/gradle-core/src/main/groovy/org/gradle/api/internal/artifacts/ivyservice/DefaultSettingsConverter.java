@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.Clock;
 
 import java.io.File;
 import java.util.*;
@@ -76,6 +77,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         if (ivySettings != null) {
             return ivySettings;
         }
+        Clock clock = new Clock();
         ChainResolver userResolverChain = createUserResolverChain(Collections.<DependencyResolver>emptyList(), internalRepository);
         ClientModuleResolver clientModuleResolver = createClientModuleResolver(new HashMap(), userResolverChain);
         ChainResolver outerChain = createOuterChain(userResolverChain, clientModuleResolver);
@@ -83,7 +85,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         IvySettings ivySettings = createIvySettings(gradleUserHome);
         initializeResolvers(ivySettings, getAllResolvers(Collections.<DependencyResolver>emptyList(), publishResolvers, internalRepository, userResolverChain, clientModuleResolver, outerChain));
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
-
+        logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
         return ivySettings;
     }
 
@@ -92,6 +94,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         if (ivySettings != null) {
             return ivySettings;
         }
+        Clock clock = new Clock();
         ChainResolver userResolverChain = createUserResolverChain(dependencyResolvers, internalRepository);
         ClientModuleResolver clientModuleResolver = createClientModuleResolver(clientModuleRegistry, userResolverChain);
         ChainResolver outerChain = createOuterChain(userResolverChain, clientModuleResolver);
@@ -99,7 +102,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         IvySettings ivySettings = createIvySettings(gradleUserHome);
         initializeResolvers(ivySettings, getAllResolvers(dependencyResolvers, Collections.<DependencyResolver>emptyList(), internalRepository, userResolverChain, clientModuleResolver, outerChain));
         ivySettings.setDefaultResolver(CLIENT_MODULE_CHAIN_NAME);
-        
+        logger.debug("Timing: Ivy convert for resolve took {}", clock.getTime());
         return ivySettings;
     }
 

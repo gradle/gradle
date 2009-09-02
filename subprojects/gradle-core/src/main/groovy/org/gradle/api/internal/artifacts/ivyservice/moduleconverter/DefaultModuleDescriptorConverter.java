@@ -27,6 +27,7 @@ import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
+import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,25 +52,24 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
     private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter = new DefaultArtifactsToModuleDescriptorConverter();
 
     public ModuleDescriptor convertForResolve(Configuration configuration, Module module, Map clientModuleRegistry, IvySettings settings) {
-        return createResolveModuleDescriptor(module, new LinkedHashSet(configuration.getHierarchy()), clientModuleRegistry, settings);
+        Clock clock = new Clock();
+        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, (Set<Configuration>) new LinkedHashSet(configuration.getHierarchy()), clientModuleRegistry, settings);
+        logger.debug("Timing: Ivy convert for resolve took {}", clock.getTime());
+        return transformer.transform(moduleDescriptor);
     }
 
     public ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module, IvySettings settings) {
         assert configurations.size() > 0;
+        Clock clock = new Clock();
         Set<Configuration> descriptorConfigurations = publishDescriptor ? setWithAllConfs(configurations) : configurations;
         ModuleDescriptor moduleDescriptor = createPublishModuleDescriptor(module, descriptorConfigurations, settings);
         artifactsToModuleDescriptorConverter.addArtifacts((DefaultModuleDescriptor) moduleDescriptor, descriptorConfigurations);
+        logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
         return moduleDescriptor;
     }
 
     private Set<Configuration> setWithAllConfs(Set<Configuration> configurations) {
         return configurations.iterator().next().getAll();
-    }
-
-    private ModuleDescriptor createResolveModuleDescriptor(Module module, Set<Configuration> configurations,
-                                                           Map clientModuleRegistry, IvySettings ivySettings) {
-        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, clientModuleRegistry, ivySettings);
-        return transformer.transform(moduleDescriptor);
     }
 
     private ModuleDescriptor createPublishModuleDescriptor(Module module, Set<Configuration> configurations, IvySettings ivySettings) {
