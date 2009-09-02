@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.GroovyRuntimeException;
+import groovy.lang.Closure;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DynamicObjectAware;
@@ -50,7 +51,7 @@ public abstract class AbstractClassGeneratorTest {
 
         IConventionAware conventionAware = (IConventionAware) bean;
         assertThat(conventionAware.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
-        conventionAware.getConventionMapping().map("property", null);
+        conventionAware.getConventionMapping().map("property", HelperUtil.TEST_CLOSURE);
         ConventionMapping mapping = new ConventionAwareBean();
         conventionAware.setConventionMapping(mapping);
         assertThat(conventionAware.getConventionMapping(), sameInstance(mapping));
@@ -288,6 +289,10 @@ public abstract class AbstractClassGeneratorTest {
         }
 
         public ConventionMapping map(Map<String, ConventionValue> properties) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ConventionMapping map(String propertyName, Closure value) {
             throw new UnsupportedOperationException();
         }
 

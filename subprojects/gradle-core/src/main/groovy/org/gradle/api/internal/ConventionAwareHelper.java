@@ -26,6 +26,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Collections;
 
+import groovy.lang.Closure;
+import groovy.lang.MissingPropertyException;
+
 /**
  * @author Hans Dockter
  */
@@ -47,18 +50,47 @@ public class ConventionAwareHelper implements ConventionMapping {
         return this;
     }
 
+    public ConventionMapping map(String propertyName, final Closure value) {
+        return map(propertyName, new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                switch (value.getMaximumNumberOfParameters()) {
+                    case 0:
+                        return value.call();
+                    case 1:
+                        return value.call(convention);
+                    default:
+                        return value.call(new Object[]{convention, conventionAwareObject});
+                }
+            }
+        });
+    }
+
     public ConventionMapping map(Map<String, ConventionValue> mapping) {
         Iterator keySetIterator = mapping.keySet().iterator();
         while (keySetIterator.hasNext()) {
             String propertyName = (String) keySetIterator.next();
             if (!ReflectionUtil.hasProperty(source, propertyName)) {
-                throw new InvalidUserDataException("You can't map a property that does not exist: propertyName= " + propertyName);
+                throw new InvalidUserDataException(
+                        "You can't map a property that does not exist: propertyName= " + propertyName);
             }
         }
         this.conventionMapping.putAll(mapping);
+        conventionMappingCache.keySet().removeAll(mapping.keySet());
         return this;
     }
 
+    public void propertyMissing(String name, Object value) {
+        if (value instanceof Closure) {
+            map(name, (Closure) value);
+        }
+        else if (value instanceof ConventionValue) {
+            map(name, (ConventionValue) value);
+        }
+        else {
+            throw new MissingPropertyException(name, getClass());
+        }
+    }
+    
     public Object getConventionValue(String propertyName) {
         Object value = ReflectionUtil.getProperty(source, propertyName);
         return getConventionValue(value, propertyName);

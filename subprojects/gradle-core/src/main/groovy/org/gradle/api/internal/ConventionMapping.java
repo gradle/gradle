@@ -20,8 +20,12 @@ import org.gradle.api.plugins.Convention;
 
 import java.util.Map;
 
+import groovy.lang.Closure;
+
 /**
  * <p>A {@code ConventionMapping} maintains the convention mappings for the properties of a particular object.</p>
+ *
+ * <p>Implementations should also allow mappings to be set using dynamic properties.</p>
  */
 public interface ConventionMapping {
     Convention getConvention();
@@ -29,6 +33,8 @@ public interface ConventionMapping {
     void setConvention(Convention convention);
 
     ConventionMapping map(String propertyName, ConventionValue value);
+
+    ConventionMapping map(String propertyName, Closure value);
 
     ConventionMapping map(Map<String, ConventionValue> properties);
 
