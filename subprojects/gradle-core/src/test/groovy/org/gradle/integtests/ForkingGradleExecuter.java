@@ -40,7 +40,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private boolean quiet;
     private List<String> tasks;
     private List<String> args;
-    private Map<String, Object> environmentVars = new HashMap<String, Object>();
+    private Map<String, String> environmentVars = new HashMap<String, String>();
     private String command;
 
     public ForkingGradleExecuter(GradleDistribution distribution) {
@@ -71,7 +71,9 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
         environmentVars.clear();
-        environmentVars.putAll(environment);
+        for (Map.Entry<String, ?> entry : environment.entrySet()) {
+            environmentVars.put(entry.getKey(), entry.getValue().toString());
+        }
         return this;
     }
 
@@ -95,10 +97,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return new ForkedExecutionFailure(result);
     }
 
-    private List<String> getLoggingArgs() {
-        return quiet ? Collections.singletonList("-q") : Collections.<String>emptyList();
-    }
-
     private Map doRun(boolean expectFailure) {
         String windowsCmd;
         String unixCmd;
@@ -109,21 +107,44 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             windowsCmd = "gradle";
             unixCmd = String.format("%s/bin/gradle", distribution.getGradleHomeDir().getAbsolutePath());
         }
-        return executeInternal(windowsCmd, unixCmd, distribution.getGradleHomeDir(), environmentVars, workingDir,
-                GUtil.addLists(getLoggingArgs(), args, tasks), expectFailure);
+        return executeInternal(windowsCmd, unixCmd, expectFailure);
     }
 
-    static Map executeInternal(String windowsCommandSnippet, String unixCommandSnippet, File gradleHome, Map envs,
-                               File workingDir, List tasknames, boolean expectFailure) {
+    private List<String> getAllArgs() {
+        return GUtil.addLists(getExtraArgs(), args, tasks);
+    }
+
+    private List<String> getExtraArgs() {
+        List<String> args = new ArrayList<String>();
+        if (quiet) {
+            args.add("--quiet");
+        }
+
+        boolean settingsFound = false;
+        for (File dir = workingDir;
+             dir != null && distribution.isFileUnderTest(dir) && !settingsFound;
+             dir = dir.getParentFile()) {
+            if (new File(dir, "settings.gradle").isFile()) {
+                settingsFound = true;
+            }
+        }
+        if (!settingsFound) {
+            args.add("--no-search-upward");
+        }
+        return args;
+    }
+
+    Map executeInternal(String windowsCommandSnippet, String unixCommandSnippet, boolean expectFailure) {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+        String gradleHome = distribution.getGradleHomeDir().toString();
 
         ExecHandleBuilder builder = new ExecHandleBuilder();
         builder.standardOutput(outStream);
         builder.errorOutput(errStream);
         builder.inheritEnvironment();
-        builder.environment("GRADLE_HOME", gradleHome.toString());
-        builder.environment(envs);
+        builder.environment("GRADLE_HOME", gradleHome);
+        builder.environment(environmentVars);
         builder.execDirectory(workingDir);
 
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -135,7 +156,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             builder.execCommand(unixCommandSnippet);
         }
 
-        builder.arguments(tasknames);
+        builder.arguments(getAllArgs());
 
         LOG.info(String.format("Execute in %s with: %s %s", builder.getExecDirectory(), builder.getExecCommand(),
                 builder.getArguments()));

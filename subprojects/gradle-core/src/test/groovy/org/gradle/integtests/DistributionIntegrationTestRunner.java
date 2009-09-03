@@ -86,6 +86,10 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         final TestFile testDir = new TestFile(GFileUtils.canonicalise(HelperUtil.makeNewTestDir()));
 
         return new GradleDistribution() {
+            public boolean isFileUnderTest(File file) {
+                return gradleHomeDir.isSelfOrDescendent(file) || samplesDir.isSelfOrDescendent(file) || testDir.isSelfOrDescendent(file);
+            }
+
             public TestFile getGradleHomeDir() {
                 return gradleHomeDir;
             }

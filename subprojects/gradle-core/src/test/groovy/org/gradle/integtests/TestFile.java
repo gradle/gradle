@@ -157,4 +157,11 @@ public class TestFile extends File {
             }
         }
     }
+
+    public boolean isSelfOrDescendent(File file) {
+        if (file.getAbsolutePath().equals(getAbsolutePath())) {
+            return true;
+        }
+        return file.getAbsolutePath().startsWith(getAbsolutePath() + File.separatorChar);
+    }
 }

@@ -16,7 +16,14 @@
 
 package org.gradle.integtests;
 
+import java.io.File;
+
 public interface GradleDistribution {
+    /**
+     * Returns true if the given file is either part of the distributions, samples, or test files.
+     */
+    boolean isFileUnderTest(File file);
+
     TestFile getGradleHomeDir();
 
     TestFile getSamplesDir();
