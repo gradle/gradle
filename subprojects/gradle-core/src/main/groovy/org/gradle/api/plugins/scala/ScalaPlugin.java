@@ -26,6 +26,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDefine;
 import org.gradle.api.tasks.scala.ScalaDoc;
@@ -73,13 +74,13 @@ public class ScalaPlugin implements Plugin {
             }
         });
         ScalaCompile scalaCompile = project.getTasks().replace(COMPILE_TASK_NAME, ScalaCompile.class);
-        javaPlugin.configureForSourceSet(JavaPlugin.MAIN_SOURCE_SET_NAME, scalaCompile);
+        javaPlugin.configureForSourceSet(SourceSet.MAIN_SOURCE_SET_NAME, scalaCompile);
         scalaCompile.setDescription("Compiles the Scala source code.");
     }
 
     private void configureCompileTests(final Project project, JavaPlugin javaPlugin) {
         ScalaCompile compileTests = project.getTasks().replace(COMPILE_TEST_TASK_NAME, ScalaCompile.class);
-        javaPlugin.configureForSourceSet(JavaPlugin.TEST_SOURCE_SET_NAME, compileTests);
+        javaPlugin.configureForSourceSet(SourceSet.TEST_SOURCE_SET_NAME, compileTests);
         compileTests.setDescription("Compiles the Scala test source code.");
         compileTests.conventionMapping("scalaSrcDirs", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

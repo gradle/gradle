@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.tasks.SourceSet
 
 /**
  * @author Hans Dockter
@@ -51,7 +52,7 @@ class JavaPluginTest {
         assertThat(project.convention.plugins.java, instanceOf(JavaPluginConvention))
     }
 
-    @Test public void createsConfigurations() {
+    @Test public void addsConfigurationsToTheProject() {
         javaPlugin.use(project, project.getPlugins())
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
@@ -92,14 +93,14 @@ class JavaPluginTest {
     @Test public void createsStandardSourceSetsAndAppliesMappings() {
         javaPlugin.use(project, project.getPlugins())
 
-        def set = project.source[JavaPlugin.MAIN_SOURCE_SET_NAME]
+        def set = project.source[SourceSet.MAIN_SOURCE_SET_NAME]
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/main/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/main/resources'))))
         assertThat(set.compileClasspath, sameInstance(project.configurations.compile))
         assertThat(set.runtimeClasspath, sameInstance(project.configurations.runtime))
         assertThat(set.classesDir, equalTo(new File(project.buildDir, 'classes/main')))
 
-        set = project.source[JavaPlugin.TEST_SOURCE_SET_NAME]
+        set = project.source[SourceSet.TEST_SOURCE_SET_NAME]
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/test/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/test/resources'))))
         assertThat(set.compileClasspath, sameInstance(project.configurations.testCompile))

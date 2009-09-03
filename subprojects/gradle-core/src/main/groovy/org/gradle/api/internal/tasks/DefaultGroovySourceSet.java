@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.tasks.GroovySourceSet;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.UnionFileTree;
@@ -25,14 +27,20 @@ import org.gradle.api.internal.file.FileResolver;
 public class DefaultGroovySourceSet implements GroovySourceSet {
     private final SourceDirectorySet groovy;
     private final UnionFileTree allGroovy;
+    private final PatternFilterable groovyPatterns = new PatternSet();
 
     public DefaultGroovySourceSet(String displayName, FileResolver fileResolver) {
-        groovy = new DefaultSourceDirectorySet(String.format("%s groovy source", displayName), fileResolver);
-        allGroovy = new UnionFileTree(String.format("%s groovy source", displayName), groovy);
+        groovy = new DefaultSourceDirectorySet(String.format("%s Groovy source", displayName), fileResolver);
+        groovyPatterns.include("**/*.groovy");
+        allGroovy = new UnionFileTree(String.format("%s Groovy source", displayName), groovy.matching(groovyPatterns));
     }
 
     public SourceDirectorySet getGroovy() {
         return groovy;
+    }
+
+    public PatternFilterable getGroovySourcePatterns() {
+        return groovyPatterns;
     }
 
     public FileTree getAllGroovy() {

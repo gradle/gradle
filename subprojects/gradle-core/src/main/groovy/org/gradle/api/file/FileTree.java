@@ -16,11 +16,14 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.PatternFilterable;
 
 /**
- * A {@code FileTree} represents a read-only hierarchy of files. It extends {@code FileCollection} to add hierarchy
- * query and manipulation methods.
+ * <p>A {@code FileTree} represents a hierarchy of files. It extends {@link FileCollection} to add hierarchy
+ * query and manipulation methods. You typically use a {@code FileTree} to represent files to copy or the contents of
+ * an archive.</p>
+ *
+ * <p>You can obtain a {@code FileTree} instance using {@link org.gradle.api.Project#fileSet(java.util.Map)}.</p>
  */
 public interface FileTree extends FileCollection {
     /**
@@ -48,7 +51,7 @@ public interface FileTree extends FileCollection {
      * @param patterns the pattern set to use to configure the filter.
      * @return The filtered tree.
      */
-    FileTree matching(PatternSet patterns);
+    FileTree matching(PatternFilterable patterns);
 
     /**
      * Returns a {@code FileTree} which contains the union of this tree and the given tree. The returned tree is live,

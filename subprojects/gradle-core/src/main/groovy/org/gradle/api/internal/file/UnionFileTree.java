@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileCollection;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -49,8 +50,14 @@ public class UnionFileTree extends CompositeFileTree {
         return sourceTrees;
     }
 
-    public UnionFileTree add(FileTree source) {
-        sourceTrees.add(source);
+    @Override
+    public UnionFileTree add(FileCollection source) {
+        if (!(source instanceof FileTree)) {
+            throw new UnsupportedOperationException(String.format("Can only add FileTree instances to %s.",
+                    getDisplayName()));
+        }
+        
+        sourceTrees.add((FileTree) source);
         return this;
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.*;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
 
 import java.io.File;
@@ -102,7 +103,7 @@ public class JettyPlugin implements Plugin {
                 });
                 jettyRun.getConventionMapping().map("classesDirectory", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return getJavaConvention(project).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
+                        return getJavaConvention(project).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
                     }
                 });
                 jettyRun.getConventionMapping().map("webAppSourceDirectory", new ConventionValue() {

@@ -23,6 +23,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.SourceSet;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -80,7 +81,8 @@ public class OsgiPlugin implements Plugin {
     private OsgiManifest createDefaultOsgiManifest(Project project) {
         OsgiHelper osgiHelper = new OsgiHelper();
         OsgiManifest osgiManifest = new DefaultOsgiManifest();
-        osgiManifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir());
+        osgiManifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(
+                SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir());
         osgiManifest.setVersion(osgiHelper.getVersion((String) project.property("version")));
         osgiManifest.setName(project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName());
         osgiManifest.setSymbolicName(osgiHelper.getBundleSymbolicName(project));

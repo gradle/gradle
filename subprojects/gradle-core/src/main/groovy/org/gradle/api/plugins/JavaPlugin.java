@@ -37,13 +37,12 @@ import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.util.FileSet;
-import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
-import java.util.ArrayList;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -70,9 +69,6 @@ public class JavaPlugin implements Plugin {
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
     public static final String DISTS_CONFIGURATION_NAME = "dists";
 
-    public static final String MAIN_SOURCE_SET_NAME = "main";
-    public static final String TEST_SOURCE_SET_NAME = "test";
-
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         projectPluginsHandler.usePlugin(BasePlugin.class, project);
         projectPluginsHandler.usePlugin(ReportingBasePlugin.class, project);
@@ -95,9 +91,9 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureSourceSets(Project project, final JavaPluginConvention pluginConvention) {
-        pluginConvention.getSource().add(MAIN_SOURCE_SET_NAME);
+        pluginConvention.getSource().add(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        SourceSet sourceSet = pluginConvention.getSource().add(TEST_SOURCE_SET_NAME);
+        SourceSet sourceSet = pluginConvention.getSource().add(SourceSet.TEST_SOURCE_SET_NAME);
         sourceSet.setCompileClasspath(pluginConvention.getProject().getConfigurations().getByName(
                 TEST_COMPILE_CONFIGURATION_NAME));
         sourceSet.setRuntimeClasspath(pluginConvention.getProject().getConfigurations().getByName(
@@ -125,9 +121,7 @@ public class JavaPlugin implements Plugin {
                 sourceSet.setRuntimeClasspath(project.getConfigurations().getByName(
                         RUNTIME_CONFIGURATION_NAME));
 
-                String taskBaseName = sourceSet.getName().equals(MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(sourceSet.getName());
-
-                Copy processResources = project.getTasks().add(String.format("process%sResources", taskBaseName), Copy.class);
+                Copy processResources = project.getTasks().add(sourceSet.getProcessResourcesTaskName(), Copy.class);
                 processResources.setDescription(String.format("Process and copy the %s resources.", sourceSet.getName()));
                 conventionMapping = processResources.getConventionMapping();
                 conventionMapping.map("srcDirs", new ConventionValue() {
@@ -141,7 +135,7 @@ public class JavaPlugin implements Plugin {
                     }
                 });
 
-                Compile compile = project.getTasks().add(String.format("compile%s", taskBaseName), Compile.class);
+                Compile compile = project.getTasks().add(sourceSet.getCompileTaskName(), Compile.class);
                 configureForSourceSet(sourceSet, compile);
             }
         });
@@ -272,7 +266,7 @@ public class JavaPlugin implements Plugin {
         jar.conventionMapping("resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 File classesDir = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
-                        JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
+                        SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
                 return WrapUtil.toList((Object) new FileSet(classesDir));
             }
         });
@@ -331,7 +325,8 @@ public class JavaPlugin implements Plugin {
                 return "classes dir";
             }
             public Set<File> getFiles() {
-                File classesDir = project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(JavaPlugin.MAIN_SOURCE_SET_NAME).getClassesDir();
+                File classesDir = project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(
+                        SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
                 return Collections.singleton(classesDir);
             }
         });

@@ -30,70 +30,99 @@ class CodeQualityPluginTest {
         assertThat(task, instanceOf(DefaultTask))
     }
 
-    @Test public void addsConventionObjectWhenJavaPluginApplied() {
+    @Test public void addsConventionObjectsToProject() {
+        plugin.use(project, project.getPlugins())
+
+        assertThat(project.convention.plugins.javaCodeQuality, instanceOf(JavaCodeQualityPluginConvention))
+        assertThat(project.convention.plugins.groovyCodeQuality, instanceOf(GroovyCodeQualityPluginConvention))
+    }
+
+    @Test public void attachesCheckTaskToBuildTaskWhenJavaPluginApplied() {
         plugin.use(project, project.getPlugins())
 
         project.usePlugin(JavaPlugin)
 
-        assertThat(project.convention.plugins.javaCodeQuality, instanceOf(JavaCodeQualityPluginConvention))
+        def task = project.tasks[JavaPlugin.BUILD_TASK_NAME]
+        assertDependsOn(task, hasItem(CodeQualityPlugin.CHECK_TASK))
     }
 
-    @Test public void createsTasksAndAppliesMappingsWhenJavaPluginApplied() {
+    @Test public void createsTasksAndAppliesMappingsForEachJavaSourceSet() {
         plugin.use(project, project.plugins)
 
         project.usePlugin(JavaPlugin)
 
-        def task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TASK]
+        def task = project.tasks[CodeQualityPlugin.CHECKSTYLE_MAIN_TASK]
         assertThat(task, instanceOf(Checkstyle))
         assertThat(task.source, equalTo(project.source.main.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
-        assertThat(task.resultFile, equalTo(project.checkstyleResultFile))
+        assertThat(task.resultFile, equalTo(project.file("build/checkstyle/main.xml")))
         assertDependsOn(task)
 
-        task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TESTS_TASK]
+        task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TEST_TASK]
         assertThat(task, instanceOf(Checkstyle))
         assertThat(task.source, equalTo(project.source.test.allJava))
-        assertThat(task.configFile, equalTo(project.checkstyleTestConfigFile))
-        assertThat(task.resultFile, equalTo(project.checkstyleTestResultFile))
+        assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
+        assertThat(task.resultFile, equalTo(project.file("build/checkstyle/test.xml")))
+        assertDependsOn(task)
+
+        project.source.add('custom')
+        task = project.tasks['checkstyleCustom']
+        assertThat(task, instanceOf(Checkstyle))
+        assertThat(task.source, equalTo(project.source.custom.allJava))
+        assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
+        assertThat(task.resultFile, equalTo(project.file("build/checkstyle/custom.xml")))
         assertDependsOn(task)
 
         task = project.tasks[CodeQualityPlugin.CHECK_TASK]
-        assertDependsOn(task, CodeQualityPlugin.CHECKSTYLE_TASK, CodeQualityPlugin.CHECKSTYLE_TESTS_TASK)
-
-        task = project.tasks[JavaPlugin.BUILD_TASK_NAME]
-        assertDependsOn(task, hasItem(CodeQualityPlugin.CHECK_TASK))
+        assertDependsOn(task, CodeQualityPlugin.CHECKSTYLE_MAIN_TASK, CodeQualityPlugin.CHECKSTYLE_TEST_TASK, 'checkstyleCustom')
     }
 
-    @Test public void addsConventionObjectWhenGroovyPluginApplied() {
+    @Test public void createsTasksAndAppliesMappingsForEachGroovySourceSet() {
         plugin.use(project, project.plugins)
 
         project.usePlugin(GroovyPlugin)
 
-        assertThat(project.convention.plugins.groovyCodeQuality, instanceOf(GroovyCodeQualityPluginConvention))
-    }
-
-    @Test public void createsTasksAndAppliesMappingsWhenGroovyPluginApplied() {
-        plugin.use(project, project.plugins)
-
-        project.usePlugin(GroovyPlugin)
-
-        def task = project.tasks[CodeQualityPlugin.CODE_NARC_TASK]
+        def task = project.tasks[CodeQualityPlugin.CODE_NARC_MAIN_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.source, equalTo(project.allGroovySrc))
+        assertThat(task.source, equalTo(project.source.main.allGroovy))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
-        assertThat(task.reportFile, equalTo(project.codeNarcReportFile))
+        assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/main.html")))
         assertDependsOn(task)
 
-        task = project.tasks[CodeQualityPlugin.CODE_NARC_TESTS_TASK]
+        task = project.tasks[CodeQualityPlugin.CODE_NARC_TEST_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.source, equalTo(project.allGroovyTestSrc))
-        assertThat(task.configFile, equalTo(project.codeNarcTestConfigFile))
-        assertThat(task.reportFile, equalTo(project.codeNarcTestReportFile))
+        assertThat(task.source, equalTo(project.source.test.allGroovy))
+        assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
+        assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/test.html")))
+        assertDependsOn(task)
+
+        project.source.add('custom')
+        task = project.tasks['codenarcCustom']
+        assertThat(task, instanceOf(CodeNarc))
+        assertThat(task.source, equalTo(project.source.custom.allGroovy))
+        assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
+        assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/custom.html")))
         assertDependsOn(task)
 
         task = project.tasks[CodeQualityPlugin.CHECK_TASK]
-        assertDependsOn(task, hasItem(CodeQualityPlugin.CODE_NARC_TASK))
-        assertDependsOn(task, hasItem(CodeQualityPlugin.CODE_NARC_TESTS_TASK))
+        assertDependsOn(task, hasItem(CodeQualityPlugin.CODE_NARC_MAIN_TASK))
+        assertDependsOn(task, hasItem(CodeQualityPlugin.CODE_NARC_TEST_TASK))
+        assertDependsOn(task, hasItem('codenarcCustom'))
+    }
+
+    @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
+        plugin.use(project, project.plugins)
+
+        def task = project.tasks.add('customCheckstyle', Checkstyle)
+        assertThat(task.source, nullValue())
+        assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
+        assertThat(task.resultFile, nullValue())
+        assertThat(task.classpath, nullValue())
+
+        task = project.tasks.add('customCodeNarc', CodeNarc)
+        assertThat(task.source, nullValue())
+        assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
+        assertThat(task.reportFile, nullValue())
     }
 
     private def assertDependsOn(Task task, String... names) {

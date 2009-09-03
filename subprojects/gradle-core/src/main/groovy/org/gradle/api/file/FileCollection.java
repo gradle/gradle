@@ -63,6 +63,15 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware {
     FileCollection plus(FileCollection collection);
 
     /**
+     * <p>Adds another collection to this collection. This is an optional operation.</p>
+     *
+     * @param collection The collection to add.
+     * @return This
+     * @throws UnsupportedOperationException When this collection does not alow modification.
+     */
+    FileCollection add(FileCollection collection) throws UnsupportedOperationException;
+
+    /**
      * Throws a {@link StopExecutionException} if this collection is empty.
      *
      * @return this

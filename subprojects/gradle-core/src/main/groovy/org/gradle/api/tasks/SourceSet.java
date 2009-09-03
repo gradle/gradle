@@ -18,13 +18,24 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.tasks.util.PatternFilterable;
 
 import java.io.File;
 
 /**
- * <p>A {@code SourceSet} represents a logical group of Java source and resources. Generally, </p>
+ * <p>A {@code SourceSet} represents a logical group of Java source and resources.</p>
  */
 public interface SourceSet {
+    /**
+     * The name of the main source set.
+     */
+    String MAIN_SOURCE_SET_NAME = "main";
+
+    /**
+     * The name of the test source set.
+     */
+    String TEST_SOURCE_SET_NAME = "test";
+
     /**
      * Returns the name of this source set.
      *
@@ -89,10 +100,32 @@ public interface SourceSet {
     SourceDirectorySet getJava();
 
     /**
-     * All Java source for this project. This includes, for example, source which is directly compiled, and source which
-     * is indirectly compiled through joint compilation.
+     * All Java source for this source set. This includes, for example, source which is directly compiled, and source
+     * which is indirectly compiled through joint compilation.
      *
      * @return the Java source. Never returns null.
      */
     FileTree getAllJava();
+
+    /**
+     * Returns the patterns used to select Java source. This pattern set is applied to the files returned by {@link
+     * #getAllJava()}.
+     *
+     * @return the patterns. Never returns null.
+     */
+    PatternFilterable getJavaSourcePatterns();
+
+    /**
+     * Returns the name of the Java compile task for this source set.
+     *
+     * @return The task name. Never returns null.
+     */
+    String getCompileTaskName();
+
+    /**
+     * Returns the name of the resource process task for this source set.
+     *
+     * @return The task name. Never returns null.
+     */
+    String getProcessResourcesTaskName();
 }

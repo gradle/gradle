@@ -63,6 +63,10 @@ public abstract class AbstractFileCollection implements FileCollection {
         return new UnionFileCollection(this, collection);
     }
 
+    public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException(String.format("%s does not allow modification.", getCapDisplayName()));
+    }
+
     public Object addToAntBuilder(Object node, String childNodeName) {
         new AntFileCollectionBuilder(this).addToAntBuilder(node, childNodeName);
         return this;
@@ -70,8 +74,12 @@ public abstract class AbstractFileCollection implements FileCollection {
 
     public FileCollection stopExecutionIfEmpty() {
         if (getFiles().isEmpty()) {
-            throw new StopExecutionException(String.format("%s does not contain any files.", StringUtils.capitalize(getDisplayName())));
+            throw new StopExecutionException(String.format("%s does not contain any files.", getCapDisplayName()));
         }
         return this;
+    }
+
+    private String getCapDisplayName() {
+        return StringUtils.capitalize(getDisplayName());
     }
 }

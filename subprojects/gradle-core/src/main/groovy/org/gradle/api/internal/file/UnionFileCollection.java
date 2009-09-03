@@ -17,18 +17,23 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class UnionFileCollection extends CompositeFileCollection {
-    private final List<FileCollection> sourceCollections;
+    private final Set<FileCollection> sourceCollections;
 
     public UnionFileCollection(FileCollection... sourceCollections) {
-        this.sourceCollections = Arrays.asList(sourceCollections);
+        this.sourceCollections = new LinkedHashSet<FileCollection>(Arrays.asList(sourceCollections));
     }
 
     public String getDisplayName() {
         return "file collection";
+    }
+
+    @Override
+    public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
+        sourceCollections.add(collection);
+        return this;
     }
 
     @Override

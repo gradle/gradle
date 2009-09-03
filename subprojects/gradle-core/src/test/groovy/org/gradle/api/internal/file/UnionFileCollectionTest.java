@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.file;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.Expectations;
+import org.gradle.api.file.FileCollection;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.api.file.FileCollection;
-import static org.gradle.util.WrapUtil.*;
 
 import java.io.File;
 
@@ -32,7 +32,6 @@ public class UnionFileCollectionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final FileCollection source1 = context.mock(FileCollection.class, "source1");
     private final FileCollection source2 = context.mock(FileCollection.class, "source2");
-    private final UnionFileCollection collection = new UnionFileCollection(source1, source2);
 
     @Test
     public void containsUnionOfAllSourceCollections() {
@@ -47,6 +46,7 @@ public class UnionFileCollectionTest {
             will(returnValue(toSet(file2, file3)));
         }});
 
+        UnionFileCollection collection = new UnionFileCollection(source1, source2);
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2, file3)));
     }
 
@@ -63,7 +63,15 @@ public class UnionFileCollectionTest {
             will(onConsecutiveCalls(returnValue(toSet(file2, file3)), returnValue(toSet(file3))));
         }});
 
+        UnionFileCollection collection = new UnionFileCollection(source1, source2);
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2, file3)));
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file3)));
+    }
+
+    @Test
+    public void canAddCollection() {
+        final UnionFileCollection collection = new UnionFileCollection();
+        collection.add(source1);
+        assertThat(collection.getSourceCollections(), equalTo((Iterable) toLinkedSet(source1)));
     }
 }

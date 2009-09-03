@@ -16,13 +16,12 @@
 
 package org.gradle.api.plugins
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*;
-import org.junit.Before
-import org.junit.Test
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.util.HelperUtil
-import org.gradle.api.file.SourceDirectorySet;
+import org.junit.Before
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -40,50 +39,10 @@ class GroovyPluginConventionTest {
         groovyConvention = new GroovyPluginConvention(project)
     }
 
-    @Test public void testGroovyConvention() {
-        assertEquals(['main/groovy'], groovyConvention.groovySrcDirNames)
-        assertEquals(['test/groovy'], groovyConvention.groovyTestSrcDirNames)
-        assertEquals([], groovyConvention.floatingGroovySrcDirs)
-        assertEquals([], groovyConvention.floatingGroovyTestSrcDirs)
-    }
-
-    @Test public void testGroovyDefaultDirs() {
-        checkGroovyDirs(project.srcRootName)
-    }
-
-    @Test public void testGroovyDynamicDirs() {
-        project.srcRootName = 'mysrc'
-        project.buildDirName = 'mybuild'
-        checkGroovyDirs(project.srcRootName)
-    }
-
-    @Test public void testSourceSetsReflectChangesToSourceDirs() {
-        SourceDirectorySet src = groovyConvention.groovySrc
-        assertThat(src.srcDirs, equalTo(groovyConvention.groovySrcDirs as Set))
-        groovyConvention.groovySrcDirNames << 'another'
-        assertThat(src.srcDirs, equalTo(groovyConvention.groovySrcDirs as Set))
-    }
-
-    @Test public void testTestSourceSetsReflectChangesToTestSourceDirs() {
-        SourceDirectorySet src = groovyConvention.groovyTestSrc
-        assertThat(src.srcDirs, equalTo(groovyConvention.groovyTestSrcDirs as Set))
-        groovyConvention.groovyTestSrcDirNames << 'another'
-        assertThat(src.srcDirs, equalTo(groovyConvention.groovyTestSrcDirs as Set))
-    }
-    
     @Test public void testGroovyDocDirUsesJavaConventionToDetermineDocsDir() {
         assertThat(groovyConvention.groovydocDir, equalTo(new File(javaConvention.docsDir, "groovydoc")))
 
         groovyConvention.groovydocDirName = "other-dir"
         assertThat(groovyConvention.groovydocDir, equalTo(new File(javaConvention.docsDir, "other-dir")))
-    }
-    
-    private void checkGroovyDirs(String srcRootName) {
-        groovyConvention.floatingGroovySrcDirs << 'someGroovySrcDir' as File
-        groovyConvention.floatingGroovyTestSrcDirs <<'someGroovyTestSrcDir' as File
-        assertEquals([new File(project.srcRoot, groovyConvention.groovySrcDirNames[0])] + groovyConvention.floatingGroovySrcDirs,
-                groovyConvention.groovySrcDirs)
-        assertEquals([new File(project.srcRoot, groovyConvention.groovyTestSrcDirNames[0])] + groovyConvention.floatingGroovyTestSrcDirs,
-                groovyConvention.groovyTestSrcDirs)
     }
 }

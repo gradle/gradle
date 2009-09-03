@@ -57,7 +57,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         return includes.hashCode() ^ excludes.hashCode()
     }
 
-    public PatternSet copyFrom(PatternSet sourcePattern) {
+    public PatternSet copyFrom(PatternFilterable sourcePattern) {
         setIncludes(sourcePattern.includes)
         setExcludes(sourcePattern.excludes)
         this

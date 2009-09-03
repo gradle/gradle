@@ -65,9 +65,10 @@ usePlugin 'code-quality'
         testFile('src/main/groovy/org/gradle/Class2.java') << 'package org.gradle; class Class2 { }'
         testFile('src/main/groovy/org/gradle/class3.groovy') << 'package org.gradle; class class3 { }'
 
-        inTestDirectory().withTasks('checkstyle').run()
+        inTestDirectory().withTasks('checkstyleMain').run()
 
         testFile('build/checkstyle/main.xml').assertExists()
+        testFile('build/checkstyle/main.xml').assertContents(not(containsClass('org.gradle.class3')))
     }
 
     @Test
@@ -82,8 +83,8 @@ usePlugin 'code-quality'
         testFile('src/main/groovy/org/gradle/class2.java') << 'package org.gradle; class class2 { }'
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
-        failure.assertHasDescription('Execution failed for task \':checkstyle\'')
-        failure.assertThatCause(startsWith('Checkstyle check violations were found in main java source. See the report at'))
+        failure.assertHasDescription('Execution failed for task \':checkstyleMain\'')
+        failure.assertThatCause(startsWith('Checkstyle check violations were found in main Java source. See the report at'))
 
         testFile('build/checkstyle/main.xml').assertExists()
     }
@@ -117,7 +118,7 @@ usePlugin 'code-quality'
         testFile('src/main/groovy/org/gradle/class1.java') << 'package org.gradle; class class1 { }'
         testFile('src/main/groovy/org/gradle/Class2.groovy') << 'package org.gradle; class Class2 { }'
 
-        inTestDirectory().withTasks('codenarc').run()
+        inTestDirectory().withTasks('codenarcMain').run()
 
         testFile('build/reports/codenarc/main.html').assertExists()
     }
@@ -134,8 +135,8 @@ usePlugin 'code-quality'
         testFile('src/main/groovy/org/gradle/class1.groovy') << 'package org.gradle; class class1 { }'
 
         ExecutionFailure failure = inTestDirectory().withTasks('check').runWithFailure()
-        failure.assertHasDescription('Execution failed for task \':codenarc\'')
-        failure.assertThatCause(startsWith('CodeNarc check violations were found in main groovy source. See the report at '))
+        failure.assertHasDescription('Execution failed for task \':codenarcMain\'')
+        failure.assertThatCause(startsWith('CodeNarc check violations were found in main Groovy source. See the report at '))
 
         testFile('build/reports/codenarc/main.html').assertExists()
     }

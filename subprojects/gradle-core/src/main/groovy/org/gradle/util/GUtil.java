@@ -192,6 +192,9 @@ public class GUtil {
         return formatter.toString();
     }
 
+    /**
+     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier
+     */
     public static String toCamelCase(CharSequence string) {
         if (string == null) {
             return null;

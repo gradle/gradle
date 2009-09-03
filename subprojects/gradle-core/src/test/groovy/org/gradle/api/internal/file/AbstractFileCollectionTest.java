@@ -106,6 +106,16 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
+    public void cannotAddCollection() {
+        try {
+            new TestFileCollection().add(new TestFileCollection());
+            fail();
+        } catch (UnsupportedOperationException e) {
+            assertThat(e.getMessage(), equalTo("Collection-display-name does not allow modification."));
+        }
+    }
+    
+    @Test
     public void canAddToAntBuilder() {
         File file1 = new File("f1");
         File file2 = new File("f2");

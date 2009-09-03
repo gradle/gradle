@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.file.FileTree;
@@ -23,6 +25,7 @@ import org.gradle.api.internal.file.DefaultFileCollection;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.UnionFileTree;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -31,21 +34,37 @@ public class DefaultSourceSet implements SourceSet {
     private File classesDir;
     private FileCollection compileClasspath;
     private FileCollection runtimeClasspath;
-    private SourceDirectorySet javaSource;
-    private UnionFileTree allJavaSource;
-    private SourceDirectorySet resources;
+    private final SourceDirectorySet javaSource;
+    private final UnionFileTree allJavaSource;
+    private final SourceDirectorySet resources;
+    private final PatternFilterable javaSourcePatterns = new PatternSet();
 
     public DefaultSourceSet(String name, String displayName, FileResolver resolver) {
         this.name = name;
         compileClasspath = new DefaultFileCollection();
         runtimeClasspath = new DefaultFileCollection();
-        javaSource = new DefaultSourceDirectorySet(String.format("%s java source", displayName), resolver);
-        allJavaSource = new UnionFileTree(String.format("%s java source", displayName), javaSource);
-        resources = new DefaultSourceDirectorySet(String.format("%s resources", displayName), resolver);
+        String javaSrcDisplayName = String.format("%s Java source", displayName);
+        javaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, resolver);
+        javaSourcePatterns.include("**/*.java");
+        allJavaSource = new UnionFileTree(javaSrcDisplayName, javaSource.matching(javaSourcePatterns));
+        String resourcesDisplayName = String.format("%s resources", displayName);
+        resources = new DefaultSourceDirectorySet(resourcesDisplayName, resolver);
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getCompileTaskName() {
+        return String.format("compile%s", getTaskBaseName());
+    }
+
+    public String getProcessResourcesTaskName() {
+        return String.format("process%sResources", getTaskBaseName());
+    }
+
+    private String getTaskBaseName() {
+        return name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
     }
 
     public File getClassesDir() {
@@ -78,6 +97,10 @@ public class DefaultSourceSet implements SourceSet {
 
     public FileTree getAllJava() {
         return allJavaSource;
+    }
+
+    public PatternFilterable getJavaSourcePatterns() {
+        return javaSourcePatterns;
     }
 
     public SourceDirectorySet getResources() {

@@ -4,31 +4,20 @@ import org.gradle.api.Project
 
 class JavaCodeQualityPluginConvention {
     String checkstyleConfigFileName
-    String checkstyleTestConfigFileName
-    String checkstyleResultFileName
-    String checkstyleTestResultFileName
+    String checkstyleResultsDirName
     private Project project
 
     def JavaCodeQualityPluginConvention(Project project) {
         this.project = project
         checkstyleConfigFileName = 'config/checkstyle/checkstyle.xml'
-        checkstyleResultFileName = 'checkstyle/main.xml'
-        checkstyleTestResultFileName = 'checkstyle/test.xml'
+        checkstyleResultsDirName = 'checkstyle'
     }
 
     File getCheckstyleConfigFile() {
         project.file(checkstyleConfigFileName)
     }
 
-    File getCheckstyleTestConfigFile() {
-        checkstyleTestConfigFileName ? project.file(checkstyleTestConfigFileName) : checkstyleConfigFile
-    }
-
-    File getCheckstyleResultFile() {
-        new File(project.buildDir, checkstyleResultFileName)
-    }
-    
-    File getCheckstyleTestResultFile() {
-        new File(project.buildDir, checkstyleTestResultFileName)
+    File getCheckstyleResultsDir() {
+        new File(project.buildDir, checkstyleResultsDirName)
     }
 }

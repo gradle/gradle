@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -26,12 +28,23 @@ import org.junit.runner.RunWith;
 @RunWith(JMock.class)
 public class UnionFileTreeTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final FileTree set1 = context.mock(FileTree.class, "set1");
-    private final FileTree set2 = context.mock(FileTree.class, "set2");
-    private final UnionFileTree set = new UnionFileTree("<display name>", set1, set2);
+    private final UnionFileTree set = new UnionFileTree("<display name>");
 
     @Test
-    public void usesDisplayNameAsToString() {
-        assertThat(set.toString(), equalTo("<display name>"));
+    public void canAddFileTree() {
+        FileTree set1 = context.mock(FileTree.class, "set1");
+
+        set.add(set1);
+        assertThat(set.getSourceCollections(), equalTo(toLinkedSet(set1)));
+    }
+
+    @Test
+    public void cannotAddFileCollection() {
+        try {
+            set.add(context.mock(FileCollection.class));
+            fail();
+        } catch (UnsupportedOperationException e) {
+            assertThat(e.getMessage(), equalTo("Can only add FileTree instances to <display name>."));
+        }
     }
 }

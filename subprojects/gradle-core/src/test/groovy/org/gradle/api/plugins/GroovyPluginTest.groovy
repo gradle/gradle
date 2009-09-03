@@ -30,7 +30,6 @@ import static org.junit.Assert.*
 /**
  * @author Hans Dockter
  */
-// todo Make test stronger
 class GroovyPluginTest {
     private final Project project = HelperUtil.createRootProject()
     private final GroovyPlugin groovyPlugin = new GroovyPlugin()
@@ -55,23 +54,23 @@ class GroovyPluginTest {
         assertFalse(configuration.transitive)
     }
 
-    @Test public void addsGroovyConventionToEachSourceSet() {
+    @Test public void addsGroovyConventionToEachSourceSetAndAppliesMappings() {
         groovyPlugin.use(project, project.getPlugins())
 
         def sourceSet = project.source.main
-        assertThat(sourceSet.groovy.displayName, equalTo("main groovy source"))
+        assertThat(sourceSet.groovy.displayName, equalTo("main Groovy source"))
         assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/main/groovy"))))
 
         sourceSet = project.source.test
-        assertThat(sourceSet.groovy.displayName, equalTo("test groovy source"))
+        assertThat(sourceSet.groovy.displayName, equalTo("test Groovy source"))
         assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/test/groovy"))))
 
         sourceSet = project.source.add('custom')
-        assertThat(sourceSet.groovy.displayName, equalTo("custom groovy source"))
+        assertThat(sourceSet.groovy.displayName, equalTo("custom Groovy source"))
         assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/custom/groovy"))))
     }
 
-    @Test public void addsTasksToTheProject() {
+    @Test public void replacesCompileTaskForEachSourceSet() {
         groovyPlugin.use(project, project.getPlugins())
 
         def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
@@ -84,7 +83,17 @@ class GroovyPluginTest {
         assertThat(task.srcDirs, equalTo(project.source.test.java.srcDirs as List))
         assertThat(task.groovySourceDirs, equalTo(project.source.test.groovy.srcDirs as List))
 
-        task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
+        project.source.add('custom')
+        task = project.tasks['compileCustom']
+        assertThat(task, instanceOf(GroovyCompile.class))
+        assertThat(task.srcDirs, equalTo(project.source.custom.java.srcDirs as List))
+        assertThat(task.groovySourceDirs, equalTo(project.source.custom.groovy.srcDirs as List))
+    }
+
+    @Test public void addsStandarcTasksToTheProject() {
+        groovyPlugin.use(project, project.getPlugins())
+
+        def task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
         assertThat(task, instanceOf(Javadoc.class))
         assertThat(task.srcDirs, hasItems(project.source.main.java.srcDirs as Object[]))
         assertThat(task.srcDirs, hasItems(project.source.main.groovy.srcDirs as Object[]))

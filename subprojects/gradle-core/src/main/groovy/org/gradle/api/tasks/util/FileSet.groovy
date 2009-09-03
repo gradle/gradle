@@ -102,7 +102,7 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
         filtered
     }
 
-    FileTree matching(PatternSet patterns) {
+    FileTree matching(PatternFilterable patterns) {
         FileSet filtered = new FileSet(getDir())
         filtered.patternSet.copyFrom(patterns)
         filtered
