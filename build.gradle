@@ -92,7 +92,7 @@ subprojects {
 }
 
 allprojects {
-    task ide << {task ->
+    task ide(dependsOn: project.configurations.testRuntime.buildDependencies) << {task ->
         def libDir = task.project.file('lib')
         ant.delete(dir: libDir)
         copy {
