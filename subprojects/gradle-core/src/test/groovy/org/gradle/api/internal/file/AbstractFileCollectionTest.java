@@ -24,10 +24,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class AbstractFileCollectionTest {
     @Test
@@ -141,6 +138,42 @@ public class AbstractFileCollectionTest {
         collection.stopExecutionIfEmpty();
     }
 
+    @Test
+    public void canConvertToCollectionTypes() {
+        File file = new File("f1");
+        TestFileCollection collection = new TestFileCollection(file);
+
+        assertThat(collection.asType(Collection.class), equalTo((Object) toLinkedSet(file)));
+        assertThat(collection.asType(Set.class), equalTo((Object) toLinkedSet(file)));
+        assertThat(collection.asType(List.class), equalTo((Object) toList(file)));
+    }
+
+    @Test
+    public void canConvertToArray() {
+        File file = new File("f1");
+        TestFileCollection collection = new TestFileCollection(file);
+
+        assertThat(collection.asType(File[].class), equalTo((Object) toArray(file)));
+    }
+
+    @Test
+    public void canConvertCollectionWithSingleFileToFile() {
+        File file = new File("f1");
+        TestFileCollection collection = new TestFileCollection(file);
+
+        assertThat(collection.asType(File.class), equalTo((Object) file));
+    }
+
+    @Test
+    public void throwsUOExceptionWhenConvertingToUnsupportedType() {
+        try {
+            new TestFileCollection().asType(Integer.class);
+            fail();
+        } catch (UnsupportedOperationException e) {
+            assertThat(e.getMessage(), equalTo("Cannot convert collection-display-name to type Integer."));
+        }
+    }
+    
     private class TestFileCollection extends AbstractFileCollection {
         private Set<File> files = new LinkedHashSet<File>();
 

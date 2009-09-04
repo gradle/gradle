@@ -55,7 +55,7 @@ class AntJarTest extends AbstractAntSkippableArchiveTest {
     }
 
     void executeWithEmptyFileList(boolean createIfEmpty) {
-        antJar.execute(new AntMetaArchiveParameter([new FileSet(emptyDir)], [], [], '', createIfEmpty, testDir, archiveName, null, null, new AntBuilder()))
+        antJar.execute(new AntMetaArchiveParameter([new FileSet(emptyDir, resolver)], [], [], '', createIfEmpty, testDir, archiveName, null, null, new AntBuilder()))
     }
 
 }

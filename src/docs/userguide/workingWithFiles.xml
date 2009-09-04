@@ -1,0 +1,60 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id="working_with_files">
+    <title>Working With Files</title>
+    <note>
+        <para>This chapter is a work in progress.</para>
+    </note>
+
+    <para>
+        Most builds do lots of work with files. Gradle adds some concepts and APIs to help you do this.
+    </para>
+
+    <section>
+        <title>Locating files</title>
+        <para>You can locate a file relative to the project directory using the <literal>file()</literal> method.</para>
+        <sample id="resolveFile" dir="userguide/files/file" title="Locating files">
+            <sourcefile file="build.gradle"/>
+        </sample>
+    </section>
+    
+    <section>
+        <title>File collections</title>
+
+        <para>
+            A <firstterm>file collection</firstterm> is simply a set of files. It is represented by the
+            <apilink class="org.gradle.api.file.FileCollection"/> interface. Many objects in Gradle implement this
+            interface. For example, <link linkend="sub:configurations">dependency configurations</link> implement
+            <literal>FileCollection</literal>.
+        </para>
+
+        <para>
+            One way to obtain a <literal>FileCollection</literal> instance is to use the <literal>files()</literal> method.
+        </para>
+
+        <sample id="fileCollections" dir="userguide/files/fileCollections" title="Using file collections">
+            <sourcefile file="build.gradle"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>File trees</title>
+    </section>
+    
+    <section>
+        <title>Copying files</title>
+    </section>
+</chapter>

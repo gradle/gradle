@@ -24,6 +24,7 @@ import org.gradle.util.HelperUtil
 import org.junit.After
 import org.junit.Before
 import static org.junit.Assert.*
+import org.gradle.api.internal.file.FileResolver
 
 /**
 * @author Hans Dockter
@@ -31,6 +32,7 @@ import static org.junit.Assert.*
 abstract class AbstractAntArchiveTest {
     static final String METAINFS_KEY = 'mymetainfs'
 
+    FileResolver resolver = [resolve: { it as File}] as FileResolver
     File testDir
     File txtFile
     File jpgFile
@@ -73,15 +75,15 @@ abstract class AbstractAntArchiveTest {
         (unzipDir = new File(testDir, 'unzipDir')).mkdir()
         archiveName = 'test.jar'
 
-        mergeGroupFileSet = new FileSet(testDir)
+        mergeGroupFileSet = new FileSet(testDir, resolver)
         mergeGroupFileSet.include("$mergeGroupFile.name")
         mergeGroupFileSets = [mergeGroupFileSet]
 
-        mergeZipFileSet = new ZipFileSet(mergeZipFile)
-        mergeTarFileSet = new TarFileSet(mergeTarFile)
+        mergeZipFileSet = new ZipFileSet(mergeZipFile, resolver)
+        mergeTarFileSet = new TarFileSet(mergeTarFile, resolver)
         mergeFileSets = [mergeZipFileSet, mergeTarFileSet]
 
-        fileSet = new FileSet(testDir)
+        fileSet = new FileSet(testDir, resolver)
         fileSet.include('**/*.txt', '**/*.jpg')
         fileSet.exclude('**/*.jpg')
         createTestFiles()
@@ -170,9 +172,9 @@ abstract class AbstractAntArchiveTest {
         File file2 = new File(testDir, "${key}file2")
         file2.createNewFile()
         fileSetDuosFiles[key] = [file1, file2]
-        FileSet fileSet1 = new FileSet(testDir)
+        FileSet fileSet1 = new FileSet(testDir, resolver)
         fileSet1.include(file1.name)
-        FileSet fileSet2 = new FileSet(testDir)
+        FileSet fileSet2 = new FileSet(testDir, resolver)
         fileSet2.include(file2.name)
         fileSetDuos[key] = [fileSet1, fileSet2]
         [fileSet1, fileSet2]

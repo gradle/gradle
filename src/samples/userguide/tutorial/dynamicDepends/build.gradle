@@ -1,6 +1,6 @@
 4.times { counter ->
-    task "task_$counter" << {
+    task "task$counter" << {
         println "I'm task number $counter"
     }
 }
-task_0.dependsOn task_2, task_3
+task0.dependsOn task2, task3

@@ -63,6 +63,17 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware {
     FileCollection plus(FileCollection collection);
 
     /**
+     * <p>Converts this collection into the specified type. Supported types are: Collection, List, Set, File[].</p>
+     *
+     * <p>You can call this method in your build script using the {@code as} operator.</p>
+     *
+     * @param type The type to convert to.
+     * @return The converted value.
+     * @throws UnsupportedOperationException When an unsupported type is specified.
+     */
+    Object asType(Class<?> type) throws UnsupportedOperationException;
+
+    /**
      * <p>Adds another collection to this collection. This is an optional operation.</p>
      *
      * @param collection The collection to add.

@@ -47,13 +47,6 @@ abstract class AbstractTestForPatternSet {
         assertThat(patternSet.excludes, isEmpty())
     }
 
-    @Test public void testConstructionFromMap() {
-        Map map = constructorMap + [includes: [TEST_PATTERN_1], excludes: [TEST_PATTERN_2]]
-        PatternFilterable patternSet = patternSetType.newInstance(map)
-        assertThat(patternSet.includes, equalTo([TEST_PATTERN_1] as Set))
-        assertThat(patternSet.excludes, equalTo([TEST_PATTERN_2] as Set))
-    }
-
     @Test public void testInclude() {
         checkIncludesExcludes(patternSet, 'include', 'includes')
     }

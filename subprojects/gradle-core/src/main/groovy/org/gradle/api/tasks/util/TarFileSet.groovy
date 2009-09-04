@@ -16,6 +16,8 @@
  
 package org.gradle.api.tasks.util
 
+import org.gradle.api.internal.file.FileResolver
+
 /**
  * @author Hans Dockter
  */
@@ -28,21 +30,18 @@ class TarFileSet extends ZipFileSet {
 
     String gid
 
-    TarFileSet() {
-        super()
+    TarFileSet(File dir, FileResolver resolver) {
+        super(dir, resolver)
     }
 
-    TarFileSet(File dir) {
-        super(dir)
-    }
-
-    TarFileSet(Map args) {
-        super(args)
+    TarFileSet(Map args, FileResolver resolver) {
+        super(args, resolver)
     }
 
     def addToAntBuilder(node, String childNodeName) {
         Map args = [prefix: prefix, fullpath: fullPath, filemode: fileMode, dirmode: dirMode, username: userName,
             group: group, uid: uid, gid: gid]
+        File dir = baseDir
         if (dir.isDirectory()) {
             args.dir = dir.absolutePath
         } else {

@@ -51,7 +51,7 @@ class AntTar extends AbstractAntArchive {
                 if (file.isDirectory()) {
                     throw new InvalidUserDataException("A zipfilegroup may not contain directories!")
                 }
-                unpackedMergeGroupFileSets.add(new ZipFileSet(file))
+                unpackedMergeGroupFileSets.add(new ZipFileSet(file, fileSet.resolver))
             }
         }
         ant.tar(args) {

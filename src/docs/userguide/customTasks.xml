@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <chapter id="custom_tasks">
-    <title>Implementing custom tasks</title>
+    <title>Writing Custom Tasks</title>
 
     <note>
         <para>This chapter is a work in progress.</para>
@@ -43,14 +43,14 @@
         it with the <apilink class="org.gradle.api.tasks.TaskAction"/> annotation. Gradle will call the method when the
         task executes.
         You don't have to use a method to define the behaviour for the task. You could, for instance, call
-        <literal>doFirst()</literal> or <literal>doLast()</literal> task constructor to add behaviour.
+        <literal>doFirst()</literal> or <literal>doLast()</literal> with a closure in the task constructor to add behaviour.
     </para>
     <sample id="customTaskWithAction" dir="userguide/tasks/customTask" title="A hello world task">
         <sourcefile file="build.gradle" snippet="add-action"/>
         <output args="-q hello"/>
     </sample>
 
-    <para>Let's add some properties to the task, so we can customize it.</para>
+    <para>Let's add a property to the task, so we can customize it.</para>
     <sample id="customTaskWithProperty" dir="userguide/tasks/customTaskWithProperty" title="A customizable hello world task">
         <sourcefile file="build.gradle" snippet="add-property"/>
         <output args="-q hello greeting"/>

@@ -37,6 +37,13 @@ class PatternSetTest extends AbstractTestForPatternSet {
         PatternSet
     }
 
+    @Test public void testConstructionFromMap() {
+        Map map = constructorMap + [includes: [TEST_PATTERN_1], excludes: [TEST_PATTERN_2]]
+        PatternFilterable patternSet = new PatternSet(map)
+        assertThat(patternSet.includes, equalTo([TEST_PATTERN_1] as Set))
+        assertThat(patternSet.excludes, equalTo([TEST_PATTERN_2] as Set))
+    }
+
     @Test public void patternSetsAreEqualWhenIncludesAndExcludesAreTheEqual() {
         assertThat(new PatternSet(), strictlyEqual(new PatternSet()))
         assertThat(new PatternSet(includes: ['i']), strictlyEqual(new PatternSet(includes: ['i'])))

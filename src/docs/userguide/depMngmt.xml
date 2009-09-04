@@ -12,10 +12,9 @@
                 </para>
             </listitem>
             <listitem>
-                <para>Gradle works
-        <emphasis>perfectly</emphasis>
-        with your existent dependency management infrastructure, be it Maven or Ivy. All the repositories you have
-        set up with your custom pom or ivy files can be used as they are. No changes necessary.
+                <para>Gradle works <emphasis>perfectly</emphasis> with your existent dependency management
+                    infrastructure, be it Maven or Ivy. All the repositories you have set up with your custom pom or
+                    ivy files can be used as they are. No changes necessary.
                 </para>
             </listitem>
             <listitem>
@@ -141,8 +140,8 @@
                 for custom configurations. This is very handy for example for adding dependencies not needed for
                 building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
                 The configurations are managed by a <literal>configurations</literal> object. The closure you pass to
-                the configurations object is applied against its API. To learn more about this API have a look at the
-                javadoc: <apilink class='org.gradle.api.artifacts.dsl.ConfigurationHandler'/>.
+                the configurations object is applied against its API. To learn more about this API have a look at
+                <apilink class='org.gradle.api.artifacts.dsl.ConfigurationHandler'/>.
             </para>
         </section>
         <section id='sub:module_dependencies'>

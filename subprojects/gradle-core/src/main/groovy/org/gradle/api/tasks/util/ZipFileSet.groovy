@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.util
 
+import org.gradle.api.internal.file.FileResolver
+
 /**
  * @author Hans Dockter
  */
@@ -25,20 +27,17 @@ class ZipFileSet extends FileSet {
     String fileMode
     String dirMode
 
-    ZipFileSet() {
-        super()
+    ZipFileSet(File dir, FileResolver resolver) {
+        super(dir, resolver)
     }
 
-    ZipFileSet(File dir) {
-        super(dir)
-    }
-
-    ZipFileSet(Map args) {
-        super(args)
+    ZipFileSet(Map args, FileResolver resolver) {
+        super(args, resolver)
     }
 
     def addToAntBuilder(node, String childNodeName) {
         Map args = [prefix: prefix, fullpath: fullPath, filemode: fileMode, dirmode: dirMode]
+        File dir = getBaseDir()
         if (dir.isDirectory()) {
             args.dir = dir.absolutePath
         } else {

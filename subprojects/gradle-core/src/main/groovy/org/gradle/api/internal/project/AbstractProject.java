@@ -22,6 +22,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
@@ -694,16 +695,19 @@ public abstract class AbstractProject implements ProjectInternal {
         return fileResolver.resolveFiles(paths);
     }
 
-    public FileSet fileSet(Map<String,Object> args) {
+    public ConfigurableFileTree fileTree(Object baseDir) {
+        return new FileSet(baseDir, fileResolver);
+    }
+
+    public FileSet fileTree(Map<String,Object> args) {
         return new FileSet(args, fileResolver);
     }
 
-    public FileSet fileSet(Closure closure) {
-        FileSet result = new FileSet(fileResolver);
+    public FileSet fileTree(Closure closure) {
+        FileSet result = new FileSet(Collections.emptyMap(), fileResolver);
         ConfigureUtil.configure(closure, result);
         return result;
     }
-
 
     public File relativePath(Object path) {
         File result = findRelativePath(path);

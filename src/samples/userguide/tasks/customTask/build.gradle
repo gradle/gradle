@@ -9,7 +9,7 @@ class HelloTask extends DefaultTask {
 // END SNIPPET define-task
     @TaskAction
     def printGreeting() {
-        println "hello from HelloTask"
+        println 'hello from HelloTask'
     }
 // START SNIPPET define-task
 }

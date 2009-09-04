@@ -56,9 +56,9 @@ class War extends Jar {
     Closure createAntArchiveTask() {
         {->
             List files = dependencies(true, true)
-            antWar.execute(new AntMetaArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(), getFileSetManifest(),
-                    getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant),
-                    getClassesFileSets(), files, getAdditionalLibFileSets(), getWebInfFileSets(), getWebXml())
+            AntMetaArchiveParameter param = new AntMetaArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(), getFileSetManifest(),
+                    getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant)
+            antWar.execute(param, getClassesFileSets(), files, getAdditionalLibFileSets(), getWebInfFileSets(), getWebXml(), project.fileResolver)
         }
     }
 

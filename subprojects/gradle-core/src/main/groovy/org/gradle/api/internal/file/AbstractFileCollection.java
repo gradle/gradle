@@ -21,8 +21,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 public abstract class AbstractFileCollection implements FileCollection {
     /**
@@ -77,6 +76,24 @@ public abstract class AbstractFileCollection implements FileCollection {
             throw new StopExecutionException(String.format("%s does not contain any files.", getCapDisplayName()));
         }
         return this;
+    }
+
+    public Object asType(Class<?> type) throws UnsupportedOperationException {
+        if (type.isAssignableFrom(Set.class)) {
+            return getFiles();
+        }
+        if (type.isAssignableFrom(List.class)) {
+            return new ArrayList<File>(getFiles());
+        }
+        if (type.isAssignableFrom(File[].class)) {
+            Set<File> files = getFiles();
+            return files.toArray(new File[files.size()]);
+        }
+        if (type.isAssignableFrom(File.class)) {
+            return getSingleFile();
+        }
+        throw new UnsupportedOperationException(String.format("Cannot convert %s to type %s.", getDisplayName(),
+                type.getSimpleName()));
     }
 
     private String getCapDisplayName() {

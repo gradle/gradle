@@ -38,7 +38,7 @@ public class DefaultSourceDirectorySetTest {
 
     @Before
     public void setUp() {
-        resolver = {src -> new File(testDir, src as String)} as FileResolver
+        resolver = {src -> src instanceof File ? src : new File(testDir, src as String)} as FileResolver
         set = new DefaultSourceDirectorySet('<display-name>', resolver)
     }
 

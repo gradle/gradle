@@ -16,18 +16,16 @@
 
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
+import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ReflectionUtil;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Collections;
-
-import groovy.lang.Closure;
-import groovy.lang.MissingPropertyException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -66,12 +64,14 @@ public class ConventionAwareHelper implements ConventionMapping {
     }
 
     public ConventionMapping map(Map<String, ConventionValue> mapping) {
-        Iterator keySetIterator = mapping.keySet().iterator();
-        while (keySetIterator.hasNext()) {
-            String propertyName = (String) keySetIterator.next();
+        for (Map.Entry<String, ConventionValue> entry : mapping.entrySet()) {
+            String propertyName = entry.getKey();
             if (!ReflectionUtil.hasProperty(source, propertyName)) {
                 throw new InvalidUserDataException(
                         "You can't map a property that does not exist: propertyName= " + propertyName);
+            }
+            if (entry.getValue() == null) {
+                throw new IllegalArgumentException("No convention value provided: propertyName= " + propertyName);
             }
         }
         this.conventionMapping.putAll(mapping);

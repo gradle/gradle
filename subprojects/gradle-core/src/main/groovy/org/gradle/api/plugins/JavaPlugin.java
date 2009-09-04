@@ -36,11 +36,10 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.util.FileSet;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
@@ -267,7 +266,7 @@ public class JavaPlugin implements Plugin {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 File classesDir = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
                         SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
-                return WrapUtil.toList((Object) new FileSet(classesDir));
+                return Arrays.asList(project.fileTree(classesDir));
             }
         });
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));

@@ -16,20 +16,16 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.GradleManifest;
-import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Set;
 import java.io.File;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -130,26 +126,34 @@ public class DefaultConventionsToPropertiesMapping {
 
     static {
         WAR.putAll(GUtil.map(
-                "baseDir", null,
+                "baseDir", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return null;
+                    }
+                },
                 "classesFileSets", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                File classesDir = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
-                        SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
-                return WrapUtil.toList((Object) new FileSet(classesDir));
+                JavaPluginConvention pluginConvention = convention.getPlugin(JavaPluginConvention.class);
+                Project project = pluginConvention.getProject();
+                File classesDir = pluginConvention.getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+                        .getClassesDir();
+                return Arrays.asList(project.fileTree(classesDir));
             }
         },      "resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList((Object) new FileSet(convention.getPlugin(WarPluginConvention.class).getWebAppDir()));
+                WarPluginConvention warPluginConvention = convention.getPlugin(WarPluginConvention.class);
+                Project project = warPluginConvention.getProject();
+                return Arrays.asList(project.fileTree(warPluginConvention.getWebAppDir()));
             }
         },
                 "libExcludeConfigurations", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
+                return Arrays.asList(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
             }
         },
                 "libConfigurations", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return WrapUtil.toList(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
+                return Arrays.asList(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
             }
         }));
     }

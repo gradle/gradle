@@ -56,7 +56,8 @@ class AntWarTest extends AbstractAntArchiveTest {
                 libFiles,
                 createFileSetDuo(ADDITIONAL_LIBS_KEY),
                 createFileSetDuo(WEBINFS_KEY),
-                explicitWebXml
+                explicitWebXml,
+                resolver
                 )
         checkCommonData()
         assertTrue(new File(unzipDir, "WEB-INF/web.xml").exists())
@@ -64,7 +65,7 @@ class AntWarTest extends AbstractAntArchiveTest {
     }
 
     @Test public void testExecuteWithImplicitWebxml() {
-        FileSet fileSet = new FileSet(testDir)
+        FileSet fileSet = new FileSet(testDir, resolver)
         fileSet.include(implicitWebXml.name)
         antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
                 archiveName, manifest,
@@ -73,7 +74,8 @@ class AntWarTest extends AbstractAntArchiveTest {
                 libFiles,
                 createFileSetDuo(ADDITIONAL_LIBS_KEY),
                 createFileSetDuo(WEBINFS_KEY) << fileSet,
-                null
+                null,
+                resolver
                 )
         checkCommonData()
         assertTrue(new File(unzipDir, "WEB-INF/web.xml").exists())
@@ -81,7 +83,7 @@ class AntWarTest extends AbstractAntArchiveTest {
     }
 
     @Test public void testExecuteWithExplicitAndImplicitWebxml() {
-        FileSet fileSet = new FileSet(testDir)
+        FileSet fileSet = new FileSet(testDir, resolver)
         fileSet.include(implicitWebXml.name)
         antWar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
                 archiveName, manifest,
@@ -90,7 +92,8 @@ class AntWarTest extends AbstractAntArchiveTest {
                 libFiles,
                 createFileSetDuo(ADDITIONAL_LIBS_KEY),
                 createFileSetDuo(WEBINFS_KEY) << fileSet,
-                explicitWebXml
+                explicitWebXml,
+                resolver
                 )
         checkCommonData()
         assertTrue(new File(unzipDir, "WEB-INF/web.xml").exists())
@@ -105,7 +108,8 @@ class AntWarTest extends AbstractAntArchiveTest {
                 null,
                 null,
                 null,
-                explicitWebXml
+                explicitWebXml,
+                resolver
                 )
         unzipArchive()
         checkResourceFiles()

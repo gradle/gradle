@@ -1,0 +1,25 @@
+def collection = files('src/file1.txt', 'src/file2.txt')
+
+// Iterate over the files in the collection
+collection.each {File file ->
+    println file
+}
+
+// Convert the collection to various types
+Set set = collection.files
+Set set2 = collection as Set
+List list = collection as List
+String path = collection.asPath
+
+File aFile = files('some-file') as File
+
+// Add collections together
+def collection2 = collection + files('src/file3.txt')
+
+// Create collections from files, collections and closures
+File file1 = file('file1.txt')
+File file2 = file('file1.txt')
+
+def collection3 = files(file1, file2)
+def collection4 = files(['src/config.xml', file1])
+def collection5 = files { [file1, file2] }

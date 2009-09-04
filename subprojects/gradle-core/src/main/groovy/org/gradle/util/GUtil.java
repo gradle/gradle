@@ -161,7 +161,7 @@ public class GUtil {
             return taskCollection;
         }
         if (conventionCollection != null) {
-            taskCollection = conventionCollection;
+            taskCollection = new ArrayList<T>(conventionCollection);
         } else {
             taskCollection = new ArrayList<T>();
         }

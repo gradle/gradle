@@ -77,7 +77,7 @@ dependencies {
 //START SNIPPET file-dependencies
 dependencies {
     runtime files('libs/a.jar', 'libs/b.jar')
-    runtime new FileSet(dir: 'libs', includes: ['*.jar'])
+    runtime fileTree(baseDir: 'libs', includes: ['*.jar'])
 }
 //END SNIPPET file-dependencies
 

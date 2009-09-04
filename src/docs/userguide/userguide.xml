@@ -33,7 +33,7 @@
     <xi:include href='thisAndThat.xml'/>
     <xi:include href='projectTaskApi.xml'/>
     <xi:include href='tasks.xml'/>
-    <xi:include href='customTasks.xml'/>
+    <xi:include href='workingWithFiles.xml'/>
     <xi:include href='logging.xml'/>
     <xi:include href='ant.xml'/>
     <xi:include href='plugins.xml'/>
@@ -46,11 +46,12 @@
     <xi:include href='osgi.xml'/>
     <xi:include href='eclipsePlugin.xml'/>
     <xi:include href='projectReports.xml'/>
-    <xi:include href='customPlugins.xml'/>
     <xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
     <xi:include href='buildLifecycle.xml'/>
     <xi:include href='multiproject.xml'/>
+    <xi:include href='customTasks.xml'/>
+    <xi:include href='customPlugins.xml'/>
     <xi:include href='organizeBuildLogic.xml'/>
     <xi:include href='initscripts.xml'/>
     <xi:include href='gradleWrapper.xml'/>

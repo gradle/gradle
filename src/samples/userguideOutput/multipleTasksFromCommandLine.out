@@ -1,9 +1,11 @@
 :compile
 compiling source
-:libs
-building libs
+:compileTest
+compiling unit tests
 :test
-running tests
+running unit tests
+:dist
+building the distribution
 
 BUILD SUCCESSFUL
 

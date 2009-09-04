@@ -29,6 +29,7 @@ import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.file.FileTree
 
 /**
  * @author Hans Dockter
@@ -165,8 +166,8 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     protected def createFileSetInternal(Map args, Class type, Closure configureClosure) {
-        args.dir = args.dir ?: getBaseDir()
-        def fileSet = type.newInstance(args)
+        args.baseDir = args.baseDir ?: getBaseDir()
+        def fileSet = type.newInstance(args, project.fileResolver)
         ConfigureUtil.configure(configureClosure, fileSet)
         fileSet
     }
@@ -202,7 +203,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         GradleUtil.fileList(flattenedArchiveFiles).collect { project.file(it) }.each {
             Class fileSetType = archiveDetector.archiveFileSetType(it)
             if (!fileSetType) { throw new InvalidUserDataException("File $it is not a valid archive or has no valid extension.") }
-            def fileSet = fileSetType.newInstance(it)
+            def fileSet = fileSetType.newInstance(it, project.fileResolver)
             ConfigureUtil.configure(configureClosure, fileSet)
             mergeFileSets.add(fileSet)
         }
@@ -214,7 +215,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      */
     public AbstractArchiveTask mergeGroup(def dir, Closure configureClosure = null) {
         if (!dir) { throw new InvalidUserDataException('Dir argument must not be null!') }
-        FileSet fileSet = new FileSet(dir as File)
+        FileTree fileSet = project.fileTree(dir)
         ConfigureUtil.configure(configureClosure, fileSet)
         mergeGroupFileSets.add(fileSet)
         this

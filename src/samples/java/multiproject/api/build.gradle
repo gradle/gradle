@@ -44,7 +44,7 @@ artifacts {
 task dist(type: Zip) {
     dependsOn configurations.runtime.buildDependencies
     files configurations.runtime
-    fileSet dir: 'src/dist'
+    fileSet baseDir: 'src/dist'
 }
 // END SNIPPET dists
 

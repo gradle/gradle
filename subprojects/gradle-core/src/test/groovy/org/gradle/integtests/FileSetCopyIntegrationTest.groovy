@@ -7,7 +7,7 @@ public class FileSetCopyIntegrationTest extends AbstactCopyIntegrationTest {
     @Test public void testCopyWithClosure() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileSet{
+                   fileTree {
                       from 'src'
                       exclude '**/ignore/**'
                       exclude '**/.svn/**'
@@ -27,7 +27,7 @@ public class FileSetCopyIntegrationTest extends AbstactCopyIntegrationTest {
     @Test public void testCopyWithMap() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileSet(dir:'src', excludes:['**/ignore/**','**/.svn/**']).copy { into 'dest'}
+                   fileTree(baseDir:'src', excludes:['**/ignore/**','**/.svn/**']).copy { into 'dest'}
                 }"""
         )
         usingBuildFile(buildFile).withTasks("cpy").run()
@@ -43,7 +43,7 @@ public class FileSetCopyIntegrationTest extends AbstactCopyIntegrationTest {
     @Test public void testCopyFluent() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileSet(dir:'src').exclude(['**/ignore/**','**/.svn/**']).copy { into 'dest' }
+                   fileTree(baseDir:'src').exclude(['**/ignore/**','**/.svn/**']).copy { into 'dest' }
                 }"""
         )
         usingBuildFile(buildFile).withTasks("cpy").run()

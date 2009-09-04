@@ -18,6 +18,7 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
@@ -27,7 +28,6 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.util.FileSet;
 
 import java.io.File;
 import java.util.List;
@@ -403,8 +403,8 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(Action)} method. Calling this method is equivalent to
-     * calling {@link #createTask(java.util.Map, String, TaskAction)} with an empty options map.</p>
+     * action is passed to the task's {@link Task#doFirst(Action)} method. Calling this method is equivalent to calling
+     * {@link #createTask(java.util.Map, String, TaskAction)} with an empty options map.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
      * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
@@ -454,9 +454,9 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * action is passed to the task's {@link Task#doFirst(Action)} method. A map of creation options can be passed
-     * to this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the
-     * available options.</p>
+     * action is passed to the task's {@link Task#doFirst(Action)} method. A map of creation options can be passed to
+     * this method to control how the task is created. See {@link #createTask(java.util.Map, String)} for the available
+     * options.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
      * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
@@ -662,6 +662,7 @@ public interface Project extends Comparable<Project> {
      * scheme. See {@link PathValidation} for the list of possible validations.</p>
      *
      * @param path An object which toString method value is interpreted as a relative path to the project directory.
+     * @param validation The validation to perform on the file.
      * @return The resolved file. Never returns null.
      * @throws InvalidUserDataException When the file does not meet the given validation constraint.
      */
@@ -707,33 +708,39 @@ public interface Project extends Comparable<Project> {
     FileCollection files(Object... paths);
 
     /**
-     * Create a new {@code FileSet} using the provided map of arguments.  The map will be applied as properties on the
-     * new {@code FileSet}.  Example:
-     * <pre>
-     * fileSet(dir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
-     * </pre>
-     * <p>See the GroovyDoc for org.gradle.api.tasks.util.FileSet for more information</p>
+     * Create a new {@code ConfigurableFileTree} using the given base directory. The given baseDir is evaluated as for
+     * {@link #file(Object)}.
      *
-     * @param args map of property assignments to {@code FileSet} object
-     * @return new {@code FileSet}
+     * @return the file tree.
      */
-    FileSet fileSet(Map<String, Object> args);
+    ConfigurableFileTree fileTree(Object baseDir);
 
     /**
-     * Create a new {@code FileSet} using the provided closure.  The closure will be used to configure the new {@code
-     * FileSet}.  Example:
+     * Create a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
+     * properties on the new file tree.  Example:
      * <pre>
-     * fileSet{
+     * fileTree(baseDir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
+     * </pre>
+     *
+     * @param args map of property assignments to {@code ConfigurableFileTree} object
+     * @return the configured file tree.
+     */
+    ConfigurableFileTree fileTree(Map<String, Object> args);
+
+    /**
+     * Create a new {@code ConfigurableFileTree} using the provided closure.  The closure will be used to configure the
+     * new file tree. The file tree is passed to the closure as its delegate.  Example:
+     * <pre>
+     * fileTree{
      *    from 'src'
      *    exclude '**&#47;.svn/**'
      * }.copy { into 'dest'}
      * </pre>
-     * <p>See the GroovyDoc for org.gradle.api.tasks.util.FileSet for more information</p>
      *
-     * @param closure Closure to configure the {@code FileSet} object
-     * @return new {@code FileSet}
+     * @param closure Closure to configure the {@code ConfigurableFileTree} object
+     * @return the configured file tree.
      */
-    FileSet fileSet(Closure closure);
+    ConfigurableFileTree fileTree(Closure closure);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>

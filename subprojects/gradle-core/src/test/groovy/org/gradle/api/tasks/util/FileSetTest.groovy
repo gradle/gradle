@@ -25,12 +25,14 @@ import org.gradle.util.HelperUtil
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.UnionFileTree
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*
+import org.gradle.api.internal.file.FileResolver
 
 /**
  * @author Hans Dockter
  */
 class FileSetTest extends AbstractTestForPatternSet {
     FileSet fileSet
+    FileResolver resolver = [resolve: {it as File}] as FileResolver
 
     File testDir
 
@@ -49,25 +51,28 @@ class FileSetTest extends AbstractTestForPatternSet {
     @Before public void setUp()  {
         super.setUp()
         testDir = HelperUtil.makeNewTestDir()
-        fileSet = patternSetType.newInstance(testDir)
+        fileSet = patternSetType.newInstance(testDir, resolver)
     }
 
-    @Test public void testFileSetConstruction() {
-        fileSet = new FileSet(testDir)
-        assertEquals(testDir, fileSet.dir)
+    @Test public void testFileSetConstructionWithBaseDir() {
+        fileSet = new FileSet(testDir, resolver)
+        assertEquals(testDir, fileSet.baseDir)
+    }
 
-        fileSet = new FileSet(dir: testDir)
-        assertEquals(testDir, fileSet.dir)
+    @Test public void testFileSetConstructionFromMap() {
+        fileSet = new FileSet(resolver, baseDir: testDir, includes: ['include'])
+        assertEquals(testDir, fileSet.baseDir)
+        assertEquals(['include'] as Set, fileSet.includes)
     }
 
     @Test(expected = InvalidUserDataException) public void testFileSetConstructionWithNoBaseDirSpecified() {
-        FileSet fileSet = new FileSet([:])
+        FileSet fileSet = new FileSet([:], resolver)
         fileSet.matching {}
     }
 
-    @Test public void testFileSetConstructionWithDirAsString() {
-        FileSet fileSet = new FileSet(dir: 'dirname')
-        assertEquals(new File('dirname'), fileSet.dir);
+    @Test public void testFileSetConstructionWithBaseDirAsString() {
+        FileSet fileSet = new FileSet(resolver, baseDir: 'dirname')
+        assertEquals(new File('dirname'), fileSet.baseDir);
     }
 
     @Test public void testCanScanForFiles() {
@@ -158,7 +163,7 @@ class FileSetTest extends AbstractTestForPatternSet {
     }
 
     @Test public void testCanAddFileSets() {
-        FileTree other = new FileSet(testDir)
+        FileTree other = new FileSet(testDir, resolver)
         FileTree sum = fileSet + other
         assertThat(sum, instanceOf(UnionFileTree))
         assertThat(sum.sourceCollections, equalTo([fileSet, other] as Set))

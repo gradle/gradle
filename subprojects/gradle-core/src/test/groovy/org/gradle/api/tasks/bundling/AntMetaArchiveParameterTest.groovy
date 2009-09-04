@@ -19,19 +19,21 @@ package org.gradle.api.tasks.bundling
 import org.gradle.api.tasks.util.FileSet
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
+import static org.junit.Assert.*
+import org.gradle.api.internal.file.FileResolver;
 
 /**
  * @author Hans Dockter
  */
 class AntMetaArchiveParameterTest extends AbstractArchiveParameterTest {
+    FileResolver resolver = [resolve: {it as File}] as FileResolver
     GradleManifest expectedGradleManifest
     List expectedMetaInfFileSets
     String expectedFileSetManifest
 
     @Before public void setUp()  {
         expectedGradleManifest = new GradleManifest()
-        expectedMetaInfFileSets = [new FileSet(new File('somedir'))]
+        expectedMetaInfFileSets = [new FileSet(new File('somedir'), resolver)]
         expectedFileSetManifest = 'skip'
         super.setUp()
     }

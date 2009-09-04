@@ -29,6 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.assertEquals
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
+import org.gradle.api.internal.file.FileResolver
 
 /**
  * @author Hans Dockter
@@ -55,12 +56,12 @@ class WarTest extends AbstractArchiveTaskTest {
         war = createTask(War)
         configure(war)
         war.manifest = new GradleManifest()
-        war.metaInfResourceCollections = [new FileSet()]
-        war.webInfFileSets = [new FileSet()]
+        war.metaInfResourceCollections = [new FileSet(testDir, resolver)]
+        war.webInfFileSets = [new FileSet(testDir, resolver)]
         war.webXml = new File(testDir, 'myweb.xml')
         war.webXml.text = '<web/>'
-        war.classesFileSets = [new FileSet()]
-        war.additionalLibFileSets = [new FileSet()]
+        war.classesFileSets = [new FileSet(testDir, resolver)]
+        war.additionalLibFileSets = [new FileSet(testDir, resolver)]
         war.libConfigurations = TEST_LIB_CONFIGURATIONS
         war.libExcludeConfigurations = TEST_LIB_EXCLUDE_CONFIGURATIONS
         antWarMocker = new MockFor(AntWar)
@@ -107,7 +108,7 @@ class WarTest extends AbstractArchiveTaskTest {
     MockFor getAntMocker(boolean toBeCalled) {
         antWarMocker.demand.execute(toBeCalled ? 1..1 : 0..0) {AntMetaArchiveParameter metaArchiveParameter,
                                                                List classesFileSets, List dependencyLibFiles, List additionalLibFileSets,
-                                                               List webInfFileSets, File webXml ->
+                                                               List webInfFileSets, File webXml, FileResolver resolver ->
             if (toBeCalled) {
                 checkMetaArchiveParameterEqualsArchive(metaArchiveParameter, war)
                 assert classesFileSets.is(war.classesFileSets)
@@ -181,13 +182,13 @@ class WarTest extends AbstractArchiveTaskTest {
 
     private void checkAddFileSet(String methodName, String propertyName) {
         war."$propertyName" = null
-        war."$methodName"(dir: 'x') {
+        war."$methodName"(baseDir: 'x') {
             include 'a'
         }
-        war."$methodName"(dir: 'y')
-        assertEquals(new File('x'), war."$propertyName"[0].dir)
+        war."$methodName"(baseDir: 'y')
+        assertEquals(new File(testDir, 'x'), war."$propertyName"[0].dir)
         assertEquals(['a'] as Set, war."$propertyName"[0].includes)
-        assertEquals(new File('y'), war."$propertyName"[1].dir)
+        assertEquals(new File(testDir, 'y'), war."$propertyName"[1].dir)
     }
 
 }

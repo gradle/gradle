@@ -17,10 +17,10 @@
 package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
-import org.gradle.api.tasks.util.FileSet
 import org.junit.Before
 import static org.junit.Assert.*
-import org.junit.Test;
+import org.junit.Test
+import org.gradle.api.file.FileTree;
 
 /**
  * @author Hans Dockter
@@ -35,7 +35,7 @@ class JarTest extends AbstractArchiveTaskTest {
         jar = createTask(Jar)
         configure(jar)
         jar.manifest = new GradleManifest()
-        jar.metaInfResourceCollections = [new FileSet()]
+        jar.metaInfResourceCollections = [[:] as FileTree]
         antJarMocker = new MockFor(AntJar)
     }
 

@@ -29,6 +29,7 @@ import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.file.FileResolver
 
 /**
  * @author Hans Dockter
@@ -36,6 +37,7 @@ import org.gradle.api.internal.ConventionTask
 abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     File testDir = HelperUtil.makeNewTestDir()
+    FileResolver resolver = [resolve: {it as File}] as FileResolver
     
     abstract AbstractArchiveTask getArchiveTask()
 
@@ -65,7 +67,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.version = '1.0'
         archiveTask.classifier = 'src'
         archiveTask.destinationDir = new File(testDir, 'destinationDir')
-        archiveTask.resourceCollections = [new FileSet(testDir)]
+        archiveTask.resourceCollections = [new FileSet(testDir, resolver)]
         archiveTask.baseDir = testDir
 
     }
@@ -107,7 +109,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testFileSetWithTaskBaseDir() {
-        assertEquals(archiveTask.baseDir, archiveTask.fileSet().dir)
+        assertEquals(archiveTask.baseDir, archiveTask.fileSet().baseDir)
     }
 
     List getFileSetMethods() {
@@ -117,8 +119,8 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     @Test public void testFileSetWithSpecifiedBaseDir() {
         applyToFileSetMethods {
             File specifiedBaseDir = new File('/root')
-            FileSet fileSet = archiveTask."$it"(dir: specifiedBaseDir)
-            assertEquals(specifiedBaseDir, fileSet.dir)
+            FileSet fileSet = archiveTask."$it"(baseDir: specifiedBaseDir)
+            assertEquals(specifiedBaseDir, fileSet.baseDir)
             assert archiveTask.resourceCollections.contains(fileSet)
         }
     }
@@ -175,7 +177,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         List mergeFileSets = archiveTask.mergeFileSets
         assertEquals(fileDescriptions.size(), mergeFileSets.size())
         assert mergeFileSets[0] instanceof ZipFileSet
-        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
+        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].baseDir)
         assertEquals(['x'] as Set, mergeFileSets[0].includes)
         assert mergeFileSets[1] instanceof ZipFileSet
         assertEquals(['x'] as Set, mergeFileSets[1].includes)
@@ -187,7 +189,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         List mergeFileSets = archiveTask.mergeFileSets
         assertEquals(1, mergeFileSets.size())
         assert mergeFileSets[0] instanceof ZipFileSet
-        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
+        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].baseDir)
     }
 
     @Test public void testMergeWithListArguments() {
@@ -200,15 +202,13 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testMergeGroup() {
-        Object[] fileDescriptions = [new File('a'), new File('b').absolutePath]
-
-        assert archiveTask.mergeGroup(HelperUtil.TMP_DIR_FOR_TEST) {
+        assert archiveTask.mergeGroup('testDir') {
             include('a')
         }.is(archiveTask)
 
         List mergeGroups = archiveTask.mergeGroupFileSets
         assertEquals(1, mergeGroups.size())
-        assertEquals(mergeGroups[0].dir, HelperUtil.TMP_DIR_FOR_TEST as File)
+        assertEquals(mergeGroups[0].dir, project.file('testDir'))
         assertEquals(mergeGroups[0].includes, ['a'] as Set)
     }
 

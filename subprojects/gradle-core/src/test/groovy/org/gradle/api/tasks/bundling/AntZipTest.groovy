@@ -40,6 +40,6 @@ class AntZipTest extends AbstractAntSkippableArchiveTest {
     }
 
     void executeWithEmptyFileList(boolean createIfEmpty) {
-        antZip.execute(new AntArchiveParameter([new FileSet(emptyDir)], [], [], createIfEmpty, testDir, archiveName, new AntBuilder()))
+        antZip.execute(new AntArchiveParameter([new FileSet(emptyDir, resolver)], [], [], createIfEmpty, testDir, archiveName, new AntBuilder()))
     }
 }

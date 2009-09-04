@@ -19,8 +19,7 @@ import org.gradle.api.Project
 
 public class WarPluginConvention {
     String webAppDirName
-    private final Project project
-
+    final Project project
 
     def WarPluginConvention(Project project) {
         this.project = project

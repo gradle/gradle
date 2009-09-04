@@ -5,11 +5,11 @@ import org.gradle.api.tasks.TaskAction
 task hello(type: HelloTask)
 
 task greeting(type: HelloTask) {
-    greeting = "greetings from HelloTask"
+    greeting = 'greetings from HelloTask'
 }
 
 class HelloTask extends DefaultTask {
-    def String greeting = "hello from HelloTask"
+    def String greeting = 'hello from HelloTask'
 
     @TaskAction
     def printGreeting() {

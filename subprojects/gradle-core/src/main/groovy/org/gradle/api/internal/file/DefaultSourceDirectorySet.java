@@ -31,6 +31,7 @@ import java.util.Set;
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final PathResolvingFileCollection srcDirs;
     private final String displayName;
+    private final FileResolver resolver;
     private final PatternSet patternSet = new PatternSet();
 
     public DefaultSourceDirectorySet(FileResolver resolver) {
@@ -39,6 +40,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     public DefaultSourceDirectorySet(String displayName, FileResolver resolver) {
         this.displayName = displayName;
+        this.resolver = resolver;
         srcDirs = new PathResolvingFileCollection(resolver);
     }
 
@@ -88,7 +90,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     protected Iterable<? extends FileTree> getSourceCollections() {
         List<FileTree> source = new ArrayList<FileTree>();
         for (File sourceDir : getExistingSourceDirs()) {
-            FileSet fileset = new FileSet(sourceDir);
+            FileSet fileset = new FileSet(sourceDir, resolver);
             fileset.getPatternSet().copyFrom(patternSet);
             source.add(fileset);
         }

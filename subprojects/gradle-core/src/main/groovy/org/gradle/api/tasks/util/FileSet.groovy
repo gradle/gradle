@@ -17,65 +17,38 @@
 package org.gradle.api.tasks.util
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.AbstractFileCollection
-import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
-import org.gradle.api.internal.file.FileVisitor
-import org.gradle.api.internal.file.UnionFileTree
-import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.IdentityFileResolver
-import org.gradle.api.internal.file.CopyActionImpl
 import org.gradle.api.tasks.WorkResult
+import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.file.*
 
 /**
  * @author Hans Dockter
  */
-// todo rename dir to base
-class FileSet extends AbstractFileCollection implements FileTree, PatternFilterable {
+class FileSet extends AbstractFileCollection implements ConfigurableFileTree {
     PatternSet patternSet = new PatternSet()
-    File dir
-
-    /* Note, FileResolver is needed to support the copy operation.  This is set if the FileSet
-     is constructed using one of the Project.fileSet methods.  There are currently several uses
-     of FileSet where they are constructed without an appropriate resolver.  In these cases, the
-     IdentityFileResolver is used, but these instances will probably not have the best copy semantics.
-     FileSet.copy will evaluate the sources and destinations relative to the current working
-     directory, not the project.
-
-     TODO - we need to find a way to consistently get the projects FileResolver into all FileCollections
-     */
+    private File dir
     FileResolver resolver
 
-    FileSet() {
-        this([:], null)
+    FileSet(Object baseDir, FileResolver resolver) {
+        this([baseDir: baseDir], resolver)
     }
 
-    FileSet(FileResolver resolver) {
-        this([:], resolver)
-    }
-
-    FileSet(File dir) {
-        this([dir: dir], null)
-    }
-
-    FileSet(Map args, FileResolver resolver=null) {
-        if (resolver != null) {
-            this.resolver = resolver
-        } else {
-            this.resolver = new IdentityFileResolver()
-        }
-        transformToFile(args).each {String key, value ->
-            this."$key" = value
+    FileSet(Map args, FileResolver resolver) {
+        this.resolver = resolver
+        args.each {String key, value ->
+            this.setProperty(key, value)
         }
     }
 
-    public void setDir(Object baseDir) {
+    public FileSet setBaseDir(Object baseDir) {
         from(baseDir)
     }
 
-    public void from(Object baseDir) {
-        dir = resolver.resolve(baseDir);
+    public FileSet from(Object baseDir) {
+        this.dir = resolver.resolve(baseDir)
+        this
     }
 
     public String getDisplayName() {
@@ -86,7 +59,7 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
         Set<File> files = new LinkedHashSet<File>()
         FileVisitor visitor = [visitFile: {file, path -> files.add(file)}, visitDir: {file, path -> }] as FileVisitor
         BreadthFirstDirectoryWalker walker = new BreadthFirstDirectoryWalker(visitor)
-        walker.match(patternSet).start(getDir())
+        walker.match(patternSet).start(baseDir)
         files
     }
 
@@ -97,20 +70,20 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
     FileTree matching(Closure filterConfigClosure) {
         PatternSet patternSet = this.patternSet.intersect()
         ConfigureUtil.configure(filterConfigClosure, patternSet)
-        FileSet filtered = new FileSet(getDir())
+        FileSet filtered = new FileSet(baseDir, resolver)
         filtered.patternSet = patternSet
         filtered
     }
 
     FileTree matching(PatternFilterable patterns) {
-        FileSet filtered = new FileSet(getDir())
+        FileSet filtered = new FileSet(baseDir, resolver)
         filtered.patternSet.copyFrom(patterns)
         filtered
     }
 
     public WorkResult copy(Closure closure) {
         CopyActionImpl action = new CopyActionImpl(resolver)
-        action.from(getDir())
+        action.from(baseDir)
         action.include(getIncludes())
         action.exclude(getExcludes())
         ConfigureUtil.configure(closure, action)
@@ -118,7 +91,7 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
         return action
     }
 
-    public File getDir() {
+    public File getBaseDir() {
         if (!dir) { throw new InvalidUserDataException ('A basedir must be specified in the task or via a method argument!') }
         dir
     }
@@ -161,16 +134,8 @@ class FileSet extends AbstractFileCollection implements FileTree, PatternFiltera
         this
     }
 
-    private static Map transformToFile(Map args) {
-        Map newArgs = new HashMap(args)
-        if (newArgs.dir) {
-            newArgs.dir = new File(newArgs.dir.toString())
-        }
-        newArgs
-    }
-
     def addToAntBuilder(node, String childNodeName = null) {
-        node."${childNodeName ?: 'fileset'}"(dir: getDir().absolutePath) {
+        node."${childNodeName ?: 'fileset'}"(dir: getBaseDir().absolutePath) {
             patternSet.addToAntBuilder(node)
         }
     }
