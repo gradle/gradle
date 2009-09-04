@@ -103,15 +103,18 @@
 systemProp.http.proxyHost=www.somehost.org
 systemProp.http.proxyPort=8080
 systemProp.http.proxyUser=userid
-systemProp.http.proxyPassword=password	
+systemProp.http.proxyPassword=password
+systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost	
 ]]></programlisting>
         </example>
-        <para>We could not find a good overview for all possible proxy settings. The best we can offer are the constants
+        <para>We could not find a good overview for all possible proxy settings. One place to look are the constants
             in a file from the ant project. Here a
             <ulink url='http://svn.apache.org/viewvc/ant/core/trunk/src/main/org/apache/tools/ant/util/ProxySetup.java?view=markup&amp;pathrev=556977'>
                 link
-            </ulink>
-            to the svn view. If anyone knows a better overview please let us know via the mailing list.
+            </ulink> to the svn view. The other is a
+            <ulink url='http://java.sun.com/javase/6/docs/technotes/guides/net/properties.html'>
+                Networking Properties page
+            </ulink> from the JDK docs. If anyone knows a better overview please let us know via the mailing list.
         </para>
     </section>
     <section id='sec:caching'>
