@@ -83,7 +83,7 @@
         </para>
         <sample id="dynamic" dir="userguide/tutorial/dynamic" title="Dynamic creation of a task">
             <sourcefile file="build.gradle"/>
-            <output args="-q task_1"/>
+            <output args="-q task1"/>
         </sample>
     </section>
     <section>
@@ -93,7 +93,7 @@
         </para>
         <sample id="dynamicDepends" dir="userguide/tutorial/dynamicDepends" title="Accessing a task via API - adding a dependency">
             <sourcefile file="build.gradle"/>
-            <output args="-q task_0"/>
+            <output args="-q task0"/>
         </sample>
         <para>Or you can add behavior to an existing task.</para>
         <sample id="helloEnhanced" dir="userguide/tutorial/helloEnhanced" title="Accessing a task via API - adding behaviour">

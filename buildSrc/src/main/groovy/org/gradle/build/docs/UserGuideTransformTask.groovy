@@ -159,8 +159,14 @@ public class UserGuideTransformTask extends DefaultTask {
                         	commandElement.appendChild(doc.createTextNode(file))
                         	sourcefileTitle.appendChild(commandElement)
                         	exampleElement.appendChild(sourcefileTitle);
-                            
+
                             Element programListingElement = doc.createElement('programlisting')
+                            if (file.endsWith('.gradle') || file.endsWith('.groovy')) {
+                                programListingElement.setAttribute('language', 'java')
+                            }
+                            else if (file.endsWith('.xml')) {
+                                programListingElement.setAttribute('language', 'xml')
+                            }
                             File srcFile
                             String snippet = child.'@snippet'
                             if (snippet) {

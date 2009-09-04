@@ -129,8 +129,9 @@ dependencies {
     userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
         dependency 'itext:itext:2.0.8@jar'
     }
+    userGuideTask 'xslthl:xslthl:2.0.1@jar'
 
-    userGuideStyleSheets 'docbook:docbook-xsl:1.74.3@zip'
+    userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
 
     groovy module("org.codehaus.groovy:groovy:1.6.4") {
         dependency("asm:asm-all:2.2.3@jar")
@@ -219,7 +220,6 @@ task explodedDist(dependsOn: [explodedDistBase, docs, 'samples'], description: '
     copy {
         into explodedDistSrcDir
         subprojects {
-            println "from $source.main.java.srcDirs, $source.main.resources.srcDirs, $groovySrcDirs"
             from source.main.java.srcDirs, source.main.resources.srcDirs, groovySrcDirs
         }
     }
@@ -393,7 +393,7 @@ userguideSrc.doFirst {
 
 task userguideStyleSheets << {
     ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
-        globmapper(from: 'docbook-xsl-1.74.3/*', to: '*')
+        globmapper(from: 'docbook-xsl-1.75.2/*', to: '*')
     }
     copy {
         from new File(srcDocsDir, 'stylesheets')
@@ -403,7 +403,8 @@ task userguideStyleSheets << {
 }
 
 task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
         arg(value: '-xsl')
@@ -418,13 +419,15 @@ task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
         from userguideSrcDir
         into userguideHtmlDir
         include 'style.css'
+        include 'images/*.png'
     }
 }
 
 task userguideSingleHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     userguideSingleHtmlFile.parentFile.mkdirs()
     
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
         arg(value: '-out')
@@ -440,6 +443,7 @@ task userguideSingleHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
         from userguideSrcDir
         into userguideSingleHtmlFile.parentFile
         include 'style.css'
+        include 'images/*.png'
     }
 }
 
@@ -449,7 +453,8 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     pdfSourceHtml.parentFile.mkdirs()
     userguidePdfFile.parentFile.mkdirs()
 
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
         arg(value: '-out')
@@ -466,6 +471,7 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
         into pdfSourceHtml.parentFile
         include 'style.css'
         include 'print.css'
+        include 'images/*.png'
     }
 
     def uris = configurations.userGuideTask.files.collect {it.toURI().toURL()}
@@ -510,7 +516,9 @@ distDocs << {
         into docbookDir
         include 'style.css'
     }
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
+        sysproperty(key: 'org.apache.xerces.xni.parser.XMLParserConfiguration', value: 'org.apache.xerces.parsers.XIncludeParserConfiguration')
         arg(value: '-in')
         arg(value: new File(docbookSrc , 'gettingStarted.xml'))
         arg(value: '-out')
@@ -539,7 +547,7 @@ websiteDocs << {
     File websiteDocs = new File(buildDir, 'docs')
     websiteDocs.mkdirs()
 
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true) {
+    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
         arg(value: '-in')
         arg(value: new File(docbookSrc , 'gettingStarted.xml'))
         arg(value: '-out')

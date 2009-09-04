@@ -311,6 +311,16 @@ pre {
     font-size: 90%;
 }
 
+/*
+ * Code highlighting
+ */
+.hl-string, .hl-number, .hl-value { color: #51913f; }
+
+.hl-keyword { font-weight: bold; }
+
+.hl-comment, .hl-doccomment { color: #929292; }
+
+.hl-annotation { color: #777744; }
 
 /*
  * Single page html

@@ -13,13 +13,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                xmlns:xslthl="http://xslthl.sf.net"
+                version="1.0">
+    <xsl:import href="highlighting/common.xsl"/>
+    <xsl:import href="html/highlight.xsl"/>
+
     <xsl:param name="html.stylesheet">style.css</xsl:param>
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="toc.section.depth">1</xsl:param>
     <xsl:param name="section.autolabel">1</xsl:param>
     <xsl:param name="section.label.includes.component.label">1</xsl:param>
     <xsl:param name="css.decoration">0</xsl:param>
+    <xsl:param name="highlight.source" select="1"/>
 
     <xsl:param name="generate.toc">
         book toc,title,example
@@ -103,4 +109,43 @@
 
     <xsl:template match="title" mode="htmlTable">
     </xsl:template>
+
+    <!-- CODE HIGHLIGHTING -->
+
+    <xsl:template match='xslthl:keyword' mode="xslthl">
+        <span class="hl-keyword"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
+    <xsl:template match='xslthl:string' mode="xslthl">
+        <span class="hl-string"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
+    <xsl:template match='xslthl:comment' mode="xslthl">
+        <span class="hl-comment"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
+    <xsl:template match='xslthl:number' mode="xslthl">
+        <span class="hl-number"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
+    <xsl:template match='xslthl:annotation' mode="xslthl">
+        <span class="hl-annotation"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
+    <xsl:template match='xslthl:doccomment' mode="xslthl">
+        <span class="hl-doccomment"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
+    <xsl:template match='xslthl:tag' mode="xslthl">
+        <span class="hl-tag"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
+    <xsl:template match='xslthl:attribute' mode="xslthl">
+        <span class="hl-attribute"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
+    <xsl:template match='xslthl:value' mode="xslthl">
+        <span class="hl-value"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
 </xsl:stylesheet>

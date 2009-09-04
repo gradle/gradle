@@ -149,6 +149,10 @@ p {
     page-break-inside: avoid;
 }
 
+.figure img {
+    width: 100%;
+}
+
 .table .title {
     text-align: left;
     white-space: nowrap;

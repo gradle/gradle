@@ -31,27 +31,21 @@
                 <td>
                     <literal>processResources</literal>
                 </td>
-                <td>
-                    <literal>-</literal>
-                </td>
+                <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
             </tr>
             <tr>
                 <td>
                     <literal>compile</literal>
                 </td>
-                <td>
-                    <literal>-</literal>
-                </td>
+                <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
             </tr>
             <tr>
                 <td>
                     <literal>processTestResources</literal>
                 </td>
-                <td>
-                    <literal>-</literal>
-                </td>
+                <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
             </tr>
             <tr>
@@ -89,7 +83,6 @@
                 <td>
                     <literal>compile</literal>,
                     <literal>processResources</literal>,
-                    <literal>test</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/></td>
             </tr>
@@ -168,6 +161,12 @@
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
             </tr>
         </table>
+        <figure>
+            <title>Java plugin - tasks</title>
+            <imageobject>
+                <imagedata fileref="images/javaPluginTasks.png"/>
+            </imageobject>
+        </figure>
     </section>
 
     <section>
@@ -270,6 +269,12 @@
                 </td>
             </tr>
         </table>
+        <figure>
+            <title>Java plugin - configurations</title>
+            <imageobject>
+                <imagedata fileref="images/javaPluginConfigurations.png"/>
+            </imageobject>
+        </figure>
     </section>
 
     <section>
