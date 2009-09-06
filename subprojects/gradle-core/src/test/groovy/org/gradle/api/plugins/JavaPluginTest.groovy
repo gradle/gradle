@@ -123,7 +123,7 @@ class JavaPluginTest {
         assertThat(task, instanceOf(Copy))
         assertDependsOn(task)
         assertThat(task.destinationDir, equalTo(project.source.custom.classesDir))
-        assertThat(task.srcDirs, equalTo(project.source.custom.resources.srcDirs))
+        assertThat(task.srcDirs, equalTo(project.source.custom.resources))
 
         task = project.tasks['compileCustom']
         assertDependsOn(task)
@@ -138,7 +138,7 @@ class JavaPluginTest {
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertDependsOn(task)
-        assertThat(task.srcDirs, equalTo(project.source.main.resources.srcDirs))
+        assertThat(task.srcDirs, equalTo(project.source.main.resources))
         assertThat(task.destinationDir, equalTo(project.source.main.classesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
@@ -151,7 +151,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertDependsOn(task)
-        assertThat(task.srcDirs, equalTo(project.source.test.resources.srcDirs))
+        assertThat(task.srcDirs, equalTo(project.source.test.resources))
         assertThat(task.destinationDir, equalTo(project.source.test.classesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]

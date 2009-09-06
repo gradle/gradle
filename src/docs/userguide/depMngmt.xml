@@ -242,7 +242,8 @@
         <section>
             <title>File dependencies</title>
             <para>File dependencies allow you to directly add a set of files to a configuration. This can be useful if
-                you cannot, or do not want to, place certain files in a repository.</para>
+                you cannot, or do not want to, place certain files in a repository. To add some files to a configuration,
+                you simply pass a <link linkend="sec:file_collections">file collection</link> as a dependency:</para>
             <sample id="file-dependencies" dir="userguide/artifacts/externalDependencies" title="File dependencies">
                 <sourcefile file="build.gradle" snippet="file-dependencies"/>
             </sample>

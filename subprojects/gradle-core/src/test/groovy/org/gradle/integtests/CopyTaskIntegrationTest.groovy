@@ -4,7 +4,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-public class CopyTaskIntegrationTest  extends AbstactCopyIntegrationTest {
+public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
     @Test
     public void testSingleSourceWithExclude() {
         TestFile buildFile = testFile("build.gradle").writelns(
@@ -15,20 +15,16 @@ public class CopyTaskIntegrationTest  extends AbstactCopyIntegrationTest {
                 "}"
         )
         usingBuildFile(buildFile).withTasks("copy").run()
-        assertFilesExist(
-                'dest/one/one.a',
-                'dest/one/one.b',
-                'dest/two/two.a',
-                'dest/two/two.b',
-        )
-        assertFilesMissing(
-                'dest/one/ignore/bad.file',
-                'dest/two/ignore/bad.file'
+        testFile('dest').assertHasDescendants(
+                'one/one.a',
+                'one/one.b',
+                'two/two.a',
+                'two/two.b',
         )
     }
 
     @Test
-    public void testMultipleSourceWithSingleExcludeMultInclude() {
+    public void testMultipleSourceWithSingleExcludeMultiInclude() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 "task (copy, type:Copy) {",
                 "   from('src/one'){ ",
@@ -43,15 +39,9 @@ public class CopyTaskIntegrationTest  extends AbstactCopyIntegrationTest {
                 "}"
         )
         usingBuildFile(buildFile).withTasks("copy").run()
-        assertFilesExist(
-                'dest/one/one.a',
-                'dest/two/two.b',
-        )
-        assertFilesMissing(
-                'dest/one/ignore/bad.file',
-                'dest/one/one.b',
-                'dest/two/ignore/bad.file',
-                'dest/two/two.a'
+        testFile('dest').assertHasDescendants(
+                'one/one.a',
+                'two/two.b',
         )
     }
 
@@ -65,17 +55,11 @@ public class CopyTaskIntegrationTest  extends AbstactCopyIntegrationTest {
                 "}"
         )
         usingBuildFile(buildFile).withTasks("copy").run()
-        assertFilesExist(
-                'dest/one/one.renamed',
-                'dest/one/one.b',
-                'dest/two/two.renamed',
-                'dest/two/two.b'
-        )
-        assertFilesMissing(
-                'dest/one/one.a',
-                'dest/one/ignore/bad.file',
-                'dest/two/two.a',
-                'dest/two/ignore/bad.file'
+        testFile('dest').assertHasDescendants(
+                'one/one.renamed',
+                'one/one.b',
+                'two/two.renamed',
+                'two/two.b'
         )
     }
 
@@ -83,23 +67,19 @@ public class CopyTaskIntegrationTest  extends AbstactCopyIntegrationTest {
      public void testCopyAction() {
          TestFile buildFile = testFile("build.gradle").writelns(
                  "task copyIt << {",
-                 "copy {",
-                 "   from 'src'",
-                 "   into 'dest'",
-                 "   exclude '**/ignore/**'",
-                 "}",
+                 "   copy {",
+                 "      from 'src'",
+                 "      into 'dest'",
+                 "      exclude '**/ignore/**'",
+                 "   }",
                  "}"
          )
          usingBuildFile(buildFile).withTasks("copyIt").run()
-         assertFilesExist(
-                 'dest/one/one.a',
-                 'dest/one/one.b',
-                 'dest/two/two.a',
-                 'dest/two/two.b',
-         )
-         assertFilesMissing(
-                 'dest/one/ignore/bad.file',
-                 'dest/two/ignore/bad.file'
+         testFile('dest').assertHasDescendants(
+                 'one/one.a',
+                 'one/one.b',
+                 'two/two.a',
+                 'two/two.b',
          )
      }
 
@@ -113,16 +93,9 @@ public class CopyTaskIntegrationTest  extends AbstactCopyIntegrationTest {
                 "}"
         )
         usingBuildFile(buildFile).withTasks("copyIt").run()
-        assertFilesExist(
-                'dest/two/one.a',
-                'dest/two/two.a',
-        )
-        assertFilesMissing(
-                'dest/one/one.a',
-                'dest/one/one.b',
-                'dest/two/two.b',
-                'dest/one/ignore/bad.file',
-                'dest/two/ignore/bad.file'
+        testFile('dest').assertHasDescendants(
+                'two/one.a',
+                'two/two.a',
         )
     }
 
@@ -147,5 +120,60 @@ public class CopyTaskIntegrationTest  extends AbstactCopyIntegrationTest {
         assertThat(it.next(), startsWith('6'))
         assertThat(it.next(), startsWith('11'))
         assertThat(it.next(), startsWith('16'))
+    }
+
+    @Test public void testCopyFromFileTree() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                """task cpy << {
+                   copy {
+                        from fileTree(baseDir: 'src', excludes:['**/ignore/**'])
+                        into 'dest'
+                    }
+                }"""
+        )
+        usingBuildFile(buildFile).withTasks("cpy").run()
+        testFile('dest').assertHasDescendants(
+                'one/one.a',
+                'one/one.b',
+                'two/two.a',
+                'two/two.b',
+        )
+    }
+
+    @Test public void testCopyFromFileCollection() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                """task copy << {
+                   copy {
+                        from files('src')
+                        into 'dest'
+                        exclude '**/ignore/**'
+                    }
+                }"""
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'one/one.a',
+                'one/one.b',
+                'two/two.a',
+                'two/two.b',
+        )
+    }
+
+    @Test public void testCopyFromCompositeFileCollection() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                """task copy << {
+                   copy {
+                        from files('src2') + fileTree { from 'src'; exclude '**/ignore/**' }
+                        into 'dest'
+                        include '**/*.a'
+                    }
+                }"""
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'one/one.a',
+                'two/two.a',
+                'three/three.a'
+        )
     }
 }

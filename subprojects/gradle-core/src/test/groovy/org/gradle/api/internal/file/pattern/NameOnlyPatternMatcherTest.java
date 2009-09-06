@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.pattern;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.gradle.api.internal.file.RelativePath;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
 public class NameOnlyPatternMatcherTest {

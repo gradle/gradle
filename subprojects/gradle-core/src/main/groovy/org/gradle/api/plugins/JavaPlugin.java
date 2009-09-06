@@ -125,7 +125,7 @@ public class JavaPlugin implements Plugin {
                 conventionMapping = processResources.getConventionMapping();
                 conventionMapping.map("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return sourceSet.getResources().getSrcDirs();
+                        return sourceSet.getResources();
                     }
                 });
                 conventionMapping.map("destinationDir", new ConventionValue() {

@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ReflectionUtil;
@@ -34,7 +35,7 @@ import java.util.*;
  */
 public class CopySpecImpl implements CopySpec {
     private FileResolver resolver;
-    private PathResolvingFileCollection sourceDirs;
+    private Set<Object> sourcePaths;
     private File destDir;
     private PatternSet patternSet;
     private List<Closure> remapClosureList;
@@ -50,7 +51,7 @@ public class CopySpecImpl implements CopySpec {
 
     public CopySpecImpl(FileResolver resolver) {
         this.resolver = resolver;
-        sourceDirs = new PathResolvingFileCollection(resolver);
+        sourcePaths = new LinkedHashSet<Object>();
         remapClosureList = new ArrayList<Closure>();
         childSpecs = new ArrayList<CopySpecImpl>();
         patternSet = new PatternSet();
@@ -60,7 +61,7 @@ public class CopySpecImpl implements CopySpec {
 
     public CopySpec from(Object... sourcePaths) {
         for (Object sourcePath : sourcePaths) {
-            sourceDirs.add(sourcePath);
+            this.sourcePaths.add(sourcePath);
         }
         return this;
     }
@@ -79,17 +80,26 @@ public class CopySpecImpl implements CopySpec {
         return result;
     }
 
-    public Set<File> getSourceDirs() {
-        return sourceDirs.getFiles();
+    public Set<Object> getSourcePaths() {
+        return sourcePaths;
     }
 
-    public Set<File> getAllSourceDirs() {
-        Set<File> result = new LinkedHashSet<File>();
+    private void addSourcePaths(Collection<Object> dest) {
         if (parentSpec != null) {
-            result.addAll(parentSpec.getAllSourceDirs());
+            parentSpec.addSourcePaths(dest);
         }
-        result.addAll(getSourceDirs());
-        return result;
+        dest.addAll(sourcePaths);
+    }
+
+    public FileTree getSource() {
+        Set<Object> allPaths = getAllSourcePaths();
+        return resolver.resolveFilesAsTree(allPaths);
+    }
+
+    public Set<Object> getAllSourcePaths() {
+        Set<Object> allPaths = new LinkedHashSet<Object>();
+        addSourcePaths(allPaths);
+        return allPaths;
     }
 
     public List<CopySpecImpl> getLeafSyncSpecs() {
@@ -223,5 +233,4 @@ public class CopySpecImpl implements CopySpec {
         result.addAll(getExcludes());
         return result;
     }
-
 }

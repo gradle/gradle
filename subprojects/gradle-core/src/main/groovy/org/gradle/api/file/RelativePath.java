@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.file;
+
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ListIterator;
@@ -24,6 +26,7 @@ import java.util.Arrays;
 /**
  * Represents a relative path from a base directory to a file.  Used in file copying to
  * represent both a source and target file path when copying files.
+ *
  * @author Steve Appling
  */
 public class RelativePath {
@@ -107,5 +110,10 @@ public class RelativePath {
         int result = (endsWithFile ? 1 : 0);
         result = 31 * result + Arrays.hashCode(segments);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return GUtil.join(segments, "/");
     }
 }

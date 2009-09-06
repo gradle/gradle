@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
-
-import org.gradle.api.tasks.WorkResult;
-
-import java.io.File;
+package org.gradle.api.file;
 
 /**
+ * <p>A {@code FileVisitor} is used to visit each of the files in a {@link FileTree}.</p>
+ *
  * @author Steve Appling
  */
-public interface FileVisitor extends WorkResult{
-    public void visitDir(File dir, RelativePath path);
-    public void visitFile(File file, RelativePath path);
+public interface FileVisitor {
+    /**
+     * Visits a directory.
+     *
+     * @param dirDetails Meta-info about the directory.
+     */
+    public void visitDir(FileVisitDetails dirDetails);
+
+    /**
+     * Visits a file.
+     *
+     * @param fileDetails Meta-info about the file.
+     */
+    public void visitFile(FileVisitDetails fileDetails);
 }

@@ -13,20 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
-
-import org.gradle.api.PathValidation;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
+package org.gradle.api.file;
 
 import java.io.File;
 
-public interface FileResolver {
-    File resolve(Object path);
+/**
+ * Contains details about the file or directory being visited.
+ */
+public interface FileVisitDetails {
+    /**
+     * Returns the file being visited.
+     *
+     * @return The file. Never returns null.
+     */
+    File getFile();
 
-    File resolve(Object path, PathValidation validation);
+    /**
+     * Returns the path of the file being visited.
+     *
+     * @return The path. Never returns null.
+     */
+    RelativePath getRelativePath();
 
-    FileCollection resolveFiles(Object... paths);
-
-    FileTree resolveFilesAsTree(Object... paths);
+    /**
+     * Requests that file visiting terminate after the current file.
+     */
+    void stopVisiting();
 }

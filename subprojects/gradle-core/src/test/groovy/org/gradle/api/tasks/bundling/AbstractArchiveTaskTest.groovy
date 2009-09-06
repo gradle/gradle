@@ -138,10 +138,9 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testFiles() {
-        List files = ['a' as File, 'b' as File]
-        FileCollection fileCollection = archiveTask.files(files as File[])
+        FileCollection fileCollection = archiveTask.files('a', 'b')
         assertThat(archiveTask.resourceCollections, hasItem(fileCollection))
-        assertEquals(files.collect(new LinkedHashSet()) {it.canonicalFile}, fileCollection.files)
+        assertEquals([new File(testDir, 'a'), new File(testDir, 'b')], fileCollection as List)
     }
 
     @Test public void testIncludeFileCollection() {

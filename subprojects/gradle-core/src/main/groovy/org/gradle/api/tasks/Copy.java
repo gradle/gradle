@@ -26,7 +26,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
 import java.io.FilterReader;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +63,8 @@ import java.util.Set;
  */
 public class Copy extends ConventionTask implements CopyAction {
     private CopyActionImpl copyAction;
+    private boolean hasSrcBeenSet;
+    private boolean hasDestBeenSet;
 
     public Copy() {
         FileResolver fileResolver = ((ProjectInternal) getProject()).getFileResolver();
@@ -78,20 +79,19 @@ public class Copy extends ConventionTask implements CopyAction {
     }
 
     void configureRootSpec() {
-        Collection<File> srcDirs = getSrcDirs();
-        Collection<File> rootSrcDirs = copyAction.getSourceDirs();
-        if ((srcDirs != null) &&
-            (rootSrcDirs==null || !rootSrcDirs.equals(srcDirs)) ) {
-            copyAction.from(srcDirs);
+        if (!hasSrcBeenSet) {
+            Object srcDirs = getSrcDirs();
+            if (srcDirs != null) {
+                from(srcDirs);
+            }
         }
 
-        File destDir = getDestinationDir();
-        File rootDestDir = copyAction.getDestDir();
-        if ((destDir != null) &&
-            (rootDestDir==null || !rootDestDir.equals(destDir)) ) {
-            copyAction.into(destDir);
+        if (!hasDestBeenSet) {
+            File destDir = getDestinationDir();
+            if (destDir != null) {
+                into(destDir);
+            }
         }
-        copyAction.configureRootSpec();
     }
 
     public CopyActionImpl getCopyAction() {
@@ -102,40 +102,21 @@ public class Copy extends ConventionTask implements CopyAction {
         this.copyAction = copyAction;
     }
 
-    /**
-     * Set the exclude patterns used by all copies.  This applies to Copy tasks
-     * as well as Project.copy.
-     * This is typically used to set VCS type excludes like:
-     * <pre>
-     * Copy.globalExclude( '**&#47;.svn/' )
-     * </pre>
-     * Note that there are no global excludes by default.
-     * Unlike CopySpec.exclude, this does not add a new exclude pattern, it sets
-     * (or resets) the exclude patterns.  You can't use sequential calls to
-     * this method to add multiple global exclude patterns.
-     * @param excludes exclude patterns to use
-     */
-    public static void setGlobalExcludes(String... excludes) {
-        CopyActionImpl.setGlobalExcludes(excludes);
-    }
-
-
     // Following 4 methods are used only to get convention src and dest
-    public Set<File> getSrcDirs() {
-        Set<File> srcDirs = copyAction.getSourceDirs();
-        return srcDirs.size()>0 ? srcDirs : null;
+    public Object getSrcDirs() {
+        return hasSrcBeenSet ? copyAction.getSourcePaths() : null;
     }
 
-    public void setSrcDirs(List srcDirs) {
+    public void setSrcDirs(Object srcDirs) {
         copyAction.from(srcDirs);
     }
 
     public File getDestinationDir() {
-        return copyAction.getDestDir();
+        return hasDestBeenSet ? copyAction.getDestDir() : null;
     }
 
     public void setDestinationDir(File destinationDir) {
-        copyAction.into(destinationDir);
+        into(destinationDir);
     }
 
     // -------------------------------------------------
@@ -161,6 +142,7 @@ public class Copy extends ConventionTask implements CopyAction {
      * {@inheritDoc}
      */
     public CopySpec from(Object... sourcePaths) {
+        hasSrcBeenSet = true;
         return copyAction.from(sourcePaths);
     }
 
@@ -168,6 +150,7 @@ public class Copy extends ConventionTask implements CopyAction {
      * {@inheritDoc}
      */
     public CopySpec from(Object sourcePath, Closure c) {
+        hasSrcBeenSet = true;
         return copyAction.from(sourcePath, c);
     }
 
@@ -175,6 +158,7 @@ public class Copy extends ConventionTask implements CopyAction {
      * {@inheritDoc}
      */
     public CopySpec into(Object destDir) {
+        hasDestBeenSet = true;
         return copyAction.into(destDir);
     }
 

@@ -19,9 +19,9 @@ import groovy.lang.Closure;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 /**
- * <p>A {@code FileTree} represents a hierarchy of files. It extends {@link FileCollection} to add hierarchy
- * query and manipulation methods. You typically use a {@code FileTree} to represent files to copy or the contents of
- * an archive.</p>
+ * <p>A {@code FileTree} represents a hierarchy of files. It extends {@link FileCollection} to add hierarchy query and
+ * manipulation methods. You typically use a {@code FileTree} to represent files to copy or the contents of an
+ * archive.</p>
  *
  * <p>You can obtain a {@code FileTree} instance using {@link org.gradle.api.Project#fileTree(java.util.Map)}.</p>
  */
@@ -52,6 +52,25 @@ public interface FileTree extends FileCollection {
      * @return The filtered tree.
      */
     FileTree matching(PatternFilterable patterns);
+
+    /**
+     * Visits the files and directories in this file tree. Files are visited in breadth-wise order, so that a directory
+     * is visited before its children.
+     *
+     * @param visitor The visitor.
+     * @return this
+     */
+    FileTree visit(FileVisitor visitor);
+
+    /**
+     * Visits the files and directories in this file tree. Files are visited in breadth-wise order, so that a directory
+     * is visited before its children. The file/directory to be visited is passed to the given closure as a {@link
+     * FileVisitDetails}
+     *
+     * @param visitor The visitor.
+     * @return this
+     */
+    FileTree visit(Closure visitor);
 
     /**
      * Returns a {@code FileTree} which contains the union of this tree and the given tree. The returned tree is live,

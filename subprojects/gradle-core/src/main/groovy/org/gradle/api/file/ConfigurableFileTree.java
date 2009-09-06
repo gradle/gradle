@@ -21,6 +21,8 @@ import java.io.File;
 
 /**
  * <p>A {@link FileTree} with a single base directory, which can be configured and modified.</p>
+ *
+ * <p>You can obtain a {@code ConfigurableFileTree} instance using {@link org.gradle.api.Project#fileTree(java.util.Map)}.</p>
  */
 public interface ConfigurableFileTree extends FileTree, PatternFilterable {
     /**
@@ -28,6 +30,7 @@ public interface ConfigurableFileTree extends FileTree, PatternFilterable {
      * org.gradle.api.Project#file(Object)}.
      *
      * @param baseDir The base directory.
+     * @return this
      */
     ConfigurableFileTree from(Object baseDir);
 
@@ -43,6 +46,7 @@ public interface ConfigurableFileTree extends FileTree, PatternFilterable {
      * org.gradle.api.Project#file(Object)}.
      *
      * @param baseDir The base directory.
+     * @return this
      */
     ConfigurableFileTree setBaseDir(Object baseDir);
 }

@@ -165,7 +165,7 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
-    public void throwsUOExceptionWhenConvertingToUnsupportedType() {
+    public void throwsUnsupportedOperationExceptionWhenConvertingToUnsupportedType() {
         try {
             new TestFileCollection().asType(Integer.class);
             fail();
@@ -173,7 +173,7 @@ public class AbstractFileCollectionTest {
             assertThat(e.getMessage(), equalTo("Cannot convert collection-display-name to type Integer."));
         }
     }
-    
+
     private class TestFileCollection extends AbstractFileCollection {
         private Set<File> files = new LinkedHashSet<File>();
 

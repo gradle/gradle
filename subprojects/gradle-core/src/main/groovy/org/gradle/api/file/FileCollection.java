@@ -37,7 +37,7 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware {
     File getSingleFile() throws IllegalStateException;
 
     /**
-     * Returns the contents of this collection.
+     * Returns the contents of this collection as a Set.
      *
      * @return The files. Returns an empty set if this collection is empty.
      */
@@ -63,7 +63,8 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware {
     FileCollection plus(FileCollection collection);
 
     /**
-     * <p>Converts this collection into the specified type. Supported types are: Collection, List, Set, File[].</p>
+     * <p>Converts this collection into an object of the specified type. Supported types are: {@code Collection}, {@code
+     * List}, {@code Set}, {@code Object[]}, {@code File[]}, and {@code File}.</p>
      *
      * <p>You can call this method in your build script using the {@code as} operator.</p>
      *
@@ -89,4 +90,11 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware {
      * @throws StopExecutionException When this collection is empty.
      */
     FileCollection stopExecutionIfEmpty() throws StopExecutionException;
+
+    /**
+     * Converts this collection to a {@link FileTree}.
+     *
+     * @return this collection as a {@link FileTree}. Never returns null.
+     */
+    FileTree getAsFileTree();
 }

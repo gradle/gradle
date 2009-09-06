@@ -21,10 +21,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.DefaultFileCollection;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.UnionFileTree;
+import org.gradle.api.internal.file.*;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -41,8 +38,8 @@ public class DefaultSourceSet implements SourceSet {
 
     public DefaultSourceSet(String name, String displayName, FileResolver resolver) {
         this.name = name;
-        compileClasspath = new DefaultFileCollection();
-        runtimeClasspath = new DefaultFileCollection();
+        compileClasspath = new PathResolvingFileCollection(resolver);
+        runtimeClasspath = new PathResolvingFileCollection(resolver);
         String javaSrcDisplayName = String.format("%s Java source", displayName);
         javaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, resolver);
         javaSourcePatterns.include("**/*.java");

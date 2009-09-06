@@ -36,8 +36,11 @@ class ZipFileSet extends FileSet {
     }
 
     def addToAntBuilder(node, String childNodeName) {
-        Map args = [prefix: prefix, fullpath: fullPath, filemode: fileMode, dirmode: dirMode]
         File dir = getBaseDir()
+        if (!dir.exists()) {
+            return
+        }
+        Map args = [prefix: prefix, fullpath: fullPath, filemode: fileMode, dirmode: dirMode]
         if (dir.isDirectory()) {
             args.dir = dir.absolutePath
         } else {

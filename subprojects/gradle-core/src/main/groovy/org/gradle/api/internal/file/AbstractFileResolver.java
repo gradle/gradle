@@ -18,6 +18,8 @@ package org.gradle.api.internal.file;
 import org.gradle.api.PathValidation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
+
 import java.io.File;
 
 public abstract class AbstractFileResolver implements FileResolver {
@@ -65,5 +67,9 @@ public abstract class AbstractFileResolver implements FileResolver {
             return (FileCollection) paths[0];
         }
         return new PathResolvingFileCollection(this, paths);
+    }
+
+    public FileTree resolveFilesAsTree(Object... paths) {
+        return resolveFiles(paths).getAsFileTree();
     }
 }

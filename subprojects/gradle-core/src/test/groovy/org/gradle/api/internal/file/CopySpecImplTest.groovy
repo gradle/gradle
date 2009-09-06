@@ -20,60 +20,33 @@ public class CopySpecImplTest {
     }
 
     private List<String> getTestSourceFileNames() {
-        List<String> names = new ArrayList<String>();
-        names.add("first");
-        names.add("second");
-        return names;
+        ['first', 'second']
     }
 
     private List<File> getAbsoluteTestSources() {
-        List<File> sources = new ArrayList<File>();
-        List<String> names = getTestSourceFileNames();
-        for (String name : names) {
-            sources.add(new File(baseFile, name));
-        }
-        return sources;
-    }
-
-    private List<File> getRelativeTestSources() {
-        List<File> sources = new ArrayList<File>();
-        List<String> names = getTestSourceFileNames();
-        for (String name : names) {
-            sources.add(new File(name));
-        }
-        return sources;
+        testSourceFileNames.collect { new File(baseFile, it) }
     }
 
     @Test public void testAbsoluteFromList() {
         List<File> sources = getAbsoluteTestSources();
         spec.from(sources);
-        assertEquals(sources as Set, spec.getAllSourceDirs());
-    }
-
-    @Test public void testRelativeFromList() {
-        List<File> sources = getRelativeTestSources();
-        spec.from(sources);
-
-        Set<File> resolvedSources = sources.collect { new File(baseFile, it.path)} as Set
-        assertEquals(resolvedSources, spec.getAllSourceDirs());
+        assertEquals([sources], spec.getAllSourcePaths() as List);
     }
 
     @Test public void testFromArray() {
         List<File> sources = getAbsoluteTestSources();
         spec.from(sources as File[]);
-        assertEquals(sources as Set, spec.getAllSourceDirs());
+        assertEquals(sources, spec.getAllSourcePaths() as List);
     }
 
     @Test public void testHierarchical() {
         List<File> sources = getAbsoluteTestSources();
         spec.from(sources);
 
-        File childFile = new File(baseFile, "childFile")
         CopySpecImpl childSpec = new CopySpecImpl(fileResolver, spec);
-        childSpec.from(childFile.path);
+        childSpec.from('childFile');
 
-        sources.add(childFile);
-        assertEquals(sources as Set, childSpec.getAllSourceDirs());
+        assertEquals([sources, 'childFile'], childSpec.getAllSourcePaths() as List);
     }
 
     @Test public void testSourceWithClosure() {
@@ -87,15 +60,13 @@ public class CopySpecImplTest {
         List specs = spec.getLeafSyncSpecs()
         assertEquals(1, specs.size())
         CopySpecImpl theSpec = specs.get(0)
-        Set resultingSources = theSpec.getAllSourceDirs()
-        assertEquals(1, resultingSources.size())
-        assertEquals(sourceFile, resultingSources.iterator().next())
+        assertEquals([sourceFile], theSpec.getAllSourcePaths() as List);
 
-        assertEquals(destFile, theSpec.getDestDir()) 
+        assertEquals(destFile, theSpec.getDestDir())
     }
 
     @Test public void testIterableWithClosure() {
-        HashSet sources = new HashSet(getAbsoluteTestSources())
+        List sources = getAbsoluteTestSources()
         File destFile = new File(baseFile, 'target');
 
         spec.from(sources) {
@@ -105,8 +76,7 @@ public class CopySpecImplTest {
         List specs = spec.getLeafSyncSpecs()
         assertEquals(1, specs.size())
         CopySpecImpl theSpec = specs.get(0)
-        Set resultingSources = theSpec.getAllSourceDirs()
-        assertEquals(sources, new HashSet(resultingSources))
+        assertEquals([sources], theSpec.getAllSourcePaths() as List)
 
         assertEquals(destFile, theSpec.getDestDir())
     }

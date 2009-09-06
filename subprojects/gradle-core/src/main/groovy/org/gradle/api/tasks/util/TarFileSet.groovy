@@ -39,9 +39,12 @@ class TarFileSet extends ZipFileSet {
     }
 
     def addToAntBuilder(node, String childNodeName) {
+        File dir = baseDir
+        if (!dir.exists()) {
+            return
+        }
         Map args = [prefix: prefix, fullpath: fullPath, filemode: fileMode, dirmode: dirMode, username: userName,
             group: group, uid: uid, gid: gid]
-        File dir = baseDir
         if (dir.isDirectory()) {
             args.dir = dir.absolutePath
         } else {

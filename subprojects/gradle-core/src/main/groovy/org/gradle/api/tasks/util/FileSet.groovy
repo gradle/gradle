@@ -19,14 +19,18 @@ package org.gradle.api.tasks.util
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.AbstractFileTree
+import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
+import org.gradle.api.internal.file.CopyActionImpl
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.WorkResult
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.file.*
 
 /**
  * @author Hans Dockter
  */
-class FileSet extends AbstractFileCollection implements ConfigurableFileTree {
+class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     PatternSet patternSet = new PatternSet()
     private File dir
     FileResolver resolver
@@ -55,18 +59,6 @@ class FileSet extends AbstractFileCollection implements ConfigurableFileTree {
         "file set '$dir'"
     }
 
-    public Set<File> getFiles() {
-        Set<File> files = new LinkedHashSet<File>()
-        FileVisitor visitor = [visitFile: {file, path -> files.add(file)}, visitDir: {file, path -> }] as FileVisitor
-        BreadthFirstDirectoryWalker walker = new BreadthFirstDirectoryWalker(visitor)
-        walker.match(patternSet).start(baseDir)
-        files
-    }
-
-    FileTree plus(FileTree fileTree) {
-        return new UnionFileTree(this, fileTree)
-    }
-
     FileTree matching(Closure filterConfigClosure) {
         PatternSet patternSet = this.patternSet.intersect()
         ConfigureUtil.configure(filterConfigClosure, patternSet)
@@ -76,9 +68,17 @@ class FileSet extends AbstractFileCollection implements ConfigurableFileTree {
     }
 
     FileTree matching(PatternFilterable patterns) {
+        PatternSet patternSet = this.patternSet.intersect()
+        patternSet.copyFrom(patterns)
         FileSet filtered = new FileSet(baseDir, resolver)
-        filtered.patternSet.copyFrom(patterns)
+        filtered.patternSet = patternSet
         filtered
+    }
+
+    FileTree visit(FileVisitor visitor) {
+        BreadthFirstDirectoryWalker walker = new BreadthFirstDirectoryWalker(visitor)
+        walker.match(patternSet).start(baseDir)
+        this
     }
 
     public WorkResult copy(Closure closure) {
@@ -92,10 +92,10 @@ class FileSet extends AbstractFileCollection implements ConfigurableFileTree {
     }
 
     public File getBaseDir() {
-        if (!dir) { throw new InvalidUserDataException ('A basedir must be specified in the task or via a method argument!') }
+        if (!dir) { throw new InvalidUserDataException('A basedir must be specified in the task or via a method argument!') }
         dir
     }
-    
+
     public Set<String> getIncludes() {
         patternSet.includes
     }
@@ -135,7 +135,11 @@ class FileSet extends AbstractFileCollection implements ConfigurableFileTree {
     }
 
     def addToAntBuilder(node, String childNodeName = null) {
-        node."${childNodeName ?: 'fileset'}"(dir: getBaseDir().absolutePath) {
+        File dir = getBaseDir()
+        if (!dir.exists()) {
+            return
+        }
+        node."${childNodeName ?: 'fileset'}"(dir: dir.absolutePath) {
             patternSet.addToAntBuilder(node)
         }
     }

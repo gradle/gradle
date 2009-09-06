@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.util.GUtil;
 
@@ -96,7 +97,11 @@ public abstract class AbstractFileCollection implements FileCollection {
                 type.getSimpleName()));
     }
 
-    private String getCapDisplayName() {
+    public FileTree getAsFileTree() {
+        throw new UnsupportedOperationException();
+    }
+
+    protected String getCapDisplayName() {
         return StringUtils.capitalize(getDisplayName());
     }
 }

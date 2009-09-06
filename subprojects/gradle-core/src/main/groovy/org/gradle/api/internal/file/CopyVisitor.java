@@ -19,6 +19,10 @@ import groovy.lang.Closure;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.tasks.WorkResult;
 
 import java.io.*;
 import java.util.List;
@@ -26,7 +30,7 @@ import java.util.List;
 /**
  * @author Steve Appling
  */
-public class CopyVisitor implements FileVisitor {
+public class CopyVisitor implements FileVisitor, WorkResult {
     private File baseDestDir, currentDestDir;
     private List<Closure> remapClosures;
     private List<Transformer<String>> nameMappers;
@@ -42,12 +46,13 @@ public class CopyVisitor implements FileVisitor {
         this.filterChain = filterChain;
     }
 
-   public void visitDir(File dir, RelativePath path) {
-        currentDestDir = new File(baseDestDir, path.getPathString());
+    public void visitDir(FileVisitDetails dirDetails) {
+        currentDestDir = new File(baseDestDir, dirDetails.getRelativePath().getPathString());
     }
 
-    public void visitFile(File source, RelativePath path) {
-        File target = getTarget(path);
+    public void visitFile(FileVisitDetails fileDetails) {
+        File source = fileDetails.getFile();
+        File target = getTarget(fileDetails.getRelativePath());
         if (target == null) {
             // not allowed, skip
             return;
@@ -57,7 +62,7 @@ public class CopyVisitor implements FileVisitor {
             try {
                 copyFile(source, target);
             } catch (IOException e) {
-                throw new GradleException("Error copying file:"+ source+" to:"+target, e);
+                throw new GradleException("Error copying file:" + source + " to:" + target, e);
             }
         }
     }

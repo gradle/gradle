@@ -18,8 +18,9 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.file.DefaultFileCollection
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
@@ -28,8 +29,6 @@ import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.file.FileTree
 
 /**
  * @author Hans Dockter
@@ -174,10 +173,10 @@ public abstract class AbstractArchiveTask extends ConventionTask {
 
     /**
      * Adds an arbitrary collection of files to the archive. In contrast to a fileset they don't need to have a common
-     * basedir.
+     * basedir. The paths are evaluated as for {@link org.gradle.api.Project#files()}.
      */
-    public FileCollection files(File... srcFiles) {
-        files(new DefaultFileCollection(srcFiles))
+    public FileCollection files(Object... srcPaths) {
+        files(project.files(srcPaths))
     }
 
     /**

@@ -19,6 +19,7 @@ package org.gradle.api.tasks.util
 import org.gradle.api.InvalidUserDataException
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.*
 import org.junit.Before
 import org.junit.Test
 import org.gradle.util.HelperUtil
@@ -26,6 +27,9 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.UnionFileTree
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.file.FileVisitDetails
 
 /**
  * @author Hans Dockter
@@ -42,10 +46,6 @@ class FileSetTest extends AbstractTestForPatternSet {
 
     Class getPatternSetType() {
         FileSet
-    }
-
-    public Map getConstructorMap() {
-        [dir: testDir]
     }
 
     @Before public void setUp()  {
@@ -84,7 +84,36 @@ class FileSetTest extends AbstractTestForPatternSet {
         }
 
         assertThat(fileSet.files, equalTo([included1, included2] as Set))
+    }
+
+    @Test public void testCanVisitFiles() {
+        File included1 = new File(testDir, 'subDir/included1')
+        File included2 = new File(testDir, 'subDir2/included2')
+        [included1, included2].each {File file ->
+            file.parentFile.mkdirs()
+            file.text = 'some text'
+        }
+
+        assertVisits(fileSet, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
+    }
+
+    @Test public void testCanAddToAntTask() {
+        File included1 = new File(testDir, 'subDir/included1')
+        File included2 = new File(testDir, 'subDir2/included2')
+        [included1, included2].each {File file ->
+            file.parentFile.mkdirs()
+            file.text = 'some text'
+        }
+
         assertSetContains(fileSet, 'subDir/included1', 'subDir2/included2')
+    }
+
+    @Test public void testIsEmptyWhenBaseDirDoesNotExist() {
+        fileSet.baseDir = new File(testDir, 'does not exist')
+
+        assertThat(fileSet.files, isEmpty())
+        assertSetContains(fileSet)
+        assertVisits(fileSet)
     }
 
     @Test public void testCanLimitFilesUsingPatterns() {
@@ -102,6 +131,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         assertThat(fileSet.files, equalTo([included1, included2] as Set))
         assertSetContains(fileSet, 'subDir/included1', 'subDir2/included2')
+        assertVisits(fileSet, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
     }
 
     @Test public void testCanFilterFileSetUsingConfigureClosure() {
@@ -121,6 +151,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
+        assertVisits(filtered, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
     }
     
     @Test public void testCanFilterFileSetUsingPatternSet() {
@@ -138,6 +169,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
+        assertVisits(filtered, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
     }
     
     @Test public void testCanFilterAndLimitFileSet() {
@@ -160,9 +192,10 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
+        assertVisits(filtered, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
     }
 
-    @Test public void testCanAddFileSets() {
+    @Test public void testCanAddFileSetsTogether() {
         FileTree other = new FileSet(testDir, resolver)
         FileTree sum = fileSet + other
         assertThat(sum, instanceOf(UnionFileTree))
@@ -172,7 +205,26 @@ class FileSetTest extends AbstractTestForPatternSet {
     @Test public void testDisplayName() {
         assertThat(fileSet.displayName, equalTo("file set '$testDir'".toString()))
     }
+
+    @Test public void testStopExecutionIfEmptyWhenNoMatchingFilesFound() {
+        fileSet.include('**/*included')
+        new File(testDir, 'excluded').text = 'some text'
+
+        try {
+            fileSet.stopExecutionIfEmpty()
+            fail()
+        } catch (StopExecutionException e) {
+            assertThat(e.message, equalTo("File set '$testDir' does not contain any files." as String))
+        }
+    }
     
+    @Test public void testStopExecutionIfEmptyWhenMatchingFilesFound() {
+        fileSet.include('**/*included')
+        new File(testDir, 'included').text = 'some text'
+
+        fileSet.stopExecutionIfEmpty()
+    }
+
     void checkPatternSetForAntBuilderTest(antPatternSet, PatternSet patternSet) {
         // Unfortunately, the ant fileset task has no public properties to check its includes/excludes values
         // todo: We might get hold of those properties via reflection. But this makes things unstable. As Ant
@@ -180,4 +232,18 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertEquals(testDir, antPatternSet.dir)
     }
 
+    void assertVisits(FileSet fileSet, String... paths) {
+        List<String> visited = []
+        Closure cl = {FileVisitDetails details ->
+            assertThat(details.file, equalTo(new File(testDir, details.relativePath.pathString)))
+            visited << details.relativePath.pathString
+        }
+
+        fileSet.visit(cl as FileVisitor)
+        assertThat(visited, equalTo(paths as List))
+
+        visited = []
+        fileSet.visit(cl)
+        assertThat(visited, equalTo(paths as List))
+    }
 }

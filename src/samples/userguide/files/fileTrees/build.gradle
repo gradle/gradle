@@ -1,0 +1,25 @@
+def tree = fileTree(baseDir: 'src/main')
+
+// Add include and exclude patterns to the tree
+tree.include '**/*.java'
+tree.exclude '**/Abstract*'
+
+// Iterate over the contents of a tree
+tree.each {File file ->
+    println file
+}
+
+// Filter a tree
+def filtered = tree.matching {
+    include 'org/gradle/api/**'
+}
+
+// Add trees together
+def sum = tree + fileTree(baseDir: 'src/test')
+
+// Construct a tree using map or closure
+def tree2 = fileTree {
+    from 'src'
+    include '**/*.java'
+}
+def tree3 = fileTree(baseDir: 'src', includes: ['**/*.java'])

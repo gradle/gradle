@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.StopExecutionException;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -117,6 +118,23 @@ public class CompositeFileCollectionTest {
         }});
 
         collection.addToAntBuilder("node", "name");
+    }
+
+    @Test
+    public void getAsFileTreeDelegatesToEachSet() {
+        final FileTree tree1 = context.mock(FileTree.class, "tree1");
+        final FileTree tree2 = context.mock(FileTree.class, "tree2");
+
+        context.checking(new Expectations() {{
+            one(source1).getAsFileTree();
+            will(returnValue(tree1));
+            one(source2).getAsFileTree();
+            will(returnValue(tree2));
+        }});
+
+        FileTree fileTree = collection.getAsFileTree();
+        assertThat(fileTree, instanceOf(UnionFileTree.class));
+        assertThat(((UnionFileTree) fileTree).getSourceCollections(), equalTo(toLinkedSet(tree1, tree2)));
     }
 
     private class TestCompositeFileCollection extends CompositeFileCollection {

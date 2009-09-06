@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.StopExecutionException;
 
 import java.io.File;
@@ -35,6 +36,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
         return files;
     }
 
+    @Override
     public FileCollection stopExecutionIfEmpty() throws StopExecutionException {
         for (FileCollection collection : getSourceCollections()) {
             try {
@@ -47,11 +49,21 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
         throw new StopExecutionException(String.format("No files found in %s.", getDisplayName()));
     }
     
+    @Override
     public Object addToAntBuilder(Object node, String childNodeName) {
         for (FileCollection fileCollection : getSourceCollections()) {
             fileCollection.addToAntBuilder(node, childNodeName);
         }
         return this;
+    }
+
+    @Override
+    public FileTree getAsFileTree() {
+        UnionFileTree tree = new UnionFileTree(getDisplayName());
+        for (FileCollection collection : getSourceCollections()) {
+            tree.add(collection.getAsFileTree());
+        }
+        return tree;
     }
 
     protected abstract Iterable<? extends FileCollection> getSourceCollections();

@@ -31,7 +31,7 @@
         </sample>
     </section>
     
-    <section>
+    <section id="sec:file_collections">
         <title>File collections</title>
 
         <para>
@@ -50,8 +50,25 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:file_trees">
         <title>File trees</title>
+
+        <para>
+            A <firstterm>file tree</firstterm> is a hierarchy of files, such as a directory tree. It is represented
+            by the <apilink class="org.gradle.api.file.FileTree"/> interface. The <literal>FileTree</literal> interface
+            extends <literal>FileCollection</literal>, so you can treat a file tree exactly the same way as a file
+            collection. Several objects in Gradle implement the <literal>FileTree</literal> interface, such as
+            <link linkend="sec:source_sets">source sets</link>.
+        </para>
+
+        <para>
+            One way to obtain a <literal>FileTree</literal> instance is to use the <literal>fileTree</literal> method.
+            This creates a <literal>FileTree</literal> defined with a base directory and some include/exclude patterns.
+        </para>
+
+        <sample id="fileCollections" dir="userguide/files/fileTrees" title="Using file trees">
+            <sourcefile file="build.gradle"/>
+        </sample>
     </section>
     
     <section>

@@ -1,7 +1,10 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
@@ -9,14 +12,14 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
-import org.gradle.api.tasks.util.PatternSet
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyActionImplTest  {
     CopyActionImpl copyAction;
-    BreadthFirstDirectoryWalker walker;
     FileVisitor visitor;
     ProjectInternal project
+    FileResolver resolver
+    FileTree sourceFileTree
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
@@ -24,11 +27,17 @@ public class CopyActionImplTest  {
     public void setUp() {
         project = HelperUtil.createRootProject();
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        walker = context.mock(BreadthFirstDirectoryWalker.class)
         visitor = context.mock(CopyVisitor.class)
-        copyAction = new CopyActionImpl(project.fileResolver)
+        resolver = context.mock(FileResolver.class)
+        sourceFileTree = context.mock(FileTree.class)
+
+        copyAction = new CopyActionImpl(resolver)
         copyAction.visitor = visitor
-        copyAction.directoryWalker = walker
+
+        context.checking {
+            allowing(resolver).resolve('dest')
+            will(returnValue(project.file('dest')))
+        }
     }
 
     def executeWith(Closure c) {
@@ -52,10 +61,13 @@ public class CopyActionImplTest  {
 
     @Test public void multipleSourceDirs() {
         context.checking({
-            one(walker).start(project.file('src1'))
-            one(walker).start(project.file('src2'))
-            exactly(2).of(walker).match(new PatternSet())
-            allowing(visitor).getDidWork();  will(returnValue(true))
+            one(resolver).resolveFilesAsTree(['src1', 'src2'] as Set)
+            will(returnValue(sourceFileTree))
+            one(sourceFileTree).matching(new PatternSet())
+            will(returnValue(sourceFileTree))
+            one(sourceFileTree).visit(visitor)
+            allowing(visitor).getDidWork()
+            will(returnValue(true))
         })
         executeWith {
             from 'src1'
@@ -65,10 +77,14 @@ public class CopyActionImplTest  {
     }
 
     @Test public void includeExclude() {
-        context.checking( {
-            one(walker).start(project.file('src1'))
-            one(walker).match(new PatternSet(includes: ['a.b', 'c.d', 'e.f'], excludes: ['g.h']))
-            allowing(visitor).getDidWork();  will(returnValue(true))
+        context.checking({
+            one(resolver).resolveFilesAsTree(['src1'] as Set)
+            will(returnValue(sourceFileTree))
+            one(sourceFileTree).matching(new PatternSet(includes: ['a.b', 'c.d', 'e.f'], excludes: ['g.h']))
+            will(returnValue(sourceFileTree))
+            one(sourceFileTree).visit(visitor)
+            allowing(visitor).getDidWork()
+            will(returnValue(true))
         })
 
         executeWith {
@@ -83,9 +99,13 @@ public class CopyActionImplTest  {
 
     @Test void testDidWorkTrue() {
         context.checking( {
-            one(walker).start(project.file('src1'))
-            one(walker).match(new PatternSet())
-            allowing(visitor).getDidWork();  will(returnValue(true))
+            one(resolver).resolveFilesAsTree(['src1'] as Set)
+            will(returnValue(sourceFileTree))
+            one(sourceFileTree).matching(new PatternSet())
+            will(returnValue(sourceFileTree))
+            one(sourceFileTree).visit(visitor)
+            allowing(visitor).getDidWork()
+            will(returnValue(true))
         })
 
         executeWith {
@@ -97,10 +117,14 @@ public class CopyActionImplTest  {
 
 
     @Test void testDidWorkFalse() {
-        context.checking( {
-            one(walker).start(project.file('src1'))
-            one(walker).match(new PatternSet())
-            allowing(visitor).getDidWork();  will(returnValue(false))
+        context.checking({
+            one(resolver).resolveFilesAsTree(['src1'] as Set)
+            will(returnValue(sourceFileTree))
+            one(sourceFileTree).matching(new PatternSet())
+            will(returnValue(sourceFileTree))
+            one(sourceFileTree).visit(visitor)
+            allowing(visitor).getDidWork()
+            will(returnValue(false))
         })
 
         executeWith {
@@ -121,13 +145,17 @@ public class CopyActionImplTest  {
         List specs = copyAction.getLeafSyncSpecs()
         assertEquals(1, specs.size())
 
-        assertEquals([project.file('parentdir'), project.file('childdir')] as Set,
-                specs.get(0).getAllSourceDirs())
+        context.checking {
+            one(resolver).resolveFilesAsTree(['parentdir', 'childdir'] as Set)
+            will(returnValue(sourceFileTree))
+        }
+        assertSame(sourceFileTree, specs[0].getSource())
     }
 
     @Test public void inheritFromRoot() {
         project.configure(copyAction) {
             include '*.a'
+            from('src')
             from('src1') {
                 include '*.b'
             }
@@ -139,34 +167,22 @@ public class CopyActionImplTest  {
         List specs = copyAction.getLeafSyncSpecs()
         assertEquals(2, specs.size())
 
-        assertEquals([project.file('src1')] as Set, specs.get(0).getAllSourceDirs())
-        assertEquals(['*.a', '*.b'], specs.get(0).getAllIncludes())
-        assertEquals(project.file('dest'), specs.get(0).getDestDir())
-
-        assertEquals([project.file('src2')] as Set, specs.get(1).getAllSourceDirs())
-        assertEquals(['*.a', '*.c'], specs.get(1).getAllIncludes())
-        assertEquals(project.file('dest'), specs.get(1).getDestDir())
-    }
-
-    @Test public void globalExcludes() {
-        try {
-            CopyActionImpl.setGlobalExcludes('**/.svn/')
-
-            project.configure(copyAction) {
-                from 'src1'
-                into 'dest'
-                exclude '*.bak'
-            }
-            copyAction.configureRootSpec()
-            
-            List specs = copyAction.getLeafSyncSpecs()
-            assertEquals(1, specs.size())
-
-            assertEquals(['**/.svn/', '*.bak'] as Set, new HashSet(specs.get(0).getAllExcludes()))
-
-        } finally {
-            // clear the list of global excludes so test doesn't have side effects
-            CopyActionImpl.setGlobalExcludes(null)
+        context.checking {
+            one(resolver).resolveFilesAsTree(['src', 'src1'] as Set)
+            will(returnValue(sourceFileTree))
         }
+
+        assertSame(sourceFileTree, specs[0].getSource())
+        assertEquals(['*.a', '*.b'], specs[0].getAllIncludes())
+        assertEquals(project.file('dest'), specs[0].getDestDir())
+
+        context.checking {
+            one(resolver).resolveFilesAsTree(['src', 'src2'] as Set)
+            will(returnValue(sourceFileTree))
+        }
+
+        assertSame(sourceFileTree, specs[1].getSource())
+        assertEquals(['*.a', '*.c'], specs[1].getAllIncludes())
+        assertEquals(project.file('dest'), specs[1].getDestDir())
     }
 }

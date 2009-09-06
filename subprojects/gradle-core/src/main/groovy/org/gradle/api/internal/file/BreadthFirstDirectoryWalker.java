@@ -15,15 +15,20 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Directory walker supporting {@link Spec}s for includes and excludes.
@@ -56,39 +61,39 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
      * may be either a directory or a file.  If it is a directory, then it's contents
      * (but not the directory itself) will be checked with isAllowed and notified to
      * the listener.  If it is a file, the file will be checked and notified.
-     * @param startFile
-     * @throws IOException
      */
-    public void start(File startFile) throws IOException {
-        File root = startFile.getCanonicalFile();
+    public void start(File startFile) {
+        File root = GFileUtils.canonicalise(startFile);
+        AtomicBoolean stopFlag = new AtomicBoolean();
         if (root.exists()) {
             if (root.isFile()) {
-                processSingleFile(root);
+                processSingleFile(root, stopFlag);
             } else {
                // need to get appropriate start dirs from the includes
-               walkDir(root, new RelativePath(false));
+               walkDir(root, new RelativePath(false), stopFlag);
             }
         } else {
             logger.info("file or directory '"+startFile.toString()+"', not found");
         }
     }
 
-    private void processSingleFile(File file) {
+    private void processSingleFile(File file, AtomicBoolean stopFlag) {
         RelativePath path = new RelativePath(true, file.getName());
         if (isAllowed(path)) {
-            notifyFile(file, path);
+            notifyFile(file, path, stopFlag);
         }
     }
 
-    private void walkDir(File file, RelativePath path) {
+    private void walkDir(File file, RelativePath path, AtomicBoolean stopFlag) {
         File[] children = file.listFiles();
-        ArrayList<File> dirs = new ArrayList<File>();
-        for (File child : children) {
+        List<File> dirs = new ArrayList<File>();
+        for (int i = 0; !stopFlag.get() && i < children.length; i++) {
+            File child = children[i];
             boolean isFile = child.isFile();
             RelativePath childPath = new RelativePath(isFile, path, child.getName());
             if (isAllowed(childPath)) {
                 if (isFile) {
-                    notifyFile(child, childPath);
+                    notifyFile(child, childPath, stopFlag);
                 } else {
                     dirs.add(child);
                 }
@@ -96,10 +101,11 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
         }
 
         // now handle dirs
-        for (File dir : dirs) {
+        for (int i = 0; !stopFlag.get() && i < dirs.size(); i++) {
+            File dir = dirs.get(i);
             RelativePath dirPath = new RelativePath(false, path, dir.getName());
-            notifyDir(dir, dirPath);
-            walkDir(dir, dirPath);
+            notifyDir(dir, dirPath, stopFlag);
+            walkDir(dir, dirPath, stopFlag);
         }
     }
 
@@ -107,11 +113,35 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
         return spec.isSatisfiedBy(path);
     }
 
-    private void notifyDir(File dir, RelativePath path) {
-        visitor.visitDir(dir, path);
+    private void notifyDir(File dir, RelativePath path, AtomicBoolean stopFalg) {
+        visitor.visitDir(new FileVisitDetailsImpl(dir, path, stopFalg));
     }
 
-    private void notifyFile(File file, RelativePath path) {
-        visitor.visitFile(file, path);
+    private void notifyFile(File file, RelativePath path, AtomicBoolean stopFlag) {
+        visitor.visitFile(new FileVisitDetailsImpl(file, path, stopFlag));
+    }
+
+    private static class FileVisitDetailsImpl implements FileVisitDetails {
+        private final File file;
+        private final RelativePath relativePath;
+        private final AtomicBoolean stop;
+
+        private FileVisitDetailsImpl(File file, RelativePath relativePath, AtomicBoolean stop) {
+            this.file = file;
+            this.relativePath = relativePath;
+            this.stop = stop;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        public RelativePath getRelativePath() {
+            return relativePath;
+        }
+
+        public void stopVisiting() {
+            stop.set(true);
+        }
     }
 }

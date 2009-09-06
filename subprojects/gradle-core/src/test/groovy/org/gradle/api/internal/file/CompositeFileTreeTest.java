@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
@@ -93,5 +94,29 @@ public class CompositeFileTreeTest {
         assertThat(sum, instanceOf(CompositeFileTree.class));
         UnionFileTree sumCompositeTree = (UnionFileTree) sum;
         assertThat(sumCompositeTree.getSourceCollections(), equalTo(toLinkedSet(tree, other)));
+    }
+
+    @Test
+    public void visitsEachTreeWithVisitor() {
+        final FileVisitor visitor = context.mock(FileVisitor.class);
+
+        context.checking(new Expectations() {{
+            one(source1).visit(visitor);
+            one(source2).visit(visitor);
+        }});
+
+        tree.visit(visitor);
+    }
+
+    @Test
+    public void visitsEachTreeWithClosure() {
+        final Closure visitor = HelperUtil.TEST_CLOSURE;
+
+        context.checking(new Expectations() {{
+            one(source1).visit(visitor);
+            one(source2).visit(visitor);
+        }});
+
+        tree.visit(visitor);
     }
 }

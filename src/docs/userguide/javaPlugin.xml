@@ -529,6 +529,11 @@
 
     </section>
 
+    <section id="sec:source_sets">
+        <title>Source sets</title>
+        <para>TBD</para>
+    </section>
+
     <section id='sec:javadoc'>
         <title>Javadoc</title>
         <para>The
@@ -897,9 +902,9 @@
             </thead>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.util.FileSet" lang="groovy"/>
+                    <apilink class="org.gradle.api.file.FileTree"/>
                 </td>
-                <td>A set of files defined by a common baseDir and include/exclude patterns.</td>
+                <td>A set of files defined by a common baseDir and include/exclude patterns. See <xref linkend="sec:file_trees"/>.</td>
             </tr>
             <tr>
                 <td>
@@ -918,10 +923,8 @@
                     <apilink class="org.gradle.api.file.FileCollection"/>
                 </td>
                 <td>An arbitrary collection of files to include in the archive. In contrast to a
-                    <literal>FileSet</literal> they don't need to have a common basedir. There are a number of ways
-                    of creating a <literal>FileCollection</literal>. For example, the <literal>Configuration</literal>
-                    objects of a project implement <literal>FileCollection</literal>. You can also obtain a
-                    <literal>FileCollection</literal> using the <literal>Project.files()</literal> method.
+                    <literal>FileTree</literal> they don't need to have a common basedir. See <xref linkend="sec:file_collections"/>
+                    for more details.
                 </td>
             </tr>
             <tr>

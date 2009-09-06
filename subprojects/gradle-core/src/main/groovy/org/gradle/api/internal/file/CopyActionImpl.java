@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.tasks.util.PatternSet;
@@ -23,41 +22,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author Steve Appling
  */
-public class CopyActionImpl extends CopySpecImpl implements CopyAction {
+public class  CopyActionImpl extends CopySpecImpl implements CopyAction {
     private static Logger logger = LoggerFactory.getLogger(CopyActionImpl.class);
-    private static String[] globalExcludes;
 
     private boolean caseSensitive = true;
 
     private boolean didWork;
 
-    // following are only injected for test purposes
-    private DirectoryWalker directoryWalker;
     private CopyVisitor visitor;
 
     public CopyActionImpl(FileResolver resolver) {
         super(resolver);
     }
 
-    public void configureRootSpec() {
-        if (globalExcludes != null && !getAllExcludes().containsAll(Arrays.asList(globalExcludes))) {
-            exclude(globalExcludes);
-        }
-    }
-
     public void setVisitor(CopyVisitor visitor) {
         this.visitor = visitor;
-    }
-
-    public void setDirectoryWalker(DirectoryWalker directoryWalker) {
-        this.directoryWalker = directoryWalker;
     }
 
     public void execute() {
@@ -70,8 +54,6 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
     }
 
     private void copyAllSpecs() {
-        configureRootSpec();
-
         List<CopySpecImpl> specList = getLeafSyncSpecs();
         for (CopySpecImpl spec : specList) {
             copySingleSpec(spec);
@@ -84,14 +66,7 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
             logger.error("No destination dir for Copy task");
             throw new InvalidUserDataException("Error - no destination for Copy task, use 'into' to specify a target directory.");
         }
-        else {
-            for (File source : spec.getAllSourceDirs()) {
-                copySingleSource(spec, source);
-            }
-        }
-    }
 
-    private void copySingleSource(CopySpecImpl spec, File source) {
         CopyVisitor visitor = this.visitor;
         if (visitor == null) {
             visitor = new CopyVisitor(spec.getDestDir(),
@@ -99,42 +74,18 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
                     spec.getRenameMappers(),
                     spec.getFilterChain() );
         }
-        DirectoryWalker walker = directoryWalker;
-        if (walker == null) {
-            walker = new BreadthFirstDirectoryWalker(visitor);
-        }
+
         PatternSet patterns = new PatternSet();
         patterns.setCaseSensitive(caseSensitive);
         patterns.include(spec.getAllIncludes());
         patterns.exclude(spec.getAllExcludes());
-        walker.match(patterns);
 
-        try {
-            walker.start(source);
-        } catch (IOException e) {
-            throw new GradleException("IO Error during copy", e);
-        }
+        spec.getSource().matching(patterns).visit(visitor);
+
         didWork = visitor.getDidWork();
     }
 
     public void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
-    }
-
-    /**
-     * Set the exclude patterns used by all copies.  This applies to Copy tasks
-     * as well as Project.copy.
-     * This is typically used to set VCS type excludes like:
-     * <pre>
-     * Copy.globalExclude( '**&#47;.svn/' )
-     * </pre>
-     * Note that there are no global excludes by default.
-     * Unlike CopySpec.exclude, this does not add a new exclude pattern, it sets
-     * (or resets) the exclude patterns.  You can't use sequential calls to
-     * this method to add multiple global exclude patterns.
-     * @param excludes exclude patterns to use
-     */
-    public static void setGlobalExcludes(String... excludes) {
-        globalExcludes = excludes;
     }
 }

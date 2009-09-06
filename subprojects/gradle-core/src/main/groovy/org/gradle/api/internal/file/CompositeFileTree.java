@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 import java.util.ArrayList;
@@ -36,6 +37,25 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     public FileTree matching(PatternFilterable patterns) {
         return new FilteredFileTree(patterns);
+    }
+
+    public FileTree visit(Closure visitor) {
+        for (FileTree tree : getSourceCollections()) {
+            tree.visit(visitor);
+        }
+        return this;
+    }
+
+    public FileTree visit(FileVisitor visitor) {
+        for (FileTree tree : getSourceCollections()) {
+            tree.visit(visitor);
+        }
+        return this;
+    }
+
+    @Override
+    public FileTree getAsFileTree() {
+        return this;
     }
 
     private class FilteredFileTree extends CompositeFileTree {

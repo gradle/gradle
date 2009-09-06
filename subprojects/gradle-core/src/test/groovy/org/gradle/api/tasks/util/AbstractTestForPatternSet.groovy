@@ -31,10 +31,6 @@ abstract class AbstractTestForPatternSet {
     static final String TEST_PATTERN_3 = 'pattern3'
 
     abstract PatternFilterable getPatternSet()
-    abstract Class getPatternSetType()
-    Map getConstructorMap() {
-        [:]
-    }
 
     def contextObject
 

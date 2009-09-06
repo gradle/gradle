@@ -20,7 +20,7 @@ import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.*
-import org.gradle.api.internal.file.RelativePath
+import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
 
 /**
@@ -33,12 +33,8 @@ class PatternSetTest extends AbstractTestForPatternSet {
         patternSet
     }
 
-    Class getPatternSetType() {
-        PatternSet
-    }
-
     @Test public void testConstructionFromMap() {
-        Map map = constructorMap + [includes: [TEST_PATTERN_1], excludes: [TEST_PATTERN_2]]
+        Map map = [includes: [TEST_PATTERN_1], excludes: [TEST_PATTERN_2]]
         PatternFilterable patternSet = new PatternSet(map)
         assertThat(patternSet.includes, equalTo([TEST_PATTERN_1] as Set))
         assertThat(patternSet.excludes, equalTo([TEST_PATTERN_2] as Set))
@@ -140,5 +136,21 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'c')))
         assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'acb')))
         assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'acd')))
+    }
+
+    @Test public void addsGlobalExcludesToExcludePatterns() {
+        Spec<RelativePath> spec = patternSet.asSpec
+
+        assertFalse(spec.isSatisfiedBy(new RelativePath(false, '.svn')))
+        assertFalse(spec.isSatisfiedBy(new RelativePath(true, '.svn', 'abc')))
+        assertFalse(spec.isSatisfiedBy(new RelativePath(false, 'a', 'b', '.svn')))
+        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'a', 'b', '.svn', 'c')))
+
+        PatternSet.globalExcludes = ['*a*']
+
+        spec = patternSet.asSpec
+
+        assertTrue(spec.isSatisfiedBy(new RelativePath(false, '.svn')))
+        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'abc')))
     }
 }

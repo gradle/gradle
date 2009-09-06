@@ -1,33 +1,23 @@
 package org.gradle.integtests
 
-import org.junit.Before
 import org.apache.commons.io.FileUtils
+import org.junit.Before
 
 public abstract class AbstactCopyIntegrationTest extends AbstractIntegrationTest  {
     @Before
     public void setUp() {
-        File resourceFile = null;
-        try {
-            resourceFile = new File(getClass().getResource("copyTestResources/src").toURI());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException('Could not locate copy test resources');
-        }
+        ['src', 'src2'].each {
+            File resourceFile;
+            try {
+                resourceFile = new File(getClass().getResource("copyTestResources/$it").toURI());
+            } catch (URISyntaxException e) {
+                throw new RuntimeException('Could not locate copy test resources');
+            }
 
-        File testSrc = testFile('src')
-        FileUtils.deleteQuietly(testSrc)
+            File testSrc = testFile(it)
+            FileUtils.deleteQuietly(testSrc)
 
-        FileUtils.copyDirectory(resourceFile, testSrc)
-    }
-
-    void assertFilesExist(String... paths) {
-        for (String path: paths) {
-            testFile(path).assertExists()
-        }
-    }
-
-    void assertFilesMissing(String... paths) {
-        for (String path: paths) {
-            testFile(path).assertDoesNotExist()
+            FileUtils.copyDirectory(resourceFile, testSrc)
         }
     }
 }

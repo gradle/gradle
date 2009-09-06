@@ -20,6 +20,8 @@ import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.filters.ReplaceTokens;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import org.junit.After;
@@ -43,10 +45,9 @@ public class CopyVisitorTest {
 
 
     @Before public void setUp() throws IOException {
-        testDir = HelperUtil.makeNewTestDir().getCanonicalFile();
+        testDir = HelperUtil.makeNewTestDir();
         sourceDir = getResource("testfiles");
         assertTrue(sourceDir.isDirectory());
-
     }
 
     @After
@@ -70,17 +71,17 @@ public class CopyVisitorTest {
     @Test public void plainCopy() {
         visitor = new CopyVisitor(testDir, null, null, new FilterChain());
 
-        visitor.visitDir(sourceDir, new RelativePath(false));
+        visitor.visitDir(file(sourceDir, new RelativePath(false)));
 
         File rootFile = getResource("testfiles/rootfile.txt");
         File subDir = getResource("testfiles/subdir");
         File anotherFile = getResource("testfiles/subdir/anotherfile.txt");
 
-        visitor.visitFile(rootFile, new RelativePath(true, rootFile.getName()));
+        visitor.visitFile(file(rootFile, new RelativePath(true, rootFile.getName())));
 
         RelativePath subDirPath = new RelativePath(false, subDir.getName());
-        visitor.visitDir(subDir, subDirPath);
-        visitor.visitFile(anotherFile, new RelativePath(true, subDirPath, anotherFile.getName()));
+        visitor.visitDir(file(subDir, subDirPath));
+        visitor.visitFile(file(anotherFile, new RelativePath(true, subDirPath, anotherFile.getName())));
 
         File targetRootFile = new File(testDir, rootFile.getName());
         assertTrue(targetRootFile.exists());
@@ -127,12 +128,12 @@ public class CopyVisitorTest {
 
     @Test public void testGetTargetPlain() {
         visitor = new CopyVisitor(testDir, null, null, new FilterChain());
-        visitor.visitDir(sourceDir, new RelativePath(false));
+        visitor.visitDir(file(sourceDir, new RelativePath(false)));
 
         File target = visitor.getTarget(new RelativePath(true, "one"));
         assertEquals(new File(testDir, "one"), target);
 
-        visitor.visitDir(new File(sourceDir,"sub"), new RelativePath(false, "sub"));
+        visitor.visitDir(file(new File(sourceDir, "sub"), new RelativePath(false, "sub")));
         target = visitor.getTarget(new RelativePath(true, "two"));
         assertEquals(new File(testDir, "sub/two"), target);
     }
@@ -143,7 +144,7 @@ public class CopyVisitorTest {
         mappers.add(renamer);
 
         visitor = new CopyVisitor(testDir, null, mappers, new FilterChain());
-        visitor.visitDir(sourceDir, new RelativePath(false));
+        visitor.visitDir(file(sourceDir, new RelativePath(false)));
 
         File target = visitor.getTarget(new RelativePath(true, "Fred.java"));
         assertEquals(new File(testDir, "FredTest.java"), target);
@@ -155,10 +156,26 @@ public class CopyVisitorTest {
         mappers.add(new FlatMapper(this, testDir));
 
         visitor = new CopyVisitor(testDir, mappers, null, new FilterChain());
-        visitor.visitDir(sourceDir, new RelativePath(false, "sub"));
+        visitor.visitDir(file(sourceDir, new RelativePath(false, "sub")));
 
         File target = visitor.getTarget(new RelativePath(true, "Fred.java"));
         assertEquals(new File(testDir, "Fred.java"), target);
+    }
+
+    private FileVisitDetails file(final File sourceDir, final RelativePath relativePath) {
+        return new FileVisitDetails() {
+            public File getFile() {
+                return sourceDir;
+            }
+
+            public RelativePath getRelativePath() {
+                return relativePath;
+            }
+
+            public void stopVisiting() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     public class FlatMapper extends Closure {

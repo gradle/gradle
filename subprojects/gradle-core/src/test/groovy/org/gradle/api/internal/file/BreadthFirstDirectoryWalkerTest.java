@@ -16,9 +16,13 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.Sequence;
+import org.jmock.api.Action;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -26,6 +30,9 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.hamcrest.Matcher;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,7 +113,7 @@ public class BreadthFirstDirectoryWalkerTest {
         fileToCopy.setExpectations();
 
         context.checking(new Expectations() {{
-            one(visitor).visitFile(fileToCopy.getMock(), fileToCopy.getRelativePath());
+            one(visitor).visitFile(with(file(fileToCopy)));
         }});
 
         walker.start(fileToCopy.getMock());
@@ -137,17 +144,75 @@ public class BreadthFirstDirectoryWalkerTest {
 
         final Sequence visiting = context.sequence("visiting");
         context.checking(new Expectations() {{
-            one(visitor).visitFile(rootFile1.getMock(), rootFile1.getRelativePath()); inSequence(visiting);
-            one(visitor).visitFile(rootFile2.getMock(), rootFile2.getRelativePath()); inSequence(visiting);
-            one(visitor).visitDir(dir1.getMock(), dir1.getRelativePath());            inSequence(visiting);
-            one(visitor).visitFile(dirFile1.getMock(), dirFile1.getRelativePath());   inSequence(visiting);
-            one(visitor).visitFile(dirFile2.getMock(), dirFile2.getRelativePath());   inSequence(visiting);
+            one(visitor).visitFile(with(file(rootFile1))); inSequence(visiting);
+            one(visitor).visitFile(with(file(rootFile2))); inSequence(visiting);
+            one(visitor).visitDir(with(file(dir1))); inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile1))); inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile2))); inSequence(visiting);
         }});
 
         walker.start(root.getMock());
     }
 
+    @Test public void canVisitorCanStopVisit() throws IOException {
+
+        walker = new BreadthFirstDirectoryWalker(visitor);
+
+        final MockFile root = new MockFile(context, "root", false);
+        final MockFile rootFile1 = root.addFile("rootFile1");
+        final MockFile dir1 = root.addDir("dir1");
+        final MockFile dirFile1 = dir1.addFile("dirFile1");
+        dir1.addFile("dirFile2");
+        dir1.addDir("dir1Dir").addFile("dir1Dir1File1");
+        final MockFile rootFile2 = root.addFile("rootFile2");
+        root.setExpectations();
+
+        context.checking(new Expectations() {{
+            one(visitor).visitFile(with(file(rootFile1))); will(stopVisiting());
+        }});
+
+        walker.start(root.getMock());
+
+        final Sequence visiting = context.sequence("visiting");
+        context.checking(new Expectations() {{
+            one(visitor).visitFile(with(file(rootFile1))); inSequence(visiting);
+            one(visitor).visitFile(with(file(rootFile2))); inSequence(visiting);
+            one(visitor).visitDir(with(file(dir1))); inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile1))); will(stopVisiting()); inSequence(visiting);
+        }});
+
+        walker.start(root.getMock());
+    }
+
+    private Action stopVisiting() {
+        return new Action() {
+            public void describeTo(Description description) {
+                description.appendText("stop visiting");
+            }
+
+            public Object invoke(Invocation invocation) throws Throwable {
+                FileVisitDetails details = (FileVisitDetails) invocation.getParameter(0);
+                details.stopVisiting();
+                return null;
+            }
+        };
+    }
+
     // test excludes, includes
+
+    private Matcher<FileVisitDetails> file(final MockFile file) {
+        return new BaseMatcher<FileVisitDetails>() {
+            public boolean matches(Object o) {
+                FileVisitDetails details = (FileVisitDetails) o;
+                return details.getFile().equals(file.getMock()) && details.getRelativePath().equals(file.getRelativePath());
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("details match file ").appendValue(file.getMock()).appendText(" with path ")
+                        .appendValue(file.getRelativePath());
+            }
+        };
+    }
 
     public class MockFile {
         private boolean isFile;

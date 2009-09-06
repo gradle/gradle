@@ -1,14 +1,14 @@
 package org.gradle.api.internal.tasks
 
-import org.junit.Test
-import org.gradle.api.tasks.SourceSet
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
-import org.gradle.api.internal.file.DefaultFileCollection
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.PathResolvingFileCollection
 import org.gradle.api.internal.file.UnionFileTree
+import org.gradle.api.tasks.SourceSet
+import org.junit.Test
+import static org.gradle.util.Matchers.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 class DefaultSourceSetTest {
     private final FileResolver resolver = [resolve: {it as File}] as FileResolver
@@ -18,10 +18,10 @@ class DefaultSourceSetTest {
 
         assertThat(sourceSet.classesDir, nullValue())
 
-        assertThat(sourceSet.compileClasspath, instanceOf(DefaultFileCollection))
+        assertThat(sourceSet.compileClasspath, instanceOf(PathResolvingFileCollection))
         assertThat(sourceSet.compileClasspath, isEmpty())
 
-        assertThat(sourceSet.runtimeClasspath, instanceOf(DefaultFileCollection))
+        assertThat(sourceSet.runtimeClasspath, instanceOf(PathResolvingFileCollection))
         assertThat(sourceSet.runtimeClasspath, isEmpty())
 
         assertThat(sourceSet.resources, instanceOf(DefaultSourceDirectorySet))
