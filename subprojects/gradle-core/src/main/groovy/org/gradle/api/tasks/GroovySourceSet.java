@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.util.PatternFilterable;
+import groovy.lang.Closure;
 
 /**
  * A {@code GroovySourceSetConvention} defines the properties and methods added to a {@link
@@ -25,11 +26,21 @@ import org.gradle.api.tasks.util.PatternFilterable;
  */
 public interface GroovySourceSet {
     /**
-     * Returns all Groovy/Java source to be compiled by the Groovy compiler for this source set.
+     * Returns the Groovy/Java source to be compiled by the Groovy compiler for this source set. Any Java source present
+     * in this set will be passed to the Groovy compiler for joint compilation.
      *
      * @return The Groovy/Java source. Never returns null.
      */
     SourceDirectorySet getGroovy();
+
+    /**
+     * Configures the Groovy source for this set. The given closure is used to configure the {@code SourceDirectorySet}
+     * which contains the Groovy source.
+     *
+     * @param configureClosure The closure to use to configure the Groovy source.
+     * @return this
+     */
+    GroovySourceSet groovy(Closure configureClosure);
 
     /**
      * Returns the patterns used to select Groovy source for this source set. This pattern set is applied to the files

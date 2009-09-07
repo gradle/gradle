@@ -135,15 +135,6 @@
             </tr>
             <tr>
                 <td>
-                    <literal>build</literal>
-                </td>
-                <td>
-                    <literal>test</literal> and <literal>dists</literal>
-                </td>
-                <td><apilink class="org.gradle.api.Task"/></td>
-            </tr>
-            <tr>
-                <td>
                     <literal>build<replaceable>ConfigurationName</replaceable></literal>
                 </td>
                 <td>
@@ -209,6 +200,13 @@
             </tr>
         </table>
 
+        <section>
+            <title>Changing the project layout</title>
+            <para>TBD</para>
+            <sample id="customJavaSourceLayout" dir="java/customizedLayout" title="Custom Java source layout">
+                <sourcefile file="build.gradle" snippet="define-main"/>
+            </sample>
+        </section>
     </section>
 
     <section id="sec:java_plugin_and_dependency_management">

@@ -57,6 +57,14 @@ public class DefaultSourceDirectorySetTest {
     }
 
     @Test
+    public void canSetSourceDirectories() {
+        set.srcDir 'ignore me'
+        set.srcDirs = ['dir1', 'dir2']
+
+        assertThat(set.srcDirs, equalTo([new File(testDir, 'dir1'), new File(testDir, 'dir2')] as Set))
+    }
+
+    @Test
     public void addsFilesetForEachSourceDirectory() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))

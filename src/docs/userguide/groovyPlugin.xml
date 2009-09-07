@@ -48,6 +48,15 @@
                 <td>Test Groovy/Java source</td>
             </tr>
         </table>
+
+        <section>
+            <title>Changing the project layout</title>
+            <para>TBD</para>
+            <sample id="customGroovySourceLayout" dir="groovy/customizedLayout" title="Custom Groovy source layout">
+                <sourcefile file="build.gradle" snippet="define-main"/>
+            </sample>
+        </section>
+        
     </section>
 
     <section>

@@ -1,0 +1,18 @@
+// START SNIPPET define-main
+usePlugin 'groovy'
+
+source {
+    main {
+        groovy {
+            srcDir 'src/groovy'
+        }
+    }
+// END SNIPPET define-main
+    test {
+        groovy {
+            srcDir 'test/groovy'
+        }
+    }
+// START SNIPPET define-main
+}
+// END SNIPPET define-main

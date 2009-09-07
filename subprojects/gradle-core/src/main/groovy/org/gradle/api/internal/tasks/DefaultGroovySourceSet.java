@@ -23,6 +23,8 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.UnionFileTree;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.util.ConfigureUtil;
+import groovy.lang.Closure;
 
 public class DefaultGroovySourceSet implements GroovySourceSet {
     private final SourceDirectorySet groovy;
@@ -37,6 +39,11 @@ public class DefaultGroovySourceSet implements GroovySourceSet {
 
     public SourceDirectorySet getGroovy() {
         return groovy;
+    }
+
+    public GroovySourceSet groovy(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getGroovy());
+        return this;
     }
 
     public PatternFilterable getGroovySourcePatterns() {

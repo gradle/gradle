@@ -101,7 +101,7 @@ class GroovyPluginTest {
 
         task = project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME]
         assertThat(task, instanceOf(Groovydoc.class))
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.groovy.groovydocDir))
+        assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
         assertThat(task.srcDirs, not(hasItems(project.source.main.java.srcDirs as Object[])))
         assertThat(task.srcDirs, hasItems(project.source.main.groovy.srcDirs as Object[]))
     }
@@ -119,7 +119,7 @@ class GroovyPluginTest {
         assertThat(task.exclude, hasItem('**/*.groovy'))
 
         task = project.createTask('otherGroovydoc', type: Groovydoc)
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.groovy.groovydocDir))
+        assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
         assertThat(task.srcDirs, not(hasItems(project.source.main.java.srcDirs as Object[])))
         assertThat(task.srcDirs, hasItems(project.source.main.groovy.srcDirs as Object[]))
     }

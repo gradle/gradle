@@ -25,4 +25,10 @@ class DefaultGroovySourceSetTest {
         assertThat(sourceSet.allGroovy.displayName, equalTo('<set-display-name> Groovy source'))
         assertThat(sourceSet.allGroovy.sourceCollections, not(isEmpty()))
     }
+
+    @Test
+    public void canConfigureGroovySource() {
+        sourceSet.groovy { srcDir 'src/groovy' }
+        assertThat(sourceSet.groovy.srcDirs, equalTo([new File('src/groovy')] as Set))
+    }
 }

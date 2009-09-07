@@ -1,0 +1,24 @@
+// START SNIPPET define-main
+usePlugin 'java'
+
+source {
+    main {
+        java {
+            srcDir 'src/java'
+        }
+        resources {
+            srcDir 'src/resources'
+        }
+    }
+// END SNIPPET define-main
+    test {
+        java {
+            srcDir 'test/java'
+        }
+        resources {
+            srcDir 'test/resources'
+        }
+    }
+// START SNIPPET define-main
+}
+// END SNIPPET define-main

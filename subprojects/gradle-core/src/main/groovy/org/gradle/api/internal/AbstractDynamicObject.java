@@ -57,16 +57,22 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     protected groovy.lang.MissingMethodException methodMissingException(String name, Object... params) {
-        return new MissingMethodException(getDisplayName(), name, params);
+        return new MissingMethodException(this, getDisplayName(), name, params);
     }
 }
 
 class MissingMethodException extends groovy.lang.MissingMethodException {
+    private final DynamicObject target;
     private final String displayName;
 
-    public MissingMethodException(String displayName, String name, Object... arguments) {
+    public MissingMethodException(DynamicObject target, String displayName, String name, Object... arguments) {
         super(name, null, arguments);
+        this.target = target;
         this.displayName = displayName;
+    }
+
+    public DynamicObject getTarget() {
+        return target;
     }
 
     public String getMessage() {

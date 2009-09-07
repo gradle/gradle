@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.tasks.SourceSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;

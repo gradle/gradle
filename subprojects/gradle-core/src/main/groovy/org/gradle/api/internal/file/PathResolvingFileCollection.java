@@ -35,6 +35,11 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
         this.files = new ArrayList<Object>(Arrays.asList(files));
     }
 
+    public PathResolvingFileCollection clear() {
+        files.clear();
+        return this;
+    }
+    
     public PathResolvingFileCollection add(Object file) {
         files.add(file);
         return this;

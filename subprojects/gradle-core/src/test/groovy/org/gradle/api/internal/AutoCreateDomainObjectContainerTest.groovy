@@ -42,7 +42,32 @@ class AutoCreateDomainObjectContainerTest {
         }
         assertThat(container.list1, equalTo(['list1', 1]))
     }
-    
+
+    @Test
+    public void propogatesNestedMissingMethodException() {
+        container.add('list1')
+        try {
+            container.configure {
+                list1 { unknown { anotherUnknown(2) } }
+            }
+        } catch (groovy.lang.MissingMethodException e) {
+            assertThat(e.method, equalTo('unknown'))
+            assertThat(e.type, equalTo(TestObject))
+        }
+    }
+
+    @Test
+    public void propogatesMethodInvocationException() {
+        RuntimeException failure = new RuntimeException()
+        try {
+            container.configure {
+                list1 { throw failure }
+            }
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure))
+        }
+    }
+
     @Test
     public void implicitlyAddsAnObjectWhenContainerIsBeingConfigured() {
         container.configure {
@@ -57,8 +82,8 @@ class AutoCreateDomainObjectContainerTest {
     public void canReferToPropertiesAndMethodsOfOwner() {
         new DynamicOwner().configure(container)
         assertThat(container.asMap.keySet(), equalTo(['list1', 'list2'] as Set))
-        assertThat(container.list1, equalTo(['list1', 'dynamicProp', 'ownerProp', 'ownerMethod', 1, 'prop']))
-        assertThat(container.list1.property, equalTo('prop'))
+        assertThat(container.list1, equalTo(['list1', 'dynamicProp', 'ownerProp', 'ownerMethod', 'dynamicMethod', 'dynamicMethod', 1, 'prop', 'testObjectDynamicMethod']))
+        assertThat(container.list1.prop, equalTo('prop'))
         assertThat(container.list2, equalTo(['list2', container.list1]))
     }
 }
@@ -89,16 +114,28 @@ class DynamicOwner {
         throw new MissingPropertyException("fail")
     }
 
+    def methodMissing(String name, Object params) {
+        if (name == 'dynamicMethod') {
+            return 'dynamicMethod'
+        }
+        throw new groovy.lang.MissingMethodException(name, getClass(), params)
+    }
+
     def configure(def container) {
         container.configure {
             list1 {
+                // owner properties and methods - owner is a DynamicOwner
                 dynamicProp = 'dynamicProp'
                 add dynamicProp
                 add ownerProp
                 add ownerMethod('ownerMethod')
+                add dynamicMethod('a', 'b', 'c')
+                add dynamicMethod { doesntGetEvaluated }
+                // delegate properties and methods - delegate is a TestObject
                 add all.size()
-                property = 'prop'
-                add property
+                prop = 'prop'
+                add prop
+                testObjectDynamicMethod { doesntGetEvaluated }
             }
             list2 {
                 add list1
@@ -108,7 +145,15 @@ class DynamicOwner {
 }
 
 class TestObject extends ArrayList {
-    def String property
+    def String prop
+
+    def methodMissing(String name, Object params) {
+        if (name == 'testObjectDynamicMethod') {
+            add(name)
+            return name
+        }
+        throw new groovy.lang.MissingMethodException(name, getClass(), params)
+    }
 }
 
 class TestContainer extends AutoCreateDomainObjectContainer<TestObject> {

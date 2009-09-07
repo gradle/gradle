@@ -22,6 +22,8 @@ import org.gradle.api.tasks.util.PatternFilterable;
 
 import java.io.File;
 
+import groovy.lang.Closure;
+
 /**
  * <p>A {@code SourceSet} represents a logical group of Java source and resources.</p>
  */
@@ -93,11 +95,29 @@ public interface SourceSet {
     SourceDirectorySet getResources();
 
     /**
+     * Configures the non-Java resources for this set. The given closure is used to configure the {@code
+     * SourceDirectorySet} which contains the resources.
+     *
+     * @param configureClosure The closure to use to configure the resources.
+     * @return this
+     */
+    SourceSet resources(Closure configureClosure);
+
+    /**
      * Returns the Java source which is to be compiled by the Java compiler into the class output directory.
      *
      * @return the Java source. Never returns null.
      */
     SourceDirectorySet getJava();
+
+    /**
+     * Configures the Java source for this set. The given closure is used to configure the {@code SourceDirectorySet}
+     * which contains the Java source.
+     *
+     * @param configureClosure The closure to use to configure the Java source.
+     * @return this
+     */
+    SourceSet java(Closure configureClosure);
 
     /**
      * All Java source for this source set. This includes, for example, source which is directly compiled, and source

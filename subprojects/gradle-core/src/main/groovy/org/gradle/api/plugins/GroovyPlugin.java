@@ -48,8 +48,6 @@ public class GroovyPlugin implements Plugin {
 
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         JavaPlugin javaPlugin = projectPluginsHandler.usePlugin(JavaPlugin.class, project);
-        GroovyPluginConvention groovyPluginConvention = new GroovyPluginConvention(project);
-        project.getConvention().getPlugins().put("groovy", groovyPluginConvention);
 
         Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
                 setDescription("The groovy libraries to be used for this Groovy project.");
@@ -107,7 +105,7 @@ public class GroovyPlugin implements Plugin {
                 });
                 groovydoc.getConventionMapping().map("destinationDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return groovy(convention).getGroovydocDir();
+                        return new File(java(convention).getDocsDir(), "groovydoc");
                     }
                 });
             }
@@ -130,8 +128,8 @@ public class GroovyPlugin implements Plugin {
         project.getTasks().withType(Javadoc.class).allTasks(taskListener);
     }
 
-    private GroovyPluginConvention groovy(Convention convention) {
-        return convention.getPlugin(GroovyPluginConvention.class);
+    private JavaPluginConvention java(Convention convention) {
+        return convention.getPlugin(JavaPluginConvention.class);
     }
 
     private SourceSet main(Convention convention) {

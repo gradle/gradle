@@ -36,18 +36,18 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable {
     /**
      * Adds the given source directory to this set.
      *
-     * @param srcDir The source directory. This is treated as for {@link org.gradle.api.Project#file(Object)}
+     * @param srcPath The source directory. This is evaluated as for {@link org.gradle.api.Project#file(Object)}
      * @return this
      */
-    SourceDirectorySet srcDir(Object srcDir);
+    SourceDirectorySet srcDir(Object srcPath);
 
     /**
      * Adds the given source directories to this set.
      *
-     * @param srcDirs The source directories. This is treated as for {@link org.gradle.api.Project#files(Object[])}
+     * @param srcPaths The source directories. These are evaluated as for {@link org.gradle.api.Project#files(Object...)}
      * @return this
      */
-    SourceDirectorySet srcDirs(Object... srcDirs);
+    SourceDirectorySet srcDirs(Object... srcPaths);
 
     /**
      * Returns the source directories which make up this set.
@@ -55,4 +55,12 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable {
      * @return The source directories. Returns an empty set when this set contains no source directories.
      */
     Set<File> getSrcDirs();
+
+    /**
+     * Sets the source directories for this set.
+     *
+     * @param srcPaths The source directories. These are evaluated as for {@link org.gradle.api.Project#files(Object...)}
+     * @return this
+     */
+    SourceDirectorySet setSrcDirs(Iterable<Object> srcPaths);
 }

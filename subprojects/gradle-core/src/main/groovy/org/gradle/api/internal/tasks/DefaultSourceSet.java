@@ -23,8 +23,11 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.*;
 import org.gradle.util.GUtil;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
+
+import groovy.lang.Closure;
 
 public class DefaultSourceSet implements SourceSet {
     private final String name;
@@ -36,20 +39,25 @@ public class DefaultSourceSet implements SourceSet {
     private final SourceDirectorySet resources;
     private final PatternFilterable javaSourcePatterns = new PatternSet();
 
-    public DefaultSourceSet(String name, String displayName, FileResolver resolver) {
+    public DefaultSourceSet(String name, FileResolver resolver) {
         this.name = name;
         compileClasspath = new PathResolvingFileCollection(resolver);
         runtimeClasspath = new PathResolvingFileCollection(resolver);
-        String javaSrcDisplayName = String.format("%s Java source", displayName);
+        String javaSrcDisplayName = String.format("%s Java source", name);
         javaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, resolver);
         javaSourcePatterns.include("**/*.java");
         allJavaSource = new UnionFileTree(javaSrcDisplayName, javaSource.matching(javaSourcePatterns));
-        String resourcesDisplayName = String.format("%s resources", displayName);
+        String resourcesDisplayName = String.format("%s resources", name);
         resources = new DefaultSourceDirectorySet(resourcesDisplayName, resolver);
     }
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s source", name);
     }
 
     public String getCompileTaskName() {
@@ -92,6 +100,11 @@ public class DefaultSourceSet implements SourceSet {
         return javaSource;
     }
 
+    public SourceSet java(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getJava());
+        return this;
+    }
+
     public FileTree getAllJava() {
         return allJavaSource;
     }
@@ -102,5 +115,10 @@ public class DefaultSourceSet implements SourceSet {
 
     public SourceDirectorySet getResources() {
         return resources;
+    }
+
+    public SourceSet resources(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getResources());
+        return this;
     }
 }

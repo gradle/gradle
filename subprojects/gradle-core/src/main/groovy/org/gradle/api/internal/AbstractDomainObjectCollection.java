@@ -31,6 +31,8 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.Closure;
 
 public abstract class AbstractDomainObjectCollection<T> implements DomainObjectCollection<T> {
+    private final DynamicObject dynamicObject = new ContainerDynamicObject();
+
     public Set<T> getAll() {
         return new LinkedHashSet<T>(getAsMap().values());
     }
@@ -82,7 +84,7 @@ public abstract class AbstractDomainObjectCollection<T> implements DomainObjectC
      * @return The dynamic object
      */
     public DynamicObject getAsDynamicObject() {
-        return new ContainerDynamicObject();
+        return dynamicObject;
     }
 
     public Object propertyMissing(String name) {
