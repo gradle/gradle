@@ -233,17 +233,17 @@ class FileSetTest extends AbstractTestForPatternSet {
     }
 
     void assertVisits(FileSet fileSet, String... paths) {
-        List<String> visited = []
+        Set<String> visited = new HashSet<String>()
         Closure cl = {FileVisitDetails details ->
             assertThat(details.file, equalTo(new File(testDir, details.relativePath.pathString)))
             visited << details.relativePath.pathString
         }
 
         fileSet.visit(cl as FileVisitor)
-        assertThat(visited, equalTo(paths as List))
+        assertThat(visited, equalTo(paths as Set))
 
-        visited = []
+        visited = new HashSet<String>()
         fileSet.visit(cl)
-        assertThat(visited, equalTo(paths as List))
+        assertThat(visited, equalTo(paths as Set))
     }
 }
