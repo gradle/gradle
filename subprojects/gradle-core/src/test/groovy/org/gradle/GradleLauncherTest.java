@@ -17,7 +17,6 @@
 package org.gradle;
 
 import org.gradle.api.Task;
-import org.gradle.api.UnknownTaskException;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.*;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
@@ -343,7 +343,7 @@ public class GradleLauncherTest {
         });
         BuildResult buildResult = gradleLauncher.run();
         assertThat(buildResult.getFailure(), notNullValue());
-        assertThat(buildResult.getFailure().getClass(), equalTo((Object) UnknownTaskException.class));
+        assertThat(buildResult.getFailure().getClass(), equalTo((Object) TaskSelectionException.class));
     }
 
     // todo: This test is rather weak. Make it stronger.

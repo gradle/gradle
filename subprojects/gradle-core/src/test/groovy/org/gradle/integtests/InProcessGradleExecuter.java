@@ -129,7 +129,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             run();
             throw new AssertionFailedError("expected build to fail.");
         } catch (GradleException e) {
-            return new InProcessExecutionFailure(tasks, outputListener.writer.toString(), errorListener.writer.toString(), e);
+            return new InProcessExecutionFailure(tasks, outputListener.writer.toString(),
+                    errorListener.writer.toString(), e);
         }
     }
 
@@ -216,8 +217,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             assertThatCause(equalTo(description));
         }
 
-        public void assertThatCause(Matcher<String> matcher) {
-            assertThat(failure.getCause().getMessage(), matcher);
+        public void assertThatCause(final Matcher<String> matcher) {
+            if (failure instanceof GradleScriptException) {
+                GradleScriptException exception = (GradleScriptException) failure;
+                assertThat(exception.getReportableCauses(), hasItem(hasMessage(matcher)));
+            } else {
+                assertThat(failure.getCause().getMessage(), matcher);
+            }
         }
 
         public void assertHasDescription(String context) {

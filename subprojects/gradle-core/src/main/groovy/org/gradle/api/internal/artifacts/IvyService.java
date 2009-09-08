@@ -19,6 +19,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolveException;
 
 import java.util.List;
 import java.util.Set;
@@ -27,7 +28,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface IvyService {
-    ResolvedConfiguration resolve(Configuration configuration);
+    ResolvedConfiguration resolve(Configuration configuration) throws ResolveException;
 
     void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,
                  List<DependencyResolver> publishResolvers);

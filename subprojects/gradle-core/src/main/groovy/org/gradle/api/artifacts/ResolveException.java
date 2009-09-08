@@ -17,26 +17,29 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.Contextual;
+import org.gradle.util.GUtil;
 
 /**
- * <p>A <code>CircularReferenceException</code> is thrown if circular references exists between tasks, the project
- * evaluation order or the project dependsOn order.</p>
+ * <p>A <code>ResolveException</code> is thrown when a dependency configuration cannot be resolved for some reason.</p>
  *
  * @author Hans Dockter
  */
+@Contextual
 public class ResolveException extends GradleException {
-    public ResolveException() {
+    public ResolveException(Configuration configuration, String message) {
+        super(buildMessage(configuration, message));
     }
 
-    public ResolveException(String message) {
-        super(message);
+    public ResolveException(Configuration configuration, Throwable cause) {
+        super(buildMessage(configuration, null), cause);
     }
 
-    public ResolveException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ResolveException(Throwable cause) {
-        super(cause);
+    private static String buildMessage(Configuration configuration, String message) {
+        if (GUtil.isTrue(message)) {
+            return String.format("Could not resolve all dependencies for %s:%n%s", configuration, message);
+        } else {
+            return String.format("Could not resolve all dependencies for %s.", configuration);
+        }
     }
 }

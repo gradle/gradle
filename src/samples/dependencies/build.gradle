@@ -1,6 +1,5 @@
 import org.apache.ivy.plugins.resolver.FileSystemResolver
 import org.junit.Assert
-import org.gradle.api.tasks.diagnostics.DependencyReportTask
 
 buildscript {
     repositories {

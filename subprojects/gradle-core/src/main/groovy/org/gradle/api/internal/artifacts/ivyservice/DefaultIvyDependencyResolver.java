@@ -73,10 +73,6 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             this.configuration = configuration;
         }
 
-        public ResolveReport getResolveReport() {
-            return resolveReport;
-        }
-
         public boolean hasError() {
             return resolveReport.hasError();
         }
@@ -84,11 +80,10 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         public void rethrowFailure() throws ResolveException {
             if (resolveReport.hasError()) {
                 Formatter formatter = new Formatter();
-                formatter.format("Could not resolve all dependencies for %s:%n", configuration);
                 for (Object msg : resolveReport.getAllProblemMessages()) {
                     formatter.format("    - %s%n", msg);
                 }
-                throw new ResolveException(formatter.toString());
+                throw new ResolveException(configuration, formatter.toString());
             }
         }
 

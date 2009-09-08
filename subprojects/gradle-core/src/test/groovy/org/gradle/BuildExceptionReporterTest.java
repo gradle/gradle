@@ -29,6 +29,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 
+import java.util.List;
+import java.util.Arrays;
+
 @RunWith(JMock.class)
 public class BuildExceptionReporterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
@@ -83,6 +86,36 @@ public class BuildExceptionReporterTest {
                 containsString("<location>"),
                 containsString("<message>"),
                 containsString("Cause: <cause>"));
+
+        context.checking(new Expectations() {{
+            one(logger).error(with(errorMessage));
+        }});
+
+        reporter.buildFinished(HelperUtil.createBuildResult(wrapper));
+    }
+
+    @Test
+    public void reportsGradleScriptExceptionWithMultipleCauses() {
+        final GradleScriptException exception
+                = new GradleScriptException("<message>", new RuntimeException("<cause>"),
+                context.mock(ScriptSource.class, "script")) {
+            @Override
+            public String getLocation() {
+                return "<location>";
+            }
+
+            @Override
+            public List<Throwable> getReportableCauses() {
+                return Arrays.asList(new RuntimeException("<outer>"), getCause());
+            }
+        };
+        GradleScriptException wrapper = new GradleScriptException("<wrapper>", exception, context.mock(ScriptSource.class, "wrapper"));
+
+        final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
+                containsString("<location>"),
+                containsString("<message>"),
+                containsString("Cause: <outer>"),
+                containsString("<cause>"));
 
         context.checking(new Expectations() {{
             one(logger).error(with(errorMessage));

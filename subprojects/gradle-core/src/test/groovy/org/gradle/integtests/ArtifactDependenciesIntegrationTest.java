@@ -55,4 +55,20 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
         failure.assertThatCause(containsString("unresolved dependency: test#projectA;1.2: not found"));
         failure.assertThatCause(containsString("unresolved dependency: test#projectB;2.1.5: not found"));
     }
+
+    @Test
+    public void reportsProjectDependsOnSelf() {
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns(
+                "configurations { compile }",
+                "dependencies { compile project(':') }",
+                "defaultTasks 'listJars'",
+                "task listJars << { configurations.compile.each { println it } }"
+        );
+        ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
+        failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
+        failure.assertHasDescription("Execution failed for task ':listJars'");
+        failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration 'compile'"));
+        failure.assertThatCause(containsString("a module is not authorized to depend on itself"));
+    }
 }

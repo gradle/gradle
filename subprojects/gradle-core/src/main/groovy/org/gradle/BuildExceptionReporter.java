@@ -15,12 +15,13 @@
  */
 package org.gradle;
 
-import org.slf4j.Logger;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.util.GUtil;
+import org.gradle.execution.TaskSelectionException;
+import org.slf4j.Logger;
 
 import java.util.Formatter;
 
@@ -28,6 +29,10 @@ import java.util.Formatter;
  * A {@link BuildListener} which reports the build exception, if any.
  */
 public class BuildExceptionReporter extends BuildAdapter {
+    private enum ExceptionStyle {
+        None, Sanitized, Full
+    }
+
     private final Logger logger;
     private StartParameter startParameter;
 
@@ -45,53 +50,106 @@ public class BuildExceptionReporter extends BuildAdapter {
             return;
         }
 
+        FailureDetails details = new FailureDetails(failure);
         if (failure instanceof GradleException) {
-            reportBuildFailure((GradleException) failure);
+            reportBuildFailure((GradleException) failure, details);
         } else {
-            reportInternalError(failure);
+            reportInternalError(details);
+        }
+
+        write(details);
+    }
+
+    protected void write(FailureDetails details) {
+        Formatter formatter = new Formatter();
+        formatter.format("%nFAILURE: %s", details.summary.toString().trim());
+
+        String location = details.location.toString().trim();
+        if (location.length() > 0) {
+            formatter.format("%n%n* Where:%n%s", location);
+        }
+
+        String failureDetails = details.details.toString().trim();
+        if (failureDetails.length() > 0) {
+            formatter.format("%n%n* What went wrong:%n%s", failureDetails);
+        }
+
+        String resolution = details.resolution.toString().trim();
+        if (resolution.length() > 0) {
+            formatter.format("%n%n* Try:%n%s", resolution);
+        }
+        switch (details.exception) {
+            case None:
+                logger.error(formatter.toString());
+                break;
+            case Sanitized:
+                formatter.format("%n%n* Exception is:");
+                logger.error(formatter.toString(), StackTraceUtils.deepSanitize(details.failure));
+                break;
+            case Full:
+                formatter.format("%n%n* Exception is:");
+                logger.error(formatter.toString(), details.failure);
+                break;
         }
     }
 
-    public void reportInternalError(Throwable failure) {
-        Formatter formatter = new Formatter();
-        formatter.format("%n");
-        formatter.format("Build aborted because of an internal error.%n");
-        formatter.format("Run with -%s option to get additonal debug info. Please file an issue at: www.gradle.org",
+    public void reportInternalError(FailureDetails details) {
+        details.summary.format("Build aborted because of an internal error.");
+        details.details.format("Build aborted because of an unexpected internal error. Please file an issue at: www.gradle.org.");
+        details.resolution.format("Run with -%s option to get additional debug info.",
                 DefaultCommandLine2StartParameterConverter.DEBUG);
-        formatter.format("%n");
-        logger.error(formatter.toString(), failure);
+        details.exception = ExceptionStyle.Full;
     }
 
-    private void reportBuildFailure(GradleException failure) {
-        boolean stacktrace = startParameter != null &&
-                (startParameter.getShowStacktrace() != StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS ||
-                        startParameter.getLogLevel() == LogLevel.DEBUG);
-        boolean fullStacktrace = startParameter != null && (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS_FULL);
+    private void reportBuildFailure(GradleException failure, FailureDetails details) {
+        boolean stacktrace = startParameter != null
+                && (startParameter.getShowStacktrace() != StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS
+                        || startParameter.getLogLevel() == LogLevel.DEBUG);
+        if (stacktrace) {
+            details.exception = ExceptionStyle.Sanitized;
+        }
+        boolean fullStacktrace = startParameter != null
+                && (startParameter.getShowStacktrace() == StartParameter.ShowStacktrace.ALWAYS_FULL);
+        if (fullStacktrace) {
+            details.exception = ExceptionStyle.Full;
+        }
 
-        Formatter formatter = new Formatter();
-        formatter.format("%nBuild failed with an exception.%n");
+        if (failure instanceof TaskSelectionException) {
+            formatTaskSelectionFailure((TaskSelectionException) failure, details);
+        } else {
+            formatGenericFailure(failure, stacktrace, fullStacktrace, details);
+        }
+    }
+
+    private void formatTaskSelectionFailure(TaskSelectionException failure, FailureDetails details) {
+        assert failure.getCause() == null;
+        details.summary.format("Could not determine which tasks to execute.");
+        details.details.format("%s", getMessage(failure));
+        details.resolution.format("Run with -%s to get a list of available tasks.", DefaultCommandLine2StartParameterConverter.TASKS);
+    }
+
+    private void formatGenericFailure(GradleException failure, boolean stacktrace, boolean fullStacktrace,
+                                      FailureDetails details) {
+        details.summary.format("Build failed with an exception.");
         if (!fullStacktrace) {
             if (!stacktrace) {
-                formatter.format("Run with -%s or -%s option to get more details. ", DefaultCommandLine2StartParameterConverter.STACKTRACE, DefaultCommandLine2StartParameterConverter.DEBUG);
+                details.resolution.format("Run with -%s or -%s option to get more details. ",
+                        DefaultCommandLine2StartParameterConverter.STACKTRACE,
+                        DefaultCommandLine2StartParameterConverter.DEBUG);
             }
-            formatter.format("Run with -%s option to get the full (very verbose) stacktrace.%n", DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE);
+            details.resolution.format("Run with -%s option to get the full (very verbose) stacktrace.",
+                    DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE);
         }
-        formatter.format("%n");
 
         if (failure instanceof GradleScriptException) {
             GradleScriptException scriptException = ((GradleScriptException) failure).getReportableException();
-            formatter.format("%s%n%n", scriptException.getLocation());
-            formatter.format("%s%nCause: %s", scriptException.getOriginalMessage(), getMessage(
-                    scriptException.getCause()));
+            details.location.format("%s", scriptException.getLocation());
+            details.details.format("%s", scriptException.getOriginalMessage());
+            for (Throwable cause : scriptException.getReportableCauses()) {
+                details.details.format("%nCause: %s", getMessage(cause));
+            }
         } else {
-            formatter.format("%s", getMessage(failure));
-        }
-
-        if (stacktrace || fullStacktrace) {
-            formatter.format("%n%nException is:");
-            logger.error(formatter.toString(), fullStacktrace ? failure : StackTraceUtils.deepSanitize(failure));
-        } else {
-            logger.error(formatter.toString());
+            details.details.format("%s", getMessage(failure));
         }
     }
 
@@ -101,5 +159,18 @@ public class BuildExceptionReporter extends BuildAdapter {
             return message;
         }
         return String.format("%s (no error message)", throwable.getClass().getName());
+    }
+
+    private static class FailureDetails {
+        private ExceptionStyle exception = ExceptionStyle.None;
+        private final Formatter summary = new Formatter();
+        private final Formatter details = new Formatter();
+        private final Formatter location = new Formatter();
+        private final Formatter resolution = new Formatter();
+        private final Throwable failure;
+
+        public FailureDetails(Throwable failure) {
+            this.failure = failure;
+        }
     }
 }

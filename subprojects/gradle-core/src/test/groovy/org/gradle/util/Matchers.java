@@ -97,7 +97,7 @@ public class Matchers {
                 BufferedReader reader = new BufferedReader(new StringReader(str));
                 String line;
                 try {
-                    while((line = reader.readLine()) != null) {
+                    while ((line = reader.readLine()) != null) {
                         if (matcher.matches(line)) {
                             return true;
                         }
@@ -132,7 +132,7 @@ public class Matchers {
     public static Matcher<Map<?, ?>> isEmptyMap() {
         return new BaseMatcher<Map<?, ?>>() {
             public boolean matches(Object o) {
-                Map<?, ?> map = (Map<?,?>) o;
+                Map<?, ?> map = (Map<?, ?>) o;
                 return map.isEmpty();
             }
 
@@ -151,6 +151,19 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("is empty");
+            }
+        };
+    }
+
+    public static Matcher<Throwable> hasMessage(final Matcher<String> matcher) {
+        return new BaseMatcher<Throwable>() {
+            public boolean matches(Object o) {
+                Throwable t = (Throwable) o;
+                return matcher.matches(t.getMessage());
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("exception messages ").appendDescriptionOf(matcher);
             }
         };
     }

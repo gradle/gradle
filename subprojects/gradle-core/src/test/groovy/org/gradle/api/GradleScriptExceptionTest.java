@@ -16,7 +16,9 @@
 
 package org.gradle.api;
 
+import org.gradle.api.internal.Contextual;
 import org.gradle.groovy.scripts.ScriptSource;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -84,7 +86,7 @@ public class GradleScriptExceptionTest {
         GradleScriptException exception = new GradleScriptException("<message>", cause, source);
         assertThat(exception.getReportableException(), sameInstance(cause));
     }
-    
+
     @Test
     public void reportableExceptionIsSelfWhenNoCauseIsAScriptException() {
         RuntimeException cause = new RuntimeException("<cause>");
@@ -92,4 +94,34 @@ public class GradleScriptExceptionTest {
         assertThat(exception.getReportableException(), sameInstance(exception));
     }
 
+    @Test
+    public void usesAllCauseExceptionsWhichAreContextualAsReportableCauses() {
+        RuntimeException actualCause = new RuntimeException(new Throwable());
+        ContextualException contextualCause = new ContextualException(actualCause);
+        GradleScriptException exception = new GradleScriptException("<message", contextualCause, source);
+        assertThat(exception.getReportableCauses(), equalTo(toList((Throwable) contextualCause, actualCause)));
+
+        ContextualException outerContextualCause = new ContextualException(contextualCause);
+
+        exception = new GradleScriptException("<message", outerContextualCause, source);
+        assertThat(exception.getReportableCauses(), equalTo(toList((Throwable) outerContextualCause, contextualCause,
+                actualCause)));
+    }
+
+    @Test
+    public void usesDirectCauseAsReportableCauseWhenNoContextualCausesPresent() {
+        RuntimeException actualCause = new RuntimeException(new Throwable());
+        GradleScriptException exception = new GradleScriptException("<message", actualCause, source);
+        assertThat(exception.getReportableCauses(), equalTo(toList((Throwable) actualCause)));
+    }
+
+    @Contextual
+    private class ContextualException extends RuntimeException {
+        private ContextualException() {
+        }
+
+        private ContextualException(Throwable throwable) {
+            super(throwable);
+        }
+    }
 }

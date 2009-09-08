@@ -17,6 +17,7 @@
     <title>Using the Gradle Command-Line</title>
     <para>This chapter introduces the basics of the Gradle command-line. You run a build using the
         <command>gradle</command> command, which you have already seen in action in previous chapters.</para>
+
     <section>
         <title>Executing multiple tasks</title>
         <para>You can execute multiple tasks in a single build by listing each of the tasks on the command-line. For example,
@@ -40,23 +41,40 @@
             <output args="dist test"/>
         </sample>
         <para>
-            Because each task is executed once only, executing <userinput>gradle dist dist</userinput> is exactly the same
+            Because each task is executed once only, executing <userinput>gradle test test</userinput> is exactly the same
             as executing <userinput>gradle test</userinput>.</para>
     </section>
 
     <section id="sec:excluding_tasks_from_the_command_line">
         <title>Excluding tasks</title>
-        <para>You can exclude a task from being executed using the <option>-x</option> command-line option, along with
+        <para>You can exclude a task from being executed using the <option>-x</option> command-line option and providing
             the name of the task to exclude. Let's try this with the sample build file above.</para>
         <sample id="excludeTask" dir="userguide/tutorial/excludeTasks" title="Excluding tasks">
             <output args="dist -x test"/>
         </sample>
-        <para>You can see from the output of this example, that the <literal>test</literal> task is not executed. You
-            will also notice that the <literal>test</literal> task's dependencies, such as <literal>compileTest</literal>
-            are not executed either. Those dependencies of test that are required by another task, such as
+        <para>You can see from the output of this example, that the <literal>test</literal> task is not executed, even
+            though it is a dependency of the <literal>dist</literal> task. You will also notice that the
+            <literal>test</literal> task's dependencies, such as <literal>compileTest</literal>
+            are not executed either. Those dependencies of <literal>test</literal> that are required by another task, such as
             <literal>compile</literal>, are still executed.</para>
     </section>
-    
+
+    <section>
+        <title>Task name abbreviation</title>
+        <para>When you specify tasks on the command-line, you don't have to provide the full name of the task. You only need to provide enough of the
+            task name to uniquely identify the task. For example, in the sample build above, you can execute task
+            <literal>dist</literal> by running <userinput>gradle d</userinput>:</para>
+        <sample id="abbreviateTaskName" dir="userguide/tutorial/excludeTasks" title="Abbreviated task name">
+            <output args="d"/>
+        </sample>
+        <para>You can also abbreviate each word in a camel case task name. For example, you can execute task <literal>compileTest</literal>
+            by running <userinput>gradle compTest</userinput> or even <userinput>gradle cT</userinput></para>
+        <sample id="abbreviateCamelCaseTaskName" dir="userguide/tutorial/excludeTasks" title="Abbreviated camel case task name">
+            <output args="cT"/>
+        </sample>
+        <para>You can also use these abbreviations with the <option>-x</option> command-line option.</para>
+    </section>
+
     <section>
         <title>Selecting which build to execute</title>
         <para>When you run the <command>gradle</command> command, it looks for a build file in the current directory.
@@ -107,7 +125,7 @@
     <section>
         <title>Dry Run</title>
         <para>Sometimes you are interested in which tasks are executed in which order for a given set of tasks specified on the
-            command line, but you don't want the tasks to be executed. You can use the <option>-m</option> for this.
+            command line, but you don't want the tasks to be executed. You can use the <option>-m</option> option for this.
             For example <userinput>gradle -m clean compile</userinput> shows you all tasks to be executed as
             part of the <literal>clean</literal> and <literal>compile</literal> tasks.
             This is complementary to the <option>-t</option>, which shows you all available tasks for execution.

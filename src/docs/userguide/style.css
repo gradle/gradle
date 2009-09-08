@@ -311,6 +311,10 @@ pre {
     font-size: 90%;
 }
 
+.literal, .userinput, .filename {
+    white-space: nowrap;
+}
+
 /*
  * Code highlighting
  */

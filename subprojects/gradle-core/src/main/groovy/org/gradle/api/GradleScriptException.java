@@ -16,7 +16,11 @@
 package org.gradle.api;
 
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.api.internal.Contextual;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * <p>A <code>GradleScriptException</code> is thrown when an exception occurs in the parsing or execution of a
@@ -113,5 +117,20 @@ public class GradleScriptException extends GradleException {
             }
         }
         return reportable;
+    }
+
+    /**
+     * Returns the reportable causes for this failure.
+     * @return The causes. Never returns null, returns an empty list if this exception has no reportable causes.
+     */
+    public List<Throwable> getReportableCauses() {
+        ArrayList<Throwable> causes = new ArrayList<Throwable>();
+        for (Throwable t = getCause(); t != null; t = t.getCause()) {
+            causes.add(t);
+            if (t.getClass().getAnnotation(Contextual.class) == null) {
+                break;
+            }
+        }
+        return causes;
     }
 }

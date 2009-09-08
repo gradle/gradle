@@ -15,10 +15,9 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.Matchers;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -33,15 +32,12 @@ public class ProjectDefaultsBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ProjectInternal project = context.mock(ProjectInternal.class, "[project]");
     private final GradleInternal gradle = context.mock(GradleInternal.class);
-    private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
 
     @Before
     public void setUp() {
         context.checking(new Expectations(){{
             allowing(gradle).getDefaultProject();
             will(returnValue(project));
-            allowing(gradle).getTaskGraph();
-            will(returnValue(taskExecuter));
         }});
     }
     
@@ -49,36 +45,20 @@ public class ProjectDefaultsBuildExecuterTest {
         context.checking(new Expectations() {{
             one(project).getDefaultTasks();
             will(returnValue(toList("a", "b")));
-            Task task = context.mock(Task.class);
-            atLeast(1).of(project).getTasksByName("a", true);
-            will(returnValue(toSet(task)));
-            atLeast(1).of(project).getTasksByName("b", true);
-            will(returnValue(toSet(task)));
-
-            one(taskExecuter).addTasks(toSet(task));
-            one(taskExecuter).addTasks(toSet(task));
-            one(taskExecuter).execute();
         }});
 
-        BuildExecuter executer = new ProjectDefaultsBuildExecuter();
+        TestProjectDefaultsBuildExecuter executer = new TestProjectDefaultsBuildExecuter();
         executer.select(gradle);
-        executer.execute();
+        assertThat(executer.actualDelegate, Matchers.reflectionEquals((Object) new TaskNameResolvingBuildExecuter(toList("a", "b"))));
     }
 
     @Test public void createsDescription() {
         context.checking(new Expectations() {{
             one(project).getDefaultTasks();
             will(returnValue(toList("a", "b")));
-            Task task = context.mock(Task.class);
-            atLeast(1).of(project).getTasksByName("a", true);
-            will(returnValue(toSet(task)));
-            atLeast(1).of(project).getTasksByName("b", true);
-            will(returnValue(toSet(task)));
-            one(taskExecuter).addTasks(toSet(task));
-            one(taskExecuter).addTasks(toSet(task));
         }});
 
-        BuildExecuter executer = new ProjectDefaultsBuildExecuter();
+        TestProjectDefaultsBuildExecuter executer = new TestProjectDefaultsBuildExecuter();
         executer.select(gradle);
         assertThat(executer.getDisplayName(), equalTo("project default tasks 'a', 'b'"));
     }
@@ -93,8 +73,28 @@ public class ProjectDefaultsBuildExecuterTest {
         try {
             executer.select(gradle);
             fail();
-        } catch (InvalidUserDataException e) {
+        } catch (TaskSelectionException e) {
             assertThat(e.getMessage(), equalTo("No tasks have been specified and [project] has not defined any default tasks."));
+        }
+    }
+
+    private static class TestProjectDefaultsBuildExecuter extends ProjectDefaultsBuildExecuter {
+        private BuildExecuter actualDelegate;
+
+        @Override
+        protected void setDelegate(BuildExecuter delegate) {
+            actualDelegate = delegate;
+            super.setDelegate(new BuildExecuter() {
+                public void select(GradleInternal gradle) {
+                }
+
+                public String getDisplayName() {
+                    return null;
+                }
+
+                public void execute() {
+                }
+            });
         }
     }
 }

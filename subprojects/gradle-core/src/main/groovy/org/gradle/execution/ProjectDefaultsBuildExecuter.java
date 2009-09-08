@@ -15,7 +15,6 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
@@ -34,7 +33,7 @@ public class ProjectDefaultsBuildExecuter extends DelegatingBuildExecuter {
             ProjectInternal project = gradle.getDefaultProject();
             defaultTasks = project.getDefaultTasks();
             if (defaultTasks.size() == 0) {
-                throw new InvalidUserDataException(String.format(
+                throw new TaskSelectionException(String.format(
                         "No tasks have been specified and %s has not defined any default tasks.", project));
             }
             setDelegate(new TaskNameResolvingBuildExecuter(defaultTasks));

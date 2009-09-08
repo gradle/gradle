@@ -15,20 +15,20 @@
  */
 package org.gradle.execution;
 
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Collections;
 import java.util.List;

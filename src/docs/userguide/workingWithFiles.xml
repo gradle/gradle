@@ -62,7 +62,7 @@
         </para>
 
         <para>
-            One way to obtain a <literal>FileTree</literal> instance is to use the <literal>fileTree</literal> method.
+            One way to obtain a <literal>FileTree</literal> instance is to use the <literal>fileTree()</literal> method.
             This creates a <literal>FileTree</literal> defined with a base directory and some include/exclude patterns.
         </para>
 
