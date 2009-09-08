@@ -75,6 +75,7 @@ public class StartParameter {
     private List<File> initScripts = new ArrayList<File>();
     private boolean showHelp = false;
     private boolean showVersion = false;
+    private boolean launchGUI = false;
     private boolean dryRun = false;
     private boolean noOpt = false;
 
@@ -506,5 +507,17 @@ public class StartParameter {
             currentDir = canonicalFile;
             defaultProjectSelector = new ProjectDirectoryProjectSpec(canonicalFile);
         }
+    }
+
+
+    /**
+       Determines whether or not the GUI was requested to be launched.
+    */
+    public boolean isLaunchGUI() {
+        return launchGUI;
+    }
+
+    public void setLaunchGUI(boolean launchGUI) {
+        this.launchGUI = launchGUI;
     }
 }

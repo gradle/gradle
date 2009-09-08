@@ -18,6 +18,7 @@ package org.gradle;
 import org.gradle.util.GradleVersion;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.Logger;
+import java.lang.reflect.Method;
 
 /**
  * @author Hans Dockter
@@ -68,6 +69,22 @@ public class Main {
 
         if (startParameter.isShowVersion()) {
             System.out.println(new GradleVersion().prettyPrint());
+            buildCompleter.exit(null);
+        }
+
+
+        if (startParameter.isLaunchGUI()){
+           try
+           {   //due to a circular dependency, we'll have to launch this using reflection.
+              Class blockingApplicationClass = getClass().forName( "org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication");
+              Method method = blockingApplicationClass.getDeclaredMethod( "launchAndBlock" );
+              method.invoke( null );
+           }
+           catch( Throwable e )
+           {
+              logger.error("Failed to run the UI.", e);
+           }
+
             buildCompleter.exit(null);
         }
 

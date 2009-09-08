@@ -1,0 +1,107 @@
+/*
+ * Copyright 2009 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.gradleplugin.userinterface.swing.generic;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+/**
+ * This just wraps up an OutputPanel so it has a tab header that an be dynamic.
+ * The current (rather awkward) JTabbedPane implemenation is to separate the
+ * tab contents from its component. This only works with java 1.6 or later.
+ *
+ * @author mhunsicker
+ */
+public class OutputTab extends OutputPanel {
+    private JPanel mainPanel;
+    private JLabel mainTextLabel;
+    private JLabel pinnedLabel;
+    private JLabel closeLabel;
+
+    private JTabbedPane ownerTabbedPane;
+
+    public OutputTab(JTabbedPane ownerTabbedPane, String header) {
+        this.ownerTabbedPane = ownerTabbedPane;
+        mainPanel = new JPanel();
+        mainPanel.setOpaque(false);
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
+
+        mainTextLabel = new JLabel(header);
+        pinnedLabel = new JLabel("(Pinned) ");
+        pinnedLabel.setVisible(isPinned());
+        closeLabel = new JLabel("X");   //for now. Ultimately, I need to use an image.
+
+        mainPanel.add(mainTextLabel);
+        mainPanel.add(Box.createHorizontalStrut(5));
+        mainPanel.add(pinnedLabel);
+        mainPanel.add(closeLabel);
+
+        closeLabel.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                close();
+            }
+        });
+    }
+
+    /**
+     * Call this if you're going to reuse this. it resets its output.
+     *
+     * @author mhunsicker
+     */
+    @Override
+    public void reset() {
+        super.reset();
+        closeLabel.setEnabled(true);
+    }
+
+    public Component getTabHeader() {
+        return mainPanel;
+    }
+
+    public void setTabHeaderText(String newText) {
+        mainTextLabel.setText(newText);
+    }
+
+    public boolean close() {
+        closeLabel.setEnabled(false); // provide feedback to the user that we received their click
+
+        boolean result = super.close();
+        if (result)
+            ownerTabbedPane.remove(this);
+
+        closeLabel.setEnabled(true);
+        return result;
+    }
+
+    /**
+       Overridden so we can indicate the pinned state.
+
+       @param  pinned     whether or not we're pinned
+       @author mhunsicker
+    */
+    @Override
+    public void setPinned(boolean pinned) {
+        pinnedLabel.setVisible(pinned);
+
+        super.setPinned(pinned);
+    }
+}

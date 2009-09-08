@@ -1,3 +1,5 @@
-include 'gradle-wrapper','gradle-core'
+include 'gradle-wrapper','gradle-core', 'gradle-ui', 'gradle-open-api'
 project(':gradle-core').projectDir = new File(settingsDir, 'subprojects/gradle-core')
 project(':gradle-wrapper').projectDir = new File(settingsDir, 'subprojects/gradle-wrapper')
+project(':gradle-ui' ).projectDir = new File(settingsDir, 'subprojects/gradle-ui')
+project(':gradle-open-api' ).projectDir = new File(settingsDir, 'subprojects/gradle-open-api')

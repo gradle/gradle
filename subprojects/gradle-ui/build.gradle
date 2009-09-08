@@ -1,0 +1,63 @@
+usePlugin 'groovy'
+
+dependencies {
+   compile project(':gradle-core')
+   compile project(':gradle-open-api')
+
+    def GROOVY_DEPENDENCIES = [
+            "asm:asm-all:2.2.3@jar",
+            "antlr:antlr:2.7.7@jar",
+            "commons-cli:commons-cli:1.2@jar",
+            "org.apache.ant:ant:1.7.0@jar",
+            "org.apache.ant:ant-junit:1.7.0@jar",
+            "org.apache.ant:ant-launcher:1.7.0@jar"
+    ]
+    groovy "org.codehaus.groovy:groovy:1.6.4@jar", GROOVY_DEPENDENCIES
+
+
+    compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",
+            "dom4j:dom4j:1.6.1@jar", "jaxen:jaxen:1.1@jar",
+            "commons-io:commons-io:1.4@jar",
+            "ch.qos.logback:logback-classic:0.9.9@jar",
+            "org.slf4j:slf4j-api:1.5.3@jar",
+            "org.slf4j:jul-to-slf4j:1.5.3@jar",
+            "ch.qos.logback:logback-core:0.9.9@jar"
+
+    testCompile files(project( ':gradle-core' ).dependencyProject.source.test.classesDir)
+}
+
+// The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
+// the userguide source
+integTestDistDir = new File( project(':' ).buildDir, 'integtest')
+task integTest(type: Test, dependsOn: [ compileTest, project(':gradle-core').compileTest, project(':').explodedDist ]) {
+    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
+    options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
+    options.systemProperties['integTest.srcDir'] = file('src').absolutePath
+
+    include 'org/gradle/integtests/**/*IntegrationTest.*'
+    exclude '**/Abstract*'
+}
+
+//Our tests use some base classes from gradle-core. Currently, we must explicitly state that we
+//depend on its compileTests and add its output to our classpath.
+compileTest.dependsOn project( ':gradle-core' ).compileTest
+
+integTest.doFirst {
+    ant {
+        delete(dir: integTestDistDir)
+        copy(todir: integTestDistDir) {
+            fileset(dir: explodedDistDir )
+        }
+        chmod(dir: "$integTestDistDir/bin", perm: "ugo+rx", includes: "**/*")
+    }
+}
+
+
+//this is just to exclude integration tests
+test {
+    // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
+    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'])
+
+    exclude 'org/gradle/integtests/**/*.*'
+}
+

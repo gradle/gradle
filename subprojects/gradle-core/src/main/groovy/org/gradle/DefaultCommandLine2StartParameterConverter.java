@@ -18,6 +18,8 @@ package org.gradle;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.apache.commons.collections.BidiMap;
+import org.apache.commons.collections.bidimap.DualHashBidiMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
@@ -32,6 +34,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
+import java.util.Collection;
 
 /**
  * @author Hans Dockter
@@ -46,14 +50,14 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String PLUGIN_PROPERTIES_FILE = "l";
     private static final String DEFAULT_IMPORT_FILE = "K";
     private static final String BUILD_FILE = "b";
-    private static final String INIT_SCRIPT = "I";
+    public static final String INIT_SCRIPT = "I";
     private static final String SETTINGS_FILE = "c";
-    private static final String TASKS = "t";
+    public static final String TASKS = "t";
     private static final String PROPERTIES = "r";
     private static final String DEPENDENCIES = "n";
     public static final String DEBUG = "d";
-    private static final String INFO = "i";
-    private static final String QUIET = "q";
+    public static final String INFO = "i";
+    public static final String QUIET = "q";
     public static final String FULL_STACKTRACE = "S";
     public static final String STACKTRACE = "s";
     private static final String SYSTEM_PROP = "D";
@@ -67,6 +71,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String NO_OPT = "o";
     private static final String EXCLUDE_TASK = "x";
     private static final String HELP = "h";
+    private static final String GUI = "gui";
 
     OptionParser parser = new OptionParser() {
         {
@@ -85,6 +90,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.");
             acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.");
             acceptsAll(WrapUtil.toList(DEPENDENCIES, "dependencies"), "Show list of all project dependencies.");
+            acceptsAll(WrapUtil.toList(GUI), "Launches a GUI application");
             acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"), "Specifies the start directory for Gradle. Defaults to current directory.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home directory.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
@@ -102,6 +108,25 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
         }
     };
+
+
+   private static BidiMap logLevelMap = new DualHashBidiMap();
+   private static BidiMap showStacktraceMap = new DualHashBidiMap();
+
+   //Initialize bi-directional maps so you can convert these back and forth from their command line options to their
+   //object representation.
+   static
+   {
+      logLevelMap.put( QUIET, LogLevel.QUIET );
+      logLevelMap.put( INFO, LogLevel.INFO );
+      logLevelMap.put( DEBUG, LogLevel.DEBUG );
+      //logLevelMap.put( , LogLevel.LIFECYCLE ); there is no command argument for this. Rather, the lack of an argument means 'default to this'.
+      //there are also other log levels that gradle doesn't support command-line-wise.
+
+      showStacktraceMap.put( FULL_STACKTRACE, StartParameter.ShowStacktrace.ALWAYS_FULL );
+      showStacktraceMap.put( STACKTRACE, StartParameter.ShowStacktrace.ALWAYS );
+      //showStacktraceMap.put( , StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS ); there is no command argument for this. Rather, the lack of an argument means 'default to this'.
+   }
 
     public StartParameter convert(String[] args) {
         StartParameter startParameter = new StartParameter();
@@ -133,6 +158,10 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         if (options.has(VERSION)) {
             startParameter.setShowVersion(true);
             return;
+        }
+
+        if (options.has(GUI)) {
+            startParameter.setLaunchGUI(true);
         }
 
         if (options.has(NO_DEFAULT_IMPORTS)) {
@@ -281,6 +310,93 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
         return logLevel;
     }
+
+   /*
+      This returns the log level object represented by the command line argument
+      @param  commandLineArgument a single command line argument (with no '-')
+      @return the corresponding log level or null if it doesn't match any.
+      @author mhunsicker
+   */
+   public LogLevel getLogLevel( String commandLineArgument )
+   {
+      LogLevel logLevel = (LogLevel) logLevelMap.get( commandLineArgument );
+      if( logLevel == null )
+          return null;
+
+      return logLevel;
+   }
+
+   /*
+      This returns the command line argument that represents the specified
+      log level.
+      @param  logLevel       the log level.
+      @return the command line argument or null if this level cannot be
+               represented on the command line.
+      @author mhunsicker
+   */
+   public String getLogLevelCommandLine( LogLevel logLevel )
+   {
+      String commandLine = (String) logLevelMap.getKey( logLevel );
+      if( commandLine == null )
+          return null;
+
+      return commandLine;
+   }
+
+   /*
+      This returns the log levels that are supported on the command line.
+      @return a collection of available log levels
+      @author mhunsicker
+   */
+   public Collection<LogLevel> getLogLevels()
+   {
+      return Collections.unmodifiableCollection( logLevelMap.values() );
+   }
+
+   /*
+      This returns the stack trace level object represented by the command
+      line argument
+      @param  commandLineArgument a single command line argument (with no '-')
+      @return the corresponding stack trace level or null if it doesn't match any.
+      @author mhunsicker
+   */
+   public StartParameter.ShowStacktrace getShowStacktrace( String commandLineArgument )
+   {
+      StartParameter.ShowStacktrace showStacktrace = (StartParameter.ShowStacktrace) showStacktraceMap.get( commandLineArgument );
+      if( showStacktrace == null )
+         return null;
+
+      return showStacktrace;
+   }
+
+   /*
+      This returns the command line argument that represents the specified
+      stack trace level.
+          
+      @param  showStacktrace the stack trace level.
+      @return the command line argument or null if this level cannot be
+               represented on the command line.
+      @author mhunsicker
+   */
+   public String getShowStacktraceCommandLine( StartParameter.ShowStacktrace showStacktrace )
+   {
+      String commandLine = (String) showStacktraceMap.getKey( showStacktrace );
+      if( commandLine == null )
+         return null;
+
+      return commandLine;
+   }
+
+   /*
+      This returns the ShowStacktrace levels that are supported on the command
+      line.
+      @return a collection of available ShowStacktrace levels
+      @author mhunsicker
+   */
+   public Collection<StartParameter.ShowStacktrace> getShowStacktrace()
+   {
+      return Collections.unmodifiableCollection( showStacktraceMap.values() );
+   }
 
     private void quitWithErrorIfLogLevelAlreadyDefined(LogLevel logLevel, String option) {
         if (logLevel != null) {

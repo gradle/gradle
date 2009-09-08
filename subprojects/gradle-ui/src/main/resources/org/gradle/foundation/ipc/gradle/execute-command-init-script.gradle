@@ -1,0 +1,5 @@
+//this starts up a client object that will send messages back to the server object that started us.
+//for this to work you must have set the port number via a system property.
+
+org.gradle.foundation.ipc.gradle.IPCUtilities.invokeExecuteGradleClient(gradle);
+

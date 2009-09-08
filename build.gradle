@@ -113,7 +113,7 @@ configurations {
 }
 
 dependencies {
-    distLib project(':gradle-wrapper'), project(':gradle-core')
+    distLib project(':gradle-wrapper'), project(':gradle-core'), project(':gradle-ui'), project(':gradle-open-api')
 
     // todo: Improve dependency handling for xUnit jars
     ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
@@ -564,7 +564,7 @@ websiteDocs << {
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
 integTestDistDir = new File(buildDir, 'integtest')
-task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc, project('gradle-core').compileTest, project('gradle-core').processTestResources, project('gradle-core').processResources]) {
+task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc, project('gradle-core').compileTest, project('gradle-core').processTestResources, project('gradle-core').processResources ]) {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
