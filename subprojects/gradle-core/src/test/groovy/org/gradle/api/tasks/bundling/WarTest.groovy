@@ -182,10 +182,10 @@ class WarTest extends AbstractArchiveTaskTest {
 
     private void checkAddFileSet(String methodName, String propertyName) {
         war."$propertyName" = null
-        war."$methodName"(baseDir: 'x') {
+        war."$methodName"(dir: 'x') {
             include 'a'
         }
-        war."$methodName"(baseDir: 'y')
+        war."$methodName"(dir: 'y')
         assertEquals(new File(testDir, 'x'), war."$propertyName"[0].dir)
         assertEquals(['a'] as Set, war."$propertyName"[0].includes)
         assertEquals(new File(testDir, 'y'), war."$propertyName"[1].dir)

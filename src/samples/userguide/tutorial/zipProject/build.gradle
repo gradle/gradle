@@ -2,7 +2,7 @@ usePlugin 'java'
 version = 1.0
 
 task myZip(type: Zip) {
-    fileSet(baseDir: 'somedir')
+    fileSet(dir: 'somedir')
 }
 
 println myZip.archiveName

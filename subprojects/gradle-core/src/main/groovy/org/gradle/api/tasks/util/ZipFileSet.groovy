@@ -36,7 +36,7 @@ class ZipFileSet extends FileSet {
     }
 
     def addToAntBuilder(node, String childNodeName) {
-        File dir = getBaseDir()
+        File dir = getDir()
         if (!dir.exists()) {
             return
         }

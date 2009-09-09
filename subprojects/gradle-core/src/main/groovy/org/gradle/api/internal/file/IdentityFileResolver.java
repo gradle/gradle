@@ -15,23 +15,21 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.PathValidation;
 import java.io.File;
 
 /**
- * FileResolver that uses the file provided to it or constructs one from the toString of the provided object.
- * Used in cases where a FileResolver is needed by the infrastructure, but no base directory can be known.
+ * FileResolver that uses the file provided to it or constructs one from the toString of the provided object. Used in
+ * cases where a FileResolver is needed by the infrastructure, but no base directory can be known.
+ *
  * @author Steve Appling
  */
-public class IdentityFileResolver extends AbstractFileResolver{
-    public File resolve(Object path) {
-        return resolve(path, PathValidation.NONE);
-    }
-
-    public File resolve(Object path, PathValidation validation) {
+public class IdentityFileResolver extends AbstractFileResolver {
+    @Override
+    protected File doResolve(Object path) {
         File file = convertObjectToFile(path);
-
-        validate(file, validation);
+        if (!file.isAbsolute()) {
+            throw new UnsupportedOperationException(String.format("Cannot convert %s to an absolute file.", path));
+        }
         return file;
     }
 }

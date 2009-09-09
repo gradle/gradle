@@ -15,6 +15,8 @@ public class FileSetCopyIntegrationTest extends AbstactCopyIntegrationTest {
         )
         usingBuildFile(buildFile).withTasks("cpy").run()
         testFile('dest').assertHasDescendants(
+                'root.a',
+                'root.b',
                 'one/one.a',
                 'one/one.b',
                 'two/two.a',
@@ -25,11 +27,13 @@ public class FileSetCopyIntegrationTest extends AbstactCopyIntegrationTest {
     @Test public void testCopyWithMap() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileTree(baseDir:'src', excludes:['**/ignore/**']).copy { into 'dest'}
+                   fileTree(dir:'src', excludes:['**/ignore/**']).copy { into 'dest'}
                 }"""
         )
         usingBuildFile(buildFile).withTasks("cpy").run()
         testFile('dest').assertHasDescendants(
+                'root.a',
+                'root.b',
                 'one/one.a',
                 'one/one.b',
                 'two/two.a',
@@ -40,11 +44,13 @@ public class FileSetCopyIntegrationTest extends AbstactCopyIntegrationTest {
     @Test public void testCopyFluent() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileTree(baseDir:'src').exclude('**/ignore/**').copy { into 'dest' }
+                   fileTree(dir:'src').exclude('**/ignore/**').copy { into 'dest' }
                 }"""
         )
         usingBuildFile(buildFile).withTasks("cpy").run()
         testFile('dest').assertHasDescendants(
+                'root.a',
+                'root.b',
                 'one/one.a',
                 'one/one.b',
                 'two/two.a',

@@ -165,7 +165,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     protected def createFileSetInternal(Map args, Class type, Closure configureClosure) {
-        args.baseDir = args.baseDir ?: getBaseDir()
+        args.dir = args.dir ?: getBaseDir()
         def fileSet = type.newInstance(args, project.fileResolver)
         ConfigureUtil.configure(configureClosure, fileSet)
         fileSet

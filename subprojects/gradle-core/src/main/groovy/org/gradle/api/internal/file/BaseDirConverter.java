@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.PathValidation;
 import org.gradle.util.GUtil;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
@@ -32,24 +30,17 @@ public class BaseDirConverter extends AbstractFileResolver {
         this.baseDir = baseDir;
     }
 
-    public File resolve(Object path) {
-        return resolve(path, PathValidation.NONE);
-    }
-
-    public File resolve(Object path, PathValidation validation) {
+    @Override
+    protected File doResolve(Object path) {
         if (!GUtil.isTrue(path) || !GUtil.isTrue(baseDir)) {
             throw new IllegalArgumentException(String.format(
                     "Neither path nor baseDir may be null or empty string. path='%s' basedir='%s'", path, baseDir));
         }
 
         File file = convertObjectToFile(path);
-
         if (!file.isAbsolute()) {
             file = new File(baseDir, path.toString());
         }
-        file = GFileUtils.canonicalise(file);
-
-        validate(file, validation);
 
         return file;
     }

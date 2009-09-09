@@ -1,4 +1,4 @@
-def tree = fileTree(baseDir: 'src/main')
+def tree = fileTree(dir: 'src/main')
 
 // Add include and exclude patterns to the tree
 tree.include '**/*.java'
@@ -15,11 +15,12 @@ def filtered = tree.matching {
 }
 
 // Add trees together
-def sum = tree + fileTree(baseDir: 'src/test')
+def sum = tree + fileTree(dir: 'src/test')
 
-// Construct a tree using map or closure
-def tree2 = fileTree {
+// Construct a tree using path, map or closure
+def tree2 = fileTree('src').include('**/*.java')
+def tree3 = fileTree {
     from 'src'
     include '**/*.java'
 }
-def tree3 = fileTree(baseDir: 'src', includes: ['**/*.java'])
+def tree4 = fileTree(dir: 'src', includes: ['**/*.java'])

@@ -16,9 +16,14 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.util.FileSet;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
+import org.hamcrest.Matcher;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -165,12 +170,40 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
+    public void canConvertToFileTree() {
+        TestFileCollection collection = new TestFileCollection();
+        assertThat(collection.asType(FileTree.class), notNullValue());
+    }
+
+    @Test
+    public void toFileTreeReturnsFlatFileTreeForFile() {
+        File file = new File(HelperUtil.makeNewTestDir(), "f1");
+        GFileUtils.touch(file);
+
+        TestFileCollection collection = new TestFileCollection(file);
+        FileTree tree = collection.getAsFileTree();
+        assertThat(tree, instanceOf(CompositeFileTree.class));
+        CompositeFileTree compositeTree = (CompositeFileTree) tree;
+        assertThat(compositeTree.getSourceCollections(), hasItems((Matcher) instanceOf(FlatFileTree.class)));
+    }
+
+    @Test
+    public void toFileTreeReturnsFileSetForDirectory() {
+        File file = HelperUtil.makeNewTestDir();
+        TestFileCollection collection = new TestFileCollection(file);
+        FileTree tree = collection.getAsFileTree();
+        assertThat(tree, instanceOf(CompositeFileTree.class));
+        CompositeFileTree compositeTree = (CompositeFileTree) tree;
+        assertThat(compositeTree.getSourceCollections(), hasItems((Matcher)instanceOf(FileSet.class)));
+    }
+    
+    @Test
     public void throwsUnsupportedOperationExceptionWhenConvertingToUnsupportedType() {
         try {
             new TestFileCollection().asType(Integer.class);
             fail();
         } catch (UnsupportedOperationException e) {
-            assertThat(e.getMessage(), equalTo("Cannot convert collection-display-name to type Integer."));
+            assertThat(e.getMessage(), equalTo("Cannot convert collection-display-name to type Integer, as this type is not supported."));
         }
     }
 

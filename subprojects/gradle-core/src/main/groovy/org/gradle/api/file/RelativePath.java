@@ -30,8 +30,8 @@ import java.util.Arrays;
  * @author Steve Appling
  */
 public class RelativePath {
-    private boolean endsWithFile;
-    String[] segments;
+    private final boolean endsWithFile;
+    private final String[] segments;
 
     /**
      * CTOR
@@ -115,5 +115,14 @@ public class RelativePath {
     @Override
     public String toString() {
         return GUtil.join(segments, "/");
+    }
+
+    public RelativePath getParent() {
+        if (segments.length == 0) {
+            return null;
+        }
+        String[] parentSegments = new String[segments.length - 1];
+        System.arraycopy(segments, 0, parentSegments, 0, parentSegments.length);
+        return new RelativePath(false, parentSegments);
     }
 }

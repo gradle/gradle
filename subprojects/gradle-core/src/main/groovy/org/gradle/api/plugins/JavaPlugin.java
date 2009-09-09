@@ -306,7 +306,7 @@ public class JavaPlugin implements Plugin {
                 addDependsOnProjectBuildDependencies(test, TEST_RUNTIME_CONFIGURATION_NAME);
             }
         });
-        project.getTasks().add(TEST_TASK_NAME, Test.class).setDescription("Runs the tests.");
+        project.getTasks().add(TEST_TASK_NAME, Test.class).setDescription("Runs the unit tests.");
     }
 
     void configureConfigurations(final Project project) {

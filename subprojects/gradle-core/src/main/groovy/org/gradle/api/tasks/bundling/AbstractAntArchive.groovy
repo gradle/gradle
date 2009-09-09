@@ -56,7 +56,7 @@ class AbstractAntArchive {
     private List filterCollections(List resourceCollections) {
         resourceCollections.findAll { def collection ->
             if (collection instanceof FileSet) {
-                if (!collection.baseDir.exists()) {
+                if (!collection.dir.exists()) {
                     return false
                 }
             }

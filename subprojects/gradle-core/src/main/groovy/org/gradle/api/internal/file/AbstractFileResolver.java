@@ -19,10 +19,24 @@ import org.gradle.api.PathValidation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 
 public abstract class AbstractFileResolver implements FileResolver {
+    public File resolve(Object path) {
+        return resolve(path, PathValidation.NONE);
+    }
+
+    public File resolve(Object path, PathValidation validation) {
+        File file = doResolve(path);
+        file = GFileUtils.canonicalise(file);
+        validate(file, validation);
+        return file;
+    }
+
+    protected abstract File doResolve(Object path);
+
     protected File convertObjectToFile(Object path) {
         File file;
         if (path instanceof File) {
@@ -30,7 +44,6 @@ public abstract class AbstractFileResolver implements FileResolver {
         } else {
             file = new File(path.toString());
         }
-
         return file;
     }
 

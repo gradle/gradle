@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.CopyActionImpl
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.WorkResult
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.file.IdentityFileResolver
 
 /**
  * @author Hans Dockter
@@ -35,23 +36,28 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     private File dir
     FileResolver resolver
 
-    FileSet(Object baseDir, FileResolver resolver) {
-        this([baseDir: baseDir], resolver)
+    FileSet(Object dir, FileResolver resolver) {
+        this([dir: dir], resolver)
     }
 
     FileSet(Map args, FileResolver resolver) {
-        this.resolver = resolver
+        this.resolver = resolver ?: new IdentityFileResolver()
         args.each {String key, value ->
             this.setProperty(key, value)
         }
     }
 
-    public FileSet setBaseDir(Object baseDir) {
-        from(baseDir)
+    public FileSet setDir(Object dir) {
+        from(dir)
     }
 
-    public FileSet from(Object baseDir) {
-        this.dir = resolver.resolve(baseDir)
+    public File getDir() {
+        if (!dir) { throw new InvalidUserDataException('A base directory must be specified in the task or via a method argument!') }
+        dir
+    }
+
+    public FileSet from(Object dir) {
+        this.dir = resolver.resolve(dir)
         this
     }
 
@@ -62,7 +68,7 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     FileTree matching(Closure filterConfigClosure) {
         PatternSet patternSet = this.patternSet.intersect()
         ConfigureUtil.configure(filterConfigClosure, patternSet)
-        FileSet filtered = new FileSet(baseDir, resolver)
+        FileSet filtered = new FileSet(getDir(), resolver)
         filtered.patternSet = patternSet
         filtered
     }
@@ -70,30 +76,25 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     FileTree matching(PatternFilterable patterns) {
         PatternSet patternSet = this.patternSet.intersect()
         patternSet.copyFrom(patterns)
-        FileSet filtered = new FileSet(baseDir, resolver)
+        FileSet filtered = new FileSet(getDir(), resolver)
         filtered.patternSet = patternSet
         filtered
     }
 
     FileTree visit(FileVisitor visitor) {
         BreadthFirstDirectoryWalker walker = new BreadthFirstDirectoryWalker(visitor)
-        walker.match(patternSet).start(baseDir)
+        walker.match(patternSet).start(getDir())
         this
     }
 
     public WorkResult copy(Closure closure) {
         CopyActionImpl action = new CopyActionImpl(resolver)
-        action.from(baseDir)
+        action.from(getDir())
         action.include(getIncludes())
         action.exclude(getExcludes())
         ConfigureUtil.configure(closure, action)
         action.execute()
         return action
-    }
-
-    public File getBaseDir() {
-        if (!dir) { throw new InvalidUserDataException('A basedir must be specified in the task or via a method argument!') }
-        dir
     }
 
     public Set<String> getIncludes() {
@@ -135,7 +136,7 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     }
 
     def addToAntBuilder(node, String childNodeName = null) {
-        File dir = getBaseDir()
+        File dir = getDir()
         if (!dir.exists()) {
             return
         }

@@ -109,7 +109,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testFileSetWithTaskBaseDir() {
-        assertEquals(archiveTask.baseDir, archiveTask.fileSet().baseDir)
+        assertEquals(archiveTask.baseDir, archiveTask.fileSet().dir)
     }
 
     List getFileSetMethods() {
@@ -119,8 +119,8 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     @Test public void testFileSetWithSpecifiedBaseDir() {
         applyToFileSetMethods {
             File specifiedBaseDir = new File('baseDir')
-            FileSet fileSet = archiveTask."$it"(baseDir: specifiedBaseDir)
-            assertEquals(project.file(specifiedBaseDir), fileSet.baseDir)
+            FileSet fileSet = archiveTask."$it"(dir: specifiedBaseDir)
+            assertEquals(project.file(specifiedBaseDir), fileSet.dir)
             assert archiveTask.resourceCollections.contains(fileSet)
         }
     }
@@ -176,7 +176,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         List mergeFileSets = archiveTask.mergeFileSets
         assertEquals(fileDescriptions.size(), mergeFileSets.size())
         assert mergeFileSets[0] instanceof ZipFileSet
-        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].baseDir)
+        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
         assertEquals(['x'] as Set, mergeFileSets[0].includes)
         assert mergeFileSets[1] instanceof ZipFileSet
         assertEquals(['x'] as Set, mergeFileSets[1].includes)
@@ -188,7 +188,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         List mergeFileSets = archiveTask.mergeFileSets
         assertEquals(1, mergeFileSets.size())
         assert mergeFileSets[0] instanceof ZipFileSet
-        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].baseDir)
+        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
     }
 
     @Test public void testMergeWithListArguments() {

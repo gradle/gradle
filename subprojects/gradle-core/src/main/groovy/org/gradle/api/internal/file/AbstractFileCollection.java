@@ -19,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -93,12 +94,38 @@ public abstract class AbstractFileCollection implements FileCollection {
         if (type.isAssignableFrom(File.class)) {
             return getSingleFile();
         }
-        throw new UnsupportedOperationException(String.format("Cannot convert %s to type %s.", getDisplayName(),
+        if (type.isAssignableFrom(FileCollection.class)) {
+            return this;
+        }
+        if (type.isAssignableFrom(FileTree.class)) {
+            return getAsFileTree();
+        }
+        throw new UnsupportedOperationException(String.format(
+                "Cannot convert %s to type %s, as this type is not supported.", getDisplayName(),
                 type.getSimpleName()));
     }
 
     public FileTree getAsFileTree() {
-        throw new UnsupportedOperationException();
+        return new CompositeFileTree() {
+            @Override
+            protected Iterable<FileTree> getSourceCollections() {
+                List<FileTree> trees = new ArrayList<FileTree>();
+                for (File file : AbstractFileCollection.this.getFiles()) {
+                    if (file.isFile()) {
+                        trees.add(new FlatFileTree(file));
+                    }
+                    else if (file.isDirectory()) {
+                        trees.add(new FileSet(file, null));
+                    }
+                }
+                return trees;
+            }
+
+            @Override
+            public String getDisplayName() {
+                return AbstractFileCollection.this.getDisplayName();
+            }
+        };
     }
 
     protected String getCapDisplayName() {

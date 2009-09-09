@@ -2,7 +2,7 @@ usePlugin 'java'
 
 // START SNIPPET file-set
 task zipWithFileSet(type: Zip) {
-    fileSet(baseDir: 'contentDir') {
+    fileSet(dir: 'contentDir') {
         include('**/*.txt')
         exclude('**/*.gif')
     }
@@ -17,7 +17,7 @@ task zipWithFiles(type: Zip) {
 
 // START SNIPPET zip-file-set
 task zipWithZipFileSet(type: Zip) {
-    zipFileSet(baseDir: 'contentDir') {
+    zipFileSet(dir: 'contentDir') {
         include('**/*.txt')
         exclude('**/*.gif')
         prefix = 'myprefix'
@@ -27,7 +27,7 @@ task zipWithZipFileSet(type: Zip) {
 
 // START SNIPPET tar-file-set
 task tarWithFileSet(type: Tar) {
-    tarFileSet(baseDir: 'contentDir') {
+    tarFileSet(dir: 'contentDir') {
         include('**/*.txt')
         exclude('**/*.gif')
         uid = 'myuid'

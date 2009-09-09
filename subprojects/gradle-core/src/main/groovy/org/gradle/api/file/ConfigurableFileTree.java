@@ -29,24 +29,24 @@ public interface ConfigurableFileTree extends FileTree, PatternFilterable {
      * Specifies base directory for this file tree using the given path. The path is evaluated as for {@link
      * org.gradle.api.Project#file(Object)}.
      *
-     * @param baseDir The base directory.
+     * @param dir The base directory.
      * @return this
      */
-    ConfigurableFileTree from(Object baseDir);
+    ConfigurableFileTree from(Object dir);
 
     /**
      * Returns the base directory of this file tree.
      *
      * @return The base directory. Never returns null.
      */
-    File getBaseDir();
+    File getDir();
 
     /**
      * Specifies base directory for this file tree using the given path. The path is evaluated as for {@link
      * org.gradle.api.Project#file(Object)}.
      *
-     * @param baseDir The base directory.
+     * @param dir The base directory.
      * @return this
      */
-    ConfigurableFileTree setBaseDir(Object baseDir);
+    ConfigurableFileTree setDir(Object dir);
 }

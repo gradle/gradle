@@ -719,7 +719,7 @@ public interface Project extends Comparable<Project> {
      * Create a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
      * properties on the new file tree.  Example:
      * <pre>
-     * fileTree(baseDir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
+     * fileTree(dir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
      * </pre>
      *
      * @param args map of property assignments to {@code ConfigurableFileTree} object

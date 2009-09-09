@@ -902,7 +902,7 @@
                 <td>
                     <apilink class="org.gradle.api.file.FileTree"/>
                 </td>
-                <td>A set of files defined by a common baseDir and include/exclude patterns. See <xref linkend="sec:file_trees"/>.</td>
+                <td>A set of files defined by a common base directory and include/exclude patterns. See <xref linkend="sec:file_trees"/>.</td>
             </tr>
             <tr>
                 <td>
@@ -921,7 +921,7 @@
                     <apilink class="org.gradle.api.file.FileCollection"/>
                 </td>
                 <td>An arbitrary collection of files to include in the archive. In contrast to a
-                    <literal>FileTree</literal> they don't need to have a common basedir. See <xref linkend="sec:file_collections"/>
+                    <literal>FileTree</literal> they don't need to have a common base directory. See <xref linkend="sec:file_collections"/>
                     for more details.
                 </td>
             </tr>

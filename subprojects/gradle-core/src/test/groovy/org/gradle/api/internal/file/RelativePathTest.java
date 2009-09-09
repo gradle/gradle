@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.file;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.gradle.api.file.RelativePath;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.util.Arrays;
 
@@ -30,8 +31,8 @@ public class RelativePathTest {
         assertEquals(isFile, path.isFile());
     }
 
-
-    @Test public void testConstructors() {
+    @Test
+    public void testConstructors() {
         RelativePath path, childPath;
         path = new RelativePath(true, "one");
         assertPathContains(path, true, "one");
@@ -41,5 +42,13 @@ public class RelativePathTest {
 
         childPath = new RelativePath(true, path, "three");
         assertPathContains(childPath, true, "one", "two", "three");
+    }
+
+    @Test
+    public void canGetParentOfPath() {
+        assertThat(new RelativePath(true, "a", "b").getParent(), equalTo(new RelativePath(false, "a")));
+        assertThat(new RelativePath(false, "a", "b").getParent(), equalTo(new RelativePath(false, "a")));
+        assertThat(new RelativePath(false, "a").getParent(), equalTo(new RelativePath(false)));
+        assertThat(new RelativePath(false).getParent(), nullValue());
     }
 }

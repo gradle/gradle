@@ -56,12 +56,12 @@ class FileSetTest extends AbstractTestForPatternSet {
 
     @Test public void testFileSetConstructionWithBaseDir() {
         fileSet = new FileSet(testDir, resolver)
-        assertEquals(testDir, fileSet.baseDir)
+        assertEquals(testDir, fileSet.dir)
     }
 
     @Test public void testFileSetConstructionFromMap() {
-        fileSet = new FileSet(resolver, baseDir: testDir, includes: ['include'])
-        assertEquals(testDir, fileSet.baseDir)
+        fileSet = new FileSet(resolver, dir: testDir, includes: ['include'])
+        assertEquals(testDir, fileSet.dir)
         assertEquals(['include'] as Set, fileSet.includes)
     }
 
@@ -71,8 +71,8 @@ class FileSetTest extends AbstractTestForPatternSet {
     }
 
     @Test public void testFileSetConstructionWithBaseDirAsString() {
-        FileSet fileSet = new FileSet(resolver, baseDir: 'dirname')
-        assertEquals(new File('dirname'), fileSet.baseDir);
+        FileSet fileSet = new FileSet(resolver, dir: 'dirname')
+        assertEquals(new File('dirname'), fileSet.dir);
     }
 
     @Test public void testCanScanForFiles() {
@@ -109,7 +109,7 @@ class FileSetTest extends AbstractTestForPatternSet {
     }
 
     @Test public void testIsEmptyWhenBaseDirDoesNotExist() {
-        fileSet.baseDir = new File(testDir, 'does not exist')
+        fileSet.dir = new File(testDir, 'does not exist')
 
         assertThat(fileSet.files, isEmpty())
         assertSetContains(fileSet)

@@ -133,8 +133,7 @@ public class CopyVisitorTest {
         File target = visitor.getTarget(new RelativePath(true, "one"));
         assertEquals(new File(testDir, "one"), target);
 
-        visitor.visitDir(file(new File(sourceDir, "sub"), new RelativePath(false, "sub")));
-        target = visitor.getTarget(new RelativePath(true, "two"));
+        target = visitor.getTarget(new RelativePath(true, "sub", "two"));
         assertEquals(new File(testDir, "sub/two"), target);
     }
 

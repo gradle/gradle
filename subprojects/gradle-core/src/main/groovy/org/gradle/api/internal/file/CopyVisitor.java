@@ -31,23 +31,20 @@ import java.util.List;
  * @author Steve Appling
  */
 public class CopyVisitor implements FileVisitor, WorkResult {
-    private File baseDestDir, currentDestDir;
+    private File baseDestDir;
     private List<Closure> remapClosures;
     private List<Transformer<String>> nameMappers;
     private FilterChain filterChain;
     private boolean didWork = false;
 
-
     public CopyVisitor(File baseDestDir, List<Closure> remapClosures, List<Transformer<String>> nameMappers, FilterChain filterChain) {
         this.baseDestDir = baseDestDir;
         this.remapClosures = remapClosures;
         this.nameMappers = nameMappers;
-        currentDestDir = baseDestDir;
         this.filterChain = filterChain;
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
-        currentDestDir = new File(baseDestDir, dirDetails.getRelativePath().getPathString());
     }
 
     public void visitFile(FileVisitDetails fileDetails) {
@@ -86,7 +83,7 @@ public class CopyVisitor implements FileVisitor, WorkResult {
         }
 
         if (targetName != null) {
-            File target = new File(currentDestDir, targetName);
+            File target = new File(path.getParent().getFile(baseDestDir), targetName);
             if (remapClosures == null || remapClosures.size() == 0) {
                 result = target;
             } else {

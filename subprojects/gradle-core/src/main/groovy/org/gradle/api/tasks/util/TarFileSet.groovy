@@ -39,7 +39,7 @@ class TarFileSet extends ZipFileSet {
     }
 
     def addToAntBuilder(node, String childNodeName) {
-        File dir = baseDir
+        File dir = dir
         if (!dir.exists()) {
             return
         }
