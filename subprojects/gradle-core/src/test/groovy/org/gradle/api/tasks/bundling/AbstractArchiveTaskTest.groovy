@@ -118,9 +118,9 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     @Test public void testFileSetWithSpecifiedBaseDir() {
         applyToFileSetMethods {
-            File specifiedBaseDir = new File('/root')
+            File specifiedBaseDir = new File('baseDir')
             FileSet fileSet = archiveTask."$it"(baseDir: specifiedBaseDir)
-            assertEquals(specifiedBaseDir, fileSet.baseDir)
+            assertEquals(project.file(specifiedBaseDir), fileSet.baseDir)
             assert archiveTask.resourceCollections.contains(fileSet)
         }
     }

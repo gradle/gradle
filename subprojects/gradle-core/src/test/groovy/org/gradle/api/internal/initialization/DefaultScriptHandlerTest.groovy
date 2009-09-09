@@ -48,7 +48,7 @@ public class DefaultScriptHandlerTest {
         handler.updateClassPath()
 
         assertThat(handler.classLoader, sameInstance(classLoader))
-        assertThat(classLoader.getURLs(), equalTo([file1.toURL(), file2.toURL()] as URL[]))
+        assertThat(classLoader.getURLs(), equalTo([file1.toURI().toURL(), file2.toURI().toURL()] as URL[]))
     }
 
     @Test void canConfigureRepositories() {

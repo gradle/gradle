@@ -90,7 +90,7 @@ abstract class AbstractAntArchiveTest {
         createMetaData()
         AntDirective antDirective = new AntDirective()
         antDirective.directive = {
-            files(includes: groovyFile.absolutePath) {
+            file(file: groovyFile.absolutePath) {
 
             }
         }
