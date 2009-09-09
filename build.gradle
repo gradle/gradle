@@ -453,6 +453,8 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     pdfSourceHtml.parentFile.mkdirs()
     userguidePdfFile.parentFile.mkdirs()
 
+    println "transforming docbook -> html"
+
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
         sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
         arg(value: '-in')
@@ -466,6 +468,9 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
             path(location: new File(docbookDir, 'extensions/xalan27.jar'))
         }
     }
+
+    println "copying resources"
+
     copy {
         from userguideSrcDir
         into pdfSourceHtml.parentFile
@@ -473,6 +478,8 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
         include 'print.css'
         include 'images/*.png'
     }
+
+    println "transforming html -> pdf"
 
     def uris = configurations.userGuideTask.files.collect {it.toURI().toURL()}
     def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
@@ -483,6 +490,8 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     userguidePdfFile.withOutputStream {
         renderer.createPDF(it)
     }
+
+    println "done"
 }
 
 task uploadDocs(dependsOn: [userguide, javadoc, groovydoc]) << {
