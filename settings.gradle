@@ -1,5 +1,9 @@
-include 'gradle-wrapper','gradle-core', 'gradle-ui', 'gradle-open-api'
-project(':gradle-core').projectDir = new File(settingsDir, 'subprojects/gradle-core')
-project(':gradle-wrapper').projectDir = new File(settingsDir, 'subprojects/gradle-wrapper')
-project(':gradle-ui' ).projectDir = new File(settingsDir, 'subprojects/gradle-ui')
-project(':gradle-open-api' ).projectDir = new File(settingsDir, 'subprojects/gradle-open-api')
+include 'gradle-wrapper'
+include 'gradle-core'
+include 'gradle-ui'
+include 'gradle-open-api'
+
+rootProject.name = 'gradle'
+rootProject.children.each {project ->
+    project.projectDir = new File(settingsDir, "subprojects/$project.name")
+}
