@@ -66,7 +66,6 @@ public class UserGuideTransformTask extends DefaultTask {
     private Element loadAndTransform() {
         Document doc = parseSourceFile()
         Element root = doc.documentElement
-
         use(DOMCategory) {
             addVersionInfo(doc)
             applyConditionalChunks(doc)
@@ -78,7 +77,7 @@ public class UserGuideTransformTask extends DefaultTask {
         return root
     }
 
-    private def addVersionInfo(Document doc) {
+    def addVersionInfo(Document doc) {
         Element releaseInfo = doc.createElement('releaseinfo')
         releaseInfo.appendChild(doc.createTextNode(version.toString()))
         if (doc.documentElement.bookinfo[0]) {
@@ -86,17 +85,17 @@ public class UserGuideTransformTask extends DefaultTask {
         }
     }
 
-    private def fixProgramListings(Document doc) {
+    def fixProgramListings(Document doc) {
         doc.documentElement.depthFirst().findAll { it.name() == 'programlisting' || it.name() == 'screen' }.each {Element element ->
             element.setTextContent(normalise(element.getTextContent()))
         }
     }
 
-    private String normalise(String content) {
+    String normalise(String content) {
         return content.trim().replace('\t', '    ')
     }
 
-    private def transformApiLinks(Document doc) {
+    def transformApiLinks(Document doc) {
         File linksFile = new File(destFile.parentFile, 'links.xml')
         linksFile.withWriter {Writer writer ->
             MarkupBuilder xml = new MarkupBuilder(writer)
@@ -126,7 +125,7 @@ public class UserGuideTransformTask extends DefaultTask {
         }
     }
 
-    private def transformSamples(Document doc) {
+    def transformSamples(Document doc) {
         File samplesFile = new File(destFile.parentFile, 'samples.xml')
         samplesFile.withWriter {Writer writer ->
             MarkupBuilder xml = new MarkupBuilder(writer)
@@ -240,7 +239,7 @@ public class UserGuideTransformTask extends DefaultTask {
         }
     }
 
-    private void applyConditionalChunks(Document doc) {
+    void applyConditionalChunks(Document doc) {
         doc.documentElement.getElementsByTagName('standalonedocument').each {Element element ->
             if (standalone) {
                 element.children().each {Node child ->
