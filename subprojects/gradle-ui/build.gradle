@@ -4,24 +4,17 @@ dependencies {
    compile project(':gradle-core')
    compile project(':gradle-open-api')
 
-    def GROOVY_DEPENDENCIES = [
-            "asm:asm-all:2.2.3@jar",
-            "antlr:antlr:2.7.7@jar",
-            "commons-cli:commons-cli:1.2@jar",
-            "org.apache.ant:ant:1.7.0@jar",
-            "org.apache.ant:ant-junit:1.7.0@jar",
-            "org.apache.ant:ant-launcher:1.7.0@jar"
-    ]
-    groovy "org.codehaus.groovy:groovy:1.6.4@jar", GROOVY_DEPENDENCIES
+    groovy libraries.groovy_depends
 
 
-    compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",
-            "dom4j:dom4j:1.6.1@jar", "jaxen:jaxen:1.1@jar",
-            "commons-io:commons-io:1.4@jar",
-            "ch.qos.logback:logback-classic:0.9.9@jar",
-            "org.slf4j:slf4j-api:1.5.3@jar",
-            "org.slf4j:jul-to-slf4j:1.5.3@jar",
-            "ch.qos.logback:logback-core:0.9.9@jar"
+    compile libraries.jopt_simple,
+            libraries.dom4j,
+            libraries.jaxen,
+            libraries.commons_io,
+            libraries.logback_classic,
+            libraries.slf4j_api,
+            libraries.jul_to_slf4j,
+            libraries.logback_core
 
     testCompile files(project( ':gradle-core' ).dependencyProject.source.test.classesDir)
 }
