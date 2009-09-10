@@ -29,6 +29,7 @@ import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.GroovySourceSet;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -83,9 +84,11 @@ public class GroovyPlugin implements Plugin {
                 groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));
                 sourceSet.getAllJava().add(groovySourceSet.getGroovy().matching(sourceSet.getJavaSourcePatterns()));
 
+                TaskDependency javaCompileTaskDependency =  project.getTasks().getByName(sourceSet.getCompileTaskName()).getTaskDependencies();
                 String compileTaskName = String.format("%sGroovy", sourceSet.getCompileTaskName());
                 GroovyCompile compile = project.getTasks().add(compileTaskName, GroovyCompile.class);
                 javaPlugin.configureForSourceSet(sourceSet, compile);
+                compile.dependsOn(javaCompileTaskDependency);
                 compile.dependsOn(sourceSet.getCompileTaskName());
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
                 compile.conventionMapping("groovySourceDirs", new ConventionValue() {
