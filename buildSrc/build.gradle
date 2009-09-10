@@ -16,12 +16,13 @@ dependencies {
     compile files(org.gradle.util.BootstrapUtil.gradleClasspath)
     // todo Actually it should be only groovy, but without junit we get a strange error. We need to understand this.
     groovy files(org.gradle.util.BootstrapUtil.groovyFiles)
+    testCompile "junit:junit:4.7"
 }
 
 checkstyleConfigDir = "$rootDir/../config/checkstyle"
 checkstyleConfigFileName = new File(checkstyleConfigDir, 'checkstyle.xml')
 codeNarcConfigFileName = "$rootDir/../config/codenarc.xml"
-[checkstyle, checkstyleTests].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
+[checkstyleMain, checkstyleTest].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
 
 uploadArchivesInternal.dependsOn check, test
 

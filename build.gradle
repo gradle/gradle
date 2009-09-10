@@ -107,7 +107,7 @@ subprojects {
     checkstyleConfigDir = "$rootDir/config/checkstyle"
     checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
     codeNarcConfigFileName = "$rootDir/config/codenarc.xml"
-    [checkstyle, checkstyleTests].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
+    [checkstyleMain, checkstyleTest].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
 
     groovydoc.destinationDir = explodedDistGroovydocsDir
 }
@@ -219,7 +219,7 @@ def removeAnyExistingOldGradleLibs() {
 }
 
 task javadoc(overwrite: true, type: Javadoc, dependsOn: subprojects*.compile) {
-    srcDirs = subprojects.inject([]) {list, project -> list + project.source.main.java.srcDirs + project.groovySrcDirs}
+    srcDirs = subprojects.inject([]) {list, project -> list + project.source.main.java.srcDirs + project.source.main.groovy.srcDirs}
     destinationDir = explodedDistJavadocsDir
     configuration = files(subprojects.collect { project-> [project.configurations.compile, project.source.main.classesDir] })
     // todo: include only the public packages
@@ -241,7 +241,7 @@ task explodedDist(dependsOn: [explodedDistBase, docs, 'samples'], description: '
     copy {
         into explodedDistSrcDir
         subprojects {
-            from source.main.java.srcDirs, source.main.resources.srcDirs, groovySrcDirs
+            from source.main.java.srcDirs, source.main.resources.srcDirs, source.main.groovy.srcDirs
         }
     }
 }

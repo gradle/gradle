@@ -55,4 +55,4 @@ test {
 }
 
 // We should not need this, but temporarily this will keep the CI builds from failing 
-checkstyle.dependsOn(project(':gradle-core').uploadDefaultInternal, project(':gradle-open-api').uploadDefaultInternal)
+checkstyleMain.dependsOn(project(':gradle-core').uploadDefaultInternal, project(':gradle-open-api').uploadDefaultInternal)
