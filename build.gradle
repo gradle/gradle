@@ -494,6 +494,10 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     println "done"
 }
 
+[userguideHtml, userguideSingleHtml, userguidePdf].each {
+    it.onlyIf { !System.getProperty("os.name").toLowerCase().contains('windows') }
+}
+
 task uploadDocs(dependsOn: [userguide, javadoc, groovydoc]) << {
     ftp(action: 'mkdir', remotedir: docsRemoteDir)
     ftp(action: 'delete', remotedir: docsRemoteDir) {
