@@ -18,9 +18,7 @@ package org.gradle.openapi.external;
 import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
+import org.gradle.BootstrapLoader;
 
 /**
 
@@ -50,21 +48,29 @@ public class ExternalUtility
 
       System.setProperty("gradle.home", gradleHomeDirectory.getAbsolutePath() );
 
-      //create a class loader that will load our bootloader.
-      URLClassLoader contextClassLoader = new URLClassLoader(new URL[] { gradleJarFile.toURI().toURL() }, parentClassLoader );
+      //the following code was used when BootstrapLoader was in Gradle-core. It was moved out due
+      //a circular dependency. Hopefully that will be solved and then this probably needs to moved
+      //back (due to duplication of code). When it does, this needs to uncommented out (and the code
+      //below it removed)
+      
+      ////create a class loader that will load our bootloader.
+      //URLClassLoader contextClassLoader = new URLClassLoader(new URL[] { gradleJarFile.toURI().toURL() }, parentClassLoader );
+      //
+      //Class bootstrapClass = contextClassLoader.loadClass("org.gradle.BootstrapLoader");
+      //
+      //Object loader = bootstrapClass.newInstance();
+      //Method initializeMethod = bootstrapClass.getDeclaredMethod( "initialize", new Class<?>[]{ClassLoader.class, File.class, boolean.class, boolean.class, boolean.class } );
+      //
+      ////get the bootloader to actually load gradle since it requires some very specific steps
+      //initializeMethod.invoke( loader, parentClassLoader, gradleHomeDirectory, true, false, showDebugInfo );
+      //
+      ////get the bootloader's classloader so we can use that to load a specific class from gradle.
+      //Method getClassLoaderMethod = bootstrapClass.getDeclaredMethod( "getClassLoader" );
+      //ClassLoader bootStrapClassLoader = (ClassLoader) getClassLoaderMethod.invoke( loader );
 
-      Class bootstrapClass = contextClassLoader.loadClass("org.gradle.BootstrapLoader");
-
-      Object loader = bootstrapClass.newInstance();
-      Method initializeMethod = bootstrapClass.getDeclaredMethod( "initialize", new Class<?>[]{ClassLoader.class, File.class, boolean.class, boolean.class, boolean.class } );
-
-      //get the bootloader to actually load gradle since it requires some very specific steps
-      initializeMethod.invoke( loader, parentClassLoader, gradleHomeDirectory, true, false, showDebugInfo );
-
-      //get the bootloader's classloader so we can use that to load a specific class from gradle.
-      Method getClassLoaderMethod = bootstrapClass.getDeclaredMethod( "getClassLoader" );
-      ClassLoader bootStrapClassLoader = (ClassLoader) getClassLoaderMethod.invoke( loader );
-      return bootStrapClassLoader;
+      BootstrapLoader bootstrapLoader = new BootstrapLoader();
+      bootstrapLoader.initialize( parentClassLoader, gradleHomeDirectory, true, false, showDebugInfo );
+      return bootstrapLoader.getClassLoader();
    }
 
    /*
