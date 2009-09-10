@@ -531,6 +531,37 @@ public class DefaultConfigurationTest {
         assertThat((Set<Task>) td.getDependencies(tdTask), equalTo(toSet(desiredTask)));
     }
 
+    @SuppressWarnings("unchecked")
+    @Test public void taskDependencyFromProjectDependencyWithoutCommonConfiguration() {
+        // This test exists because a NullPointerException was thrown by
+        // getTaskDependencyFromProjectDependency() if the rootProject
+        // defined a task as the same name as a subproject's task, but did
+        // not define the same configuration.
+        final String configName = configuration.getName();
+        final String taskName = "testit";
+        final Task tdTask = context.mock(Task.class, "tdTask");
+        final Project taskProject = context.mock(Project.class, "taskProject");
+        final Project rootProject = context.mock(Project.class, "rootProject");
+        final Project dependentProject = context.mock(Project.class, "dependentProject");
+        final Task desiredTask = context.mock(Task.class, "desiredTask");
+        final Set<Task> taskSet = toSet(desiredTask);
+        final ConfigurationHandler configHandler = context.mock(ConfigurationHandler.class);
+
+        context.checking(new Expectations() {{
+            allowing(tdTask).getProject(); will(returnValue(taskProject));
+            allowing(taskProject).getRootProject(); will(returnValue(rootProject));
+            allowing(rootProject).getTasksByName(taskName, true); will(returnValue(taskSet));
+            allowing(desiredTask).getProject(); will(returnValue(dependentProject));
+            allowing(dependentProject).getConfigurations(); will(returnValue(configHandler));
+
+            // return null to mock not finding the given configuration
+            allowing(configHandler).findByName(configName); will(returnValue(null));
+        }});
+
+        TaskDependency td = configuration.getTaskDependencyFromProjectDependency(false, taskName);
+        assertThat(td.getDependencies(tdTask), equalTo(Collections.EMPTY_SET));
+    }
+
 
     @Test
     public void getDependencies() {
@@ -839,6 +870,3 @@ public class DefaultConfigurationTest {
         void execute();
     }
 }
-
-
-

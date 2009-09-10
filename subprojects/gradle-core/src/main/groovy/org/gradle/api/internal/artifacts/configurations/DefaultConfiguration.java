@@ -260,7 +260,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
         for (Task nextTask : tasksWithName) {
             Configuration configuration = nextTask.getProject().getConfigurations().findByName(getName());
-            if (doesConfigurationDependOnProject(configuration, thisProject)) {
+            if (configuration != null && doesConfigurationDependOnProject(configuration, thisProject)) {
                 taskDependency.add(nextTask);
             }
         }
