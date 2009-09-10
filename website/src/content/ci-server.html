@@ -1,0 +1,23 @@
+<h1>Continous Integration</h1>
+
+Gradle is continously built at the following locations:
+
+<h2>JetBrains Teamcity</h2>
+<ul>
+    <li><a href="http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt41">Windows Build</a></li>
+    <li><a href="http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt107">Linux Build</a></li>
+</ul>
+<h2>Codehaus Bamboo</h2>
+<ul>
+    <li><a href="http://bamboo.ci.codehaus.org/browse/GRADLE-CORETRUNK">Linux Build</a></li>
+    <li><a href="http://bamboo.ci.codehaus.org/browse/GRADLE-NTL">Nightly Build</a> (uploads documentation)</li>
+</ul>
+<h2>Hudson</h2>
+<ul>
+    <li><a href="http://code.taglab.com/hudson/job/Gradle/">Linux Build</a></li>
+</ul>
+
+<p>As we have had many platform specific issues it is very important for us to have a continuous build for multiple
+platforms.</p>
+<p>Gradle is built with Gradle, yet none of those CI servers has Gradle or Groovy installed. The Gradle Wrapper makes
+    this possible.</p>
