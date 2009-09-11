@@ -303,6 +303,26 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    public void addsInputFileCollectionAsADependencyOfTheTask() {
+        final FileCollection inputFiles = context.mock(FileCollection.class);
+        final TaskWithInputFiles task = new TaskWithInputFiles(inputFiles);
+
+        expectTaskCreated(task);
+
+        context.checking(new Expectations(){{
+            TaskDependency dependency = context.mock(TaskDependency.class);
+
+            one(inputFiles).getBuildDependencies();
+            will(returnValue(dependency));
+
+            one(dependency).getDependencies(task);
+            will(returnValue(toSet()));
+        }});
+
+        assertThat(task.getTaskDependencies().getDependencies(task), notNullValue());
+    }
+
+    @Test
     public void validationActionSucceedsWhenSpecifiedOutputDirectoryDoesNotExist() {
         TaskWithOutputDir task = new TaskWithOutputDir(new File(testDir, "subdir"));
         expectTaskCreated(task);
@@ -391,6 +411,14 @@ public class AnnotationProcessingTaskFactoryTest {
         task.execute();
     }
 
+    @Test
+    public void canAttachAnnotationToGroovyProperty() {
+        InputFileTask task = new InputFileTask();
+        expectTaskCreated(task);
+
+        assertValidationFails(task, "No value has been specified for property 'srcFile'.");
+    }
+    
     private void assertValidationFails(TaskInternal task, String expectedErrorMessage) {
         try {
             task.execute();

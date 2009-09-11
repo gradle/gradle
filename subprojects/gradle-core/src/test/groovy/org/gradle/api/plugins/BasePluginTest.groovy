@@ -18,14 +18,13 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.tasks.Clean
 import org.gradle.api.tasks.Upload
 import org.gradle.util.HelperUtil
 import org.junit.Test
-import static org.gradle.util.WrapUtil.*
+import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -47,7 +46,7 @@ class BasePluginTest {
 
         def task = project.tasks[BasePlugin.CLEAN_TASK_NAME]
         assertThat(task, instanceOf(Clean))
-        assertDependsOn(task) 
+        assertThat(task, dependsOn())
         assertThat(task.dir, equalTo(project.buildDir))
     }
 
@@ -59,15 +58,11 @@ class BasePluginTest {
 
         def task = project.tasks['buildConf']
         assertThat(task, instanceOf(DefaultTask))
-        assertDependsOn(task, 'producer')
+        assertThat(task, dependsOn('producer'))
 
         task = project.tasks['uploadConf']
         assertThat(task, instanceOf(Upload))
-        assertDependsOn(task, 'producer')
+        assertThat(task, dependsOn('producer'))
         assertThat(task.configuration, sameInstance(project.configurations.conf))
-    }
-    
-    private void assertDependsOn(Task task, String... names) {
-        assertThat(task.taskDependencies.getDependencies(task)*.name as Set, equalTo(toSet(names)))
     }
 }

@@ -15,77 +15,37 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.*;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.*;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.ReflectionUtil;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.*;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.ReflectionUtil;
 
-import java.util.*;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.annotation.Annotation;
-import java.io.File;
+import java.util.*;
 
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
-    private final ValidationAction inputFileValidation = new ValidationAction() {
-        public void validate(String propertyName, Object value) throws InvalidUserDataException {
-            File fileValue = (File) value;
-            if (!fileValue.exists()) {
-                throw new InvalidUserDataException(String.format(
-                        "File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-            }
-            if (!fileValue.isFile()) {
-                throw new InvalidUserDataException(String.format(
-                        "File '%s' specified for property '%s' is not a file.", fileValue, propertyName));
-            }
-        }
-    };
-    private final ValidationAction skipEmptyFileCollection = new ValidationAction() {
-            public void validate(String propertyName, Object value) throws InvalidUserDataException {
-                if (value instanceof FileCollection) {
-                    ((FileCollection) value).stopExecutionIfEmpty();
-                }
-            }
-        };
-    private final ValidationAction inputDirValidation = new ValidationAction() {
-        public void validate(String propertyName, Object value) throws InvalidUserDataException {
-            File fileValue = (File) value;
-            if (!fileValue.exists()) {
-                throw new InvalidUserDataException(String.format(
-                        "Directory '%s' specified for property '%s' does not exist.", fileValue, propertyName));
-            }
-            if (!fileValue.isDirectory()) {
-                throw new InvalidUserDataException(String.format(
-                        "Directory '%s' specified for property '%s' is not a directory.", fileValue, propertyName));
-            }
-        }
-    };
-    private final ValidationAction ouputFileValidation = new ValidationAction() {
-        public void validate(String propertyName, Object value) throws InvalidUserDataException {
-            File fileValue = (File) value;
-            if (fileValue.exists() && !fileValue.isFile()) {
-                throw new InvalidUserDataException(String.format(
-                        "Cannot write to file '%s' specified for property '%s' as it is a directory.", fileValue, propertyName));
-            }
-            if (!fileValue.getParentFile().isDirectory() && !fileValue.getParentFile().mkdirs()) {
-                throw new InvalidUserDataException(String.format(
-                        "Cannot create parent directory '%s' of file specified for property '%s'.", fileValue.getParentFile(), propertyName));
-            }
-        }
-    };
-    private final ValidationAction outputDirValidation = new ValidationAction() {
-        public void validate(String propertyName, Object value) throws InvalidUserDataException {
-            File fileValue = (File) value;
-            if (!fileValue.isDirectory() && !fileValue.mkdirs()) {
-                throw new InvalidUserDataException(String.format(
-                        "Cannot create directory '%s' specified for property '%s'.", fileValue, propertyName));
-            }
-        }
-    };
+    public static String DEPENDENCY_AUTO_WIRE = "dependencyAutoWire";
     private final ITaskFactory taskFactory;
     private final Map<Class, List<Action<Task>>> actionsForType = new HashMap<Class, List<Action<Task>>>();
+    private final List<? extends PropertyAnnotationHandler> handlers = Arrays.asList(
+            new InputFilePropertyAnnotationHandler(), new InputDirectoryPropertyAnnotationHandler(),
+            new InputFilesPropertyAnnotationHandler(), new OutputFilePropertyAnnotationHandler(),
+            new OutputDirectoryPropertyAnnotationHandler());
+    private final ValidationAction notNullValidator = new ValidationAction() {
+        public void validate(String propertyName, Object value) throws InvalidUserDataException {
+            if (value == null) {
+                throw new InvalidUserDataException(String.format("No value has been specified for property '%s'.",
+                        propertyName));
+            }
+        }
+    };
 
     public AnnotationProcessingTaskFactory(ITaskFactory taskFactory) {
         this.taskFactory = taskFactory;
@@ -93,36 +53,54 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
     public Task createTask(Project project, Map args) {
         Task task = taskFactory.createTask(project, args);
-        List<Action<Task>> actions = actionsForType.get(task.getClass());
+
+        Class<? extends Task> type = task.getClass();
+        List<Action<Task>> actions = actionsForType.get(type);
         if (actions == null) {
-            List<Action<Task>> notNullActions = new ArrayList<Action<Task>>();
-            List<Action<Task>> skipActions = new ArrayList<Action<Task>>();
-            List<Action<Task>> validationActions = new ArrayList<Action<Task>>();
-            actions = new ArrayList<Action<Task>>();
-
-            for (Class current = task.getClass(); current != null; current = current.getSuperclass()) {
-                for (Method method : current.getDeclaredMethods()) {
-                    attachTaskAction(method, actions);
-                    MethodInfo methodInfo = new MethodInfo(method, skipActions, validationActions, notNullActions);
-                    attachInputFileValidation(methodInfo);
-                    attachInputFilesValidation(methodInfo);
-                    attachInputDirValidation(methodInfo);
-                    attachOutputFileValidation(methodInfo);
-                    attachOutputDirValidation(methodInfo);
-                }
-            }
-
-            actions.addAll(validationActions);
-            actions.addAll(skipActions);
-            actions.addAll(notNullActions);
-            actionsForType.put(task.getClass(), actions);
+            actions = createActionsForType(type);
+            actionsForType.put(type, actions);
         }
+
+        Object autoWireStr = args.get(DEPENDENCY_AUTO_WIRE);
+        boolean autoWire = autoWireStr == null ? true : Boolean.valueOf(autoWireStr.toString());
 
         for (Action<Task> action : actions) {
             task.doFirst(action);
+            if (autoWire && action instanceof Validator) {
+                Validator validator = (Validator) action;
+                validator.addDependencies(task);
+            }
         }
 
         return task;
+    }
+
+    private List<Action<Task>> createActionsForType(Class<? extends Task> type) {
+        List<Action<Task>> actions;
+        actions = new ArrayList<Action<Task>>();
+        Validator validator = new Validator();
+        for (Class current = type; current != null; current = current.getSuperclass()) {
+            for (Method method : current.getDeclaredMethods()) {
+                attachTaskAction(method, actions);
+                if (!isGetter(method)) {
+                    continue;
+                }
+
+                final String propertyName = StringUtils.uncapitalize(method.getName().substring(3));
+                PropertyInfo propertyInfo = new PropertyInfo(propertyName, method);
+
+                attachValidationActions(propertyInfo);
+
+                if (propertyInfo.required) {
+                    validator.properties.add(propertyInfo);
+                }
+            }
+        }
+
+        if (!validator.properties.isEmpty()) {
+            actions.add(validator);
+        }
+        return actions;
     }
 
     private void attachTaskAction(final Method method, Collection<Action<Task>> actions) {
@@ -145,77 +123,46 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         });
     }
 
-    private void attachInputFileValidation(MethodInfo methodInfo) {
-        attachValidationAction(methodInfo, InputFile.class, inputFileValidation);
-    }
-
-    private void attachInputFilesValidation(MethodInfo methodInfo) {
-        ValidationAction skipAction = null;
-        if (methodInfo.method.getAnnotation(SkipWhenEmpty.class) != null) {
-            skipAction = skipEmptyFileCollection;
+    private void attachValidationActions(PropertyInfo propertyInfo) {
+        for (PropertyAnnotationHandler handler : handlers) {
+            attachValidationAction(handler, propertyInfo);
         }
-        attachValidationAction(methodInfo, InputFiles.class, null, skipAction);
     }
 
-    private void attachInputDirValidation(MethodInfo methodInfo) {
-        attachValidationAction(methodInfo, InputDirectory.class, inputDirValidation);
-    }
-
-    private void attachOutputFileValidation(MethodInfo methodInfo) {
-        attachValidationAction(methodInfo, OutputFile.class, ouputFileValidation);
-    }
-
-    private void attachOutputDirValidation(MethodInfo methodInfo) {
-        attachValidationAction(methodInfo, OutputDirectory.class, outputDirValidation);
-    }
-
-    private void attachValidationAction(MethodInfo methodInfo, Class annotationType, ValidationAction validationAction) {
-        attachValidationAction(methodInfo, annotationType, validationAction, null);
-    }
-
-    private void attachValidationAction(MethodInfo methodInfo, Class annotationType, final ValidationAction validationAction, final ValidationAction skipAction) {
-        final Method method = methodInfo.method;
-        if (method.getAnnotation(annotationType) == null) {
+    private void attachValidationAction(PropertyAnnotationHandler handler, PropertyInfo propertyInfo) {
+        final Method method = propertyInfo.method;
+        Class<? extends Annotation> annotationType = handler.getAnnotationType();
+        if (!isGetter(method)) {
+            if (method.getAnnotation(annotationType) != null) {
+                throw new GradleException(String.format("Cannot attach @%s to non-getter method %s().",
+                        annotationType.getSimpleName(), method.getName()));
+            }
             return;
         }
-        if (!isGetter(method)) {
-            throw new GradleException(String.format("Cannot attach @%s to non-getter method %s().",
-                    annotationType.getSimpleName(), method.getName()));
+
+        AnnotatedElement annotationTarget = null;
+        if (method.getAnnotation(annotationType) != null) {
+            annotationTarget = method;
+        } else {
+            try {
+                Field field = method.getDeclaringClass().getDeclaredField(propertyInfo.propertyName);
+                if (field.getAnnotation(annotationType) != null) {
+                    annotationTarget = field;
+                }
+            } catch (NoSuchFieldException e) {
+                // ok - ignore
+            }
+        }
+        if (annotationTarget == null) {
+            return;
         }
 
-        final String propertyName = StringUtils.uncapitalize(method.getName().substring(3));
-        Annotation optional = method.getAnnotation(Optional.class);
+        Annotation optional = annotationTarget.getAnnotation(Optional.class);
         if (optional == null) {
-            methodInfo.notNullActions.add(new Action<Task>() {
-                public void execute(Task task) {
-                    Object value = ReflectionUtil.invoke(task, method.getName(), new Object[0]);
-                    if (value == null) {
-                        throw new InvalidUserDataException(String.format(
-                                "No value has been specified for property '%s'.", propertyName));
-                    }
-                }
-            });
+            propertyInfo.setNotNullValidator(notNullValidator);
         }
 
-        if (skipAction != null) {
-            methodInfo.skipActions.add(new Action<Task>() {
-                public void execute(Task task) {
-                    Object value = ReflectionUtil.invoke(task, method.getName(), new Object[0]);
-                    skipAction.validate(propertyName, value);
-                }
-            });
-        }
-
-        if (validationAction != null) {
-            methodInfo.validationActions.add(new Action<Task>() {
-                public void execute(Task task) {
-                    Object value = ReflectionUtil.invoke(task, method.getName(), new Object[0]);
-                    if (value != null) {
-                        validationAction.validate(propertyName, value);
-                    }
-                }
-            });
-        }
+        propertyInfo.setActions(handler.getActions(annotationTarget, propertyInfo.propertyName));
     }
 
     private boolean isGetter(Method method) {
@@ -223,22 +170,85 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 && method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers());
     }
 
-    private interface ValidationAction {
-        void validate(String propertyName, Object value) throws InvalidUserDataException;
-    }
-    
-    private static class MethodInfo {
-        private final Method method;
-        private final List<Action<Task>> skipActions;
-        private final List<Action<Task>> validationActions;
-        private final List<Action<Task>> notNullActions;
+    private static class Validator implements Action<Task> {
+        private Set<PropertyInfo> properties = new LinkedHashSet<PropertyInfo>();
 
-        public MethodInfo(Method method, List<Action<Task>> skipActions, List<Action<Task>> validationActions, List<Action<Task>> notNullActions) {
-            this.method = method;
-            this.skipActions = skipActions;
-            this.validationActions = validationActions;
-            this.notNullActions = notNullActions;
+        public void addDependencies(Task task) {
+            for (final PropertyInfo property : properties) {
+                final Transformer<Object> transformer = property.actions.getTaskDependency();
+                if (transformer != null) {
+                    task.dependsOn(new TaskDependency() {
+                        public Set<? extends Task> getDependencies(Task task) {
+                            Object value = ReflectionUtil.invoke(task, property.method.getName(), new Object[0]);
+                            if (value != null) {
+                                value = transformer.transform(value);
+                            }
+                            DefaultTaskDependency dependency = new DefaultTaskDependency();
+                            if (value != null) {
+                                dependency.add(value);
+                            }
+                            return dependency.getDependencies(task);
+                        }
+                    });
+                }
+            }
+        }
+
+        public void execute(Task task) {
+            Map<PropertyInfo, Object> propertyValues = new HashMap<PropertyInfo, Object>();
+            for (PropertyInfo property : properties) {
+                propertyValues.put(property, ReflectionUtil.invoke(task, property.method.getName(), new Object[0]));
+            }
+            for (PropertyInfo property : properties) {
+                property.notNullValidator.validate(property.propertyName, propertyValues.get(property));
+            }
+            for (PropertyInfo property : properties) {
+                property.skipAction.validate(property.propertyName, propertyValues.get(property));
+            }
+            for (PropertyInfo property : properties) {
+                Object value = propertyValues.get(property);
+                if (value != null) {
+                    property.validationAction.validate(property.propertyName, value);
+                }
+            }
         }
     }
 
+    private static class PropertyInfo {
+        private final ValidationAction noOpAction = new ValidationAction() {
+            public void validate(String propertyName, Object value) throws InvalidUserDataException {
+            }
+        };
+
+        private final String propertyName;
+        private final Method method;
+        private PropertyAnnotationHandler.PropertyActions actions;
+        private ValidationAction skipAction = noOpAction;
+        private ValidationAction validationAction = noOpAction;
+        private ValidationAction notNullValidator = noOpAction;
+        public boolean required;
+
+        private PropertyInfo(String propertyName, Method method) {
+            this.propertyName = propertyName;
+            this.method = method;
+        }
+
+        public void setActions(PropertyAnnotationHandler.PropertyActions actions) {
+            this.actions = actions;
+            final ValidationAction skipAction = actions.getSkipAction();
+            if (skipAction != null) {
+                this.skipAction = skipAction;
+            }
+
+            final ValidationAction validationAction = actions.getValidationAction();
+            if (validationAction != null) {
+                this.validationAction = validationAction;
+            }
+            required = true;
+        }
+
+        public void setNotNullValidator(ValidationAction notNullValidator) {
+            this.notNullValidator = notNullValidator;
+        }
+    }
 }

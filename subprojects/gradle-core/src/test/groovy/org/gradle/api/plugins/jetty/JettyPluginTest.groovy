@@ -16,13 +16,13 @@
 package org.gradle.api.plugins.jetty
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.WarPlugin
 import org.gradle.util.HelperUtil
 import org.junit.Test
-import static org.junit.Assert.*
+import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
-import org.gradle.api.plugins.WarPlugin
-import org.gradle.util.WrapUtil
-import org.gradle.api.plugins.JavaPlugin
+import static org.junit.Assert.*
 
 public class JettyPluginTest {
     private final Project project = HelperUtil.createRootProject()
@@ -42,12 +42,12 @@ public class JettyPluginTest {
 
         def task = project.tasks[JettyPlugin.JETTY_RUN]
         assertThat(task, instanceOf(JettyRun))
-        assertThat(task.dependsOn, equalTo(WrapUtil.toSet(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks[JettyPlugin.JETTY_RUN_WAR]
         assertThat(task, instanceOf(JettyRunWar))
-        assertThat(task.dependsOn, equalTo(WrapUtil.toSet(WarPlugin.WAR_TASK_NAME)))
+        assertThat(task, dependsOn(WarPlugin.WAR_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks[JettyPlugin.JETTY_STOP]
@@ -60,11 +60,11 @@ public class JettyPluginTest {
         new JettyPlugin().use(project, project.getPlugins())
 
         def task = project.tasks.add('customRun', JettyRun)
-        assertThat(task.dependsOn, equalTo(WrapUtil.toSet(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks.add('customWar', JettyRunWar)
-        assertThat(task.dependsOn, equalTo(WrapUtil.toSet(WarPlugin.WAR_TASK_NAME)))
+        assertThat(task, dependsOn(WarPlugin.WAR_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
     }
 }

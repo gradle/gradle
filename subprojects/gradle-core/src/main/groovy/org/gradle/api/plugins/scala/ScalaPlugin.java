@@ -70,7 +70,7 @@ public class ScalaPlugin implements Plugin {
                         return scala(convention).getScalaSrcDirs();
                     }
                 });
-                compile.setDependsOn(WrapUtil.toSet(SCALA_DEFINE_TASK_NAME));
+                compile.dependsOn(WrapUtil.toSet(SCALA_DEFINE_TASK_NAME));
             }
         });
         ScalaCompile scalaCompile = project.getTasks().replace(COMPILE_TASK_NAME, ScalaCompile.class);
@@ -104,7 +104,7 @@ public class ScalaPlugin implements Plugin {
                         return scala(convention).getScalaDocDir();
                     }
                 });
-                scalaDoc.setDependsOn(WrapUtil.toSet(SCALA_DEFINE_TASK_NAME));
+                scalaDoc.dependsOn(WrapUtil.toSet(SCALA_DEFINE_TASK_NAME));
             }
         });
         project.getTasks().add(SCALA_DOC_TASK_NAME, ScalaDoc.class).setDescription("Generates scaladoc for the source code.");

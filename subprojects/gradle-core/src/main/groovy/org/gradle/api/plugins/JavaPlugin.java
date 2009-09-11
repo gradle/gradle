@@ -20,10 +20,11 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Copy;
@@ -40,8 +41,8 @@ import org.gradle.api.tasks.testing.Test;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -79,7 +80,7 @@ public class JavaPlugin implements Plugin {
         configureCompileDefaults(project, javaConvention);
         configureSourceSetDefaults(javaConvention);
 
-        configureSourceSets(project, javaConvention);
+        configureSourceSets(javaConvention);
 
         configureJavaDoc(project);
         configureTest(project);
@@ -89,7 +90,7 @@ public class JavaPlugin implements Plugin {
         configureBuildDependents(project);
     }
 
-    private void configureSourceSets(Project project, final JavaPluginConvention pluginConvention) {
+    private void configureSourceSets(final JavaPluginConvention pluginConvention) {
         pluginConvention.getSource().add(SourceSet.MAIN_SOURCE_SET_NAME);
 
         SourceSet sourceSet = pluginConvention.getSource().add(SourceSet.TEST_SOURCE_SET_NAME);
@@ -97,8 +98,6 @@ public class JavaPlugin implements Plugin {
                 TEST_COMPILE_CONFIGURATION_NAME));
         sourceSet.setRuntimeClasspath(pluginConvention.getProject().getConfigurations().getByName(
                 TEST_RUNTIME_CONFIGURATION_NAME));
-
-        project.getTasks().getByName(COMPILE_TEST_TASK_NAME).dependsOn(COMPILE_TASK_NAME);
     }
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
@@ -115,10 +114,8 @@ public class JavaPlugin implements Plugin {
                 });
                 sourceSet.getJava().srcDir(String.format("src/%s/java", sourceSet.getName()));
                 sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
-                sourceSet.setCompileClasspath(project.getConfigurations().getByName(
-                        COMPILE_CONFIGURATION_NAME));
-                sourceSet.setRuntimeClasspath(project.getConfigurations().getByName(
-                        RUNTIME_CONFIGURATION_NAME));
+                sourceSet.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
+                sourceSet.setRuntimeClasspath(project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME));
 
                 Copy processResources = project.getTasks().add(sourceSet.getProcessResourcesTaskName(), Copy.class);
                 processResources.setDescription(String.format("Process and copy the %s resources.", sourceSet.getName()));
@@ -173,15 +170,6 @@ public class JavaPlugin implements Plugin {
                 conventionMapping.map("classpath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME);
-                    }
-                });
-                compile.dependsOn(new TaskDependency(){
-                    public Set<? extends Task> getDependencies(Task task) {
-                        if (compile.getClasspath() instanceof Configuration) {
-                            return ((Configuration) compile.getClasspath()).getBuildDependencies().getDependencies(
-                                    task);
-                        }
-                        return Collections.emptySet();
                     }
                 });
                 conventionMapping.map("dependencyCacheDir", new ConventionValue() {
@@ -277,7 +265,6 @@ public class JavaPlugin implements Plugin {
         buildTask.setDescription("Builds and tests this project");
         buildTask.dependsOn(DISTS_TASK_NAME);
         buildTask.dependsOn(TEST_TASK_NAME);
-        addDependsOnProjectBuildDependencies(buildTask, TEST_RUNTIME_CONFIGURATION_NAME);
     }
 
     private void configureBuildNeeded(Project project) {
@@ -299,11 +286,8 @@ public class JavaPlugin implements Plugin {
             public void execute(Test test) {
                 test.dependsOn(COMPILE_TEST_TASK_NAME);
                 test.dependsOn(PROCESS_TEST_RESOURCES_TASK_NAME);
-                test.dependsOn(COMPILE_TASK_NAME);
-                test.dependsOn(PROCESS_RESOURCES_TASK_NAME);
                 test.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TEST);
                 test.setConfiguration(project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME));
-                addDependsOnProjectBuildDependencies(test, TEST_RUNTIME_CONFIGURATION_NAME);
             }
         });
         project.getTasks().add(TEST_TASK_NAME, Test.class).setDescription("Runs the unit tests.");
@@ -319,16 +303,15 @@ public class JavaPlugin implements Plugin {
 
         Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).
                 setTransitive(false).setDescription("Classpath for compiling the test sources.");
-        project.getDependencies().add(TEST_COMPILE_CONFIGURATION_NAME, new AbstractFileCollection() {
-            public String getDisplayName() {
-                return "classes dir";
-            }
-            public Set<File> getFiles() {
-                File classesDir = project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(
+        FileCollection mainClasses = project.files(new Callable() {
+            public Object call() throws Exception {
+                return project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(
                         SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
-                return Collections.singleton(classesDir);
             }
         });
+        FileCollectionDependency dependency = (FileCollectionDependency) project.getDependencies().add(
+                TEST_COMPILE_CONFIGURATION_NAME, mainClasses);
+        dependency.builtBy(PROCESS_RESOURCES_TASK_NAME, COMPILE_TASK_NAME);
         
         configurations.add(TEST_RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(runtimeConfiguration, compileTestsConfiguration).
                 setDescription("Classpath for running the test sources.");
@@ -338,12 +321,6 @@ public class JavaPlugin implements Plugin {
         configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, archivesConfiguration).
                 setDescription("Configuration the default artifacts and its dependencies.");
         configurations.add(DISTS_CONFIGURATION_NAME);
-    }
-
-    private void addDependsOnProjectBuildDependencies(final Task task, String configurationName) {
-        Project project = task.getProject();
-        final Configuration configuration = project.getConfigurations().getByName(configurationName);
-        task.dependsOn(configuration.getBuildDependencies());
     }
 
     /**

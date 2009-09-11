@@ -15,12 +15,14 @@
  */
 package org.gradle.util;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Factory;
-import org.hamcrest.Matcher;
+import org.hamcrest.*;
+import static org.hamcrest.Matchers.*;
+import org.gradle.api.Task;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.io.BufferedReader;
 import java.io.StringReader;
@@ -80,7 +82,7 @@ public class Matchers {
     public static Matcher<String> containsLine(final String line) {
         return new BaseMatcher<String>() {
             public boolean matches(Object o) {
-                return containsLine(org.hamcrest.Matchers.equalTo(line)).matches(o);
+                return containsLine(equalTo(line)).matches(o);
             }
 
             public void describeTo(Description description) {
@@ -142,6 +144,7 @@ public class Matchers {
         };
     }
 
+    @Factory
     public static Matcher<Object[]> isEmptyArray() {
         return new BaseMatcher<Object[]>() {
             public boolean matches(Object o) {
@@ -155,6 +158,7 @@ public class Matchers {
         };
     }
 
+    @Factory
     public static Matcher<Throwable> hasMessage(final Matcher<String> matcher) {
         return new BaseMatcher<Throwable>() {
             public boolean matches(Object o) {
@@ -164,6 +168,36 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("exception messages ").appendDescriptionOf(matcher);
+            }
+        };
+    }
+
+    @Factory
+    public static Matcher<Task> dependsOn(final String... tasks) {
+        return dependsOn(equalTo(new HashSet<String>(Arrays.asList(tasks))));
+    }
+    
+    @Factory
+    public static Matcher<Task> dependsOn(final Matcher<? extends Set<String>> matcher) {
+        return new BaseMatcher<Task>() {
+            public boolean matches(Object o) {
+                Task task = (Task) o;
+                Set<String> names = new HashSet<String>();
+                Set<? extends Task> depTasks = task.getTaskDependencies().getDependencies(task);
+                for (Task depTask : depTasks) {
+                    names.add(depTask.getName());
+                }
+                boolean matches = matcher.matches(names);
+                if (!matches) {
+                    StringDescription description = new StringDescription();
+                    matcher.describeTo(description);
+                    System.out.println(String.format("expected %s, got %s.", description.toString(), names));
+                }
+                return matches;
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("depends on ").appendDescriptionOf(matcher);
             }
         };
     }

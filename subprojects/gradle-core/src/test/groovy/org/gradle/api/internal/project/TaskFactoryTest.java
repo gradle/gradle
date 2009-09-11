@@ -30,11 +30,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -77,8 +73,9 @@ public class TaskFactoryTest {
     @Test
     public void testCreateTaskWithDependencies() {
         List testDependsOn = WrapUtil.toList("/path1");
+        Set expected = WrapUtil.toSet((Object) testDependsOn);
         Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_DEPENDS_ON, testDependsOn)));
-        assertEquals(new HashSet(testDependsOn), task.getDependsOn());
+        assertEquals(expected, task.getDependsOn());
         assertTrue(task.getActions().isEmpty());
     }
 

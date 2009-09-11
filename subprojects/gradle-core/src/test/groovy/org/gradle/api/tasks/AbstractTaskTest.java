@@ -31,6 +31,7 @@ import org.gradle.execution.OutputHandler;
 import org.gradle.test.util.Check;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.Matchers.*;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -69,7 +70,7 @@ public abstract class AbstractTaskTest {
     }
 
     public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = taskFactory.createTask(project, GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
+        Task task = taskFactory.createTask(project, GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name, AnnotationProcessingTaskFactory.DEPENDENCY_AUTO_WIRE, false));
         assertTrue(type.isAssignableFrom(task.getClass()));
         return type.cast(task);
     }
@@ -105,25 +106,13 @@ public abstract class AbstractTaskTest {
     public void testDependsOn() {
         Task dependsOnTask = createTask(project, "somename");
         Task task = createTask(project, TEST_TASK_NAME);
+        project.getTasks().add("path1");
+        project.getTasks().add("path2");
+
         task.dependsOn(Project.PATH_SEPARATOR + "path1");
-        assertEquals(WrapUtil.toSet(Project.PATH_SEPARATOR + "path1"), task.getDependsOn());
+        assertThat(task, dependsOn("path1"));
         task.dependsOn("path2", dependsOnTask);
-        assertEquals(WrapUtil.toSet(Project.PATH_SEPARATOR + "path1", "path2", dependsOnTask), task.getDependsOn());
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void testDependsOnWithEmptySecondArgument() {
-        getTask().dependsOn("path1", "");
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void testDependsOnWithEmptyFirstArgument() {
-        getTask().dependsOn("", "path1");
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    public void testDependsOnWithNullFirstArgument() {
-        getTask().dependsOn(null, "path1");
+        assertThat(task, dependsOn("path1", "path2", "somename"));
     }
 
     @Test

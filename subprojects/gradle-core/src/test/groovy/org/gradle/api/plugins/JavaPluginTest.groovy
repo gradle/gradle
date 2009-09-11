@@ -21,7 +21,9 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.configurations.Configurations
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
@@ -31,10 +33,8 @@ import org.gradle.util.HelperUtil
 import org.junit.Test
 import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
-import org.gradle.api.tasks.SourceSet
 
 /**
  * @author Hans Dockter
@@ -121,12 +121,12 @@ class JavaPluginTest {
 
         def task = project.tasks['processCustomResources']
         assertThat(task, instanceOf(Copy))
-        assertDependsOn(task)
+        assertThat(task, dependsOn())
         assertThat(task.destinationDir, equalTo(project.source.custom.classesDir))
         assertThat(task.srcDirs, equalTo(project.source.custom.resources))
 
         task = project.tasks['compileCustom']
-        assertDependsOn(task)
+        assertThat(task, dependsOn())
         assertThat(task.srcDirs, equalTo(project.source.custom.java.srcDirs as List))
         assertThat(task.classpath, sameInstance(project.source.custom.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.custom.classesDir))
@@ -137,76 +137,74 @@ class JavaPluginTest {
 
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
-        assertDependsOn(task)
+        assertThat(task, dependsOn())
         assertThat(task.srcDirs, equalTo(project.source.main.resources))
         assertThat(task.destinationDir, equalTo(project.source.main.classesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(Compile))
-        assertDependsOn(task)
+        assertThat(task, dependsOn())
         assertThat(task.srcDirs, equalTo(project.source.main.java.srcDirs as List))
         assertThat(task.classpath, sameInstance(project.source.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.main.classesDir))
 
         task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
-        assertDependsOn(task)
+        assertThat(task, dependsOn())
         assertThat(task.srcDirs, equalTo(project.source.test.resources))
         assertThat(task.destinationDir, equalTo(project.source.test.classesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
         assertThat(task, instanceOf(Compile))
-        assertDependsOn(task, JavaPlugin.COMPILE_TASK_NAME)
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
         assertThat(task.srcDirs, equalTo(project.source.test.java.srcDirs as List))
         assertThat(task.classpath, sameInstance(project.source.test.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.test.classesDir))
 
         task = project.tasks[JavaPlugin.TEST_TASK_NAME]
         assertThat(task, instanceOf(org.gradle.api.tasks.testing.Test))
-        assertDependsOn(task, JavaPlugin.COMPILE_TEST_TASK_NAME,
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_TASK_NAME,
                               JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME,
                               JavaPlugin.COMPILE_TASK_NAME,
-                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
         assertThat(task.configuration, equalTo(project.source.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.source.test.classesDir))
 
         task = project.tasks[JavaPlugin.JAR_TASK_NAME]
         assertThat(task, instanceOf(Jar))
-        assertDependsOn(task, JavaPlugin.COMPILE_TASK_NAME,
-                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.baseDir, equalTo(project.source.main.classesDir))
 
         task = project.tasks[JavaPlugin.LIBS_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
-        assertDependsOn(task, JavaPlugin.JAR_TASK_NAME)
+        assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
 
         task = project.tasks[JavaPlugin.DISTS_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
-        assertDependsOn(task, JavaPlugin.LIBS_TASK_NAME)
+        assertThat(task, dependsOn(JavaPlugin.LIBS_TASK_NAME))
 
         task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
         assertThat(task, instanceOf(Javadoc))
-        assertDependsOn(task)
+        assertThat(task, dependsOn())
         assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
 
         task = project.tasks["buildArchives"]
         assertThat(task, instanceOf(DefaultTask))
-        assertDependsOn(task, JavaPlugin.JAR_TASK_NAME)
+        assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
 
         task = project.tasks[JavaPlugin.BUILD_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
-        assertDependsOn(task, JavaPlugin.DISTS_TASK_NAME,
-                              JavaPlugin.TEST_TASK_NAME)
+        assertThat(task, dependsOn(JavaPlugin.DISTS_TASK_NAME, JavaPlugin.TEST_TASK_NAME))
 
-        task = project.tasks[JavaPlugin.BUILD_NEEDED_TASK_NAME]
+                task = project.tasks[JavaPlugin.BUILD_NEEDED_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
-        assertDependsOn(task, JavaPlugin.BUILD_TASK_NAME)
+        assertThat(task, dependsOn(JavaPlugin.BUILD_TASK_NAME))
 
         task = project.tasks[JavaPlugin.BUILD_DEPENDENTS_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
-        assertDependsOn(task, JavaPlugin.BUILD_TASK_NAME)
+        assertThat(task, dependsOn(JavaPlugin.BUILD_TASK_NAME))
     }
 
     @Test public void appliesMappingsToTasksDefinedByBuildScript() {
@@ -217,15 +215,15 @@ class JavaPluginTest {
         assertThat(task.sourceCompatibility, equalTo(project.sourceCompatibility.toString()))
 
         task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
-        assertDependsOn(task, JavaPlugin.COMPILE_TEST_TASK_NAME,
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_TASK_NAME,
                               JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME,
                               JavaPlugin.COMPILE_TASK_NAME,
-                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+                              JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
         assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)))
         assertThat(task.testClassesDir, equalTo(project.source.test.classesDir))
 
         task = project.createTask('customJavadoc', type: Javadoc)
-        assertDependsOn(task)
+        assertThat(task, dependsOn())
         assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
     }
@@ -234,26 +232,25 @@ class JavaPluginTest {
         javaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customJar', type: Jar)
-        assertDependsOn(task, JavaPlugin.PROCESS_RESOURCES_TASK_NAME,
-                              JavaPlugin.COMPILE_TASK_NAME)
+        assertThat(task, dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.baseDir, equalTo(project.source.main.classesDir))
 
-        assertDependsOn(project.tasks[JavaPlugin.LIBS_TASK_NAME], JavaPlugin.JAR_TASK_NAME, 'customJar')
+        assertThat(project.tasks[JavaPlugin.LIBS_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, 'customJar'))
 
         task = project.createTask('customZip', type: Zip)
         assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.LIBS_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.distsDir))
         assertThat(task.version, equalTo(project.version))
 
-        assertDependsOn(project.tasks[JavaPlugin.DISTS_TASK_NAME], JavaPlugin.LIBS_TASK_NAME, 'customZip')
+        assertThat(project.tasks[JavaPlugin.DISTS_TASK_NAME], dependsOn(JavaPlugin.LIBS_TASK_NAME, 'customZip'))
 
         task = project.createTask('customTar', type: Tar)
         assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.LIBS_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.distsDir))
         assertThat(task.version, equalTo(project.version))
 
-        assertDependsOn(project.tasks[JavaPlugin.DISTS_TASK_NAME], JavaPlugin.LIBS_TASK_NAME, 'customZip', 'customTar')
+        assertThat(project.tasks[JavaPlugin.DISTS_TASK_NAME], dependsOn(JavaPlugin.LIBS_TASK_NAME, 'customZip', 'customTar'))
     }
 
     @Test public void buildOtherProjects() {
@@ -266,17 +263,17 @@ class JavaPluginTest {
         javaPlugin.use(middleProject, middleProject.getPlugins());
         javaPlugin.use(appProject, appProject.getPlugins());
 
-        appProject.getConfigurations().findByName("compile").addDependency(new DefaultProjectDependency(middleProject, "compile"));
-        middleProject.getConfigurations().findByName("compile").addDependency(new DefaultProjectDependency(commonProject, "compile"));
+        appProject.dependencies {
+            compile project(path: middleProject.path, configuration: 'compile')
+        }
+        middleProject.dependencies {
+            compile project(path: commonProject.path, configuration: 'compile')
+        }
 
         Task task = middleProject.tasks[JavaPlugin.BUILD_NEEDED_TASK_NAME];
         assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build',':common:build'] as Set))
 
         task = middleProject.tasks[JavaPlugin.BUILD_DEPENDENTS_TASK_NAME];
         assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build',':app:build'] as Set))
-    }
-
-    private void assertDependsOn(Task task, String... names) {
-        assertThat(task.taskDependencies.getDependencies(task)*.name as Set, equalTo(toSet(names)))
     }
 }

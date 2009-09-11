@@ -37,6 +37,7 @@ usePlugin 'code-quality'
         testFile('build.gradle') << '''
 usePlugin 'groovy'
 usePlugin 'code-quality'
+dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
 '''
         writeCheckstyleConfig()
 
@@ -94,6 +95,7 @@ usePlugin 'code-quality'
         testFile('build.gradle') << '''
 usePlugin 'groovy'
 usePlugin 'code-quality'
+dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
 '''
         writeCodeNarcConfigFile()
 
@@ -128,6 +130,7 @@ usePlugin 'code-quality'
         testFile('build.gradle') << '''
 usePlugin 'groovy'
 usePlugin 'code-quality'
+dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
 '''
 
         writeCodeNarcConfigFile()

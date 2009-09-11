@@ -22,7 +22,8 @@ import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.util.HelperUtil
 import org.junit.Test
-import static org.gradle.util.WrapUtil.toSet
+import static org.gradle.util.Matchers.*
+import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -49,6 +50,7 @@ public class ScalaPluginTest {
 
         def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(ScalaCompile.class))
+        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME))
         assertThat(task.srcDirs, hasItems(project.convention.plugins.java.source.main.java.srcDirs as Object[]))
         assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.main.classesDir))
         assertThat(task.classpath, equalTo(project.convention.plugins.java.source.main.compileClasspath))
@@ -56,6 +58,7 @@ public class ScalaPluginTest {
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
         assertThat(task, instanceOf(ScalaCompile.class))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME, ScalaPlugin.SCALA_DEFINE_TASK_NAME))
         assertThat(task.srcDirs, hasItems(project.convention.plugins.java.source.test.java.srcDirs as Object[]))
         assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.test.classesDir))
         assertThat(task.classpath, equalTo(project.convention.plugins.java.source.test.compileClasspath))
@@ -86,5 +89,4 @@ public class ScalaPluginTest {
         assertThat(task.destinationDir, equalTo(project.convention.plugins.scala.scalaDocDir))
         assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaSrcDirs as Object[]))
     }
-
 }

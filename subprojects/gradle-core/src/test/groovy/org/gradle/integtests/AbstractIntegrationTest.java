@@ -67,7 +67,8 @@ public class AbstractIntegrationTest {
                 "import org.gradle.api.*",
                 "import org.gradle.api.file.*",
                 "import org.gradle.api.logging.*",
-                "import org.gradle.api.tasks.*");
+                "import org.gradle.api.tasks.*",
+                "import org.gradle.api.tasks.bundling.*");
 
         testFile("gradle-home/plugin.properties").writelns(
                 "java=org.gradle.api.plugins.JavaPlugin",

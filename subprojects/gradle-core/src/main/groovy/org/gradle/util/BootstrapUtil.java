@@ -15,20 +15,45 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.UncheckedIOException;
+
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.net.URLClassLoader;
+import java.net.URL;
+import java.net.URISyntaxException;
 
 /**
  * @author Hans Dockter
  */
 public class BootstrapUtil {
-    public static File[] getGradleHomeLibClasspath() {
+    public static List<File> getGradleHomeLibClasspath() {
         File gradleHomeLib = new File(System.getProperty("gradle.home") + "/lib");
         if (gradleHomeLib.isDirectory()) {
-            return gradleHomeLib.listFiles();
+            return Arrays.asList(gradleHomeLib.listFiles());
         }
-        return new File[0];
+
+        ClassLoader classLoader = BootstrapUtil.class.getClassLoader();
+        if (classLoader instanceof URLClassLoader) {
+            URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
+            URL[] urls = urlClassLoader.getURLs();
+            List<File> classpath = new ArrayList();
+            for (URL url : urls) {
+                if (url.getProtocol().equals("file")) {
+                    try {
+                        classpath.add(new File(url.toURI()));
+                    } catch (URISyntaxException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+            }
+            return classpath;
+        }
+
+        return Collections.emptyList();
     }
 
     public static List<File> getNonLoggingJars() {
@@ -63,7 +88,7 @@ public class BootstrapUtil {
             pathElements.add(customGradleBin);
         }
         for (File homeLibFile : getGradleHomeLibClasspath()) {
-            if (homeLibFile.isFile() && !(customGradleBin != null && homeLibFile.getName().startsWith("gradle-"))) {
+            if (homeLibFile.exists() && !(customGradleBin != null && homeLibFile.getName().startsWith("gradle-"))) {
                 pathElements.add(homeLibFile);
             }
         }

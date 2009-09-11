@@ -23,6 +23,7 @@ import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
 import org.junit.Test
+import static org.gradle.util.Matchers.*
 import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -77,11 +78,13 @@ class GroovyPluginTest {
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.srcDirs, equalTo(project.source.main.java.srcDirs as List))
         assertThat(task.groovySourceDirs, equalTo(project.source.main.groovy.srcDirs as List))
+        assertThat(task, dependsOn())
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.srcDirs, equalTo(project.source.test.java.srcDirs as List))
         assertThat(task.groovySourceDirs, equalTo(project.source.test.groovy.srcDirs as List))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
 
         project.source.add('custom')
         task = project.tasks['compileCustom']

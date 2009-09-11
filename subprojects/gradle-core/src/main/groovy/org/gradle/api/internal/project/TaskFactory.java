@@ -23,7 +23,6 @@ import org.gradle.util.GUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -50,7 +49,9 @@ public class TaskFactory implements ITaskFactory {
         Task task = createTaskObject(project, type, name, generateSubclass);
 
         Object dependsOnTasks = args.get(Task.TASK_DEPENDS_ON);
-        task.dependsOn(dependsOnTasks);
+        if (dependsOnTasks != null) {
+            task.dependsOn(dependsOnTasks);
+        }
         Object description = args.get(Task.TASK_DESCRIPTION);
         if (description != null) {
             task.setDescription(description.toString());
@@ -118,7 +119,6 @@ public class TaskFactory implements ITaskFactory {
     private void checkTaskArgsAndCreateDefaultValues(Map args) {
         setIfNull(args, Task.TASK_NAME, "");
         setIfNull(args, Task.TASK_TYPE, DefaultTask.class);
-        setIfNull(args, Task.TASK_DEPENDS_ON, new ArrayList());
         setIfNull(args, GENERATE_SUBCLASS, "true");
     }
 
