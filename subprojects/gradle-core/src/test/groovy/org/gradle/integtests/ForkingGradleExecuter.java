@@ -116,6 +116,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     private List<String> getExtraArgs() {
         List<String> args = new ArrayList<String>();
+
+        args.add("--gradle-user-home");
+        args.add(distribution.getUserHomeDir().getAbsolutePath());
+
         if (quiet) {
             args.add("--quiet");
         }

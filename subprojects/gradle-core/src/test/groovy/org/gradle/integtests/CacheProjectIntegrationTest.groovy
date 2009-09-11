@@ -45,7 +45,7 @@ class CacheProjectIntegrationTest {
     public void setUp() {
         projectDir = dist.getTestDir().file("project")
         projectDir.mkdirs()
-        userHomeDir = dist.getTestDir().file("user")
+        userHomeDir = dist.getUserHomeDir()
         buildFile = projectDir.file('build.gradle')
         ScriptSource source = new FileScriptSource("build file", buildFile)
         propertiesFile = userHomeDir.file("scriptCache/$source.className/BuildScriptTransformer/cache.properties")
@@ -83,7 +83,7 @@ class CacheProjectIntegrationTest {
     }
 
     private def testBuild(String taskName, String expected) {
-        executer.inDirectory(projectDir).withArguments("--gradle-user-home", userHomeDir.getAbsolutePath()).withTasks(taskName).withQuietLogging().run()
+        executer.inDirectory(projectDir).withTasks(taskName).withQuietLogging().run()
         assertEquals(expected, projectDir.file(TEST_FILE).text)
         classFile.assertIsFile()
         propertiesFile.assertIsFile()

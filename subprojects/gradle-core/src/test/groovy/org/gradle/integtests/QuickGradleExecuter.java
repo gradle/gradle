@@ -55,7 +55,6 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setGradleHomeDir(dist.getGradleHomeDir());
-        System.setProperty("gradle.home", dist.getGradleHomeDir().getAbsolutePath());
 
         GradleExecuter executer = new InProcessGradleExecuter(parameter);
         if (directory != null) {

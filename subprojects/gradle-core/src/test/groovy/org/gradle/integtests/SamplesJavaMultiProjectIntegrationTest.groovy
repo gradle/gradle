@@ -181,7 +181,7 @@ class SamplesJavaMultiProjectIntegrationTest {
     public void eclipseGeneration() {
         executer.inDirectory(javaprojectDir).withTasks('eclipse').run()
 
-        String cachePath = System.properties['user.home'] + '/.gradle/cache'
+        String cachePath = dist.userHomeDir.file('cache')
         compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
                 javaprojectDir.file(API_NAME, ".project").text)
         compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,

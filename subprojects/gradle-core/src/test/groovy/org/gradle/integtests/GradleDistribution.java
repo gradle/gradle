@@ -24,6 +24,8 @@ public interface GradleDistribution {
      */
     boolean isFileUnderTest(File file);
 
+    TestFile getUserHomeDir();
+
     TestFile getGradleHomeDir();
 
     TestFile getSamplesDir();
