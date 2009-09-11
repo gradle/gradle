@@ -1,13 +1,12 @@
 <h1>Build Gradle from the source</h1>
 
 <h2>Get the sources</h2>
-Either download the <a href="gradle-${currentRelease}-src.zip">source distribution</a> or <a href="source-repository.html">check out Gradle from svn.</a>
+Either download the <a href="gradle-${currentRelease}-src.zip">source distribution</a> or <a href="source-repository.html">check out Gradle from git.</a>
 
 <h2>Execute the Build</h2>
-We use Gradle to build Gradle. But Gradle does not need to be installed on your machine to build it. Svn and the
-source distribution contain a Gradle binary distribution capable of building Gradle. With the Gradle wrapper you can
-build Gradle via this internal Gradle distribution. Just go to the top level directory of the svn checkout or the Gradle
-source distribution and type:<br/><br/>
+We use Gradle to build Gradle. But Gradle does not need to be installed on your machine to build it. The source
+tree contains a Gradle binary distribution capable of building Gradle. With the Gradle wrapper you can
+build Gradle via this internal Gradle distribution. Just go to the top level directory of the source tree and type:<br/><br/>
 Windows:
 <pre>
     gradlew clean dists
@@ -18,11 +17,13 @@ Windows:
     ./gradlew clean dists
 </pre>
 <p>
-In the <code>build/distributions</code> folder you can find the generated Gradle distributions.     
+In the <code>build/distributions</code> folder you can find the generated Gradle distributions. Note that you will
+need internet access the first time you run this, as the Gradle wrapper will download a number of dependencies the
+first time it runs.
 </p>
-The Gradle build is usually an early adopter of new Gradle features. If you want to build HEAD,
-it is therefore not unlikely that you can't build it with the last Gradle release. But you can simply use the wrapper
-scripts as described above.
+The Gradle build is usually an early adopter of new Gradle features. If you want to build HEAD, it is therefore likely
+that you won't be able to build it with the last Gradle release. But you can simply use the wrapper scripts as
+described above.
 <p>
 To learn more about the Gradle wrapper and how you can use it for your own projects build with Gradle have a look at
 the <a href="userguide.html">user guide</a>.
@@ -30,12 +31,12 @@ the <a href="userguide.html">user guide</a>.
 <h2>Installing Gradle with the Build</h2>
 The Gradle build has an install task:
 <pre>
-    ./gradlew clean install
+    ./gradlew clean install -Pgradle_installPath=<i>someDir</i>
 </pre>
-<p>The install task deletes any existing Gradle distribution at the specified destination. You need to specify the
-install destinaton with the <code>gradle_installPath</code> property. This property is interpreted relative to the
+<p>The install task deletes any existing Gradle distribution at the specified destination. You specify the install
+destination with the <code>gradle_installPath</code> property. This property is interpreted relative to the
 source directory.</p>
         
 <p>You can set this property in the <code>gradle.properties</code> file of your Gradle home directory (usually
-<code>USER_HOME/.gradle</code>). For how to set project properties you may have a look at the
+<code><i>USER_HOME</i>/.gradle</code>). For how to set project properties you may have a look at the
 <a href="userguide.html">user guide</a>.</p>
