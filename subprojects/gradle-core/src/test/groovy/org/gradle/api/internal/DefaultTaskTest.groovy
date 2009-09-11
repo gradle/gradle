@@ -21,8 +21,9 @@ import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.util.WrapUtil
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*
+import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -43,7 +44,7 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test public void testDefaultTask() {
-        assertEquals new TreeSet(), defaultTask.dependsOn
+        assertThat(defaultTask.dependsOn, isEmpty())
         assertEquals([], defaultTask.actions)
     }
 

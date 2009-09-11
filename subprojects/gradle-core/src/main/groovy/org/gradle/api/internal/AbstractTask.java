@@ -142,7 +142,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return dependencies.getValues();
     }
 
-    public void setDependsOn(Set<?> dependsOn) {
+    public void setDependsOn(Iterable<?> dependsOn) {
         dependencies.setValues(dependsOn);
     }
 

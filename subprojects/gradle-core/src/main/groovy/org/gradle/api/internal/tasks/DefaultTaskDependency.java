@@ -16,34 +16,47 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.GradleException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Callable;
 
 public class DefaultTaskDependency implements TaskDependency {
     private final Set<Object> values = new HashSet<Object>();
 
     public Set<Task> getDependencies(Task task) {
         Set<Task> result = new HashSet<Task>();
-        for (Object dependency : values) {
-            if (dependency instanceof Task) {
+        LinkedList<Object> queue = new LinkedList<Object>(values);
+        while (!queue.isEmpty()) {
+            Object dependency = queue.removeFirst();
+            if (dependency instanceof Buildable) {
+                Buildable buildable = (Buildable) dependency;
+                result.addAll(buildable.getBuildDependencies().getDependencies(task));
+            }
+            else if (dependency instanceof Task) {
                 result.add((Task) dependency);
             } else if (dependency instanceof TaskDependency) {
                 result.addAll(((TaskDependency) dependency).getDependencies(task));
             } else if (dependency instanceof Closure) {
                 Closure closure = (Closure) dependency;
                 Object closureResult = closure.call(task);
-                if (closureResult instanceof Task) {
-                    result.add((Task) closureResult);
-                } else {
-                    result.addAll((Collection<? extends Task>) closureResult);
+                queue.add(0, closureResult);
+            } else if (dependency instanceof Collection) {
+                Collection<?> collection = (Collection) dependency;
+                queue.addAll(0, collection);
+            } else if (dependency instanceof Map) {
+                Map<?, ?> map = (Map) dependency;
+                queue.addAll(0, map.values());
+            } else if (dependency instanceof Callable) {
+                Callable callable = (Callable) dependency;
+                try {
+                    queue.add(0, callable.call());
+                } catch (Exception e) {
+                    throw new GradleException(e);
                 }
             } else {
                 String path = dependency.toString();
@@ -57,22 +70,22 @@ public class DefaultTaskDependency implements TaskDependency {
         return values;
     }
 
-    public void setValues(Set<?> values) {
+    public void setValues(Iterable<?> values) {
         this.values.clear();
-        add(values);
+        for (Object value : values) {
+            addValue(value);
+        }
     }
 
     public DefaultTaskDependency add(Object... values) {
-        List<Object> flattened = new ArrayList<Object>();
-        GUtil.flatten(values, flattened);
-        for (Object value : flattened) {
+        for (Object value : values) {
             addValue(value);
         }
-            return this;
+        return this;
     }
 
     private void addValue(Object dependency) {
-        if (!GUtil.isTrue(dependency)) {
+        if (dependency == null) {
             throw new InvalidUserDataException("A dependency must not be empty");
         }
         this.values.add(dependency);

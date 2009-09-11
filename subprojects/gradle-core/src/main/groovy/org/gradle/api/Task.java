@@ -68,24 +68,30 @@ import java.util.Set;
  *
  * <p>A task may have dependencies on other tasks. Gradle ensures that tasks are executed in dependency order, so that
  * the dependencies of a task are executed before the task is executed.  You can add dependencies to a task using {@link
- * #dependsOn(Object[])} or {@link #setDependsOn(java.util.Set)}.  You can add objects of any of the following types as
- * a depedency:</p>
+ * #dependsOn(Object...)} or {@link #setDependsOn(Iterable)}.  You can add objects of any of the following types as a
+ * dependency:</p>
  *
  * <ul>
  *
- * <li>A string task path or name. A relative path is interpreted relative to the task's {@link Project}. This allows
- * you to refer to tasks in other projects, although the recommended way of establishing cross project dependencies, is
- * via the {@link Project#dependsOn(String)} method of the task's {@link Project}</li>
+ * <li>A {@code String} task path or name. A relative path is interpreted relative to the task's {@link Project}. This
+ * allows you to refer to tasks in other projects.</li>
  *
  * <li>A {@link Task}.</li>
  *
- * <li>A closure. The closure may take a {@code Task} as parameter, and should return a {@code Task} or collection of
- * tasks.</li>
+ * <li>A closure. The closure may take a {@code Task} as parameter. It may return any of the types listed here. Its
+ * return value is recursively converted to tasks.</li>
  *
- * <li>A {@link TaskDependency}.</li>
+ * <li>A {@link TaskDependency} object.</li>
  *
- * <li>A {@code Collection} or {@code Map}. The collection/map is flattened and its elements added as described
- * above.</li>
+ * <li>A {@link Buildable} object.</li>
+ *
+ * <li>A {@code Collection} or {@code Map}. The collection or map may contain any of the types listed here. The elements
+ * of the collection/map are recursively converted to tasks.</li>
+ *
+ * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
+ * recursively converted to tasks.</li>
+ *
+ * <li>An {@code Object}. The object's {@code toString()} method is interpreted as a task path or name.</li>
  *
  * </ul>
  *
@@ -182,7 +188,7 @@ public interface Task extends Comparable<Task> {
      *
      * @param dependsOnTasks The set of task paths.
      */
-    void setDependsOn(Set<?> dependsOnTasks);
+    void setDependsOn(Iterable<?> dependsOnTasks);
 
     /**
      * <p>Adds the given dependencies to this task. See <a href="#dependencies">here</a> for a description of the types
@@ -303,8 +309,8 @@ public interface Task extends Comparable<Task> {
     boolean getEnabled();
 
     /**
-     * Returns a OutputHandler object providing information whether a task's output was created successfully
-     * and when it was last modified.
+     * Returns a OutputHandler object providing information whether a task's output was created successfully and when it
+     * was last modified.
      */
     OutputHandler getOutput();
 

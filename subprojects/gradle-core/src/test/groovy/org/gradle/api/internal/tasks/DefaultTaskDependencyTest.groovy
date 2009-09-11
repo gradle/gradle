@@ -27,7 +27,9 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.Buildable
+import java.util.concurrent.Callable;
 
 @RunWith (JMock.class)
 public class DefaultTaskDependencyTest {
@@ -96,6 +98,37 @@ public class DefaultTaskDependencyTest {
     }
 
     @Test
+    public void canDependOnABuildable() {
+        Buildable buildable = context.mock(Buildable)
+        TaskDependency otherDependency = context.mock(TaskDependency)
+
+        dependency.add(buildable)
+
+        context.checking {
+            one(buildable).getBuildDependencies()
+            will(returnValue(otherDependency))
+            one(otherDependency).getDependencies(task)
+            will(returnValue(toSet(otherTask)))
+        }
+
+        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+    }
+
+    @org.junit.Test
+    public void canDependOnACallable() {
+        Callable callable = context.mock(Callable)
+
+        dependency.add(callable)
+
+        context.checking {
+            one(callable).call()
+            will(returnValue(otherTask))
+        }
+        
+        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+    }
+    
+    @Test
     public void treatsOtherObjectsAsATaskPath() {
         dependency.add(new StringBuffer("task"));
 
@@ -116,9 +149,15 @@ public class DefaultTaskDependencyTest {
 
     @Test
     public void flattensMaps() {
-        dependency.add(toMap("key", otherTask));
+        dependency.add([key: otherTask])
 
         assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
     }
 
+    @Test
+    public void canNestCollectionsAndMapsAndClosures() {
+        dependency.add([key: {[{[[task: otherTask]]}]}])
+
+        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+    }
 }
