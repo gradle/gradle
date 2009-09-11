@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.StopExecutionException;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -29,6 +30,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @RunWith(JMock.class)
@@ -134,7 +136,14 @@ public class CompositeFileCollectionTest {
 
         FileTree fileTree = collection.getAsFileTree();
         assertThat(fileTree, instanceOf(UnionFileTree.class));
-        assertThat(((UnionFileTree) fileTree).getSourceCollections(), equalTo(toLinkedSet(tree1, tree2)));
+        assertThat(((UnionFileTree) fileTree).getSourceCollections(), equalTo((Iterable) toList(tree1, tree2)));
+    }
+
+    @Test
+    public void dependsOnUnionOfAllDependencies() {
+        assertThat(collection.getBuildDependencies(), instanceOf(DefaultTaskDependency.class));
+        DefaultTaskDependency dependency = (DefaultTaskDependency) collection.getBuildDependencies();
+        assertThat(dependency.getValues(), equalTo(toSet((Object) source1, source2)));
     }
 
     private class TestCompositeFileCollection extends CompositeFileCollection {
@@ -149,8 +158,9 @@ public class CompositeFileCollectionTest {
             return "<display name>";
         }
 
-        public List<FileCollection> getSourceCollections() {
-            return sourceCollections;
+        @Override
+        protected void addSourceCollections(Collection<FileCollection> sources) {
+            sources.addAll(sourceCollections);
         }
     }
 }

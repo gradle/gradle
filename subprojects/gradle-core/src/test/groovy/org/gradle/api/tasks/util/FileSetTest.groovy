@@ -199,7 +199,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         FileTree other = new FileSet(testDir, resolver)
         FileTree sum = fileSet + other
         assertThat(sum, instanceOf(UnionFileTree))
-        assertThat(sum.sourceCollections, equalTo([fileSet, other] as Set))
+        assertThat(sum.sourceCollections, equalTo([fileSet, other]))
     }
 
     @Test public void testDisplayName() {

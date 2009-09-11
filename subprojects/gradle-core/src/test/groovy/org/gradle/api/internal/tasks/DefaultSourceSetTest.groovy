@@ -44,7 +44,7 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.allJava, instanceOf(UnionFileTree))
         assertThat(sourceSet.allJava, isEmpty())
         assertThat(sourceSet.allJava.displayName, equalTo('set-name Java source'))
-        assertThat(sourceSet.allJava.sourceCollections, not(isEmpty()))
+        assertThat(sourceSet.allJava.sourceTrees, not(isEmpty()))
 
         assertThat(sourceSet.compileTaskName, equalTo('compileSetName'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processSetNameResources'))

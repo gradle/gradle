@@ -23,7 +23,7 @@ class DefaultGroovySourceSetTest {
         assertThat(sourceSet.allGroovy, instanceOf(UnionFileTree))
         assertThat(sourceSet.allGroovy, isEmpty())
         assertThat(sourceSet.allGroovy.displayName, equalTo('<set-display-name> Groovy source'))
-        assertThat(sourceSet.allGroovy.sourceCollections, not(isEmpty()))
+        assertThat(sourceSet.allGroovy.sourceTrees, not(isEmpty()))
     }
 
     @Test

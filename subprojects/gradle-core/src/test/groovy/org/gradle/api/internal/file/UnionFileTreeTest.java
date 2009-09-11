@@ -35,7 +35,7 @@ public class UnionFileTreeTest {
         FileTree set1 = context.mock(FileTree.class, "set1");
 
         set.add(set1);
-        assertThat(set.getSourceCollections(), equalTo(toLinkedSet(set1)));
+        assertThat(set.getSourceCollections(), equalTo((Iterable) toList((Object) set1)));
     }
 
     @Test

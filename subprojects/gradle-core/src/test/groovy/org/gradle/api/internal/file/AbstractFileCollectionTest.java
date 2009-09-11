@@ -22,6 +22,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.Matcher;
 import static org.hamcrest.Matchers.*;
@@ -205,6 +206,11 @@ public class AbstractFileCollectionTest {
         } catch (UnsupportedOperationException e) {
             assertThat(e.getMessage(), equalTo("Cannot convert collection-display-name to type Integer, as this type is not supported."));
         }
+    }
+
+    @Test
+    public void hasNotDependencies() {
+        assertThat(new TestFileCollection().getBuildDependencies().getDependencies(null), isEmpty());
     }
 
     private class TestFileCollection extends AbstractFileCollection {

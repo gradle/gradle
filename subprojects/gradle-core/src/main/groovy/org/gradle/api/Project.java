@@ -687,12 +687,16 @@ public interface Project extends Comparable<Project> {
      *
      * <li>A {@code String}. Interpreted relative to the project directory, as a call to {@link #file(Object)}.</li>
      *
-     * <li>A {@code Collection}. Flattened and recursively converted to files.</li>
+     * <li>A {@code Collection}. May contain any of the types listed here. The elements of the collection are
+     * recursively converted to files.</li>
      *
      * <li>A {@link FileCollection}. The contents of the collection are included in the returned collection.</li>
      *
-     * <li>A Closure. Should return an {@code Object} or {@code Collection}, which are then recursively converted to
-     * files.</li>
+     * <li>A {@link java.util.concurrent.Callable}. The {@code call()} method may return any of the types listed here.
+     * The return value of the {@code call()} method is recursively converted to files.</li>
+     *
+     * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
+     * to files.</li>
      *
      * <li>An Object. Its {@code toString()} value is treated the same way as a String, as per a call to {@link
      * #file(Object)}.</li>

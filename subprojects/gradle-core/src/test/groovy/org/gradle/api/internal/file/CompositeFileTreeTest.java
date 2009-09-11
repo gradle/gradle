@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
@@ -28,6 +29,8 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.Collection;
 
 @RunWith(JMock.class)
 public class CompositeFileTreeTest {
@@ -41,8 +44,9 @@ public class CompositeFileTreeTest {
         }
 
         @Override
-        protected Iterable<? extends FileTree> getSourceCollections() {
-            return toList(source1, source2);
+        protected void addSourceCollections(Collection<FileCollection> sources) {
+            sources.add(source1);
+            sources.add(source2);
         }
     };
 
@@ -93,7 +97,7 @@ public class CompositeFileTreeTest {
         FileTree sum = tree.plus(other);
         assertThat(sum, instanceOf(CompositeFileTree.class));
         UnionFileTree sumCompositeTree = (UnionFileTree) sum;
-        assertThat(sumCompositeTree.getSourceCollections(), equalTo(toLinkedSet(tree, other)));
+        assertThat(sumCompositeTree.getSourceCollections(), equalTo((Iterable) toList(source1, source2, other)));
     }
 
     @Test

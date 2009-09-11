@@ -46,8 +46,8 @@ public class UnionFileTree extends CompositeFileTree {
     }
 
     @Override
-    protected Set<FileTree> getSourceCollections() {
-        return sourceTrees;
+    protected void addSourceCollections(Collection<FileCollection> sources) {
+        sources.addAll(sourceTrees);
     }
 
     @Override

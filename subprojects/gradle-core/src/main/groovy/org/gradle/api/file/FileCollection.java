@@ -17,6 +17,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.Buildable;
 
 import java.io.File;
 import java.util.Set;
@@ -27,7 +28,7 @@ import java.util.Set;
  *
  * <p>You can obtain a {@code FileCollection} instance using {@link org.gradle.api.Project#files}.</p>
  */
-public interface FileCollection extends Iterable<File>, AntBuilderAware {
+public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildable {
     /**
      * Returns the content of this collection, asserting it contains exactly one file.
      *

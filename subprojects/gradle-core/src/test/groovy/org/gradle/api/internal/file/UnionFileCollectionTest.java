@@ -72,6 +72,6 @@ public class UnionFileCollectionTest {
     public void canAddCollection() {
         final UnionFileCollection collection = new UnionFileCollection();
         collection.add(source1);
-        assertThat(collection.getSourceCollections(), equalTo((Iterable) toLinkedSet(source1)));
+        assertThat(collection.getSourceCollections(), equalTo((Iterable) toList((Object) source1)));
     }
 }

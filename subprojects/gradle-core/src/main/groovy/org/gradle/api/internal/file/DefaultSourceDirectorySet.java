@@ -16,16 +16,15 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
@@ -87,14 +86,12 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     @Override
-    protected Iterable<? extends FileTree> getSourceCollections() {
-        List<FileTree> source = new ArrayList<FileTree>();
+    protected void addSourceCollections(Collection<FileCollection> sources) {
         for (File sourceDir : getExistingSourceDirs()) {
             FileSet fileset = new FileSet(sourceDir, resolver);
             fileset.getPatternSet().copyFrom(patternSet);
-            source.add(fileset);
+            sources.add(fileset);
         }
-        return source;
     }
 
     @Override

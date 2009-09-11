@@ -37,7 +37,7 @@ public class UnionFileCollection extends CompositeFileCollection {
     }
 
     @Override
-    protected Iterable<FileCollection> getSourceCollections() {
-        return sourceCollections;
+    protected void addSourceCollections(Collection<FileCollection> sources) {
+        sources.addAll(sourceCollections);
     }
 }

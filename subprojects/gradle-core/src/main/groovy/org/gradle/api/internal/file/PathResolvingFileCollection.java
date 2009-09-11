@@ -16,17 +16,17 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.tasks.util.FileSet;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link FileResolver}.
  */
-public class PathResolvingFileCollection extends AbstractFileCollection {
+public class PathResolvingFileCollection extends CompositeFileCollection {
     private final List<Object> files;
     private final FileResolver resolver;
 
@@ -53,22 +53,17 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
         return files;
     }
 
-    public Set<File> getFiles() {
-        Set<File> result = new LinkedHashSet<File>();
-        for (Object element : resolveToFilesAndFileCollections()) {
+    @Override
+    protected void addSourceCollections(Collection<FileCollection> sources) {
+        for (final Object element : resolveToFilesAndFileCollections()) {
             if (element instanceof FileCollection) {
                 FileCollection collection = (FileCollection) element;
-                result.addAll(collection.getFiles());
+                sources.add(collection);
             } else {
-                result.add((File) element);
+                final File file = (File) element;
+                sources.add(new SingletonFileCollection(file));
             }
         }
-        return result;
-    }
-
-    @Override
-    public FileTree getAsFileTree() {
-        return new PathResolvingFileTree();
     }
 
     private List<Object> resolveToFilesAndFileCollections() {
@@ -85,6 +80,13 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
             } else if (first instanceof Collection) {
                 Collection<?> collection = (Collection<?>) first;
                 queue.addAll(0, collection);
+            } else if (first instanceof Callable) {
+                Callable callable = (Callable) first;
+                try {
+                    queue.add(0, callable.call());
+                } catch (Exception e) {
+                    throw new GradleException(e);
+                }
             } else {
                 result.add(resolver.resolve(first));
             }
@@ -92,29 +94,20 @@ public class PathResolvingFileCollection extends AbstractFileCollection {
         return result;
     }
 
-    private class PathResolvingFileTree extends CompositeFileTree {
-        @Override
-        public String getDisplayName() {
-            return PathResolvingFileCollection.this.getDisplayName();
+    private static class SingletonFileCollection extends AbstractFileCollection {
+        private final File file;
+
+        public SingletonFileCollection(File file) {
+            this.file = file;
         }
 
         @Override
-        protected Iterable<FileTree> getSourceCollections() {
-            List<FileTree> trees = new ArrayList<FileTree>();
-            for (Object element : resolveToFilesAndFileCollections()) {
-                if (element instanceof FileCollection) {
-                    FileCollection fileCollection = (FileCollection) element;
-                    trees.add(fileCollection.getAsFileTree());
-                } else {
-                    File file = (File) element;
-                    if (file.isFile()) {
-                        trees.add(new FlatFileTree(file));
-                    } else if (file.isDirectory()) {
-                        trees.add(new FileSet(file, resolver));
-                    }
-                }
-            }
-            return trees;
+        public String getDisplayName() {
+            return "file collection";
+        }
+
+        public Set<File> getFiles() {
+            return Collections.singleton(file);
         }
     }
 }

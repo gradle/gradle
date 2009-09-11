@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 @RunWith(JMock.class)
 public class PathResolvingFileCollectionTest {
@@ -157,6 +158,25 @@ public class PathResolvingFileCollectionTest {
     }
 
     @Test
+    public void canUseACallableToSpecifyTheContentsOfTheCollection() throws Exception {
+        final File file1 = new File("1");
+        final File file2 = new File("2");
+        final Callable callable = context.mock(Callable.class);
+
+        context.checking(new Expectations() {{
+            one(callable).call();
+            will(returnValue(toList("src1", "src2")));
+            allowing(resolverMock).resolve("src1");
+            will(returnValue(file1));
+            allowing(resolverMock).resolve("src2");
+            will(returnValue(file2));
+        }});
+
+        FileCollection collection = new PathResolvingFileCollection(resolverMock, callable);
+        assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
+    }
+
+    @Test
     public void convertsEachFileToFlatFileTree() {
         final File file = new File(testDir, "f");
         GFileUtils.touch(file);
@@ -169,8 +189,7 @@ public class PathResolvingFileCollectionTest {
         FileCollection collection = new PathResolvingFileCollection(resolverMock, toList("file"));
         FileTree fileTree = collection.getAsFileTree();
         assertThat(fileTree, instanceOf(CompositeFileTree.class));
-        assertThat(((CompositeFileTree) fileTree).getSourceCollections().iterator().next(), instanceOf(
-                FlatFileTree.class));
+        assertThat(((CompositeFileTree) fileTree).getSourceCollections().get(0), instanceOf(FlatFileTree.class));
     }
 
     @Test
@@ -185,8 +204,7 @@ public class PathResolvingFileCollectionTest {
         FileCollection collection = new PathResolvingFileCollection(resolverMock, toList("dir"));
         FileTree fileTree = collection.getAsFileTree();
         assertThat(fileTree, instanceOf(CompositeFileTree.class));
-        assertThat(((CompositeFileTree) fileTree).getSourceCollections().iterator().next(), instanceOf(
-                FileSet.class));
+        assertThat(((CompositeFileTree) fileTree).getSourceCollections().get(0), instanceOf(FileSet.class));
     }
     
     @Test
