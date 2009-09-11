@@ -31,7 +31,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.Matchers.*;
 import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -57,21 +57,18 @@ public class DefaultConfigurationTest {
 
     private IvyService ivyServiceStub = context.mock(IvyService.class);
     private DefaultConfigurationContainer configurationContainer;
-    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction =
-            new ProjectDependenciesBuildInstruction(null);
 
     private DefaultConfiguration configuration;
 
     @Before
     public void setUp() {
-        configurationContainer = new DefaultConfigurationContainer(ivyServiceStub, projectDependenciesBuildInstruction);
+        configurationContainer = new DefaultConfigurationContainer(ivyServiceStub);
         configuration = (DefaultConfiguration) configurationContainer.add(CONF_NAME);
     }
 
     @Test
     public void defaultValues() {
-        DefaultConfiguration configuration = new DefaultConfiguration(CONF_NAME, configurationContainer, ivyServiceStub,
-                projectDependenciesBuildInstruction);
+        DefaultConfiguration configuration = new DefaultConfiguration(CONF_NAME, configurationContainer, ivyServiceStub);
         assertThat(configuration.getName(), equalTo(CONF_NAME));
         assertThat(configuration.isVisible(), equalTo(true));
         assertThat(configuration.getExtendsFrom().size(), equalTo(0));
@@ -357,8 +354,7 @@ public class DefaultConfigurationTest {
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, configurationContainer, ivyServiceStub,
-                projectDependenciesBuildInstruction);
+        return new DefaultConfiguration(confName, configurationContainer, ivyServiceStub);
     }
 
     @SuppressWarnings("unchecked")
@@ -391,87 +387,59 @@ public class DefaultConfigurationTest {
                 equalTo(toSet(artifactTaskMock, otherConfTaskMock)));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    public void buildDependencies() {
-        final Task dependencyProjectUploadTaskStub = context.mock(Task.class, "dependencyProjectUploadTask");
-        final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
-        prepareBuildDependenciesTest(dependencyProjectUploadTaskStub, otherConfTaskMock,
-                new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()), new HashMap<String, Task>());
-        assertThat((Set<Task>) configuration.getBuildDependencies().getDependencies(dependencyProjectUploadTaskStub),
-                equalTo(toSet(otherConfTaskMock, dependencyProjectUploadTaskStub)));
+    public void buildDependenciesDelegatesToAllSelfResolvingDependencies() {
+        final Task target = context.mock(Task.class, "target");
+        final Task projectDepTaskDummy = context.mock(Task.class, "projectDepTask");
+        final Task fileDepTaskDummy = context.mock(Task.class, "fileDepTask");
+        final ProjectDependency projectDependencyStub = context.mock(ProjectDependency.class);
+        final FileCollectionDependency fileCollectionDependencyStub = context.mock(FileCollectionDependency.class);
+
+        context.checking(new Expectations() {{
+            TaskDependency projectTaskDependencyDummy = context.mock(TaskDependency.class, "projectDep");
+            TaskDependency fileTaskDependencyStub = context.mock(TaskDependency.class, "fileDep");
+
+            allowing(projectDependencyStub).getBuildDependencies();
+            will(returnValue(projectTaskDependencyDummy));
+
+            allowing(projectTaskDependencyDummy).getDependencies(target);
+            will(returnValue(toSet(projectDepTaskDummy)));
+
+            allowing(fileCollectionDependencyStub).getBuildDependencies();
+            will(returnValue(fileTaskDependencyStub));
+
+            allowing(fileTaskDependencyStub).getDependencies(target);
+            will(returnValue(toSet((fileDepTaskDummy))));
+        }});
+
+        configuration.addDependency(projectDependencyStub);
+        configuration.addDependency(fileCollectionDependencyStub);
+
+        assertThat(configuration.getBuildDependencies().getDependencies(target),
+                equalTo((Set) toSet(fileDepTaskDummy, projectDepTaskDummy)));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    public void buildDependenciesWithRebuildDisabled() {
-        final Task dependencyProjectUploadTaskStub = context.mock(Task.class, "dependencyProjectUploadTask");
+    public void buildDependenciesDelegatesToInheritedConfigurations() {
+        final Task target = context.mock(Task.class, "target");
         final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
-        prepareBuildDependenciesTest(dependencyProjectUploadTaskStub, otherConfTaskMock,
-                new ProjectDependenciesBuildInstruction(null), new HashMap<String, Task>());
-        assertThat((Set<Task>) configuration.getBuildDependencies().getDependencies(dependencyProjectUploadTaskStub),
-                equalTo(WrapUtil.<Task>toSet()));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void buildDependenciesWithAdditonalProjectDependencyTasks() {
-        final Task dependencyProjectUploadTaskStub = context.mock(Task.class, "dependencyProjectUploadTask");
-        final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
-        final Task projectDependencyTaskMock = context.mock(Task.class, "projectDependencyTask");
-        String projectDependencyTaskName = "projectDepTask";
-        prepareBuildDependenciesTest(dependencyProjectUploadTaskStub, otherConfTaskMock,
-                new ProjectDependenciesBuildInstruction(toList(projectDependencyTaskName)),
-                toMap(projectDependencyTaskName, projectDependencyTaskMock));
-        assertThat((Set<Task>) configuration.getBuildDependencies().getDependencies(dependencyProjectUploadTaskStub),
-                equalTo(toSet(otherConfTaskMock, dependencyProjectUploadTaskStub, projectDependencyTaskMock)));
-    }
-
-    private void prepareBuildDependenciesTest(final Task dependencyProjectUploadTaskStub, final Task otherConfTaskMock,
-                                              ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction,
-                                              final Map<String, Task> projectDependencyTasks) {
-        configuration.setProjectDependenciesBuildInstruction(projectDependenciesBuildInstruction);
         final TaskDependency otherConfTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
         final Configuration otherConfiguration = context.mock(Configuration.class, "otherConf");
 
-        final Project dependencyProjectStub = context.mock(Project.class);
-        final Configuration dependencyProjectConfStub = context.mock(Configuration.class, "dependenctProjectConf");
-        final ProjectDependency projectDependencyStub = context.mock(ProjectDependency.class);
-        final TaskContainer taskContainer = context.mock(TaskContainer.class);
         context.checking(new Expectations() {{
-            String uploadInternalTaskName = "someName";
-
             allowing(otherConfiguration).getBuildDependencies();
             will(returnValue(otherConfTaskDependencyMock));
 
             allowing(otherConfiguration).getHierarchy();
             will(returnValue(toList()));
 
-            allowing(projectDependencyStub).getDependencyProject();
-            will(returnValue(dependencyProjectStub));
-
-            allowing(projectDependencyStub).getProjectConfiguration();
-            will(returnValue(dependencyProjectConfStub));
-
-            allowing(dependencyProjectConfStub).getUploadInternalTaskName();
-            will(returnValue(uploadInternalTaskName));
-
-            allowing(dependencyProjectStub).getTasks();
-            will(returnValue(taskContainer));
-
-            allowing(taskContainer).getByName(uploadInternalTaskName);
-            will(returnValue(dependencyProjectUploadTaskStub));
-
-            for (String taskName : projectDependencyTasks.keySet()) {
-                allowing(taskContainer).getByName(taskName);
-                will(returnValue(projectDependencyTasks.get(taskName)));
-            }
-
-            allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
+            allowing(otherConfTaskDependencyMock).getDependencies(target);
             will(returnValue(toSet(otherConfTaskMock)));
         }});
-        configuration.addDependency(projectDependencyStub);
-        configuration.setExtendsFrom(toSet(otherConfiguration));
+
+        configuration.extendsFrom(otherConfiguration);
+
+        assertThat(configuration.getBuildDependencies().getDependencies(target), equalTo((Set) toSet(otherConfTaskMock)));
     }
 
     @SuppressWarnings("unchecked")

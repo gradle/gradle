@@ -17,13 +17,18 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 
 import java.io.File;
 import java.util.Set;
 
-public class DefaultSelfResolvingDependency extends AbstractDependency implements SelfResolvingDependency {
+public class DefaultSelfResolvingDependency extends AbstractDependency implements SelfResolvingDependency,
+        FileCollectionDependency {
     private final FileCollection source;
+    private final DefaultTaskDependency builtBy = new DefaultTaskDependency();
 
     public DefaultSelfResolvingDependency(FileCollection source) {
         this.source = source;
@@ -59,5 +64,23 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
 
     public Set<File> resolve() {
         return source.getFiles();
+    }
+
+    public Set<Object> getBuiltBy() {
+        return builtBy.getValues();
+    }
+
+    public FileCollectionDependency setBuiltBy(Iterable<?> tasks) {
+        builtBy.setValues(tasks);
+        return this;
+    }
+
+    public FileCollectionDependency builtBy(Object... tasks) {
+        builtBy.add(tasks);
+        return this;
+    }
+
+    public TaskDependency getBuildDependencies() {
+        return builtBy;
     }
 }

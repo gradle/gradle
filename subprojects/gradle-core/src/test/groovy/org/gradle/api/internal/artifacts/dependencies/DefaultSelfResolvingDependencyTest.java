@@ -16,13 +16,14 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.file.FileCollection;
+import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,5 +80,16 @@ public class DefaultSelfResolvingDependencyTest {
         assertTrue(dependency.contentEquals(equalDependency));
         assertFalse(dependency.contentEquals(differentSource));
         assertFalse(dependency.contentEquals(differentType));
+    }
+
+    @Test
+    public void canGetAndSetBuildTaskDependencies() {
+        DefaultSelfResolvingDependency dependency = new DefaultSelfResolvingDependency(context.mock(FileCollection.class));
+
+        assertThat(dependency.getBuiltBy(), isEmpty());
+        dependency.builtBy("a", "b");
+        assertThat(dependency.getBuiltBy(), equalTo(toSet((Object) "a", "b")));
+        dependency.setBuiltBy(toList("c"));
+        assertThat(dependency.getBuiltBy(), equalTo(toSet((Object) "c")));
     }
 }

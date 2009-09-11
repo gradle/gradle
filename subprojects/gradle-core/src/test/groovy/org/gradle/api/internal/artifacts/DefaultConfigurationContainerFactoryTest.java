@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
-import org.gradle.api.internal.artifacts.ivyservice.ShortcircuitEmptyConfigsIvyService;
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingIvyService;
+import org.gradle.api.internal.artifacts.ivyservice.ShortcircuitEmptyConfigsIvyService;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -41,11 +40,9 @@ public class DefaultConfigurationContainerFactoryTest {
     public void testCreate() {
         ResolverProvider resolverProviderDummy = context.mock(ResolverProvider.class);
         final DependencyMetaDataProvider dependencyMetaDataProviderStub = context.mock(DependencyMetaDataProvider.class);
-        ProjectDependenciesBuildInstruction projectDependenciesBuildInstructionDummy = new ProjectDependenciesBuildInstruction(null);
 
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
-                new DefaultConfigurationContainerFactory(projectDependenciesBuildInstructionDummy).createConfigurationContainer(
-                        resolverProviderDummy,
+                new DefaultConfigurationContainerFactory().createConfigurationContainer(resolverProviderDummy,
                         dependencyMetaDataProviderStub);
 
         assertThat(configurationContainer.getIvyService(), instanceOf(ErrorHandlingIvyService.class));
@@ -57,6 +54,5 @@ public class DefaultConfigurationContainerFactoryTest {
         assertThat(service.getIvyService(), instanceOf(DefaultIvyService.class));
         assertThat(((DefaultIvyService) service.getIvyService()).getMetaDataProvider(), sameInstance(dependencyMetaDataProviderStub));
         assertThat(((DefaultIvyService) service.getIvyService()).getResolverProvider(), sameInstance(resolverProviderDummy));
-        assertThat(configurationContainer.getProjectDependenciesBuildInstruction(), sameInstance(projectDependenciesBuildInstructionDummy));
     }
 }

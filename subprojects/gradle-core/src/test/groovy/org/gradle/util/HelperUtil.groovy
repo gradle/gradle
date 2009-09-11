@@ -81,13 +81,16 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), new GroovySourceGenerationBackedClassGenerator())
-        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory([new SelfResolvingDependencyFactory()] as Set, new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory())
         StartParameter startParameter = new StartParameter()
         startParameter.pluginPropertiesFile = new File('plugin.properties')
+        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), new GroovySourceGenerationBackedClassGenerator())
+        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(
+                [new SelfResolvingDependencyFactory()] as Set,
+                new DefaultClientModuleFactory(),
+                new DefaultProjectDependencyFactory(startParameter.projectDependenciesBuildInstruction))
         DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
                 repositoryHandlerFactory,
-                new DefaultConfigurationContainerFactory(startParameter.projectDependenciesBuildInstruction),
+                new DefaultConfigurationContainerFactory(),
                 new DefaultPublishArtifactFactory(),
                 dependencyFactory,
                 new DefaultProjectEvaluator(),
@@ -223,7 +226,7 @@ class HelperUtil {
     }
 
     static org.gradle.api.artifacts.Configuration createConfiguration(String name) {
-        return new DefaultConfiguration(name, null, null, null)
+        return new DefaultConfiguration(name, null, null)
     }
 }
 

@@ -17,34 +17,37 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.artifacts.*;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependency {
     private Project dependencyProject;
+    private final ProjectDependenciesBuildInstruction instruction;
 
-    public DefaultProjectDependency(Project dependencyProject) {
-        this(dependencyProject, null);
+    public DefaultProjectDependency(Project dependencyProject, ProjectDependenciesBuildInstruction instruction) {
+        this(dependencyProject, null, instruction);
     }
 
-    public DefaultProjectDependency(Project dependencyProject, String configuration) {
+    public DefaultProjectDependency(Project dependencyProject, String configuration,
+                                    ProjectDependenciesBuildInstruction instruction) {
         super(configuration);
         this.dependencyProject = dependencyProject;
+        this.instruction = instruction;
     }
 
     public Project getDependencyProject() {
         return dependencyProject;
     }
-    
+
     public String getGroup() {
         return dependencyProject.getGroup().toString();
     }
@@ -62,45 +65,80 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public ProjectDependency copy() {
-        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, getConfiguration());
+        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject,
+                getConfiguration(), instruction);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
 
     public Set<File> resolve() {
         Set<File> files = new LinkedHashSet<File>();
-        for (SelfResolvingDependency selfResolvingDependency : getProjectConfiguration().getAllDependencies(SelfResolvingDependency.class)) {
+        for (SelfResolvingDependency selfResolvingDependency : getProjectConfiguration().getAllDependencies(
+                SelfResolvingDependency.class)) {
             files.addAll(selfResolvingDependency.resolve());
         }
         return files;
     }
 
+    public TaskDependency getBuildDependencies() {
+        if (!instruction.isRebuild()) {
+            return new DefaultTaskDependency();
+        }
+        return new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+                Configuration configuration = getProjectConfiguration();
+                taskDependency.add(configuration);
+                taskDependency.add(dependencyProject.getTasks().getByName(configuration.getUploadInternalTaskName()));
+                for (String taskName : instruction.getTaskNames()) {
+                    taskDependency.add(dependencyProject.getTasks().getByName(taskName));
+                }
+                return taskDependency.getDependencies(task);
+            }
+        };
+    }
+
     public boolean contentEquals(Dependency dependency) {
-        if (this == dependency) return true;
-        if (dependency == null || getClass() != dependency.getClass()) return false;
+        if (this == dependency) {
+            return true;
+        }
+        if (dependency == null || getClass() != dependency.getClass()) {
+            return false;
+        }
 
         ProjectDependency that = (ProjectDependency) dependency;
-        if (!isCommonContentEquals(that)) return false;
+        if (!isCommonContentEquals(that)) {
+            return false;
+        }
 
         return dependencyProject.equals(that.getDependencyProject());
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        ProjectDependency that = (ProjectDependency) o;
-        if (!this.getDependencyProject().equals(that.getDependencyProject())) return false;
-        if (!this.getConfiguration().equals(that.getConfiguration())) return false;
+        DefaultProjectDependency that = (DefaultProjectDependency) o;
+        if (!this.getDependencyProject().equals(that.getDependencyProject())) {
+            return false;
+        }
+        if (!this.getConfiguration().equals(that.getConfiguration())) {
+            return false;
+        }
+        if (!this.instruction.equals(that.instruction)) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public String toString() {
-        return "DefaultProjectDependency{" +
-                "dependencyProject='" + dependencyProject + '\'' +
-                ", configuration" + getConfiguration() + '\'' +
-                '}';
+        return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration"
+                + getConfiguration() + '\'' + '}';
     }
 }

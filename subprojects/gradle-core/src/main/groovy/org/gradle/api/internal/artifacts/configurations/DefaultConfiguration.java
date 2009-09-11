@@ -17,17 +17,17 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
-import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
+import static org.apache.ivy.core.module.descriptor.Configuration.*;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -48,8 +48,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private IvyService ivyService;
 
-    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction;
-
     private Set<Dependency> dependencies = new LinkedHashSet<Dependency>();
 
     private Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
@@ -60,12 +58,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ResolvedConfiguration cachedResolvedConfiguration = null;
 
-    public DefaultConfiguration(String name, ConfigurationsProvider configurationsProvider, IvyService ivyService,
-                                ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+    public DefaultConfiguration(String name, ConfigurationsProvider configurationsProvider, IvyService ivyService) {
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.ivyService = ivyService;
-        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
     public String getName() {
@@ -199,9 +195,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
-        if (!projectDependenciesBuildInstruction.isRebuild()) {
-            return new DefaultTaskDependency();
-        }
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency taskDependency = new DefaultTaskDependency();
@@ -213,12 +206,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void addUploadTaskAndAdditionalTasksFromProjectDependencies(DefaultTaskDependency taskDependency) {
-        for (ProjectDependency projectDependency : getDependencies(ProjectDependency.class)) {
-            Configuration configuration = projectDependency.getProjectConfiguration();
-            for (String taskName : projectDependenciesBuildInstruction.getTaskNames()) {
-                taskDependency.add(projectDependency.getDependencyProject().getTasks().getByName(taskName));
-            }
-            taskDependency.add(projectDependency.getDependencyProject().getTasks().getByName(configuration.getUploadInternalTaskName()));
+        for (SelfResolvingDependency dependency : getDependencies(SelfResolvingDependency.class)) {
+            taskDependency.add(dependency);
         }
     }
 
@@ -373,14 +362,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Configurations.uploadTaskName(getName());
     }
 
-    public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
-        return projectDependenciesBuildInstruction;
-    }
-
-    public void setProjectDependenciesBuildInstruction(ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
-        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
-    }
-
     public IvyService getIvyService() {
         return ivyService;
     }
@@ -438,7 +419,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration("copyOf" + getName(),
-                configurationsProvider, ivyService, projectDependenciesBuildInstruction);
+                configurationsProvider, ivyService);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved

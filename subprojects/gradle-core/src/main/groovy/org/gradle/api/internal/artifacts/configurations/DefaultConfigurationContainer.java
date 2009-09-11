@@ -29,19 +29,16 @@ public class DefaultConfigurationContainer extends AutoCreateDomainObjectContain
     
     private IvyService ivyService;
 
-    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction;
-
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyService ivyService, ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
+    public DefaultConfigurationContainer(IvyService ivyService) {
         super(Configuration.class);
         this.ivyService = ivyService;
-        this.projectDependenciesBuildInstruction = projectDependenciesBuildInstruction;
     }
 
     @Override
     protected Configuration create(String name) {
-        return new DefaultConfiguration(name, this, ivyService, projectDependenciesBuildInstruction);
+        return new DefaultConfiguration(name, this, ivyService);
     }
 
     @Override
@@ -58,14 +55,10 @@ public class DefaultConfigurationContainer extends AutoCreateDomainObjectContain
         return ivyService;
     }
 
-    public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
-        return projectDependenciesBuildInstruction;
-    }
-
     public Configuration detachedConfiguration(Dependency... dependencies) {
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration detachedConfiguration = new DefaultConfiguration(DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++,
-                detachedConfigurationsProvider, ivyService, projectDependenciesBuildInstruction);
+                detachedConfigurationsProvider, ivyService);
         for (Dependency dependency : dependencies) {
             detachedConfiguration.addDependency(dependency.copy());
         }

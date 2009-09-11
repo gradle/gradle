@@ -17,13 +17,16 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.SelfResolvingDependency;
+import org.gradle.api.Task;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.Matchers.*;
 import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -40,8 +43,12 @@ import java.util.Set;
  */
 @RunWith(JMock.class)
 public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
-    private DefaultProjectDependency projectDependency;
-    private Project dependencyProject;
+    private final ProjectDependenciesBuildInstruction instruction = new ProjectDependenciesBuildInstruction(WrapUtil.<String>toList());
+    private final Project targetProjectStub = context.mock(Project.class);
+    private final ConfigurationHandler targetConfigurationHandlerStub = context.mock(ConfigurationHandler.class);
+    private final Configuration targetConfigurationMock = context.mock(Configuration.class);
+    private final TaskContainer targetTaskContainerStub = context.mock(TaskContainer.class);
+    private final DefaultProjectDependency projectDependency = new DefaultProjectDependency(targetProjectStub, instruction);
 
     protected AbstractModuleDependency getDependency() {
         return projectDependency;
@@ -57,66 +64,131 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         dependencyProject.setVersion(version);
         DefaultProjectDependency projectDependency;
         if (configuration != null) {
-            projectDependency = new DefaultProjectDependency(dependencyProject, configuration);
+            projectDependency = new DefaultProjectDependency(dependencyProject, configuration, instruction);
         } else {
-            projectDependency = new DefaultProjectDependency(dependencyProject); 
+            projectDependency = new DefaultProjectDependency(dependencyProject, instruction);
         }
         return projectDependency;
     }
 
-    @Before public void setUp() {
-        dependencyProject = HelperUtil.createRootProject(new File("dependency"));
-        projectDependency = new DefaultProjectDependency(dependencyProject);
+    @Before
+    public void setUp() {
+        context.checking(new Expectations() {{
+            allowing(targetProjectStub).getConfigurations();
+            will(returnValue(targetConfigurationHandlerStub));
+            allowing(targetConfigurationHandlerStub).getByName("default");
+            will(returnValue(targetConfigurationMock));
+            allowing(targetProjectStub).getTasks();
+            will(returnValue(targetTaskContainerStub));
+            allowing(targetProjectStub).getName();
+            will(returnValue("target-name"));
+            allowing(targetProjectStub).getGroup();
+            will(returnValue("target-group"));
+            allowing(targetProjectStub).getVersion();
+            will(returnValue("target-version"));
+            allowing(targetConfigurationMock).getUploadInternalTaskName();
+            will(returnValue("target-upload"));
+        }});
     }
-    
+
     @Test
     public void init() {
-        projectDependency = new DefaultProjectDependency(dependencyProject);
         assertTrue(projectDependency.isTransitive());
-        assertEquals(dependencyProject.getName(), projectDependency.getName());
-        assertEquals(dependencyProject.getGroup().toString(), projectDependency.getGroup());
-        assertEquals(dependencyProject.getVersion().toString(), projectDependency.getVersion());
+        assertEquals("target-name", projectDependency.getName());
+        assertEquals("target-group", projectDependency.getGroup());
+        assertEquals("target-version", projectDependency.getVersion());
     }
 
     @Test
     public void getConfiguration() {
-        final Configuration configurationDummy = context.mock(Configuration.class);
-        final ConfigurationHandler configurationHandlerStub = context.mock(ConfigurationHandler.class);
-        final Project projectStub = context.mock(Project.class);
         context.checking(new Expectations() {{
-            allowing(projectStub).getConfigurations();
-            will(returnValue(configurationHandlerStub));
-
-            allowing(configurationHandlerStub).getByName("conf1");
-            will(returnValue(configurationDummy));
+            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            will(returnValue(targetConfigurationMock));
         }});
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(projectStub, "conf1");
-        assertThat(projectDependency.getProjectConfiguration(), sameInstance(configurationDummy));
+
+        DefaultProjectDependency projectDependency = new DefaultProjectDependency(targetProjectStub, "conf1", instruction);
+        assertThat(projectDependency.getProjectConfiguration(), sameInstance(targetConfigurationMock));
     }
 
     @Test
-    public void resolve() {
-        final Configuration configurationStub = context.mock(Configuration.class);
-        final ConfigurationHandler configurationHandlerStub = context.mock(ConfigurationHandler.class);
-        final Project projectStub = context.mock(Project.class);
+    public void resolveDelegatesToAllSelfResolvingDependenciesInTargetConfiguration() {
         final SelfResolvingDependency selfResolvingDependency = context.mock(SelfResolvingDependency.class);
-        final Set<File> selfResolvingFiles = WrapUtil.toSet(new File("somePath"));
+        final Set<File> selfResolvingFiles = toSet(new File("somePath"));
         context.checking(new Expectations() {{
+            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            will(returnValue(targetConfigurationMock));
 
-            allowing(projectStub).getConfigurations();
-            will(returnValue(configurationHandlerStub));
-
-            allowing(configurationHandlerStub).getByName("conf1");
-            will(returnValue(configurationStub));
-
-            allowing(configurationStub).getAllDependencies(SelfResolvingDependency.class);
-            will(returnValue(WrapUtil.toSet(selfResolvingDependency)));
+            allowing(targetConfigurationMock).getAllDependencies(SelfResolvingDependency.class);
+            will(returnValue(toSet(selfResolvingDependency)));
 
             allowing(selfResolvingDependency).resolve();
             will(returnValue(selfResolvingFiles));
         }});
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(projectStub, "conf1");
+        DefaultProjectDependency projectDependency = new DefaultProjectDependency(targetProjectStub, "conf1", instruction);
         assertThat(projectDependency.resolve(), equalTo(selfResolvingFiles));
+    }
+
+    private Task taskInTargetProject(final String name) {
+        final Task task = context.mock(Task.class, name);
+        context.checking(new Expectations(){{
+            allowing(targetTaskContainerStub).getByName(name);
+            will(returnValue(task));
+        }});
+        return task;
+    }
+
+    @Test
+    public void dependsOnTargetConfigurationAndUploadInternalTaskOfTargetConfiguration() {
+        Task uploadTask = taskInTargetProject("target-upload");
+        Task a = taskInTargetProject("a");
+        Task b = taskInTargetProject("b");
+        expectTargetConfigurationHasDependencies(a, b);
+
+        assertThat(projectDependency.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(uploadTask, a, b)));
+    }
+
+    private void expectTargetConfigurationHasDependencies(final Task... tasks) {
+        context.checking(new Expectations(){{
+            TaskDependency dependencyStub = context.mock(TaskDependency.class);
+
+            allowing(targetConfigurationMock).getBuildDependencies();
+            will(returnValue(dependencyStub));
+
+            allowing(dependencyStub).getDependencies(null);
+            will(returnValue(toSet(tasks)));
+        }});
+    }
+
+    private void expectTargetConfigurationHasNoDependencies() {
+        context.checking(new Expectations(){{
+            TaskDependency dependencyStub = context.mock(TaskDependency.class);
+
+            allowing(targetConfigurationMock).getBuildDependencies();
+            will(returnValue(dependencyStub));
+
+            allowing(dependencyStub).getDependencies(null);
+            will(returnValue(toSet()));
+        }});
+    }
+
+    @Test
+    public void doesNotDependOnAnythingWhenProjectRebuildIsDisabled() {
+        DefaultProjectDependency dependency = new DefaultProjectDependency(targetProjectStub,
+                new ProjectDependenciesBuildInstruction(null));
+        assertThat(dependency.getBuildDependencies().getDependencies(null), isEmpty());
+    }
+
+    @Test
+    public void dependsOnAdditionalTasksFromTargetProject() {
+        expectTargetConfigurationHasNoDependencies();
+
+        Task uploadTask = taskInTargetProject("target-upload");
+        Task a = taskInTargetProject("a");
+        Task b = taskInTargetProject("b");
+
+        DefaultProjectDependency dependency = new DefaultProjectDependency(targetProjectStub,
+                new ProjectDependenciesBuildInstruction(toList("a", "b")));
+        assertThat(dependency.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(uploadTask, a, b)));
     }
 
     @Test
@@ -137,13 +209,13 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     @Test
     public void copy() {
         ProjectDependency dependency = createProjectDependency();
-        ProjectDependency copiedDependency = (ProjectDependency) dependency.copy();
+        ProjectDependency copiedDependency = dependency.copy();
         assertDeepCopy(dependency, copiedDependency);
         assertThat(copiedDependency.getDependencyProject(), sameInstance(dependency.getDependencyProject()));
     }
 
     private ProjectDependency createProjectDependency() {
-        ProjectDependency projectDependency = new DefaultProjectDependency(HelperUtil.createRootProject(), "conf");
+        ProjectDependency projectDependency = new DefaultProjectDependency(HelperUtil.createRootProject(), "conf", instruction);
         projectDependency.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"));
         return projectDependency;
     }
@@ -151,13 +223,16 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     @Test
     @Override
     public void equality() {
-        assertThat(new DefaultProjectDependency(dependencyProject), equalTo(new DefaultProjectDependency(dependencyProject)));
-        assertThat(new DefaultProjectDependency(dependencyProject).hashCode(), equalTo(new DefaultProjectDependency(dependencyProject).hashCode()));
-        assertThat(new DefaultProjectDependency(dependencyProject, "conf1"), equalTo(new DefaultProjectDependency(dependencyProject, "conf1")));
-        assertThat(new DefaultProjectDependency(dependencyProject, "conf1").hashCode(), equalTo(new DefaultProjectDependency(dependencyProject, "conf1").hashCode()));
-        assertThat(new DefaultProjectDependency(dependencyProject, "conf1"), not(equalTo(new DefaultProjectDependency(dependencyProject, "conf2"))));
-        assertThat(new DefaultProjectDependency(dependencyProject), not(equalTo(new DefaultProjectDependency(context.mock(Project.class, "otherProject")))));
+        assertThat(new DefaultProjectDependency(targetProjectStub, instruction), strictlyEqual(new DefaultProjectDependency(
+                targetProjectStub, instruction)));
+        assertThat(new DefaultProjectDependency(targetProjectStub, "conf1", instruction), strictlyEqual(new DefaultProjectDependency(
+                targetProjectStub, "conf1", instruction)));
+        assertThat(new DefaultProjectDependency(targetProjectStub, "conf1", instruction), not(equalTo(new DefaultProjectDependency(
+                targetProjectStub, "conf2", instruction))));
+        Project otherProject = context.mock(Project.class, "otherProject");
+        assertThat(new DefaultProjectDependency(targetProjectStub, instruction), not(equalTo(new DefaultProjectDependency(
+                otherProject, instruction))));
+        assertThat(new DefaultProjectDependency(targetProjectStub, instruction), not(equalTo(new DefaultProjectDependency(
+                targetProjectStub, new ProjectDependenciesBuildInstruction(null)))));
     }
-
-
 }

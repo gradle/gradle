@@ -69,14 +69,13 @@ public class DefaultGradleFactory implements GradleFactory {
                         new MasterDirSettingsFinderStrategy(),
                         new ParentDirSettingsFinderStrategy()))
         );
-        ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory(
-                startParameter.getProjectDependenciesBuildInstruction());
+        ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory();
         DefaultInternalRepository internalRepository = new DefaultInternalRepository();
         DependencyFactory dependencyFactory = new DefaultDependencyFactory(
                 WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),
                         new SelfResolvingDependencyFactory()),
                 new DefaultClientModuleFactory(),
-                new DefaultProjectDependencyFactory());
+                new DefaultProjectDependencyFactory(startParameter.getProjectDependenciesBuildInstruction()));
         ResolverFactory resolverFactory = new DefaultResolverFactory();
         ScriptCompilerFactory scriptCompilerFactory = new DefaultScriptCompilerFactory(
                 new DefaultScriptCompilationHandler(

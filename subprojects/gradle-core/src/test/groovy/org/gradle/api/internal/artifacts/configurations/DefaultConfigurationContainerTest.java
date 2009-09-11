@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
@@ -29,7 +28,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -43,17 +41,11 @@ public class DefaultConfigurationContainerTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     IvyService ivyServiceDummy = context.mock(IvyService.class);
-    ProjectDependenciesBuildInstruction projectDependenciesBuildInstructionDummy = new ProjectDependenciesBuildInstruction(
-            Collections.<String>emptyList());
-
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
-            ivyServiceDummy, projectDependenciesBuildInstructionDummy);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy);
 
     @Test
     public void init() {
         assertThat(configurationContainer.getIvyService(), sameInstance(ivyServiceDummy));
-        assertThat(configurationContainer.getProjectDependenciesBuildInstruction(),
-                sameInstance(projectDependenciesBuildInstructionDummy));
     }
 
     @Test

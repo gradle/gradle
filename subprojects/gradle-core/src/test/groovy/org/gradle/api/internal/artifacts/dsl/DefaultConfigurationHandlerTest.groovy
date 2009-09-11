@@ -17,13 +17,12 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.artifacts.IvyService
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.artifacts.UnknownConfigurationException
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 
 /**
  * @author Hans Dockter
@@ -33,10 +32,8 @@ class DefaultConfigurationHandlerTest {
     private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     private IvyService ivyService = context.mock(IvyService)
-    private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(null)
 
-    private DefaultConfigurationHandler configurationHandler = new DefaultConfigurationHandler(ivyService,
-            projectDependenciesBuildInstruction)
+    private DefaultConfigurationHandler configurationHandler = new DefaultConfigurationHandler(ivyService)
 
     @Test void addsNewConfigurationWhenConfiguringSelf() {
         configurationHandler.configure {

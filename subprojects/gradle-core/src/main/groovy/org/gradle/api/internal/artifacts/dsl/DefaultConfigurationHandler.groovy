@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.internal.artifacts.IvyService
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
@@ -26,9 +25,8 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationCont
  * @author Hans Dockter
  */
 class DefaultConfigurationHandler extends DefaultConfigurationContainer implements ConfigurationHandler {
-    def DefaultConfigurationHandler(IvyService ivyService,
-                                    ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction) {
-        super(ivyService, projectDependenciesBuildInstruction)
+    def DefaultConfigurationHandler(IvyService ivyService) {
+        super(ivyService)
     }
 
     // These are here to make Groovy 1.6 happy

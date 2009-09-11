@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Buildable;
+
 import java.io.File;
 import java.util.Set;
 
@@ -22,7 +24,7 @@ import java.util.Set;
  * A {@code SelfResolvingDependency} is a {@link Dependency} which is able to resolve itself, independent of a
  * repository.
  */
-public interface SelfResolvingDependency extends Dependency {
+public interface SelfResolvingDependency extends Dependency, Buildable {
     /**
      * Resolves this dependency.
      *

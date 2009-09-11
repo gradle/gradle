@@ -84,7 +84,7 @@ public class DefaultDependencyDescriptorFactoryTest {
         final ModuleRevisionId testModuleRevisionId = ModuleRevisionId.newInstance(
                 Project.DEFAULT_GROUP, dependencyProjectName, Project.DEFAULT_VERSION, new HashMap());
         final AbstractProject dependencyProject = HelperUtil.createRootProject(new File(dependencyProjectName));
-        DefaultProjectDependency projectDependency = (DefaultProjectDependency) setUpDependency(new DefaultProjectDependency(dependencyProject, TEST_DEP_CONF));
+        DefaultProjectDependency projectDependency = (DefaultProjectDependency) setUpDependency(new DefaultProjectDependency(dependencyProject, TEST_DEP_CONF, null));
 
         dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, projectDependency, DUMMY_MODULE_REGISTRY);
         DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
