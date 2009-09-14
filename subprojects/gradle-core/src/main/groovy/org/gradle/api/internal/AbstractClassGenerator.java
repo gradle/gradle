@@ -15,18 +15,16 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.*;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.DynamicObjectAware;
 import org.gradle.util.ReflectionUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Collection;
-import java.util.Arrays;
-
-import groovy.lang.*;
 
 public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Map<Class, Map<Class, Class>> generatedClasses = new HashMap<Class, Map<Class, Class>>();

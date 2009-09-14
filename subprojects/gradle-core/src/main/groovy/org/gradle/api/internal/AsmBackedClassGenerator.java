@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.internal.tasks.DynamicObjectAware;
+import groovy.lang.MetaBeanProperty;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.util.ReflectionUtil;
@@ -28,8 +28,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
-import groovy.lang.MetaBeanProperty;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @Override

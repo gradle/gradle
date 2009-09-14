@@ -19,7 +19,6 @@ import groovy.lang.GroovyRuntimeException;
 import groovy.lang.Closure;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.internal.tasks.DynamicObjectAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;

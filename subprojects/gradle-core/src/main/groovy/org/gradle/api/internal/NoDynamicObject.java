@@ -20,7 +20,7 @@ import java.lang.annotation.*;
 /**
  * Disables the application of dynamic object behaviour for the class it is attached to.
  *
- * @see org.gradle.api.internal.tasks.DynamicObjectAware
+ * @see DynamicObjectAware
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

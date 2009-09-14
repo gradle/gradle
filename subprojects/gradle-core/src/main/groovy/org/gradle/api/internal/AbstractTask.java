@@ -24,15 +24,14 @@ import org.gradle.api.*;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.DynamicObjectAware;
 import org.gradle.api.logging.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.execution.OutputHandler;
 import org.gradle.execution.DefaultOutputHandler;
+import org.gradle.execution.OutputHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +64,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private StandardOutputCapture standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
 
-    private DefaultTaskDependency dependencies = new DefaultTaskDependency();
+    private DefaultTaskDependency dependencies;
 
     private DynamicObjectHelper dynamicObjectHelper;
 
@@ -96,6 +95,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         path = project == null ? null : project.absolutePath(name);
         dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention());
         outputHandler = new DefaultOutputHandler(this);
+        dependencies = new DefaultTaskDependency(project == null ? null : ((ProjectInternal) project).getTasks());
     }
 
     public static void injectIntoNextInstance(Project project, String name) {
