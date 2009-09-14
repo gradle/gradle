@@ -1,0 +1,19 @@
+configurations {
+    compile
+}
+
+// START SNIPPET generated-file-dependencies
+dependencies {
+    compile files("$buildDir/classes") {
+        builtBy 'compile'
+    }
+}
+
+task compile << {
+    println 'compiling classes'
+}
+
+task list(dependsOn: configurations.compile) << {
+    println "classpath = ${configurations.compile.collect {File file -> file.name}}"
+}
+// END SNIPPET generated-file-dependencies

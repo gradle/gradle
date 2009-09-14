@@ -82,10 +82,8 @@ task retrieve << {
     GradleUtil.deleteDir(new File(gradle.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/testdep"))
     GradleUtil.deleteDir(new File(gradle.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/testdep2"))
     GradleUtil.deleteDir(new File(gradle.gradleUserHomeDir, "$ResolverContainer.DEFAULT_CACHE_DIR_NAME/jaronly"))
-    Set files = configurations.test.resolve()
-    ant {
-        files.each {
-            copy(file: it, todir: buildDir)
-        }
+    copy {
+        from configurations.test
+        into buildDir
     }
 }

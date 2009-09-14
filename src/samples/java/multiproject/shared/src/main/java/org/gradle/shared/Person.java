@@ -3,13 +3,6 @@ package org.gradle.shared;
 import java.util.Properties;
 import java.io.IOException;
 
-/**
- * Created by IntelliJ IDEA.
- * User: hans
- * Date: Oct 23, 2007
- * Time: 5:36:38 PM
- * To change this template use File | Settings | File Templates.
- */
 public class Person {
     private String name;
 

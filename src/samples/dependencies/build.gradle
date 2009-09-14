@@ -109,7 +109,7 @@ dependencies {
 
 }
 
-task test(dependsOn: [configurations.subprojectAtlantic.buildDependencies, configurations.subprojectNorthSea.buildDependencies]) << {
+task test(dependsOn: [configurations.subprojectAtlantic, configurations.subprojectNorthSea]) << {
     assertCorrectFilesForCompleteConfigurations()
     assertFilesForDependencySubsets()
     assertFilesForConfigurationCopies()

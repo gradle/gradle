@@ -3,6 +3,7 @@ package org.gradle;
 import org.junit.Test;
 import java.io.File;
 import java.util.List;
+import java.util.Properties;
 import static org.junit.Assert.*;
 import org.apache.commons.collections.list.GrowthList;
 
@@ -18,5 +19,12 @@ public class PersonIntegrationTest {
 
         Person person = PersonTestFixture.create("Larry");
         assertEquals("Larry", person.getName());
+    }
+    
+    @Test
+    public void resourcesAreAvailableInClasspath() throws Exception {
+        Properties properties = new Properties();
+        properties.load(getClass().getResourceAsStream("inttest.properties"));
+        assertEquals("value", properties.getProperty("int.test.prop"));
     }
 }
