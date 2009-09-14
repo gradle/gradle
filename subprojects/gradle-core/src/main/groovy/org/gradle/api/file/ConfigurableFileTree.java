@@ -22,7 +22,7 @@ import java.io.File;
 /**
  * <p>A {@link FileTree} with a single base directory, which can be configured and modified.</p>
  *
- * <p>You can obtain a {@code ConfigurableFileTree} instance using {@link org.gradle.api.Project#fileTree(java.util.Map)}.</p>
+ * <p>You can obtain a {@code ConfigurableFileTree} instance by calling {@link org.gradle.api.Project#fileTree(java.util.Map)}.</p>
  */
 public interface ConfigurableFileTree extends FileTree, PatternFilterable {
     /**

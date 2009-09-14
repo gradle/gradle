@@ -79,7 +79,7 @@ import java.util.Set;
  * <li>A {@link Task}.</li>
  *
  * <li>A closure. The closure may take a {@code Task} as parameter. It may return any of the types listed here. Its
- * return value is recursively converted to tasks.</li>
+ * return value is recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
  * <li>A {@link TaskDependency} object.</li>
  *
@@ -89,7 +89,7 @@ import java.util.Set;
  * of the collection/map are recursively converted to tasks.</li>
  *
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
- * recursively converted to tasks.</li>
+ * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
  * <li>An {@code Object}. The object's {@code toString()} method is interpreted as a task path or name.</li>
  *

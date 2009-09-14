@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
-import static org.gradle.util.Matchers.*;
+import org.gradle.api.tasks.TaskDependency;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -33,22 +33,19 @@ import java.io.File;
 @RunWith(JMock.class)
 public class DefaultSelfResolvingDependencyTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
+    private final FileCollection source = context.mock(FileCollection.class);
+    private final SelfResolvingDependency dependency = new DefaultSelfResolvingDependency(source);
 
     @Test
     public void defaultValues() {
-        SelfResolvingDependency dependency = new DefaultSelfResolvingDependency(context.mock(FileCollection.class));
-
         assertThat(dependency.getGroup(), nullValue());
         assertThat(dependency.getName(), equalTo("unspecified"));
         assertThat(dependency.getVersion(), nullValue());
     }
 
     @Test
-    public void resolve() {
+    public void usesSourceFileCollectionToResolveFiles() {
         final File file = new File("file");
-
-        final FileCollection source = context.mock(FileCollection.class);
-        SelfResolvingDependency dependency = new DefaultSelfResolvingDependency(source);
 
         context.checking(new Expectations(){{
             one(source).getFiles();
@@ -60,8 +57,6 @@ public class DefaultSelfResolvingDependencyTest {
 
     @Test
     public void createsCopy() {
-        SelfResolvingDependency dependency = new DefaultSelfResolvingDependency(context.mock(FileCollection.class));
-
         Dependency copy = dependency.copy();
         assertThat(copy, instanceOf(SelfResolvingDependency.class));
         assertTrue(copy.contentEquals(dependency));
@@ -70,8 +65,6 @@ public class DefaultSelfResolvingDependencyTest {
 
     @Test
     public void contentsAreEqualWhenFileSetsAreEqual() {
-        FileCollection source = context.mock(FileCollection.class);
-        SelfResolvingDependency dependency = new DefaultSelfResolvingDependency(source);
         SelfResolvingDependency equalDependency = new DefaultSelfResolvingDependency(source);
         SelfResolvingDependency differentSource = new DefaultSelfResolvingDependency(context.mock(FileCollection.class, "other"));
         Dependency differentType = context.mock(Dependency.class);
@@ -83,13 +76,14 @@ public class DefaultSelfResolvingDependencyTest {
     }
 
     @Test
-    public void canGetAndSetBuildTaskDependencies() {
-        DefaultSelfResolvingDependency dependency = new DefaultSelfResolvingDependency(context.mock(FileCollection.class));
+    public void usesSourceFileCollectionToDetermineBuildDependencies() {
+        final TaskDependency taskDependency = context.mock(TaskDependency.class);
 
-        assertThat(dependency.getBuiltBy(), isEmpty());
-        dependency.builtBy("a", "b");
-        assertThat(dependency.getBuiltBy(), equalTo(toSet((Object) "a", "b")));
-        dependency.setBuiltBy(toList("c"));
-        assertThat(dependency.getBuiltBy(), equalTo(toSet((Object) "c")));
+        context.checking(new Expectations() {{
+            allowing(source).getBuildDependencies();
+            will(returnValue(taskDependency));
+        }});
+
+        assertThat(dependency.getBuildDependencies(), sameInstance(taskDependency));
     }
 }

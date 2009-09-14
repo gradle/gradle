@@ -79,7 +79,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         if (paths.length == 1 && paths[0] instanceof FileCollection) {
             return (FileCollection) paths[0];
         }
-        return new PathResolvingFileCollection(this, paths);
+        return new PathResolvingFileCollection(this, null, paths);
     }
 
     public FileTree resolveFilesAsTree(Object... paths) {

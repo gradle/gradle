@@ -17,8 +17,8 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
@@ -680,8 +680,8 @@ public interface Project extends Comparable<Project> {
     File relativePath(Object path);
 
     /**
-     * <p>Returns a {@link FileCollection} containing the given files. You can pass any of the following types to this
-     * method:</p>
+     * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
+     * types to this method:</p>
      *
      * <ul>
      *
@@ -693,56 +693,94 @@ public interface Project extends Comparable<Project> {
      * <li>A {@link FileCollection}. The contents of the collection are included in the returned collection.</li>
      *
      * <li>A {@link java.util.concurrent.Callable}. The {@code call()} method may return any of the types listed here.
-     * The return value of the {@code call()} method is recursively converted to files.</li>
+     * The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is
+     * treated as an empty collection.</li>
      *
      * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
-     * to files.</li>
+     * to files. A {@code null} return value is treated as an empty collection.</li>
      *
      * <li>An Object. Its {@code toString()} value is treated the same way as a String, as per a call to {@link
      * #file(Object)}.</li>
      *
      * </ul>
      *
-     * <p>The returned {@code FileCollection} is live, in that it evaluates the above each time the contents of the
-     * collection is queried.</p>
+     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
+     * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
+     * of the collection is queried.</p>
      *
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.
      */
-    FileCollection files(Object... paths);
+    ConfigurableFileCollection files(Object... paths);
 
     /**
-     * Create a new {@code ConfigurableFileTree} using the given base directory. The given baseDir is evaluated as for
-     * {@link #file(Object)}.
+     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as for {@link
+     * #files(Object...)}. The file collection is configured using the given closure. The file collection is passed to
+     * the closure as its delegate. Example:</p>
      *
-     * @return the file tree.
+     * <pre>
+     * files "$buildDir/classes" {
+     *     builtBy 'compile'
+     * }
+     * </pre>
+     *
+     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
+     * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
+     * of the collection is queried.</p>
+     *
+     * @param paths The contents of the file collection. Evaluated as for {@link #files(Object...)}.
+     * @param configureClosure The closure to use to configure the file collection.
+     * @return the configured file tree. Never returns null.
+     */
+    ConfigurableFileCollection files(Object paths, Closure configureClosure);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
+     * as for {@link #file(Object)}.</p>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
+     * @return the file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Object baseDir);
 
     /**
-     * Create a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
-     * properties on the new file tree.  Example:
+     * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
+     * properties on the new file tree.  Example:</p>
+     *
      * <pre>
      * fileTree(dir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
      * </pre>
      *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
      * @param args map of property assignments to {@code ConfigurableFileTree} object
-     * @return the configured file tree.
+     * @return the configured file tree. Never returns null.
      */
-    ConfigurableFileTree fileTree(Map<String, Object> args);
+    ConfigurableFileTree fileTree(Map<String, ?> args);
 
     /**
-     * Create a new {@code ConfigurableFileTree} using the provided closure.  The closure will be used to configure the
-     * new file tree. The file tree is passed to the closure as its delegate.  Example:
+     * <p>Creates a new {@code ConfigurableFileTree} using the provided closure.  The closure will be used to configure
+     * the new file tree. The file tree is passed to the closure as its delegate.  Example:</p>
+     *
      * <pre>
-     * fileTree{
+     * fileTree {
      *    from 'src'
      *    exclude '**&#47;.svn/**'
      * }.copy { into 'dest'}
      * </pre>
      *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
      * @param closure Closure to configure the {@code ConfigurableFileTree} object
-     * @return the configured file tree.
+     * @return the configured file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Closure closure);
 

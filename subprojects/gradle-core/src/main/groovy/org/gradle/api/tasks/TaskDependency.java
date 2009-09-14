@@ -23,7 +23,7 @@ import java.util.Set;
  * <p>A <code>TaskDependency</code> represents an <em>unordered</em> set of tasks which a {@link Task} depends on.
  * Gradle ensures that all the dependencies of a task are executed before the task itself is executed.</p>
  *
- * <p>You can add a <code>TaskDependency</code> to a task by calling the tasks's {@link Task#dependsOn(Object[])}
+ * <p>You can add a <code>TaskDependency</code> to a task by calling the task's {@link Task#dependsOn(Object...)}
  * method.</p>
  */
 public interface TaskDependency {

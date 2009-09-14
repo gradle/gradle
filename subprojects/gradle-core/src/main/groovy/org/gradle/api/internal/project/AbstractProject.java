@@ -20,15 +20,16 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.*;
-import org.gradle.api.file.CopyAction;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopyAction;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.file.BaseDirConverter;
 import org.gradle.api.internal.file.CopyActionImpl;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -38,7 +39,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.Directory;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -534,7 +534,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return this;
     }
 
-    public TaskContainer getTasks() {
+    public TaskContainerInternal getTasks() {
         return taskContainer;
     }
 
@@ -691,15 +691,21 @@ public abstract class AbstractProject implements ProjectInternal {
         return fileResolver.resolve(path, validation);
     }
 
-    public FileCollection files(Object... paths) {
-        return fileResolver.resolveFiles(paths);
+    public ConfigurableFileCollection files(Object... paths) {
+        return new PathResolvingFileCollection(fileResolver, taskContainer, paths);
+    }
+
+    public ConfigurableFileCollection files(Object paths, Closure closure) {
+        PathResolvingFileCollection result = new PathResolvingFileCollection(fileResolver, taskContainer, paths);
+        ConfigureUtil.configure(closure, result);
+        return result;
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
         return new FileSet(baseDir, fileResolver);
     }
 
-    public FileSet fileTree(Map<String,Object> args) {
+    public FileSet fileTree(Map<String, ?> args) {
         return new FileSet(args, fileResolver);
     }
 

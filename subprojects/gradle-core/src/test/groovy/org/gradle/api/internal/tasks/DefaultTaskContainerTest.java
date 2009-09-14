@@ -168,42 +168,16 @@ public class DefaultTaskContainerTest {
 
     @Test
     public void canFindTaskByRelativePath() {
-        final Task task = task("task");
-        
-        context.checking(new Expectations(){{
-            Project otherProject = context.mock(Project.class);
-            TaskContainer otherTaskContainer = context.mock(TaskContainer.class);
-
-            allowing(project).findProject("sub");
-            will(returnValue(otherProject));
-
-            allowing(otherProject).getTasks();
-            will(returnValue(otherTaskContainer));
-
-            allowing(otherTaskContainer).findByName("task");
-            will(returnValue(task));
-        }});
+        Task task = task("task");
+        expectTaskLookupInOtherProject("sub", "task", task);
 
         assertThat(container.findByPath("sub:task"), sameInstance(task));
     }
 
     @Test
     public void canFindTaskByAbsolutePath() {
-        final Task task = task("task");
-
-        context.checking(new Expectations() {{
-            Project otherProject = context.mock(Project.class);
-            TaskContainer otherTaskContainer = context.mock(TaskContainer.class);
-
-            allowing(project).findProject(":");
-            will(returnValue(otherProject));
-
-            allowing(otherProject).getTasks();
-            will(returnValue(otherTaskContainer));
-
-            allowing(otherTaskContainer).findByName("task");
-            will(returnValue(task));
-        }});
+        Task task = task("task");
+        expectTaskLookupInOtherProject(":", "task", task);
 
         assertThat(container.findByPath(":task"), sameInstance(task));
     }
@@ -220,19 +194,7 @@ public class DefaultTaskContainerTest {
 
     @Test
     public void findByPathReturnsNullForUnknownTask() {
-        context.checking(new Expectations() {{
-            Project otherProject = context.mock(Project.class);
-            TaskContainer otherTaskContainer = context.mock(TaskContainer.class);
-
-            allowing(project).findProject(":other");
-            will(returnValue(otherProject));
-
-            allowing(otherProject).getTasks();
-            will(returnValue(otherTaskContainer));
-
-            allowing(otherTaskContainer).findByName("task");
-            will(returnValue(null));
-        }});
+        expectTaskLookupInOtherProject(":other", "task", null);
 
         assertThat(container.findByPath(":other:task"), nullValue());
     }
@@ -245,6 +207,14 @@ public class DefaultTaskContainerTest {
     }
 
     @Test
+    public void canGetTaskByPath() {
+        Task task = addTask("task");
+        expectTaskLookupInOtherProject(":a:b:c", "task", task);
+
+        assertThat(container.getByPath(":a:b:c:task"), sameInstance(task));
+    }
+
+    @Test
     public void getByPathFailsForUnknownTask() {
         try {
             container.getByPath("unknown");
@@ -253,7 +223,37 @@ public class DefaultTaskContainerTest {
             assertThat(e.getMessage(), equalTo("Task with path 'unknown' not found in <project>."));
         }
     }
+
+    @Test
+    public void resolveLocatesTaskByName() {
+        Task task = addTask("1");
+
+        assertThat(container.resolveTask(1), sameInstance(task));
+    }
+
+    @Test
+    public void resolveLocatesTaskByPath() {
+        Task task = addTask("task");
+        expectTaskLookupInOtherProject(":", "task", task);
+        assertThat(container.resolveTask(new StringBuilder(":task")), sameInstance(task));
+    }
     
+    private void expectTaskLookupInOtherProject(final String projectPath, final String taskName, final Task task) {
+        context.checking(new Expectations() {{
+            Project otherProject = context.mock(Project.class);
+            TaskContainer otherTaskContainer = context.mock(TaskContainer.class);
+
+            allowing(project).findProject(projectPath);
+            will(returnValue(otherProject));
+
+            allowing(otherProject).getTasks();
+            will(returnValue(otherTaskContainer));
+
+            allowing(otherTaskContainer).findByName(taskName);
+            will(returnValue(task));
+        }});
+    }
+
     private Task task(final String name) {
         final Task task = context.mock(Task.class, "[task" + ++taskCount + "]");
         context.checking(new Expectations(){{

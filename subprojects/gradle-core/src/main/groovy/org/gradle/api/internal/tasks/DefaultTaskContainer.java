@@ -94,6 +94,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
     }
 
+    public Task resolveTask(Object path) {
+        if (!GUtil.isTrue(path)) {
+            throw new InvalidUserDataException("A path must be specified!");
+        }
+        return getByPath(path.toString());
+    }
+
     public Task getByPath(String path) throws UnknownTaskException {
         Task task = findByPath(path);
         if (task == null) {

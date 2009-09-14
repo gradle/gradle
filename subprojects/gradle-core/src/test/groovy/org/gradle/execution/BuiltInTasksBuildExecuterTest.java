@@ -49,7 +49,7 @@ public class BuiltInTasksBuildExecuterTest {
             allowing(project).absolutePath(with(notNullValue(String.class)));
             will(returnValue(":path"));
             allowing(project).getConvention();
-            will(returnValue(null));
+            allowing(project).getTasks();
         }});
     }
 

@@ -17,7 +17,10 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskResolver;
 
 import java.io.File;
 import java.util.*;
@@ -26,31 +29,55 @@ import java.util.concurrent.Callable;
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link FileResolver}.
  */
-public class PathResolvingFileCollection extends CompositeFileCollection {
+public class PathResolvingFileCollection extends CompositeFileCollection implements ConfigurableFileCollection {
     private final List<Object> files;
+    private final String displayName;
     private final FileResolver resolver;
+    private final DefaultTaskDependency builtBy;
 
-    public PathResolvingFileCollection(FileResolver resolver, Object... files) {
-        this.resolver = resolver;
+    public PathResolvingFileCollection(FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+        this("file collection", fileResolver, taskResolver, files);
+    }
+
+    public PathResolvingFileCollection(String displayName, FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
+        this.displayName = displayName;
+        this.resolver = fileResolver;
         this.files = new ArrayList<Object>(Arrays.asList(files));
+        builtBy = new DefaultTaskDependency(taskResolver);
     }
 
     public PathResolvingFileCollection clear() {
         files.clear();
         return this;
     }
-    
-    public PathResolvingFileCollection add(Object file) {
-        files.add(file);
-        return this;
-    }
 
     public String getDisplayName() {
-        return "file collection";
+        return displayName;
     }
 
     public List<?> getSources() {
         return files;
+    }
+
+    public ConfigurableFileCollection from(Object... paths) {
+        for (Object path : paths) {
+            files.add(path);
+        }
+        return this;
+    }
+
+    public ConfigurableFileCollection builtBy(Object... tasks) {
+        builtBy.add(tasks);
+        return this;
+    }
+
+    public Set<Object> getBuiltBy() {
+        return builtBy.getValues();
+    }
+
+    public ConfigurableFileCollection setBuiltBy(Iterable<?> tasks) {
+        builtBy.setValues(tasks);
+        return this;
     }
 
     @Override
@@ -61,11 +88,15 @@ public class PathResolvingFileCollection extends CompositeFileCollection {
                 sources.add(collection);
             } else {
                 final File file = (File) element;
-                sources.add(new SingletonFileCollection(file));
+                sources.add(new SingletonFileCollection(file, builtBy));
             }
         }
     }
 
+    /**
+     * Converts everything in this collection which is not a FileCollection to Files, but leave FileCollections
+     * unresolved.
+     */
     private List<Object> resolveToFilesAndFileCollections() {
         List<Object> result = new ArrayList<Object>();
         LinkedList<Object> queue = new LinkedList<Object>();
@@ -76,38 +107,28 @@ public class PathResolvingFileCollection extends CompositeFileCollection {
                 result.add(first);
             } else if (first instanceof Closure) {
                 Closure closure = (Closure) first;
-                queue.addFirst(closure.call());
+                Object closureResult = closure.call();
+                if (closureResult != null) {
+                    queue.addFirst(closureResult);
+                }
             } else if (first instanceof Collection) {
                 Collection<?> collection = (Collection<?>) first;
                 queue.addAll(0, collection);
             } else if (first instanceof Callable) {
                 Callable callable = (Callable) first;
+                Object callableResult;
                 try {
-                    queue.add(0, callable.call());
+                    callableResult = callable.call();
                 } catch (Exception e) {
                     throw new GradleException(e);
+                }
+                if (callableResult != null) {
+                    queue.add(0, callableResult);
                 }
             } else {
                 result.add(resolver.resolve(first));
             }
         }
         return result;
-    }
-
-    private static class SingletonFileCollection extends AbstractFileCollection {
-        private final File file;
-
-        public SingletonFileCollection(File file) {
-            this.file = file;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "file collection";
-        }
-
-        public Set<File> getFiles() {
-            return Collections.singleton(file);
-        }
     }
 }

@@ -33,14 +33,14 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final FileResolver resolver;
     private final PatternSet patternSet = new PatternSet();
 
-    public DefaultSourceDirectorySet(FileResolver resolver) {
-        this("source set", resolver);
+    public DefaultSourceDirectorySet(FileResolver fileResolver) {
+        this("source set", fileResolver);
     }
 
-    public DefaultSourceDirectorySet(String displayName, FileResolver resolver) {
+    public DefaultSourceDirectorySet(String displayName, FileResolver fileResolver) {
         this.displayName = displayName;
-        this.resolver = resolver;
-        srcDirs = new PathResolvingFileCollection(resolver);
+        this.resolver = fileResolver;
+        srcDirs = new PathResolvingFileCollection(fileResolver, null);
     }
 
     public Set<File> getSrcDirs() {
@@ -112,22 +112,18 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     public SourceDirectorySet srcDir(Object srcDir) {
-        srcDirs.add(srcDir);
+        srcDirs.from(srcDir);
         return this;
     }
 
     public SourceDirectorySet srcDirs(Object... srcDirs) {
-        for (Object srcDir : srcDirs) {
-            this.srcDirs.add(srcDir);
-        }
+        this.srcDirs.from(srcDirs);
         return this;
     }
 
     public SourceDirectorySet setSrcDirs(Iterable<Object> srcPaths) {
         srcDirs.clear();
-        for (Object srcPath : srcPaths) {
-            srcDirs.add(srcPath);
-        }
+        srcDirs.from(srcPaths);
         return this;
     }
 }

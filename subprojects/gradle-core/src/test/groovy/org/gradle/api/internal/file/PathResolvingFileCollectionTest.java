@@ -16,11 +16,15 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.util.FileSet;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -32,6 +36,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 @RunWith(JMock.class)
@@ -39,13 +44,52 @@ public class PathResolvingFileCollectionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final File testDir = HelperUtil.makeNewTestDir();
     private final FileResolver resolverMock = context.mock(FileResolver.class);
+    private final TaskResolver taskResolverStub = context.mock(TaskResolver.class);
+    private final PathResolvingFileCollection collection = new PathResolvingFileCollection(resolverMock,
+            taskResolverStub);
 
     @Test
-    public void resolvesSpecifiedFilesAgainstProject() {
+    public void resolvesSpecifiedFilesUseFileResolver() {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, "src1", "src2");
+        PathResolvingFileCollection collection = new PathResolvingFileCollection(resolverMock, taskResolverStub, file1,
+                file2);
+
+        context.checking(new Expectations() {{
+            one(resolverMock).resolve(file1);
+            will(returnValue(file1));
+            one(resolverMock).resolve(file2);
+            will(returnValue(file2));
+        }});
+
+        assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
+    }
+
+    @Test
+    public void canAddPathsToTheCollection() {
+        final File file1 = new File("1");
+        final File file2 = new File("2");
+
+        collection.from("src1", "src2");
+
+        context.checking(new Expectations() {{
+            one(resolverMock).resolve("src1");
+            will(returnValue(file1));
+            one(resolverMock).resolve("src2");
+            will(returnValue(file2));
+        }});
+
+        assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
+    }
+
+    @Test
+    public void resolvesSpecifiedNamesUseFileResolver() {
+        final File file1 = new File("1");
+        final File file2 = new File("2");
+
+        PathResolvingFileCollection collection = new PathResolvingFileCollection(resolverMock, taskResolverStub, "src1",
+                "src2");
 
         context.checking(new Expectations() {{
             one(resolverMock).resolve("src1");
@@ -71,7 +115,7 @@ public class PathResolvingFileCollectionTest {
 
         List<Character> files = toList('a');
         Closure closure = HelperUtil.returns(files);
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, closure);
+        collection.from(closure);
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1)));
 
@@ -85,7 +129,7 @@ public class PathResolvingFileCollectionTest {
         Closure closure = HelperUtil.returns('a');
         final File file = new File("1");
 
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, closure);
+        collection.from(closure);
 
         context.checking(new Expectations() {{
             one(resolverMock).resolve('a');
@@ -93,6 +137,15 @@ public class PathResolvingFileCollectionTest {
         }});
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file)));
+    }
+
+    @Test
+    public void closureCanReturnNull() {
+        Closure closure = HelperUtil.returns(null);
+
+        collection.from(closure);
+
+        assertThat(collection.getFiles(), isEmpty());
     }
 
     @Test
@@ -108,7 +161,7 @@ public class PathResolvingFileCollectionTest {
         }});
 
         List<String> files = toList("src1");
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, files);
+        collection.from(files);
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1)));
 
@@ -129,10 +182,10 @@ public class PathResolvingFileCollectionTest {
             will(returnValue(file2));
         }});
 
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, HelperUtil.toClosure("{[{['src1', { 'src2' }]}]}"));
+        collection.from(HelperUtil.toClosure("{[{['src1', { 'src2' }]}]}"));
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
     }
-    
+
     @Test
     public void canUseAFileCollectionToSpecifyTheContentsOfTheCollection() {
         final File file1 = new File("1");
@@ -140,7 +193,7 @@ public class PathResolvingFileCollectionTest {
 
         final FileCollection src = context.mock(FileCollection.class);
 
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, toList((Object) src));
+        collection.from(src);
 
         context.checking(new Expectations() {{
             one(src).getFiles();
@@ -172,8 +225,21 @@ public class PathResolvingFileCollectionTest {
             will(returnValue(file2));
         }});
 
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, callable);
+        collection.from(callable);
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
+    }
+
+    @Test
+    public void callableCanReturnNull() throws Exception {
+        final Callable callable = context.mock(Callable.class);
+
+        context.checking(new Expectations() {{
+            one(callable).call();
+            will(returnValue(null));
+        }});
+
+        collection.from(callable);
+        assertThat(collection.getFiles(), isEmpty());
     }
 
     @Test
@@ -181,12 +247,12 @@ public class PathResolvingFileCollectionTest {
         final File file = new File(testDir, "f");
         GFileUtils.touch(file);
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(resolverMock).resolve("file");
             will(returnValue(file));
         }});
 
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, toList("file"));
+        collection.from("file");
         FileTree fileTree = collection.getAsFileTree();
         assertThat(fileTree, instanceOf(CompositeFileTree.class));
         assertThat(((CompositeFileTree) fileTree).getSourceCollections().get(0), instanceOf(FlatFileTree.class));
@@ -194,31 +260,82 @@ public class PathResolvingFileCollectionTest {
 
     @Test
     public void convertsEachDirectoryToFileSet() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(resolverMock).resolve("dir");
             will(returnValue(testDir));
             allowing(resolverMock).resolve(testDir);
             will(returnValue(testDir));
         }});
 
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, toList("dir"));
+        collection.from("dir");
         FileTree fileTree = collection.getAsFileTree();
         assertThat(fileTree, instanceOf(CompositeFileTree.class));
         assertThat(((CompositeFileTree) fileTree).getSourceCollections().get(0), instanceOf(FileSet.class));
     }
-    
+
     @Test
     public void convertsEachFileCollectionToFileTree() {
         final FileCollection fileCollectionMock = context.mock(FileCollection.class);
         final FileTree fileTreeDummy = context.mock(FileTree.class);
 
-        FileCollection collection = new PathResolvingFileCollection(resolverMock, toList((Object) fileCollectionMock));
-        context.checking(new Expectations(){{
+        collection.from(fileCollectionMock);
+        context.checking(new Expectations() {{
             one(fileCollectionMock).getAsFileTree();
             will(returnValue(fileTreeDummy));
         }});
         FileTree fileTree = collection.getAsFileTree();
         assertThat(fileTree, instanceOf(CompositeFileTree.class));
-        assertThat(((CompositeFileTree) fileTree).getSourceCollections().iterator().next(), sameInstance(fileTreeDummy));
+        assertThat(((CompositeFileTree) fileTree).getSourceCollections().iterator().next(), sameInstance(
+                fileTreeDummy));
+    }
+
+    @Test
+    public void canGetAndSetTaskDependencies() {
+        assertThat(collection.getBuiltBy(), isEmpty());
+
+        collection.builtBy("a");
+        collection.builtBy("b");
+        collection.from("f");
+
+        assertThat(collection.getBuiltBy(), equalTo(toSet((Object) "a", "b")));
+
+        collection.setBuiltBy(toList("c"));
+
+        assertThat(collection.getBuiltBy(), equalTo(toSet((Object) "c")));
+
+        final Task task = context.mock(Task.class);
+        context.checking(new Expectations() {{
+            allowing(resolverMock).resolve("f");
+            will(returnValue(new File("f")));
+            allowing(taskResolverStub).resolveTask("c");
+            will(returnValue(task));
+        }});
+
+        assertThat(collection.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
+    }
+
+    @Test
+    public void returnsUnionOfDependenciesOfNestedFileCollectionsPlusOwnDependencies() {
+        final FileCollection fileCollectionMock = context.mock(FileCollection.class);
+
+        collection.from(fileCollectionMock);
+        collection.from("f");
+        collection.builtBy('b');
+
+        final Task taskA = context.mock(Task.class, "a");
+        final Task taskB = context.mock(Task.class, "b");
+        context.checking(new Expectations() {{
+            allowing(resolverMock).resolve("f");
+            will(returnValue(new File("f")));
+            TaskDependency dependency = context.mock(TaskDependency.class);
+            allowing(fileCollectionMock).getBuildDependencies();
+            will(returnValue(dependency));
+            allowing(dependency).getDependencies(null);
+            will(returnValue(toSet(taskA)));
+            allowing(taskResolverStub).resolveTask('b');
+            will(returnValue(taskB));
+        }});
+
+        assertThat(collection.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(taskA, taskB)));
     }
 }

@@ -26,7 +26,21 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 public class DefaultTaskDependency implements TaskDependency {
+    private static final TaskResolver FAILING_RESOLVER = new TaskResolver() {
+        public Task resolveTask(Object path) {
+            throw new UnsupportedOperationException(String.format("Cannot convert %s to a task.", path));
+        }
+    };
     private final Set<Object> values = new HashSet<Object>();
+    private final TaskResolver resolver;
+
+    public DefaultTaskDependency() {
+        this(null);
+    }
+
+    public DefaultTaskDependency(TaskResolver resolver) {
+        this.resolver = resolver == null ? FAILING_RESOLVER : resolver;
+    }
 
     public Set<Task> getDependencies(Task task) {
         Set<Task> result = new HashSet<Task>();
@@ -44,7 +58,9 @@ public class DefaultTaskDependency implements TaskDependency {
             } else if (dependency instanceof Closure) {
                 Closure closure = (Closure) dependency;
                 Object closureResult = closure.call(task);
-                queue.add(0, closureResult);
+                if (closureResult != null) {
+                    queue.add(0, closureResult);
+                }
             } else if (dependency instanceof Collection) {
                 Collection<?> collection = (Collection) dependency;
                 queue.addAll(0, collection);
@@ -53,14 +69,17 @@ public class DefaultTaskDependency implements TaskDependency {
                 queue.addAll(0, map.values());
             } else if (dependency instanceof Callable) {
                 Callable callable = (Callable) dependency;
+                Object callableResult;
                 try {
-                    queue.add(0, callable.call());
+                    callableResult = callable.call();
                 } catch (Exception e) {
                     throw new GradleException(e);
                 }
+                if (callableResult != null) {
+                    queue.add(0, callableResult);
+                }
             } else {
-                String path = dependency.toString();
-                result.add(task.getProject().getTasks().getByPath(path));
+                result.add(resolver.resolveTask(dependency));
             }
         }
         return result;

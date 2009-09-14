@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
+package org.gradle.api.internal.tasks;
 
-/**
- * A {@code FileCollectionDependency} is a {@link Dependency} on a collection of local files which are not stored in a
- * repository.
- */
-public interface FileCollectionDependency extends SelfResolvingDependency {
+import org.gradle.api.Task;
+
+public interface TaskResolver {
+    Task resolveTask(Object path);
 }

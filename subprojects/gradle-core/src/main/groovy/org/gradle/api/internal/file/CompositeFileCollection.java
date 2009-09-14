@@ -20,6 +20,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.Task;
 
 import java.io.File;
 import java.util.*;
@@ -69,11 +70,19 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        DefaultTaskDependency dependency = new DefaultTaskDependency();
+        return new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                DefaultTaskDependency dependency = new DefaultTaskDependency();
+                addDependencies(dependency);
+                return dependency.getDependencies(task);
+            }
+        };
+    }
+
+    protected void addDependencies(DefaultTaskDependency dependency) {
         for (FileCollection collection : getSourceCollections()) {
             dependency.add(collection);
         }
-        return dependency;
     }
 
     /**

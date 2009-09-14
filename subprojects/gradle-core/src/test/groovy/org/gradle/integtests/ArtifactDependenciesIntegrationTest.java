@@ -46,7 +46,7 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    public void reportsUnknownDependency() {
+    public void reportsUnknownDependencyError() {
         File buildFile = getTestBuildFile("projectWithUnknownDependency.gradle");
         ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
@@ -57,7 +57,7 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    public void reportsProjectDependsOnSelf() {
+    public void reportsProjectDependsOnSelfError() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "configurations { compile }",
@@ -70,5 +70,23 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
         failure.assertHasDescription("Execution failed for task ':listJars'");
         failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration 'compile'"));
         failure.assertThatCause(containsString("a module is not authorized to depend on itself"));
+    }
+
+    @Test
+    public void canSpecifyProducerTasksForFileDependency() {
+        testFile("settings.gradle").write("include 'sub'");
+        TestFile buildFile = testFile("build.gradle").writelns(
+                "configurations { compile }",
+                "dependencies { compile project(path: ':sub', configuration: 'compile') }",
+                "task test(dependsOn: configurations.compile) << { assertTrue(file('sub/sub.jar').isFile()) }"
+        );
+        testFile("sub/build.gradle").writelns(
+                "usePlugin org.gradle.api.plugins.BasePlugin",
+                "configurations { compile }",
+                "dependencies { compile files('sub.jar') { builtBy 'jar' } }",
+                "task jar << { file('sub.jar').text = 'content' }"
+        );
+
+        usingBuildFile(buildFile).withTasks("test").run().assertTasksExecuted(":sub:jar", ":sub:uploadCompileInternal", ":test");
     }
 }

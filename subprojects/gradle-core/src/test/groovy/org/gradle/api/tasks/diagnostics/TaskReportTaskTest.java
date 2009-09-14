@@ -15,12 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.Task;
+import org.gradle.api.Project;
 import org.gradle.api.Rule;
+import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.internal.project.ProjectInternal;
-import static org.gradle.util.WrapUtil.*;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.WrapUtil.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -37,7 +37,7 @@ import java.util.List;
 public class TaskReportTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private TaskReportRenderer renderer;
-    private ProjectInternal project;
+    private Project project;
     private TaskReportTask task;
     private TaskContainer taskContainer;
 
@@ -45,7 +45,7 @@ public class TaskReportTaskTest {
     public void setup() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         renderer = context.mock(TaskReportRenderer.class);
-        project = context.mock(ProjectInternal.class);
+        project = context.mock(Project.class);
         taskContainer = context.mock(TaskContainer.class);
 
         context.checking(new Expectations(){{

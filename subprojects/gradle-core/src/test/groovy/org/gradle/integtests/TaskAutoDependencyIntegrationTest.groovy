@@ -33,7 +33,7 @@ task otherJar(type: Jar) {
 }
 
 configurations { archives }
-dependencies { archives(files('b.jar')) { builtBy jar } }
+dependencies { archives files('b.jar') { builtBy jar } }
 artifacts { archives otherJar }
 '''
         inTestDirectory().withTasks('doStuff').run().assertTasksExecuted(':b:jar', ':b:otherJar', ':b:uploadArchivesInternal', ':a:doStuff')

@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.TaskDependency;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -29,16 +30,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @RunWith(JMock.class)
 public class CompositeFileCollectionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final FileCollection source1 = context.mock(FileCollection.class, "source1");
     private final FileCollection source2 = context.mock(FileCollection.class, "source2");
-    private final CompositeFileCollection collection = new TestCompositeFileCollection(source1, source2);
+    private final TestCompositeFileCollection collection = new TestCompositeFileCollection(source1, source2);
 
     @Test
     public void containsUnionOfAllSourceCollections() {
@@ -140,17 +139,45 @@ public class CompositeFileCollectionTest {
     }
 
     @Test
-    public void dependsOnUnionOfAllDependencies() {
-        assertThat(collection.getBuildDependencies(), instanceOf(DefaultTaskDependency.class));
-        DefaultTaskDependency dependency = (DefaultTaskDependency) collection.getBuildDependencies();
-        assertThat(dependency.getValues(), equalTo(toSet((Object) source1, source2)));
+    public void dependsOnLiveUnionOfAllDependencies() {
+        final Task target = context.mock(Task.class, "target");
+        final Task task1 = context.mock(Task.class, "task1");
+        final Task task2 = context.mock(Task.class, "task2");
+        final Task task3 = context.mock(Task.class, "task3");
+        final FileCollection source3 = context.mock(FileCollection.class, "source3");
+
+        context.checking(new Expectations(){{
+            TaskDependency dependency1 = context.mock(TaskDependency.class, "dep1");
+            TaskDependency dependency2 = context.mock(TaskDependency.class, "dep2");
+            TaskDependency dependency3 = context.mock(TaskDependency.class, "dep3");
+
+            allowing(source1).getBuildDependencies();
+            will(returnValue(dependency1));
+            allowing(dependency1).getDependencies(target);
+            will(returnValue(toSet(task1)));
+            allowing(source2).getBuildDependencies();
+            will(returnValue(dependency2));
+            allowing(dependency2).getDependencies(target);
+            will(returnValue(toSet(task2)));
+            allowing(source3).getBuildDependencies();
+            will(returnValue(dependency3));
+            allowing(dependency3).getDependencies(target);
+            will(returnValue(toSet(task3)));
+        }});
+
+        TaskDependency dependency = collection.getBuildDependencies();
+        assertThat(dependency.getDependencies(target), equalTo((Set) toSet(task1, task2)));
+
+        collection.sourceCollections.add(source3);
+
+        assertThat(dependency.getDependencies(target), equalTo((Set) toSet(task1, task2, task3)));
     }
 
     private class TestCompositeFileCollection extends CompositeFileCollection {
         private List<FileCollection> sourceCollections;
 
         public TestCompositeFileCollection(FileCollection... sourceCollections) {
-            this.sourceCollections = Arrays.asList(sourceCollections);
+            this.sourceCollections = new ArrayList<FileCollection>(Arrays.asList(sourceCollections));
         }
 
         @Override

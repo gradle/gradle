@@ -18,7 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -29,8 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
 @RunWith (org.jmock.integration.junit4.JMock.class)
 public class TaskNameResolvingBuildExecuterTest {
@@ -38,8 +38,8 @@ public class TaskNameResolvingBuildExecuterTest {
     private final ProjectInternal project = context.mock(ProjectInternal.class, "[project]");
     private final ProjectInternal subProject = context.mock(ProjectInternal.class, "[subProject]");
     private final GradleInternal gradle = context.mock(GradleInternal.class);
-    private final TaskContainer taskContainer = context.mock(TaskContainer.class, "[projecTasks]");
-    private final TaskContainer subProjectTaskContainer = context.mock(TaskContainer.class, "[subProjectTasks]");
+    private final TaskContainerInternal taskContainer = context.mock(TaskContainerInternal.class, "[projecTasks]");
+    private final TaskContainerInternal subProjectTaskContainer = context.mock(TaskContainerInternal.class, "[subProjectTasks]");
     private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
     private int counter;
 

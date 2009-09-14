@@ -15,43 +15,32 @@
  */
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.Project
+import java.util.concurrent.Callable
+import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.JUnit4GroovyMockery
-import static org.gradle.util.WrapUtil.*
 import org.gradle.util.WrapUtil
-import static org.hamcrest.Matchers.*
 import org.jmock.integration.junit4.JMock
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.Buildable
-import java.util.concurrent.Callable;
+import static org.gradle.util.WrapUtil.*
+import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith (JMock.class)
 public class DefaultTaskDependencyTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-    private final DefaultTaskDependency dependency = new DefaultTaskDependency();
+    private final TaskResolver resolver = context.mock(TaskResolver.class)
+    private final DefaultTaskDependency dependency = new DefaultTaskDependency(resolver);
     private Task task;
-    private Project project;
-    private TaskContainer taskContainer;
     private Task otherTask;
 
     @Before
     public void setUp() throws Exception {
         task = context.mock(Task.class, "task");
-        project = context.mock(Project.class);
-        taskContainer = context.mock(TaskContainer.class)
-
-        context.checking({
-            allowing(task).getProject()
-            will(returnValue(project))
-            allowing(project).getTasks()
-            will(returnValue(taskContainer))
-        });
         otherTask = context.mock(Task.class, "otherTask");
     }
 
@@ -91,10 +80,10 @@ public class DefaultTaskDependencyTest {
     }
 
     @Test
-    public void closureCanReturnACollection() {
-        dependency.add({ toList(otherTask) })
+    public void closureCanReturnNull() {
+        dependency.add({ null })
 
-        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+        assertThat(dependency.getDependencies(task), isEmpty());
     }
 
     @Test
@@ -127,13 +116,43 @@ public class DefaultTaskDependencyTest {
         
         assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
     }
+
+    @org.junit.Test
+    public void callableCanReturnNull() {
+        Callable callable = context.mock(Callable)
+
+        dependency.add(callable)
+
+        context.checking {
+            one(callable).call()
+            will(returnValue(null))
+        }
+
+        assertThat(dependency.getDependencies(task), isEmpty());
+    }
+
+    @Test
+    public void failsForOtherObjectsWhenNoResolverProvided() {
+        StringBuffer dep = new StringBuffer("task")
+
+        DefaultTaskDependency dependency = new DefaultTaskDependency()
+        dependency.add(dep)
+
+        try {
+            dependency.getDependencies(task)
+            fail()
+        } catch (UnsupportedOperationException e) {
+            assertThat(e.message, equalTo("Cannot convert $dep to a task." as String))
+        }
+    }
     
     @Test
-    public void treatsOtherObjectsAsATaskPath() {
-        dependency.add(new StringBuffer("task"));
+    public void resolvesOtherObjects() {
+
+        dependency.add(9);
 
         context.checking({
-            one(taskContainer).getByPath("task");
+            one(resolver).resolveTask(9);
             will(returnValue(otherTask));
         });
 
@@ -155,8 +174,16 @@ public class DefaultTaskDependencyTest {
     }
 
     @Test
-    public void canNestCollectionsAndMapsAndClosures() {
-        dependency.add([key: {[{[[task: otherTask]]}]}])
+    public void canNestCollectionsAndMapsAndClosuresAndCallables() {
+        Map nestedMap = [task: otherTask]
+        List nestedCollection = [nestedMap]
+        Callable nestedCallable = {nestedCollection} as Callable
+        Closure nestedClosure = {nestedCallable}
+        List collection = [nestedClosure]
+        Closure closure = {collection}
+        Map map = [key: closure]
+        Callable callable = {map} as Callable
+        dependency.add(callable)
 
         assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
     }

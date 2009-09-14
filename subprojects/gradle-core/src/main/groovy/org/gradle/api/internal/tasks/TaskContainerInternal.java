@@ -18,6 +18,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.internal.DynamicObject;
 
-public interface TaskContainerInternal extends TaskContainer {
+public interface TaskContainerInternal extends TaskContainer, TaskResolver {
     DynamicObject getAsDynamicObject();
 }

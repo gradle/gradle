@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -28,6 +29,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier {
     ProjectInternal getParent();
 
     Project evaluate();
+
+    TaskContainerInternal getTasks();
 
     ScriptSource getBuildScriptSource();
 
