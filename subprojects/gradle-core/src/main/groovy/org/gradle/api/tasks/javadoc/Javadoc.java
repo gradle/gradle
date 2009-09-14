@@ -201,7 +201,7 @@ public class Javadoc extends ConventionTask {
      * @return The classpath.
      */
     public Set<File> getClasspath() {
-        return configuration.getFiles();
+        return getConfiguration().getFiles();
     }
 
     /**

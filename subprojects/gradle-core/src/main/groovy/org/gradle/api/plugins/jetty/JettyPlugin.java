@@ -94,16 +94,14 @@ public class JettyPlugin implements Plugin {
     private void configureJettyRun(final Project project) {
         project.getTasks().withType(JettyRun.class).whenTaskAdded(new Action<JettyRun>() {
             public void execute(JettyRun jettyRun) {
-                jettyRun.dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME);
-                jettyRun.setConfiguration(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME));
                 jettyRun.getConventionMapping().map("webXml", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return getWebXml(project);
                     }
                 });
-                jettyRun.getConventionMapping().map("classesDirectory", new ConventionValue() {
+                jettyRun.getConventionMapping().map("classpath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return getJavaConvention(project).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
+                        return getJavaConvention(project).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
                 jettyRun.getConventionMapping().map("webAppSourceDirectory", new ConventionValue() {

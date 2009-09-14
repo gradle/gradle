@@ -88,6 +88,22 @@ public interface SourceSet {
     void setClassesDir(File classesDir);
 
     /**
+     * Returns the compiled classes directory for this source set.
+     *
+     * @return The classes dir, as a {@link FileCollection}.
+     */
+    FileCollection getClasses();
+
+    /**
+     * Registers a set of tasks which are responsible for compiling this source set into the classes directory. The
+     * paths are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     *
+     * @param taskPaths The tasks which compile this source set.
+     * @return this
+     */
+    SourceSet compiledBy(Object... taskPaths);
+
+    /**
      * Returns the non-Java resources which are to be copied into the class output directory.
      *
      * @return the resources. Never returns null.

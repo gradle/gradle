@@ -26,11 +26,13 @@ import org.gradle.util.GUtil;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 import groovy.lang.Closure;
 
 public class DefaultSourceSet implements SourceSet {
     private final String name;
+    private final FileResolver fileResolver;
     private File classesDir;
     private FileCollection compileClasspath;
     private FileCollection runtimeClasspath;
@@ -38,17 +40,23 @@ public class DefaultSourceSet implements SourceSet {
     private final UnionFileTree allJavaSource;
     private final SourceDirectorySet resources;
     private final PatternFilterable javaSourcePatterns = new PatternSet();
+    private final PathResolvingFileCollection classes;
 
-    public DefaultSourceSet(String name, FileResolver resolver) {
+    public DefaultSourceSet(String name, FileResolver fileResolver, TaskResolver taskResolver) {
         this.name = name;
-        compileClasspath = new PathResolvingFileCollection(resolver);
-        runtimeClasspath = new PathResolvingFileCollection(resolver);
-        String javaSrcDisplayName = String.format("%s Java source", name);
-        javaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, resolver);
+        this.fileResolver = fileResolver;
+        String javaSrcDisplayName = String.format("%s Java source", GUtil.toWords(name));
+        javaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, fileResolver);
         javaSourcePatterns.include("**/*.java");
         allJavaSource = new UnionFileTree(javaSrcDisplayName, javaSource.matching(javaSourcePatterns));
-        String resourcesDisplayName = String.format("%s resources", name);
-        resources = new DefaultSourceDirectorySet(resourcesDisplayName, resolver);
+        String resourcesDisplayName = String.format("%s resources", GUtil.toWords(name));
+        resources = new DefaultSourceDirectorySet(resourcesDisplayName, fileResolver);
+        String classesDisplayName = String.format("%s classes", GUtil.toWords(name));
+        classes = new PathResolvingFileCollection(classesDisplayName, fileResolver, taskResolver, new Callable() {
+            public Object call() throws Exception {
+                return getClassesDir();
+            }
+        });
     }
 
     public String getName() {
@@ -57,7 +65,7 @@ public class DefaultSourceSet implements SourceSet {
 
     @Override
     public String toString() {
-        return String.format("%s source", name);
+        return String.format("%s source", GUtil.toWords(name));
     }
 
     public String getCompileTaskName() {
@@ -77,7 +85,16 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public void setClassesDir(File classesDir) {
-        this.classesDir = classesDir;
+        this.classesDir = fileResolver.resolve(classesDir);
+    }
+
+    public FileCollection getClasses() {
+        return classes;
+    }
+
+    public SourceSet compiledBy(Object... taskPaths) {
+        classes.builtBy(taskPaths);
+        return this;
     }
 
     public FileCollection getCompileClasspath() {

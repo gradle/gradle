@@ -86,11 +86,6 @@ public class JettyRun extends AbstractJettyRunTask {
     private File webXml;
 
     /**
-     * The directory containing generated classes.
-     */
-    private File classesDirectory;
-
-    /**
      * Root directory for all html/jsp etc files
      */
     private File webAppSourceDirectory;
@@ -123,7 +118,7 @@ public class JettyRun extends AbstractJettyRunTask {
      */
     private List<File> extraScanTargets;
 
-    private FileCollection configuration;
+    private FileCollection classpath;
 
     public void validateConfiguration() {
         // check the location of the static content/jsps etc
@@ -166,21 +161,6 @@ public class JettyRun extends AbstractJettyRunTask {
             catch (IOException e) {
                 throw new InvalidUserDataException("jetty-env.xml does not exist");
             }
-        }
-
-        // check the classes to form a classpath with
-        try {
-            //allow a webapp with no classes in it (just jsps/html)
-            if (getClassesDirectory() != null) {
-                if (!getClassesDirectory().exists())
-                    logger.info("Classes directory " + getClassesDirectory().getCanonicalPath() + " does not exist");
-                else
-                    logger.info("Classes = " + getClassesDirectory().getCanonicalPath());
-            } else
-                logger.info("Classes directory not set");
-        }
-        catch (IOException e) {
-            throw new InvalidUserDataException("Location of classesDirectory does not exist");
         }
 
         setExtraScanTargets(new ArrayList<File>());
@@ -307,7 +287,7 @@ public class JettyRun extends AbstractJettyRunTask {
     private Set<File> getDependencyFiles() {
         List<Resource> overlays = new ArrayList<Resource>();
 
-        Set<File> dependencies = getConfiguration().getFiles();
+        Set<File> dependencies = getClasspath().getFiles();
         logger.debug("Adding dependencies {} for WEB-INF/lib ", dependencies);
 
         //todo incorporate overlays when our resolved dependencies provide type information
@@ -377,11 +357,6 @@ public class JettyRun extends AbstractJettyRunTask {
     private List<File> setUpClassPath() {
         List<File> classPathFiles = new ArrayList<File>();
 
-        if (getClassesDirectory() != null) {
-            classPathFiles.add(getClassesDirectory());
-        }
-
-        //now add all of the dependencies
         classPathFiles.addAll(getDependencyFiles());
 
         if (logger.isDebugEnabled()) {
@@ -421,15 +396,6 @@ public class JettyRun extends AbstractJettyRunTask {
      */
     public org.gradle.api.plugins.jetty.util.JettyPluginServer createServer() {
         return new JettyPluginServer();
-    }
-
-    @InputDirectory @Optional
-    public File getClassesDirectory() {
-        return classesDirectory;
-    }
-
-    public void setClassesDirectory(File classesDirectory) {
-        this.classesDirectory = classesDirectory;
     }
 
     @InputFile @Optional
@@ -512,17 +478,17 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     /**
-     * Returns the configuration to resolve the dependencies of the web application from.
+     * Returns the classpath for the web application.
      */
     @InputFiles
-    public FileCollection getConfiguration() {
-        return configuration;
+    public FileCollection getClasspath() {
+        return classpath;
     }
 
     /**
-     * Set the configuration to resolve the dependencies of the web application from.
+     * Set the classpath for the web application
      */
-    public void setConfiguration(FileCollection configuration) {
-        this.configuration = configuration;
+    public void setClasspath(FileCollection classpath) {
+        this.classpath = classpath;
     }
 }

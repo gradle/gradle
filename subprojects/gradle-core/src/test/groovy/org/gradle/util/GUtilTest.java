@@ -15,26 +15,46 @@
  */
 package org.gradle.util;
 
+import static org.gradle.util.GUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class GUtilTest {
     @Test
-    public void toCamelCase() {
-        assertThat(GUtil.toCamelCase(null), equalTo(null));
-        assertThat(GUtil.toCamelCase(""), equalTo(""));
-        assertThat(GUtil.toCamelCase("word"), equalTo("Word"));
-        assertThat(GUtil.toCamelCase("twoWords"), equalTo("TwoWords"));
-        assertThat(GUtil.toCamelCase("two-words"), equalTo("TwoWords"));
-        assertThat(GUtil.toCamelCase("Two Words"), equalTo("TwoWords"));
-        assertThat(GUtil.toCamelCase("two.words"), equalTo("TwoWords"));
-        assertThat(GUtil.toCamelCase("two words"), equalTo("TwoWords"));
-        assertThat(GUtil.toCamelCase("two Words"), equalTo("TwoWords"));
-        assertThat(GUtil.toCamelCase("four or so Words"), equalTo("FourOrSoWords"));
-        assertThat(GUtil.toCamelCase("trailing-"), equalTo("Trailing"));
-        assertThat(GUtil.toCamelCase("ABC"), equalTo("ABC"));
-        assertThat(GUtil.toCamelCase("."), equalTo(""));
-        assertThat(GUtil.toCamelCase("-"), equalTo(""));
+    public void convertStringToCamelCase() {
+        assertThat(toCamelCase(null), equalTo(null));
+        assertThat(toCamelCase(""), equalTo(""));
+        assertThat(toCamelCase("word"), equalTo("Word"));
+        assertThat(toCamelCase("twoWords"), equalTo("TwoWords"));
+        assertThat(toCamelCase("TwoWords"), equalTo("TwoWords"));
+        assertThat(toCamelCase("two-words"), equalTo("TwoWords"));
+        assertThat(toCamelCase("two.words"), equalTo("TwoWords"));
+        assertThat(toCamelCase("two words"), equalTo("TwoWords"));
+        assertThat(toCamelCase("two Words"), equalTo("TwoWords"));
+        assertThat(toCamelCase("Two Words"), equalTo("TwoWords"));
+        assertThat(toCamelCase("four or so Words"), equalTo("FourOrSoWords"));
+        assertThat(toCamelCase("trailing-"), equalTo("Trailing"));
+        assertThat(toCamelCase("ABC"), equalTo("ABC"));
+        assertThat(toCamelCase("."), equalTo(""));
+        assertThat(toCamelCase("-"), equalTo(""));
+    }
+
+    @Test
+    public void convertStringToWords() {
+        assertThat(toWords(null), equalTo(null));
+        assertThat(toWords(""), equalTo(""));
+        assertThat(toWords("word"), equalTo("word"));
+        assertThat(toWords("twoWords"), equalTo("two words"));
+        assertThat(toWords("TwoWords"), equalTo("two words"));
+        assertThat(toWords("two words"), equalTo("two words"));
+        assertThat(toWords("Two Words"), equalTo("two words"));
+        assertThat(toWords("two_words"), equalTo("two words"));
+        assertThat(toWords("two.words"), equalTo("two words"));
+        assertThat(toWords("two,words"), equalTo("two words"));
+        assertThat(toWords("trailing-"), equalTo("trailing"));
+        assertThat(toWords("ABC"), equalTo("a b c"));
+        assertThat(toWords("."), equalTo(""));
+        assertThat(toWords("_"), equalTo(""));
     }
 }

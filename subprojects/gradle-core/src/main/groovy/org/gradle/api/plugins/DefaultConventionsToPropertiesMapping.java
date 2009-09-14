@@ -33,6 +33,11 @@ import java.util.*;
 public class DefaultConventionsToPropertiesMapping {
 
     public final static Map<String, ConventionValue> JAVADOC = GUtil.map(
+            "configuration", new ConventionValue() {
+                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                    return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getCompileClasspath();
+                }
+            },
             "srcDirs", new ConventionValue() {
                 public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                     Set<File> srcDirs = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getJava().getSrcDirs();
@@ -50,6 +55,11 @@ public class DefaultConventionsToPropertiesMapping {
             "testClassesDir", new ConventionValue() {
                 public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                     return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();
+                }
+            },
+            "configuration", new ConventionValue() {
+                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                    return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
                 }
             },
             "testResultsDir", new ConventionValue() {

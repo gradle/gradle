@@ -64,7 +64,7 @@ public class BasePlugin implements Plugin {
                     if (configuration != null) {
                         project.getTasks().add(taskName)
                                 .dependsOn(configuration.getBuildArtifacts())
-                                .setDescription(String.format("Build the artifacts belonging to %s.", configuration));
+                                .setDescription(String.format("Builds the artifacts belonging to %s.", configuration));
                     }
                 }
             }
@@ -74,7 +74,7 @@ public class BasePlugin implements Plugin {
     private void configureUploadRules(final Project project) {
         project.getTasks().addRule(new Rule() {
             public String getDescription() {
-                return "Pattern: upload<ConfigurationName>Internal: Upload the project artifacts of a configuration to the internal Gradle repository.";
+                return "Pattern: upload<ConfigurationName>Internal: Uploads the project artifacts of a configuration to the internal Gradle repository.";
             }
 
             public void apply(String taskName) {
@@ -90,7 +90,7 @@ public class BasePlugin implements Plugin {
 
         project.getTasks().addRule(new Rule() {
             public String getDescription() {
-                return "Pattern: upload<ConfigurationName>: Upload the project artifacts of a configuration to a public Gradle repository.";
+                return "Pattern: upload<ConfigurationName>: Uploads the project artifacts of a configuration to a public Gradle repository.";
             }
 
             public void apply(String taskName) {

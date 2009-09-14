@@ -60,7 +60,7 @@ class JavaPluginConventionTest {
                 classesDir = dir
             }
         }
-        assertThat(convention.source.main.classesDir, equalTo(dir))
+        assertThat(convention.source.main.classesDir, equalTo(project.file(dir)))
     }
     
     @Test public void testDefaultDirs() {

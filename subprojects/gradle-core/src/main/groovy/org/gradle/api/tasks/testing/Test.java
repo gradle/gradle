@@ -131,7 +131,7 @@ public class Test extends ConventionTask implements PatternFilterable {
     }
 
     public List<File> getClasspath() {
-        return GUtil.addLists(WrapUtil.toList(getTestClassesDir()), configuration);
+        return GUtil.addLists(WrapUtil.toList(getTestClassesDir()), getConfiguration());
     }
 
     /**

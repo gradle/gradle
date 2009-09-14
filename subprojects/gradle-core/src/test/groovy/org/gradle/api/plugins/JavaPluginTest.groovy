@@ -97,15 +97,21 @@ class JavaPluginTest {
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/main/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/main/resources'))))
         assertThat(set.compileClasspath, sameInstance(project.configurations.compile))
-        assertThat(set.runtimeClasspath, sameInstance(project.configurations.runtime))
         assertThat(set.classesDir, equalTo(new File(project.buildDir, 'classes/main')))
+        assertThat(set.classes.buildDependencies.getDependencies(null)*.name as Set, equalTo([JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME] as Set))
+        assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.runtime))
+        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/main')))
 
         set = project.source[SourceSet.TEST_SOURCE_SET_NAME]
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/test/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/test/resources'))))
-        assertThat(set.compileClasspath, sameInstance(project.configurations.testCompile))
-        assertThat(set.runtimeClasspath, sameInstance(project.configurations.testRuntime))
+        assertThat(set.compileClasspath.sourceCollections, hasItem(project.configurations.testCompile))
+        assertThat(set.compileClasspath, hasItem(new File(project.buildDir, 'classes/main')))
         assertThat(set.classesDir, equalTo(new File(project.buildDir, 'classes/test')))
+        assertThat(set.classes.buildDependencies.getDependencies(null)*.name as Set, equalTo([JavaPlugin.COMPILE_TEST_TASK_NAME, JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME] as Set))
+        assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.testRuntime))
+        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/main')))
+        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/test')))
     }
 
     @Test public void createsTasksAndAppliesMappingsForNewSourceSet() {
@@ -116,16 +122,21 @@ class JavaPluginTest {
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/custom/java'))))
         assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/custom/resources'))))
         assertThat(set.compileClasspath, sameInstance(project.configurations.compile))
-        assertThat(set.runtimeClasspath, sameInstance(project.configurations.runtime))
         assertThat(set.classesDir, equalTo(new File(project.buildDir, 'classes/custom')))
+        assertThat(set.classes.buildDependencies.getDependencies(null)*.name as Set, equalTo(['compileCustom', 'processCustomResources'] as Set))
+        assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.runtime))
+        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/custom')))
 
         def task = project.tasks['processCustomResources']
+        assertThat(task.description, equalTo('Processes the custom resources.'))
         assertThat(task, instanceOf(Copy))
         assertThat(task, dependsOn())
         assertThat(task.destinationDir, equalTo(project.source.custom.classesDir))
         assertThat(task.srcDirs, equalTo(project.source.custom.resources))
 
         task = project.tasks['compileCustom']
+        assertThat(task.description, equalTo('Compiles the custom Java source.'))
+        assertThat(task, instanceOf(Compile))
         assertThat(task, dependsOn())
         assertThat(task.srcDirs, equalTo(project.source.custom.java.srcDirs as List))
         assertThat(task.classpath, sameInstance(project.source.custom.compileClasspath))
@@ -187,7 +198,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
         assertThat(task, instanceOf(Javadoc))
         assertThat(task, dependsOn())
-        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.configuration, sameInstance(project.source.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
 
         task = project.tasks["buildArchives"]
@@ -219,12 +230,12 @@ class JavaPluginTest {
                               JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME,
                               JavaPlugin.COMPILE_TASK_NAME,
                               JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
-        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.source.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.source.test.classesDir))
 
         task = project.createTask('customJavadoc', type: Javadoc)
         assertThat(task, dependsOn())
-        assertThat(task.configuration, equalTo(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
+        assertThat(task.configuration, equalTo(project.source.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
     }
 

@@ -44,7 +44,7 @@ class JavaPluginConvention {
 
     JavaPluginConvention(Project project) {
         this.project = project
-        source = new DefaultSourceSetContainer(project.fileResolver)
+        source = new DefaultSourceSetContainer(project.fileResolver, project.tasks)
         manifest = new GradleManifest()
         metaInf = []
         srcRootName = 'src'

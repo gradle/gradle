@@ -9,16 +9,18 @@ import org.gradle.api.tasks.SourceSetContainer
 
 class DefaultSourceSetContainer extends AutoCreateDomainObjectContainer<SourceSet> implements SourceSetContainer {
     private final FileResolver fileResolver;
+    private final TaskResolver taskResolver;
     private final ClassGenerator generator = new AsmBackedClassGenerator();
 
-    def DefaultSourceSetContainer(FileResolver fileResolver) {
+    def DefaultSourceSetContainer(FileResolver fileResolver, TaskResolver taskResolver) {
         super(SourceSet.class);
         this.fileResolver = fileResolver;
+        this.taskResolver = taskResolver;
     }
 
     @Override
     protected SourceSet create(String name) {
-        return generator.newInstance(GroovyDefaultSourceSet.class, name, fileResolver);
+        return generator.newInstance(GroovyDefaultSourceSet.class, name, fileResolver, taskResolver);
     }
 
     // These are here to keep Groovy 1.6.3 happy

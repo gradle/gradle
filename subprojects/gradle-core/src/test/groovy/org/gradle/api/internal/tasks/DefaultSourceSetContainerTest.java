@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class DefaultSourceSetContainerTest {
-    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(null);
+    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(null, null);
 
     @Test
     public void createsASourceSet() {

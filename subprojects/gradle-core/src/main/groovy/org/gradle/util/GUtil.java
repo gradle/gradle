@@ -193,7 +193,8 @@ public class GUtil {
     }
 
     /**
-     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier
+     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier.
+     * Eg, with_underscores -> withUnderscored
      */
     public static String toCamelCase(CharSequence string) {
         if (string == null) {
@@ -210,21 +211,26 @@ public class GUtil {
         return builder.toString();
     }
 
-    public static List<String> stringifieAsList(Iterable iterable) {
-        List<String> stringifiedList = new ArrayList<String>();
-        stringify(iterable, stringifiedList);
-        return stringifiedList;
-    }
-
-    public static Set<String> stringifyAsSet(Iterable iterable) {
-        Set<String> stringifiedSet = new LinkedHashSet<String>();
-        stringify(iterable, stringifiedSet);
-        return stringifiedSet;
-    }
-
-    private static void stringify(Iterable iterable, Collection<String> stringifiedList) {
-        for (Object element : iterable) {
-            stringifiedList.add(element.toString());
+    /**
+     * Converts an arbitrary string to space-separated words.
+     * Eg, camelCase -> camel case, with_underscores -> with underscores
+     */
+    public static String toWords(CharSequence string) {
+        if (string == null) {
+            return null;
         }
+        StringBuilder builder = new StringBuilder();
+        Matcher matcher = Pattern.compile("([^\\p{javaLowerCase}]*?(\\p{javaUpperCase}))|([^\\p{javaLowerCase}\\p{javaUpperCase}]+)").matcher(string);
+        int pos = 0;
+        while (matcher.find()) {
+            builder.append(string.subSequence(pos, matcher.start()).toString());
+            builder.append(' ');
+            if (matcher.groupCount() >= 2 && matcher.group(2) != null) {
+                builder.append(matcher.group(2).toLowerCase());
+            }
+            pos = matcher.end();
+        }
+        builder.append(string.subSequence(pos, string.length()).toString());
+        return builder.toString().trim();
     }
 }

@@ -27,6 +27,7 @@ import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.Task
 
 /**
  * @author Hans Dockter
@@ -53,8 +54,9 @@ class BasePluginTest {
     @Test public void addsImplictTasksForConfiguration() {
         plugin.use(project, project.getPlugins())
 
-        project.tasks.add('producer')
-        project.configurations.add('conf').addArtifact([getTaskDependency: {-> new DefaultTaskDependency().add('producer') }] as PublishArtifact)
+        Task producer = [getName: {-> 'producer'}] as Task
+        PublishArtifact artifactStub = [getBuildDependencies: {-> new DefaultTaskDependency().add(producer) }] as PublishArtifact
+        project.configurations.add('conf').addArtifact(artifactStub)
 
         def task = project.tasks['buildConf']
         assertThat(task, instanceOf(DefaultTask))
