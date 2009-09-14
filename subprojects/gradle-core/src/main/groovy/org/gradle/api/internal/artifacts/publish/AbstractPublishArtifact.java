@@ -30,7 +30,7 @@ public abstract class AbstractPublishArtifact implements PublishArtifact {
         ((DefaultTaskDependency) taskDependency).add(tasks);
     }
 
-    public TaskDependency getTaskDependency() {
+    public TaskDependency getBuildDependencies() {
         return taskDependency;
     }
 

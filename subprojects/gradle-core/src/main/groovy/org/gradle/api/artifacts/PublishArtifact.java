@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.Buildable;
 
 import java.io.File;
 import java.util.Date;
@@ -26,7 +26,7 @@ import java.util.Date;
  *
  * @author Hans Dockter
  */
-public interface PublishArtifact {
+public interface PublishArtifact extends Buildable {
     /**
      * Returns the name of the artifact.
      */
@@ -54,11 +54,6 @@ public interface PublishArtifact {
      * Returns the classifier of this published artifact. 
      */
     String getClassifier();
-
-    /**
-     * Returns the task dependency on the tasks necessary to build this artifact.
-     */
-    TaskDependency getTaskDependency();
 
     /**
      * Returns the file of this artifact.

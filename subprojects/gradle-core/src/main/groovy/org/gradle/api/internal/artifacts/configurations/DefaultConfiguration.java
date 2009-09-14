@@ -199,13 +199,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency taskDependency = new DefaultTaskDependency();
                 addBuildDependenciesFromExtendedConfigurations(taskDependency);
-                addUploadTaskAndAdditionalTasksFromProjectDependencies(taskDependency);
+                addSelfResolvingDependencies(taskDependency);
                 return taskDependency.getDependencies(task);
             }
         };
     }
 
-    private void addUploadTaskAndAdditionalTasksFromProjectDependencies(DefaultTaskDependency taskDependency) {
+    private void addSelfResolvingDependencies(DefaultTaskDependency taskDependency) {
         for (SelfResolvingDependency dependency : getDependencies(SelfResolvingDependency.class)) {
             taskDependency.add(dependency);
         }
@@ -278,7 +278,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void addTasksForBuildingArtifacts(DefaultTaskDependency taskDependency) {
         for (PublishArtifact publishArtifact : getArtifacts()) {
-            taskDependency.add(publishArtifact.getTaskDependency());
+            taskDependency.add(publishArtifact);
         }
     }
 

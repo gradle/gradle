@@ -42,7 +42,7 @@ public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
         Task task2 = context.mock(Task.class, "task2");
         DefaultPublishArtifact publishArtifact = new DefaultPublishArtifact(getTestName(), getTestExt(), getTestType(),
                 getTestClassifier(), getDate(), getTestFile(), task1, task2);
-        assertThat((Set<Task>) publishArtifact.getTaskDependency().getDependencies(null), Matchers.equalTo(WrapUtil.toSet(task1, task2)));
+        assertThat((Set<Task>) publishArtifact.getBuildDependencies().getDependencies(null), Matchers.equalTo(WrapUtil.toSet(task1, task2)));
         assertCommonPropertiesAreSet(publishArtifact, true);
     }
 }
