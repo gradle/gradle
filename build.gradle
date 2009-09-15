@@ -515,7 +515,7 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     println "done"
 }
 
-[userguideHtml, userguideSingleHtml, userguidePdf].each {
+[userguideSingleHtml, userguidePdf].each {
     it.onlyIf { !System.getProperty("os.name").toLowerCase().contains('windows') }
 }
 
