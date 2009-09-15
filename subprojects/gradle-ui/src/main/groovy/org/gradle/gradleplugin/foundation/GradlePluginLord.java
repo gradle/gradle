@@ -89,17 +89,18 @@ public class GradlePluginLord {
 
     public interface GeneralPluginObserver {
         /**
-           Notification that we're about to reload the projects and tasks.
-        */
+         * Notification that we're about to reload the projects and tasks.
+         */
         public void startingProjectsAndTasksReload();
 
         /**
-           Notification that the projects and tasks have been reloaded. You may want
-           to repopulate or update your views.
-           @param wasSuccessful true if they were successfully reloaded. False if an
-                                error occurred so we no longer can show the projects
-                                and tasks (probably an error in a .gradle file).
-        */
+         * Notification that the projects and tasks have been reloaded. You may want
+         * to repopulate or update your views.
+         *
+         * @param wasSuccessful true if they were successfully reloaded. False if an
+         *                      error occurred so we no longer can show the projects
+         *                      and tasks (probably an error in a .gradle file).
+         */
         public void projectsAndTasksReloaded(boolean wasSuccessful);
     }
 
@@ -132,15 +133,15 @@ public class GradlePluginLord {
     }
 
     /**
-       @return the root directory of your gradle project.
-    */
+     * @return the root directory of your gradle project.
+     */
     public File getCurrentDirectory() {
         return currentDirectory;
     }
 
     /**
-       @param  currentDirectory the new root directory of your gradle project.
-    */
+     * @param currentDirectory the new root directory of your gradle project.
+     */
     public void setCurrentDirectory(File currentDirectory) {
         this.currentDirectory = currentDirectory;
     }
@@ -179,25 +180,25 @@ public class GradlePluginLord {
     }
 
     /**
-       Call this to start execution. This is done after you've initialized everything.
-    */
+     * Call this to start execution. This is done after you've initialized everything.
+     */
     public void startExecutionQueue() {
         isStarted = true;
     }
 
 
     /**
-       This gives requests of the queue and then executes them by kicking off gradle
-       in a separate process. Most of the code here is tedious setup code needed to
-       start the server. The server is what starts gradle and opens a socket for
-       interprocess communication so we can receive messages back from gradle.
-    */
+     * This gives requests of the queue and then executes them by kicking off gradle
+     * in a separate process. Most of the code here is tedious setup code needed to
+     * start the server. The server is what starts gradle and opens a socket for
+     * interprocess communication so we can receive messages back from gradle.
+     */
     private class ExecutionQueueInteraction implements ExecutionQueue.ExecutionInteraction<Request> {
         /**
-           When this is called, execute the given request.
-
-           @param  request    the request to execute.
-        */
+         * When this is called, execute the given request.
+         *
+         * @param request the request to execute.
+         */
         public void execute(Request request) {
             //I'm just putting these in temp variables for eaiser debugging
             File currentDirectory = getCurrentDirectory();
@@ -211,17 +212,17 @@ public class GradlePluginLord {
             ProcessLauncherServer server = new ProcessLauncherServer(serverProtocol);
             request.setProcessLauncherServer(server);
 
-            server.execute();
+            server.start();
         }
     }
 
 
     /**
-       Adds an observer for various events. See PluginObserver.
-
-       @param  observer     your observer
-       @param  inEventQueue true if you want to be notified in the Event Dispatch Thread.
-    */
+     * Adds an observer for various events. See PluginObserver.
+     *
+     * @param observer     your observer
+     * @param inEventQueue true if you want to be notified in the Event Dispatch Thread.
+     */
     public void addGeneralPluginObserver(GeneralPluginObserver observer, boolean inEventQueue) {
         generalObserverLord.addObserver(observer, inEventQueue);
     }
@@ -231,10 +232,10 @@ public class GradlePluginLord {
     }
 
     /**
-       Determines if all required setup is complete based on the current settings.
-
-       @return true if a setup is complete, false if not.
-    */
+     * Determines if all required setup is complete based on the current settings.
+     *
+     * @return true if a setup is complete, false if not.
+     */
     public boolean isSetupComplete() {
         //return gradleWrapper.getGradleHomeDirectory() != null &&
         //       gradleWrapper.getGradleHomeDirectory().exists() &&
@@ -272,12 +273,12 @@ public class GradlePluginLord {
     }
 
     /**
-       This is where we notify listeners and give them a chance to add things
-       to the command line.
-
-       @param  fullCommandLine the full command line
-       @return the new command line.
-    */
+     * This is where we notify listeners and give them a chance to add things
+     * to the command line.
+     *
+     * @param fullCommandLine the full command line
+     * @return the new command line.
+     */
     private String alterCommandLine(String fullCommandLine) {
         CommandLineArgumentAlteringNotification notification = new CommandLineArgumentAlteringNotification(fullCommandLine);
         commandLineArgumentObserverLord.notifyObservers(notification);
@@ -288,10 +289,10 @@ public class GradlePluginLord {
 
     //
     /**
-       This class notifies the listeners and modifies the command line by adding
-       additional commands to it. Each listener will be given the 'new' full command
-       line, so the order you add things becomes important.
-    */
+     * This class notifies the listeners and modifies the command line by adding
+     * additional commands to it. Each listener will be given the 'new' full command
+     * line, so the order you add things becomes important.
+     */
     private class CommandLineArgumentAlteringNotification implements ObserverLord.ObserverNotification<CommandLineArgumentAlteringListener> {
         private StringBuilder fullCommandLineBuilder;
 
@@ -312,12 +313,12 @@ public class GradlePluginLord {
 
 
     /**
-       This allows you to add a listener that can add additional command line
-       arguments whenever gradle is executed. This is useful if you've customized
-       your gradle build and need to specify, for example, an init script.
-
-       @param  listener   the listener that modifies the command line arguments.
-    */
+     * This allows you to add a listener that can add additional command line
+     * arguments whenever gradle is executed. This is useful if you've customized
+     * your gradle build and need to specify, for example, an init script.
+     *
+     * @param listener the listener that modifies the command line arguments.
+     */
     public void addCommandLineArgumentAlteringListener(CommandLineArgumentAlteringListener listener) {
         commandLineArgumentObserverLord.addObserver(listener, false);
     }

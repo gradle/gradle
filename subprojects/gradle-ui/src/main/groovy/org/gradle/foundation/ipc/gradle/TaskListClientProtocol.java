@@ -25,11 +25,13 @@ import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TemporaryExecutionListener;
 import org.gradle.foundation.ipc.basic.ClientProcess;
 import org.gradle.foundation.ipc.basic.MessageObject;
+import org.gradle.foundation.ipc.basic.Server;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.net.Socket;
 
 /**
  * This manages the communication between the UI and an externally-launched copy
@@ -45,22 +47,26 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
     private boolean continueConnection = true;
     private Gradle gradle;
 
+    private Server localServer;   //this is our server that will listen to the process that started us.
+
     public TaskListClientProtocol(Gradle gradle) {
         this.gradle = gradle;
     }
 
     /**
-       Gives your protocol a chance to store this client so it can access its
-       functions.
-    */
+     * Gives your protocol a chance to store this client so it can access its
+     * functions.
+     *
+     */
     public void initialize(ClientProcess client) {
         this.client = client;
         TemporaryExecutionListener.addExecutionListener(gradle, new RefreshTaskListBuildListener(client));
     }
 
     /**
-       Listener used to delegate gradle messages to our listeners.
-    */
+     * Listener used to delegate gradle messages to our listeners.
+     *
+     */
     private class RefreshTaskListBuildListener implements ExecutionListener {
         private ClientProcess client;
 
@@ -118,10 +124,11 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
     }
 
     /**
-       Notification that we have connected to the server. Do minimum handshaking.
-       @return true if we should continue the connection, false if not.
-    */
-    public boolean serverConnected() {
+     * Notification that we have connected to the server. Do minimum handshaking.
+     *
+     * @return true if we should continue the connection, false if not.
+     */
+    public boolean serverConnected(Socket clientSocket) {
         MessageObject message = client.readMessage();
         if (message == null)
             return false;
@@ -131,27 +138,22 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
             return false;
         }
 
-        client.sendMessage(ProtocolConstants.HANDSHAKE_TYPE, ProtocolConstants.HANDSHAKE_CLIENT, null);
+        localServer = new Server(new KillGradleServerProtocol());
+        localServer.start();
+
+        client.sendMessage(ProtocolConstants.HANDSHAKE_TYPE, ProtocolConstants.HANDSHAKE_CLIENT, localServer.getPort());
 
         return true;
     }
 
     /**
-       We just keep a flag around for this.
-       @return true if we should keep the connection alive. False if we should
-       stop communicaiton.
-    */
+     * We just keep a flag around for this.
+     *
+     * @return true if we should keep the connection alive. False if we should
+     *         stop communicaiton.
+     */
     public boolean continueConnection() {
         return continueConnection;
-    }
-
-    /**
-       Notification that a message has been received.
-
-       @param  message    the message that was received.
-    */
-    public void messageReceived(MessageObject message) {
-        //we're not reall interested in receiving messages.
     }
 
     public void shutdown() {

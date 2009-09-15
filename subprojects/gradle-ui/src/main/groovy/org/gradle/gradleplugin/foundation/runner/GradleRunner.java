@@ -23,10 +23,10 @@ import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import java.io.File;
 
 /**
- This executes a command line in an external process.
-
- @author mhunsicker
-  */
+ * This executes a command line in an external process.
+ *
+ * @author mhunsicker
+ */
 public class GradleRunner {
     private File currentDirectory;
     private File gradleHomeDirectory;
@@ -54,12 +54,12 @@ public class GradleRunner {
             }
         }, false);
 
-        server.execute();
+        server.start();
     }
 
     /**
-       Call this to stop the gradle process.
-    */
+     * Call this to stop the gradle process.
+     */
     public synchronized void killProcess() {
         if (server != null)
             server.killProcess();

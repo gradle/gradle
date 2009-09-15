@@ -25,7 +25,7 @@ import org.gradle.foundation.CommandLineAssistant;
 import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.ipc.basic.ExecutionInfo;
-
+import org.gradle.foundation.ipc.basic.ClientProcess;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -63,11 +63,17 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
     private String commandLine;
     private LogLevel logLevel;
 
+    //all of this is just so we can get gradle to kill itself when we cancel
+    private int killGradleServerPort;
+    private KillGradleClientProtocol killGradleClientProcotol;
+    private ClientProcess killGradleClient;
+
     protected MessageObject lastMessageReceived; //just for debugging purposes
 
-    /**       @return true if we should keep the connection alive. False if we should
-               stop communicaiton.
-    */
+    /**
+     * @return true if we should keep the connection alive. False if we should
+     *         stop communicaiton.
+     */
     public boolean continueConnection() {
         return continueConnection;
     }
@@ -85,7 +91,8 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
     /**
      * Notification that the connection was accepted by the client.
-    */
+     *
+     */
     public void connectionAccepted() {
         //let's make sure we're talking to the right client with some tiny handshaking.
         server.sendMessage(ProtocolConstants.HANDSHAKE_TYPE, ProtocolConstants.HANDSHAKE_SERVER);
@@ -95,15 +102,15 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
     /**
      * Gives your protocol a chance to store this server so it can access its
-     *  functions.
-    */
+     * functions.
+     */
     public void initialize(ProcessLauncherServer server) {
         this.server = server;
     }
 
     /**
      * Call this to stop communication
-    */
+     */
     protected void closeConnection() {
         this.continueConnection = false;
     }
@@ -113,8 +120,8 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
      * If we just connected, we'll do a quick handshake to verify the client,
      * then we just pass the rest on our our output panel.
      *
-     *  @param  message    the message that was received.
-    */
+     * @param message the message that was received.
+     */
     public void messageReceived(MessageObject message) {
         lastMessageReceived = message;
         if (waitingOnHandshakeCompletion)  //are we still handshaking?
@@ -122,6 +129,10 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
             if (ProtocolConstants.HANDSHAKE_CLIENT.equalsIgnoreCase(message.getMessage())) {
                 waitingOnHandshakeCompletion = false;  //we've received what we expected
                 hasCompletedConnection = true;         //and we're now connected
+                killGradleServerPort = (Integer) message.getData();
+                killGradleClientProcotol = new KillGradleClientProtocol();
+                killGradleClient = new ClientProcess(killGradleClientProcotol);
+                killGradleClient.start(killGradleServerPort);
                 handShakeCompleted();
             } else {
                 addStatus("Invalid handshaking. Stopping connection");
@@ -141,7 +152,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
     /**
      * This provides you with a chance to do something when the handshaking is complete
-    */
+     */
     protected void handShakeCompleted() {
 
     }
@@ -151,35 +162,36 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
      * this to handle the specifics of your protocol. Basically, the base class
      * handles the handshake. The rest of the conversation is up to you.
      *
-     * @param  message    the message we received.
-     * @return true if we handled the message, false if not. If we don't know
-     *  it, we won't return an acknowlegement.
-    */
+     * @param message the message we received.
+     * @returns true if we handled the message, false if not. If we don't know
+     * it, we won't return an acknowlegement.
+     */
     protected abstract boolean handleMessageReceived(MessageObject message);
 
     /**
      * Call this to mark the build as completed (whether successfully or not).
      * This is used to determine if the client has exited prematurely which
      * indicates a problem.
-    */
+     */
     public void setHasReceivedBuildCompleteNotification() {
         this.hasReceivedBuildCompleteNotification = true;
     }
 
     /**
      * Notification of any status that might be helpful to the user.
-     * @param  status     a status message
-    */
+     *
+     * @param status a status message
+     */
     protected abstract void addStatus(String status);
 
     /**
      * Fill in the information needed to execute the other process.
      * We build up the command line based on the user's options.
      *
-     * @param  serverPort    the port the server is listening on. The client should
-     *                       send messages here
-     * @param  executionInfo an object continain information about what we execute.
-    */
+     * @param serverPort    the port the server is listening on. The client should
+     *                      send messages here
+     * @param executionInfo an object continain information about what we execute.
+     */
     public void getExecutionInfo(int serverPort, ExecutionInfo executionInfo) {
         executionInfo.setWorkingDirectory(currentDirectory);
 
@@ -225,7 +237,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
      * @return the file that should be used to execute gradle. If we've been
      *         given a custom file, we use that, otherwise, we use the batch
      *         or shell script inside the gradle home's bin directory.
-    */
+     */
     protected File getGradleExecutableFile() {
         if (customGradleExecutor != null)
             return customGradleExecutor;
@@ -235,8 +247,9 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
     /**
      * This determines what we're going to execute. Its different based on the OS.
+     *
      * @return whatever we're going to execute.
-    */
+     */
     private String getDefaultGradleExecutableName() {
         String osName = System.getProperty("os.name");
         if (osName.indexOf("indows") >= 0)
@@ -246,7 +259,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
     /**
      * Notification that the client has stopped all communications.
-    */
+     */
     public void clientCommunicationStopped() {
         //we don't really care
     }
@@ -273,36 +286,28 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
      * to it or it didn't finish. This can happen because of setup issues or
      * errors that occur in gradle.
      *
-     * @param returnCode  the return code of the client application
-     * @param message     Whatever information we can gleen about what went wrong.
-    */
+     * @param returnCode the return code of the client application
+     * @param message    Whatever information we can gleen about what went wrong.
+     */
     protected abstract void reportPrematureClientExit(int returnCode, String message);
-
-    /**
-     * Notification that the server has shutdown.
-     * Here's something odd: if the process never even runs we'll get a clientExited
-     * notification. It will then report things are finished. However, if the client
-     *
-    */
-    public void serverExited() {
-        //we don't really care
-    }
 
     /**
      * This is called before we execute a command. Here, return an init script
      * for this protocol. An init script is a gradle script that gets run before
      * the other scripts are processed. This is useful here for initiating
      * the gradle client that talks to the server.
+     *
      * @return The path to an init script. Null if you have no init script.
-    */
+     */
     public abstract File getInitScriptFile();
 
     /**
      * If you do have an init script that's a resource, this will extract it based
      * on the name and write it to a temporary file and delete it on exit.
-     * @param  resourceClass the class associated with the resource
-     * @param resourceName the name (minus extension or '.') of the resource
-    */
+     *
+     * @param resourceClass the class associated with the resource
+     * @param resourceName  the name (minus extension or '.') of the resource
+     */
     protected File extractInitScriptFile(Class resourceClass, String resourceName) {
         File file = null;
         try {
@@ -326,11 +331,11 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
      * This extracts the given class' resource to the specified file if it
      * doesn't already exist.
      *
-     * @param  resourceClass the class associated with the resource
-     * @param  name          the resource's name
-     * @param  file          where to put the resource
+     * @param resourceClass the class associated with the resource
+     * @param name          the resource's name
+     * @param file          where to put the resource
      * @return true if successful, false if not.
-    */
+     */
     public boolean extractResourceAsFile(Class resourceClass, String name, File file) {
         InputStream stream = resourceClass.getResourceAsStream(name);
         if (stream == null)
@@ -367,8 +372,16 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
     /**
      * Notification that a read failure occurred. This really only exists for
      * debugging purposes when things go wrong.
-    */
+     */
     public void readFailureOccurred() {
         logger.debug("Last message received: " + lastMessageReceived);
+    }
+
+    public void aboutToKillProcess() {
+        killGradle();
+    }
+
+    public void killGradle() {
+        killGradleClientProcotol.sendKillMessage();
     }
 }

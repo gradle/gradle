@@ -37,4 +37,6 @@ public class ProtocolConstants {
     public static final String TASK_LIST_COMPLETED_WITH_ERRORS_TYPE = "TaskListCompletedWithErrors";
 
     public static final String EXITING = "exiting";
+
+    public static final String KILL = "kill";
 }

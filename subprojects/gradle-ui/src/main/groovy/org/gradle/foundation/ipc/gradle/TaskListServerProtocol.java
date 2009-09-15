@@ -42,14 +42,13 @@ public class TaskListServerProtocol extends AbstractGradleServerProtocol {
     private ExecutionInteraction executionInteraction;
 
     public interface ExecutionInteraction {
-        /*
+        /**
            Notification that gradle has started execution. This may not get called
            if some error occurs that prevents gradle from running.
-           @author mhunsicker
         */
         void reportExecutionStarted();
 
-        /*
+        /**
            Notification that execution has finished. Note: if the client fails
            to launch at all, this should still be called.
 
@@ -57,7 +56,6 @@ public class TaskListServerProtocol extends AbstractGradleServerProtocol {
            @param  message       the output of gradle if it ran. If it didn't, an error message.
            @param  throwable     an exception if one occurred
            @param  projects      a hierachical list of projects. This is the final result.
-           @author mhunsicker
         */
         void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable, List<ProjectView> projects);
 
@@ -69,14 +67,12 @@ public class TaskListServerProtocol extends AbstractGradleServerProtocol {
         this.executionInteraction = executionInteraction;
     }
 
-    /*
+    /**
     Notification that a message was received that we didn't process. Implement
     this to handle the specifics of your protocol. Basically, the base class
     handles the handshake. The rest of the conversation is up to you.
 
     @param message the message we received.
-    @author mhunsicker
-
     */
     protected boolean handleMessageReceived(MessageObject message) {
         if (ProtocolConstants.TASK_LIST_COMPLETED_WITH_ERRORS_TYPE.equals(message.getMessageType())) {  //if we were NOT successful, we'll have a BuildResultsWrapper instead of a project list as our data.
@@ -112,17 +108,15 @@ public class TaskListServerProtocol extends AbstractGradleServerProtocol {
      *
      * @param returnCode the return code of the client application
      * @param message    Whatever information we can gleen about what went wrong.
-     * @author mhunsicker
      */
     protected void reportPrematureClientExit(int returnCode, String message) {
         //in our case, if it returned prematurely, then its a failure.
         executionInteraction.reportExecutionFinished(false, message, null, null);
     }
 
-    /*
+    /**
        Notification of any status that might be helpful to the user.
        @param  status     a status message
-       @author mhunsicker
     */
     protected void addStatus(String status) {
         executionInteraction.reportLiveOutput(status);
@@ -135,7 +129,6 @@ public class TaskListServerProtocol extends AbstractGradleServerProtocol {
      * the gradle client that talks to the server.
      *
      * @return The path to an init script. Null if you have no init script.
-     * @author mhunsicker
      */
     public File getInitScriptFile() {
         return this.extractInitScriptFile(TaskListServerProtocol.class, INIT_SCRIPT_NAME);
