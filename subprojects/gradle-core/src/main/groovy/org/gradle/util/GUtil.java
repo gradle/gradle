@@ -220,17 +220,29 @@ public class GUtil {
             return null;
         }
         StringBuilder builder = new StringBuilder();
-        Matcher matcher = Pattern.compile("([^\\p{javaLowerCase}]*?(\\p{javaUpperCase}))|([^\\p{javaLowerCase}\\p{javaUpperCase}]+)").matcher(string);
         int pos = 0;
-        while (matcher.find()) {
-            builder.append(string.subSequence(pos, matcher.start()).toString());
-            builder.append(' ');
-            if (matcher.groupCount() >= 2 && matcher.group(2) != null) {
-                builder.append(matcher.group(2).toLowerCase());
+        boolean inSeparator = false;
+        for (; pos < string.length(); pos++) {
+            char ch = string.charAt(pos);
+            if (Character.isLowerCase(ch)) {
+                if (inSeparator && builder.length() > 0) {
+                    builder.append(' ');
+                }
+                builder.append(ch);
+                inSeparator = false;
             }
-            pos = matcher.end();
+            else if (Character.isUpperCase(ch)) {
+                if (builder.length() > 0) {
+                    builder.append(' ');
+                }
+                builder.append(Character.toLowerCase(ch));
+                inSeparator = false;
+            }
+            else {
+                inSeparator = true;
+            }
         }
-        builder.append(string.subSequence(pos, string.length()).toString());
-        return builder.toString().trim();
+
+        return builder.toString();
     }
 }
