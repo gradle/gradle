@@ -277,24 +277,37 @@ pre {
  */
 
 .book > .titlepage {
-    margin-top: 6em;
+    margin-top: 2.2em;
     margin-bottom: 2em;
+}
+
+.book > .titlepage > .title {
+    border: solid #d0d0d0 1px;
+    background-color: #f5f5f5;
+    margin-left: -1.8em;
+    margin-right: -1.8em;
+    padding-left: 1.8em;
+    padding-right: 1.8em;
+    margin-bottom: 2.2em;
 }
 
 .titlepage h1.title {
     font-size: 260%;
+    margin-bottom: 0;
 }
 
 .titlepage h2.subtitle {
     font-size: 160%;
     font-style: italic;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 .titlepage .releaseinfo {
     color: #666666;
     font-size: 120%;
-    margin-top: 3em;
-    margin-bottom: 3em;
+    margin-top: 2em;
+    margin-bottom: 2.6em;
 }
 
 .titlepage .author {

@@ -16,8 +16,8 @@ class DefaultSourceSetTest {
 
     @Test
     public void hasUsefulDisplayName() {
-        SourceSet sourceSet = new DefaultSourceSet('set-name', fileResolver, taskResolver)
-        assertThat(sourceSet.toString(), equalTo('set name source'));
+        SourceSet sourceSet = new DefaultSourceSet('int-test', fileResolver, taskResolver)
+        assertThat(sourceSet.toString(), equalTo('source set int test'));
     }
 
     @Test public void defaultValues() {

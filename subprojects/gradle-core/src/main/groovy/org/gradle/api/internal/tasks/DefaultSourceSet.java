@@ -41,17 +41,19 @@ public class DefaultSourceSet implements SourceSet {
     private final SourceDirectorySet resources;
     private final PatternFilterable javaSourcePatterns = new PatternSet();
     private final PathResolvingFileCollection classes;
+    private final String displayName;
 
     public DefaultSourceSet(String name, FileResolver fileResolver, TaskResolver taskResolver) {
         this.name = name;
         this.fileResolver = fileResolver;
-        String javaSrcDisplayName = String.format("%s Java source", GUtil.toWords(name));
+        displayName = GUtil.toWords(this.name);
+        String javaSrcDisplayName = String.format("%s Java source", displayName);
         javaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, fileResolver);
         javaSourcePatterns.include("**/*.java");
         allJavaSource = new UnionFileTree(javaSrcDisplayName, javaSource.matching(javaSourcePatterns));
-        String resourcesDisplayName = String.format("%s resources", GUtil.toWords(name));
+        String resourcesDisplayName = String.format("%s resources", displayName);
         resources = new DefaultSourceDirectorySet(resourcesDisplayName, fileResolver);
-        String classesDisplayName = String.format("%s classes", GUtil.toWords(name));
+        String classesDisplayName = String.format("%s classes", displayName);
         classes = new PathResolvingFileCollection(classesDisplayName, fileResolver, taskResolver, new Callable() {
             public Object call() throws Exception {
                 return getClassesDir();
@@ -65,7 +67,11 @@ public class DefaultSourceSet implements SourceSet {
 
     @Override
     public String toString() {
-        return String.format("%s source", GUtil.toWords(name));
+        return String.format("source set %s", getDisplayName());
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     public String getCompileTaskName() {

@@ -76,12 +76,14 @@ class GroovyPluginTest {
 
         def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(GroovyCompile.class))
+        assertThat(task.description, equalTo('Compiles the main Java and Groovy source.'))
         assertThat(task.srcDirs, equalTo(project.source.main.java.srcDirs as List))
         assertThat(task.groovySourceDirs, equalTo(project.source.main.groovy.srcDirs as List))
         assertThat(task, dependsOn())
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
         assertThat(task, instanceOf(GroovyCompile.class))
+        assertThat(task.description, equalTo('Compiles the test Java and Groovy source.'))
         assertThat(task.srcDirs, equalTo(project.source.test.java.srcDirs as List))
         assertThat(task.groovySourceDirs, equalTo(project.source.test.groovy.srcDirs as List))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
@@ -89,8 +91,10 @@ class GroovyPluginTest {
         project.source.add('custom')
         task = project.tasks['compileCustom']
         assertThat(task, instanceOf(GroovyCompile.class))
+        assertThat(task.description, equalTo('Compiles the custom Java and Groovy source.'))
         assertThat(task.srcDirs, equalTo(project.source.custom.java.srcDirs as List))
         assertThat(task.groovySourceDirs, equalTo(project.source.custom.groovy.srcDirs as List))
+        assertThat(task, dependsOn())
     }
 
     @Test public void addsStandarcTasksToTheProject() {

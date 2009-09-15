@@ -39,6 +39,7 @@
     <xi:include href='plugins.xml'/>
     <xi:include href='javaPlugin.xml'/>
     <xi:include href='groovyPlugin.xml'/>
+    <xi:include href='scalaPlugin.xml'/>
     <xi:include href='warPlugin.xml'/>
     <xi:include href='jettyPlugin.xml'/>
     <xi:include href='mavenPlugin.xml'/>

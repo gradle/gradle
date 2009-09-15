@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
+import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.internal.DynamicObjectAware;
 import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.tasks.ConventionValue;
@@ -77,14 +78,14 @@ public class GroovyPlugin implements Plugin {
         final ProjectInternal projectInternal = (ProjectInternal) project;
         project.getConvention().getPlugin(JavaPluginConvention.class).getSource().allObjects(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
-                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(sourceSet.getName(), projectInternal.getFileResolver());
+                final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), projectInternal.getFileResolver());
                 ((DynamicObjectAware) sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
                 groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));
                 sourceSet.getAllJava().add(groovySourceSet.getGroovy().matching(sourceSet.getJavaSourcePatterns()));
 
                 GroovyCompile compile = project.getTasks().replace(sourceSet.getCompileTaskName(), GroovyCompile.class);
                 javaPlugin.configureForSourceSet(sourceSet, compile);
-                compile.setDescription(String.format("Compiles the %s Java and Groovy source code.", sourceSet.getName()));
+                compile.setDescription(String.format("Compiles the %s Java and Groovy source.", sourceSet.getName()));
                 compile.conventionMapping("groovySourceDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return new ArrayList<File>(groovySourceSet.getGroovy().getSrcDirs());

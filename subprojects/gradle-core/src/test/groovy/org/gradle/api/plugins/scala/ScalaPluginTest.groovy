@@ -45,32 +45,58 @@ public class ScalaPluginTest {
         assertTrue(configuration.transitive)
     }
 
-    @Test public void addsScalaCompileTasksToTheProject() {
+    @Test public void addsScalaConventionToEachSourceSetAndAppliesMappings() {
+        scalaPlugin.use(project, project.getPlugins())
+
+        def sourceSet = project.source.main
+        assertThat(sourceSet.scala.displayName, equalTo("main Scala source"))
+        assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/main/scala"))))
+
+        sourceSet = project.source.test
+        assertThat(sourceSet.scala.displayName, equalTo("test Scala source"))
+        assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/test/scala"))))
+
+        sourceSet = project.source.add('custom')
+        assertThat(sourceSet.scala.displayName, equalTo("custom Scala source"))
+        assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/custom/scala"))))
+    }
+
+    @Test public void replacesCompileTaskForEachSourceSet() {
         scalaPlugin.use(project, project.getPlugins())
 
         def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, instanceOf(ScalaCompile.class))
+        assertThat(task.description, equalTo('Compiles the main Scala source.'))
+        assertThat(task.srcDirs, equalTo(project.source.main.java.srcDirs as List))
+        assertThat(task.classpath, equalTo(project.source.main.compileClasspath))
+        assertThat(task.scalaSrcDirs, equalTo(project.source.main.scala.srcDirs as List))
         assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME))
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.source.main.java.srcDirs as Object[]))
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.main.classesDir))
-        assertThat(task.classpath, equalTo(project.convention.plugins.java.source.main.compileClasspath))
-        assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaSrcDirs as Object[]))
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
         assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME, ScalaPlugin.SCALA_DEFINE_TASK_NAME))
-        assertThat(task.srcDirs, hasItems(project.convention.plugins.java.source.test.java.srcDirs as Object[]))
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.java.source.test.classesDir))
-        assertThat(task.classpath, equalTo(project.convention.plugins.java.source.test.compileClasspath))
-        assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaTestSrcDirs as Object[]))
+        assertThat(task.description, equalTo('Compiles the test Scala source.'))
+        assertThat(task.srcDirs, equalTo(project.source.test.java.srcDirs as List))
+        assertThat(task.classpath, equalTo(project.source.test.compileClasspath))
+        assertThat(task.scalaSrcDirs, equalTo(project.source.test.scala.srcDirs as List))
+        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
+
+        project.source.add('custom')
+        task = project.tasks['compileCustom']
+        assertThat(task, instanceOf(ScalaCompile.class))
+        assertThat(task.description, equalTo('Compiles the custom Scala source.'))
+        assertThat(task.srcDirs, equalTo(project.source.custom.java.srcDirs as List))
+        assertThat(task.classpath, equalTo(project.source.custom.compileClasspath))
+        assertThat(task.scalaSrcDirs, equalTo(project.source.custom.scala.srcDirs as List))
+        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME))
     }
 
     @Test public void configuresCompileTasksDefinedByTheBuildScript() {
         scalaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('otherCompile', type: ScalaCompile)
-        assertThat(task.classpath, equalTo(project.convention.plugins.java.source.main.compileClasspath))
-        assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaSrcDirs as Object[]))
+        assertThat(task.classpath, equalTo(project.source.main.compileClasspath))
+        assertThat(task.scalaSrcDirs, nullValue())
+        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME))
     }
 
     @Test public void addsScalaDocTasksToTheProject() {
@@ -78,15 +104,15 @@ public class ScalaPluginTest {
 
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         assertThat(task, instanceOf(ScalaDoc.class))
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.scala.scalaDocDir))
-        assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaSrcDirs as Object[]))
+        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
+        assertThat(task.scalaSrcDirs, equalTo(project.source.main.scala.srcDirs as List))
     }
 
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
         scalaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('otherScaladoc', type: ScalaDoc)
-        assertThat(task.destinationDir, equalTo(project.convention.plugins.scala.scalaDocDir))
-        assertThat(task.scalaSrcDirs, hasItems(project.convention.plugins.scala.scalaSrcDirs as Object[]))
+        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
+        assertThat(task.scalaSrcDirs, equalTo(project.source.main.scala.srcDirs as List))
     }
 }

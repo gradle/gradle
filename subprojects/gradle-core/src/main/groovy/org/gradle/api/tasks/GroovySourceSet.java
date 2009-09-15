@@ -21,8 +21,8 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import groovy.lang.Closure;
 
 /**
- * A {@code GroovySourceSetConvention} defines the properties and methods added to a {@link
- * org.gradle.api.tasks.SourceSet} by the {@link org.gradle.api.plugins.GroovyPlugin}.
+ * A {@code GroovySourceSetConvention} defines the properties and methods added to a {@link SourceSet} by the
+ * {@link org.gradle.api.plugins.GroovyPlugin}.
  */
 public interface GroovySourceSet {
     /**

@@ -153,11 +153,6 @@ public class JavaPlugin implements Plugin {
         });
     }
 
-    public void configureForSourceSet(final String sourceSet, Compile compile) {
-        configureForSourceSet(compile.getProject().getConvention().getPlugin(JavaPluginConvention.class)
-                .getSource().getByName(sourceSet), compile);
-    }
-
     public void configureForSourceSet(final SourceSet sourceSet, Compile compile) {
         ConventionMapping conventionMapping;
         compile.setDescription(String.format("Compiles the %s.", sourceSet.getJava()));

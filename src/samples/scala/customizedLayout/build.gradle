@@ -1,0 +1,18 @@
+// START SNIPPET define-main
+usePlugin 'scala'
+
+source {
+    main {
+        scala {
+            srcDir 'src/scala'
+        }
+    }
+// END SNIPPET define-main
+    test {
+        scala {
+            srcDir 'test/scala'
+        }
+    }
+// START SNIPPET define-main
+}
+// END SNIPPET define-main

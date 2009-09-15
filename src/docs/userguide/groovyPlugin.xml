@@ -1,24 +1,24 @@
 <chapter id='groovy_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Groovy Plugin</title>
-    <para>The Groovy Plugin extends the Java Plugin. It can deal with pure Java projects,
+    <para>The Groovy Plugin extends the Java Plugin to add support for Groovy projects. It can deal with Groovy-only projects and
+        with mixed Java/Groovy projects. It can even deal with Java-only projects.
         <footnote>
             <para>We don't recommend this, as the Groovy plugin uses the <emphasis>Groovyc</emphasis>
-                Ant task to compile the sources. For pure Java projects you might rather stick with pure
+                Ant task to compile the sources. For pure Java projects you might rather stick with
                 <literal>javac</literal>. In particular as you would have to supply a groovy jar for doing this.
             </para>
         </footnote>
-        with mixed Java and Groovy projects, and with pure Groovy projects.
     </para>
 
     <section>
         <title>Tasks</title>
-        <para>The Groovy plugin does not add any tasks. It modifies some of the tasks of the Java Plugin.</para>
+        <para>TBD</para>
     </section>
 
     <section>
         <title>Project layout</title>
-        <para>The Groovy plugin assumes the project layout shown in <xref linkend='groovylayout'/>. All the Groovy s
-            ource directories can contain Groovy <emphasis>and</emphasis> Java code. The Java source directories may
+        <para>The Groovy plugin assumes the project layout shown in <xref linkend='groovylayout'/>. All the Groovy
+            source directories can contain Groovy <emphasis>and</emphasis> Java code. The Java source directories may
             only contain Java source code (and can of course be empty).
             <footnote>
                 <para>We are using the same conventions as introduced by Russel Winders Gant tool (<ulink
