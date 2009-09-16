@@ -15,9 +15,10 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
+import org.gradle.api.tasks.compile.AntJavac;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.WrapUtil;
@@ -29,17 +30,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ScalaCompileTest extends AbstractCompileTest {
 
     private ScalaCompile scalaCompile;
 
     private AntScalaCompile antScalaCompileMock;
-
+    private AntJavac antCompileMock;
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Override
@@ -59,7 +57,9 @@ public class ScalaCompileTest extends AbstractCompileTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         scalaCompile = createTask(ScalaCompile.class);
         antScalaCompileMock = context.mock(AntScalaCompile.class);
+        antCompileMock = context.mock(AntJavac.class);
         scalaCompile.setAntScalaCompile(antScalaCompileMock);
+        scalaCompile.setAntCompile(antCompileMock);
     }
 
     @Test
@@ -84,11 +84,36 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void testExecuteDoingWork() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
-            one(antScalaCompileMock).execute(scalaCompile.getScalaSrcDirs(), scalaCompile.getScalaIncludes(),
-                    scalaCompile.getScalaExcludes(), scalaCompile.getDestinationDir(), scalaCompile.getClasspath(),
+            one(antScalaCompileMock).execute(scalaCompile.getScalaSrcDirs(),
+                    scalaCompile.getScalaIncludes(),
+                    scalaCompile.getScalaExcludes(),
+                    scalaCompile.getDestinationDir(),
+                    scalaCompile.getClasspath(),
                     scalaCompile.getScalaCompileOptions());
+
+            Set<String> expectedExcludes = new HashSet<String>();
+            expectedExcludes.addAll(scalaCompile.getExcludes());
+            expectedExcludes.add("**/*.scala");
+
+            List<File> expectedClassPath = new ArrayList<File>();
+            expectedClassPath.add(scalaCompile.getDestinationDir());
+            for (File file : scalaCompile.getClasspath()) {
+                expectedClassPath.add(file);
+            }
+
+            one(antCompileMock).execute(scalaCompile.getScalaSrcDirs(),
+                    scalaCompile.getIncludes(),
+                    expectedExcludes,
+                    scalaCompile.getDestinationDir(),
+                    scalaCompile.getDependencyCacheDir(),
+                    expectedClassPath,
+                    scalaCompile.getSourceCompatibility(),
+                    scalaCompile.getTargetCompatibility(),
+                    scalaCompile.getOptions(),
+                    scalaCompile.getAnt());
         }});
-        scalaCompile.execute();
+
+        scalaCompile.compile();
     }
 
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {
@@ -109,16 +134,13 @@ public class ScalaCompileTest extends AbstractCompileTest {
         compile.setDestinationDir(destDir);
         compile.setDependencyCacheDir(depCacheDir);
 
-        compile.setClasspath(new AbstractFileCollection() {
-            @Override
-            public String getDisplayName() {
-                throw new UnsupportedOperationException();
-            }
+        final FileCollection configuration = context.mock(FileCollection.class);
+        context.checking(new Expectations(){{
+            allowing(configuration).iterator();
+            will(returnIterator(TEST_DEPENDENCY_MANAGER_CLASSPATH));
+        }});
 
-            public Set<File> getFiles() {
-                return new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH);
-            }
-        });
+        compile.setClasspath(configuration);
     }
 
 }

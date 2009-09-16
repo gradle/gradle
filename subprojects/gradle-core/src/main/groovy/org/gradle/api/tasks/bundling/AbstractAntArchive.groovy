@@ -28,7 +28,7 @@ class AbstractAntArchive {
     static final String EMPTY_POLICY_CREATE = 'create'
 
     void addResourceCollections(List resourceCollections, delegate, String nodeName = null) {
-        filterCollections(resourceCollections).each {AntBuilderAware antBuilderAware ->
+        resourceCollections.each {AntBuilderAware antBuilderAware ->
             antBuilderAware.addToAntBuilder(delegate, nodeName)
         }
     }
@@ -51,16 +51,5 @@ class AbstractAntArchive {
         addResourceCollections(parameter.metaInfFileSets, delegate, 'metainf')
         addMergeGroupFileSets(parameter.mergeGroupFileSets, delegate)
         addMergeFileSets(parameter.mergeFileSets, delegate)
-    }
-
-    private List filterCollections(List resourceCollections) {
-        resourceCollections.findAll { def collection ->
-            if (collection instanceof FileSet) {
-                if (!collection.dir.exists()) {
-                    return false
-                }
-            }
-            true
-        }
     }
 }

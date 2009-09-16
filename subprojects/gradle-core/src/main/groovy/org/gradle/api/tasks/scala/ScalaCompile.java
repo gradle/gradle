@@ -25,6 +25,7 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import java.util.Collections;
 
 /**
  * Task to perform scala compilation.
@@ -118,6 +119,11 @@ public class ScalaCompile extends Compile {
 
         getAntScalaCompile().execute(existingSrcDirs, getScalaIncludes(), getScalaExcludes(), getDestinationDir(),
                 getClasspath(), getScalaCompileOptions());
+
+        Set<String> excludes = GUtil.addSets(getExcludes(), Collections.singleton("**/*.scala"));
+        List<File> classpath = GUtil.addLists(Collections.singleton(getDestinationDir()), getClasspath());
+        antCompile.execute(existingSrcDirs, getIncludes(), excludes, getDestinationDir(), getDependencyCacheDir(),
+                classpath, getSourceCompatibility(), getTargetCompatibility(), getOptions(), getAnt());
     }
 
 }

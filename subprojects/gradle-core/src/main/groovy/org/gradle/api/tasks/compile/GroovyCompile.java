@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -48,20 +48,12 @@ public class GroovyCompile extends Compile {
     private GroovyCompileOptions groovyOptions = new GroovyCompileOptions();
 
     protected void compile() {
-        if (antCompile == null) throw new InvalidUserDataException("The ant compile command must be set!");
         if (getAntGroovyCompile() == null) throw new InvalidUserDataException("The ant groovy compile command must be set!");
         if (getSourceCompatibility() == null || getTargetCompatibility() == null) {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
         }
 
-        List existingSourceDirs = existentDirsFilter.findExistingDirs(getSrcDirs());
         List<File> classpath = null;
-        if (existingSourceDirs.size() > 0) {
-            classpath = GUtil.addLists(getClasspath());
-            antCompile.execute(existingSourceDirs, getIncludes(), getExcludes(), getDestinationDir(), getDependencyCacheDir(),
-                    classpath, getSourceCompatibility(), getTargetCompatibility(), getOptions(), getProject().getAnt());
-            setDidWork(antCompile.getNumFilesCompiled() > 0);            
-        }
         List existingGroovySourceDirs = existentDirsFilter.findExistingDirs(getGroovySourceDirs());
         if (existingGroovySourceDirs.size() > 0) {
             if (classpath == null) {
@@ -197,7 +189,7 @@ public class GroovyCompile extends Compile {
      * Sets the include patterns for which groovy files should be compiled.
      *
      * @param groovyIncludes The patterns to include
-     * @see #groovyInclude(String[]) 
+     * @see #groovyInclude(String...)
      */
     public void setGroovyIncludes(List groovyIncludes) {
         this.groovyIncludes = groovyIncludes;
@@ -214,7 +206,7 @@ public class GroovyCompile extends Compile {
      * Sets the exclude patterns for which groovy files should be compiled.
      *
      * @param groovyExcludes The patterns to exclude
-     * @see #groovyExclude(String[]) 
+     * @see #groovyExclude(String...)
      */
     public void setGroovyExcludes(List groovyExcludes) {
         this.groovyExcludes = groovyExcludes;
@@ -231,7 +223,7 @@ public class GroovyCompile extends Compile {
      * Sets include patterns for which java files in the joint source folder should be compiled.
      *
      * @param groovyJavaIncludes The exclude pattern
-     * @see #groovyInclude(String[])  The include patterns
+     * @see #groovyInclude(String...)   The include patterns
      */
     public void setGroovyJavaIncludes(List groovyJavaIncludes) {
         this.groovyJavaIncludes = groovyJavaIncludes;
@@ -247,7 +239,7 @@ public class GroovyCompile extends Compile {
     /**
      * Sets excludes patterns for which java files in the joint source folder should be compiled
      * @param groovyJavaExcludes The exclude pattern
-     * @see #groovyJavaExclude(String[])  The exclude patterns
+     * @see #groovyJavaExclude(String...) The exclude patterns
      */
     public void setGroovyJavaExcludes(List groovyJavaExcludes) {
         this.groovyJavaExcludes = groovyJavaExcludes;

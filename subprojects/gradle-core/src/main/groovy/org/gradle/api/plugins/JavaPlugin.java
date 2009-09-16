@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -217,8 +218,6 @@ public class JavaPlugin implements Plugin {
             public void execute(AbstractArchiveTask task) {
                 if (task instanceof Jar) {
                     task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.JAR);
-                    task.dependsOn(PROCESS_RESOURCES_TASK_NAME);
-                    task.dependsOn(COMPILE_TASK_NAME);
                 }
                 else if (task instanceof Tar) {
                     task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TAR);
@@ -262,9 +261,9 @@ public class JavaPlugin implements Plugin {
         jar.setDescription("Generates a jar archive with all the compiled classes.");
         jar.conventionMapping("resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                File classesDir = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
-                        SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
-                return Arrays.asList(project.fileTree(classesDir));
+                FileCollection classes = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
+                        SourceSet.MAIN_SOURCE_SET_NAME).getClasses();
+                return Arrays.asList(classes.getAsFileTree());
             }
         });
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));

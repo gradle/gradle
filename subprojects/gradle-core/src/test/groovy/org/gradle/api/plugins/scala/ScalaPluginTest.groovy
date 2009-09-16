@@ -61,35 +61,54 @@ public class ScalaPluginTest {
         assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/custom/scala"))))
     }
 
-    @Test public void replacesCompileTaskForEachSourceSet() {
+    @Test public void addsCompileTaskForEachSourceSet() {
         scalaPlugin.use(project, project.getPlugins())
 
-        def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
+        def task = project.tasks['compileScala']
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the main Scala source.'))
         assertThat(task.srcDirs, equalTo(project.source.main.java.srcDirs as List))
         assertThat(task.classpath, equalTo(project.source.main.compileClasspath))
         assertThat(task.scalaSrcDirs, equalTo(project.source.main.scala.srcDirs as List))
-        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME))
+        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME))
 
-        task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
+        assertThat(project.source.main.classes, builtBy(hasItem('compileScala')))
+
+        task = project.tasks['compileTestScala']
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the test Scala source.'))
         assertThat(task.srcDirs, equalTo(project.source.test.java.srcDirs as List))
         assertThat(task.classpath, equalTo(project.source.test.compileClasspath))
         assertThat(task.scalaSrcDirs, equalTo(project.source.test.scala.srcDirs as List))
-        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
+        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME, 'compileScala', JavaPlugin.COMPILE_TEST_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
+
+        assertThat(project.source.test.classes, builtBy(hasItem('compileTestScala')))
 
         project.source.add('custom')
-        task = project.tasks['compileCustom']
+        task = project.tasks['compileCustomScala']
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Scala source.'))
         assertThat(task.srcDirs, equalTo(project.source.custom.java.srcDirs as List))
         assertThat(task.classpath, equalTo(project.source.custom.compileClasspath))
         assertThat(task.scalaSrcDirs, equalTo(project.source.custom.scala.srcDirs as List))
-        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME))
+        assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME, 'compileCustom'))
+
+        assertThat(project.source.custom.classes, builtBy(hasItem('compileCustomScala')))
     }
 
+    @Test public void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
+        scalaPlugin.use(project, project.getPlugins())
+
+        def task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
+        assertThat(task, dependsOn(hasItem('compileScala')))
+
+        task = project.tasks[JavaPlugin.TEST_TASK_NAME]
+        assertThat(task, dependsOn(hasItem('compileTestScala')))
+
+        task = project.tasks[JavaPlugin.JAR_TASK_NAME]
+        assertThat(task, dependsOn(hasItem('compileScala')))
+    }
+    
     @Test public void configuresCompileTasksDefinedByTheBuildScript() {
         scalaPlugin.use(project, project.getPlugins())
 

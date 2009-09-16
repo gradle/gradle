@@ -190,4 +190,8 @@ public class Compile extends ConventionTask implements PatternFilterable {
         patternSet.setExcludes(excludes);
         return this;
     }
+
+    public void setAntCompile(AntJavac antCompile) {
+        this.antCompile = antCompile;
+    }
 }

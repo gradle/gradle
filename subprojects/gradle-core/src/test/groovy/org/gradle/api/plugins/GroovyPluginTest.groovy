@@ -71,33 +71,52 @@ class GroovyPluginTest {
         assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/custom/groovy"))))
     }
 
-    @Test public void replacesCompileTaskForEachSourceSet() {
+    @Test public void addsCompileTaskForEachSourceSet() {
         groovyPlugin.use(project, project.getPlugins())
 
-        def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
+        def task = project.tasks['compileGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
-        assertThat(task.description, equalTo('Compiles the main Java and Groovy source.'))
+        assertThat(task.description, equalTo('Compiles the main Groovy source.'))
         assertThat(task.srcDirs, equalTo(project.source.main.java.srcDirs as List))
         assertThat(task.groovySourceDirs, equalTo(project.source.main.groovy.srcDirs as List))
-        assertThat(task, dependsOn())
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
 
-        task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
+        assertThat(project.source.main.classes, builtBy(hasItem('compileGroovy')))
+
+        task = project.tasks['compileTestGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
-        assertThat(task.description, equalTo('Compiles the test Java and Groovy source.'))
+        assertThat(task.description, equalTo('Compiles the test Groovy source.'))
         assertThat(task.srcDirs, equalTo(project.source.test.java.srcDirs as List))
         assertThat(task.groovySourceDirs, equalTo(project.source.test.groovy.srcDirs as List))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_TASK_NAME, 'compileGroovy', JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
+
+        assertThat(project.source.test.classes, builtBy(hasItem('compileTestGroovy')))
 
         project.source.add('custom')
-        task = project.tasks['compileCustom']
+        task = project.tasks['compileCustomGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
-        assertThat(task.description, equalTo('Compiles the custom Java and Groovy source.'))
+        assertThat(task.description, equalTo('Compiles the custom Groovy source.'))
         assertThat(task.srcDirs, equalTo(project.source.custom.java.srcDirs as List))
         assertThat(task.groovySourceDirs, equalTo(project.source.custom.groovy.srcDirs as List))
-        assertThat(task, dependsOn())
+        assertThat(task, dependsOn('compileCustom'))
+
+        assertThat(project.source.custom.classes, builtBy(hasItem('compileCustomGroovy')))
     }
 
-    @Test public void addsStandarcTasksToTheProject() {
+    @Test public void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
+        groovyPlugin.use(project, project.getPlugins())
+
+        def task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
+        assertThat(task, dependsOn(hasItem('compileGroovy')))
+
+        task = project.tasks[JavaPlugin.TEST_TASK_NAME]
+        assertThat(task, dependsOn(hasItem('compileTestGroovy')))
+
+        task = project.tasks[JavaPlugin.JAR_TASK_NAME]
+        assertThat(task, dependsOn(hasItem('compileGroovy')))
+    }
+    
+    @Test public void addsStandardTasksToTheProject() {
         groovyPlugin.use(project, project.getPlugins())
 
         def task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]

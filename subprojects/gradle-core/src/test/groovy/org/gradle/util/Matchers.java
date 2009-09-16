@@ -18,6 +18,7 @@ package org.gradle.util;
 import org.hamcrest.*;
 import static org.hamcrest.Matchers.*;
 import org.gradle.api.Task;
+import org.gradle.api.Buildable;
 
 import java.util.Map;
 import java.util.Set;
@@ -178,7 +179,7 @@ public class Matchers {
     }
     
     @Factory
-    public static Matcher<Task> dependsOn(final Matcher<? extends Set<String>> matcher) {
+    public static Matcher<Task> dependsOn(final Matcher<? extends Iterable<String>> matcher) {
         return new BaseMatcher<Task>() {
             public boolean matches(Object o) {
                 Task task = (Task) o;
@@ -198,6 +199,36 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("depends on ").appendDescriptionOf(matcher);
+            }
+        };
+    }
+
+    @Factory
+    public static <T extends Buildable> Matcher<T> builtBy(String... tasks) {
+        return builtBy(equalTo(new HashSet<String>(Arrays.asList(tasks))));
+    }
+
+    @Factory
+    public static <T extends Buildable> Matcher<T> builtBy(final Matcher<? extends Iterable<String>> matcher) {
+        return new BaseMatcher<T>() {
+            public boolean matches(Object o) {
+                Buildable task = (Buildable) o;
+                Set<String> names = new HashSet<String>();
+                Set<? extends Task> depTasks = task.getBuildDependencies().getDependencies(null);
+                for (Task depTask : depTasks) {
+                    names.add(depTask.getName());
+                }
+                boolean matches = matcher.matches(names);
+                if (!matches) {
+                    StringDescription description = new StringDescription();
+                    matcher.describeTo(description);
+                    System.out.println(String.format("expected %s, got %s.", description.toString(), names));
+                }
+                return matches;
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("built by ").appendDescriptionOf(matcher);
             }
         };
     }

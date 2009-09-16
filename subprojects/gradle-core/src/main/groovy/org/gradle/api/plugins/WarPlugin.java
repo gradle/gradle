@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -26,6 +27,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.War;
+import org.gradle.api.tasks.SourceSet;
 
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add tasks which assemble a web application into a WAR
@@ -45,8 +47,9 @@ public class WarPlugin implements Plugin {
         project.getTasks().withType(War.class).allTasks(new Action<War>() {
             public void execute(War task) {
                 task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.WAR);
-                final Configuration configuration = task.getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
-                task.dependsOn(configuration.getBuildDependencies());
+                Buildable runtimeClasspath = task.getProject().getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(
+                        SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+                task.dependsOn(runtimeClasspath);
             }
         });
         

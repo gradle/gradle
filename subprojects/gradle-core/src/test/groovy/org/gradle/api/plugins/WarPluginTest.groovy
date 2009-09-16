@@ -105,7 +105,7 @@ class WarPluginTest {
         warPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customWar', type: War)
-        assertThat(task.dependsOn, hasItems(JavaPlugin.COMPILE_TASK_NAME,JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
+        assertThat(task, dependsOn(hasItems(JavaPlugin.COMPILE_TASK_NAME,JavaPlugin.PROCESS_RESOURCES_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
 

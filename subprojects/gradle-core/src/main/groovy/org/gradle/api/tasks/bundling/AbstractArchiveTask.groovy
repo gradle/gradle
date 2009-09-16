@@ -29,6 +29,7 @@ import org.gradle.util.GUtil
 import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.tasks.InputFiles
 
 /**
  * @author Hans Dockter
@@ -234,6 +235,11 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         this.baseDir = baseDir;
     }
 
+    @InputFiles
+    public FileTree getAllSource() {
+        project.files({ getResourceCollections() }).asFileTree
+    }
+    
     public List getResourceCollections() {
         return resourceCollections;
     }

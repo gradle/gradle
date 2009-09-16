@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
@@ -144,10 +145,8 @@ public class DefaultConventionsToPropertiesMapping {
                 "classesFileSets", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 JavaPluginConvention pluginConvention = convention.getPlugin(JavaPluginConvention.class);
-                Project project = pluginConvention.getProject();
-                File classesDir = pluginConvention.getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME)
-                        .getClassesDir();
-                return Arrays.asList(project.fileTree(classesDir));
+                FileCollection classes = pluginConvention.getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses();
+                return Arrays.asList(classes.getAsFileTree());
             }
         },      "resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

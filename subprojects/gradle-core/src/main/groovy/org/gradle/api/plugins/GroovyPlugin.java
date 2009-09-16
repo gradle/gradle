@@ -83,14 +83,18 @@ public class GroovyPlugin implements Plugin {
                 groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));
                 sourceSet.getAllJava().add(groovySourceSet.getGroovy().matching(sourceSet.getJavaSourcePatterns()));
 
-                GroovyCompile compile = project.getTasks().replace(sourceSet.getCompileTaskName(), GroovyCompile.class);
+                String compileTaskName = String.format("%sGroovy", sourceSet.getCompileTaskName());
+                GroovyCompile compile = project.getTasks().add(compileTaskName, GroovyCompile.class);
                 javaPlugin.configureForSourceSet(sourceSet, compile);
-                compile.setDescription(String.format("Compiles the %s Java and Groovy source.", sourceSet.getName()));
+                compile.dependsOn(sourceSet.getCompileTaskName());
+                compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
                 compile.conventionMapping("groovySourceDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return new ArrayList<File>(groovySourceSet.getGroovy().getSrcDirs());
                     }
                 });
+
+                sourceSet.compiledBy(compileTaskName);
             }
         });
     }

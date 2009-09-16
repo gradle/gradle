@@ -19,7 +19,6 @@ package org.gradle.api.plugins.scala;
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.ProjectPluginsContainer
@@ -55,10 +54,14 @@ public class ScalaPlugin implements Plugin {
             sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, project.fileResolver)
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
 
-            ScalaCompile scalaCompile = project.tasks.replace(sourceSet.compileTaskName, ScalaCompile.class);
+            String taskName = "${sourceSet.compileTaskName}Scala"
+            ScalaCompile scalaCompile = project.tasks.add(taskName, ScalaCompile.class);
+            scalaCompile.dependsOn sourceSet.compileTaskName
             javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
             scalaCompile.description = "Compiles the $sourceSet.scala.";
             scalaCompile.conventionMapping.scalaSrcDirs = {sourceSet.scala.srcDirs as List}
+
+            sourceSet.compiledBy(taskName)
         }
     }
 

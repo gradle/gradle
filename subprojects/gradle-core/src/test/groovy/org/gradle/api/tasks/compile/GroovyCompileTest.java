@@ -45,7 +45,6 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
     private GroovyCompile testObj;
 
-    AntJavac antJavacCompileMock;
     AntGroovyc antGroovycCompileMock;
 
     JUnit4Mockery context = new JUnit4Mockery();
@@ -59,10 +58,9 @@ public class GroovyCompileTest extends AbstractCompileTest {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
         testObj = createTask(GroovyCompile.class);
-        antJavacCompileMock = context.mock(AntJavac.class);
         antGroovycCompileMock = context.mock(AntGroovyc.class);
         testObj.setAntGroovyCompile(antGroovycCompileMock);
-        testObj.antCompile = antJavacCompileMock;
+        testObj.antCompile = context.mock(AntJavac.class);
     }
 
     public ConventionTask getTask() {
@@ -113,7 +111,6 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
         final FileCollection groovyClasspathCollection = context.mock(FileCollection.class);
         context.checking(new Expectations(){{
-            one(antJavacCompileMock).getNumFilesCompiled();
             allowing(groovyClasspathCollection).getFiles();
             will(returnValue(new LinkedHashSet(groovyClasspath)));
         }});
@@ -121,14 +118,6 @@ public class GroovyCompileTest extends AbstractCompileTest {
         compile.setGroovyClasspath(groovyClasspathCollection);
         compile.setGroovySourceDirs(WrapUtil.toList(new File("groovySourceDir1"), new File("groovySourceDir2")));
         compile.existentDirsFilter = getGroovyCompileExistingDirsFilterMock(compile);
-        
-        context.checking(new Expectations() {
-            {
-                one(antJavacCompileMock).execute(testObj.getSrcDirs(), testObj.getIncludes(), testObj.getExcludes(),
-                        testObj.getDestinationDir(), testObj.getDependencyCacheDir(), TEST_DEPENDENCY_MANAGER_CLASSPATH, testObj.getSourceCompatibility(),
-                        testObj.getTargetCompatibility(), testObj.getOptions(), testObj.getProject().getAnt());
-            }
-        });
     }
 
     @Test

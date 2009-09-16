@@ -243,21 +243,21 @@ class JavaPluginTest {
         javaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customJar', type: Jar)
-        assertThat(task, dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME))
+        assertThat(task, dependsOn())
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.baseDir, equalTo(project.source.main.classesDir))
 
         assertThat(project.tasks[JavaPlugin.LIBS_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, 'customJar'))
 
         task = project.createTask('customZip', type: Zip)
-        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.LIBS_TASK_NAME)))
+        assertThat(task, dependsOn(JavaPlugin.LIBS_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.distsDir))
         assertThat(task.version, equalTo(project.version))
 
         assertThat(project.tasks[JavaPlugin.DISTS_TASK_NAME], dependsOn(JavaPlugin.LIBS_TASK_NAME, 'customZip'))
 
         task = project.createTask('customTar', type: Tar)
-        assertThat(task.dependsOn, equalTo(toSet(JavaPlugin.LIBS_TASK_NAME)))
+        assertThat(task, dependsOn(JavaPlugin.LIBS_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.distsDir))
         assertThat(task.version, equalTo(project.version))
 
