@@ -1,5 +1,3 @@
-usePlugin 'groovy'
-
 dependencies {
    compile project(':gradle-core')
    compile project(':gradle-open-api')
@@ -33,7 +31,7 @@ task integTest(type: Test, dependsOn: [ compileTest, project(':gradle-core').com
 
 //Our tests use some base classes from gradle-core. Currently, we must explicitly state that we
 //depend on its compileTests and add its output to our classpath.
-compileTest.dependsOn project( ':gradle-core' ).compileTest
+compileTestGroovy.dependsOn project( ':gradle-core' ).compileTestGroovy
 
 integTest.doFirst {
     ant {
@@ -45,6 +43,7 @@ integTest.doFirst {
     }
 }
 
+compile.options.depend()
 
 //this is just to exclude integration tests
 test {
