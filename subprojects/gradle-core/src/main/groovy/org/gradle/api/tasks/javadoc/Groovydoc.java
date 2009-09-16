@@ -20,14 +20,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 /**
  * This task generates html api doc for Groovy classes. It uses Groovy's Groovydoc tool for this. Please note that
@@ -48,6 +47,22 @@ public class Groovydoc extends ConventionTask {
 
     private AntGroovydoc antGroovydoc = new AntGroovydoc();
 
+    private List<String> packageNames;
+
+    private boolean use;
+
+    private String windowTitle;
+
+    private String docTitle;
+
+    private String header;
+
+    private String footer;
+
+    private File overview;
+
+    boolean includePrivate;
+
     public Groovydoc() {
         captureStandardOutput(LogLevel.INFO);
     }
@@ -58,7 +73,8 @@ public class Groovydoc extends ConventionTask {
                 getDestinationDir(), getSrcDirs());
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
-        antGroovydoc.execute(existingSourceDirs, getDestinationDir(), getProject().getAnt(), taskClasspath);
+        antGroovydoc.execute(existingSourceDirs, getDestinationDir(), getPackageNames(), isUse(), getWindowTitle(),
+                getDocTitle(), getHeader(), getFooter(), getOverview(), isIncludePrivate(), getProject().getAnt(), taskClasspath);
     }
 
     private void throwExceptionIfTaskClasspathIsEmpty(List taskClasspath) {
@@ -132,5 +148,135 @@ public class Groovydoc extends ConventionTask {
 
     public void setAntGroovydoc(AntGroovydoc antGroovydoc) {
         this.antGroovydoc = antGroovydoc;
+    }
+
+    /**
+     * Returns a comma separated list of package files to be included. Returns null if not set.
+     */
+    public List<String> getPackageNames() {
+        return packageNames;
+    }
+
+    /**
+     * Set's a comma separated list of package files to be included (with terminating wildcard).
+     *
+     * @param packageNames
+     */
+    public void setPackageNames(String... packageNames) {
+        this.packageNames = Arrays.asList(packageNames);
+    }
+
+    /**
+     * Returns whether to create class and package usage pages.
+     */
+    public boolean isUse() {
+        return use;
+    }
+
+    /**
+     * Set's whether to create class and package usage pages. Defaults to false.
+     *
+     * @param use
+     */
+    public void setUse(boolean use) {
+        this.use = use;
+    }
+
+    /**
+     * Returns the browser window title for the documentation.
+     */
+    public String getWindowTitle() {
+        return windowTitle;
+    }
+
+    /**
+     * Set's the browser window title for the documentation.
+     *
+     * @param windowTitle A text for the windows title
+     */
+    public void setWindowTitle(String windowTitle) {
+        this.windowTitle = windowTitle;
+    }
+
+    /**
+     * Returns the title for the package index(first) page. Returns null if not set.
+     */
+    public String getDocTitle() {
+        return docTitle;
+    }
+
+    /**
+     * Set's title for the package index(first) page (optional).
+     * 
+     * @param docTitle the docTitle as html-code
+     */
+    public void setDocTitle(String docTitle) {
+        this.docTitle = docTitle;
+    }
+
+    /**
+     * Returns the html header for each page. Returns null if not set.
+     */
+    public String getHeader() {
+        return header;
+    }
+
+    /**
+     * Set's header text for each page (optional).
+     * 
+     * @param header the header as html-code
+     */
+    public void setHeader(String header) {
+        this.header = header;
+    }
+
+    /**
+     * Returns the html footer for each page. Returns null if not set.
+     */
+    public String getFooter() {
+        return footer;
+    }
+
+    /**
+     * Set's footer text for each page (optional).
+     *
+     * @param footer the footer as html-code
+     */
+    public void setFooter(String footer) {
+        this.footer = footer;
+    }
+
+    /**
+     * Returns a html file to be used for overview documentation. Returns null if such a file is not set.
+     */
+    @InputFile
+    @Optional
+    public File getOverview() {
+        return overview;
+    }
+
+    /**
+     * Set's a html file to be used for overview documentation (optional).
+     *
+     * @param overview
+     */
+    public void setOverview(File overview) {
+        this.overview = overview;
+    }
+
+    /**
+     * Returns whether to include all classes and members (i.e. including private ones).
+     */
+    public boolean isIncludePrivate() {
+        return includePrivate;
+    }
+
+    /**
+     * Set's whether to include all classes and members (i.e. including private ones) if set to true. Defaults to false.
+     * 
+     * @param includePrivate 
+     */
+    public void setIncludePrivate(boolean includePrivate) {
+        this.includePrivate = includePrivate;
     }
 }
