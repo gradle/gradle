@@ -16,42 +16,27 @@
 
 package org.gradle.integtests
 
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.*
 
 @RunWith (DistributionIntegrationTestRunner.class)
-class SamplesScalaQuickstartIntegrationTest {
+class SamplesMixedJavaAndScalaIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
 
-    private TestFile projectDir
-
-    @Before
-    void setUp() {
-        projectDir = dist.samplesDir.file('scala/quickstart')
-    }
-
     @Test
     public void canBuildJar() {
+        TestFile projectDir = dist.samplesDir.file('scala/mixedJavaAndScala')
+
         // Build and test projects
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        projectDir.file('build/test-results/TEST-org.gradle.sample.impl.PersonImplTest.xml').assertExists()
+        projectDir.file('build/test-results/TEST-org.gradle.sample.PersonTest.xml').assertExists()
         projectDir.file('build/test-results/TESTS-TestSuites.xml').assertExists()
 
         // Check jar exists
-        projectDir.file("build/libs/quickstart-unspecified.jar").assertExists()
-    }
-
-    @Test
-    public void canBuildScalaDoc() {
-        executer.inDirectory(projectDir).withTasks('scaladoc').run()
-
-        projectDir.file('build/docs/scaladoc/index.html').assertExists()
-        projectDir.file('build/docs/scaladoc/org/gradle/sample/api/Person.html').assertContents(containsString("Defines the interface for a person."))
+        projectDir.file("build/libs/mixedJavaAndScala-unspecified.jar").assertExists()
     }
 }

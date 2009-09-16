@@ -10,5 +10,5 @@
   <classpathentry kind="lib" path="$cachePath/commons-collections/commons-collections/jars/commons-collections-3.2.jar"/>
   <classpathentry kind="lib" path="$cachePath/commons-io/commons-io/jars/commons-io-1.2.jar"/>
   <classpathentry kind="lib" path="$cachePath/commons-lang/commons-lang/jars/commons-lang-2.4.jar"/>
-  <classpathentry kind="lib" path="$cachePath/junit/junit/jars/junit-4.4.jar"/>
+  <classpathentry kind="lib" path="$cachePath/junit/junit/jars/junit-4.7.jar"/>
 </classpath>

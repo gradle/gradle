@@ -26,7 +26,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").writelns(
                 "usePlugin('java')"
         );
-        inTestDirectory().withTasks("libs").run();
+        inTestDirectory().withTasks("build").run();
     }
 
     @Test
@@ -37,7 +37,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         );
         testFile("src/main/java/org/gradle/broken.java").write("broken");
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("libs").runWithFailure();
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasDescription("Execution failed for task ':compile'");
@@ -70,7 +70,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
                 "package org.gradle;",
                 "public class NotATest {}");
 
-        usingBuildFile(buildFile).withTasks("libs").run();
+        usingBuildFile(buildFile).withTasks("build").run();
     }
 
     @Test
@@ -87,12 +87,12 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void processResources() throws IOException {
-        TestFile buildFile = testFile("javadocs.gradle");
+    public void handlesResourceOnlyProject() throws IOException {
+        TestFile buildFile = testFile("resources.gradle");
         buildFile.write("usePlugin('java')");
         testFile("src/main/resources/org/gradle/resource.file").write("test resource");
 
-        usingBuildFile(buildFile).withTasks("dists").run();
+        usingBuildFile(buildFile).withTasks("build").run();
         testFile("build/classes/main/org/gradle/resource.file").assertExists();
     }
 }

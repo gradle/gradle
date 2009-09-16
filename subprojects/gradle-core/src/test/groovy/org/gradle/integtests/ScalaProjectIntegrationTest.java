@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@ package org.gradle.integtests;
 
 import org.junit.Test;
 
-public class GroovyProjectIntegrationTest extends AbstractIntegrationTest {
+public class ScalaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesEmptyProject() {
         testFile("build.gradle").writelns(
-                "usePlugin('groovy')"
+                "usePlugin('scala')"
         );
         inTestDirectory().withTasks("build").run();
     }
@@ -29,7 +29,7 @@ public class GroovyProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesJavaSourceOnly() {
         testFile("src/main/java/somepackage/SomeClass.java").writelns("public class SomeClass { }");
-        testFile("build.gradle").writelns("usePlugin('groovy')");
+        testFile("build.gradle").write("usePlugin('scala')");
         testFile("settings.gradle").write("rootProject.name='javaOnly'");
         inTestDirectory().withTasks("build").run();
         testFile("build/libs/javaOnly-unspecified.jar").assertExists();

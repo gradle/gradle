@@ -29,24 +29,20 @@ class SamplesJavaQuickstartIntegrationTest {
     private GradleExecuter executer;
     
     @Test
-    public void quickstartJavaProject() {
-        File javaprojectDir = new File(dist.samplesDir, 'java/quickstart')
+    public void canBuildAndUploadJar() {
+        TestFile javaprojectDir = dist.samplesDir.file('java/quickstart')
+
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
 
         // Check tests have run
-        assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        assertExists(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
+        javaprojectDir.file('build/test-results/TEST-org.gradle.PersonTest.xml').assertExists()
+        javaprojectDir.file('build/test-results/TESTS-TestSuites.xml').assertExists()
 
         // Check jar exists
-        assertExists(javaprojectDir, "build/libs/quickstart-1.0.jar")
+        javaprojectDir.file("build/libs/quickstart-1.0.jar").assertExists()
 
         // Check jar uploaded
-        assertExists(javaprojectDir, 'repos/quickstart-1.0.jar')
+        javaprojectDir.file('repos/quickstart-1.0.jar').assertExists()
     }
-
-    private static void assertExists(File baseDir, String[] path) {
-        new TestFile(baseDir).file(path).assertExists()
-    }
-
 }

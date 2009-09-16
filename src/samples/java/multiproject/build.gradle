@@ -8,7 +8,7 @@ subprojects {
     }
 
     dependencies {
-        testCompile 'junit:junit:4.4'
+        testCompile 'junit:junit:4.7'
     }
 
     group = 'org.gradle'

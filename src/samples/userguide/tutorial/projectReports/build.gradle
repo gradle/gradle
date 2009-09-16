@@ -17,7 +17,7 @@ subprojects {
         if (project.name == 'webapp') {
         	compile "commons-io:commons-io:1.2"
 		} else {
-			compile "junit:junit:4.4"
+			compile "junit:junit:4.7"
 		}
     }
     task libs

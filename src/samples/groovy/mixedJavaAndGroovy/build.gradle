@@ -1,16 +1,10 @@
-// START SNIPPET use-plugin
 usePlugin 'groovy'
-// END SNIPPET use-plugin
 
-// START SNIPPET groovy-dependency
 repositories {
     mavenCentral()
 }
 
 dependencies {
     groovy group: 'org.codehaus.groovy', name: 'groovy-all', version: '1.6.0'
-// END SNIPPET groovy-dependency
     testCompile group: 'junit', name: 'junit', version: '4.7'
-// START SNIPPET groovy-dependency
 }
-// END SNIPPET groovy-dependency

@@ -73,6 +73,7 @@ public class AbstractIntegrationTest {
         testFile("gradle-home/plugin.properties").writelns(
                 "java=org.gradle.api.plugins.JavaPlugin",
                 "groovy=org.gradle.api.plugins.GroovyPlugin",
+                "scala=org.gradle.api.plugins.scala.ScalaPlugin",
                 "war=org.gradle.api.plugins.WarPlugin",
                 "maven=org.gradle.api.plugins.MavenPlugin",
                 "code-quality=org.gradle.api.plugins.quality.CodeQualityPlugin"

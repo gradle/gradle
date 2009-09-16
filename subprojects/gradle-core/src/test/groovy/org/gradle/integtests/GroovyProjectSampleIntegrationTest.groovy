@@ -82,6 +82,19 @@ class GroovyProjectSampleIntegrationTest {
     }
 
     @Test
+    public void mixedJavaAndGroovySample() {
+        File groovyProjectDir = new File(dist.samplesDir, 'groovy/mixedJavaAndGroovy')
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
+
+        // Check tests have run
+        new TestFile(groovyProjectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml').assertExists()
+        new TestFile(groovyProjectDir, 'build/test-results/TESTS-TestSuites.xml').assertExists()
+
+        // Check jar exists
+        new TestFile(groovyProjectDir, "build/libs/mixedJavaAndGroovy-unspecified.jar").assertExists()
+    }
+
+    @Test
     public void groovy1_5_6Sample() {
         File groovyProjectDir = new File(dist.samplesDir, 'groovy/groovy-1.5.6')
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
