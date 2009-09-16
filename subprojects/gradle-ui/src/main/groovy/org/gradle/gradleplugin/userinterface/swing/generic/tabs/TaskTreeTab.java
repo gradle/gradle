@@ -17,6 +17,7 @@ package org.gradle.gradleplugin.userinterface.swing.generic.tabs;
 
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
+import org.gradle.foundation.CommandLineAssistant;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.filters.AllowAllProjectAndTaskFilter;
 import org.gradle.gradleplugin.foundation.filters.BasicFilterEditor;
@@ -26,25 +27,12 @@ import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 import org.gradle.gradleplugin.userinterface.swing.generic.SwingGradleExecutionWrapper;
 import org.gradle.gradleplugin.userinterface.swing.generic.TaskTreeComponent;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
+import org.gradle.gradleplugin.userinterface.swing.generic.SwingAddMultipleFavoritesInteraction;
 import org.gradle.gradleplugin.userinterface.swing.generic.filter.ProjectAndTaskFilterDialog;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JToggleButton;
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import java.awt.BorderLayout;
@@ -178,7 +166,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
 
         executeButton = Utility.createButton(getClass(), "execute.png", "Execute the selected tasks", new AbstractAction("Execute") {
             public void actionPerformed(ActionEvent e) {
-                executeSelectedTask();
+                executeSelectedTasks();
             }
         });
 
@@ -321,9 +309,13 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
         showTreeInViewport();
     }
 
-    private void executeSelectedTask(String... additionCommandLineOptions) {
+    private void executeSelectedTasks(String... additionCommandLineOptions) {
         List<TaskView> taskViews = treeComponent.getSelectedTasks();
-        swingGradleWrapper.executeTasksInThread(taskViews, false, additionCommandLineOptions);
+        String singleCommandLine = CommandLineAssistant.combineTasks( taskViews, additionCommandLineOptions  );
+        if( singleCommandLine == null )
+           return;
+
+        swingGradleWrapper.executeTaskInThread( singleCommandLine, singleCommandLine, false, true, true );
     }
 
     /**
@@ -360,14 +352,14 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
 
         executeMenuItem = new JMenuItem(new AbstractAction("Execute") {
             public void actionPerformed(ActionEvent e) {
-                executeSelectedTask();
+                executeSelectedTasks();
             }
         });
         popupMenu.add(executeMenuItem);
 
         executeOnlyThisMenuItem = new JMenuItem(new AbstractAction("Execute Ignoring Dependencies (-a)") {
             public void actionPerformed(ActionEvent e) {
-                executeSelectedTask("-a");
+                executeSelectedTasks("-a");
             }
         });
         popupMenu.add(executeOnlyThisMenuItem);
@@ -424,11 +416,9 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
        Adds whatever is selected to the favorites.
     */
     private void addSelectedToFavorites() {
-        Iterator<TaskView> iterator = treeComponent.getSelectedTasks().iterator();
-        while (iterator.hasNext()) {
-            TaskView task = iterator.next();
-            gradlePluginLord.getFavoritesEditor().addFavorite(task, false);
-        }
+       List<TaskView> tasks = treeComponent.getSelectedTasks();
+
+       gradlePluginLord.getFavoritesEditor().addMutlipleFavorites( tasks, false, new SwingAddMultipleFavoritesInteraction( SwingUtilities.getWindowAncestor(mainPanel) ) );
     }
 
     /**

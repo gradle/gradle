@@ -72,6 +72,15 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         setupUI();
     }
 
+   /**
+    This sets the gradle command that is being exeucted for this tab.
+    For now, we'll just append the text to the output panel
+    @param command the command that was executed
+    */
+   public void setGradleCommand( String command ) {
+      appendGradleOutput( "Executing command: \"" + command + "\"\n" );
+   }
+
     public boolean isPinned() {
         return isPinned;
     }

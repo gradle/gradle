@@ -371,11 +371,11 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
        Call this to prompt the user for a task to add.
     */
     private void addTask() {
-        favoritesEditor.addFavorite(new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Add Favorite"));
+        favoritesEditor.addFavorite(new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Add Favorite", true ));
     }
 
     private void editTask() {
         FavoriteTask selectedFavoriteTask = getFirstSelectedFavoriteTask();
-        favoritesEditor.editFavorite(selectedFavoriteTask, new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Edit Favorite"));
+        favoritesEditor.editFavorite(selectedFavoriteTask, new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Edit Favorite", false ));
     }
 }

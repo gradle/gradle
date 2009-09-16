@@ -303,15 +303,31 @@ public class SwingGradleExecutionWrapper {
         if (fullCommandLine == null)
             return;
 
+        displayName = reformatDisplayName( displayName );
+
         OutputPanel outputPanel = getOutputPanelForExecution("Execute '" + displayName + "'", forceOutputToBeShown, selectOutputPanel, reuseSelectedOutputPanelFirst);
 
         outputPanel.setPending(true);
         outputPanel.showProgress(true);   //make sure the progress is shown. It may have been turned off if we're reusing this component
+        outputPanel.setGradleCommand( fullCommandLine );
         Request request = gradlePluginLord.addExecutionRequestToQueue(fullCommandLine, outputPanel);
         outputPanel.setRequest(request);
     }
 
-    /**
+   /**
+    This formats a display name so it isn't too long. The actual size is purely arbitrary.
+    @param displayName the current display name
+    @return a display name that isn't too long to display on tabs.
+    */
+   private String reformatDisplayName( String displayName )
+   {
+      if( displayName.length() <= 20 )
+         return displayName;   //its fine
+      
+      return displayName.substring( 0, 17 ) + "...";
+   }
+
+   /**
        Determines if any tasks are currently being run. We check all of our
        OutputPanels.
        @return true if we're busy, false if not.

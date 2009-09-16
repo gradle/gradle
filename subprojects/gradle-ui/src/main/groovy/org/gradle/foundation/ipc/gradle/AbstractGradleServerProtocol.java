@@ -26,6 +26,7 @@ import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.ipc.basic.ExecutionInfo;
 import org.gradle.foundation.ipc.basic.ClientProcess;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -91,7 +92,6 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
     /**
      * Notification that the connection was accepted by the client.
-     *
      */
     public void connectionAccepted() {
         //let's make sure we're talking to the right client with some tiny handshaking.
@@ -103,6 +103,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
     /**
      * Gives your protocol a chance to store this server so it can access its
      * functions.
+     *
      */
     public void initialize(ProcessLauncherServer server) {
         this.server = server;
@@ -163,8 +164,8 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
      * handles the handshake. The rest of the conversation is up to you.
      *
      * @param message the message we received.
-     * @returns true if we handled the message, false if not. If we don't know
-     * it, we won't return an acknowlegement.
+     * @return true if we handled the message, false if not. If we don't know
+     *         it, we won't return an acknowlegement.
      */
     protected abstract boolean handleMessageReceived(MessageObject message);
 
@@ -382,6 +383,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
     }
 
     public void killGradle() {
-        killGradleClientProcotol.sendKillMessage();
+        if (killGradleClientProcotol != null)
+            killGradleClientProcotol.sendKillMessage();
     }
 }

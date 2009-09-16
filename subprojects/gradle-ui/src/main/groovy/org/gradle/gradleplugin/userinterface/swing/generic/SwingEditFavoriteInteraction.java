@@ -17,23 +17,14 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 
 import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.DocumentEvent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 /**
  * This edits the properties of a single favorite task.
@@ -46,9 +37,12 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
     private JTextField displayNameTextField;
     private JCheckBox alwaysShowOutputCheckBox;
     private boolean saveResults;
+   private boolean synchronizeDisplayNameWithCommand;
 
-    public SwingEditFavoriteInteraction(Window parent, String title) {
-        setupUI(parent, title);
+   //pass in true to synchronizeDisplayNameWithCommand for new favorites.
+   public SwingEditFavoriteInteraction(Window parent, String title, boolean synchronizeDisplayNameWithCommand) {
+      this.synchronizeDisplayNameWithCommand = synchronizeDisplayNameWithCommand;
+      setupUI(parent, title);
     }
 
     private void setupUI(Window parent, String title) {
@@ -89,10 +83,64 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
         panel.add(Utility.addLeftJustifiedComponent(alwaysShowOutputCheckBox));
         panel.add(Box.createVerticalGlue());
 
+        synchronizeDisplayNameWithCommand();
+
         return panel;
     }
 
-    private Component createButtonPanel() {
+   /**
+    This synchronizes the display name with the command line. This is so when you're
+    adding a new favorite, the display name is automatic. If you type anything in the
+    display name, we'll cancel synchronization.
+    */
+   private void synchronizeDisplayNameWithCommand()
+   {
+      if( !synchronizeDisplayNameWithCommand )
+         return;
+
+      final DocumentListener documentListener = new DocumentListener()
+      {
+         public void insertUpdate( DocumentEvent documentEvent )
+         {
+            setDisplayNameTextToCommandLineText();
+         }
+
+         public void removeUpdate( DocumentEvent documentEvent )
+         {
+            setDisplayNameTextToCommandLineText();
+         }
+
+         public void changedUpdate( DocumentEvent documentEvent )
+         {
+            setDisplayNameTextToCommandLineText();
+         }
+      };
+
+      fullCommandLineTextField.getDocument().addDocumentListener( documentListener );
+      displayNameTextField.addKeyListener( new KeyAdapter()
+      {
+         @Override
+         public void keyPressed( KeyEvent keyEvent )
+         {  //the user typed someting. Remove the document listener
+            fullCommandLineTextField.getDocument().removeDocumentListener( documentListener );
+         }
+      } );
+   }
+
+   private void setDisplayNameTextToCommandLineText()
+   {
+      try
+      {
+         String text = fullCommandLineTextField.getDocument().getText( 0, fullCommandLineTextField.getDocument().getLength() );
+         displayNameTextField.setText( text );
+      }
+      catch( BadLocationException e )
+      {
+         e.printStackTrace();
+      }
+   }
+
+   private Component createButtonPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
@@ -102,11 +150,24 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
             }
         });
 
+        //make OK the default button
+        dialog.getRootPane().setDefaultButton( okButton );
+
         JButton cancelButton = new JButton(new AbstractAction("Cancel") {
             public void actionPerformed(ActionEvent e) {
                 close(false);
             }
         });
+
+        //equate escape with cancle
+        dialog.getRootPane().registerKeyboardAction( new ActionListener()
+         {
+            public void actionPerformed(ActionEvent actionEvent)
+            {
+               close( false );
+            }
+         }
+         , KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW );
 
         panel.add(Box.createHorizontalGlue());
         panel.add(okButton);

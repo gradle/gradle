@@ -19,6 +19,7 @@ import org.gradle.DefaultCommandLine2StartParameterConverter;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Some helpful functions for manipulating command line arguments.
@@ -135,13 +136,44 @@ public class CommandLineAssistant {
         StringBuilder builder = new StringBuilder(task.getFullTaskName());
         builder.append(' ');
 
-        for (int index = 0; index < additionCommandLineOptions.length; index++) {
+        appendAdditionalCommandLineOptions( builder, additionCommandLineOptions );
+
+        return builder.toString();
+    }
+
+
+   /*
+      combines the tasks into a single command
+       */
+   public static String combineTasks( List<TaskView> tasks, String... additionCommandLineOptions )
+   {
+      if( tasks == null || tasks.isEmpty() )
+         return null;
+
+      StringBuilder builder = new StringBuilder();
+      Iterator<TaskView> iterator = tasks.iterator();
+      while( iterator.hasNext() )
+      {
+         TaskView taskView = iterator.next();
+         builder.append( taskView.getFullTaskName() );
+         if( iterator.hasNext() )
+            builder.append( ' ' );
+      }
+
+      appendAdditionalCommandLineOptions( builder, additionCommandLineOptions );
+
+      return builder.toString();
+   }
+
+   public static void appendAdditionalCommandLineOptions( StringBuilder builder, String ... additionCommandLineOptions )
+   {
+      if( additionCommandLineOptions != null ) {
+         for (int index = 0; index < additionCommandLineOptions.length; index++) {
             String additionCommandLineOption = additionCommandLineOptions[index];
             builder.append(additionCommandLineOption);
             if (index + 1 < additionCommandLineOptions.length)
                 builder.append(' ');
-        }
-
-        return builder.toString();
-    }
+         }
+      }
+   }
 }

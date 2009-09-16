@@ -32,10 +32,7 @@ import org.gradle.gradleplugin.foundation.request.Request;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Formatter;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * This class has nothing to do with plugins inside of gradle, but are related
@@ -388,5 +385,4 @@ public class GradlePluginLord {
 
         return message;
     }
-
 }

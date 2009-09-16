@@ -16,6 +16,7 @@
 package org.gradle.gradleplugin.foundation.favorites;
 
 import org.gradle.foundation.TaskView;
+import org.gradle.foundation.CommandLineAssistant;
 import org.gradle.foundation.common.ObserverLord;
 import org.gradle.foundation.common.ReorderableList;
 import org.gradle.gradleplugin.foundation.DOM4JSerializer;
@@ -41,14 +42,15 @@ public class FavoritesEditor implements SettingsSerializable {
 
     public interface FavoriteTasksObserver {
         /**
-           Notification that the favorites list has changed.
-        */
+         * Notification that the favorites list has changed.
+         */
         public void favoritesChanged();
 
         /**
-           Notification that the favorites were re-ordered
-           @param  favoritesReordered the favorites that were reordered
-        */
+         * Notification that the favorites were re-ordered
+         *
+         * @param favoritesReordered the favorites that were reordered
+         */
         public void favoritesReordered(List<FavoriteTask> favoritesReordered);
     }
 
@@ -97,14 +99,72 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-       Fires off a notification that the favorite tasks have changed.
-    */
+     * Fires off a notification that the favorite tasks have changed.
+     */
     private void notifyFavoritesChanged() {
         favoriteTasksObserverLord.notifyObservers(new ObserverLord.ObserverNotification<FavoriteTasksObserver>() {
             public void notify(FavoriteTasksObserver observer) {
                 observer.favoritesChanged();
             }
         });
+    }
+
+
+    public enum AddMultipleResult {
+        AddSeparately, AddAsSingleCommand, Cancel
+    }
+
+    public interface AddMultipleFavoritesInteraction {
+        /**
+         * This is called when you try to add multiple tasks at once. You should
+         * prompt the user whether or not they want to add each task separately
+         * or together as one task with multiple commands.
+         *
+         * @param tasksSample         the individual tasks we will add
+         * @param singleCommandSample a sample of what the single command would look like
+         * @return where or not to combine tasks into a single command line, false to add them as separate commands. See AddMultiple.
+         */
+        public AddMultipleResult promptUserToCombineTasks(List<TaskView> tasksSample, String singleCommandSample);
+    }
+
+    /**
+     * Call this to add tasks as favorites. If you pass in multiple tasks, we'll prompt the user whether
+     * or not the tasks should be added as one favorite with multiple tasks or separate tasks.
+     *
+     * @param tasks       the tasks to add. Their order in the list becomes the order in the single task
+     *                    if the user chooses this.
+     * @param interaction how we interact with the user or other UI.
+     */
+    public void addMutlipleFavorites(List<TaskView> tasks, boolean alwaysShowOutput, AddMultipleFavoritesInteraction interaction) {
+        if (tasks.isEmpty())
+            return;  //no tasks, bail
+
+        if (tasks.size() == 1) {  //only 1 task. just add it
+            addFavorite(tasks.get(0), alwaysShowOutput);
+            return;
+        }
+
+        //multiple tasks. Ask the user what to do
+        String singleCommandLine = CommandLineAssistant.combineTasks(tasks);
+
+        //prompt the user what to do
+        AddMultipleResult addMultipleResult = interaction.promptUserToCombineTasks(tasks, singleCommandLine);
+        switch (addMultipleResult) {
+            case Cancel:
+                return;
+
+            case AddSeparately:
+                Iterator<TaskView> iterator = tasks.iterator();
+                while (iterator.hasNext()) {
+                    TaskView task = iterator.next();
+                    addFavorite(task, alwaysShowOutput);
+                }
+                break;
+
+            case AddAsSingleCommand:
+                addFavorite(singleCommandLine, alwaysShowOutput);
+                break;
+        }
     }
 
     public FavoriteTask addFavorite(TaskView task, boolean alwaysShowOutput) {
@@ -130,10 +190,10 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-       Call this to add the specified tasks as favorite tasks
-
-       @param  tasks      the task to make a favorite.
-    */
+     * Call this to add the specified tasks as favorite tasks
+     *
+     * @param tasks the task to make a favorite.
+     */
     public void addFavorites(List<TaskView> tasks, boolean alwaysShowOutput) {
         boolean addedFavorite = false;
 
@@ -154,12 +214,12 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-       Call this to add a favorite that isn't in the task list. This exists because
-       you can add functionality to gradle that isn't really a task.
-
-       @param  addFavoriteInteraction allows us to interact with the user
-       @return true if we added it, false if not
-    */
+     * Call this to add a favorite that isn't in the task list. This exists because
+     * you can add functionality to gradle that isn't really a task.
+     *
+     * @param addFavoriteInteraction allows us to interact with the user
+     * @return true if we added it, false if not
+     */
     public boolean addFavorite(EditFavoriteInteraction addFavoriteInteraction) {
         FavoriteTask newFavorite = new FavoriteTask("", "", false);
         if (!editInternal(newFavorite, addFavoriteInteraction))
@@ -173,11 +233,11 @@ public class FavoritesEditor implements SettingsSerializable {
 
 
     /**
-       This is what you actually edit when you want to edit a favorite.
-       I wanted the FavoriteTask object to be immutable so the only way to edit it is
-       via this editor. This way any necessary validation or notification will always
-       be performed
-    */
+     * This is what you actually edit when you want to edit a favorite.
+     * I wanted the FavoriteTask object to be immutable so the only way to edit it is
+     * via this editor. This way any necessary validation or notification will always
+     * be performed
+     */
     public class EditibleFavoriteTask {
         public String fullCommandLine;
         public String displayName;
@@ -200,12 +260,12 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-       Edits the specified favorite task.
-
-       @param  favoriteTask         the task to edit.
-       @param  editFavoriteInteraction how we interact with the user
-       @return true if we made changes, false if not.
-    */
+     * Edits the specified favorite task.
+     *
+     * @param favoriteTask            the task to edit.
+     * @param editFavoriteInteraction how we interact with the user
+     * @return true if we made changes, false if not.
+     */
     public boolean editFavorite(FavoriteTask favoriteTask, EditFavoriteInteraction editFavoriteInteraction) {
         if (favoriteTask == null)
             return false;
@@ -221,15 +281,15 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-       This edits the specified favorite task. We create a EditableFavoriteTask
-       so the user can trash it and cancel and it won't affect the original.
-       We'll sit in a loop prompting the user to edit it until no errors exist
-       then we'll set the values on the original task.
-
-       @param  favoriteTask         the task to edit.
-       @param  editFavoriteInteraction how we interact with the user.
-       @return true if we edited it, false if not (the user canceled).
-    */
+     * This edits the specified favorite task. We create a EditableFavoriteTask
+     * so the user can trash it and cancel and it won't affect the original.
+     * We'll sit in a loop prompting the user to edit it until no errors exist
+     * then we'll set the values on the original task.
+     *
+     * @param favoriteTask            the task to edit.
+     * @param editFavoriteInteraction how we interact with the user.
+     * @return true if we edited it, false if not (the user canceled).
+     */
     private boolean editInternal(FavoriteTask favoriteTask, EditFavoriteInteraction editFavoriteInteraction) {
         EditibleFavoriteTask workingCopy = new EditibleFavoriteTask(favoriteTask);
         boolean isValid = true;
@@ -254,16 +314,16 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-       This validates the editble favorite task. It makes sure the task name
-       is specified and that it's not a duplicate.
-
-       @param  editibleFavoriteTask the task your editing.
-       @param  originalFavoriteTaskObject the original object. This is used to
-                                          test for duplicateion. If its new and
-                                          not in the favorites, that's OK.
-       @param  validationInteraction how we report errors to the user.
-       @return true if the task is valid, false if not.
-    */
+     * This validates the editble favorite task. It makes sure the task name
+     * is specified and that it's not a duplicate.
+     *
+     * @param editibleFavoriteTask       the task your editing.
+     * @param originalFavoriteTaskObject the original object. This is used to
+     *                                   test for duplicateion. If its new and
+     *                                   not in the favorites, that's OK.
+     * @param validationInteraction      how we report errors to the user.
+     * @return true if the task is valid, false if not.
+     */
     private boolean validateEditableFavoriteTask(EditibleFavoriteTask editibleFavoriteTask, FavoriteTask originalFavoriteTaskObject, ValidationInteraction validationInteraction) {
         if (editibleFavoriteTask.fullCommandLine == null || editibleFavoriteTask.fullCommandLine.trim().equals("")) {
             validationInteraction.reportError("Full task name must be specified");
@@ -297,19 +357,20 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-       Call this to remove the specified favorites from the favorite tasks.
-
-       @param  favoritesToRemove the favorite tasks to remove
-    */
+     * Call this to remove the specified favorites from the favorite tasks.
+     *
+     * @param favoritesToRemove the favorite tasks to remove
+     */
     public void removeFavorites(List<FavoriteTask> favoritesToRemove) {
         if (favoriteTasks.removeAll(favoritesToRemove))
             notifyFavoritesChanged();
     }
 
     /**
-       This moves the specified favorites up.
-       @param  favoritesToMove .
-    */
+     * This moves the specified favorites up.
+     *
+     * @param favoritesToMove .
+     */
     public void moveFavoritesBefore(List<FavoriteTask> favoritesToMove) {
         moveFavorites(favoritesToMove, true);
     }
@@ -332,18 +393,18 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-       Call this to save favorites to a file.
-    */
+     * Call this to save favorites to a file.
+     */
     public void exportToFile(DOM4JSerializer.ExportInteraction exportInteraction) {
         DOM4JSerializer.exportToFile("favorites", exportInteraction, createFileFilter(), this);
     }
 
     /**
-       Call this to read favorites from a file.
-       I'm going to use FavoritesSerializable rather than ourselves (even though
-       we're a JDOMSerializable) so if something goes wrong, we won't wipe out
-       our current settings.
-    */
+     * Call this to read favorites from a file.
+     * I'm going to use FavoritesSerializable rather than ourselves (even though
+     * we're a JDOMSerializable) so if something goes wrong, we won't wipe out
+     * our current settings.
+     */
     public boolean importFromFile(DOM4JSerializer.ImportInteraction importInteraction) {
         FavoritesSerializable serializable = new FavoritesSerializable();
         if (!DOM4JSerializer.importFromFile(importInteraction, createFileFilter(), serializable))
@@ -363,17 +424,19 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-       Call this to saves the current settings.
-       @param  settings      where you save the settings.
-    */
+     * Call this to saves the current settings.
+     *
+     * @param settings where you save the settings.
+     */
     public void serializeOut(SettingsNode settings) {
         FavoritesSerializable.serializeOut(settings, favoriteTasks);
     }
 
     /**
-       Call this to read in this object's settings. The reverse of serializeOut.
-       @param  settings      where you read your settings.
-    */
+     * Call this to read in this object's settings. The reverse of serializeOut.
+     *
+     * @param settings where you read your settings.
+     */
     public void serializeIn(SettingsNode settings) {
         FavoritesSerializable.serializeIn(settings, favoriteTasks);
     }
