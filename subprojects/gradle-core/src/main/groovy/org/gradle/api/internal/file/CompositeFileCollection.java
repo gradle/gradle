@@ -85,22 +85,9 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
         }
     }
 
-    /**
-     * Returns a list of the leaf source collections of this collection. Flattens all composite collections.
-     */
     protected List<? extends FileCollection> getSourceCollections() {
-        LinkedList<FileCollection> queue = new LinkedList<FileCollection>();
-        addSourceCollections(queue);
         List<FileCollection> collections = new ArrayList<FileCollection>();
-        while (!queue.isEmpty()) {
-            FileCollection fileCollection = queue.removeFirst();
-            if (fileCollection instanceof CompositeFileCollection) {
-                CompositeFileCollection compositeFileCollection = (CompositeFileCollection) fileCollection;
-                compositeFileCollection.addSourceCollections(queue.subList(0, 0));
-            } else {
-                collections.add(fileCollection);
-            }
-        }
+        addSourceCollections(collections);
         return collections;
     }
 

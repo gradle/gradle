@@ -65,14 +65,6 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         "file set '$dir'"
     }
 
-    FileTree matching(Closure filterConfigClosure) {
-        PatternSet patternSet = this.patternSet.intersect()
-        ConfigureUtil.configure(filterConfigClosure, patternSet)
-        FileSet filtered = new FileSet(getDir(), resolver)
-        filtered.patternSet = patternSet
-        filtered
-    }
-
     FileTree matching(PatternFilterable patterns) {
         PatternSet patternSet = this.patternSet.intersect()
         patternSet.copyFrom(patterns)

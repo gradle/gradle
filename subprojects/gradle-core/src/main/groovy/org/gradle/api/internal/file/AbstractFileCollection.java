@@ -18,10 +18,9 @@ package org.gradle.api.internal.file;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.util.FileSet;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -114,13 +113,15 @@ public abstract class AbstractFileCollection implements FileCollection {
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
+            public TaskDependency getBuildDependencies() {
+                return AbstractFileCollection.this.getBuildDependencies();
+            }
+
+            @Override
             protected void addSourceCollections(Collection<FileCollection> sources) {
+                TaskDependency taskDependency = AbstractFileCollection.this.getBuildDependencies();
                 for (File file : AbstractFileCollection.this.getFiles()) {
-                    if (file.isFile()) {
-                        sources.add(new FlatFileTree(file));
-                    } else if (file.isDirectory()) {
-                        sources.add(new FileSet(file, null));
-                    }
+                    sources.add(new SingletonFileTree(file, taskDependency));
                 }
             }
 

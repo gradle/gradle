@@ -15,16 +15,19 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.*;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.ConfigureUtil;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import groovy.lang.Closure;
@@ -60,6 +63,37 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return this;
     }
 
+    public FileTree matching(Closure filterConfigClosure) {
+        PatternSet patternSet = new PatternSet();
+        ConfigureUtil.configure(filterConfigClosure, patternSet);
+        return matching(patternSet);
+    }
+
+    public FileTree matching(PatternFilterable patterns) {
+        PatternSet patternSet = new PatternSet();
+        patternSet.copyFrom(patterns);
+        return new FilteredFileTree(this, patternSet.getAsSpec());
+    }
+
+    public Map<String, File> getAsMap() {
+        final Map<String, File> map = new LinkedHashMap<String, File>();
+        visit(new FileVisitor() {
+            public void visitDir(FileVisitDetails dirDetails) {
+            }
+
+            public void visitFile(FileVisitDetails fileDetails) {
+                map.put(fileDetails.getRelativePath().getPathString(), fileDetails.getFile());
+            }
+        });
+        return map;
+    }
+
+    @Override
+    public Object addToAntBuilder(Object node, String childNodeName) {
+        new AntFileTreeBuilder(getAsMap()).addToAntBuilder(node, childNodeName);
+        return this;
+    }
+
     @Override
     public FileTree getAsFileTree() {
         return this;
@@ -72,4 +106,37 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     public FileTree visit(Closure closure) {
         return visit((FileVisitor) DefaultGroovyMethods.asType(closure, FileVisitor.class));
     }
+
+    private static class FilteredFileTree extends AbstractFileTree {
+        private final AbstractFileTree fileTree;
+        private final Spec<RelativePath> spec;
+
+        public FilteredFileTree(AbstractFileTree fileTree, Spec<RelativePath> spec) {
+            this.fileTree = fileTree;
+            this.spec = spec;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return fileTree.getDisplayName();
+        }
+
+        public FileTree visit(final FileVisitor visitor) {
+            fileTree.visit(new FileVisitor() {
+                public void visitDir(FileVisitDetails dirDetails) {
+                    if (spec.isSatisfiedBy(dirDetails.getRelativePath())) {
+                        visitor.visitDir(dirDetails);
+                    }
+                }
+
+                public void visitFile(FileVisitDetails fileDetails) {
+                    if (spec.isSatisfiedBy(fileDetails.getRelativePath())) {
+                        visitor.visitFile(fileDetails);
+                    }
+                }
+            });
+            return this;
+        }
+    }
+
 }

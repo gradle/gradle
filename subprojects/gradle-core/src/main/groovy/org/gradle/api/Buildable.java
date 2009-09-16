@@ -23,7 +23,9 @@ import org.gradle.api.tasks.TaskDependency;
  */
 public interface Buildable {
     /**
-     * Returns a dependency which contains the tasks which build this artifact.
+     * Returns a dependency which contains the tasks which build this artifact. All {@code Buildable} implementations
+     * must ensure that the returned dependency object is live, so that it tracks changes to the dependencies of this
+     * buildable.
      *
      * @return The dependency. Never returns null. Returns an empty dependency when this artifact is not built by any
      *         tasks.

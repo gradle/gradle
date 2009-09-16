@@ -29,6 +29,8 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URISyntaxException;
 
+import groovy.lang.Closure;
+
 public class TestFile extends File {
     public TestFile(File file, Object... path) {
         super(join(file, path).getAbsolutePath());
@@ -60,6 +62,14 @@ public class TestFile extends File {
 
     public TestFile file(Object... path) {
         return new TestFile(this, path);
+    }
+
+    public List<TestFile> files(Object... paths) {
+        List<TestFile> files = new ArrayList<TestFile>();
+        for (Object path : paths) {
+            files.add(file(path));
+        }
+        return files;
     }
 
     public TestFile writelns(String... lines) {
@@ -106,6 +116,22 @@ public class TestFile extends File {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    /**
+     * Creates a directory structure specified by the given closure.
+     * <pre>
+     * dir.create {
+     *     subdir1 {
+     *        file 'somefile.txt'
+     *     }
+     *     subdir2 { nested { file 'someFile' } }
+     * }
+     * </pre>
+     */
+    public void create(Closure structure) {
+        assertTrue(isDirectory() || mkdirs());
+        new TestDirHelper(this).apply(structure);
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.gradle.util.GUtil;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * @author Hans Dockter
@@ -37,6 +38,7 @@ public class TaskFactory implements ITaskFactory {
     }
 
     public Task createTask(Project project, Map args) {
+        args = new HashMap<String, Object>(args);
         checkTaskArgsAndCreateDefaultValues(args);
 
         String name = args.get(Task.TASK_NAME).toString();
@@ -116,13 +118,16 @@ public class TaskFactory implements ITaskFactory {
         }
     }
 
-    private void checkTaskArgsAndCreateDefaultValues(Map args) {
+    private void checkTaskArgsAndCreateDefaultValues(Map<String, Object> args) {
         setIfNull(args, Task.TASK_NAME, "");
         setIfNull(args, Task.TASK_TYPE, DefaultTask.class);
+        if (((Class) args.get(Task.TASK_TYPE)).isAssignableFrom(DefaultTask.class)) {
+            args.put(Task.TASK_TYPE, DefaultTask.class);
+        }
         setIfNull(args, GENERATE_SUBCLASS, "true");
     }
 
-    private void setIfNull(Map map, String key, Object defaultValue) {
+    private void setIfNull(Map<String, Object> map, String key, Object defaultValue) {
         if (map.get(key) == null) {
             map.put(key, defaultValue);
         }

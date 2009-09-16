@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
 import org.gradle.api.tasks.StopExecutionException;
-import org.gradle.api.tasks.util.FileSet;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
+import org.gradle.api.tasks.TaskDependency;
 import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.Matcher;
@@ -177,25 +176,14 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
-    public void toFileTreeReturnsFlatFileTreeForFile() {
-        File file = new File(HelperUtil.makeNewTestDir(), "f1");
-        GFileUtils.touch(file);
+    public void toFileTreeReturnsSingletonTreeForEachFile() {
+        File file = new File("f1");
 
         TestFileCollection collection = new TestFileCollection(file);
         FileTree tree = collection.getAsFileTree();
         assertThat(tree, instanceOf(CompositeFileTree.class));
         CompositeFileTree compositeTree = (CompositeFileTree) tree;
-        assertThat(compositeTree.getSourceCollections(), hasItems((Matcher) instanceOf(FlatFileTree.class)));
-    }
-
-    @Test
-    public void toFileTreeReturnsFileSetForDirectory() {
-        File file = HelperUtil.makeNewTestDir();
-        TestFileCollection collection = new TestFileCollection(file);
-        FileTree tree = collection.getAsFileTree();
-        assertThat(tree, instanceOf(CompositeFileTree.class));
-        CompositeFileTree compositeTree = (CompositeFileTree) tree;
-        assertThat(compositeTree.getSourceCollections(), hasItems((Matcher)instanceOf(FileSet.class)));
+        assertThat(compositeTree.getSourceCollections(), hasItems((Matcher) instanceOf(SingletonFileTree.class)));
     }
     
     @Test
@@ -209,8 +197,26 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
-    public void hasNotDependencies() {
+    public void hasNoDependencies() {
         assertThat(new TestFileCollection().getBuildDependencies().getDependencies(null), isEmpty());
+    }
+
+    @Test
+    public void fileTreeHasSameDependenciesAsThis() {
+        final TaskDependency dependency = new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                throw new UnsupportedOperationException();
+            }
+        };
+        TestFileCollection collection = new TestFileCollection() {
+            @Override
+            public TaskDependency getBuildDependencies() {
+                return dependency;
+            }
+        };
+        collection.files.add(new File("f1"));
+
+        assertThat(collection.getAsFileTree().getBuildDependencies(), sameInstance(dependency));
     }
 
     private class TestFileCollection extends AbstractFileCollection {

@@ -5,10 +5,11 @@ import org.apache.tools.ant.types.Resource
 import org.apache.tools.ant.types.ResourceCollection
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.internal.project.DefaultAntBuilder
 
 class AntBuilderAwareUtil {
     static def assertSetContains(AntBuilderAware set, Set<String> filenames) {
-        AntBuilder ant = new AntBuilder()
+        AntBuilder ant = new DefaultAntBuilder(null)
         ant.antProject.addTaskDefinition('test', FileListTask)
         FileListTask task = ant.test {
             set.addToAntBuilder(ant, null)

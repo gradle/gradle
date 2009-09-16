@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.file.FileTree;
 
 import java.io.File;
 import java.util.Collections;
@@ -42,5 +43,10 @@ class SingletonFileCollection extends AbstractFileCollection {
 
     public Set<File> getFiles() {
         return Collections.singleton(file);
+    }
+
+    @Override
+    public FileTree getAsFileTree() {
+        return new SingletonFileTree(file, builtBy);
     }
 }

@@ -33,6 +33,7 @@ public class GUtilTest {
         assertThat(toCamelCase("two words"), equalTo("TwoWords"));
         assertThat(toCamelCase("two Words"), equalTo("TwoWords"));
         assertThat(toCamelCase("Two Words"), equalTo("TwoWords"));
+        assertThat(toCamelCase(" Two  \t words\n"), equalTo("TwoWords"));
         assertThat(toCamelCase("four or so Words"), equalTo("FourOrSoWords"));
         assertThat(toCamelCase("trailing-"), equalTo("Trailing"));
         assertThat(toCamelCase("ABC"), equalTo("ABC"));
@@ -49,6 +50,7 @@ public class GUtilTest {
         assertThat(toWords("TwoWords"), equalTo("two words"));
         assertThat(toWords("two words"), equalTo("two words"));
         assertThat(toWords("Two Words"), equalTo("two words"));
+        assertThat(toWords(" Two  \t words\n"), equalTo("two words"));
         assertThat(toWords("two_words"), equalTo("two words"));
         assertThat(toWords("two.words"), equalTo("two words"));
         assertThat(toWords("two,words"), equalTo("two words"));

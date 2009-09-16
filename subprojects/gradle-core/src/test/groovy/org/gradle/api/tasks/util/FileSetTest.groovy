@@ -17,19 +17,18 @@
 package org.gradle.api.tasks.util
 
 import org.gradle.api.InvalidUserDataException
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
+import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.UnionFileTree
+import org.gradle.api.tasks.StopExecutionException
+import org.gradle.util.HelperUtil
 import org.junit.Before
 import org.junit.Test
-import org.gradle.util.HelperUtil
-import org.gradle.api.file.FileTree
-import org.gradle.api.internal.file.UnionFileTree
+import static org.gradle.api.file.FileVisitorUtil.*
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.StopExecutionException
-import org.gradle.api.file.FileVisitor
-import org.gradle.api.file.FileVisitDetails
+import static org.gradle.util.Matchers.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -94,7 +93,7 @@ class FileSetTest extends AbstractTestForPatternSet {
             file.text = 'some text'
         }
 
-        assertVisits(fileSet, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
+        assertVisits(fileSet, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
 
     @Test public void testCanAddToAntTask() {
@@ -113,7 +112,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         assertThat(fileSet.files, isEmpty())
         assertSetContains(fileSet)
-        assertVisits(fileSet)
+        assertVisits(fileSet, [], [])
     }
 
     @Test public void testCanLimitFilesUsingPatterns() {
@@ -131,7 +130,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         assertThat(fileSet.files, equalTo([included1, included2] as Set))
         assertSetContains(fileSet, 'subDir/included1', 'subDir2/included2')
-        assertVisits(fileSet, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
+        assertVisits(fileSet, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
 
     @Test public void testCanFilterFileSetUsingConfigureClosure() {
@@ -151,7 +150,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
-        assertVisits(filtered, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
+        assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
     
     @Test public void testCanFilterFileSetUsingPatternSet() {
@@ -169,7 +168,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
-        assertVisits(filtered, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
+        assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
     
     @Test public void testCanFilterAndLimitFileSet() {
@@ -192,7 +191,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
-        assertVisits(filtered, 'subDir', 'subDir/included1', 'subDir2', 'subDir2/included2')
+        assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
 
     @Test public void testCanAddFileSetsTogether() {
@@ -232,18 +231,4 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertEquals(testDir, antPatternSet.dir)
     }
 
-    void assertVisits(FileSet fileSet, String... paths) {
-        Set<String> visited = new HashSet<String>()
-        Closure cl = {FileVisitDetails details ->
-            assertThat(details.file, equalTo(new File(testDir, details.relativePath.pathString)))
-            visited << details.relativePath.pathString
-        }
-
-        fileSet.visit(cl as FileVisitor)
-        assertThat(visited, equalTo(paths as Set))
-
-        visited = new HashSet<String>()
-        fileSet.visit(cl)
-        assertThat(visited, equalTo(paths as Set))
-    }
 }

@@ -97,7 +97,7 @@ public class CompositeFileTreeTest {
         FileTree sum = tree.plus(other);
         assertThat(sum, instanceOf(CompositeFileTree.class));
         UnionFileTree sumCompositeTree = (UnionFileTree) sum;
-        assertThat(sumCompositeTree.getSourceCollections(), equalTo((Iterable) toList(source1, source2, other)));
+        assertThat(sumCompositeTree.getSourceCollections(), equalTo((Iterable) toList(tree, other)));
     }
 
     @Test

@@ -18,9 +18,7 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.tasks.util.FileSet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
@@ -243,7 +241,7 @@ public class PathResolvingFileCollectionTest {
     }
 
     @Test
-    public void convertsEachFileToFlatFileTree() {
+    public void treatsEachFileAsASingletonFileCollection() {
         final File file = new File(testDir, "f");
         GFileUtils.touch(file);
 
@@ -253,40 +251,15 @@ public class PathResolvingFileCollectionTest {
         }});
 
         collection.from("file");
-        FileTree fileTree = collection.getAsFileTree();
-        assertThat(fileTree, instanceOf(CompositeFileTree.class));
-        assertThat(((CompositeFileTree) fileTree).getSourceCollections().get(0), instanceOf(FlatFileTree.class));
+        assertThat(collection.getSourceCollections().get(0), instanceOf(SingletonFileCollection.class));
     }
 
     @Test
-    public void convertsEachDirectoryToFileSet() {
-        context.checking(new Expectations() {{
-            one(resolverMock).resolve("dir");
-            will(returnValue(testDir));
-            allowing(resolverMock).resolve(testDir);
-            will(returnValue(testDir));
-        }});
-
-        collection.from("dir");
-        FileTree fileTree = collection.getAsFileTree();
-        assertThat(fileTree, instanceOf(CompositeFileTree.class));
-        assertThat(((CompositeFileTree) fileTree).getSourceCollections().get(0), instanceOf(FileSet.class));
-    }
-
-    @Test
-    public void convertsEachFileCollectionToFileTree() {
+    public void treatsEachFileCollectionAsFileCollection() {
         final FileCollection fileCollectionMock = context.mock(FileCollection.class);
-        final FileTree fileTreeDummy = context.mock(FileTree.class);
 
         collection.from(fileCollectionMock);
-        context.checking(new Expectations() {{
-            one(fileCollectionMock).getAsFileTree();
-            will(returnValue(fileTreeDummy));
-        }});
-        FileTree fileTree = collection.getAsFileTree();
-        assertThat(fileTree, instanceOf(CompositeFileTree.class));
-        assertThat(((CompositeFileTree) fileTree).getSourceCollections().iterator().next(), sameInstance(
-                fileTreeDummy));
+        assertThat((Iterable<FileCollection>)collection.getSourceCollections(), hasItem(fileCollectionMock));
     }
 
     @Test

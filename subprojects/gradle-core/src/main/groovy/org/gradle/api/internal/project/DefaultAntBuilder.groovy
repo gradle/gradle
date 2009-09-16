@@ -24,12 +24,14 @@ import org.gradle.api.tasks.ant.AntTarget
 import org.gradle.api.Project
 import org.apache.tools.ant.MagicNames
 import org.apache.tools.ant.ProjectHelper
+import org.gradle.api.internal.file.AntFileResource
 
 public class DefaultAntBuilder extends org.gradle.api.AntBuilder {
     private final Project gradleProject
 
     def DefaultAntBuilder(Project gradleProject) {
         this.gradleProject = gradleProject;
+        antProject.addDataTypeDefinition('gradleFileResource', AntFileResource.class)
     }
 
     def Object invokeMethod(String methodName, Object args) {
