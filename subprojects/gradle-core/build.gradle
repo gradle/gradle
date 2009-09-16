@@ -71,7 +71,7 @@ processResources.doLast {
     versionProperties.store(new FileOutputStream(versionPropertiesDestination), '')
 }
 
-[compile, compileTest]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
+[compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
