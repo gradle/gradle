@@ -250,14 +250,12 @@ class JavaPluginTest {
         assertThat(project.tasks[JavaPlugin.LIBS_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, 'customJar'))
 
         task = project.createTask('customZip', type: Zip)
-        assertThat(task, dependsOn(JavaPlugin.LIBS_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.distsDir))
         assertThat(task.version, equalTo(project.version))
 
         assertThat(project.tasks[JavaPlugin.DISTS_TASK_NAME], dependsOn(JavaPlugin.LIBS_TASK_NAME, 'customZip'))
 
         task = project.createTask('customTar', type: Tar)
-        assertThat(task, dependsOn(JavaPlugin.LIBS_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.distsDir))
         assertThat(task.version, equalTo(project.version))
 
