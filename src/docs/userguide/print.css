@@ -61,10 +61,16 @@ a {
     color: black;
 }
 
-.book > .titlepage div.title {
-    padding-top: 10%;
+.book > .titlepage > .title {
     text-align: right;
     page-break-after: always;
+    border: none;
+    background-color: white;
+    margin: 0;
+    padding-top: 24%;
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 0;
 }
 
 .toc {
