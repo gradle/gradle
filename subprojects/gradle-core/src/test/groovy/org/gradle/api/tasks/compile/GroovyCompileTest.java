@@ -20,7 +20,7 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.util.WrapUtil;
+import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -41,7 +41,7 @@ import java.util.List;
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class GroovyCompileTest extends AbstractCompileTest {
-    static final List TEST_GROOVY_CLASSPATH = WrapUtil.toList(new File("groovy.jar"));
+    static final List TEST_GROOVY_CLASSPATH = toList(new File("groovy.jar"));
 
     private GroovyCompile testObj;
 
@@ -72,8 +72,8 @@ public class GroovyCompileTest extends AbstractCompileTest {
         context.checking(new Expectations() {
             {
                 one(antGroovycCompileMock).execute(testObj.getProject().getAnt(), testObj.getGroovySourceDirs(),
-                        testObj.getGroovyIncludes(), testObj.getGroovyExcludes(), testObj.getGroovyJavaIncludes(),
-                        testObj.getGroovyJavaExcludes(), testObj.getDestinationDir(), TEST_DEPENDENCY_MANAGER_CLASSPATH, 
+                        testObj.getGroovyIncludes(), testObj.getGroovyExcludes(),
+                        testObj.getDestinationDir(), TEST_DEPENDENCY_MANAGER_CLASSPATH,
                         testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getGroovyOptions(),
                         testObj.getOptions(), TEST_GROOVY_CLASSPATH);
                 one(antGroovycCompileMock).getNumFilesCompiled();  will(returnValue(numFilesCompiled));
@@ -112,29 +112,31 @@ public class GroovyCompileTest extends AbstractCompileTest {
         final FileCollection groovyClasspathCollection = context.mock(FileCollection.class);
         context.checking(new Expectations(){{
             allowing(groovyClasspathCollection).getFiles();
-            will(returnValue(new LinkedHashSet(groovyClasspath)));
+            will(returnValue(new LinkedHashSet<File>(groovyClasspath)));
         }});
 
         compile.setGroovyClasspath(groovyClasspathCollection);
-        compile.setGroovySourceDirs(WrapUtil.toList(new File("groovySourceDir1"), new File("groovySourceDir2")));
+        compile.setGroovySourceDirs(toList(new File("groovySourceDir1"), new File("groovySourceDir2")));
+        compile.setGroovyIncludes(toList(TEST_PATTERN_1));
+        compile.setGroovyExcludes(toList(TEST_PATTERN_2));
         compile.existentDirsFilter = getGroovyCompileExistingDirsFilterMock(compile);
     }
 
     @Test
     public void testGroovyIncludes() {
         assertSame(testObj.groovyInclude(TEST_PATTERN_1, TEST_PATTERN_2), testObj);
-        assertEquals(testObj.getGroovyIncludes(), WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertEquals(testObj.getGroovyIncludes(), toList(TEST_PATTERN_1, TEST_PATTERN_2));
 
         assertSame(testObj.groovyInclude(TEST_PATTERN_3), testObj);
-        assertEquals(testObj.getGroovyIncludes(), WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
+        assertEquals(testObj.getGroovyIncludes(), toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 
     @Test
     public void testGroovyExcludes() {
         assertSame(testObj.groovyExclude(TEST_PATTERN_1, TEST_PATTERN_2), testObj);
-        assertEquals(testObj.getGroovyExcludes(), WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertEquals(testObj.getGroovyExcludes(), toList(TEST_PATTERN_1, TEST_PATTERN_2));
 
         assertSame(testObj.groovyExclude(TEST_PATTERN_3), testObj);
-        assertEquals(testObj.getGroovyExcludes(), WrapUtil.toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
+        assertEquals(testObj.getGroovyExcludes(), toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 }

@@ -21,8 +21,8 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 /**
- * A {@code ScalaSourceSetConvention} defines the properties and methods added to a {@link org.gradle.api.tasks.SourceSet} by the
- * {@link org.gradle.api.plugins.scala.ScalaPlugin}.
+ * A {@code ScalaSourceSetConvention} defines the properties and methods added to a {@link org.gradle.api.tasks.SourceSet}
+ * by the {@link org.gradle.api.plugins.scala.ScalaPlugin}.
  */
 public interface ScalaSourceSet {
     /**

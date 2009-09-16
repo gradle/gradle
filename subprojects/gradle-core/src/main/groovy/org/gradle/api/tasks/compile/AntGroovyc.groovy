@@ -42,8 +42,7 @@ class AntGroovyc {
 
     List nonGroovycJavacOptions = ['verbose', 'deprecation', 'includeJavaRuntime', 'includeAntRuntime', 'optimize', 'fork', 'failonerror', 'listfiles', 'nowarn', 'depend']
 
-    public void execute(antNode, List sourceDirs, List groovyIncludes, List groovyExcludes, List groovyJavaIncludes,
-                        List groovyJavaExcludes, File targetDir, List classpath, String sourceCompatibility,
+    public void execute(antNode, List sourceDirs, List includes, List excludes, File targetDir, List classpath, String sourceCompatibility,
                         String targetCompatibility, GroovyCompileOptions groovyOptions, CompileOptions compileOptions, List taskClasspath) {
 
         String groovyc = """int numFilesCompiled = 0
@@ -61,12 +60,9 @@ class AntGroovyc {
         destdir: '${GradleUtil.unbackslash(targetDir)}',
         classpath: '${(classpath + BootstrapUtil.antJarFiles).collect {GradleUtil.unbackslash(it)}.join(':')}'] +
         ${groovyOptions.quotedOptionMap()}) {
-        ${groovyIncludes.collect {'include(name: \'' + it + '\')'}.join('\n')}
-        ${groovyExcludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
-        javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)}) {
-            ${groovyJavaIncludes.collect {'include(name: \'' + it + '\')'}.join('\n')}
-            ${groovyJavaExcludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
-        }
+        ${includes.collect {'include(name: \'' + it + '\')'}.join('\n')}
+        ${excludes.collect {'exclude(name: \'' + it + '\')'}.join('\n')}
+        javac([source: '${sourceCompatibility}', target: '${targetCompatibility}'] + ${filterNonGroovycOptions(compileOptions)})
     }
     ant.project.removeBuildListener(listener)
     return numFilesCompiled

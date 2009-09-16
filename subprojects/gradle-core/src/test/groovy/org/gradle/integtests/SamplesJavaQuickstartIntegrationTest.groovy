@@ -36,13 +36,21 @@ class SamplesJavaQuickstartIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
 
         // Check tests have run
-        javaprojectDir.file('build/test-results/TEST-org.gradle.PersonTest.xml').assertExists()
-        javaprojectDir.file('build/test-results/TESTS-TestSuites.xml').assertExists()
+        javaprojectDir.file('build/test-results/TEST-org.gradle.PersonTest.xml').assertIsFile()
+        javaprojectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
 
         // Check jar exists
-        javaprojectDir.file("build/libs/quickstart-1.0.jar").assertExists()
+        javaprojectDir.file("build/libs/quickstart-1.0.jar").assertIsFile()
 
         // Check jar uploaded
-        javaprojectDir.file('repos/quickstart-1.0.jar').assertExists()
+        javaprojectDir.file('repos/quickstart-1.0.jar').assertIsFile()
+
+        // Check contents of Jar
+        TestFile jarContents = dist.testDir.file('jar')
+        javaprojectDir.file('repos/quickstart-1.0.jar').unzipTo(jarContents)
+        jarContents.assertHasDescendants(
+                'META-INF/MANIFEST.MF',
+                'org/gradle/Person.class'
+        )
     }
 }

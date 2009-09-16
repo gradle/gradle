@@ -31,6 +31,7 @@ compile.options.compilerArgs = [[value: '-Xlint:unchecked']]
 
 task spiJar(type: Jar) {
     appendix = 'spi'
+    dependsOn compile
     fileSet() {
         include('org/gradle/api/')
     }
@@ -42,8 +43,9 @@ artifacts {
 
 // START SNIPPET dists
 task dist(type: Zip) {
-    dependsOn configurations.runtime
+    dependsOn spiJar
     files configurations.runtime
+    files spiJar.archivePath
     fileSet dir: 'src/dist'
 }
 // END SNIPPET dists

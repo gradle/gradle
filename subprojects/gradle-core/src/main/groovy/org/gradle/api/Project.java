@@ -690,7 +690,8 @@ public interface Project extends Comparable<Project> {
      * <li>A {@code Collection}. May contain any of the types listed here. The elements of the collection are
      * recursively converted to files.</li>
      *
-     * <li>A {@link FileCollection}. The contents of the collection are included in the returned collection.</li>
+     * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned
+     * collection.</li>
      *
      * <li>A {@link java.util.concurrent.Callable}. The {@code call()} method may return any of the types listed here.
      * The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is

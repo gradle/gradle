@@ -34,9 +34,21 @@ class SamplesWebQuickstartIntegrationTest {
 
     @Test
     public void webProjectSamples() {
-        File webProjectDir = new File(dist.samplesDir, "webApplication/quickstart")
-        executer.inDirectory(webProjectDir).withTasks('clean', 'libs').run()
+        TestFile webProjectDir = dist.samplesDir.file('webApplication/quickstart')
+        executer.inDirectory(webProjectDir).withTasks('clean', 'build').run()
 
+        // Check contents of War
+        TestFile warContents = dist.testDir.file('jar')
+        webProjectDir.file("build/libs/quickstart-unspecified.war").unzipTo(warContents)
+        warContents.assertHasDescendants(
+                'META-INF/MANIFEST.MF',
+                'index.jsp',
+                'WEB-INF/classes/org/gradle/sample/Greeter.class',
+                'WEB-INF/classes/greeting.txt',
+                'WEB-INF/lib/log4j-1.2.15.jar',
+                'WEB-INF/lib/commons-io-1.4.jar',
+        )
+        
         ExecutionResult result = executer.inDirectory(webProjectDir).withTasks('clean', 'runTest').run()
         checkServletOutput(result)
         result = executer.inDirectory(webProjectDir).withTasks('clean', 'runWarTest').run()

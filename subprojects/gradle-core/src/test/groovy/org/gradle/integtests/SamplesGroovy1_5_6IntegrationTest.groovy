@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,26 @@
 
 package org.gradle.integtests
 
-import org.junit.runner.RunWith
 import org.junit.Test
+import org.junit.runner.RunWith
 
-/**
- * @author Hans Dockter
- */
-@RunWith (DistributionIntegrationTestRunner.class)
-class SamplesJavaProjectWithIntTestsIntegrationTest {
+@RunWith(DistributionIntegrationTestRunner.class)
+class SamplesGroovy1_5_6IntegrationTest {
+
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
-    
+
     @Test
-    public void canRunIntegrationTests() {
-        TestFile javaprojectDir = dist.samplesDir.file('java/withIntegrationTests')
-        
-        // Run int tests
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'integrationTest').run()
+    public void groovy1_5_6Sample() {
+        TestFile groovyProjectDir = dist.samplesDir.file('groovy/groovy-1.5.6')
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        javaprojectDir.file('build/test-results/TEST-org.gradle.PersonIntegrationTest.xml').assertIsFile()
-        javaprojectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
+        groovyProjectDir.file('build/test-results/TEST-org.gradle.PersonTest.xml').assertIsFile()
+        groovyProjectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
+
+        // Check jar exists
+        groovyProjectDir.file("build/libs/groovy-1.5.6-unspecified.jar").assertIsFile()
     }
 }

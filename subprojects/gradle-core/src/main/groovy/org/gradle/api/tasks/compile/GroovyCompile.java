@@ -41,10 +41,6 @@ public class GroovyCompile extends Compile {
 
     private List groovyExcludes = null;
 
-    private List groovyJavaIncludes = null;
-
-    private List groovyJavaExcludes = null;
-
     private GroovyCompileOptions groovyOptions = new GroovyCompileOptions();
 
     protected void compile() {
@@ -62,8 +58,8 @@ public class GroovyCompile extends Compile {
             // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
             List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
             throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
-            antGroovyCompile.execute(getProject().getAnt(), existingGroovySourceDirs, getGroovyIncludes(), getGroovyExcludes(),
-                    getGroovyJavaIncludes(), getGroovyExcludes(), getDestinationDir(), classpath, getSourceCompatibility(),
+            antGroovyCompile.execute(getProject().getAnt(), existingGroovySourceDirs, getGroovyIncludes(),
+                    getGroovyExcludes(), getDestinationDir(), classpath, getSourceCompatibility(),
                     getTargetCompatibility(), getGroovyOptions(), getOptions(), taskClasspath);
             setDidWork(antGroovyCompile.getNumFilesCompiled() > 0);            
         }
@@ -119,36 +115,6 @@ public class GroovyCompile extends Compile {
             this.groovyExcludes = new ArrayList();
         }
         this.groovyExcludes.addAll(Arrays.asList(groovyExcludes));
-        return this;
-    }
-
-    /**
-     * Adds include patterns for which java files in the joint source folder should be compiled
-     * (e.g. '**&#2F;org/gradle/package1/')). This pattern is added as a nested include to the nested javac task of the
-     * groovyc task.
-     *
-     * @param groovyJavaIncludes The include patterns
-     */
-    public GroovyCompile groovyJavaInclude(String... groovyJavaIncludes) {
-        if (getGroovyJavaIncludes() == null) {
-            this.groovyJavaIncludes = new ArrayList();
-        }
-        this.groovyJavaIncludes.addAll(Arrays.asList(groovyJavaIncludes));
-        return this;
-    }
-
-    /**
-     * Add exclude patterns for which java files in the joint source folder should be compiled
-     * (e.g. '**&#2F;org/gradle/package2/A*.java'). This pattern is added as a nested exclude to the nested javac task of the
-     * groovyc task.
-     *
-     * @param groovyJavaExcludes The exclude patterns
-     */
-    public GroovyCompile groovyJavaExclude(String... groovyJavaExcludes) {
-        if (getGroovyJavaExcludes() == null) {
-            this.groovyJavaExcludes = new ArrayList();
-        }
-        this.groovyJavaExcludes.addAll(Arrays.asList(groovyJavaExcludes));
         return this;
     }
 
@@ -210,38 +176,5 @@ public class GroovyCompile extends Compile {
      */
     public void setGroovyExcludes(List groovyExcludes) {
         this.groovyExcludes = groovyExcludes;
-    }
-
-    /**
-     * Returns the exclude patterns for which java files in the joint source folder should be compiled.
-     */
-    public List getGroovyJavaIncludes() {
-        return groovyJavaIncludes;
-    }
-
-    /**
-     * Sets include patterns for which java files in the joint source folder should be compiled.
-     *
-     * @param groovyJavaIncludes The exclude pattern
-     * @see #groovyInclude(String...)   The include patterns
-     */
-    public void setGroovyJavaIncludes(List groovyJavaIncludes) {
-        this.groovyJavaIncludes = groovyJavaIncludes;
-    }
-
-    /**
-     * Returns the exclude patterns for which java files in the joint source folder should be compiled.
-     */
-    public List getGroovyJavaExcludes() {
-        return groovyJavaExcludes;
-    }
-
-    /**
-     * Sets excludes patterns for which java files in the joint source folder should be compiled
-     * @param groovyJavaExcludes The exclude pattern
-     * @see #groovyJavaExclude(String...) The exclude patterns
-     */
-    public void setGroovyJavaExcludes(List groovyJavaExcludes) {
-        this.groovyJavaExcludes = groovyJavaExcludes;
     }
 }

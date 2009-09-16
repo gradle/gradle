@@ -40,16 +40,22 @@ class SamplesScalaQuickstartIntegrationTest {
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        projectDir.file('build/test-results/TEST-org.gradle.sample.impl.PersonImplTest.xml').assertExists()
-        projectDir.file('build/test-results/TESTS-TestSuites.xml').assertExists()
+        projectDir.file('build/test-results/TEST-org.gradle.sample.impl.PersonImplTest.xml').assertIsFile()
+        projectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
 
-        // Check jar exists
-        projectDir.file("build/libs/quickstart-unspecified.jar").assertExists()
+        // Check contents of Jar
+        TestFile jarContents = dist.testDir.file('jar')
+        projectDir.file("build/libs/quickstart-unspecified.jar").unzipTo(jarContents)
+        jarContents.assertHasDescendants(
+                'META-INF/MANIFEST.MF',
+                'org/gradle/sample/api/Person.class',
+                'org/gradle/sample/impl/PersonImpl.class'
+        )
     }
 
     @Test
     public void canBuildScalaDoc() {
-        executer.inDirectory(projectDir).withTasks('scaladoc').run()
+        executer.inDirectory(projectDir).withTasks('clean', 'scaladoc').run()
 
         projectDir.file('build/docs/scaladoc/index.html').assertExists()
         projectDir.file('build/docs/scaladoc/org/gradle/sample/api/Person.html').assertContents(containsString("Defines the interface for a person."))

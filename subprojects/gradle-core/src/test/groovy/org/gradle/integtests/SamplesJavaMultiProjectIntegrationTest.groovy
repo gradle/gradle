@@ -27,7 +27,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.integtests.*
 import static org.junit.Assert.*
 
 /**
@@ -96,28 +95,54 @@ class SamplesJavaMultiProjectIntegrationTest {
         assertExists(javaprojectDir, WEBAPP_PATH, 'build/test-results/TESTS-TestSuites.xml')
         assertExists(javaprojectDir, WEBAPP_PATH, 'build/reports/tests/index.html')
 
-        // Check jars exist
-        assertExists(javaprojectDir, SHARED_NAME, "build/libs/$SHARED_NAME-1.0.jar")
-
-        TestFile apiImplJar = javaprojectDir.file(API_NAME, "build/libs/$API_NAME-1.0.jar")
-        apiImplJar.assertExists()
-        TestFile tmpDir = dist.testDir.file("$API_NAME-1.0.jar")
-        apiImplJar.unzipTo(tmpDir)
-        tmpDir.assertHasDescendants('org/gradle/api/PersonList.class',
+        // Check contents of shared jar
+        TestFile tmpDir = dist.testDir.file("$SHARED_NAME-1.0.jar")
+        javaprojectDir.file(SHARED_NAME, "build/libs/$SHARED_NAME-1.0.jar").unzipTo(tmpDir)
+        tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
+                'org/gradle/shared/Person.class',
+                'org/gradle/shared/main.properties'
+        )
+
+        // Check contents of API jar
+        tmpDir = dist.testDir.file("$API_NAME-1.0.jar")
+        javaprojectDir.file(API_NAME, "build/libs/$API_NAME-1.0.jar").unzipTo(tmpDir)
+        tmpDir.assertHasDescendants(
+                'META-INF/MANIFEST.MF',
+                'org/gradle/api/PersonList.class',
                 'org/gradle/apiImpl/Impl.class')
 
-        TestFile apiJar = javaprojectDir.file(API_NAME, "build/libs/$API_NAME-spi-1.0.jar")
+        // Check contents of API jar
         tmpDir = dist.testDir.file("$API_NAME-spi-1.0.jar")
-        apiJar.unzipTo(tmpDir)
-        tmpDir.assertHasDescendants('org/gradle/api/PersonList.class',
-                'META-INF/MANIFEST.MF')
+        javaprojectDir.file(API_NAME, "build/libs/$API_NAME-spi-1.0.jar").unzipTo(tmpDir)
+        tmpDir.assertHasDescendants(
+                'META-INF/MANIFEST.MF',
+                'org/gradle/api/PersonList.class')
 
-        assertExists(javaprojectDir, API_NAME, "build/libs/$API_NAME-spi-1.0.jar")
-        assertExists(javaprojectDir, WEBAPP_PATH, "build/libs/$WEBAPP_NAME-2.5.war")
+        // Check contents of War
+        tmpDir = dist.testDir.file("$WEBAPP_NAME-2.5.war")
+        javaprojectDir.file(WEBAPP_PATH, "build/libs/$WEBAPP_NAME-2.5.war").unzipTo(tmpDir)
+        tmpDir.assertHasDescendants(
+                'META-INF/MANIFEST.MF',
+                'WEB-INF/classes/org/gradle/webservice/TestTest.class',
+                "WEB-INF/lib/$SHARED_NAME-1.0.jar".toString(),
+                "WEB-INF/lib/$API_NAME-1.0.jar".toString(),
+                "WEB-INF/lib/$API_NAME-spi-1.0.jar".toString(),
+                'WEB-INF/lib/commons-collections-3.2.jar',
+                'WEB-INF/lib/commons-io-1.2.jar',
+                'WEB-INF/lib/commons-lang-2.4.jar'
+        )
 
-        // Check dist zip exists
-        assertExists(javaprojectDir, API_NAME, "build/distributions/$API_NAME-1.0.zip")
+        // Check contents of dist zip
+        tmpDir = dist.testDir.file("$API_NAME-1.0.zip")
+        javaprojectDir.file(API_NAME, "build/distributions/$API_NAME-1.0.zip").unzipTo(tmpDir)
+        tmpDir.assertHasDescendants(
+                'README.txt',
+                "$API_NAME-spi-1.0.jar".toString(),
+                "$SHARED_NAME-1.0.jar".toString(),
+                'commons-io-1.2.jar',
+                'commons-lang-2.4.jar'
+        )
     }
 
     @Test

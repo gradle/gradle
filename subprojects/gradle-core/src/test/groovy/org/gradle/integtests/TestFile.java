@@ -99,6 +99,7 @@ public class TestFile extends File {
     }
 
     public void unzipTo(File target) {
+        assertIsFile();
         CompressUtil.unzip(this, target);
     }
 

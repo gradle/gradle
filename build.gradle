@@ -218,10 +218,10 @@ def removeAnyExistingOldGradleLibs() {
     ant.delete { fileset(dir: explodedDistLibDir, includes: "$archivesBaseName-*.jar") }
 }
 
-task javadoc(overwrite: true, type: Javadoc, dependsOn: subprojects*.compile) {
+task javadoc(overwrite: true, type: Javadoc) {
     srcDirs = subprojects.inject([]) {list, project -> list + project.source.main.java.srcDirs + project.source.main.groovy.srcDirs}
     destinationDir = explodedDistJavadocsDir
-    configuration = files(subprojects.collect { project-> [project.configurations.compile, project.source.main.classesDir] })
+    configuration = files(subprojects.collect { project-> [project.source.main.compileClasspath, project.source.main.classes] })
     // todo: include only the public packages
     options.subPackages 'org.gradle'
     exclude 'org.gradle.api.internal'
@@ -598,7 +598,7 @@ websiteDocs << {
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
 integTestDistDir = new File(buildDir, 'integtest')
-task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc, project('gradle-core').compileTest, project('gradle-core').processTestResources, project('gradle-core').processResources ]) {
+task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc]) {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
@@ -608,13 +608,13 @@ task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc, proje
     exclude '**/Abstract*'
     
     testClassesDir = project('gradle-core').source.test.classesDir
-    configuration = project('gradle-core').configurations.testRuntime
+    configuration = project('gradle-core').source.test.runtimeClasspath
 }
 integTest.doFirst {
     ant {
         delete(dir: integTestDistDir)
         copy(todir: integTestDistDir) {
-            fileset(dir: explodedDistDir )
+            fileset(dir: explodedDistDir)
         }
         chmod(dir: "$integTestDistDir/bin", perm: "ugo+rx", includes: "**/*")
     }

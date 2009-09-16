@@ -14,8 +14,7 @@ compile {
 }
 
 compileGroovy {
-    groovyExclude '**/ExcludeGroovy.groovy'
-    groovyJavaExclude '**/ExcludeGroovyJava.java'
+    groovyExclude '**/ExcludeGroovy.groovy', '**/ExcludeGroovyJava.java'
     groovyOptions.fork(memoryMaximumSize: '128M')
 }
 

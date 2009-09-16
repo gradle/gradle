@@ -33,10 +33,17 @@ class SamplesMixedJavaAndScalaIntegrationTest {
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        projectDir.file('build/test-results/TEST-org.gradle.sample.PersonTest.xml').assertExists()
-        projectDir.file('build/test-results/TESTS-TestSuites.xml').assertExists()
+        projectDir.file('build/test-results/TEST-org.gradle.sample.PersonTest.xml').assertIsFile()
+        projectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
 
-        // Check jar exists
-        projectDir.file("build/libs/mixedJavaAndScala-unspecified.jar").assertExists()
+        // Check contents of Jar
+        TestFile jarContents = dist.testDir.file('jar')
+        projectDir.file("build/libs/mixedJavaAndScala-unspecified.jar").unzipTo(jarContents)
+        jarContents.assertHasDescendants(
+                'META-INF/MANIFEST.MF',
+                'org/gradle/sample/Person.class',
+                'org/gradle/sample/impl/JavaPerson.class',
+                'org/gradle/sample/impl/PersonImpl.class'
+        )
     }
 }
