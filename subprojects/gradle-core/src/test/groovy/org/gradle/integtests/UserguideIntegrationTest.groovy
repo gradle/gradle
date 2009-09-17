@@ -88,7 +88,8 @@ class UserguideIntegrationTest {
         for (; pos < actualLines.size() && pos < expectedLines.size(); pos++) {
             String expectedLine = expectedLines[pos]
             String actualLine = actualLines[pos]
-            boolean matches = actualLine == expectedLine ||
+            String normalisedActual = actualLine.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
+            boolean matches = normalisedActual == expectedLine ||
                     expectedLine.matches('Total time: .+ secs') && actualLine.matches('Total time: .+ secs')
             if (!matches) {
                 if (expectedLine.contains(actualLine)) {
