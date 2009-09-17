@@ -16,14 +16,12 @@
 
 package org.gradle.wrapper
 
-import org.gradle.wrapper.IDownload
-import org.gradle.wrapper.Install
-import org.gradle.wrapper.PathAssembler
 import org.junit.After
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.assertEquals
+import org.gradle.util.HelperUtil
+import org.gradle.api.tasks.wrapper.Wrapper.PathBase
 
 /**
  * @author Hans Dockter
@@ -46,7 +44,7 @@ class InstallTest {
     File zip
     File distributionDir
     File zipStore
-    File someScript
+    File gradleScript
     File gradleHomeDir
     File zipDestination
 
@@ -108,8 +106,8 @@ class InstallTest {
         File explodedZipDir = new File(testDir, 'explodedZip')
         File binDir = new File(explodedZipDir, 'bin')
         binDir.mkdirs()
-        someScript = new File(binDir, 'somescript')
-        someScript.write('something')
+        gradleScript = new File(binDir, 'gradle')
+        gradleScript.write('something')
         zipStore.mkdirs()
         AntBuilder antBuilder = new AntBuilder()
         antBuilder.zip(destfile: zipDestination.absolutePath + '.part') {
@@ -123,7 +121,8 @@ class InstallTest {
         assert downloadCalled
         assert distributionDir.isDirectory()
         assert zipDestination.exists()
-        assert someScript.exists()
+        assert gradleScript.exists()
+        assert new File(gradleHomeDir, "bin/gradle").canExecute()
     }
 
     @Test public void testCreateDistWithExistingRoot() {
@@ -131,7 +130,7 @@ class InstallTest {
         install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath)
         assert downloadCalled
         assert gradleHomeDir.isDirectory()
-        assert someScript.exists()
+        assert gradleScript.exists()
     }
 
     @Test public void testCreateDistWithExistingDist() {
@@ -149,7 +148,7 @@ class InstallTest {
         File testFile = new File(gradleHomeDir, 'testfile')
         install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath)
         assert distributionDir.isDirectory()
-        assert someScript.exists()
+        assert gradleScript.exists()
         assert !testFile.exists()
         assert !downloadCalled
     }
@@ -161,7 +160,7 @@ class InstallTest {
         File testFile = new File(gradleHomeDir, 'testfile')
         install.createDist(urlRoot, testDistBase, testDistPath, testDistName, testDistVersion, testDistClassifier, testZipBase, testZipPath)
         assert gradleHomeDir.isDirectory()
-        assert someScript.exists()
+        assert gradleScript.exists()
         assert !testFile.exists()
         assert downloadCalled
     }

@@ -65,7 +65,16 @@ public class Install {
         File distDest = gradleHomeFile.getParentFile();
         System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDest.getAbsolutePath());
         unzip(localZipFile, distDest);
+        setExecutablePermissions(gradleHome);
         return gradleHome;
+    }
+
+    private void setExecutablePermissions(String gradleHome) {
+        File gradleCommand = new File(gradleHome, "bin/gradle");
+        boolean success = gradleCommand.setExecutable(true);
+        if (success) {
+            System.out.println("Set executable permissions for: " + gradleCommand.getAbsolutePath());
+        } 
     }
 
     public IDownload getDownload() {
