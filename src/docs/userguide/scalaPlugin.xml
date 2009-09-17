@@ -16,18 +16,42 @@
 <chapter id="scala_plugin">
     <title>The Scala Plugin</title>
     <para>The Scala Plugin extends the Java Plugin to add support for Scala projects. It can deal with Scala-only
-        projects and with mixed Java/Scala projects. It can even deal with Java-only project.
+        projects and with mixed Java/Scala projects. It can even deal with Java-only projects. Your project can have
+        Scala classes which use Java classes, and vice versa.
     </para>
 
     <section>
         <title>Tasks</title>
-        <para>TBD</para>
+        <para>The Scala plugin adds the following tasks to the project.</para>
+        <table>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><literal>compileScala</literal></td>
+                <td><literal>compile</literal></td>
+                <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
+            </tr>
+            <tr>
+                <td><literal>compileTestScala</literal></td>
+                <td><literal>compileTest</literal></td>
+                <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
+            </tr>
+            <tr>
+                <td><literal>scaladoc</literal></td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.scala.ScalaDoc"/></td>
+            </tr>
+        </table>
     </section>
 
     <section>
         <title>Project layout</title>
-        <para>The Scala plugin assumes the project layout shown in <xref linkend='groovylayout'/>.
-        </para>
+        <para>The Scala plugin assumes the project layout shown below.</para>
 
         <table id='scalalayout'>
             <title>Scala plugin - project layout</title>
