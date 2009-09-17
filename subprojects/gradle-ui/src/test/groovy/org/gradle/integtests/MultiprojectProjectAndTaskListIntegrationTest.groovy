@@ -59,7 +59,7 @@ class MultiprojectProjectAndTaskListIntegrationTest {
   @Test
   public void multiProjectjavaProjectSample() {
     // Build and test projects
-    executer.inDirectory(javaprojectDir).withTasks('dists').run();
+    executer.inDirectory(javaprojectDir).withTasks('assemble').run();
 
     File multiProjectDirectory = new File(dist.getSamplesDir(), "java/multiproject");
     Assert.assertTrue(multiProjectDirectory.exists());
