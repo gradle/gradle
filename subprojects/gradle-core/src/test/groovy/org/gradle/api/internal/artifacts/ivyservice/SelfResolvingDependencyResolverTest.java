@@ -77,20 +77,23 @@ public class SelfResolvingDependencyResolverTest {
             will(returnValue(toSet(dependency)));
         }});
 
-        ResolvedConfiguration configuration = resolver.resolve(this.configuration, ivy, moduleDescriptor);
-        assertThat(configuration, not(sameInstance(resolvedConfiguration)));
+        ResolvedConfiguration actualResolvedConfiguration = resolver.resolve(this.configuration, ivy, moduleDescriptor);
+        assertThat(actualResolvedConfiguration, not(sameInstance(resolvedConfiguration)));
 
         final File configFile = new File("from config");
         final File depFile = new File("from dep");
 
+        final boolean transitive = true;
         context.checking(new Expectations() {{
+            allowing(configuration);
+            will(returnValue(transitive));
             one(resolvedConfiguration).getFiles(Specs.SATISFIES_ALL);
             will(returnValue(toSet(configFile)));
-            one(dependency).resolve();
+            one(dependency).resolve(transitive);
             will(returnValue(toSet(depFile)));
         }});
 
-        assertThat(configuration.getFiles(Specs.SATISFIES_ALL), equalTo(toLinkedSet(depFile, configFile)));
+        assertThat(actualResolvedConfiguration.getFiles(Specs.SATISFIES_ALL), equalTo(toLinkedSet(depFile, configFile)));
     }
 
     @Test

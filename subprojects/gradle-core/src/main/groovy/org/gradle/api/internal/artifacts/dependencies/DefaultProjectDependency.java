@@ -72,10 +72,16 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public Set<File> resolve() {
+        return resolve(true);
+    }
+
+    public Set<File> resolve(boolean transitive) {
         Set<File> files = new LinkedHashSet<File>();
         for (SelfResolvingDependency selfResolvingDependency : getProjectConfiguration().getAllDependencies(
                 SelfResolvingDependency.class)) {
-            files.addAll(selfResolvingDependency.resolve());
+            if ((transitive && isTransitive()) || !(selfResolvingDependency instanceof ProjectDependency)) {
+                files.addAll(selfResolvingDependency.resolve());
+            }
         }
         return files;
     }

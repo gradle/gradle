@@ -48,7 +48,7 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 Set<SelfResolvingDependency> selfResolvingDependenciesSubSet =
                         Specs.filterIterable(selfResolvingDependencies, dependencySpec);
                 for (SelfResolvingDependency selfResolvingDependency : selfResolvingDependenciesSubSet) {
-                    files.addAll((selfResolvingDependency).resolve());
+                    files.addAll((selfResolvingDependency).resolve(configuration.isTransitive()));
                 }
                 files.addAll(resolvedConfiguration.getFiles(dependencySpec));
                 return files;

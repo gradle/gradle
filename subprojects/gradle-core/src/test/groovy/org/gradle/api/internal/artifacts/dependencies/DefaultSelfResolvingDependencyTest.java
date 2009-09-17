@@ -48,11 +48,13 @@ public class DefaultSelfResolvingDependencyTest {
         final File file = new File("file");
 
         context.checking(new Expectations(){{
-            one(source).getFiles();
+            allowing(source).getFiles();
             will(returnValue(toSet(file)));
         }});
 
         assertThat(dependency.resolve(), equalTo(toLinkedSet(file)));
+        assertThat(dependency.resolve(true), equalTo(toLinkedSet(file)));
+        assertThat(dependency.resolve(false), equalTo(toLinkedSet(file)));
     }
 
     @Test

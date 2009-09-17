@@ -64,6 +64,10 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
         return source.getFiles();
     }
 
+    public Set<File> resolve(boolean transitive) {
+        return source.getFiles();
+    }
+
     public TaskDependency getBuildDependencies() {
         return source.getBuildDependencies();
     }
