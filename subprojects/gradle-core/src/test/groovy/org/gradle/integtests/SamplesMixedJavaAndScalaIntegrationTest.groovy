@@ -43,7 +43,8 @@ class SamplesMixedJavaAndScalaIntegrationTest {
                 'META-INF/MANIFEST.MF',
                 'org/gradle/sample/Person.class',
                 'org/gradle/sample/impl/JavaPerson.class',
-                'org/gradle/sample/impl/PersonImpl.class'
+                'org/gradle/sample/impl/PersonImpl.class',
+                'org/gradle/sample/impl/PersonList.class'
         )
     }
 }

@@ -41,7 +41,8 @@ class SamplesMixedJavaAndGroovyIntegrationTest {
                 'META-INF/MANIFEST.MF',
                 'org/gradle/Person.class',
                 'org/gradle/GroovyPerson.class',
-                'org/gradle/JavaPerson.class'
+                'org/gradle/JavaPerson.class',
+                'org/gradle/PersonList.class'
         )
     }
 }
