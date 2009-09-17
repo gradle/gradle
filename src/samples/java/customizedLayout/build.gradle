@@ -1,6 +1,14 @@
-// START SNIPPET define-main
 usePlugin 'java'
 
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.7'
+}
+
+// START SNIPPET define-main
 source {
     main {
         java {
