@@ -70,11 +70,11 @@ public class Install {
     }
 
     private void setExecutablePermissions(String gradleHome) {
-        File gradleCommand = new File(gradleHome, "bin/gradle");
-        boolean success = gradleCommand.setExecutable(true);
-        if (success) {
-            System.out.println("Set executable permissions for: " + gradleCommand.getAbsolutePath());
-        } 
+//        File gradleCommand = new File(gradleHome, "bin/gradle");
+//        boolean success = gradleCommand.setExecutable(true);
+//        if (success) {
+//            System.out.println("Set executable permissions for: " + gradleCommand.getAbsolutePath());
+//        }
     }
 
     public IDownload getDownload() {
