@@ -78,39 +78,31 @@ class GroovyPluginTest {
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the main Groovy source.'))
         assertThat(task.srcDirs, equalTo(project.source.main.groovy.srcDirs as List))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
-
-        assertThat(project.source.main.classes, builtBy(hasItem('compileGroovy')))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
         task = project.tasks['compileTestGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the test Groovy source.'))
         assertThat(task.srcDirs, equalTo(project.source.test.groovy.srcDirs as List))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_TASK_NAME, 'compileGroovy', JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
-
-        assertThat(project.source.test.classes, builtBy(hasItem('compileTestGroovy')))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME))
 
         project.source.add('custom')
+
         task = project.tasks['compileCustomGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Groovy source.'))
         assertThat(task.srcDirs, equalTo(project.source.custom.groovy.srcDirs as List))
-        assertThat(task, dependsOn('compileCustom'))
-
-        assertThat(project.source.custom.classes, builtBy(hasItem('compileCustomGroovy')))
+        assertThat(task, dependsOn('compileCustomJava'))
     }
 
     @Test public void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
         groovyPlugin.use(project, project.getPlugins())
 
-        def task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
+        def task = project.tasks[JavaPlugin.COMPILE_TASK_NAME]
         assertThat(task, dependsOn(hasItem('compileGroovy')))
 
-        task = project.tasks[JavaPlugin.TEST_TASK_NAME]
+        task = project.tasks[JavaPlugin.COMPILE_TEST_TASK_NAME]
         assertThat(task, dependsOn(hasItem('compileTestGroovy')))
-
-        task = project.tasks[JavaPlugin.JAR_TASK_NAME]
-        assertThat(task, dependsOn(hasItem('compileGroovy')))
     }
     
     @Test public void addsStandardTasksToTheProject() {

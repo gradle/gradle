@@ -78,6 +78,10 @@ public class DefaultSourceSet implements SourceSet {
         return String.format("compile%s", getTaskBaseName());
     }
 
+    public String getCompileJavaTaskName() {
+        return String.format("compile%sJava", getTaskBaseName());
+    }
+
     public String getProcessResourcesTaskName() {
         return String.format("process%sResources", getTaskBaseName());
     }

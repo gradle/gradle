@@ -34,7 +34,7 @@ class SamplesWebProjectIntegrationTest {
     @Test
     public void webProjectSamples() {
         TestFile webProjectDir = dist.samplesDir.file("webApplication/$WEB_PROJECT_NAME")
-        executer.inDirectory(webProjectDir).withTasks('clean', 'libs').run()
+        executer.inDirectory(webProjectDir).withTasks('clean', 'assemble').run()
         TestFile tmpDir = dist.testDir.file('unjar')
         webProjectDir.file("build/libs/$WEB_PROJECT_NAME-1.0.war").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(

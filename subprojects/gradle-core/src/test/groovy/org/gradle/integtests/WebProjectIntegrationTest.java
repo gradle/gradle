@@ -25,7 +25,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
                 "usePlugin('war')"
         );
 
-        usingBuildFile(buildFile).withTasks("libs").run();
+        usingBuildFile(buildFile).withTasks("build").run();
     }
 
     @Test
@@ -37,8 +37,8 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         );
         testFile("src/main/webapp/index.jsp").write("<p>hi</p>");
 
-        usingBuildFile(buildFile).withTasks("libs").run();
-        testFile("build/libs/test-unspecified.war").assertExists();
+        usingBuildFile(buildFile).withTasks("assemble").run();
+        testFile("build/libs/test-unspecified.war").assertIsFile();
     }
 
     @Test
@@ -54,7 +54,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         );
         testFile("src/main/webapp/index.jsp").write("<p>hi</p>");
 
-        usingBuildFile(buildFile).withTasks("libs").run();
-        testFile("output/wars/test-0.5-RC2.war").assertExists();
+        usingBuildFile(buildFile).withTasks("assemble").run();
+        testFile("output/wars/test-0.5-RC2.war").assertIsFile();
     }
 }

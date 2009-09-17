@@ -1,8 +1,8 @@
-usePlugin('java')
+usePlugin 'java'
 
-task check << {
+task show << {
     source.main.classesDir = new File(buildDir, 'output')
-    println(processResources.destinationDir.name)
-    println(compile.destinationDir.name)
-    println(convention.source.main.classesDir.name)
+    println relativePath(processResources.destinationDir)
+    println relativePath(compileJava.destinationDir)
+    println relativePath(convention.source.main.classesDir)
 }

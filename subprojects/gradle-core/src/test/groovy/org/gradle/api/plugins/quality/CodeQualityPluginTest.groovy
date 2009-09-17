@@ -1,6 +1,5 @@
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -21,27 +20,11 @@ class CodeQualityPluginTest {
         assertTrue(project.plugins.hasPlugin(ReportingBasePlugin))
     }
 
-    @Test public void addsCheckTaskToProject() {
-        plugin.use(project, project.plugins)
-
-        def task = project.tasks[CodeQualityPlugin.CHECK_TASK]
-        assertThat(task, instanceOf(DefaultTask))
-    }
-
     @Test public void addsConventionObjectsToProject() {
         plugin.use(project, project.getPlugins())
 
         assertThat(project.convention.plugins.javaCodeQuality, instanceOf(JavaCodeQualityPluginConvention))
         assertThat(project.convention.plugins.groovyCodeQuality, instanceOf(GroovyCodeQualityPluginConvention))
-    }
-
-    @Test public void attachesCheckTaskToBuildTaskWhenJavaPluginApplied() {
-        plugin.use(project, project.getPlugins())
-
-        project.usePlugin(JavaPlugin)
-
-        def task = project.tasks[JavaPlugin.BUILD_TASK_NAME]
-        assertThat(task, dependsOn(hasItem(CodeQualityPlugin.CHECK_TASK)))
     }
 
     @Test public void createsTasksAndAppliesMappingsForEachJavaSourceSet() {
@@ -61,7 +44,7 @@ class CodeQualityPluginTest {
         assertThat(task.source, equalTo(project.source.test.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/test.xml")))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
 
         project.source.add('custom')
         task = project.tasks['checkstyleCustom']
@@ -71,8 +54,8 @@ class CodeQualityPluginTest {
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/custom.xml")))
         assertThat(task, dependsOn())
 
-        task = project.tasks[CodeQualityPlugin.CHECK_TASK]
-        assertThat(task, dependsOn(CodeQualityPlugin.CHECKSTYLE_MAIN_TASK, CodeQualityPlugin.CHECKSTYLE_TEST_TASK, 'checkstyleCustom'))
+        task = project.tasks[JavaPlugin.CHECK_TASK_NAME]
+        assertThat(task, dependsOn(hasItems(CodeQualityPlugin.CHECKSTYLE_MAIN_TASK, CodeQualityPlugin.CHECKSTYLE_TEST_TASK, 'checkstyleCustom')))
     }
 
     @Test public void createsTasksAndAppliesMappingsForEachGroovySourceSet() {
@@ -102,7 +85,7 @@ class CodeQualityPluginTest {
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/custom.html")))
         assertThat(task, dependsOn())
 
-        task = project.tasks[CodeQualityPlugin.CHECK_TASK]
+        task = project.tasks[JavaPlugin.CHECK_TASK_NAME]
         assertThat(task, dependsOn(hasItem(CodeQualityPlugin.CODE_NARC_MAIN_TASK)))
         assertThat(task, dependsOn(hasItem(CodeQualityPlugin.CODE_NARC_TEST_TASK)))
         assertThat(task, dependsOn(hasItem('codenarcCustom')))

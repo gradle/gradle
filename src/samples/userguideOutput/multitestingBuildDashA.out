@@ -1,13 +1,15 @@
-:api:compile
+:api:compileJava
 :api:processResources
+:api:compile
 :api:jar
-:api:libs
-:api:dists
-:api:compileTest
+:api:assemble
+:api:compileTestJava
 :api:processTestResources
+:api:compileTest
 :api:test
+:api:check
 :api:build
 
 BUILD SUCCESSFUL
 
-Total time: 3.36 secs
+Total time: 1 secs

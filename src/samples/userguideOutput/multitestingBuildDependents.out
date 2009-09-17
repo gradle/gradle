@@ -1,28 +1,33 @@
-:shared:compile
+:shared:compileJava
 :shared:processResources
+:shared:compile
 :shared:jar
 :shared:uploadDefaultInternal
-:api:compile
+:api:compileJava
 :api:processResources
+:api:compile
 :api:jar
-:api:libs
-:api:dists
-:api:compileTest
+:api:assemble
+:api:compileTestJava
 :api:processTestResources
+:api:compileTest
 :api:test
+:api:check
 :api:build
 :api:uploadDefaultInternal
-:services:personService:compile
+:services:personService:compileJava
 :services:personService:processResources
+:services:personService:compile
 :services:personService:jar
-:services:personService:libs
-:services:personService:dists
-:services:personService:compileTest
+:services:personService:assemble
+:services:personService:compileTestJava
 :services:personService:processTestResources
+:services:personService:compileTest
 :services:personService:test
+:services:personService:check
 :services:personService:build
 :api:buildDependents
 
 BUILD SUCCESSFUL
 
-Total time: 4.968 secs
+Total time: 1 secs

@@ -1,2 +1,2 @@
-output
-main
+build/output
+build/classes/main

@@ -152,7 +152,7 @@ public interface SourceSet {
     PatternFilterable getJavaSourcePatterns();
 
     /**
-     * Returns the name of the Java compile task for this source set.
+     * Returns the name of the compile task for this source set.
      *
      * @return The task name. Never returns null.
      */
@@ -164,4 +164,11 @@ public interface SourceSet {
      * @return The task name. Never returns null.
      */
     String getProcessResourcesTaskName();
+
+    /**
+     * Returns the name of the Java compile task for this source set.
+     *
+     * @return The task name. Never returns null.
+     */
+    String getCompileJavaTaskName();
 }

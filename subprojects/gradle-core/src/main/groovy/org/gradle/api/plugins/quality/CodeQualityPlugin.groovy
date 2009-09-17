@@ -16,7 +16,6 @@ public class CodeQualityPlugin implements Plugin {
     public static String CHECKSTYLE_TEST_TASK = "checkstyleTest";
     public static String CODE_NARC_MAIN_TASK = "codenarcMain";
     public static String CODE_NARC_TEST_TASK = "codenarcTest";
-    public static String CHECK_TASK = "check";
 
     public void use(final Project project, ProjectPluginsContainer projectPluginsHandler) {
         projectPluginsHandler.usePlugin(ReportingBasePlugin.class, project);
@@ -27,7 +26,6 @@ public class CodeQualityPlugin implements Plugin {
         GroovyCodeQualityPluginConvention groovyPluginConvention = new GroovyCodeQualityPluginConvention(project)
         project.convention.plugins.groovyCodeQuality = groovyPluginConvention;
 
-        configureCheckTask(project);
         configureCheckstyleDefaults(project, javaPluginConvention)
         configureCodeNarcDefaults(project, groovyPluginConvention)
 
@@ -52,15 +50,14 @@ public class CodeQualityPlugin implements Plugin {
     }
 
     private void configureCheckTask(Project project) {
-        Task task = project.tasks.add(CHECK_TASK);
+        Task task = project.tasks[JavaPlugin.CHECK_TASK_NAME]
         task.setDescription("Executes all quality checks");
         task.dependsOn { project.tasks.withType(Checkstyle.class).all; }
         task.dependsOn { project.tasks.withType(CodeNarc.class).all; }
     }
 
     private void configureForJavaPlugin(Project project, JavaCodeQualityPluginConvention pluginConvention) {
-        Task buildTask = project.tasks[JavaPlugin.BUILD_TASK_NAME]
-        buildTask.dependsOn(CHECK_TASK);
+        configureCheckTask(project);
 
         project.convention.getPlugin(JavaPluginConvention.class).source.allObjects {SourceSet set ->
             Checkstyle checkstyle = project.tasks.add("checkstyle${GUtil.toCamelCase(set.name)}", Checkstyle.class);

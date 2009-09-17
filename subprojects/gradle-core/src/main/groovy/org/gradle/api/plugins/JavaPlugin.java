@@ -17,14 +17,13 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
@@ -50,12 +49,14 @@ import java.util.Set;
 public class JavaPlugin implements Plugin {
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
     public static final String COMPILE_TASK_NAME = "compile";
+    public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
     public static final String PROCESS_TEST_RESOURCES_TASK_NAME = "processTestResources";
     public static final String COMPILE_TEST_TASK_NAME = "compileTest";
+    public static final String COMPILE_TEST_JAVA_TASK_NAME = "compileTestJava";
     public static final String TEST_TASK_NAME = "test";
     public static final String JAR_TASK_NAME = "jar";
-    public static final String LIBS_TASK_NAME = "libs";
-    public static final String DISTS_TASK_NAME = "dists";
+    public static final String CHECK_TASK_NAME = "check";
+    public static final String ASSEMBLE_TASK_NAME = "assemble";
     public static final String JAVADOC_TASK_NAME = "javadoc";
     public static final String BUILD_TASK_NAME = "build";
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
@@ -65,7 +66,6 @@ public class JavaPlugin implements Plugin {
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
-    public static final String DISTS_CONFIGURATION_NAME = "dists";
 
     public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
         projectPluginsHandler.usePlugin(BasePlugin.class, project);
@@ -146,10 +146,15 @@ public class JavaPlugin implements Plugin {
                     }
                 });
 
-                Compile compile = project.getTasks().add(sourceSet.getCompileTaskName(), Compile.class);
-                configureForSourceSet(sourceSet, compile);
+                String compileTaskName = String.format("%sJava", sourceSet.getCompileTaskName());
+                Compile compileJava = project.getTasks().add(compileTaskName, Compile.class);
+                configureForSourceSet(sourceSet, compileJava);
 
-                sourceSet.compiledBy(sourceSet.getProcessResourcesTaskName(), sourceSet.getCompileTaskName());
+                Task compile = project.getTasks().add(sourceSet.getCompileTaskName());
+                compile.dependsOn(sourceSet.getProcessResourcesTaskName(), compileTaskName);
+                compile.setDescription(String.format("Compiles the %s source.", sourceSet.getName()));
+
+                sourceSet.compiledBy(sourceSet.getCompileTaskName());
             }
         });
     }
@@ -228,32 +233,17 @@ public class JavaPlugin implements Plugin {
             }
         });
 
-        final Spec<Task> isLib = new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
-                return element instanceof Jar;
-            }
-        };
-        Task libsTask = project.getTasks().add(LIBS_TASK_NAME);
-        libsTask.setDescription("Builds all Jar and War archives");
-        libsTask.dependsOn(new TaskDependency(){
+        Task assembleTask = project.getTasks().add(ASSEMBLE_TASK_NAME);
+        assembleTask.setDescription("Builds all Jar, War, Zip, and Tar archives.");
+        assembleTask.dependsOn(new TaskDependency(){
             public Set<? extends Task> getDependencies(Task task) {
-                return project.getTasks().findAll(isLib);
+                return project.getTasks().withType(Zip.class).getAll();
             }
         });
 
-        final Spec<Task> isDist = new Spec<Task>() {
-            public boolean isSatisfiedBy(Task element) {
-                return element instanceof Zip && !isLib.isSatisfiedBy(element);
-            }
-        };
-        Task distsTask = project.getTasks().add(DISTS_TASK_NAME);
-        distsTask.setDescription("Builds all Jar, War, Zip, and Tar archives");
-        distsTask.dependsOn(LIBS_TASK_NAME);
-        distsTask.dependsOn(new TaskDependency(){
-            public Set<? extends Task> getDependencies(Task task) {
-                return project.getTasks().findAll(isDist);
-            }
-        });
+        Task checkTask = project.getTasks().add(CHECK_TASK_NAME);
+        checkTask.setDescription("Runs all checks.");
+        checkTask.dependsOn(TEST_TASK_NAME);
 
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.setDescription("Generates a jar archive with all the compiled classes.");
@@ -264,28 +254,26 @@ public class JavaPlugin implements Plugin {
                 return Arrays.asList(classes.getAsFileTree());
             }
         });
-        jar.dependsOn(PROCESS_RESOURCES_TASK_NAME);
-        jar.dependsOn(COMPILE_TASK_NAME);
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
     }
 
     private void configureBuild(Project project) {
         DefaultTask buildTask = project.getTasks().add(BUILD_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Builds and tests this project");
-        buildTask.dependsOn(DISTS_TASK_NAME);
-        buildTask.dependsOn(TEST_TASK_NAME);
+        buildTask.setDescription("Assembles and tests this project.");
+        buildTask.dependsOn(ASSEMBLE_TASK_NAME);
+        buildTask.dependsOn(CHECK_TASK_NAME);
     }
 
     private void configureBuildNeeded(Project project) {
         DefaultTask buildTask = project.getTasks().add(BUILD_NEEDED_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Builds and tests this project and all projects it depends on");
+        buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
         buildTask.dependsOn(BUILD_TASK_NAME);
         addDependsOnTaskInOtherProjects(buildTask, true, BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
     }
 
     private void configureBuildDependents(Project project) {
         DefaultTask buildTask = project.getTasks().add(BUILD_DEPENDENTS_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Builds and tests this project and all projects that depend on it");
+        buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
         buildTask.dependsOn(BUILD_TASK_NAME);
         addDependsOnTaskInOtherProjects(buildTask, false, BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
     }
@@ -318,7 +306,6 @@ public class JavaPlugin implements Plugin {
 
         configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, archivesConfiguration).
                 setDescription("Configuration the default artifacts and its dependencies.");
-        configurations.add(DISTS_CONFIGURATION_NAME);
     }
 
     /**

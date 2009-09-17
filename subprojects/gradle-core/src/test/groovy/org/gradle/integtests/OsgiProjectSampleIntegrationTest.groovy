@@ -34,12 +34,14 @@ class OsgiProjectSampleIntegrationTest {
     @Test
     public void osgiProjectSamples() {
         long start = System.currentTimeMillis()
-        File osgiProjectDir = new File(dist.samplesDir, 'osgi')
-        executer.inDirectory(osgiProjectDir).withTasks('clean', 'libs').run()
-        AntBuilder ant = new AntBuilder()
-        ant.unjar(src: "$osgiProjectDir/build/libs/osgi-1.0.jar", dest: "$osgiProjectDir/build")
-        Manifest manifest = new Manifest(new FileInputStream("$osgiProjectDir/build/META-INF/MANIFEST.MF"))
-        checkManifest(manifest, start)
+        TestFile osgiProjectDir = dist.samplesDir.file('osgi')
+        executer.inDirectory(osgiProjectDir).withTasks('clean', 'assemble').run()
+        TestFile tmpDir = dist.testDir
+        osgiProjectDir.file('build/libs/osgi-1.0.jar').unzipTo(tmpDir)
+        tmpDir.file('META-INF/MANIFEST.MF').withInputStream { InputStream instr ->
+            Manifest manifest = new Manifest(instr)
+            checkManifest(manifest, start)
+        }
     }
 
     static void checkManifest(Manifest manifest, start) {

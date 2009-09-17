@@ -27,7 +27,7 @@ dependencies {
 // END SNIPPET project-dependencies
 
 // Just a smoke test that using this option does not lead to any exception
-compile.options.compilerArgs = [[value: '-Xlint:unchecked']]
+compileJava.options.compilerArgs = [[value: '-Xlint:unchecked']]
 
 task spiJar(type: Jar) {
     appendix = 'spi'

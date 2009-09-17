@@ -53,6 +53,7 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.allJava.sourceTrees, not(isEmpty()))
 
         assertThat(sourceSet.compileTaskName, equalTo('compileSetName'))
+        assertThat(sourceSet.compileJavaTaskName, equalTo('compileSetNameJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processSetNameResources'))
     }
     
@@ -60,6 +61,7 @@ class DefaultSourceSetTest {
         SourceSet sourceSet = new DefaultSourceSet('main', fileResolver, taskResolver)
 
         assertThat(sourceSet.compileTaskName, equalTo('compile'))
+        assertThat(sourceSet.compileJavaTaskName, equalTo('compileJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processResources'))
     }
 

@@ -1,33 +1,19 @@
 usePlugin 'java'
 
-sourceCompatibility = 1.5
-version = '1.0'
-manifest.mainAttributes(
-    'Implementation-Title': 'Gradle Quickstart',
-    'Implementation-Version': version
-)
-
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
     testCompile group: 'junit', name: 'junit', version: '4.7'
 }
 
-compile.doLast { println "compile didWork = ${compile.didWork}" }
-compileTest.doLast { println "compileTest didWork = ${compileTest.didWork}" }
+compileJava.doLast { println "compile didWork = ${compileJava.didWork}" }
+compileTestJava.doLast { println "compileTest didWork = ${compileTestJava.didWork}" }
 
 test {
     options.systemProperties['property'] = 'value'
     onlyIf { task ->
-        compile.didWork
-    }
-}
-
-uploadArchives {
-    repositories {
-       flatDir(dirs: file('repos'))
+        compileJava.didWork
     }
 }

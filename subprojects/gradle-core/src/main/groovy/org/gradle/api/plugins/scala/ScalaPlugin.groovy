@@ -56,12 +56,12 @@ public class ScalaPlugin implements Plugin {
 
             String taskName = "${sourceSet.compileTaskName}Scala"
             ScalaCompile scalaCompile = project.tasks.add(taskName, ScalaCompile.class);
-            scalaCompile.dependsOn sourceSet.compileTaskName
+            scalaCompile.dependsOn sourceSet.compileJavaTaskName
             javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
             scalaCompile.description = "Compiles the $sourceSet.scala.";
             scalaCompile.conventionMapping.srcDirs = {sourceSet.scala.srcDirs as List}
 
-            sourceSet.compiledBy(taskName)
+            project.tasks[sourceSet.compileTaskName].dependsOn(taskName)
         }
     }
 

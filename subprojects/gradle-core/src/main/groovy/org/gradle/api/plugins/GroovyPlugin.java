@@ -86,7 +86,7 @@ public class GroovyPlugin implements Plugin {
                 String compileTaskName = String.format("%sGroovy", sourceSet.getCompileTaskName());
                 GroovyCompile compile = project.getTasks().add(compileTaskName, GroovyCompile.class);
                 javaPlugin.configureForSourceSet(sourceSet, compile);
-                compile.dependsOn(sourceSet.getCompileTaskName());
+                compile.dependsOn(sourceSet.getCompileJavaTaskName());
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
                 compile.conventionMapping("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -94,7 +94,7 @@ public class GroovyPlugin implements Plugin {
                     }
                 });
 
-                sourceSet.compiledBy(compileTaskName);
+                project.getTasks().getByName(sourceSet.getCompileTaskName()).dependsOn(compileTaskName);
             }
         });
     }

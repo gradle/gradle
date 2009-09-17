@@ -16,7 +16,7 @@ subprojects {
     }
 }
 
-task explodedDist(dependsOn: libs) << {
+task explodedDist(dependsOn: assemble) << {
     File explodedDist = mkdir(buildDir, 'explodedDist')
     subprojects.each {project ->
         project.tasks.withType(Jar).each {archiveTask ->

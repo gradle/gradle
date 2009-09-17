@@ -59,7 +59,6 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
         );
     }
 
-
     @Test
     public void compileWithoutDepends() {
         testFile(testDir, "build.gradle").writelns("usePlugin('java')");
@@ -73,14 +72,14 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
         inDirectory(testDir).withTasks("compile").run();
 
         ExecutionFailure failure = inDirectory(testDir).withTasks("clean", "compile").runWithFailure();
-        failure.assertHasDescription("Execution failed for task ':compile'.");
+        failure.assertHasDescription("Execution failed for task ':compileJava'.");
     }
 
     @Test
     public void compileWithDepends() {
         testFile(testDir, "build.gradle").writelns(
                 "usePlugin('java')",
-                "compile.options.depend()"
+                "compileJava.options.depend()"
         );
         writeShortInterface();
         writeTestClass();
@@ -95,12 +94,9 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
         // Update interface, compile should fail because depend deletes old class
         writeLongInterface();
         ExecutionFailure failure = inDirectory(testDir).withTasks("compile").runWithFailure();
-        failure.assertHasDescription("Execution failed for task ':compile'.");
+        failure.assertHasDescription("Execution failed for task ':compileJava'.");
 
         // assert that dependency caching is on
         testFile(testDir, "build/dependency-cache/dependencies.txt").assertExists();
     }
-
-
-
 }

@@ -1,7 +1,7 @@
-usePlugin('java')
+usePlugin 'java'
 
-task check << {
+task show << {
     processResources.destinationDir = new File(buildDir, 'output')
-    println(processResources.destinationDir.name)
-    println(compile.destinationDir.name)
+    println relativePath(processResources.destinationDir)
+    println relativePath(compileJava.destinationDir)
 }

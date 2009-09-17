@@ -1,17 +1,20 @@
-:shared:compile
+:shared:compileJava
 :shared:processResources
+:shared:compile
 :shared:jar
 :shared:uploadDefaultInternal
-:api:compile
+:api:compileJava
 :api:processResources
+:api:compile
 :api:jar
-:api:libs
-:api:dists
-:api:compileTest
+:api:assemble
+:api:compileTestJava
 :api:processTestResources
+:api:compileTest
 :api:test
+:api:check
 :api:build
 
 BUILD SUCCESSFUL
 
-Total time: 4.141 secs
+Total time: 1 secs

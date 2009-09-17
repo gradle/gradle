@@ -1,5 +1,5 @@
-usePlugin('java')
+usePlugin 'java'
 
-task check << {
-    println(compile.destinationDir.name)
+task show << {
+    println relativePath(compileJava.destinationDir)
 }

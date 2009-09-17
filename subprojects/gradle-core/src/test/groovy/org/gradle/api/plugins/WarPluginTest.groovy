@@ -78,11 +78,11 @@ class WarPluginTest {
 
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         assertThat(task, instanceOf(War))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
 
-        task = project.tasks[JavaPlugin.LIBS_TASK_NAME]
+        task = project.tasks[JavaPlugin.ASSEMBLE_TASK_NAME]
         assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME))
     }
 
@@ -105,11 +105,11 @@ class WarPluginTest {
         warPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customWar', type: War)
-        assertThat(task, dependsOn(hasItems(JavaPlugin.COMPILE_TASK_NAME,JavaPlugin.PROCESS_RESOURCES_TASK_NAME)))
+        assertThat(task, dependsOn(hasItems(JavaPlugin.COMPILE_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
 
-        assertThat(project.tasks[JavaPlugin.LIBS_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME, 'customWar'))
+        assertThat(project.tasks[JavaPlugin.ASSEMBLE_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME, 'customWar'))
     }
 
     @Test public void addsDefaultWarToArchiveConfiguration() {
