@@ -63,30 +63,12 @@ public class ScalaCompileTest extends AbstractCompileTest {
     }
 
     @Test
-    public void testScalaIncludes() {
-        assertSame(scalaCompile.scalaInclude(TEST_PATTERN_1, TEST_PATTERN_2), scalaCompile);
-        assertEquals(scalaCompile.getScalaIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
-
-        assertSame(scalaCompile.scalaInclude(TEST_PATTERN_3), scalaCompile);
-        assertEquals(scalaCompile.getScalaIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
-    }
-
-    @Test
-    public void testScalaExcludes() {
-        assertSame(scalaCompile.scalaExclude(TEST_PATTERN_1, TEST_PATTERN_2), scalaCompile);
-        assertEquals(scalaCompile.getScalaExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
-
-        assertSame(scalaCompile.scalaExclude(TEST_PATTERN_3), scalaCompile);
-        assertEquals(scalaCompile.getScalaExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
-    }
-
-    @Test
     public void testExecuteDoingWork() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
-            one(antScalaCompileMock).execute(scalaCompile.getScalaSrcDirs(),
-                    scalaCompile.getScalaIncludes(),
-                    scalaCompile.getScalaExcludes(),
+            one(antScalaCompileMock).execute(scalaCompile.getSrcDirs(),
+                    scalaCompile.getIncludes(),
+                    scalaCompile.getExcludes(),
                     scalaCompile.getDestinationDir(),
                     scalaCompile.getClasspath(),
                     scalaCompile.getScalaCompileOptions());
@@ -101,7 +83,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
                 expectedClassPath.add(file);
             }
 
-            one(antCompileMock).execute(scalaCompile.getScalaSrcDirs(),
+            one(antCompileMock).execute(scalaCompile.getSrcDirs(),
                     scalaCompile.getIncludes(),
                     expectedExcludes,
                     scalaCompile.getDestinationDir(),
@@ -118,7 +100,6 @@ public class ScalaCompileTest extends AbstractCompileTest {
 
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {
         compile.setSrcDirs(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
-        compile.setScalaSrcDirs(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
         setupExistingDirsFilter(scalaCompile, new ExistingDirsFilter() {
@@ -126,8 +107,8 @@ public class ScalaCompileTest extends AbstractCompileTest {
             public List<File> checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir,
                                                                                       Collection<File> dirFiles) {
                 assertSame(destDir, compile.getDestinationDir());
-                assertSame(dirFiles, compile.getScalaSrcDirs());
-                return compile.getScalaSrcDirs();
+                assertSame(dirFiles, compile.getSrcDirs());
+                return compile.getSrcDirs();
             }
         });
         compile.setTargetCompatibility("1.5");

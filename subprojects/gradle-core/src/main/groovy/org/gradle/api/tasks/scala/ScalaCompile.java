@@ -17,27 +17,17 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.compile.Compile;
-import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.Collections;
 
 /**
  * Task to perform scala compilation.
  */
 public class ScalaCompile extends Compile {
-
-    /**
-     * Directories containing scala source files.
-     */
-    private List<File> scalaSrcDirs;
-
-    private PatternFilterable scalaPatternSet = new PatternSet();
 
     private AntScalaCompile antScalaCompile;
 
@@ -52,51 +42,6 @@ public class ScalaCompile extends Compile {
 
     public void setAntScalaCompile(AntScalaCompile antScalaCompile) {
         this.antScalaCompile = antScalaCompile;
-    }
-
-    @InputFiles
-    public List<File> getScalaSrcDirs() {
-        return scalaSrcDirs;
-    }
-
-    public void setScalaSrcDirs(List<File> scalaSrcDirs) {
-        this.scalaSrcDirs = scalaSrcDirs;
-    }
-
-    public Set<String> getScalaIncludes() {
-        return scalaPatternSet.getIncludes();
-    }
-
-    public void setScalaIncludes(Iterable<String> scalaIncludes) {
-        scalaPatternSet.setIncludes(scalaIncludes);
-    }
-
-    public ScalaCompile scalaInclude(String... includes) {
-        scalaPatternSet.include(includes);
-        return this;
-    }
-
-    public ScalaCompile scalaInclude(Iterable<String> includes) {
-        scalaPatternSet.include(includes);
-        return this;
-    }
-
-    public Set<String> getScalaExcludes() {
-        return scalaPatternSet.getExcludes();
-    }
-
-    public void setScalaExcludes(List<String> scalaExcludes) {
-        scalaPatternSet.setExcludes(scalaExcludes);
-    }
-
-    public ScalaCompile scalaExclude(String... excludes) {
-        scalaPatternSet.exclude(excludes);
-        return this;
-    }
-
-    public ScalaCompile scalaExclude(Iterable<String> excludes) {
-        scalaPatternSet.exclude(excludes);
-        return this;
     }
 
     public ScalaCompileOptions getScalaCompileOptions() {
@@ -115,9 +60,9 @@ public class ScalaCompile extends Compile {
         }
 
         List<File> existingSrcDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                getDestinationDir(), getScalaSrcDirs());
+                getDestinationDir(), getSrcDirs());
 
-        getAntScalaCompile().execute(existingSrcDirs, getScalaIncludes(), getScalaExcludes(), getDestinationDir(),
+        getAntScalaCompile().execute(existingSrcDirs, getIncludes(), getExcludes(), getDestinationDir(),
                 getClasspath(), getScalaCompileOptions());
 
         Set<String> excludes = GUtil.addSets(getExcludes(), Collections.singleton("**/*.scala"));

@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
-* @author Hans Dockter
-*/
+ * @author Hans Dockter
+ */
 public class Compile extends ConventionTask implements PatternFilterable {
 
     /**
@@ -47,8 +47,7 @@ public class Compile extends ConventionTask implements PatternFilterable {
     private File destinationDir;
 
     /**
-     * The directory to store cached dependency information.  Used only if
-     * options.dependOptions.useCache = true.
+     * The directory to store cached dependency information.  Used only if options.dependOptions.useCache = true.
      */
     private File dependencyCacheDir;
 
@@ -67,8 +66,8 @@ public class Compile extends ConventionTask implements PatternFilterable {
     private PatternFilterable patternSet = new PatternSet();
 
     /**
-     * Options for the compiler. The compile is delegated to the ant javac task. This property contains almost
-     * all of the properties available for the ant javac task.
+     * Options for the compiler. The compile is delegated to the ant javac task. This property contains almost all of
+     * the properties available for the ant javac task.
      */
     private CompileOptions options = new CompileOptions();
 
@@ -89,7 +88,8 @@ public class Compile extends ConventionTask implements PatternFilterable {
         }
 
         antCompile.execute(existingSourceDirs, patternSet.getIncludes(), patternSet.getExcludes(), getDestinationDir(),
-                getDependencyCacheDir(), getClasspath(), getSourceCompatibility(), getTargetCompatibility(), options, getProject().getAnt());
+                getDependencyCacheDir(), getClasspath(), getSourceCompatibility(), getTargetCompatibility(), options,
+                getProject().getAnt());
         setDidWork(antCompile.getNumFilesCompiled() > 0);
     }
 

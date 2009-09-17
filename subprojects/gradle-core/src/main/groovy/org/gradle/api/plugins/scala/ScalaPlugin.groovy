@@ -59,7 +59,7 @@ public class ScalaPlugin implements Plugin {
             scalaCompile.dependsOn sourceSet.compileTaskName
             javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
             scalaCompile.description = "Compiles the $sourceSet.scala.";
-            scalaCompile.conventionMapping.scalaSrcDirs = {sourceSet.scala.srcDirs as List}
+            scalaCompile.conventionMapping.srcDirs = {sourceSet.scala.srcDirs as List}
 
             sourceSet.compiledBy(taskName)
         }

@@ -65,7 +65,7 @@ public class GroovyPlugin implements Plugin {
         project.getTasks().withType(GroovyCompile.class).allTasks(new Action<GroovyCompile>() {
             public void execute(GroovyCompile compile) {
                 compile.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
-                compile.getConventionMapping().map("groovySourceDirs", new ConventionValue() {
+                compile.getConventionMapping().map("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return new ArrayList<File>(mainGroovy(convention).getGroovy().getSrcDirs());
                     }
@@ -88,7 +88,7 @@ public class GroovyPlugin implements Plugin {
                 javaPlugin.configureForSourceSet(sourceSet, compile);
                 compile.dependsOn(sourceSet.getCompileTaskName());
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
-                compile.conventionMapping("groovySourceDirs", new ConventionValue() {
+                compile.conventionMapping("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return new ArrayList<File>(groovySourceSet.getGroovy().getSrcDirs());
                     }

@@ -42,7 +42,7 @@ class AntGroovyc {
 
     List nonGroovycJavacOptions = ['verbose', 'deprecation', 'includeJavaRuntime', 'includeAntRuntime', 'optimize', 'fork', 'failonerror', 'listfiles', 'nowarn', 'depend']
 
-    public void execute(antNode, List sourceDirs, List includes, List excludes, File targetDir, List classpath, String sourceCompatibility,
+    public void execute(antNode, List sourceDirs, Collection includes, Collection excludes, File targetDir, List classpath, String sourceCompatibility,
                         String targetCompatibility, GroovyCompileOptions groovyOptions, CompileOptions compileOptions, List taskClasspath) {
 
         String groovyc = """int numFilesCompiled = 0

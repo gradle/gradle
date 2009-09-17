@@ -71,8 +71,8 @@ public class GroovyCompileTest extends AbstractCompileTest {
         setUpMocksAndAttributes(testObj, TEST_GROOVY_CLASSPATH);
         context.checking(new Expectations() {
             {
-                one(antGroovycCompileMock).execute(testObj.getProject().getAnt(), testObj.getGroovySourceDirs(),
-                        testObj.getGroovyIncludes(), testObj.getGroovyExcludes(),
+                one(antGroovycCompileMock).execute(testObj.getProject().getAnt(), testObj.getSrcDirs(),
+                        testObj.getIncludes(), testObj.getExcludes(),
                         testObj.getDestinationDir(), TEST_DEPENDENCY_MANAGER_CLASSPATH,
                         testObj.getSourceCompatibility(), testObj.getTargetCompatibility(), testObj.getGroovyOptions(),
                         testObj.getOptions(), TEST_GROOVY_CLASSPATH);
@@ -116,27 +116,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         }});
 
         compile.setGroovyClasspath(groovyClasspathCollection);
-        compile.setGroovySourceDirs(toList(new File("groovySourceDir1"), new File("groovySourceDir2")));
-        compile.setGroovyIncludes(toList(TEST_PATTERN_1));
-        compile.setGroovyExcludes(toList(TEST_PATTERN_2));
+        compile.setSrcDirs(toList(new File("groovySourceDir1"), new File("groovySourceDir2")));
         compile.existentDirsFilter = getGroovyCompileExistingDirsFilterMock(compile);
-    }
-
-    @Test
-    public void testGroovyIncludes() {
-        assertSame(testObj.groovyInclude(TEST_PATTERN_1, TEST_PATTERN_2), testObj);
-        assertEquals(testObj.getGroovyIncludes(), toList(TEST_PATTERN_1, TEST_PATTERN_2));
-
-        assertSame(testObj.groovyInclude(TEST_PATTERN_3), testObj);
-        assertEquals(testObj.getGroovyIncludes(), toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
-    }
-
-    @Test
-    public void testGroovyExcludes() {
-        assertSame(testObj.groovyExclude(TEST_PATTERN_1, TEST_PATTERN_2), testObj);
-        assertEquals(testObj.getGroovyExcludes(), toList(TEST_PATTERN_1, TEST_PATTERN_2));
-
-        assertSame(testObj.groovyExclude(TEST_PATTERN_3), testObj);
-        assertEquals(testObj.getGroovyExcludes(), toList(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 }
