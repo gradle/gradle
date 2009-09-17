@@ -30,7 +30,59 @@
 
     <section>
         <title>Tasks</title>
-        <para>TBD</para>
+        <para>The code quality plugin adds the following tasks to the project.</para>
+        <table>
+            <title>Code quality plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>checkstyleMain</td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
+            </tr>
+            <tr>
+                <td>checkstyleTest</td>
+                <td><literal>compile</literal></td>
+                <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
+            </tr>
+            <tr>
+                <td>codenarcMain</td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
+            </tr>
+            <tr>
+                <td>codenarcTest</td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
+            </tr>
+        </table>
+        <para>The Code quality plugin adds the following dependencies to tasks added by the Java plugin.</para>
+        <table>
+            <title>Code quality plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td>check</td>
+                <td><literal>checkstyleMain</literal>,
+                    <literal>checkstyleTest</literal>,
+                    <literal>codenarcMain</literal>,
+                    <literal>codenarcTest</literal>
+                </td>
+            </tr>
+        </table>
+        <figure>
+            <title>Code quality plugin - tasks</title>
+            <imageobject>
+                <imagedata fileref="images/codeQualityPluginTasks.png"/>
+            </imageobject>
+        </figure>
     </section>
 
     <section>

@@ -15,6 +15,7 @@
         <title>Tasks</title>
         <para>The Groovy plugin adds the following tasks to the project.</para>
         <table>
+            <title>Groovy plugin - tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -24,12 +25,12 @@
             </thead>
             <tr>
                 <td><literal>compileGroovy</literal></td>
-                <td><literal>compile</literal></td>
+                <td><literal>compileJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
             </tr>
             <tr>
                 <td><literal>compileTestGroovy</literal></td>
-                <td><literal>compileTest</literal></td>
+                <td><literal>compileTestJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
             </tr>
             <tr>
@@ -38,6 +39,28 @@
                 <td><apilink class="org.gradle.api.tasks.javadoc.Groovydoc"/></td>
             </tr>
         </table>
+        <para>The Groovy plugin adds the following dependencies to tasks added by the Java plugin.</para>
+        <table>
+            <title>Groovy plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td>compile</td>
+                <td>compileGroovy</td>
+            </tr>
+            <tr>
+                <td>compileTest</td>
+                <td>compileTestGroovy</td>
+            </tr>
+        </table>
+        <figure>
+            <title>Groovy plugin - tasks</title>
+            <imageobject>
+                <imagedata fileref="images/groovyPluginTasks.png"/>
+            </imageobject>
+        </figure>
     </section>
 
     <section>
@@ -64,13 +87,13 @@
                 <td>
                     <filename>src/main/groovy</filename>
                 </td>
-                <td>Application/Library Groovy/Java source</td>
+                <td>Production Groovy and Java source</td>
             </tr>
             <tr>
                 <td>
                     <filename>src/test/groovy</filename>
                 </td>
-                <td>Test Groovy/Java source</td>
+                <td>Test Groovy and Java source</td>
             </tr>
         </table>
 

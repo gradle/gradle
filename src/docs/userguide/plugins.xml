@@ -39,12 +39,12 @@ usePlugin('java')
         </para>
         <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Using plugin">
             <sourcefile file="build.gradle"/>
-            <output args="-q check"/>
+            <output args="-q show"/>
         </sample>
-        <para>The Java Plugin adds a <literal>compile</literal>
-            task to the project object which can be accessed by a build script.
+        <para>The Java Plugin adds a <literal>compileJava</literal> task to the project object which can be accessed by
+            a build script.
         </para>
-        <para>The usePlugin method either takes a string or a class as an argument. You can write
+        <para>The <literal>usePlugin()</literal> method either takes a string or a class as an argument. You can write
             <footnote>
                 <para>Thanks to Gradle's default imports (see <xref linkend='ide_support'/>) you can also write
                     <literal>usePlugin(JavaPlugin)</literal>
@@ -79,7 +79,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         </para>
         <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig" title="Configuring a plugin">
             <sourcefile file="build.gradle"/>
-            <output args="-q check"/>
+            <output args="-q show"/>
         </sample>
         <para>Setting the
             <literal>destinationDir</literal>
@@ -92,7 +92,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         </para>
         <sample id="pluginConvention" dir="userguide/tutorial/pluginConvention" title="Plugin convention object">
             <sourcefile file="build.gradle"/>
-            <output args="-q check"/>
+            <output args="-q show"/>
         </sample>
         <para>The <emphasis>Java Plugin</emphasis> has added a convention object with a <literal>classesDirName</literal>
             property. The properties of a convention object can be accessed like project properties. As shown in the

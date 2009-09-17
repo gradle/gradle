@@ -6,7 +6,40 @@
 
     <section>
         <title>Tasks</title>
-        <para>TBD</para>
+        <para>The War plugin adds the following tasks to the project.</para>
+        <table>
+            <title>War plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>war</td>
+                <td>compile</td>
+                <td><apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/></td>
+            </tr>
+        </table>
+        <para>The War plugin adds the following dependencies to tasks added by the Java plugin.</para>
+        <table>
+            <title>War plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td>assemble</td>
+                <td>war</td>
+            </tr>
+        </table>
+        <figure>
+            <title>War plugin - tasks</title>
+            <imageobject>
+                <imagedata fileref="images/warPluginTasks.png"/>
+            </imageobject>
+        </figure>
     </section>
 
     <section>

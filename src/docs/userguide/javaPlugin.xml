@@ -29,6 +29,13 @@
             </tr>
             <tr>
                 <td>
+                    <literal>compileJava</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+            </tr>
+            <tr>
+                <td>
                     <literal>processResources</literal>
                 </td>
                 <td>-</td>
@@ -38,7 +45,18 @@
                 <td>
                     <literal>compile</literal>
                 </td>
-                <td>-</td>
+                <td>
+                    All compilation tasks in the project, including <literal>compileJava</literal> and <literal>processResources</literal>
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>compileTestJava</literal>
+                </td>
+                <td>
+                    <literal>compile</literal>
+                </td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
             </tr>
             <tr>
@@ -53,21 +71,18 @@
                     <literal>compileTest</literal>
                 </td>
                 <td>
-                    <literal>compile</literal>
+                    All test compilation tasks in the project, including <literal>compileTestJava</literal> and <literal>processTestResources</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
             <tr>
                 <td>
-                    <literal>test</literal>
+                    <literal>jar</literal>
                 </td>
                 <td>
                     <literal>compile</literal>,
-                    <literal>compileTest</literal>,
-                    <literal>processResources</literal>,
-                    <literal>processTestResources</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/></td>
             </tr>
             <tr>
                 <td>
@@ -78,29 +93,29 @@
             </tr>
             <tr>
                 <td>
-                    <literal>jar</literal>
+                    <literal>test</literal>
                 </td>
                 <td>
                     <literal>compile</literal>,
-                    <literal>processResources</literal>,
+                    <literal>compileTest</literal>,
                 </td>
-                <td><apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/></td>
+                <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
             </tr>
             <tr>
                 <td>
-                    <literal>libs</literal>
+                    <literal>assemble</literal>
                 </td>
                 <td>
-                    All <literal>Jar</literal> and <literal>War</literal> tasks in the project.
+                    All archive tasks in the project, including <literal>jar</literal>.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
             <tr>
                 <td>
-                    <literal>dists</literal>
+                    <literal>check</literal>
                 </td>
                 <td>
-                    <literal>libs</literal> and all <literal>Zip</literal> and <literal>Tar</literal> tasks in the project.
+                    All verification tasks in the project, including <literal>test</literal>.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
@@ -109,7 +124,7 @@
                     <literal>build</literal>
                 </td>
                 <td>
-                    <literal>test</literal> and <literal>dists</literal>
+                    <literal>check</literal> and <literal>assemble</literal>
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
@@ -178,13 +193,13 @@
                 <td>
                     <filename>src/main/java</filename>
                 </td>
-                <td>Application/Library Java source</td>
+                <td>Production Java source</td>
             </tr>
             <tr>
                 <td>
                     <filename>src/main/resources</filename>
                 </td>
-                <td>Application/Library resources</td>
+                <td>Production resources</td>
             </tr>
             <tr>
                 <td>
@@ -232,7 +247,7 @@
             <tr>
                 <td>compile</td>
                 <td>-</td>
-                <td>compile</td>
+                <td>compileJava</td>
                 <td>Compile time dependencies</td>
             </tr>
             <tr>
@@ -244,7 +259,7 @@
             <tr>
                 <td>testCompile</td>
                 <td>compile</td>
-                <td>compileTest</td>
+                <td>compileTestJava</td>
                 <td>Additional dependencies for compiling tests.</td>
             </tr>
             <tr>
@@ -268,7 +283,7 @@
             </tr>
         </table>
         <figure>
-            <title>Java plugin - configurations</title>
+            <title>Java plugin - dependency configurations</title>
             <imageobject>
                 <imagedata fileref="images/javaPluginConfigurations.png"/>
             </imageobject>

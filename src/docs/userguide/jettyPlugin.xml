@@ -40,7 +40,7 @@
                     <literal>jettyRun</literal>
                 </td>
                 <td>
-                    <literal>compile, processResources</literal>
+                    <literal>compile</literal>
                 </td>
                 <td><apilink class="org.gradle.api.plugins.jetty.JettyRun"/></td>
             </tr>
@@ -61,6 +61,12 @@
                 <td><apilink class="org.gradle.api.plugins.jetty.JettyStop"/></td>
             </tr>
         </table>
+        <figure>
+            <title>Jetty plugin - tasks</title>
+            <imageobject>
+                <imagedata fileref="images/jettyPluginTasks.png"/>
+            </imageobject>
+        </figure>
     </section>
 
     <section>

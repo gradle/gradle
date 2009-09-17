@@ -24,6 +24,7 @@
         <title>Tasks</title>
         <para>The Scala plugin adds the following tasks to the project.</para>
         <table>
+            <title>Scala plugin - tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -33,12 +34,12 @@
             </thead>
             <tr>
                 <td><literal>compileScala</literal></td>
-                <td><literal>compile</literal></td>
+                <td><literal>compileJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
             </tr>
             <tr>
                 <td><literal>compileTestScala</literal></td>
-                <td><literal>compileTest</literal></td>
+                <td><literal>compileTestJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
             </tr>
             <tr>
@@ -47,6 +48,28 @@
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaDoc"/></td>
             </tr>
         </table>
+        <para>The Scala plugin adds the following dependencies to tasks added by the Java plugin.</para>
+        <table>
+            <title>Scala plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td>compile</td>
+                <td>compileScala</td>
+            </tr>
+            <tr>
+                <td>compileTest</td>
+                <td>compileTestScala</td>
+            </tr>
+        </table>
+        <figure>
+            <title>Scala plugin - tasks</title>
+            <imageobject>
+                <imagedata fileref="images/scalaPluginTasks.png"/>
+            </imageobject>
+        </figure>
     </section>
 
     <section>
@@ -65,7 +88,7 @@
                 <td>
                     <filename>src/main/scala</filename>
                 </td>
-                <td>Application/Library Scala source</td>
+                <td>Production Scala source</td>
             </tr>
             <tr>
                 <td>

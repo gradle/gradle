@@ -630,7 +630,7 @@
             <output args=":api:buildDependents"/>
         </sample>
         <para>Finally, you may want to build and test everything in all projects.  If the root project has declared
-        <literal>dependsOnChildren()</literal> (as this one does), then any task you run agains the root project
+        <literal>dependsOnChildren()</literal> (as this one does), then any task you run against the root project
         will cause that same named task to be run on all the children.  So you can just run
         <literal>gradle build</literal> to build and test all projects.
         </para>
