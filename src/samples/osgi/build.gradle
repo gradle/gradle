@@ -5,6 +5,7 @@ usePlugin 'groovy'
 usePlugin 'osgi'
 
 repositories {
+    mavenCentral()
     mavenRepo(urls: 'http://repository.jboss.org/maven2/')
 }
 
