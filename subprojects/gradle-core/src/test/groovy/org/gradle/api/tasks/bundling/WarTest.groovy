@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.JUnit4GroovyMockery
@@ -33,7 +32,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
-import org.junit.Assert
 
 /**
  * @author Hans Dockter
