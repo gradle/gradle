@@ -18,8 +18,6 @@ package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.specs.DependencyTypeSpec
-import org.gradle.api.artifacts.specs.Type
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.util.FileSet
@@ -28,8 +26,14 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThat
+import static org.hamcrest.Matchers.*
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.SelfResolvingDependency
+import org.junit.Assert
 
 /**
  * @author Hans Dockter
@@ -91,14 +95,23 @@ class WarTest extends AbstractArchiveTaskTest {
     }
 
     private Configuration createConfigurationMock(boolean failForMissingDependency, boolean includeProjectDependencies, List returnValue) {
-        [files: { Spec spec ->
+        [files: { def spec ->
             if (includeProjectDependencies) {
                 assertEquals(Specs.SATISFIES_ALL, spec)
             } else {
-                assertEquals(new DependencyTypeSpec(Type.EXTERNAL), spec)
+                assertThatSpecFiltersProjectDependencies(spec)
             }
             returnValue as Set
         }] as Configuration
+    }
+
+    void assertThatSpecFiltersProjectDependencies(Closure spec) {
+        ModuleDependency moduleDependency = [:] as ModuleDependency
+        ProjectDependency projectDependency = [:] as ProjectDependency
+        SelfResolvingDependency selfResolvingDependency = [:] as SelfResolvingDependency
+        assertThat(spec(moduleDependency), equalTo(true))
+        assertThat(spec(selfResolvingDependency), equalTo(true))
+        assertThat(spec(projectDependency), equalTo(false))
     }
 
     AbstractArchiveTask getArchiveTask() {
@@ -190,5 +203,4 @@ class WarTest extends AbstractArchiveTaskTest {
         assertEquals(['a'] as Set, war."$propertyName"[0].includes)
         assertEquals(new File(testDir, 'y'), war."$propertyName"[1].dir)
     }
-
 }
