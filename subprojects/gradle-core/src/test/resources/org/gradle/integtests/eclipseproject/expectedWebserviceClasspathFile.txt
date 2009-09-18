@@ -2,12 +2,10 @@
 
 <classpath>
   <classpathentry kind="src" path="src/main/java"/>
-  <classpathentry kind="src" path="src/test/java" output="build/classes/test"/>
   <classpathentry kind="output" path="build/classes/main"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
   <classpathentry kind="src" path="/api" combineaccessrules="false"/>
-  <classpathentry kind="src" path="/shared" combineaccessrules="false"/>
-  <classpathentry kind="lib" path="$cachePath/commons-collections/commons-collections/jars/commons-collections-3.2.jar"/>
+  <classpathentry kind="lib" path="$projectDir/lib/compile-1.0.jar"/>
   <classpathentry kind="lib" path="$cachePath/commons-io/commons-io/jars/commons-io-1.2.jar"/>
   <classpathentry kind="lib" path="$cachePath/commons-lang/commons-lang/jars/commons-lang-2.4.jar"/>
   <classpathentry kind="lib" path="$cachePath/junit/junit/jars/junit-4.7.jar"/>

@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
@@ -111,7 +112,11 @@ public class EclipsePlugin implements Plugin {
                 "classpathLibs", new ConventionValue() {
                     public Object getValue(Convention convention, final IConventionAware conventionAwareObject) {
                         ConfigurationContainer configurationContainer = project.getConfigurations();
-                        return new ArrayList(configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME).files(DependencySpecs.type(Type.EXTERNAL)));
+                        return new ArrayList(configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME).files(new Spec<Dependency>() {
+                            public boolean isSatisfiedBy(Dependency element) {
+                                return !(element instanceof ProjectDependency);
+                            }
+                        }));
                     }
                 },
                 "projectDependencies", new ConventionValue() {

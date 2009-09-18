@@ -16,9 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.Project
-import org.gradle.api.artifacts.specs.DependencyTypeSpec
-import org.gradle.api.artifacts.specs.Type
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.GUtil
@@ -26,6 +23,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.artifacts.ProjectDependency
 
 /**
  * @author Hans Dockter
@@ -66,7 +64,7 @@ class War extends Jar {
         List files = []
         def filteredDependencies = {String configurationName ->
             project.configurations.getByName(configurationName).files(
-                    includeProjectDependencies ? Specs.SATISFIES_ALL : new DependencyTypeSpec(Type.EXTERNAL)) as List
+                    includeProjectDependencies ? Specs.SATISFIES_ALL : { dependency -> !(dependency instanceof ProjectDependency) })  as List
         }
 
         getLibConfigurations().each {String configurationName ->

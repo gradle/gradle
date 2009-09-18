@@ -1,0 +1,17 @@
+subprojects {
+    usePlugin 'java'
+    usePlugin 'eclipse'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testCompile 'junit:junit:4.7'
+    }
+
+    eclipse.dependsOn(configurations.testRuntime.buildDependencies)
+
+    group = 'org.gradle'
+    version = '1.0'
+}

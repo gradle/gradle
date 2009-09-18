@@ -1,0 +1,10 @@
+usePlugin 'war'
+
+version = '2.5'
+
+dependencies {
+    compile project(':api'), files("$projectDir/lib/compile-1.0.jar")
+    runtime module("commons-lang:commons-lang:2.4") {
+        dependency("commons-io:commons-io:1.2")
+    }
+}

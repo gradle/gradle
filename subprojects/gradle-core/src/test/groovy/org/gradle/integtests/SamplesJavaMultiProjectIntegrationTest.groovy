@@ -16,10 +16,6 @@
 
 package org.gradle.integtests
 
-import groovy.text.SimpleTemplateEngine
-import org.custommonkey.xmlunit.Diff
-import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
-import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matchers
@@ -200,43 +196,6 @@ class SamplesJavaMultiProjectIntegrationTest {
         TestFile apiDir = javaprojectDir.file(API_NAME)
         executer.inDirectory(apiDir).withTasks('compile').withArguments("-A javadoc").run()
         assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
-    }
-    
-    @Test
-    public void eclipseGeneration() {
-        executer.inDirectory(javaprojectDir).withTasks('eclipse').run()
-
-        String cachePath = dist.userHomeDir.file('cache')
-        compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedApiProjectFile.txt").text,
-                javaprojectDir.file(API_NAME, ".project").text)
-        compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
-                javaprojectDir.file(WEBAPP_PATH, ".project").text)
-        compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("javaproject/expectedWebApp1ProjectFile.txt").text,
-                javaprojectDir.file(WEBAPP_PATH, ".project").text)
-        compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedApiClasspathFile.txt", cachePath),
-                javaprojectDir.file(API_NAME, ".classpath").text)
-        compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedWebApp1ClasspathFile.txt", cachePath),
-                javaprojectDir.file(WEBAPP_PATH, ".classpath").text)
-        compareXmlWithIgnoringOrder(replaceWithCachePath("javaproject/expectedWebApp1WtpFile.txt", cachePath),
-                javaprojectDir.file(WEBAPP_PATH, ".settings/org.eclipse.wst.common.component").text)
-
-        executer.inDirectory(javaprojectDir).withTasks('eclipseClean').run()
-        assertDoesNotExist(javaprojectDir, false, API_NAME, ".project")
-        assertDoesNotExist(javaprojectDir, false, WEBAPP_PATH, ".project")
-        assertDoesNotExist(javaprojectDir, false, API_NAME, ".classpath")
-        assertDoesNotExist(javaprojectDir, false, WEBAPP_PATH, ".project")
-        assertDoesNotExist(javaprojectDir, false, WEBAPP_PATH, ".settings/org.eclipse.wst.common.component")
-    }
-
-    private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
-        Diff diff = new Diff(expectedXml, actualXml)
-        diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
-        XMLAssert.assertXMLEqual(diff, true);
-    }
-
-    private static String replaceWithCachePath(String resourcePath, String cachePath) {
-        SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        templateEngine.createTemplate(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream(resourcePath).text).make(cachePath: new File(cachePath).canonicalPath).toString().replace('\\', '/')
     }
            
     private static def checkPartialWebAppBuild(String packagePrefix, TestFile javaprojectDir, String testPackagePrefix) {
