@@ -92,7 +92,7 @@ import java.util.Set;
  *
  * <p>For example:
  * <pre>
- * createTask('some-task')  // Delegates to Project.createTask()
+ * defaultTasks('some-task')  // Delegates to Project.defaultTasks()
  * reportDir = file('reports') // Delegates to Project.file() and Project.setProperty()
  * </pre>
  * </p>
