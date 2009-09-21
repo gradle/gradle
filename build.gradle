@@ -189,10 +189,12 @@ gradle.taskGraph.whenReady {graph ->
     docsRemoteDir = prefix + '/docs'
     javadocRemoteDir = docsRemoteDir + '/javadoc'
     groovydocRemoteDir = docsRemoteDir + '/groovydoc'
-    manifest.mainAttributes([
-            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
-    ])
+    subprojects {
+      jar.manifest.mainAttributes([
+              (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+              (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
+      ])
+    }
 }
 
 task explodedDistBase(dependsOn: [libs, configurations.distLib.buildDependencies], description: 'Builds a minimal distribution image') << {
