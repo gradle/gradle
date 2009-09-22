@@ -22,6 +22,7 @@ import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.CacheUsage;
+import org.gradle.listener.ListenerManager;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.repositories.InternalRepository;
@@ -37,6 +38,10 @@ import java.io.File;
  */
 public class DefaultInternalRepository extends FileSystemResolver implements InternalRepository, BuildListener {
     private File dir;
+
+    public DefaultInternalRepository(ListenerManager listenerManager) {
+        listenerManager.addListener(this);
+    }
 
     private void configure(File dir) {
         setRepositoryCacheManager(createCacheManager());

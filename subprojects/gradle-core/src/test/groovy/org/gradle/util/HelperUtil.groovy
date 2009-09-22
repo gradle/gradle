@@ -56,6 +56,7 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultGradle
 import org.gradle.api.internal.project.*
+import org.gradle.listener.DefaultListenerManager
 import org.gradle.integtests.TestFile
 
 /**
@@ -101,9 +102,11 @@ class HelperUtil {
                 serviceRegistryFactory,
                 new StringScriptSource("embedded build file", "embedded"))
 
-        DefaultInternalRepository internalRepo = new DefaultInternalRepository()
+        DefaultListenerManager listenerManager = new DefaultListenerManager()
+        DefaultInternalRepository internalRepo = new DefaultInternalRepository(listenerManager)
         internalRepo.setName('testInternalRepo') 
-        DefaultGradle build = new DefaultGradle(startParameter, internalRepo, serviceRegistryFactory, new DefaultStandardOutputRedirector())
+        DefaultGradle build = new DefaultGradle(startParameter, internalRepo, serviceRegistryFactory,
+                                                new DefaultStandardOutputRedirector(), listenerManager)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)

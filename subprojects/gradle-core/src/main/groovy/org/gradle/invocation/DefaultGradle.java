@@ -19,6 +19,7 @@ package org.gradle.invocation;
 import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
+import org.gradle.listener.ListenerManager;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
@@ -34,7 +35,6 @@ import org.gradle.execution.DefaultTaskExecuter;
 import org.gradle.execution.TaskExecuter;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.ListenerBroadcast;
 
 import java.io.File;
 
@@ -52,18 +52,17 @@ public class DefaultGradle implements GradleInternal {
     private DefaultPluginRegistry pluginRegistry;
     private ScriptHandler scriptHandler;
     private ScriptClassLoaderProvider scriptClassLoaderProvider;
-    private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast
-            = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
-    private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(
-            BuildListener.class);
+    private final ListenerManager listenerManager;
     private final DefaultIsolatedAntBuilder isolatedAntBuilder = new DefaultIsolatedAntBuilder();
 
     public DefaultGradle(StartParameter startParameter, InternalRepository internalRepository,
                          ServiceRegistryFactory serviceRegistryFactory,
-                         StandardOutputRedirector standardOutputRedirector) {
+                         StandardOutputRedirector standardOutputRedirector,
+                         ListenerManager listenerManager) {
         this.startParameter = startParameter;
         this.internalRepository = internalRepository;
         this.standardOutputRedirector = standardOutputRedirector;
+        this.listenerManager = listenerManager;
         this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
         this.pluginRegistry = new DefaultPluginRegistry(startParameter.getPluginPropertiesFile());
         this.taskGraph = new DefaultTaskExecuter();
@@ -138,32 +137,40 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {
-        projectEvaluationListenerBroadcast.add(listener);
+        addListener(listener);
         return listener;
     }
 
     public void removeProjectEvaluationListener(ProjectEvaluationListener listener) {
-        projectEvaluationListenerBroadcast.remove(listener);
+        removeListener(listener);
     }
 
     public void beforeProject(Closure closure) {
-        projectEvaluationListenerBroadcast.add("beforeEvaluate", closure);
+        listenerManager.addListener(ProjectEvaluationListener.class, "beforeEvaluate", closure);
     }
 
     public void afterProject(Closure closure) {
-        projectEvaluationListenerBroadcast.add("afterEvaluate", closure);
+        listenerManager.addListener(ProjectEvaluationListener.class, "afterEvaluate", closure);
+    }
+
+    public void addListener(Object listener) {
+        listenerManager.addListener(listener);
+    }
+
+    public void removeListener(Object listener) {
+        listenerManager.removeListener(listener);
     }
 
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
-        return projectEvaluationListenerBroadcast.getSource();
+        return listenerManager.getBroadcaster(ProjectEvaluationListener.class);
     }
 
     public void addBuildListener(BuildListener buildListener) {
-        buildListeners.add(buildListener);
+        addListener(buildListener);
     }
 
     public BuildListener getBuildListenerBroadcaster() {
-        return buildListeners.getSource();
+        return listenerManager.getBroadcaster(BuildListener.class);
     }
 
     public ScriptHandler getInitscript() {

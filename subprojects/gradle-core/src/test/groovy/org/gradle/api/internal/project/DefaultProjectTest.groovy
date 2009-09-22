@@ -60,6 +60,7 @@ import org.gradle.api.artifacts.dsl.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.invocation.Gradle
+import org.gradle.listener.DefaultListenerManager
 
 /**
  * @author Hans Dockter
@@ -171,7 +172,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
         }
 
-        build = new DefaultGradle(parameter, null, projectServiceRegistryFactoryMock, null)
+        build = new DefaultGradle(parameter, null, projectServiceRegistryFactoryMock, null, new DefaultListenerManager())
 
         rootDir = new File("/path/root").absoluteFile
         projectRegistry = build.projectRegistry

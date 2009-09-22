@@ -28,6 +28,7 @@ import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.*;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.listener.DefaultListenerManager;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -110,7 +111,7 @@ public class GradleLauncherTest {
         expectedStartParams.setGradleUserHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleUserHomeDir"));
 
         gradleLauncher = new GradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
-                gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock);
+                gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock, new DefaultListenerManager());
         
         context.checking(new Expectations() {
             {

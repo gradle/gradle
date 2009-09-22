@@ -94,8 +94,8 @@ public class Main {
             exceptionReporter.setStartParameter(startParameter);
             GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
 
-            gradleLauncher.addBuildListener(exceptionReporter);
-            gradleLauncher.addBuildListener(resultLogger);
+            gradleLauncher.addListener(exceptionReporter);
+            gradleLauncher.addListener(resultLogger);
 
             BuildResult buildResult = gradleLauncher.run();
             if (buildResult.getFailure() != null) {

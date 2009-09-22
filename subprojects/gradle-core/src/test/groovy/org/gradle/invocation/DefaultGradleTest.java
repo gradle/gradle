@@ -18,6 +18,7 @@ package org.gradle.invocation;
 
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
+import org.gradle.listener.DefaultListenerManager;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
@@ -66,9 +67,10 @@ public class DefaultGradleTest {
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider.class);
             will(returnValue(context.mock(ScriptClassLoaderProvider.class)));
         }});
-        gradle = new DefaultGradle(parameter, null, serviceRegistryFactoryMock, standardOutputRedirectorMock);
+        gradle = new DefaultGradle(parameter, null, serviceRegistryFactoryMock, standardOutputRedirectorMock,
+                                   new DefaultListenerManager());
     }
-    
+
     @Test
     public void usesGradleVersion() {
         assertThat(gradle.getGradleVersion(), equalTo(new GradleVersion().getVersion()));
@@ -108,7 +110,7 @@ public class DefaultGradleTest {
             one(listener).afterEvaluate(project, failure);
         }});
 
-        gradle.addProjectEvaluationListener(listener);
+        gradle.addListener(listener);
 
         gradle.getProjectEvaluationBroadcaster().beforeEvaluate(project);
         gradle.getProjectEvaluationBroadcaster().afterEvaluate(project, failure);

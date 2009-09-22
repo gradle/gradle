@@ -22,6 +22,7 @@ import org.jmock.Expectations;
 import org.gradle.initialization.LoggingConfigurer;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.listener.ListenerManager;
 import org.hamcrest.Matchers;
 
 /**
@@ -35,6 +36,7 @@ public class DefaultGradleFactoryTest {
         final StartParameter startParameter = HelperUtil.dummyStartParameter();
         final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
         context.checking(new Expectations() {{
+            one(loggingConfigurer).initialize(with(any(ListenerManager.class)));
             one(loggingConfigurer).configure(startParameter.getLogLevel());
         }});
         new DefaultGradleFactory(loggingConfigurer, context.mock(CommandLine2StartParameterConverter.class)).newInstance(startParameter);
@@ -47,6 +49,7 @@ public class DefaultGradleFactoryTest {
         final String[] commandLineArgs = WrapUtil.toArray("A", "B");
         final CommandLine2StartParameterConverter parameterConverterStub = context.mock(CommandLine2StartParameterConverter.class);
         context.checking(new Expectations() {{
+            one(loggingConfigurer).initialize(with(any(ListenerManager.class)));
             one(loggingConfigurer).configure(startParameter.getLogLevel());
             allowing(parameterConverterStub).convert(commandLineArgs); will(returnValue(startParameter));
         }});
@@ -60,12 +63,11 @@ public class DefaultGradleFactoryTest {
         final String[] commandLineArgs = WrapUtil.toArray("A", "B");
         final CommandLine2StartParameterConverter parameterConverterStub = context.mock(CommandLine2StartParameterConverter.class);
         context.checking(new Expectations() {{
+            one(loggingConfigurer).initialize(with(any(ListenerManager.class)));
             one(loggingConfigurer).configure(startParameter.getLogLevel());
             allowing(parameterConverterStub).convert(commandLineArgs); will(returnValue(startParameter));
         }});
         assertThat(new DefaultGradleFactory(loggingConfigurer, parameterConverterStub).createStartParameter(commandLineArgs),
             Matchers.sameInstance(startParameter));
     }
-
-
 }

@@ -19,10 +19,13 @@ import ch.qos.logback.classic.LoggerContext;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.Logging;
+import org.gradle.listener.ListenerManager;
+import org.gradle.listener.DefaultListenerManager;
 import static org.hamcrest.Matchers.*;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +33,17 @@ import java.io.StringWriter;
 
 public class DefaultLoggingConfigurerTest {
     private final DefaultLoggingConfigurer configurer = new DefaultLoggingConfigurer();
+    private final StandardOutputListener outputListener = new ListenerImpl();
+    private final StandardOutputListener errorListener = new ListenerImpl();
     private final Logger logger = LoggerFactory.getLogger("cat1");
 
+    @Before
+    public void setUp() {
+        ListenerManager listenerManager = new DefaultListenerManager();
+        configurer.initialize(listenerManager);
+        configurer.addStandardOutputListener(outputListener);
+        configurer.addStandardErrorListener(errorListener);
+    }
     @After
     public void tearDown() {
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -40,8 +52,6 @@ public class DefaultLoggingConfigurerTest {
 
     @Test
     public void canListenOnStdOutput() {
-        ListenerImpl listener = new ListenerImpl();
-        configurer.addStandardOutputListener(listener);
         configurer.configure(LogLevel.INFO);
 
         logger.debug("debug message");
@@ -49,13 +59,11 @@ public class DefaultLoggingConfigurerTest {
         logger.warn("warn message");
         logger.error("error message");
 
-        assertThat(listener.toString(), equalTo(String.format("info message%nwarn message%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("info message%nwarn message%n")));
     }
 
     @Test
     public void canListenOnStdError() {
-        ListenerImpl listener = new ListenerImpl();
-        configurer.addStandardErrorListener(listener);
         configurer.configure(LogLevel.INFO);
 
         logger.debug("debug message");
@@ -63,13 +71,11 @@ public class DefaultLoggingConfigurerTest {
         logger.warn("warn message");
         logger.error("error message");
 
-        assertThat(listener.toString(), equalTo(String.format("error message%n")));
+        assertThat(errorListener.toString(), equalTo(String.format("error message%n")));
     }
 
     @Test
     public void filtersProgressAndLowerWhenConfiguredAtQuietLevel() {
-        ListenerImpl listener = new ListenerImpl();
-        configurer.addStandardOutputListener(listener);
         configurer.configure(LogLevel.QUIET);
 
         logger.info(Logging.QUIET, "quiet message");
@@ -78,13 +84,11 @@ public class DefaultLoggingConfigurerTest {
         logger.info("info message");
         logger.debug("debug message");
 
-        assertThat(listener.toString(), equalTo(String.format("quiet message%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("quiet message%n")));
     }
     
     @Test
     public void filtersInfoAndLowerWhenConfiguredAtLifecycleLevel() {
-        ListenerImpl listener = new ListenerImpl();
-        configurer.addStandardOutputListener(listener);
         configurer.configure(LogLevel.LIFECYCLE);
 
         logger.info(Logging.QUIET, "quiet message");
@@ -93,13 +97,11 @@ public class DefaultLoggingConfigurerTest {
         logger.info("info message");
         logger.debug("debug message");
 
-        assertThat(listener.toString(), equalTo(String.format("quiet message%n<progress message>lifecycle message%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("quiet message%n<progress message>lifecycle message%n")));
     }
 
     @Test
     public void filtersDebugAndLowerWhenConfiguredAtInfoLevel() {
-        ListenerImpl listener = new ListenerImpl();
-        configurer.addStandardOutputListener(listener);
         configurer.configure(LogLevel.INFO);
 
         logger.info(Logging.QUIET, "quiet message");
@@ -108,7 +110,7 @@ public class DefaultLoggingConfigurerTest {
         logger.info("info message");
         logger.debug("debug message");
 
-        assertThat(listener.toString(), equalTo(String.format("quiet message%n<progress message>lifecycle message%ninfo message%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("quiet message%n<progress message>lifecycle message%ninfo message%n")));
     }
 
     private static class ListenerImpl implements StandardOutputListener {

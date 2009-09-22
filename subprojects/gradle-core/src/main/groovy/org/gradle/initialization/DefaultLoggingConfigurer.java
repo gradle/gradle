@@ -29,7 +29,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.IvyLoggingAdaper;
 import org.gradle.logging.MarkerFilter;
-import org.gradle.util.ListenerBroadcast;
+import org.gradle.listener.ListenerManager;
+import org.gradle.listener.ListenerBroadcast;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -47,6 +48,11 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
 
     public void addStandardOutputListener(StandardOutputListener listener) {
         stdoutConsoleAppender.addListener(listener);
+    }
+
+    public void initialize(ListenerManager listenerManager) {
+        stdoutConsoleAppender.setListeners(listenerManager.createAnonymousBroadcaster(StandardOutputListener.class));
+        stderrConsoleAppender.setListeners(listenerManager.createAnonymousBroadcaster(StandardOutputListener.class));
     }
 
     public void configure(LogLevel logLevel) {
@@ -141,17 +147,30 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
     }
 
     private static class Appender extends ConsoleAppender<LoggingEvent> {
-        private final ListenerBroadcast<StandardOutputListener> listeners
-                = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+        private ListenerBroadcast<StandardOutputListener> listeners;
+
+        public void setListeners(ListenerBroadcast<StandardOutputListener> listeners) {
+            // Register the old listeners as a listener on the new broadcast.  This chains together
+            // all listeners ever registered with this Appender.
+            if (this.listeners != null) {
+                listeners.add(this.listeners.getSource());
+            }
+            this.listeners = listeners;
+        }
 
         public void addListener(StandardOutputListener listener) {
+            if (listeners == null) {
+                throw new IllegalStateException("Cannot add listener before initialize() has been called.");
+            }
             listeners.add(listener);
         }
 
         @Override
         protected void append(LoggingEvent event) {
             super.append(event);
-            listeners.getSource().onOutput(layout.doLayout(event));
+            if (listeners != null) {
+                listeners.getSource().onOutput(layout.doLayout(event));
+            }
         }
     }
 }

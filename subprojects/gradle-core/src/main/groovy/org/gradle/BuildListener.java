@@ -24,7 +24,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
  * build.</p>
  *
  * @author Hans Dockter
- * @see org.gradle.api.invocation.Gradle#addBuildListener(BuildListener)
+ * @see org.gradle.api.invocation.Gradle#addListener(Object)
  */
 public interface BuildListener {
     /**

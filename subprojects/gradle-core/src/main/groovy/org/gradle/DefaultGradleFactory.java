@@ -31,6 +31,8 @@ import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.WrapUtil;
+import org.gradle.listener.ListenerManager;
+import org.gradle.listener.DefaultListenerManager;
 
 /**
  * @author Hans Dockter
@@ -61,6 +63,8 @@ public class DefaultGradleFactory implements GradleFactory {
     }
 
     public GradleLauncher newInstance(StartParameter startParameter) {
+        ListenerManager listenerManager = new DefaultListenerManager();
+        loggingConfigurer.initialize(listenerManager);
         loggingConfigurer.configure(startParameter.getLogLevel());
         ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
 
@@ -70,7 +74,7 @@ public class DefaultGradleFactory implements GradleFactory {
                         new ParentDirSettingsFinderStrategy()))
         );
         ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory();
-        DefaultInternalRepository internalRepository = new DefaultInternalRepository();
+        DefaultInternalRepository internalRepository = new DefaultInternalRepository(listenerManager);
         DependencyFactory dependencyFactory = new DefaultDependencyFactory(
                 WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),
                         new SelfResolvingDependencyFactory()),
@@ -102,8 +106,8 @@ public class DefaultGradleFactory implements GradleFactory {
                 startParameter,
                 internalRepository,
                 serviceRegistryFactory,
-                new DefaultStandardOutputRedirector());
-        gradle.addBuildListener(internalRepository);
+                new DefaultStandardOutputRedirector(),
+                listenerManager);
         return new GradleLauncher(
                 gradle,
                 initScriptHandler,
@@ -125,6 +129,7 @@ public class DefaultGradleFactory implements GradleFactory {
                         new ProjectFactory(serviceRegistryFactory,
                                 startParameter.getBuildScriptSource())),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()),
-                loggingConfigurer);
+                loggingConfigurer,
+                listenerManager);
     }
 }

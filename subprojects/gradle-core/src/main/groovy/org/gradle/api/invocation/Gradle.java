@@ -127,6 +127,20 @@ public interface Gradle {
     void addBuildListener(BuildListener buildListener);
 
     /**
+     * Adds the given listener to this build.
+     *
+     * @param listener The listener to add. Does nothing if this listener has already been added.
+     */
+    public void addListener(Object listener);
+
+    /**
+     * Removes the given listener from this build.
+     *
+     * @param listener The listener to remove. Does nothing if this listener has not been added.
+     */
+    public void removeListener(Object listener);
+
+    /**
      * Returns this {@code Gradle} instance.
      *
      * @return this. Never returns null.

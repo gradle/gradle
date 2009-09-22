@@ -116,12 +116,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     public ExecutionResult run() {
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
-        gradleLauncher.addBuildListener(new BuildListenerImpl());
+        gradleLauncher.addListener(new BuildListenerImpl());
         gradleLauncher.addStandardOutputListener(outputListener);
         gradleLauncher.addStandardErrorListener(errorListener);
         BuildResult result = gradleLauncher.run();
         result.rethrowFailure();
-        return new InProcessExecutionResult(tasks, outputListener.writer.toString(), errorListener.writer.toString());
+        return new InProcessExecutionResult(tasks, outputListener.toString(), errorListener.toString());
     }
 
     public ExecutionFailure runWithFailure() {
@@ -146,6 +146,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     private class OutputListenerImpl implements StandardOutputListener {
         private StringWriter writer = new StringWriter();
+
+        @Override public String toString() {
+            return writer.toString();
+        }
 
         public void onOutput(CharSequence output) {
             writer.append(output);

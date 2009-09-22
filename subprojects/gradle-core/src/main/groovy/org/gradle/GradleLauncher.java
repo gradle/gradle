@@ -23,6 +23,7 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.*;
+import org.gradle.listener.ListenerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +67,7 @@ public class GradleLauncher {
     private final BuildLoader buildLoader;
     private final BuildConfigurer buildConfigurer;
     private final LoggingConfigurer loggingConfigurer;
+    private final ListenerManager listenerManager;
     private final InitScriptHandler initScriptHandler;
 
     /**
@@ -74,7 +76,7 @@ public class GradleLauncher {
      */
     public GradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                           IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
-                          BuildConfigurer buildConfigurer, LoggingConfigurer loggingConfigurer) {
+                          BuildConfigurer buildConfigurer, LoggingConfigurer loggingConfigurer, ListenerManager listenerManager) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -82,6 +84,7 @@ public class GradleLauncher {
         this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
         this.loggingConfigurer = loggingConfigurer;
+        this.listenerManager = listenerManager;
     }
 
     /**
@@ -216,10 +219,10 @@ public class GradleLauncher {
      * <p>Adds a {@link BuildListener} to this build instance. The listener is notified of events which occur during the
      * execution of the build.</p>
      *
-     * @param buildListener The listener to add. Has no effect if the listener has already been added.
+     * @param listener The listener to add. Has no effect if the listener has already been added.
      */
-    public void addBuildListener(BuildListener buildListener) {
-        gradle.addBuildListener(buildListener);
+    public void addListener(Object listener) {
+        gradle.addListener(listener);
     }
 
     /**
