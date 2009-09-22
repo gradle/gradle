@@ -17,16 +17,18 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.util.GFileUtils;
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-
+import java.io.File;
 
 /**
  * @author Hans Dockter
@@ -45,6 +47,8 @@ public class CompileTest extends AbstractCompileTest {
         compile = createTask(Compile.class);
         antCompileMock = context.mock(AntJavac.class);
         compile.antCompile = antCompileMock;
+
+        GFileUtils.touch(new File(srcDir, "incl/file.java"));
     }
            
     public ConventionTask getTask() {
@@ -54,9 +58,15 @@ public class CompileTest extends AbstractCompileTest {
     public void testExecute(final int numFilesCompiled) {
         setUpMocksAndAttributes(compile);
         context.checking(new Expectations() {{
-            one(antCompileMock).execute(compile.getSrcDirs(), compile.getIncludes(), compile.getExcludes(), compile.getDestinationDir(),
-                    compile.getDependencyCacheDir(), compile.getClasspath(), compile.getSourceCompatibility(), compile.getTargetCompatibility(), compile.getOptions(),
-                    compile.getProject().getAnt());
+            one(antCompileMock).execute(
+                    with(hasSameItems(compile.getFilteredSrc())),
+                    with(equalTo(compile.getDestinationDir())),
+                    with(equalTo(compile.getDependencyCacheDir())),
+                    with(equalTo(compile.getClasspath())),
+                    with(equalTo(compile.getSourceCompatibility())),
+                    with(equalTo(compile.getTargetCompatibility())),
+                    with(equalTo(compile.getOptions())),
+                    with(equalTo(compile.getAnt())));
             one(antCompileMock).getNumFilesCompiled(); will(returnValue(numFilesCompiled));
         }});
         compile.execute();

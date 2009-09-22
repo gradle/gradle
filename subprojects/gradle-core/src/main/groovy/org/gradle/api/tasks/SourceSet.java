@@ -15,14 +15,12 @@
  */
 package org.gradle.api.tasks;
 
+import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.tasks.util.PatternFilterable;
 
 import java.io.File;
-
-import groovy.lang.Closure;
 
 /**
  * <p>A {@code SourceSet} represents a logical group of Java source and resources.</p>
@@ -144,12 +142,11 @@ public interface SourceSet {
     FileTree getAllJava();
 
     /**
-     * Returns the patterns used to select Java source. This pattern set is applied to the files returned by {@link
-     * #getAllJava()}.
+     * All source for this source set.
      *
-     * @return the patterns. Never returns null.
+     * @return the source. Never returns null.
      */
-    PatternFilterable getJavaSourcePatterns();
+    FileTree getAllSource();
 
     /**
      * Returns the name of the compile task for this source set.

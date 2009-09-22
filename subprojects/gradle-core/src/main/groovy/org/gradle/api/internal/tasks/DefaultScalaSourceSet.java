@@ -33,6 +33,7 @@ public class DefaultScalaSourceSet implements ScalaSourceSet {
 
     public DefaultScalaSourceSet(String displayName, FileResolver fileResolver) {
         scala = new DefaultSourceDirectorySet(String.format("%s Scala source", displayName), fileResolver);
+        scala.getFilter().include("**/*.java", "**/*.scala");
         scalaPatterns.include("**/*.scala");
         allScala = new UnionFileTree(String.format("%s Scala source", displayName), scala.matching(scalaPatterns));
     }

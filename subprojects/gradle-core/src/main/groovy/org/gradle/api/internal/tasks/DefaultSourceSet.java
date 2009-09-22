@@ -15,20 +15,20 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.PatternFilterable;
+import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.*;
-import org.gradle.util.GUtil;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.PathResolvingFileCollection;
+import org.gradle.api.internal.file.UnionFileTree;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.concurrent.Callable;
-
-import groovy.lang.Closure;
 
 public class DefaultSourceSet implements SourceSet {
     private final String name;
@@ -39,20 +39,28 @@ public class DefaultSourceSet implements SourceSet {
     private final SourceDirectorySet javaSource;
     private final UnionFileTree allJavaSource;
     private final SourceDirectorySet resources;
-    private final PatternFilterable javaSourcePatterns = new PatternSet();
     private final PathResolvingFileCollection classes;
     private final String displayName;
+    private final UnionFileTree allSource;
 
     public DefaultSourceSet(String name, FileResolver fileResolver, TaskResolver taskResolver) {
         this.name = name;
         this.fileResolver = fileResolver;
         displayName = GUtil.toWords(this.name);
+
         String javaSrcDisplayName = String.format("%s Java source", displayName);
         javaSource = new DefaultSourceDirectorySet(javaSrcDisplayName, fileResolver);
-        javaSourcePatterns.include("**/*.java");
-        allJavaSource = new UnionFileTree(javaSrcDisplayName, javaSource.matching(javaSourcePatterns));
+        javaSource.getFilter().include("**/*.java");
+
+        allJavaSource = new UnionFileTree(javaSrcDisplayName, javaSource.matching(javaSource.getFilter()));
+
         String resourcesDisplayName = String.format("%s resources", displayName);
         resources = new DefaultSourceDirectorySet(resourcesDisplayName, fileResolver);
+        resources.getFilter().exclude("**/*.java");
+
+        String allSourceDisplayName = String.format("%s source", displayName);
+        allSource = new UnionFileTree(allSourceDisplayName, resources, javaSource);
+
         String classesDisplayName = String.format("%s classes", displayName);
         classes = new PathResolvingFileCollection(classesDisplayName, fileResolver, taskResolver, new Callable() {
             public Object call() throws Exception {
@@ -136,10 +144,6 @@ public class DefaultSourceSet implements SourceSet {
         return allJavaSource;
     }
 
-    public PatternFilterable getJavaSourcePatterns() {
-        return javaSourcePatterns;
-    }
-
     public SourceDirectorySet getResources() {
         return resources;
     }
@@ -147,5 +151,9 @@ public class DefaultSourceSet implements SourceSet {
     public SourceSet resources(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getResources());
         return this;
+    }
+
+    public FileTree getAllSource() {
+        return allSource;
     }
 }

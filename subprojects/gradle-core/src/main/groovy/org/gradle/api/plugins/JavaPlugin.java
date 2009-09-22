@@ -37,7 +37,6 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -168,9 +167,9 @@ public class JavaPlugin implements Plugin {
                 return sourceSet.getCompileClasspath();
             }
         });
-        conventionMapping.map("srcDirs", new ConventionValue() {
+        conventionMapping.map("src", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return new ArrayList<File>(sourceSet.getJava().getSrcDirs());
+                return sourceSet.getJava();
             }
         });
         conventionMapping.map("destinationDir", new ConventionValue() {

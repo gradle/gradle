@@ -15,24 +15,44 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.Buildable;
+import org.gradle.api.Task;
 import org.hamcrest.*;
 import static org.hamcrest.Matchers.*;
-import org.gradle.api.Task;
-import org.gradle.api.Buildable;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Arrays;
-import java.util.regex.Pattern;
 import java.io.BufferedReader;
-import java.io.StringReader;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.*;
+import java.util.regex.Pattern;
 
 public class Matchers {
     @Factory
     public static <T> Matcher<T> reflectionEquals(T equalsTo) {
         return new ReflectionEqualsMatcher<T>(equalsTo);
+    }
+
+    @Factory
+    public static <T, S extends Iterable<? extends T>> Matcher<S> hasSameItems(final S items) {
+        return new BaseMatcher<S>() {
+            public boolean matches(Object o) {
+                Iterable<? extends T> iterable = (Iterable<? extends T>) o;
+                List<T> actual = new ArrayList<T>();
+                for (T t : iterable) {
+                    actual.add(t);
+                }
+                List<T> expected = new ArrayList<T>();
+                for (T t : items) {
+                    expected.add(t);
+                }
+
+                return expected.equals(actual);
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("has same items as ").appendValue(items);
+            }
+        };
     }
 
     @Factory

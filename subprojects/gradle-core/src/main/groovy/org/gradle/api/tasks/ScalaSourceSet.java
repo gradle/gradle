@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.tasks.util.PatternFilterable;
 
 /**
  * A {@code ScalaSourceSetConvention} defines the properties and methods added to a {@link org.gradle.api.tasks.SourceSet}
@@ -26,7 +25,8 @@ import org.gradle.api.tasks.util.PatternFilterable;
  */
 public interface ScalaSourceSet {
     /**
-     * Returns the Scala source to be compiled by the Scala compiler for this source set.
+     * Returns the source to be compiled by the Scala compiler for this source set. This may contain both Java
+     * and Scala source files.
      *
      * @return The Scala source. Never returns null.
      */
@@ -40,14 +40,6 @@ public interface ScalaSourceSet {
      * @return this
      */
     ScalaSourceSet scala(Closure configureClosure);
-
-    /**
-     * Returns the patterns used to select Scala source for this source set. This pattern set is applied to the files
-     * returned by {@link #getAllScala()}.
-     *
-     * @return The patterns. Never returns null.
-     */
-    PatternFilterable getScalaSourcePatterns();
 
     /**
      * All Scala source for this source set.

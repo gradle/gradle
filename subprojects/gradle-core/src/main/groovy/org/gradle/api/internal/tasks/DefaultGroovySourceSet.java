@@ -33,6 +33,7 @@ public class DefaultGroovySourceSet implements GroovySourceSet {
 
     public DefaultGroovySourceSet(String displayName, FileResolver fileResolver) {
         groovy = new DefaultSourceDirectorySet(String.format("%s Groovy source", displayName), fileResolver);
+        groovy.getFilter().include("**/*.java", "**/*.groovy");
         groovyPatterns.include("**/*.groovy");
         allGroovy = new UnionFileTree(String.format("%s Groovy source", displayName), groovy.matching(groovyPatterns));
     }

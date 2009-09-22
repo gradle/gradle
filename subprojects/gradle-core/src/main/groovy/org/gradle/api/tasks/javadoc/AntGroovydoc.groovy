@@ -16,17 +16,19 @@
 
 package org.gradle.api.tasks.javadoc
 
-import org.gradle.util.GradleUtil
+import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.util.BootstrapUtil
 
 /**
  * @author Hans Dockter
  */
 class AntGroovydoc {
     void execute(List sourceDirs, File destDir, List<String> packageNames, boolean use, String windowTitle,
-        String docTitle, String header, String footer, File overview, boolean includePrivate, AntBuilder ant, List taskClasspath) {
+        String docTitle, String header, String footer, File overview, boolean includePrivate, IsolatedAntBuilder ant,
+        List groovyClasspath) {
         Map args = [:]
-        args.sourcepath = sourceDirs.collect {GradleUtil.unbackslash(it)}.join(':')
-        args.destdir = GradleUtil.unbackslash(destDir)
+        args.sourcepath = sourceDirs.join(File.pathSeparator)
+        args.destdir = destDir
         if (packageNames) {
             args.packagenames = packageNames.join(',')
         }
@@ -37,22 +39,12 @@ class AntGroovydoc {
         addToMapIfNotNull(args, 'header', header)
         addToMapIfNotNull(args, 'footer', footer)
         addToMapIfNotNull(args, 'overview', overview)
-        String groovydoc = """
-    ant.taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
-    ant.groovydoc(
-          ${createArgsString(args)})
-"""
-        GradleUtil.executeIsolatedAntScript(taskClasspath, groovydoc)
-    }
 
-    private String createArgsString(Map args) {
-        String argsString = ''
-        args.each {key, value ->
-            argsString += "$key: '$value',"
+        ant.execute(BootstrapUtil.antJarFiles + groovyClasspath) {
+            taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
+            groovydoc(args)
         }
-        return argsString.substring(0, argsString.length() - 1)
     }
-
 
     void addToMapIfNotNull(Map map, String key, Object value) {
         if (value != null) map.put(key, value)

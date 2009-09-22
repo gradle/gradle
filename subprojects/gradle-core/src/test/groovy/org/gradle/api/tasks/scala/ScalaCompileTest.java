@@ -20,17 +20,18 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
 import org.gradle.api.tasks.compile.AntJavac;
 import org.gradle.api.tasks.compile.Compile;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.GFileUtils;
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScalaCompileTest extends AbstractCompileTest {
 
@@ -60,22 +61,20 @@ public class ScalaCompileTest extends AbstractCompileTest {
         antCompileMock = context.mock(AntJavac.class);
         scalaCompile.setAntScalaCompile(antScalaCompileMock);
         scalaCompile.setAntCompile(antCompileMock);
+
+        GFileUtils.touch(new File(srcDir, "incl/file.scala"));
+        GFileUtils.touch(new File(srcDir, "incl/file.java"));
     }
 
     @Test
     public void testExecuteDoingWork() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
-            one(antScalaCompileMock).execute(scalaCompile.getSrcDirs(),
-                    scalaCompile.getIncludes(),
-                    scalaCompile.getExcludes(),
-                    scalaCompile.getDestinationDir(),
-                    scalaCompile.getClasspath(),
-                    scalaCompile.getScalaCompileOptions());
-
-            Set<String> expectedExcludes = new HashSet<String>();
-            expectedExcludes.addAll(scalaCompile.getExcludes());
-            expectedExcludes.add("**/*.scala");
+            one(antScalaCompileMock).execute(
+                    with(hasSameItems(scalaCompile.getFilteredSrc())),
+                    with(equalTo(scalaCompile.getDestinationDir())),
+                    with(equalTo(scalaCompile.getClasspath())),
+                    with(equalTo(scalaCompile.getScalaCompileOptions())));
 
             List<File> expectedClassPath = new ArrayList<File>();
             expectedClassPath.add(scalaCompile.getDestinationDir());
@@ -83,34 +82,25 @@ public class ScalaCompileTest extends AbstractCompileTest {
                 expectedClassPath.add(file);
             }
 
-            one(antCompileMock).execute(scalaCompile.getSrcDirs(),
-                    scalaCompile.getIncludes(),
-                    expectedExcludes,
-                    scalaCompile.getDestinationDir(),
-                    scalaCompile.getDependencyCacheDir(),
-                    expectedClassPath,
-                    scalaCompile.getSourceCompatibility(),
-                    scalaCompile.getTargetCompatibility(),
-                    scalaCompile.getOptions(),
-                    scalaCompile.getAnt());
+            FileCollection javaSrc = scalaCompile.getFilteredJavaSrc();
+            one(antCompileMock).execute(
+                    with(hasSameItems(javaSrc)),
+                    with(equalTo(scalaCompile.getDestinationDir())),
+                    with(equalTo(scalaCompile.getDependencyCacheDir())),
+                    with(equalTo(expectedClassPath)),
+                    with(equalTo(scalaCompile.getSourceCompatibility())),
+                    with(equalTo(scalaCompile.getTargetCompatibility())),
+                    with(equalTo(scalaCompile.getOptions())),
+                    with(equalTo(scalaCompile.getAnt())));
         }});
 
         scalaCompile.compile();
     }
 
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {
-        compile.setSrcDirs(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
+        compile.src(srcDir);
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
-        setupExistingDirsFilter(scalaCompile, new ExistingDirsFilter() {
-            @Override
-            public List<File> checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir,
-                                                                                      Collection<File> dirFiles) {
-                assertSame(destDir, compile.getDestinationDir());
-                assertSame(dirFiles, compile.getSrcDirs());
-                return compile.getSrcDirs();
-            }
-        });
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
         compile.setDependencyCacheDir(depCacheDir);

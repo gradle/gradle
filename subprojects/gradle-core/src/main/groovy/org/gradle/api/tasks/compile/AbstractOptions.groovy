@@ -36,18 +36,6 @@ abstract class AbstractOptions {
         }
     }
 
-    Map quotedOptionMap() {
-        Map map = optionMap()
-        map.each {key, value ->
-            if (value instanceof String) {
-                map[key] = "'${value.replaceAll('\\\\', '\\\\\\\\').replaceAll('\'', '\\\\\'')}'".toString()
-            }
-            else {
-                map[key] = value.toString()
-            }
-        }
-    }
-
     // todo: change modifier to private when GROOVY-2565 is fixed.
     protected Map addValueToMapIfNotNull(Map map, Field field) {
         def value = this."${field.name}"

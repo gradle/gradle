@@ -19,13 +19,11 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.WrapUtil;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,9 +37,10 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final String TEST_PATTERN_3 = "pattern3";
 
     public static final List<File> TEST_DEPENDENCY_MANAGER_CLASSPATH = WrapUtil.toList(new File("jar1"));
-    public static final List<String> TEST_INCLUDES = WrapUtil.toList("incl");
-    public static final List<String> TEST_EXCLUDES = WrapUtil.toList("excl");
+    public static final List<String> TEST_INCLUDES = WrapUtil.toList("incl/*");
+    public static final List<String> TEST_EXCLUDES = WrapUtil.toList("excl/*");
 
+    protected File srcDir;
     protected File destDir;
     protected File depCacheDir;
 
@@ -52,17 +51,18 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         super.setUp();
         destDir = getProject().file("destDir");
         depCacheDir = getProject().file("depCache");
+        srcDir = getProject().file("src");
+        srcDir.mkdirs();
     }
 
-    @Test public void testCompile() {
+    @Test public void testDefaults() {
         Compile compile = getCompile();
         assertNotNull(compile.getOptions());
-        assertNotNull(compile.existentDirsFilter);
         assertNotNull(compile.antCompile);
         assertNull(compile.getDestinationDir());
         assertNull(compile.getSourceCompatibility());
         assertNull(compile.getTargetCompatibility());
-        assertNull(compile.getSrcDirs());
+        assertNull(compile.getSrc());
     }
 
     @Test (expected = GradleScriptException.class) public void testExecuteWithUnspecifiedSourceCompatibility() {
@@ -87,18 +87,9 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     }
 
     protected void setUpMocksAndAttributes(final Compile compile) {
-        compile.setSrcDirs(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
+        compile.src(srcDir);
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
-        setupExistingDirsFilter(compile, new ExistingDirsFilter(){
-            @Override
-            public List<File> checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir,
-                                                                                      Collection<File> dirFiles) {
-                assertSame(destDir, compile.getDestinationDir());
-                assertSame(dirFiles, compile.getSrcDirs());
-                return compile.getSrcDirs();
-            }
-        });
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
@@ -114,25 +105,6 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
                 return new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH);
             }
         });
-    }
-
-    protected void setupExistingDirsFilter(Compile compile, ExistingDirsFilter existingDirsFilter) {
-        compile.existentDirsFilter = existingDirsFilter;
-    }
-
-    protected ExistingDirsFilter getGroovyCompileExistingDirsFilterMock(final Compile compile) {
-        return new ExistingDirsFilter(){
-            @Override
-            public List<File> findExistingDirs(Collection<File> dirFiles) {
-                if (dirFiles == compile.getSrcDirs()) {
-                    return compile.getSrcDirs();
-                } else if (dirFiles == compile.property("groovySourceDirs")) {
-                    return (List<File>) compile.property("groovySourceDirs");
-                }
-                fail("srcdirs not passed");
-                return null;
-            }
-        };
     }
 
     @Test public void testIncludes() {

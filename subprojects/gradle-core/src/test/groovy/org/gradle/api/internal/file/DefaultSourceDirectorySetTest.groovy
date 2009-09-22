@@ -75,11 +75,11 @@ public class DefaultSourceDirectorySetTest {
         set.srcDir 'dir1'
         set.srcDir 'dir2'
 
-        assertSetContains(set, 'subdir/file1.txt', 'subdir/file2.txt', 'subdir2/file1.txt')
+        assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir/file2.txt', 'subdir2/file1.txt')
     }
 
     @Test
-    public void canLimitFilesFromAllSourceDirectories() {
+    public void canUsePatternsToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
         GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
@@ -94,7 +94,26 @@ public class DefaultSourceDirectorySetTest {
         set.include '**/file*'
         set.exclude '**/file2*'
 
-        assertSetContains(set, 'subdir/file1.txt', 'subdir2/file1.txt')
+        assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
+    }
+
+    @Test
+    public void canUseFilterPatternsToFilterCertainFiles() {
+        File srcDir1 = new File(testDir, 'dir1')
+        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
+        GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
+        GFileUtils.touch(new File(srcDir1, 'subdir/ignored.txt'))
+        File srcDir2 = new File(testDir, 'dir2')
+        GFileUtils.touch(new File(srcDir2, 'subdir2/file1.txt'))
+        GFileUtils.touch(new File(srcDir2, 'subdir2/file2.txt'))
+        GFileUtils.touch(new File(srcDir2, 'subdir2/ignored.txt'))
+
+        set.srcDir 'dir1'
+        set.srcDir 'dir2'
+        set.filter.include '**/file*'
+        set.filter.exclude '**/file2*'
+
+        assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 
     @Test
@@ -105,7 +124,7 @@ public class DefaultSourceDirectorySetTest {
         set.srcDir 'dir1'
         set.srcDir 'dir2'
 
-        assertSetContains(set, 'subdir/file1.txt')
+        assertSetContainsForAllTypes(set, 'subdir/file1.txt')
     }
 
     @Test
@@ -159,7 +178,7 @@ public class DefaultSourceDirectorySetTest {
     }
 
     @Test
-    public void canFilterSourceFiles() {
+    public void canUseMatchingMethodToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
         GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
@@ -172,26 +191,28 @@ public class DefaultSourceDirectorySetTest {
             exclude 'subdir2/**'
         }
 
-        assertSetContains(filteredSet, 'subdir/file1.txt')
+        assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
     }
 
     @Test
-    public void canLimitAndFilterSourceFiles() {
+    public void canUsePatternsAndFilterPatternsAndMatchingMethodToFilterSourceFiles() {
         File srcDir1 = new File(testDir, 'dir1')
         GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
+        GFileUtils.touch(new File(srcDir1, 'subdir/file1.other'))
         GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
         GFileUtils.touch(new File(srcDir1, 'subdir/ignored.txt'))
         GFileUtils.touch(new File(srcDir1, 'subdir2/file1.txt'))
 
         set.srcDir 'dir1'
-        set.include '**/*file?.txt'
+        set.include '**/*file?.*'
+        set.filter.include '**/*.txt'
 
         FileTree filteredSet = set.matching {
             include 'subdir/**'
             exclude '**/file2.txt'
         }
 
-        assertSetContains(filteredSet, 'subdir/file1.txt')
+        assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
     }
 
     @Test
@@ -205,11 +226,11 @@ public class DefaultSourceDirectorySetTest {
         set.srcDir 'dir1'
 
         FileTree filteredSet = set.matching { include '**/file1.txt' }
-        assertSetContains(filteredSet, 'subdir/file1.txt')
+        assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt')
 
         set.srcDir 'dir2'
 
-        assertSetContains(filteredSet, 'subdir/file1.txt', 'subdir2/file1.txt')
+        assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 }
 

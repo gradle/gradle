@@ -19,6 +19,7 @@ package org.gradle.api.tasks.javadoc;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
@@ -73,8 +74,10 @@ public class Groovydoc extends ConventionTask {
                 getDestinationDir(), getSrcDirs());
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
+        ProjectInternal project = (ProjectInternal) getProject();
         antGroovydoc.execute(existingSourceDirs, getDestinationDir(), getPackageNames(), isUse(), getWindowTitle(),
-                getDocTitle(), getHeader(), getFooter(), getOverview(), isIncludePrivate(), getProject().getAnt(), taskClasspath);
+                getDocTitle(), getHeader(), getFooter(), getOverview(), isIncludePrivate(),
+                project.getGradle().getIsolatedAntBuilder(), taskClasspath);
     }
 
     private void throwExceptionIfTaskClasspathIsEmpty(List taskClasspath) {

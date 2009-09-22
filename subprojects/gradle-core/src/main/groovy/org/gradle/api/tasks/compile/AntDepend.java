@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.tasks.compile;
 
-import org.apache.tools.ant.types.resources.FileResource;
+import org.apache.tools.ant.taskdefs.optional.depend.Depend;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.BuildException;
 
-/**
- * Unjiggers the FileResource.getName() method.
- */
-public class AntFileResource extends FileResource {
-    private String name;
+public class AntDepend extends Depend {
+    private Path src;
 
-    @Override
-    public void setName(String name) {
-        this.name = name;
+    public Path createSrc() {
+        if (src == null) {
+            src = new Path(getProject());
+        }
+        return src.createPath();
     }
 
     @Override
-    public String getName() {
-        return name;
+    public void execute() throws BuildException {
+        setSrcdir(src);
+        super.execute();
     }
 }

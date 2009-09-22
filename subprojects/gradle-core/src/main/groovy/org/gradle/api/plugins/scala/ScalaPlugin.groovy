@@ -53,13 +53,16 @@ public class ScalaPlugin implements Plugin {
         project.convention.getPlugin(JavaPluginConvention.class).source.allObjects {SourceSet sourceSet ->
             sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, project.fileResolver)
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
+            sourceSet.allJava.add(sourceSet.scala.matching(sourceSet.java.filter))
+            sourceSet.allSource.add(sourceSet.scala)
+            sourceSet.resources.filter.exclude('**/*.scala')
 
             String taskName = "${sourceSet.compileTaskName}Scala"
             ScalaCompile scalaCompile = project.tasks.add(taskName, ScalaCompile.class);
             scalaCompile.dependsOn sourceSet.compileJavaTaskName
             javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
             scalaCompile.description = "Compiles the $sourceSet.scala.";
-            scalaCompile.conventionMapping.srcDirs = {sourceSet.scala.srcDirs as List}
+            scalaCompile.conventionMapping.src = { sourceSet.scala }
 
             project.tasks[sourceSet.compileTaskName].dependsOn(taskName)
         }

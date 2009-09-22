@@ -31,7 +31,8 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final PathResolvingFileCollection srcDirs;
     private final String displayName;
     private final FileResolver resolver;
-    private final PatternSet patternSet = new PatternSet();
+    private final PatternFilterable patterns = new PatternSet();
+    private final PatternFilterable filter = new PatternSet();
 
     public DefaultSourceDirectorySet(FileResolver fileResolver) {
         this("source set", fileResolver);
@@ -48,49 +49,53 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     public Set<String> getIncludes() {
-        return patternSet.getIncludes();
+        return patterns.getIncludes();
     }
 
     public Set<String> getExcludes() {
-        return patternSet.getExcludes();
+        return patterns.getExcludes();
     }
 
     public PatternFilterable setIncludes(Iterable<String> includes) {
-        patternSet.setIncludes(includes);
+        patterns.setIncludes(includes);
         return this;
     }
 
     public PatternFilterable setExcludes(Iterable<String> excludes) {
-        patternSet.setExcludes(excludes);
+        patterns.setExcludes(excludes);
         return this;
     }
 
     public PatternFilterable include(String... includes) {
-        patternSet.include(includes);
+        patterns.include(includes);
         return this;
     }
 
     public PatternFilterable include(Iterable<String> includes) {
-        patternSet.include(includes);
+        patterns.include(includes);
         return this;
     }
 
     public PatternFilterable exclude(Iterable<String> excludes) {
-        patternSet.exclude(excludes);
+        patterns.exclude(excludes);
         return this;
     }
 
     public PatternFilterable exclude(String... excludes) {
-        patternSet.exclude(excludes);
+        patterns.exclude(excludes);
         return this;
+    }
+
+    public PatternFilterable getFilter() {
+        return filter;
     }
 
     @Override
     protected void addSourceCollections(Collection<FileCollection> sources) {
         for (File sourceDir : getExistingSourceDirs()) {
             FileSet fileset = new FileSet(sourceDir, resolver);
-            fileset.getPatternSet().copyFrom(patternSet);
-            sources.add(fileset);
+            fileset.getPatternSet().copyFrom(patterns);
+            sources.add(fileset.matching(filter));
         }
     }
 

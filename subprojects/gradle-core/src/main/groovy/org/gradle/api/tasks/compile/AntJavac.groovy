@@ -16,8 +16,8 @@
 
 package org.gradle.api.tasks.compile
 
-import org.apache.tools.ant.taskdefs.Javac
-import org.gradle.api.tasks.util.AntTaskAccess
+import org.gradle.api.AntBuilder
+import org.gradle.api.file.FileCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -28,20 +28,14 @@ class AntJavac {
     private static Logger logger = LoggerFactory.getLogger(AntJavac)
     static final String CLASSPATH_ID = 'compile.classpath'
 
-    private final AntTaskAccess listener = new AntTaskAccess() { task->
-        if (task instanceof Javac) {
-            numFilesCompiled = task.fileList.length;
-        }
-    }
     int numFilesCompiled;
     
-    void execute(List sourceDirs, Collection includes, Collection excludes, File targetDir, File depCacheDir, 
+    void execute(FileCollection source, File targetDir, File depCacheDir, 
                  Iterable classpath, String sourceCompatibility, String targetCompatibility,
                  CompileOptions compileOptions, AntBuilder ant) {
         createAntClassPath(ant, classpath)
         Map otherArgs = [
                 includeAntRuntime: false,
-                srcdir: sourceDirs.join(':'),
                 destdir: targetDir,
                 classpathref: CLASSPATH_ID,
                 target: targetCompatibility,
@@ -49,45 +43,35 @@ class AntJavac {
         ]
 
         Map dependArgs = [
-                srcDir : sourceDirs.join(':'),
                 destDir: targetDir
         ]
 
         targetDir.mkdirs()
 
-        Map dependOptions = dependArgs + compileOptions.dependOptions.optionMap()
         if (compileOptions.useDepend) {
+            Map dependOptions = dependArgs + compileOptions.dependOptions.optionMap()
             if (compileOptions.dependOptions.useCache) {
                 dependOptions['cache'] = depCacheDir
             }
             logger.debug("Running ant depend with the following options {}", dependOptions)
-            ant.depend(dependOptions) {
-                includes.each {
-                    include(name: it)
-                }
-                excludes.each {
-                    exclude(name: it)
-                }
+            ant.taskdef(name: 'gradleDepend', classname: AntDepend.class.name)
+            ant.gradleDepend(dependOptions) {
+                source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
             }
         }
 
-        ant.project.addBuildListener(listener)
         Map options = otherArgs + compileOptions.optionMap()
         logger.debug("Running ant javac with the following options {}", options)
-        ant.javac(options) {
-            includes.each {
-                include(name: it)
-            }
-            excludes.each {
-                exclude(name: it)
-            }
-            compileOptions.compilerArgs.each { argValue ->
-                argValue.each { key, value ->
+        def task = ant.javac(options) {
+            source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
+            compileOptions.compilerArgs.each {argValue ->
+                argValue.each {key, value ->
                     compilerarg((key): value)
                 }
             }
         }
-        ant.project.removeBuildListener(listener)
+
+        numFilesCompiled = task.fileList.length;
     }
 
     private void createAntClassPath(AntBuilder ant, Iterable classpath) {

@@ -18,16 +18,18 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -36,42 +38,21 @@ import java.util.Set;
  */
 public class Compile extends ConventionTask implements PatternFilterable {
 
-    /**
-     * The directories with the sources to compile
-     */
-    private List<File> srcDirs;
+    private List<Object> src = new ArrayList<Object>();
 
-    /**
-     * The directory where to put the compiled classes (.class files)
-     */
     private File destinationDir;
 
-    /**
-     * The directory to store cached dependency information.  Used only if options.dependOptions.useCache = true.
-     */
     private File dependencyCacheDir;
 
-    /**
-     * The sourceCompatibility used by the Java compiler for your code. (e.g. 1.5)
-     */
     private String sourceCompatibility;
 
-    /**
-     * The targetCompatibility used by the Java compiler for your code. (e.g. 1.5)
-     */
     private String targetCompatibility;
 
     private FileCollection classpath;
 
     private PatternFilterable patternSet = new PatternSet();
 
-    /**
-     * Options for the compiler. The compile is delegated to the ant javac task. This property contains almost all of
-     * the properties available for the ant javac task.
-     */
     private CompileOptions options = new CompileOptions();
-
-    protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
     protected AntJavac antCompile = new AntJavac();
 
@@ -80,16 +61,12 @@ public class Compile extends ConventionTask implements PatternFilterable {
         if (antCompile == null) {
             throw new InvalidUserDataException("The ant compile command must be set!");
         }
-        List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                getDestinationDir(), getSrcDirs());
-
         if (!GUtil.isTrue(getSourceCompatibility()) || !GUtil.isTrue(getTargetCompatibility())) {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
         }
 
-        antCompile.execute(existingSourceDirs, patternSet.getIncludes(), patternSet.getExcludes(), getDestinationDir(),
-                getDependencyCacheDir(), getClasspath(), getSourceCompatibility(), getTargetCompatibility(), options,
-                getProject().getAnt());
+        antCompile.execute(getFilteredSrc(), getDestinationDir(), getDependencyCacheDir(), getClasspath(),
+                getSourceCompatibility(), getTargetCompatibility(), options, getProject().getAnt());
         setDidWork(antCompile.getNumFilesCompiled() > 0);
     }
 
@@ -122,13 +99,51 @@ public class Compile extends ConventionTask implements PatternFilterable {
         return this;
     }
 
+    /**
+     * Returns the source which will be compiled.
+     *
+     * @return The source.
+     */
     @InputFiles
-    public List<File> getSrcDirs() {
-        return srcDirs;
+    @SkipWhenEmpty
+    public FileTree getFilteredSrc() {
+        FileTree src = getSrc();
+        return src == null ? null : src.matching(patternSet);
+    }
+    
+    /**
+     * Returns the source which will be compiled, before patterns have been applied.
+     *
+     * @return The source.
+     */
+    @InputFiles
+    public FileTree getSrc() {
+        return src.isEmpty() ? null : getProject().files(src).getAsFileTree();
     }
 
-    public void setSrcDirs(List<File> srcDirs) {
-        this.srcDirs = srcDirs;
+    /**
+     * Sets the source which will be compiled. The given source object is evaluated as for {@link
+     * org.gradle.api.Project#files(Object...)}.
+     *
+     * @param source The source.
+     */
+    public void setSrc(Object source) {
+        this.src.clear();
+        this.src.add(source);
+    }
+
+    /**
+     * Adds some source to be compiled. The given source objects will be evaluated as for {@link
+     * org.gradle.api.Project#files(Object...)}.
+     *
+     * @param sources The source to add
+     * @return this
+     */
+    public Compile src(Object... sources) {
+        for (Object source : sources) {
+            src.add(source);
+        }
+        return this;
     }
 
     @OutputDirectory

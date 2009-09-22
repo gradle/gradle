@@ -24,12 +24,7 @@ import java.util.Set;
  * <p>A {@code SourceDirectorySet} represents a set of source files composed from a set of source directories, along
  * with associated include and exclude patterns.</p>
  *
- * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec
- * TODO - add FileTree
- * TODO - allow srcDirs = ...
- * TODO - apply global excludes
- * TODO - allow this to be used as arg to copy.from()
- *
+ * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec TODO - allow add FileTree
  */
 public interface SourceDirectorySet extends FileTree, PatternFilterable {
 
@@ -63,4 +58,13 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable {
      * @return this
      */
     SourceDirectorySet setSrcDirs(Iterable<Object> srcPaths);
+
+    /**
+     * Returns the filter used to select the source from the source directories. These filter patterns are applied after
+     * the include and exclude patterns of the source directory set itself. Generally, the filter patterns are used to
+     * select certain types of files, eg {@code *.java}.
+     *
+     * @return The filter patterns.
+     */
+    PatternFilterable getFilter();
 }

@@ -26,37 +26,6 @@ public class AbstractOptionsTest {
         expected.stringProp = 'string'
         assertThat(options.optionMap(), equalTo(expected))
     }
-
-    @Test
-    public void hasEmptyQuotedOptionsMapWhenEverythingIsNull() {
-        assertThat(options.quotedOptionMap(), isEmptyMap())
-        assertThat("${options.quotedOptionMap()}" as String, equalTo('[:]'))
-    }
-
-    @Test
-    public void quotedOptionsMapIncludesNonNullValues() {
-        assertThat(options.quotedOptionMap(), isEmptyMap())
-
-        options.intProp = 9
-        Map expected = new LinkedHashMap();
-        expected.intProp = '9'
-        assertThat(options.quotedOptionMap(), equalTo(expected))
-
-        options.stringProp = 'string'
-        expected.stringProp = '\'string\''
-        assertThat(options.quotedOptionMap(), equalTo(expected))
-        assertThat("${options.quotedOptionMap()}" as String, equalTo("[intProp:9, stringProp:'string']"))
-
-        options.objectProp = "string"
-        expected.objectProp = '\'string\''
-        assertThat(options.quotedOptionMap(), equalTo(expected))
-    }
-
-    @Test
-    public void escapesCharsInStringValues() {
-        options.stringProp = '\'\\\n'
-        assertThat("${options.quotedOptionMap()}" as String, equalTo("[stringProp:'\\'\\\\\n']"))
-    }
 }
 
 class TestOptions extends AbstractOptions {

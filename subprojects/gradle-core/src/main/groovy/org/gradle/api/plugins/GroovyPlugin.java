@@ -64,10 +64,14 @@ public class GroovyPlugin implements Plugin {
     private void configureCompileDefaults(final Project project) {
         project.getTasks().withType(GroovyCompile.class).allTasks(new Action<GroovyCompile>() {
             public void execute(GroovyCompile compile) {
-                compile.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
-                compile.getConventionMapping().map("srcDirs", new ConventionValue() {
+                compile.getConventionMapping().map("groovyClasspath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new ArrayList<File>(mainGroovy(convention).getGroovy().getSrcDirs());
+                        return project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME).copy().setTransitive(true);
+                    }
+                });
+                compile.getConventionMapping().map("src", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return mainGroovy(convention).getGroovy();
                     }
                 });
             }
@@ -80,17 +84,20 @@ public class GroovyPlugin implements Plugin {
             public void execute(SourceSet sourceSet) {
                 final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), projectInternal.getFileResolver());
                 ((DynamicObjectAware) sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
+
                 groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));
-                sourceSet.getAllJava().add(groovySourceSet.getGroovy().matching(sourceSet.getJavaSourcePatterns()));
+                sourceSet.getResources().getFilter().exclude("**/*.groovy");
+                sourceSet.getAllJava().add(groovySourceSet.getGroovy().matching(sourceSet.getJava().getFilter()));
+                sourceSet.getAllSource().add(groovySourceSet.getGroovy());
 
                 String compileTaskName = String.format("%sGroovy", sourceSet.getCompileTaskName());
                 GroovyCompile compile = project.getTasks().add(compileTaskName, GroovyCompile.class);
                 javaPlugin.configureForSourceSet(sourceSet, compile);
                 compile.dependsOn(sourceSet.getCompileJavaTaskName());
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
-                compile.conventionMapping("srcDirs", new ConventionValue() {
+                compile.conventionMapping("src", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new ArrayList<File>(groovySourceSet.getGroovy().getSrcDirs());
+                        return groovySourceSet.getGroovy();
                     }
                 });
 
@@ -102,7 +109,11 @@ public class GroovyPlugin implements Plugin {
     private void configureGroovydoc(final Project project) {
         project.getTasks().withType(Groovydoc.class).allTasks(new Action<Groovydoc>() {
             public void execute(Groovydoc groovydoc) {
-                groovydoc.setGroovyClasspath(project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME));
+                groovydoc.getConventionMapping().map("groovyClasspath", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME).copy().setTransitive(true);
+                    }
+                });
                 groovydoc.getConventionMapping().map("srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return new ArrayList<File>(mainGroovy(convention).getGroovy().getSrcDirs());

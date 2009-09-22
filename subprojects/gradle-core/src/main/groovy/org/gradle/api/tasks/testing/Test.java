@@ -21,11 +21,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.testing.TestFramework;
@@ -70,8 +66,6 @@ public class Test extends ConventionTask implements PatternFilterable {
 
     private FileCollection configuration;
 
-    protected ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
-
     private TestFramework testFramework = null;
 
     private boolean testReport = true;
@@ -81,8 +75,6 @@ public class Test extends ConventionTask implements PatternFilterable {
     @TaskAction
     protected void executeTests() {
         final File testClassesDir = getTestClassesDir();
-
-        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(testClassesDir);
 
         final TestFramework testFramework = getTestFramework();
 
@@ -95,7 +87,6 @@ public class Test extends ConventionTask implements PatternFilterable {
                 testClassesDir,
                 includes, excludes,
                 testFramework,
-                getProject().getAnt() ,
                 scanForTestClasses
         );
 
@@ -173,7 +164,7 @@ public class Test extends ConventionTask implements PatternFilterable {
     /**
      * Returns the root folder for the compiled test sources.
      */
-    @InputDirectory
+    @InputDirectory @SkipWhenEmpty
     public File getTestClassesDir() {
         return testClassesDir;
     }
@@ -224,7 +215,7 @@ public class Test extends ConventionTask implements PatternFilterable {
     /**
      * Returns the include patterns for test execution.
      *
-     * @see #include(String[])
+     * @see #include(String...)
      */
     public Set<String> getIncludes() {
         return patternSet.getIncludes();
@@ -234,7 +225,7 @@ public class Test extends ConventionTask implements PatternFilterable {
      * Sets the include patterns for test execution.
      *
      * @param includes The patterns list
-     * @see #include(String[])
+     * @see #include(String...)
      */
     public Test setIncludes(Iterable<String> includes) {
         patternSet.setIncludes(includes);
@@ -244,7 +235,7 @@ public class Test extends ConventionTask implements PatternFilterable {
     /**
      * Returns the exclude patterns for test execution.
      *
-     * @see #include(String[])
+     * @see #exclude(String...)
      */
     public Set<String> getExcludes() {
         return patternSet.getExcludes();
@@ -254,7 +245,7 @@ public class Test extends ConventionTask implements PatternFilterable {
      * Sets the exclude patterns for test execution.
      *
      * @param excludes The patterns list
-     * @see #exclude(String[])
+     * @see #exclude(String...) 
      */
     public Test setExcludes(Iterable<String> excludes) {
         patternSet.setExcludes(excludes);

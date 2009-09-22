@@ -38,19 +38,29 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.resources.displayName, equalTo('set name resources'))
         assertThat(sourceSet.resources.toString(), equalTo('set name resources'))
 
+        assertThat(sourceSet.resources.filter.includes, isEmpty())
+        assertThat(sourceSet.resources.filter.excludes, equalTo(['**/*.java'] as Set))
+
         assertThat(sourceSet.java, instanceOf(DefaultSourceDirectorySet))
         assertThat(sourceSet.java, isEmpty())
         assertThat(sourceSet.java.displayName, equalTo('set name Java source'))
         assertThat(sourceSet.java.toString(), equalTo('set name Java source'))
 
-        assertThat(sourceSet.javaSourcePatterns.includes, equalTo(['**/*.java'] as Set))
-        assertThat(sourceSet.javaSourcePatterns.excludes, isEmpty())
+        assertThat(sourceSet.java.filter.includes, equalTo(['**/*.java'] as Set))
+        assertThat(sourceSet.java.filter.excludes, isEmpty())
+        
 
         assertThat(sourceSet.allJava, instanceOf(UnionFileTree))
         assertThat(sourceSet.allJava, isEmpty())
         assertThat(sourceSet.allJava.displayName, equalTo('set name Java source'))
         assertThat(sourceSet.allJava.toString(), equalTo('set name Java source'))
         assertThat(sourceSet.allJava.sourceTrees, not(isEmpty()))
+
+        assertThat(sourceSet.allSource, instanceOf(UnionFileTree))
+        assertThat(sourceSet.allSource, isEmpty())
+        assertThat(sourceSet.allSource.displayName, equalTo('set name source'))
+        assertThat(sourceSet.allSource.toString(), equalTo('set name source'))
+        assertThat(sourceSet.allSource.sourceTrees, not(isEmpty()))
 
         assertThat(sourceSet.compileTaskName, equalTo('compileSetName'))
         assertThat(sourceSet.compileJavaTaskName, equalTo('compileSetNameJava'))

@@ -133,7 +133,7 @@ class JavaPluginTest {
         assertThat(task.description, equalTo('Compiles the custom Java source.'))
         assertThat(task, instanceOf(Compile))
         assertThat(task, dependsOn())
-        assertThat(task.srcDirs, equalTo(project.source.custom.java.srcDirs as List))
+        assertThat(task.src, equalTo(project.source.custom.java))
         assertThat(task.classpath, sameInstance(project.source.custom.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.custom.classesDir))
 
@@ -155,7 +155,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertThat(task, dependsOn())
-        assertThat(task.srcDirs, equalTo(project.source.main.java.srcDirs as List))
+        assertThat(task.src, equalTo(project.source.main.java))
         assertThat(task.classpath, sameInstance(project.source.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.main.classesDir))
 
@@ -172,7 +172,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
-        assertThat(task.srcDirs, equalTo(project.source.test.java.srcDirs as List))
+        assertThat(task.src, equalTo(project.source.test.java))
         assertThat(task.classpath, sameInstance(project.source.test.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.test.classesDir))
 

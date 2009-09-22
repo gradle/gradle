@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.util.GUtil;
@@ -42,17 +43,15 @@ public class GroovyCompile extends Compile {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
         }
 
-        List existingGroovySourceDirs = existentDirsFilter.findExistingDirs(getSrcDirs());
-        if (existingGroovySourceDirs.size() > 0) {
-            List<File> classpath = GUtil.addLists(getClasspath());
-            // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
-            List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
-            throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
-            antGroovyCompile.execute(getProject().getAnt(), existingGroovySourceDirs, getIncludes(),
-                    getExcludes(), getDestinationDir(), classpath, getSourceCompatibility(),
-                    getTargetCompatibility(), getGroovyOptions(), getOptions(), taskClasspath);
-            setDidWork(antGroovyCompile.getNumFilesCompiled() > 0);            
-        }
+        List<File> classpath = GUtil.addLists(getClasspath());
+        // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
+        List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
+        throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
+        ProjectInternal project = (ProjectInternal) getProject();
+        antGroovyCompile.execute(project.getGradle().getIsolatedAntBuilder(), getFilteredSrc(), getDestinationDir(),
+                classpath, getSourceCompatibility(), getTargetCompatibility(), getGroovyOptions(), getOptions(),
+                taskClasspath);
+        setDidWork(antGroovyCompile.getNumFilesCompiled() > 0);
     }
 
     private void throwExceptionIfTaskClasspathIsEmpty(Collection<File> taskClasspath) {
