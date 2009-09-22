@@ -41,7 +41,7 @@ class AbstractAntArchive {
 
     void addMergeFileSets(List mergeFileSets, delegate) {
         mergeFileSets.each { FileSet mergeFileSet ->
-            mergeFileSet.addToAntBuilder(delegate)
+            mergeFileSet.addToAntBuilder(delegate, null)
         }
     }
 

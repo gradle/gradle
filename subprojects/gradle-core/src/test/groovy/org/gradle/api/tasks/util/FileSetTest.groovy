@@ -104,14 +104,14 @@ class FileSetTest extends AbstractTestForPatternSet {
             file.text = 'some text'
         }
 
-        assertSetContains(fileSet, 'subDir/included1', 'subDir2/included2')
+        assertSetContainsForAllTypes(fileSet, 'subDir/included1', 'subDir2/included2')
     }
 
     @Test public void testIsEmptyWhenBaseDirDoesNotExist() {
         fileSet.dir = new File(testDir, 'does not exist')
 
         assertThat(fileSet.files, isEmpty())
-        assertSetContains(fileSet)
+        assertSetContainsForAllTypes(fileSet)
         assertVisits(fileSet, [], [])
     }
 
@@ -129,7 +129,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         fileSet.exclude('**/not*')
 
         assertThat(fileSet.files, equalTo([included1, included2] as Set))
-        assertSetContains(fileSet, 'subDir/included1', 'subDir2/included2')
+        assertSetContainsForAllTypes(fileSet, 'subDir/included1', 'subDir2/included2')
         assertVisits(fileSet, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
 
@@ -149,7 +149,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         }
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
-        assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
+        assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
     
@@ -167,7 +167,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         FileSet filtered = fileSet.matching(patternSet)
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
-        assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
+        assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
     
@@ -190,7 +190,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         }
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
-        assertSetContains(filtered, 'subDir/included1', 'subDir2/included2')
+        assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
 

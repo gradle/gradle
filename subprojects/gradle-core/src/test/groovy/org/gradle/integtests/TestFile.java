@@ -111,12 +111,13 @@ public class TestFile extends File {
         }
     }
 
-    public void touch() {
+    public TestFile touch() {
         try {
             FileUtils.touch(this);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        return this;
     }
 
     /**
@@ -190,5 +191,10 @@ public class TestFile extends File {
             return true;
         }
         return file.getAbsolutePath().startsWith(getAbsolutePath() + File.separatorChar);
+    }
+
+    public TestFile createDir() {
+        assertTrue(isDirectory() || mkdirs());
+        return this;
     }
 }

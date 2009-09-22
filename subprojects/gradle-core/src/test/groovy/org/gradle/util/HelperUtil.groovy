@@ -56,6 +56,7 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultGradle
 import org.gradle.api.internal.project.*
+import org.gradle.integtests.TestFile
 
 /**
  * @author Hans Dockter
@@ -143,12 +144,12 @@ class HelperUtil {
         GradleUtil.deleteDir(new File(TMP_DIR_FOR_TEST))
     }
 
-    static File makeNewTestDir() {
-        GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST))
+    static TestFile makeNewTestDir() {
+        new TestFile(GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST)))
     }
 
-    static File makeNewTestDir(String dirName) {
-        GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST, dirName))
+    static TestFile makeNewTestDir(String dirName) {
+        new TestFile(GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST, dirName)))
     }
 
     static File getTestDir() {

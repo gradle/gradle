@@ -1,36 +1,100 @@
 package org.gradle.api.tasks
 
-import org.apache.tools.ant.Task
+import org.apache.tools.ant.taskdefs.MatchingTask
+import org.apache.tools.ant.types.FileSet
+import org.apache.tools.ant.types.Path
 import org.apache.tools.ant.types.Resource
 import org.apache.tools.ant.types.ResourceCollection
+import org.gradle.api.AntBuilder
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.project.DefaultAntBuilder
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.project.DefaultAntBuilder
 
 class AntBuilderAwareUtil {
-    static def assertSetContains(AntBuilderAware set, Set<String> filenames) {
-        AntBuilder ant = new DefaultAntBuilder(null)
-        ant.antProject.addTaskDefinition('test', FileListTask)
-        FileListTask task = ant.test {
-            set.addToAntBuilder(ant, null)
-        }
 
-        assertThat(task.filenames, equalTo(filenames))
+    static def assertSetContains(FileCollection set, Set<String> filenames) {
+        assertSetContains(set, filenames, [FileCollection.AntType.ResourceCollection])
     }
 
-    static def assertSetContains(AntBuilderAware set, String ... filenames) {
+    static def assertSetContains(FileCollection set, Set<String> filenames, Iterable<FileCollection.AntType> types, boolean generic = true) {
+        AntBuilder ant = new DefaultAntBuilder(null)
+        ant.antProject.addTaskDefinition('test', FileListTask)
+
+        if (generic) {
+            FileListTask task = ant.test {
+                set.addToAntBuilder(ant, null)
+            }
+            assertThat(task.filenames, equalTo(filenames))
+        }
+
+        types.each {FileCollection.AntType type ->
+            FileListTask task = ant.test {
+                set.addToAntBuilder(ant, type == FileCollection.AntType.ResourceCollection ? null : type.toString().toLowerCase(), type)
+            }
+
+            assertThat("Unexpected FileCollection contents for type $type", task.filenames, equalTo(filenames))
+        }
+    }
+
+    static def assertSetContains(FileCollection set, String ... filenames) {
         assertSetContains(set, filenames as Set)
+    }
+
+    static def assertSetContainsForAllTypes(FileCollection set, String ... filenames) {
+        assertSetContains(set, filenames as Set, FileCollection.AntType.values() as List)
+    }
+
+    static def assertSetContainsForFileSet(FileCollection set, String ... filenames) {
+        assertSetContains(set, filenames as Set, [FileCollection.AntType.FileSet], false)
+    }
+
+    static def assertSetContainsForFileSet(FileCollection set, Set<String> filenames) {
+        assertSetContains(set, filenames, [FileCollection.AntType.FileSet], false)
+    }
+
+    static def assertSetContainsForMatchingTask(FileCollection set, String ... filenames) {
+        assertSetContains(set, filenames as Set, [FileCollection.AntType.MatchingTask], false)
+    }
+
+    static def assertSetContainsForMatchingTask(FileCollection set, Set<String> filenames) {
+        assertSetContains(set, filenames, [FileCollection.AntType.MatchingTask], false)
     }
 }
 
-public static class FileListTask extends Task {
+public static class FileListTask extends MatchingTask {
     final Set<String> filenames = new HashSet<String>()
+    Path src
 
     public void addConfigured(ResourceCollection fileset) {
         Iterator<Resource> iterator = fileset.iterator()
         while (iterator.hasNext()) {
             Resource resource = iterator.next()
-            filenames.add(resource.getName().replace(File.separator, '/'))
+            assertTrue("File $resource.name found multiple times", filenames.add(resource.name.replace(File.separator, '/')))
+        }
+    }
+
+    public void addConfiguredFileset(FileSet fileset) {
+        addConfigured(fileset)
+    }
+
+    public Path createMatchingtask() {
+        if (src == null) {
+            src = new Path(getProject());
+        }
+        return src.createPath();
+    }
+
+    def void execute() {
+        if (src) {
+            fileset.selectorElements().each { println "selector $it"}
+            src.list().each {String dirName ->
+                File dir = getProject().resolveFile(dirName);
+                getDirectoryScanner(dir).includedFiles.each {String fileName ->
+                    println "found $fileName in $dirName"
+                    assertTrue("File $fileName found multiple times", filenames.add(fileName.replace(File.separator, '/')))
+                }
+            }
         }
     }
 }

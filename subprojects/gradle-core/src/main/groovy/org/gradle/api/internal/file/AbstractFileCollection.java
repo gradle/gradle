@@ -21,6 +21,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -69,8 +70,49 @@ public abstract class AbstractFileCollection implements FileCollection {
         throw new UnsupportedOperationException(String.format("%s does not allow modification.", getCapDisplayName()));
     }
 
+    public void addToAntBuilder(Object builder, String nodeName, AntType type) {
+        if (type == AntType.ResourceCollection) {
+            addAsResourceCollection(builder, nodeName);
+        }
+        else if (type == AntType.FileSet) {
+            addAsFileSet(builder, nodeName);
+        }
+        else {
+            addAsMatchingTask(builder, nodeName);
+        }
+    }
+
+    protected void addAsMatchingTask(Object builder, String nodeName) {
+        new AntFileCollectionMatchingTaskBuilder(getAsFileSets()).addToAntBuilder(builder, nodeName);
+    }
+
+    protected void addAsFileSet(Object builder, String nodeName) {
+        for (FileSet fileSet : getAsFileSets()) {
+            fileSet.addToAntBuilder(builder, nodeName, AntType.FileSet);
+        }
+    }
+
+    protected void addAsResourceCollection(Object builder, String nodeName) {
+        new AntFileCollectionBuilder(this).addToAntBuilder(builder, nodeName);
+    }
+
+    /**
+     * Returns this collection as a set of {@link FileSet} instances.
+     */
+    protected Collection<FileSet> getAsFileSets() {
+        List<FileSet> fileSets = new ArrayList<FileSet>();
+        for (File file : getFiles()) {
+            if (file.isFile()) {
+                FileSet fileSet = new FileSet(file.getParentFile(), null);
+                fileSet.include(new String[]{file.getName()});
+                fileSets.add(fileSet);
+            }
+        }
+        return fileSets;
+    }
+
     public Object addToAntBuilder(Object node, String childNodeName) {
-        new AntFileCollectionBuilder(this).addToAntBuilder(node, childNodeName);
+        addToAntBuilder(node, childNodeName, AntType.ResourceCollection);
         return this;
     }
 

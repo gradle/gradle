@@ -20,9 +20,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.util.FileSet;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
@@ -34,9 +36,11 @@ import java.util.*;
 
 @RunWith(JMock.class)
 public class CompositeFileCollectionTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
-    private final FileCollection source1 = context.mock(FileCollection.class, "source1");
-    private final FileCollection source2 = context.mock(FileCollection.class, "source2");
+    private final JUnit4Mockery context = new JUnit4Mockery(){{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
+    private final AbstractFileCollection source1 = context.mock(AbstractFileCollection.class, "source1");
+    private final AbstractFileCollection source2 = context.mock(AbstractFileCollection.class, "source2");
     private final TestCompositeFileCollection collection = new TestCompositeFileCollection(source1, source2);
 
     @Test
@@ -114,13 +118,27 @@ public class CompositeFileCollectionTest {
     @Test
     public void addToAntBuilderDelegatesToEachSet() {
         context.checking(new Expectations() {{
-            one(source1).addToAntBuilder("node", "name");
-            one(source2).addToAntBuilder("node", "name");
+            one(source1).addToAntBuilder("node", "name", FileCollection.AntType.ResourceCollection);
+            one(source2).addToAntBuilder("node", "name", FileCollection.AntType.ResourceCollection);
         }});
 
-        collection.addToAntBuilder("node", "name");
+        collection.addToAntBuilder("node", "name", FileCollection.AntType.ResourceCollection);
     }
 
+    @Test
+    public void getAsFileSetsReturnsUnionOfFileSets() {
+        final FileSet set1 = new FileSet(new File("dir1").getAbsoluteFile(), null);
+        final FileSet set2 = new FileSet(new File("dir2").getAbsoluteFile(), null);
+
+        context.checking(new Expectations() {{
+            one(source1).getAsFileSets();
+            will(returnValue(toList((Object) set1)));
+            one(source2).getAsFileSets();
+            will(returnValue(toList((Object) set2)));
+        }});
+        assertThat(collection.getAsFileSets(), equalTo((Collection) toList(set1, set2)));
+    }
+    
     @Test
     public void getAsFileTreeDelegatesToEachSet() {
         final FileTree tree1 = context.mock(FileTree.class, "tree1");

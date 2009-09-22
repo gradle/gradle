@@ -23,6 +23,8 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.util.HelperUtil;
+import org.gradle.integtests.TestFile;
 import org.hamcrest.Matcher;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -118,12 +120,29 @@ public class AbstractFileCollectionTest {
     }
     
     @Test
-    public void canAddToAntBuilder() {
+    public void canAddToAntBuilderAsResourceCollection() {
         File file1 = new File("f1");
         File file2 = new File("f2");
 
         TestFileCollection collection = new TestFileCollection(file1, file2);
         assertSetContains(collection, toSet("f1", "f2"));
+    }
+    
+    @Test
+    public void includesOnlyExistingFilesWhenAddedToAntBuilderAsAFileSetOrMatchingTask() {
+        TestFile testDir = HelperUtil.makeNewTestDir();
+        TestFile file1 = testDir.file("f1").touch();
+        TestFile dir1 = testDir.file("dir1").createDir();
+        TestFile file2 = dir1.file("f2").touch();
+        TestFile missing = testDir.file("f3");
+        testDir.file("f2").touch();
+        testDir.file("ignored1").touch();
+        dir1.file("f1").touch();
+        dir1.file("ignored1").touch();
+
+        TestFileCollection collection = new TestFileCollection(file1, file2, dir1, missing);
+        assertSetContainsForFileSet(collection, toSet("f1", "f2"));
+        assertSetContainsForMatchingTask(collection, toSet("f1", "f2"));
     }
 
     @Test

@@ -45,7 +45,7 @@ class AntTar extends AbstractAntArchive {
             tmpDir.delete()
             tmpDir.mkdirs()
             ant.copy(todir: tmpDir) {
-                fileSet.addToAntBuilder(delegate)
+                fileSet.addToAntBuilder(delegate, null)
             }
             tmpDir.listFiles().each { File file ->
                 if (file.isDirectory()) {

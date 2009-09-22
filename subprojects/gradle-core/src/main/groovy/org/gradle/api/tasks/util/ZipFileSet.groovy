@@ -35,11 +35,7 @@ class ZipFileSet extends FileSet {
         super(args, resolver)
     }
 
-    def addToAntBuilder(node, String childNodeName) {
-        File dir = getDir()
-        if (!dir.exists()) {
-            return
-        }
+    protected doAddFileSet(Object builder, File dir, String nodeName) {
         Map args = [prefix: prefix, fullpath: fullPath, filemode: fileMode, dirmode: dirMode]
         if (dir.isDirectory()) {
             args.dir = dir.absolutePath
@@ -47,8 +43,8 @@ class ZipFileSet extends FileSet {
             args.src = dir.absolutePath
         }
         removeEmptyArgs(args)
-        node.zipfileset(args) {
-            patternSet.addToAntBuilder(node)
+        builder.zipfileset(args) {
+            patternSet.addToAntBuilder(builder)
         }
     }
 

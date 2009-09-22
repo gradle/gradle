@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.Task;
+import org.gradle.api.tasks.util.FileSet;
 
 import java.io.File;
 import java.util.*;
@@ -52,11 +53,20 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
     }
 
     @Override
-    public Object addToAntBuilder(Object node, String childNodeName) {
+    protected void addAsResourceCollection(Object builder, String nodeName) {
         for (FileCollection fileCollection : getSourceCollections()) {
-            fileCollection.addToAntBuilder(node, childNodeName);
+            fileCollection.addToAntBuilder(builder, nodeName, AntType.ResourceCollection);
         }
-        return this;
+    }
+
+    @Override
+    protected Collection<FileSet> getAsFileSets() {
+        List<FileSet> fileSets = new ArrayList<FileSet>();
+        for (FileCollection source : getSourceCollections()) {
+            AbstractFileCollection collection = (AbstractFileCollection) source;
+            fileSets.addAll(collection.getAsFileSets());
+        }
+        return fileSets;
     }
 
     @Override

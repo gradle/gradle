@@ -15,22 +15,21 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.*;
-import org.gradle.api.tasks.StopExecutionException;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.ConfigureUtil;
+import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.api.file.*;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import groovy.lang.Closure;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTree {
     public Set<File> getFiles() {
@@ -89,9 +88,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public Object addToAntBuilder(Object node, String childNodeName) {
-        new AntFileTreeBuilder(getAsMap()).addToAntBuilder(node, childNodeName);
-        return this;
+    protected void addAsResourceCollection(Object builder, String nodeName) {
+        new AntFileTreeBuilder(getAsMap()).addToAntBuilder(builder, nodeName);
     }
 
     @Override

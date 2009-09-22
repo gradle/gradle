@@ -16,8 +16,8 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.FileSet;
@@ -44,14 +44,13 @@ class SingletonFileTree extends AbstractFileTree {
     }
 
     @Override
-    public Object addToAntBuilder(Object node, String childNodeName) {
+    public void addToAntBuilder(Object builder, String childNodeName, AntType type) {
         if (file.isDirectory()) {
-            new FileSet(file, null).addToAntBuilder(node, childNodeName);
+            new FileSet(file, null).addToAntBuilder(builder, childNodeName, type);
         }
         else if (file.isFile()) {
-            super.addToAntBuilder(node, childNodeName);
+            super.addToAntBuilder(builder, childNodeName, type);
         }
-        return this;
     }
 
     public FileTree visit(FileVisitor visitor) {

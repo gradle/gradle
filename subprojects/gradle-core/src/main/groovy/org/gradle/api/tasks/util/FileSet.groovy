@@ -20,13 +20,9 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.AbstractFileTree
-import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
-import org.gradle.api.internal.file.CopyActionImpl
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.WorkResult
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.api.internal.file.*
 
 /**
  * @author Hans Dockter
@@ -127,13 +123,25 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         this
     }
 
-    def addToAntBuilder(node, String childNodeName = null) {
+    protected void addAsFileSet(Object builder, String nodeName) {
         File dir = getDir()
         if (!dir.exists()) {
             return
         }
-        node."${childNodeName ?: 'fileset'}"(dir: dir.absolutePath) {
-            patternSet.addToAntBuilder(node)
+        doAddFileSet(builder, dir, nodeName);
+    }
+
+    protected void addAsResourceCollection(Object builder, String nodeName) {
+        addAsFileSet(builder, nodeName)
+    }
+
+    protected Collection<FileSet> getAsFileSets() {
+        return getDir().exists() ? [this] : []
+    }
+
+    protected def doAddFileSet(Object builder, File dir, String nodeName) {
+        builder."${nodeName ?: 'fileset'}"(dir: dir.absolutePath) {
+            patternSet.addToAntBuilder(builder)
         }
     }
 }

@@ -15,9 +15,9 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.StopExecutionException;
-import org.gradle.api.Buildable;
 
 import java.io.File;
 import java.util.Set;
@@ -98,4 +98,40 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * @return this collection as a {@link FileTree}. Never returns null.
      */
     FileTree getAsFileTree();
+
+    enum AntType {
+        MatchingTask, FileSet, ResourceCollection
+    }
+
+    /**
+     * Adds this collection to an Ant task as a nested node. The given type determines how this collection is added:
+     *
+     * <ul>
+     *
+     * <li>{@link AntType#MatchingTask}: adds this collection to an Ant MatchingTask. The collection is converted to a
+     * set of source directories and include and exclude patterns. The source directories as added as an Ant Path with
+     * the given node name. The patterns are added using 'include' and 'exclude' nodes.</li>
+     *
+     * <li>{@link AntType#FileSet}: adds this collection as zero or more Ant FileSets with the given node name.</li>
+     *
+     * <li>{@link AntType#ResourceCollection}: adds this collection as zero or more Ant ResourceCollections with the
+     * given node name.</li>
+     *
+     * </ul>
+     *
+     * You should prefer using {@link AntType#ResourceCollection}, if the target Ant task supports it, as this is
+     * generally the most efficient. Using the other types may involve copying the contents of this collection to a
+     * temporary directory.
+     *
+     * @param builder The builder to add this collection to.
+     * @param nodeName The target node name.
+     * @param type The target Ant type
+     */
+    void addToAntBuilder(Object builder, String nodeName, AntType type);
+
+    /**
+     * Adds this collection to an Ant task as a nested node. Equivalent to calling {@code addToAntBuilder(builder,
+     * nodeName,AntType.ResourceCollection)}.
+     */
+    Object addToAntBuilder(Object builder, String nodeName);
 }
