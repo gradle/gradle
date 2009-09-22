@@ -76,7 +76,7 @@ class UserguideIntegrationTest {
                     }
                 }
             } catch (Throwable e) {
-                throw new AssertionError("Integration test for sample '$run.id' failed: $e.message").initCause(e)
+                throw new AssertionError("Integration test for sample '$run.id' in dir '$run.subDir' failed: $e.message").initCause(e)
             }
         }
     }

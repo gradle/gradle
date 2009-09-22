@@ -14,24 +14,18 @@ dependencies {
             libraries.jul_to_slf4j,
             libraries.logback_core
 
-    testCompile files(project( ':gradle-core' ).dependencyProject.source.test.classesDir)
+    testCompile project(path: ':gradle-core', configuration: 'testFixtures')
+    testRuntime project(path: ':gradle-core', configuration: 'testFixturesRuntime')
 }
 
-// The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
-// the userguide source
-integTestDistDir = new File( project(':' ).buildDir, 'integtest')
-task integTest(type: Test, dependsOn: [ compileTest, project(':gradle-core').compileTest, project(':').explodedDist ]) {
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
+task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
+    options.fork(jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
+    options.systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
-    exclude '**/Abstract*'
 }
-
-//Our tests use some base classes from gradle-core. Currently, we must explicitly state that we
-//depend on its compileTests and add its output to our classpath.
-compileTestGroovy.dependsOn project( ':gradle-core' ).compileTestGroovy
 
 integTest.doFirst {
     ant {
@@ -48,10 +42,7 @@ compile.options.depend()
 //this is just to exclude integration tests
 test {
     // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'])
+    options.fork(jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'])
 
     exclude 'org/gradle/integtests/**/*.*'
 }
-
-// We should not need this, but temporarily this will keep the CI builds from failing 
-checkstyleMain.dependsOn(project(':gradle-core').uploadDefaultInternal, project(':gradle-open-api').uploadDefaultInternal)

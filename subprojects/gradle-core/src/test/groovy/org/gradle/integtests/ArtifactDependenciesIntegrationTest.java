@@ -52,8 +52,8 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
         failure.assertHasDescription("Execution failed for task ':listJars'");
         failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration 'compile'"));
-        failure.assertThatCause(containsString("unresolved dependency: test#projectA;1.2: not found"));
-        failure.assertThatCause(containsString("unresolved dependency: test#projectB;2.1.5: not found"));
+        failure.assertThatCause(containsString("unresolved dependency: test#unknownProjectA;1.2: not found"));
+        failure.assertThatCause(containsString("unresolved dependency: test#unknownProjectB;2.1.5: not found"));
     }
 
     @Test

@@ -78,7 +78,7 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
     }
 
     private GradleDistribution getDist() throws IOException {
-        final TestFile userHomeDir = file("integTest.userHomeDir", new File("intTestHomeDir"));
+        final TestFile userHomeDir = file("integTest.gradleUserHomeDir", new File("intTestHomeDir"));
         final TestFile gradleHomeDir = file("integTest.gradleHomeDir", new File("build/distributions/exploded"));
         final TestFile samplesDir = new TestFile(gradleHomeDir, "samples");
         TestFile srcDir = file("integTest.srcDir", new File("src"));
@@ -116,6 +116,10 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
 
             public TestFile getTestDir() {
                 return testDir;
+            }
+
+            public TestFile testFile(String... path) {
+                return testDir.file(path);
             }
         };
     }

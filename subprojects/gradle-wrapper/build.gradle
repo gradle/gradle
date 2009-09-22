@@ -2,13 +2,8 @@ usePlugin 'groovy'
 
 dependencies {
     groovy libraries.groovy_depends
-    testCompile files(project( ':gradle-core' ).dependencyProject.source.test.classesDir),
-            project(':gradle-core')
+    testCompile project(path: ':gradle-core', configuration: 'testFixtures')
+    testRuntime project(path: ':gradle-core', configuration: 'testFixturesRuntime')
 }
-
-//Our tests use some base classes from gradle-core. Currently, we must explicitly state that we
-//depend on its compileTests and add its output to our classpath.
-compileTest.dependsOn project( ':gradle-core' ).compileTestGroovy
-
 
 manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.WrapperMain')

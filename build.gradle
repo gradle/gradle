@@ -197,15 +197,14 @@ gradle.taskGraph.whenReady {graph ->
     }
 }
 
-task explodedDistBase(dependsOn: [libs, configurations.distLib.buildDependencies], description: 'Builds a minimal distribution image') << {
+task explodedDistBase(dependsOn: [libs, configurations.distLib], description: 'Builds a minimal distribution image') << {
     [explodedDistDir, explodedDistLibDir]*.mkdirs()
     File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
 
     logger.info('Generate lib dir')
     removeAnyExistingOldGradleLibs()
     copy {
-        from configurations.distLib.files
-        from jar.archivePath
+        from configurations.distLib
         into explodedDistLibDir
     }
     logger.info('Generate start scripts')
@@ -597,32 +596,36 @@ websiteDocs << {
     }
 }
 
+integTestDistDir = file("$buildDir/integ test")
+integTestUserDir = file('intTestHomeDir')
+
+task intTestImage(dependsOn: explodedDist) {
+    doFirst {
+        ant {
+            delete(dir: integTestDistDir)
+            copy(todir: integTestDistDir) {
+                fileset(dir: explodedDistDir)
+            }
+            chmod(dir: "$integTestDistDir/bin", perm: "ugo+rx", includes: "**/*")
+        }
+    }
+}
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
-integTestDistDir = new File(buildDir, 'integtest')
-task integTest(type: Test, dependsOn: [explodedDist, binZip, userguideSrc]) {
+task integTest(type: Test, dependsOn: [intTestImage, binZip, userguideSrc]) {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
     options.systemProperties['integTest.userGuideInfoDir'] = docbookSrc.absolutePath
+    options.systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
-    exclude '**/Abstract*'
-    
+
     testClassesDir = project('gradle-core').source.test.classesDir
     configuration = project('gradle-core').source.test.runtimeClasspath
 }
-integTest.doFirst {
-    ant {
-        delete(dir: integTestDistDir)
-        copy(todir: integTestDistDir) {
-            fileset(dir: explodedDistDir)
-        }
-        chmod(dir: "$integTestDistDir/bin", perm: "ugo+rx", includes: "**/*")
-    }
-}
 
-task testedDists(dependsOn: [dists, check, test, integTest])
+task testedDists(dependsOn: [dists, check, test, integTest, ':gradle-ui:integTest'])
 
 task nightlyBuild(dependsOn: [clean, testedDists, uploadDocs])
 

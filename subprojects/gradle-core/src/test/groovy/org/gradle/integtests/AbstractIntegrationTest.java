@@ -79,13 +79,18 @@ public class AbstractIntegrationTest {
                 "code-quality=org.gradle.api.plugins.quality.CodeQualityPlugin"
         );
 
-        parameter.setGradleUserHomeDir(testFile("user-home"));
+        parameter.setGradleUserHomeDir(getUserHomeDir());
 
         parameter.setSearchUpwards(false);
         parameter.setCacheUsage(CacheUsage.ON);
         parameter.setCurrentDir(getTestDir());
 
         return parameter;
+    }
+
+    private static TestFile getUserHomeDir() {
+        String path = System.getProperty("integTest.gradleUserHomeDir", "intTestHomeDir");
+        return new TestFile(new File(path));
     }
 
     protected GradleExecuter inTestDirectory() {
