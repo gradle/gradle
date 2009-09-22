@@ -18,6 +18,7 @@ package org.gradle.wrapper;
 
 import java.io.*;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -70,11 +71,41 @@ public class Install {
     }
 
     private void setExecutablePermissions(String gradleHome) {
-//        File gradleCommand = new File(gradleHome, "bin/gradle");
-//        boolean success = gradleCommand.setExecutable(true);
-//        if (success) {
-//            System.out.println("Set executable permissions for: " + gradleCommand.getAbsolutePath());
-//        }
+        if (isWindows()) {
+            return;
+        }
+        File gradleCommand = new File(gradleHome, "bin/gradle");
+        String errorMessage = null;
+        try {
+            ProcessBuilder pb = new ProcessBuilder("chmod", "755", gradleCommand.getCanonicalPath());
+            Process p = pb.start();
+            if (p.waitFor() == 0) {
+                System.out.println("Set executable permissions for: " + gradleCommand.getAbsolutePath());
+            } else {
+                BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                errorMessage = "";
+                String line;
+                while ((line = is.readLine()) != null) {
+                    errorMessage += line + System.getProperty("line.separator");
+                }
+            }
+        } catch (IOException e) {
+            errorMessage = e.getMessage();
+        } catch (InterruptedException e) {
+            errorMessage = e.getMessage();
+        }
+        if (errorMessage != null) {
+            System.out.println("Could not set executable permissions for: " + gradleCommand.getAbsolutePath());
+            System.out.println("Please do this manually if you want to use the Gradle UI.");
+        }
+    }
+
+    private boolean isWindows() {
+        String osName = System.getProperty("os.name").toLowerCase(Locale.US);
+        if (osName.indexOf("windows") > -1) {
+            return true;
+        }
+        return false;
     }
 
     public IDownload getDownload() {
