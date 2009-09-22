@@ -56,6 +56,7 @@ public class DefaultGradle implements GradleInternal {
             = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
     private final ListenerBroadcast<BuildListener> buildListeners = new ListenerBroadcast<BuildListener>(
             BuildListener.class);
+    private final DefaultIsolatedAntBuilder isolatedAntBuilder = new DefaultIsolatedAntBuilder();
 
     public DefaultGradle(StartParameter startParameter, InternalRepository internalRepository,
                          ServiceRegistryFactory serviceRegistryFactory,
@@ -194,5 +195,9 @@ public class DefaultGradle implements GradleInternal {
 
     public Logger getLogger() {
         return logger;
+    }
+
+    public IsolatedAntBuilder getIsolatedAntBuilder() {
+        return isolatedAntBuilder;
     }
 }

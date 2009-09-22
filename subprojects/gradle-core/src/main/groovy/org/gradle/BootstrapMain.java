@@ -37,16 +37,13 @@ public class BootstrapMain {
 
         processGradleHome(bootStrapDebug);
 
-        List<URL> loggingJars = toUrl(BootstrapUtil.getLoggingJars());
-        List<URL> nonLoggingJars = toUrl(BootstrapUtil.getNonLoggingJars());
+        List<URL> classpath = toUrl(BootstrapUtil.getGradleClasspath());
         ClassLoader parentClassloader = ClassLoader.getSystemClassLoader().getParent();
         if (bootStrapDebug) {
             System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
-            System.out.println("Adding the following files to new logging classloader: " + loggingJars);
-            System.out.println("Adding the following files to new lib classloader: " + nonLoggingJars);
+            System.out.println("Adding the following files to new lib classloader: " + classpath);
         }
-        URLClassLoader loggingClassLoader = new URLClassLoader(loggingJars.toArray(new URL[loggingJars.size()]), parentClassloader);
-        URLClassLoader libClassLoader = new URLClassLoader(nonLoggingJars.toArray(new URL[nonLoggingJars.size()]), loggingClassLoader);
+        URLClassLoader libClassLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]), parentClassloader);
         Thread.currentThread().setContextClassLoader(libClassLoader);
         Class mainClass = libClassLoader.loadClass("org.gradle.Main");
         Method mainMethod = mainClass.getMethod("main", String[].class);

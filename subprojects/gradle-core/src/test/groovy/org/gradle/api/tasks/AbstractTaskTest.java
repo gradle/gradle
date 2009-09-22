@@ -70,7 +70,10 @@ public abstract class AbstractTaskTest {
     }
 
     public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = taskFactory.createTask(project, GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name, AnnotationProcessingTaskFactory.DEPENDENCY_AUTO_WIRE, false));
+        Task task = taskFactory.createTask(project,
+                GUtil.map(Task.TASK_TYPE, type,
+                        Task.TASK_NAME, name,
+                        AnnotationProcessingTaskFactory.DEPENDENCY_AUTO_WIRE, false));
         assertTrue(type.isAssignableFrom(task.getClass()));
         return type.cast(task);
     }

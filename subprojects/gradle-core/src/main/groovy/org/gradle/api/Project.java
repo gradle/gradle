@@ -182,8 +182,6 @@ public interface Project extends Comparable<Project> {
 
     public static final String TMP_DIR_NAME = ".gradle";
 
-    public static final String CACHE_DIR_NAME = TMP_DIR_NAME + "/cache";
-
     public static final String DEFAULT_GROUP = "unspecified";
 
     public static final String DEFAULT_VERSION = "unspecified";

@@ -18,13 +18,13 @@ package org.gradle.util;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
-import java.util.List;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.net.URLClassLoader;
-import java.net.URL;
-import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -40,7 +40,7 @@ public class BootstrapUtil {
         if (classLoader instanceof URLClassLoader) {
             URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
             URL[] urls = urlClassLoader.getURLs();
-            List<File> classpath = new ArrayList();
+            List<File> classpath = new ArrayList<File>();
             for (URL url : urls) {
                 if (url.getProtocol().equals("file")) {
                     try {
@@ -54,30 +54,6 @@ public class BootstrapUtil {
         }
 
         return Collections.emptyList();
-    }
-
-    public static List<File> getNonLoggingJars() {
-        List<File> pathElements = new ArrayList<File>();
-        for (File file : getGradleClasspath()) {
-            if (!isLogLib(file)) {
-                pathElements.add(file);
-            }
-        }
-        return pathElements;
-    }
-
-    public static List<File> getLoggingJars() {
-        List<File> pathElements = new ArrayList<File>();
-        for (File file : getGradleClasspath()) {
-            if (isLogLib(file)) {
-                pathElements.add(file);
-            }
-        }
-        return pathElements;
-    }
-
-    private static boolean isLogLib(File file) {
-        return file.getName().startsWith("logback") || file.getName().startsWith("slf4j");
     }
 
     public static List<File> getGradleClasspath() {
@@ -95,28 +71,47 @@ public class BootstrapUtil {
         return pathElements;
     }
 
+    public static List<File> getGradleCoreFiles() {
+        List<File> files = gradleLibClasspath("gradle-core");
+        if (!files.isEmpty()) {
+            return files;
+        }
+
+        // Look for a classes dir
+        files = new ArrayList<File>();
+        for (File file : getGradleClasspath()) {
+            if (file.isDirectory()) {
+                if (new File(file, BootstrapUtil.class.getName().replace('.', '/') + ".class").isFile()) {
+                    files.add(file);
+                }
+            }
+        }
+        return files;
+    }
+
     public static List<File> getGroovyFiles() {
-        return gradleLibClasspath(WrapUtil.toList("groovy"));
+        return gradleLibClasspath("groovy", "antlr", "asm-all", "commons-cli");
+    }
+
+    public static List<File> getCommonsCliFiles() {
+        return gradleLibClasspath("commons-cli");
     }
 
     public static List<File> getAntJunitJarFiles() {
-        return gradleLibClasspath(WrapUtil.toList("ant", "ant-launcher", "ant-junit"));
+        return gradleLibClasspath("ant", "ant-launcher", "ant-junit");
     }
 
     public static List<File> getAntJarFiles() {
-        return gradleLibClasspath(WrapUtil.toList("ant", "ant-launcher"));
+        return gradleLibClasspath("ant", "ant-launcher");
     }
 
-    public static List<File> gradleLibClasspath(List searchPatterns) {
+    public static List<File> gradleLibClasspath(String... prefixes) {
         List<File> result = new ArrayList<File>();
         for (File pathElement : getGradleClasspath()) {
-            int pos = pathElement.getName().lastIndexOf("-");
-            if (pos == -1) {
-                continue;
-            }
-            String libName = pathElement.getName().substring(0, pos);
-            if (searchPatterns.contains(libName)) {
-                result.add(pathElement);
+            for (String searchPattern : prefixes) {
+                if (pathElement.getName().startsWith(searchPattern + '-')) {
+                    result.add(pathElement);
+                }
             }
         }
         return result;

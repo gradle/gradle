@@ -17,7 +17,6 @@
 package org.gradle.util
 
 import org.apache.commons.io.FilenameUtils
-import org.apache.tools.ant.BuildListener
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -43,49 +42,7 @@ class GradleUtil {
         dir.canonicalFile
     }
 
-    static URL[] filesToUrl(File file) {
-        List files = [file]
-        files.collect { it.toURL() }
-    }
-
     static String unbackslash(def s) {
         FilenameUtils.separatorsToUnix(s.toString())
-    }
-
-    static String createIsolatedAntScript(String filling) {
-        """ClassLoader loader = Thread.currentThread().contextClassLoader
-AntBuilder ant = loader.loadClass('groovy.util.AntBuilder').newInstance()
-ant.project.removeBuildListener(ant.project.getBuildListeners()[0])
-ant.project.addBuildListener(loader.loadClass("org.gradle.logging.AntLoggingAdapter").newInstance())
-$filling
-"""
-    }
-
-    static void replaceBuildListener(AntBuilder antBuilder, BuildListener buildListener) {
-        antBuilder.project.removeBuildListener(antBuilder.getProject().getBuildListeners()[0])
-        antBuilder.project.addBuildListener(buildListener)
-    }
-
-    static Object executeIsolatedAntScript(List loaderClasspath, String filling) {
-        ClassLoader oldCtx = Thread.currentThread().contextClassLoader
-        File toolsJar = ClasspathUtil.getToolsJar()
-        logger.debug("Tools jar is: {}", toolsJar)
-        List additionalClasspath = BootstrapUtil.nonLoggingJars
-        if (toolsJar) {
-            additionalClasspath.add(toolsJar)
-        }
-        URL[] taskUrlClasspath = (loaderClasspath + additionalClasspath).collect {File file ->
-            file.toURI().toURL()
-        }
-        ClassLoader newLoader = new URLClassLoader(taskUrlClasspath, oldCtx.parent)
-        Thread.currentThread().contextClassLoader = newLoader
-        try {
-            String scriptText = createIsolatedAntScript(filling)
-            logger.debug("Using groovyc as: {}", scriptText)
-            return newLoader.loadClass("groovy.lang.GroovyShell").newInstance(newLoader).evaluate(
-                scriptText)
-        } finally {
-            Thread.currentThread().contextClassLoader = oldCtx
-        }
     }
 }
