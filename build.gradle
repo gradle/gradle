@@ -613,7 +613,7 @@ task intTestImage(dependsOn: explodedDist) {
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
 task integTest(type: Test, dependsOn: [intTestImage, binZip, userguideSrc]) {
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ["-ea"])
+    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m'])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
     options.systemProperties['integTest.userGuideInfoDir'] = docbookSrc.absolutePath
