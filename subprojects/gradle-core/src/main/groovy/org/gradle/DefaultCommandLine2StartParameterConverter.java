@@ -120,7 +120,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
       logLevelMap.put( QUIET, LogLevel.QUIET );
       logLevelMap.put( INFO, LogLevel.INFO );
       logLevelMap.put( DEBUG, LogLevel.DEBUG );
-      //logLevelMap.put( , LogLevel.LIFECYCLE ); there is no command argument for this. Rather, the lack of an argument means 'default to this'.
+      logLevelMap.put( "", LogLevel.LIFECYCLE );
       //there are also other log levels that gradle doesn't support command-line-wise.
 
       showStacktraceMap.put( FULL_STACKTRACE, StartParameter.ShowStacktrace.ALWAYS_FULL );

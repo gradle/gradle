@@ -28,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -46,6 +47,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Enumeration;
 
 /**
  This displays a tree of projects, subprojects, and tasks.
@@ -111,6 +113,8 @@ public class TaskTreeComponent {
         renderer = new Renderer();
         tree.setCellRenderer(renderer);
 
+       ToolTipManager.sharedInstance().registerComponent( tree );
+
         tree.setToggleClickCount(99);  //prevents double clicks from expanding/collapsing the tree. We want to treat them as double-clicks
 
         tree.addMouseListener(new MyMouseListener());
@@ -157,6 +161,7 @@ public class TaskTreeComponent {
 
         private Renderer() {
             setupRendererUI();
+            setShowDescription( true );
 
             descriptionColor = Color.blue;
         }
@@ -200,17 +205,39 @@ public class TaskTreeComponent {
             this.showDescription = showDescription;
             seperator.setVisible(showDescription);
             descriptionRenderer.setVisible(showDescription);
+            seperator.invalidate();
+            nameRenderer.invalidate();
+            descriptionRenderer.invalidate();
+            panel.invalidate();
+
+            //have to tell the tree each node changed. This is so it will recalculate its size. Without this, if the description is
+            //initially disabled, the tree is populated and expanded, then description is enabled, nothing shows up because the tree
+            //caches the node's size for some dumb reason.
+            Enumeration enumeration = rootNode.breadthFirstEnumeration();
+            while( enumeration.hasMoreElements() )
+            {
+               TaskTreeBaseNode treeNode = (TaskTreeBaseNode) enumeration.nextElement();
+                model.nodeChanged( treeNode );
+            }
+
             tree.repaint();
         }
 
         public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
             TaskTreeBaseNode node = (TaskTreeBaseNode) value;
-            nameRenderer.getTreeCellRendererComponent(tree, node.toString(), isSelected, expanded, leaf, row, hasFocus);
-            descriptionRenderer.getTreeCellRendererComponent(tree, node.getDescription(), isSelected, expanded, leaf, row, false);
 
-            //just remove the icon entirely
+           String description = node.getDescription();
+
+           //we've already added these components to our panel. We know they're just labels. Calling getTreeCell... just sets their text and colors correctly.
+           this.nameRenderer.getTreeCellRendererComponent(tree, node.toString(), isSelected, expanded, leaf, row, hasFocus);
+           this.descriptionRenderer.getTreeCellRendererComponent( tree, description, isSelected, expanded, leaf, row, false );
+
+           //set the tooltip. This must be on the component we return not our sub renderers
+           panel.setToolTipText( description );
+
+           //just remove the icon entirely
             nameRenderer.setIcon(null);
-            descriptionRenderer.setIcon(null);
+            this.descriptionRenderer.setIcon(null);
 
             if (node.isBold())
                 nameRenderer.setFont(boldFont);
@@ -220,10 +247,13 @@ public class TaskTreeComponent {
             //set the description color. If its selected, make it the name renderer's color
             //so we know the colors won't conflict (they do on Windows XP).
             if (!isSelected)
-                descriptionRenderer.setForeground(descriptionColor);
+                this.descriptionRenderer.setForeground(descriptionColor);
             else
-                descriptionRenderer.setForeground(nameRenderer.getForeground());
+                this.descriptionRenderer.setForeground(nameRenderer.getForeground());
 
+            nameRenderer.invalidate();
+            descriptionRenderer.invalidate();
+            seperator.invalidate();
             panel.invalidate();
             panel.validate();
 

@@ -15,15 +15,16 @@
  */
 package org.gradle.openapi.external.ui;
 
-/*
-   This interface holds onto our options and allows us to interact with the
-   caller. This is meant to interact with the Gradle UI across class loader
-   and version boundaries. That is, the open API has a single entry point
-   that shouldn't change across versions. New interfaces can be expected, but
-   we'll always allow 'version1'. This is to provide backward/forward compatibility.
+/**
+ This interface holds onto our options and allows us to interact with the
+ caller. This is meant to interact with the Gradle UI across class loader
+ and version boundaries. That is, the open API has a single entry point
+ that shouldn't change across versions. New interfaces can be expected, but
+ we'll always allow 'version1'. This is to provide backward/forward compatibility.
 
-   @author mhunsicker
+ @author mhunsicker
 */
-public interface SinglePaneUIInteractionVersion1 extends GradleUIInteractionVersion1
+public interface EmbeddedGradleUIInteractionVersion1 extends GradleUIInteractionVersion1
 {
+   //under construction
 }

@@ -41,6 +41,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -174,7 +175,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         });
 
         panel.add(executeButton);
-        panel.add(Box.createHorizontalStrut(5));
+        panel.add(Box.createHorizontalStrut(10));
         panel.add(addButton);
         panel.add(Box.createHorizontalStrut(5));
         panel.add(editButton);
@@ -182,7 +183,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         panel.add(removeButton);
         panel.add(Box.createHorizontalStrut(5));
         panel.add(moveUpButton);
-        panel.add(Box.createHorizontalStrut(5));
+        panel.add(Box.createHorizontalStrut(10));
         panel.add(moveDownButton);
         panel.add(Box.createHorizontalGlue());
         panel.add(importButton);
@@ -202,6 +203,9 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2)
                     executeSelectedTask();
+                else
+                   if( e.getButton() == MouseEvent.BUTTON3 )
+                     handleRightClick( e );
             }
         });
 
@@ -224,6 +228,26 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
             model.addElement(favoriteTask);
         }
     }
+
+
+  private void handleRightClick( MouseEvent e )
+  {
+     Point point = e.getPoint();
+     int index = list.locationToIndex( point );
+     if( index != -1 )  //all of this is because the JList won't select things on right-click. Which means you won't be acting upon what you think you're acting upon.
+     {
+        if( !list.isSelectedIndex( index ) )
+        {
+           if( Utility.isCTRLDown( e.getModifiersEx() ) )
+              list.addSelectionInterval( index, index ); //the CTRL key is down, just add this to our selection
+           else
+              list.setSelectedIndex( index );            //the CTRL key is not down, just replace the selection
+           //we're not handling SHIFT! Nor are we handling OS X.
+        }
+     }
+     enableThingsAppropriately();
+     popupMenu.show( list, point.x, point.y );
+  }
 
     /**
     Notification that we're about to reload the projects and tasks.
@@ -339,11 +363,6 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
 
         executeMenuItem.setEnabled(hasSelection);
         removeFavoritesMenuItem.setEnabled(hasSelection);
-
-        //addButton.setEnabled( hasLoaded );
-        //importButton.setEnabled( hasLoaded );
-        //exportButton.setEnabled( hasLoaded );
-        //list.setEnabled( hasLoaded );
 
         executeButton.setEnabled(hasSelection);
         removeButton.setEnabled(hasSelection);

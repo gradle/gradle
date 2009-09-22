@@ -81,6 +81,16 @@ public class ExternalProcess {
         this.procOutput = procOutput;
     }
 
+   /**
+    Sets environment variables. Must be called before starting the process.
+    @param name the name of the variable.
+    @param value the value of said variable.
+    */
+    public void setEnvironmentVariable( String name, String value )
+    {
+       pb.environment().put( name, value );
+    }
+
     public void setInput(String inData) {
         inputString = inData;
     }

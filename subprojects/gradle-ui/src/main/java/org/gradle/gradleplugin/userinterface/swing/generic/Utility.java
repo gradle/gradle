@@ -17,24 +17,27 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageButton;
+import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageToggleButton;
 
+import javax.imageio.ImageIO;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JButton;
-import javax.swing.Action;
-import javax.swing.ImageIcon;
-import javax.swing.AbstractButton;
-import javax.imageio.ImageIO;
+import javax.swing.JToggleButton;
 import java.awt.Component;
 import java.awt.Window;
+import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.Method;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
 
 /**
  * Just some utility functions.
@@ -118,33 +121,15 @@ public class Utility {
        @return the button that was created.
     */
     public static JButton createButton(Class resourceClass, String imageResourceName, String tooltip, Action action) {
-        JButton button = new JButton(action);
 
-        setupButton(button, resourceClass, imageResourceName, tooltip);
-
-        return button;
-    }
-
-    /**
-       This sets up a button's image and tooltip text. The main issue here is
-       that it doesn't crash if the image is missing (which is just something
-       that happens in real life from time to time). You probably should specify
-       a name on the action just in case.
-
-       @param  button            the button to affect
-       @param resourceClass
-       @param  imageResourceName the image resource
-       @param  tooltip           the tooltip to display
-       @author mhunsicker
-    */
-    public static void setupButton(AbstractButton button, Class resourceClass, String imageResourceName, String tooltip) {
-        if (imageResourceName != null) {
+       JButton button = null;
+       if (imageResourceName != null) {
             InputStream inputStream = resourceClass.getResourceAsStream(imageResourceName);
             if (inputStream != null) {
                 try {
                     BufferedImage image = ImageIO.read(inputStream);
-                    button.setIcon(new ImageIcon(image));
-                    button.setText(null);
+
+                    button = new BorderlessImageButton( action, new ImageIcon(image) );
                 }
                 catch (IOException e) {
                     logger.error("Reading image " + imageResourceName, e);
@@ -152,7 +137,47 @@ public class Utility {
             }
         }
 
-        if (tooltip != null)
-            button.setToolTipText(tooltip);
+       if( button == null )
+          button = new JButton( action );
+
+       if (tooltip != null)
+          button.setToolTipText(tooltip);
+
+        return button;
     }
+
+   public static JToggleButton createToggleButton( Class resourceClass, String imageResourceName, String tooltip, Action action ) {
+
+      JToggleButton button = null;
+
+       if (imageResourceName != null) {
+            InputStream inputStream = resourceClass.getResourceAsStream(imageResourceName);
+            if (inputStream != null) {
+                try {
+                    BufferedImage image = ImageIO.read(inputStream);
+
+                    button = new BorderlessImageToggleButton( action, new ImageIcon(image) );
+                }
+                catch (IOException e) {
+                    logger.error("Reading image " + imageResourceName, e);
+                }
+            }
+        }
+
+       if( button == null )
+          button = new JToggleButton( action );
+
+       if (tooltip != null)
+          button.setToolTipText(tooltip);
+
+        return button;
+   }
+   
+   //this determines if the CTRL key is down based on the modifiers from an event.
+   //This actualy needs to be checking for different things. CTRL doesn't meant the
+   //same thing on each platform.
+   public static boolean isCTRLDown( int eventModifiersEx )
+   {
+      return ( eventModifiersEx & InputEvent.CTRL_DOWN_MASK ) == InputEvent.CTRL_DOWN_MASK;
+   }
 }

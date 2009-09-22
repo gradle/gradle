@@ -170,13 +170,12 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
             }
         });
 
-        toggleFilterButton = new JToggleButton(new AbstractAction("Filter") {
+        toggleFilterButton = Utility.createToggleButton( getClass(), "filter.png", "Toggles the view to show either everything or only the filtered items", new AbstractAction("Filter") {
             public void actionPerformed(ActionEvent e) {
                 populate();
             }
         });
-        Utility.setupButton(toggleFilterButton, getClass(), "filter.png", "Toggles the view to show either everything or only the filtered items");
-
+       
         toggleFilterButton.setSelected(true);
 
         editFilterButton = Utility.createButton(getClass(), "edit-filter.png", "Edits the filter to control what is visible", new AbstractAction("Edit Filter...") {
@@ -185,7 +184,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
             }
         });
 
-        showDescriptionCheckBox = new JCheckBox("Show Description", true);
+        showDescriptionCheckBox = new JCheckBox("Description", true);
         showDescriptionCheckBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 resetShowDescription();

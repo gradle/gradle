@@ -19,6 +19,8 @@ import org.gradle.foundation.common.ObserverLord;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
+import java.util.Iterator;
+
 /**
  * This launches an application as a separate process then listens for messages
  * from it. You implement the Protocol interface to handle the specifics of the communications.
@@ -95,7 +97,15 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                 ExternalProcess externalProcess = new ExternalProcess(executionInfo.workingDirectory, executionInfo.commandLineArguments);
                 setExternalProcess(externalProcess);
 
-                try {
+                //set environment variables
+                Iterator<String> iterator = executionInfo.environmentVariables.keySet().iterator();
+                while( iterator.hasNext() ) {
+                   String name = iterator.next();
+                   String value = executionInfo.environmentVariables.get( name );
+                   externalProcess.setEnvironmentVariable( name, value );
+                }
+
+               try {
                     externalProcess.start();
                 }
                 catch (Throwable e) {

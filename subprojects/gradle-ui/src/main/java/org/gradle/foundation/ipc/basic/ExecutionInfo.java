@@ -16,6 +16,7 @@
 package org.gradle.foundation.ipc.basic;
 
 import java.io.File;
+import java.util.HashMap;
 
 /**
  * @author mhunsicker
@@ -27,6 +28,7 @@ import java.io.File;
 public class ExecutionInfo {
     public String[] commandLineArguments;
     public File workingDirectory;
+    public HashMap<String,String> environmentVariables = new HashMap<String, String>();
 
     public void setCommandLineArguments(String[] commandLineArguments) {
         this.commandLineArguments = commandLineArguments;
@@ -34,6 +36,10 @@ public class ExecutionInfo {
 
     public void setWorkingDirectory(File workingDirectory) {
         this.workingDirectory = workingDirectory;
+    }
+
+    public void addEnvironmentVariable( String name, String value ) {
+       this.environmentVariables.put( name, value );
     }
 
     public ExecutionInfo() {
