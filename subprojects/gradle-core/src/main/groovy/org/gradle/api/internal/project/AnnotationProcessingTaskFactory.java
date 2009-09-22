@@ -61,8 +61,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             actionsForType.put(type, actions);
         }
 
-        Object autoWireStr = args.get(DEPENDENCY_AUTO_WIRE);
-        boolean autoWire = autoWireStr == null ? true : Boolean.valueOf(autoWireStr.toString());
+        boolean autoWire = get(args, DEPENDENCY_AUTO_WIRE);
 
         for (Action<Task> action : actions) {
             task.doFirst(action);
@@ -73,6 +72,11 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         return task;
+    }
+
+    private boolean get(Map args, String key) {
+        Object value = args.get(key);
+        return value == null ? true : Boolean.valueOf(value.toString());
     }
 
     private List<Action<Task>> createActionsForType(Class<? extends Task> type) {

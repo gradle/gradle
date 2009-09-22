@@ -404,6 +404,49 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    public void skipsTaskWhenInputDirectoryIsEmptyAndSkipWhenEmpty() {
+        File inputDir = new File(testDir, "input");
+        inputDir.mkdirs();
+
+        TaskWithInputDir task = new TaskWithInputDir(inputDir) {
+            @Override @InputDirectory @SkipWhenEmpty
+            public File getInputDir() {
+                return super.getInputDir();
+            }
+
+            @TaskAction
+            public void doStuff() {
+                fail();
+            }
+        };
+
+        expectTaskCreated(task);
+
+        task.execute();
+    }
+
+    @Test
+    public void skipsTaskWhenInputDirectoryIsDoesNotExistAndSkipWhenEmpty() {
+        File inputDir = new File(testDir, "input");
+
+        TaskWithInputDir task = new TaskWithInputDir(inputDir) {
+            @Override @InputDirectory @SkipWhenEmpty
+            public File getInputDir() {
+                return super.getInputDir();
+            }
+
+            @TaskAction
+            public void doStuff() {
+                fail();
+            }
+        };
+
+        expectTaskCreated(task);
+
+        task.execute();
+    }
+    
+    @Test
     public void validationActionSucceedsWhenPropertyMarkedWithOptionalAnnotationNotSpecified() {
         TaskWithOptionalInputFile task = new TaskWithOptionalInputFile();
         expectTaskCreated(task);

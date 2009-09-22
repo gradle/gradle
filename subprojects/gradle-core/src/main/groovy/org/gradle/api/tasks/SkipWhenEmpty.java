@@ -22,7 +22,7 @@ import java.lang.annotation.ElementType;
 
 /**
  * Attached to a task property to indicate that the task should be skipped when the value of the property is an empty
- * {@link org.gradle.api.file.FileCollection}.
+ * {@link org.gradle.api.file.FileCollection} or directory.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

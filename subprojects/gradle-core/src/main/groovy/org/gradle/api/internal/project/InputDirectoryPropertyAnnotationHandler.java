@@ -16,6 +16,8 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 
@@ -37,17 +39,12 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
             }
         }
     };
-    private final PropertyActions propertyActions = new PropertyActions() {
-        public ValidationAction getValidationAction() {
-            return inputDirValidation;
-        }
-
-        public ValidationAction getSkipAction() {
-            return null;
-        }
-
-        public Transformer<Object> getTaskDependency() {
-            return null;
+    private final ValidationAction skipEmptyDirectoryAction = new ValidationAction() {
+        public void validate(String propertyName, Object value) throws InvalidUserDataException {
+            File fileValue = (File) value;
+            if (!fileValue.exists() || fileValue.isDirectory() && fileValue.list().length == 0) {
+                throw new StopExecutionException(String.format("Directory %s is empty or does not exist.", fileValue));
+            }
         }
     };
 
@@ -55,7 +52,22 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
         return InputDirectory.class;
     }
 
-    public PropertyActions getActions(AnnotatedElement target, String propertyName) {
-        return propertyActions;
+    public PropertyActions getActions(final AnnotatedElement target, String propertyName) {
+        return new PropertyActions() {
+            public ValidationAction getValidationAction() {
+                return inputDirValidation;
+            }
+
+            public ValidationAction getSkipAction() {
+                if (target.getAnnotation(SkipWhenEmpty.class) != null) {
+                    return skipEmptyDirectoryAction;
+                }
+                return null;
+            }
+
+            public Transformer<Object> getTaskDependency() {
+                return null;
+            }
+        };
     }
 }
