@@ -19,13 +19,14 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         ClassLoader gradleLoader
         if (!classloadersForPath) {
             // Need tools.jar for compile tasks
+            List<File> fullClasspath = normalisedClasspath
             File toolsJar = ClasspathUtil.toolsJar
             if (toolsJar) {
-                normalisedClasspath += toolsJar
+                fullClasspath += toolsJar
             }
-            
+
             Closure converter = {File file -> file.toURI().toURL() }
-            URL[] classpathUrls = normalisedClasspath.collect(converter)
+            URL[] classpathUrls = fullClasspath.collect(converter)
             URL[] gradleCoreUrls = BootstrapUtil.gradleCoreFiles.collect(converter)
 
             FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().classLoader)
@@ -35,9 +36,8 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             gradleLoader = new URLClassLoader(gradleCoreUrls, new MultiParentClassLoader(antLoader, loggingLoader))
 
             classloaders[normalisedClasspath] = [antLoader: antLoader, gradleLoader: gradleLoader]
-        }
-        else {
-            antLoader= classloadersForPath.antLoader
+        } else {
+            antLoader = classloadersForPath.antLoader
             gradleLoader = classloadersForPath.gradleLoader
         }
 
