@@ -1,3 +1,4 @@
+
 package org.gradle.test;
 
 import org.codehaus.groovy.ast.ASTNode;
@@ -10,6 +11,7 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.transform.ASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
+import org.codehaus.groovy.runtime.InvokerHelper;
 
 import java.util.List;
 
@@ -38,7 +40,7 @@ public class DetectorTransform implements ASTTransformation {
     for (ClassNode clazz : (List<ClassNode>)module.getClasses()) {
       FieldNode field = clazz.getField(VERSION_FIELD_NAME);
       if (field != null) {
-        field.setInitialValueExpression(new ConstantExpression("1.6"));
+        field.setInitialValueExpression(new ConstantExpression(InvokerHelper.getVersion()));
         break;
       }
     }

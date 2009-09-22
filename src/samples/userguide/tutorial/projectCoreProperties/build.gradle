@@ -2,12 +2,8 @@ task check << {
     allprojects {
         println "project path $path"
         println "  project name = $name"
-        println "  project dir = '${toPath(projectDir)}'"
-        println "  build file = '${toPath(buildFile)}'"
-        println "  build dir = '${toPath(buildDir)}'"
+        println "  project dir = '${rootProject.relativePath(projectDir)}'"
+        println "  build file = '${rootProject.relativePath(buildFile)}'"
+        println "  build dir = '${rootProject.relativePath(buildDir)}'"
     }
-}
-
-def toPath(File file) {
-    rootProject.relativePath(file).path.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
 }

@@ -11,9 +11,8 @@ repositories {
 
 dependencies {
     groovy group: 'org.codehaus.groovy', name: 'groovy-all', version: '1.6.0'
-    compile( 'org.eclipse:osgi:3.4.3.R34x_v20081215-1030' )
+    compile group: 'org.eclipse', name: 'osgi', version: '3.4.3.R34x_v20081215-1030'
 }
-
 
 configure(jar.osgi) {
     version = '1.0'
