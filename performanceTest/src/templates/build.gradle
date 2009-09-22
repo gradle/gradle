@@ -9,6 +9,13 @@ dependencies {
     testCompile 'junit:junit:4.5'
 }
 
+<% if (groovyProject) { %>
+usePlugin 'groovy'
+dependencies {
+    groovy 'org.codehaus.groovy:groovy-all:1.6.4'
+}
+<% } %>
+
 test {
     options.forkOptions.forkMode = ForkMode.ONCE
     testReport = false

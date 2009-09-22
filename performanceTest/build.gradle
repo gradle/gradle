@@ -3,6 +3,7 @@ import groovy.text.SimpleTemplateEngine
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.OutputDirectory
 
 buildscript {
     repositories {
@@ -15,26 +16,34 @@ buildscript {
 
 usePlugin(BasePlugin)
 
-task generateSmall(type: GeneratorTask, description: 'Generates a small project') {
+task small(type: GeneratorTask, description: 'Generates a small project') {
     destDir = new File(buildDir, 'small')
 }
 
-task generateLargeSrc(type: GeneratorTask, description: 'Generates a single project with lots of source files') {
+task largeSrc(type: GeneratorTask, description: 'Generates a single project with lots of source files') {
     destDir = new File(buildDir, 'largeSrc')
     sourceFiles = 500
 }
 
-task generateMulti(type: GeneratorTask, description: 'Genetates a multi-project build') {
+task multi(type: GeneratorTask, description: 'Genetates a multi-project build') {
     destDir = new File(buildDir, 'multi')
     projects = 25
+}
+
+task multiGroovy(type: GeneratorTask, description: 'Genetates a multi-project groovy build') {
+    destDir = new File(buildDir, 'multiGroovy')
+    projects = 25
+    groovyProject = true
 }
 
 task all(dependsOn: {tasks.withType(GeneratorTask).all})
 
 class GeneratorTask extends DefaultTask {
+    @OutputDirectory
     File destDir
     int sourceFiles = 1
     int projects = 1
+    boolean groovyProject
 
     @TaskAction
     void generate() {
@@ -92,6 +101,8 @@ class GeneratorTask extends DefaultTask {
             }
         }
 
+        args += [groovyProject: groovyProject]
+
         files.each {String name ->
             generate(name, name, args)
         }
@@ -101,6 +112,13 @@ class GeneratorTask extends DefaultTask {
                 Map classArgs = args + [productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
                 generate("src/main/java/org/gradle/test/performance/${classArgs.productionClassName}.java", 'Production.java', classArgs)
                 generate("src/test/java/org/gradle/test/performance/${classArgs.testClassName}.java", 'Test.java', classArgs)
+            }
+            if (groovyProject) {
+                sourceFiles.times {
+                    Map classArgs = args + [productionClassName: "ProductionGroovy${it + 1}", testClassName: "TestGroovy${it + 1}"]
+                    generate("src/main/groovy/org/gradle/test/performance/${classArgs.productionClassName}.groovy", 'Production.groovy', classArgs)
+                    generate("src/test/groovy/org/gradle/test/performance/${classArgs.testClassName}.groovy", 'Test.groovy', classArgs)
+                }
             }
         }
     }
