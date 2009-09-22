@@ -116,6 +116,9 @@ class DefaultIsolatedAntBuilderTest {
             antBuilder2 = delegate.builder
         }
 
+        println "Classloader 1 = ${antBuilder1.getClass().classLoader}"
+        println "Classloader 2 = ${antBuilder2.getClass().classLoader}"
+
         assertThat(antBuilder1.class, sameInstance(antBuilder2.class))
     }
 
