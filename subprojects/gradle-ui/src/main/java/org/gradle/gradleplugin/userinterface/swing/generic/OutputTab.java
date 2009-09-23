@@ -15,14 +15,23 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
+import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageButton;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.ImageIcon;
+import javax.imageio.ImageIO;
 import java.awt.Component;
+import java.awt.image.BufferedImage;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.InputStream;
+import java.io.IOException;
 
 /**
  * This just wraps up an OutputPanel so it has a tab header that an be dynamic.
@@ -32,6 +41,9 @@ import java.awt.event.MouseEvent;
  * @author mhunsicker
  */
 public class OutputTab extends OutputPanel {
+
+    private static final Logger logger = Logging.getLogger(OutputTab.class);
+
     private JPanel mainPanel;
     private JLabel mainTextLabel;
     private JLabel pinnedLabel;
@@ -48,7 +60,12 @@ public class OutputTab extends OutputPanel {
         mainTextLabel = new JLabel(header);
         pinnedLabel = new JLabel("(Pinned) ");
         pinnedLabel.setVisible(isPinned());
-        closeLabel = new JLabel("X");   //for now. Ultimately, I need to use an image.
+
+       BufferedImage image = getImageResource( "close.png" );
+       if( image != null )
+         closeLabel = new JLabel( new ImageIcon( image ) );
+       else
+         closeLabel = new JLabel("X");   //for now. Ultimately, I need to use an image.
 
         mainPanel.add(mainTextLabel);
         mainPanel.add(Box.createHorizontalStrut(5));
@@ -60,6 +77,22 @@ public class OutputTab extends OutputPanel {
                 close();
             }
         });
+    }
+
+    private BufferedImage getImageResource( String imageResourceName )
+    {
+       InputStream inputStream = getClass().getResourceAsStream(imageResourceName);
+       if (inputStream != null) {
+          try {
+              BufferedImage image = ImageIO.read(inputStream);
+             return image;
+          }
+          catch ( IOException e) {
+              logger.error("Reading image " + imageResourceName, e);
+          }
+       }
+
+       return null;
     }
 
     /**
