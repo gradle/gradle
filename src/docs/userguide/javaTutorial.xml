@@ -1,11 +1,31 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 <chapter id='tutorial_java_projects' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Java Quickstart</title>
 
     <para>To build a Java project, you use the <emphasis>Java Plugin</emphasis>. This plugin adds some tasks to your
-        project, along with some configuration properties, which will compile and test your Java source code, and
-        bundle it into a JAR file. We have in-depth coverage with many examples about the Java plugin, dependency
-        management and multi-project builds in later chapters. In this chapter we want to give you an initial idea of
-        how to build a Java project.
+        project which will compile and test your Java source code, and bundle it into a JAR file.  We have in-depth
+        coverage with many examples about the Java plugin, dependency management and multi-project builds in later
+        chapters. In this chapter we want to give you an initial idea of how to build a Java project.
+    </para>
+
+    <para>The Java plugin is heavily convention based. This means that the plugin defines defaults for many aspects of
+        the project, such as where the source files are located. If you follow the convention in your project,
+        you generally don't need to do much in your build script to get a useful build. Gradle allows you to customize
+        your project if you don't want to or cannot follow the convention in some way.
     </para>
 
     <section>
@@ -21,15 +41,52 @@
             <para>You can use <userinput>gradle -t</userinput> to list the tasks of a project. This will let you see
             the tasks that the Java plugin has added to your project.
         </para></tip>
-        <para>Executing
-            <userinput>gradle build</userinput> will compile, test and jar your code. Gradle looks for your
-            production source code under <filename>src/main/java</filename> and your test source code under
-            <filename>src/test/java</filename>. In addition, any files under <filename>src/main/resources</filename>
-            will be included in the JAR file as resources, and any files under <filename>src/test/resources</filename>
-            will be included in the classpath used to run the tests. All output files will end up under the
-            <filename>build</filename> directory, with the JAR file ending up in the <filename>build/libs</filename>
-            directory.
+
+        <para>Gradle expects to find your production source code under <filename>src/main/java</filename> and your test
+            source code under <filename>src/test/java</filename>. In addition, any files under
+            <filename>src/main/resources</filename> will be included in the JAR file as resources, and any files under
+            <filename>src/test/resources</filename> will be included in the classpath used to run the tests. All output
+            files are created under the <filename>build</filename> directory, with the JAR file ending up in the
+            <filename>build/libs</filename> directory.
         </para>
+
+        <section>
+            <title>Building the project</title>
+            <para>The Java plugin adds quite a few tasks to your project. However, there are only a handful of tasks
+                that you need to know about to build the project. The <literal>build</literal> task does a full
+                build of the project. Running <userinput>gradle build</userinput> will compile, test and jar your code.</para>
+            <sample id="javaQuickstart" dir="java/quickstart" title="Building a Java project">
+                <output args="build"/>
+            </sample>
+
+            <para>Some other useful tasks are:</para>
+            <variablelist>
+                <varlistentry>
+                    <term>clean</term>
+                    <listitem>
+                        <para>Deletes the <filename>build</filename> directory, removing all built files.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>assemble</term>
+                    <listitem>
+                        <para>Compiles and jars your code, but does not run the unit tests. Other plugins add more
+                            artifacts to this task. For example, if you use the War plugin, this task will also build
+                            the WAR file for your project.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>check</term>
+                    <listitem>
+                        <para>Compiles and tests your code. Other plugins add more checks to this task. For example, if
+                            you use the Code-quality plugin, this task will also run Checkstyle against your source
+                            code.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
 
         <section>
             <title>External dependencies</title>

@@ -46,17 +46,27 @@
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
             </tr>
             <tr>
-                <td>checkstyleTest</td>
-                <td><literal>compile</literal></td>
-                <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
-            </tr>
-            <tr>
                 <td>codenarcMain</td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
             </tr>
             <tr>
+                <td>checkstyleTest</td>
+                <td><literal>compile</literal></td>
+                <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
+            </tr>
+            <tr>
                 <td>codenarcTest</td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
+            </tr>
+            <tr>
+                <td>checkstyle<replaceable>SourceSet</replaceable></td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
+            </tr>
+            <tr>
+                <td>codenarc<replaceable>SourceSet</replaceable></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
             </tr>
@@ -72,8 +82,10 @@
                 <td>check</td>
                 <td><literal>checkstyleMain</literal>,
                     <literal>checkstyleTest</literal>,
+                    <literal>checkstyle<replaceable>SourceSet</replaceable></literal>,
                     <literal>codenarcMain</literal>,
                     <literal>codenarcTest</literal>
+                    <literal>codenarc<replaceable>SourceSet</replaceable></literal>
                 </td>
             </tr>
         </table>

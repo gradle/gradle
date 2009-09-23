@@ -1,9 +1,42 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 <chapter id='java_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Java Plugin</title>
 
-    <para>The Java Plugin adds Java compilation, testing and bundling capabilities to a project. It serves as the basis
-        for most of the other Gradle plugins.
+    <para>The Java plugin adds Java compilation, testing and bundling capabilities to a project. It serves as the basis
+        for many of the other Gradle plugins.
     </para>
+
+    <section>
+        <title>Source sets</title>
+        <para>The Java plugin introduces the concept of a <firstterm>source set</firstterm>. A source set is a group of
+            source files which are compiled and executed together. These source files may include Java source files and
+            resource files. Other plugins add the ability to include Groovy and Scala source files in a source set.
+            A source set has an associated compile classpath, and runtime classpath.
+        </para>
+        <para>
+            You might use a source set to define an integration test suite, or for the API classes of your project, or
+            for source which is compiled against different Java versions.
+        </para>
+        <para>The Java plugin defines two standard source sets <literal>main</literal> and <literal>test</literal>. The
+            <literal>main</literal> source set contains your production source code, which is compiled and assembled
+            into a JAR file. The <literal>test</literal> source set contains your unit test source code, which is
+            compiled and executed using JUnit or TestNG.
+        </para>
+    </section>
     
     <section>
         <title>Tasks</title>
@@ -31,7 +64,9 @@
                 <td>
                     <literal>compileJava</literal>
                 </td>
-                <td>-</td>
+                <td>All tasks which produce the compile classpath. This includes the <literal>jar</literal> task in
+                    projects included in the <literal>compile</literal> configuration.
+                </td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
             </tr>
             <tr>
@@ -46,7 +81,8 @@
                     <literal>compile</literal>
                 </td>
                 <td>
-                    All compilation tasks in the project, including <literal>compileJava</literal> and <literal>processResources</literal>
+                    All compilation tasks in the project, including <literal>compileJava</literal> and <literal>processResources</literal>.
+                    Other plugins may add additional compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
@@ -55,7 +91,7 @@
                     <literal>compileTestJava</literal>
                 </td>
                 <td>
-                    <literal>compile</literal>
+                    <literal>compile</literal>, plus all tasks which produce the test compile classpath.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
             </tr>
@@ -71,7 +107,8 @@
                     <literal>compileTest</literal>
                 </td>
                 <td>
-                    All test compilation tasks in the project, including <literal>compileTestJava</literal> and <literal>processTestResources</literal>
+                    All test compilation tasks in the project, including <literal>compileTestJava</literal> and <literal>processTestResources</literal>.
+                    Other plugins may add additional test compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
@@ -98,6 +135,7 @@
                 <td>
                     <literal>compile</literal>,
                     <literal>compileTest</literal>,
+                    plus all tasks which produce the test runtime classpath.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
             </tr>
@@ -106,7 +144,8 @@
                     <literal>assemble</literal>
                 </td>
                 <td>
-                    All archive tasks in the project, including <literal>jar</literal>.
+                    All archive tasks in the project, including <literal>jar</literal>. Other plugins may add additional
+                    archive tasks to the project.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
@@ -115,7 +154,8 @@
                     <literal>check</literal>
                 </td>
                 <td>
-                    All verification tasks in the project, including <literal>test</literal>.
+                    All verification tasks in the project, including <literal>test</literal>. Other plugins may add
+                    additional verification tasks to the project.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
@@ -150,6 +190,32 @@
             </tr>
             <tr>
                 <td>
+                    <literal>compile<replaceable>SourceSet</replaceable>Java</literal>
+                </td>
+                <td>
+                    All tasks which produce the source set's compile classpath.
+                </td>
+                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>process<replaceable>SourceSet</replaceable>Resources</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>compile<replaceable>SourceSet</replaceable></literal>
+                </td>
+                <td>
+                    All compilation tasks for the source set, including <literal>compile<replaceable>SourceSet</replaceable>Java</literal> and <literal>process<replaceable>SourceSet</replaceable>Resources</literal>.
+                    Other plugins may add additional compilation tasks for the source set.
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+            <tr>
+                <td>
                     <literal>build<replaceable>ConfigurationName</replaceable></literal>
                 </td>
                 <td>
@@ -177,8 +243,9 @@
 
     <section>
         <title>Project layout</title>
-        <para>The Java plugin assumes the project layout shown in <xref linkend='javalayout'/>. This is configurable
-            using the convention properties listed in the next section.
+        <para>The Java plugin assumes the project layout shown in <xref linkend='javalayout'/>. None of these
+            directories need exist or have anything in them. The Java plugin will compile whatever it finds, and
+            handles anything which is missing.
         </para>
 
         <table id='javalayout'>
@@ -189,30 +256,9 @@
                     <td>Meaning</td>
                 </tr>
             </thead>
-            <tr>
-                <td>
-                    <filename>src/main/java</filename>
-                </td>
-                <td>Production Java source</td>
-            </tr>
-            <tr>
-                <td>
-                    <filename>src/main/resources</filename>
-                </td>
-                <td>Production resources</td>
-            </tr>
-            <tr>
-                <td>
-                    <filename>src/test/java</filename>
-                </td>
-                <td>Test Java source</td>
-            </tr>
-            <tr>
-                <td>
-                    <filename>src/test/resources</filename>
-                </td>
-                <td>Test resources</td>
-            </tr>
+            <xi:include href="javaProjectMainLayout.xml"/>
+            <xi:include href="javaProjectTestLayout.xml"/>
+            <xi:include href="javaProjectGenericLayout.xml"/>
         </table>
 
         <section>
@@ -544,7 +590,30 @@
 
     <section id="sec:source_sets">
         <title>Source sets</title>
-        <para>TBD</para>
+        <para>Adding a source set:</para>
+        <sample id="defineSourceSet" dir="userguide/java/sourceSets" title="Defining a source set">
+            <sourcefile file="build.gradle" snippet="define-source-set"/>
+        </sample>
+        <para>configuring the source directories of an existing source set:</para>
+        <sample id="configureSourceSet" dir="java/customizedLayout" title="Configuring the source directories of a source set">
+            <sourcefile file="build.gradle" snippet="define-main"/>
+        </sample>
+        <para>using configurations to define classpath of source set:</para>
+        <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Defining the classpath of a source set">
+            <sourcefile file="build.gradle" snippet="classpath-using-configurations"/>
+        </sample>
+        <para>adding a JAR for a source set:</para>
+        <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Assembling a JAR for a source set">
+            <sourcefile file="build.gradle" snippet="jar"/>
+        </sample>
+        <para>adding Javadoc for a source set:</para>
+        <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Generating the Javadoc for a source set">
+            <sourcefile file="build.gradle" snippet="javadoc"/>
+        </sample>
+        <para>adding a test suite for a source set:</para>
+        <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Running tests in a source set">
+            <sourcefile file="build.gradle" snippet="test"/>
+        </sample>
     </section>
 
     <section id='sec:javadoc'>

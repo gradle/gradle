@@ -1,0 +1,15 @@
+:compileJava
+:processResources
+:compile
+:jar
+:assemble
+:compileTestJava
+:processTestResources
+:compileTest
+:test
+:check
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

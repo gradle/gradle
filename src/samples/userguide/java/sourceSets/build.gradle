@@ -1,0 +1,44 @@
+usePlugin 'java'
+
+// START SNIPPET define-source-set
+source {
+    intTest
+}
+// END SNIPPET define-source-set
+
+repositories {
+    mavenCentral()
+}
+
+// START SNIPPET classpath-using-configurations
+configurations {
+    intTestCompile { extendsFrom compile }
+    intTestRuntime { extendsFrom intTestCompile, runtime }
+}
+
+source {
+    intTest {
+        compileClasspath = source.main.classes + configurations.intTestCompile
+        runtimeClasspath = classes + source.main.classes + configurations.intTestRuntime
+    }
+}
+// END SNIPPET classpath-using-configurations
+
+// START SNIPPET jar
+task intTestJar(type: Jar) {
+    from source.intTest.classes
+}
+// END SNIPPET jar
+
+// START SNIPPET javadoc
+task intTestJavadoc(type: Javadoc) {
+    source project.source.intTest.allJava
+}
+// END SNIPPET javadoc
+
+// START SNIPPET test
+task intTest(type: Test) {
+    testClassesDir = source.intTest.classesDir
+    configuration = source.intTest.runtimeClasspath
+}
+// END SNIPPET test

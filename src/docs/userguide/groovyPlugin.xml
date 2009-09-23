@@ -1,3 +1,18 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 <chapter id='groovy_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Groovy Plugin</title>
     <para>The Groovy Plugin extends the Java Plugin to add support for Groovy projects. It can deal with Groovy-only projects and
@@ -34,6 +49,11 @@
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
             </tr>
             <tr>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Groovy</literal></td>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
+                <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
+            </tr>
+            <tr>
                 <td><literal>groovydoc</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.javadoc.Groovydoc"/></td>
@@ -54,6 +74,10 @@
                 <td>compileTest</td>
                 <td>compileTestGroovy</td>
             </tr>
+            <tr>
+                <td>compile<replaceable>SourceSet</replaceable></td>
+                <td>compile<replaceable>SourceSet</replaceable>Groovy</td>
+            </tr>
         </table>
         <figure>
             <title>Groovy plugin - tasks</title>
@@ -67,12 +91,14 @@
         <title>Project layout</title>
         <para>The Groovy plugin assumes the project layout shown in <xref linkend='groovylayout'/>. All the Groovy
             source directories can contain Groovy <emphasis>and</emphasis> Java code. The Java source directories may
-            only contain Java source code (and can of course be empty).
+            only contain Java source code.
             <footnote>
                 <para>We are using the same conventions as introduced by Russel Winders Gant tool (<ulink
                         url='http://gant.codehaus.org'/>).
                 </para>
             </footnote>
+            None of these directories need exist or have anything in them. The Groovy plugin will compile whatever it
+            finds, and handles anything which is missing.
         </para>
 
         <table id='groovylayout'>
@@ -83,17 +109,26 @@
                     <td>Meaning</td>
                 </tr>
             </thead>
+            <xi:include href="javaProjectMainLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/main/groovy</filename>
                 </td>
-                <td>Production Groovy and Java source</td>
+                <td>Production Groovy source. May also contain Java source for joint compilation.</td>
             </tr>
+            <xi:include href="javaProjectTestLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/test/groovy</filename>
                 </td>
-                <td>Test Groovy and Java source</td>
+                <td>Test Groovy source. May also contain Java source for joint compilation.</td>
+            </tr>
+            <xi:include href="javaProjectGenericLayout.xml"/>
+            <tr>
+                <td>
+                    <filename>src/<replaceable>sourceSet</replaceable>/groovy</filename>
+                </td>
+                <td>Groovy source for the given source set. May also contain Java source for joint compilation.</td>
             </tr>
         </table>
 

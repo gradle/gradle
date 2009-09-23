@@ -13,8 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id="scala_plugin">
+<chapter id="scala_plugin" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Scala Plugin</title>
+
     <para>The Scala Plugin extends the Java Plugin to add support for Scala projects. It can deal with Scala-only
         projects and with mixed Java/Scala projects. It can even deal with Java-only projects. Your project can have
         Scala classes which use Java classes, and vice versa.
@@ -43,6 +44,11 @@
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
             </tr>
             <tr>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Scala</literal></td>
+                <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
+                <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
+            </tr>
+            <tr>
                 <td><literal>scaladoc</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaDoc"/></td>
@@ -63,6 +69,10 @@
                 <td>compileTest</td>
                 <td>compileTestScala</td>
             </tr>
+            <tr>
+                <td>compile<replaceable>SourceSet</replaceable></td>
+                <td>compile<replaceable>SourceSet</replaceable>Scala</td>
+            </tr>
         </table>
         <figure>
             <title>Scala plugin - tasks</title>
@@ -74,8 +84,10 @@
 
     <section>
         <title>Project layout</title>
-        <para>The Scala plugin assumes the project layout shown below.</para>
-
+        <para>The Scala plugin assumes the project layout shown below.  All the Scala source directories can contain
+            Scala <emphasis>and</emphasis> Java code. The Java source directories may only contain Java source code.
+            None of these directories need exist or have anything in them. The Scala plugin will compile whatever it
+            finds, and handles anything which is missing.</para>
         <table id='scalalayout'>
             <title>Scala plugin - project layout</title>
             <thead>
@@ -84,17 +96,26 @@
                     <td>Meaning</td>
                 </tr>
             </thead>
+            <xi:include href="javaProjectMainLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/main/scala</filename>
                 </td>
-                <td>Production Scala source</td>
+                <td>Production Scala source. May also contain Java source for joint compilation.</td>
             </tr>
+            <xi:include href="javaProjectTestLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/test/scala</filename>
                 </td>
-                <td>Test Scala source</td>
+                <td>Test Scala source. May also contain Java source for joint compilation.</td>
+            </tr>
+            <xi:include href="javaProjectGenericLayout.xml"/>
+            <tr>
+                <td>
+                    <filename>src/<replaceable>sourceSet</replaceable>/scala</filename>
+                </td>
+                <td>Scala source for the given source set. May also contain Java source for joint compilation.</td>
             </tr>
         </table>
 
