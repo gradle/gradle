@@ -47,10 +47,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         doclet = addStringOption("doclet");
         docletClasspath = addPathOption("docletclasspath");
         source = addStringOption("source");
-        sourcepath = addPathOption("sourcepath");
         classpath = addPathOption("classpath");
-        subPackages = addStringsOption("subpackages", ":");
-        exclude = addStringsOption("exclude", ":");
         bootClasspath = addPathOption("bootclasspath");
         extDirs = addPathOption("extdirs");
         outputLevel = addEnumOption("outputLevel", JavadocOutputLevel.QUIET);
@@ -58,7 +55,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         locale = addStringOption("locale");
         encoding = addStringOption("encoding");
 
-        packageNames = optionFile.getPackageNames();
         sourceNames = optionFile.getSourceNames();
     }
 
@@ -232,61 +228,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
     }
 
     /**
-     * -sourcepath  sourcepathlist
-     *     Specifies the search paths for finding source files (.java) when passing package names or -subpackages into the javadoc command.
-     * The sourcepathlist can contain multiple paths by separating them with a semicolon (;).
-     * The Javadoc tool will search in all subdirectories of the specified paths.
-     * Note that this option is not only used to locate the source files being documented,
-     * but also to find source files that are not being documented but whose comments are inherited by the source files being documented.
-     *
-     *     Note that you can use the -sourcepath option only when passing package names into the javadoc command
-     * -- it will not locate .java files passed into the javadoc command.
-     * (To locate .java files, cd to that directory or include the path ahead of each file,
-     * as shown at Documenting One or More Classes.) If -sourcepath is omitted,
-     * javadoc uses the class path to find the source files (see -classpath).
-     * Therefore, the default -sourcepath is the value of class path.
-     * If -classpath is omitted and you are passing package names into javadoc,
-     * it looks in the current directory (and subdirectories) for the source files.
-     *
-     *     Set sourcepathlist to the root directory of the source tree for the package you are documenting.
-     * For example, suppose you want to document a package called com.mypackage whose source files are located at:
-     *
-     *     C:/user/src/com/mypackage/*.java
-     *
-     *     In this case you would specify the sourcepath to C:/user/src, the directory that contains com\mypackage,
-     * and then supply the package name com.mypackage:
-     *
-     *       C:> javadoc -sourcepath C:/user/src com.mypackage
-     *
-     *     This is easy to remember by noticing that if you concatenate the value of sourcepath and
-     * the package name together and change the dot to a backslash "\", you end up with the full path to the package: C:/user/src/com/mypackage.
-     *
-     *     To point to two source paths:
-     *
-     *       C:> javadoc -sourcepath C:/user1/src;C:/user2/src com.mypackage
-     *
-     */
-    private final JavadocOptionFileOption<List<File>> sourcepath;// TODO bind with the srcDirs
-
-    public List<File> getSourcepath() {
-        return sourcepath.getValue();
-    }
-
-    public void setSourcepath(List<File> sourcepath) {
-        this.sourcepath.setValue(sourcepath);
-    }
-
-    public MinimalJavadocOptions sourcepath(List<File> sourcepath) {
-        setSourcepath(sourcepath);
-        return this;
-    }
-
-    public MinimalJavadocOptions sourcepath(File ... sourcepath) {
-        this.sourcepath.getValue().addAll(Arrays.asList(sourcepath));
-        return this;
-    }
-
-    /**
      * -classpath  classpathlist
      * Specifies the paths where javadoc will look for referenced classes (.class files)
      * -- these are the documented classes plus any classes referenced by those classes.
@@ -326,68 +267,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     public MinimalJavadocOptions classpath(File ... classpath) {
         this.classpath.getValue().addAll(Arrays.asList(classpath));
-        return this;
-    }
-
-    /**
-     * -subpackages  package1:package2:...
-     * Generates documentation from source files in the specified packages and recursively in their subpackages.
-     * This option is useful when adding new subpackages to the source code, as they are automatically included.
-     * Each package argument is any top-level subpackage (such as java) or fully qualified package (such as javax.swing)
-     * that does not need to contain source files. Arguments are separated by colons (on all operating systmes).
-     * Wildcards are not needed or allowed.
-     * Use -sourcepath to specify where to find the packages.
-     * This option is smart about not processing source files that are in the source tree but do not belong to the packages,
-     * as described at processing of source files.
-     *
-     * For example:
-     *
-     *   C:> javadoc -d docs -sourcepath C:/user/src -subpackages java:javax.swing
-     *
-     * This command generates documentation for packages named "java" and "javax.swing" and all their subpackages.
-     *
-     * You can use -subpackages in conjunction with -exclude to exclude specific packages.
-     */
-    private final JavadocOptionFileOption<List<String>> subPackages;
-
-    public List<String> getSubPackages() {
-        return subPackages.getValue();
-    }
-
-    public void setSubPackages(List<String> subPackages) {
-        this.subPackages.setValue(subPackages);
-    }
-
-    public MinimalJavadocOptions subPackages(String ... subPackages) {
-        this.subPackages.getValue().addAll(Arrays.asList(subPackages));
-        return this;
-    }
-
-    /**
-     * -exclude  packagename1:packagename2:...
-     * Unconditionally excludes the specified packages and their subpackages from the list formed by -subpackages.
-     * It excludes those packages even if they would otherwise be included by some previous or later -subpackages option.
-     *
-     * For example:
-     *
-     *   C:> javadoc -sourcepath C:/user/src -subpackages java -exclude java.net:java.lang
-     *
-     * would include java.io, java.util, and java.math (among others),
-     * but would exclude packages rooted at java.net and java.lang.
-     * Notice this excludes java.lang.ref, a subpackage of java.lang).
-     */
-    private final JavadocOptionFileOption<List<String>> exclude;
-
-    public List<String> getExclude() {
-        return exclude.getValue();
-    }
-
-    public void setExclude(List<String> exclude) {
-        this.exclude.setValue(exclude);
-    }
-
-    public MinimalJavadocOptions exclude(String ... exclude) {
-        this.exclude.getValue().addAll(Arrays.asList(exclude));
         return this;
     }
 
@@ -558,21 +437,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     public MinimalJavadocOptions encoding(String encoding) {
         setEncoding(encoding);
-        return this;
-    }
-
-    private final OptionLessJavadocOptionFileOption<List<String>> packageNames;
-
-    public List<String> getPackageNames() {
-        return packageNames.getValue();
-    }
-
-    public void setPackageNames(List<String> packageNames) {
-        this.packageNames.setValue(packageNames);
-    }
-
-    public MinimalJavadocOptions packageNames(String ... packageNames) {
-        this.packageNames.getValue().addAll(Arrays.asList(packageNames));
         return this;
     }
 

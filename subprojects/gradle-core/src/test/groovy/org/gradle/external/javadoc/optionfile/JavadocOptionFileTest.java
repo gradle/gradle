@@ -48,10 +48,6 @@ public class JavadocOptionFileTest {
         assertNotNull(optionFile.getOptions());
         assertTrue(optionFile.getOptions().isEmpty());
 
-        assertNotNull(optionFile.getPackageNames());
-        assertNotNull(optionFile.getPackageNames().getValue());
-        assertTrue(optionFile.getPackageNames().getValue().isEmpty());
-
         assertNotNull(optionFile.getSourceNames());
         assertNotNull(optionFile.getSourceNames().getValue());
         assertTrue(optionFile.getSourceNames().getValue().isEmpty());

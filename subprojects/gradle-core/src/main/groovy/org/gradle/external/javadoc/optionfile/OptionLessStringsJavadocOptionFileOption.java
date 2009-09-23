@@ -50,7 +50,7 @@ public class OptionLessStringsJavadocOptionFileOption implements OptionLessJavad
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
         if ( value != null && !value.isEmpty() ) {
             for ( String singleValue : value ) {
-                writerContext.write(singleValue);
+                writerContext.writeValue(singleValue);
                 writerContext.newLine();
             }
         }

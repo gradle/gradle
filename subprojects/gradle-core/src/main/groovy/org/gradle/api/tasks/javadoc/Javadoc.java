@@ -16,36 +16,25 @@
 
 package org.gradle.api.tasks.javadoc;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
+import org.gradle.api.tasks.*;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.util.GUtil;
 import org.gradle.util.exec.ExecHandle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
 
 /**
- * <p>Generates Javadoc from a number of java source directories.</p>
+ * <p>Generates Javadoc from Java source.</p>
  *
  * @author Hans Dockter
  */
-public class Javadoc extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(Javadoc.class);
-
-    private JavadocExecHandleBuilder javadocExecHandleBuilder;
-
-    private List<File> srcDirs;
+public class Javadoc extends SourceTask {
+    private JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder();
 
     private File destinationDir;
 
@@ -55,65 +44,28 @@ public class Javadoc extends ConventionTask {
 
     private String maxMemory;
 
-    private ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
-
-    private String optionsFilename = "javadoc.options";
+    private File optionsFile;
     private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
-    private boolean alwaysAppendDefaultSourcepath = false;
     private boolean alwaysAppendDefaultClasspath = false;
 
-    private FileCollection configuration;
-
-    public Javadoc() {
-        javadocExecHandleBuilder = new JavadocExecHandleBuilder();
-    }
+    private FileCollection classpath;
 
     @TaskAction
     protected void generate() {
-        List<File> existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(getDestinationDir(), getSrcDirs());
-
         final File destinationDir = getDestinationDir();
 
         if ( options.getDestinationDirectory() == null )
             options
                 .destinationDirectory(destinationDir);
 
-        if ( options.getSourcepath().isEmpty() || alwaysAppendDefaultSourcepath )
-            options
-                .sourcepath(existingSourceDirs);
-
         // todo LIST or SET
         if ( options.getClasspath().isEmpty() || alwaysAppendDefaultClasspath ) {
             options
-                .classpath(new ArrayList<File>(getClasspath()));
+                .classpath(new ArrayList<File>(getClasspath().getFiles()));
         }
 
         if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
             options.windowTitle(getTitle());
-        }
-
-        if (    options.getPackageNames().isEmpty() &&
-                options.getSourceNames().isEmpty() &&
-                options.getSubPackages().isEmpty() ) {
-            Set<String> subPackagesToAdd = new HashSet<String>();
-            for ( File srcDir : getSrcDirs() ) {
-                if ( srcDir.exists() ) {
-                    for ( File packageDir : srcDir.listFiles() ) {
-                        if ( packageDir.isDirectory() ) {
-                            final String packageDirName = packageDir.getName();
-
-                            subPackagesToAdd.add(packageDirName);
-                        }
-                    }
-                }
-            }
-            for ( String subPackageToAdd : subPackagesToAdd ) {
-                options.subPackages(subPackageToAdd);
-
-                if ( logger.isDebugEnabled() ) {
-                    logger.debug("Added {} package to subPackages Javadoc option", subPackageToAdd);
-                }
-            }
         }
 
         if ( maxMemory != null ) {
@@ -129,6 +81,12 @@ public class Javadoc extends ConventionTask {
                 options.jFlags("-Xmx"+maxMemory);
         }
 
+        List<String> sourceNames = new ArrayList<String>();
+        for (File sourceFile : getSource()) {
+            sourceNames.add(sourceFile.getAbsolutePath());
+        }
+        options.setSourceNames(sourceNames);
+
         executeExternalJavadoc();
     }
 
@@ -136,7 +94,7 @@ public class Javadoc extends ConventionTask {
         javadocExecHandleBuilder
                 .execDirectory(getProject().getRootDir())
                 .options(options)
-                .optionsFilename(optionsFilename)
+                .optionsFile(getOptionsFile())
                 .destinationDirectory(getDestinationDir());
 
         final ExecHandle execHandle = javadocExecHandleBuilder.getExecHandle();
@@ -162,23 +120,6 @@ public class Javadoc extends ConventionTask {
     }
 
     /**
-     * <p>Returns the source directories containing the java source files to generate documentation for.</p>
-     *
-     * @return The source directories. Never returns null.
-     */
-    @InputFiles
-    public List<File> getSrcDirs() {
-        return srcDirs;
-    }
-
-    /**
-     * <p>Sets the source directories containing the java source files to generate documentation for.</p>
-     */
-    public void setSrcDirs(List<File> srcDirs) {
-        this.srcDirs = new ArrayList<File>(srcDirs);
-    }
-
-    /**
      * <p>Returns the directory to generate the documentation into.</p>
      *
      * @return The directory.
@@ -193,15 +134,6 @@ public class Javadoc extends ConventionTask {
      */
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
-    }
-
-    /**
-     * <p>Returns the classpath to use to locate classes referenced by the documented source.</p>
-     *
-     * @return The classpath.
-     */
-    public Set<File> getClasspath() {
-        return getConfiguration().getFiles();
     }
 
     /**
@@ -256,29 +188,13 @@ public class Javadoc extends ConventionTask {
             options.verbose();
     }
 
-    public List<String> getExclude() {
-        return options.getExclude();
-    }
-
-    public void exclude(String ... exclude) {
-        options.exclude(exclude);
-    }
-
-    ExistingDirsFilter getExistentDirsFilter() {
-        return existentDirsFilter;
-    }
-
-    void setExistentDirsFilter(ExistingDirsFilter existentDirsFilter) {
-        this.existentDirsFilter = existentDirsFilter;
-    }
-
     @InputFiles
-    public FileCollection getConfiguration() {
-        return configuration;
+    public FileCollection getClasspath() {
+        return classpath;
     }
 
-    public void setConfiguration(FileCollection configuration) {
-        this.configuration = configuration;
+    public void setClasspath(FileCollection configuration) {
+        this.classpath = configuration;
     }
 
     public MinimalJavadocOptions getOptions() {
@@ -297,26 +213,13 @@ public class Javadoc extends ConventionTask {
         this.failOnError = failOnError;
     }
 
-    public String getOptionsFilename() {
-        return optionsFilename;
+    @OutputFile
+    public File getOptionsFile() {
+        return optionsFile;
     }
 
-    public void setOptionsFilename(String optionsFilename) {
-        if ( StringUtils.isEmpty(optionsFilename) ) throw new IllegalArgumentException("optionsFilename can't be empty!");
-        this.optionsFilename = optionsFilename;
-    }
-
-    public boolean isAlwaysAppendDefaultSourcepath() {
-        return alwaysAppendDefaultSourcepath;
-    }
-
-    public void setAlwaysAppendDefaultSourcepath(boolean alwaysAppendDefaultSourcepath) {
-        this.alwaysAppendDefaultSourcepath = alwaysAppendDefaultSourcepath;
-    }
-
-    public Javadoc alwaysAppendDefaultSourcepath() {
-        setAlwaysAppendDefaultSourcepath(true);
-        return this;
+    public void setOptionsFile(File optionsFile) {
+        this.optionsFile = optionsFile;
     }
 
     public boolean isAlwaysAppendDefaultClasspath() {

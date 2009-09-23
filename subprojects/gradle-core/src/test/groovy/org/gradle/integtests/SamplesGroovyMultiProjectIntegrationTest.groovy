@@ -31,14 +31,15 @@ class SamplesGroovyMultiProjectIntegrationTest {
     private GradleDistribution dist;
     private GradleExecuter executer;
 
+    private List mainFiles = ['JavaPerson', 'GroovyPerson', 'GroovyJavaPerson']
+    private List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']
+    private List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
+
     @Test
     public void groovyProjectSamples() {
         String packagePrefix = 'build/classes/main/org/gradle'
         String testPackagePrefix = 'build/classes/test/org/gradle'
 
-        List mainFiles = ['JavaPerson', 'GroovyPerson', 'GroovyJavaPerson']
-        List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']
-        List testFiles = ['JavaPersonTest', 'GroovyPersonTest', 'GroovyJavaPersonTest']
 
         TestFile groovyProjectDir = dist.samplesDir.file('groovy/multiproject')
         TestFile testProjectDir = groovyProjectDir.file(TEST_PROJECT_NAME)
@@ -70,9 +71,6 @@ class SamplesGroovyMultiProjectIntegrationTest {
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
         testProjectDir.file('build/docs/javadoc/index.html').assertIsFile()
         testProjectDir.file('build/docs/groovydoc/index.html').assertIsFile()
-
-        // This test is also important for test cleanup
-        executer.inDirectory(groovyProjectDir).withTasks('clean').run()
-        testProjectDir.file('build').assertDoesNotExist()
+        testProjectDir.file('build/docs/groovydoc/org/gradle/GroovyPerson.html').assertIsFile()
     }
 }

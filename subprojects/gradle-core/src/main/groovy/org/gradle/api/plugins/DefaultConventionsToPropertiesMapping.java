@@ -33,25 +33,6 @@ import java.util.*;
  */
 public class DefaultConventionsToPropertiesMapping {
 
-    public final static Map<String, ConventionValue> JAVADOC = GUtil.map(
-            "configuration", new ConventionValue() {
-                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                    return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getCompileClasspath();
-                }
-            },
-            "srcDirs", new ConventionValue() {
-                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                    Set<File> srcDirs = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getJava().getSrcDirs();
-                    return new ArrayList<File>(srcDirs);
-                }
-            },
-            "destinationDir", new ConventionValue() {
-                public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                    return convention.getPlugin(JavaPluginConvention.class).getJavadocDir();
-                }
-            }
-    );
-
     public final static Map TEST = GUtil.map(
             "testClassesDir", new ConventionValue() {
                 public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

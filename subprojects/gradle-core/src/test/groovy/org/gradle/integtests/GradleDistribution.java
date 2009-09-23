@@ -42,5 +42,5 @@ public interface GradleDistribution {
     /**
      * Returns a scratch-pad file for the current test. Equivalent to getTestDir().file(path)
      */
-    TestFile testFile(String... path);
+    TestFile testFile(Object... path);
 }

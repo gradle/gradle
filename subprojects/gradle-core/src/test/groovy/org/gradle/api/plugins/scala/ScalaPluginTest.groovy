@@ -68,14 +68,14 @@ public class ScalaPluginTest {
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the main Scala source.'))
         assertThat(task.classpath, equalTo(project.source.main.compileClasspath))
-        assertThat(task.src, equalTo(project.source.main.scala))
+        assertThat(task.defaultSource, equalTo(project.source.main.scala))
         assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
         task = project.tasks['compileTestScala']
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the test Scala source.'))
         assertThat(task.classpath, equalTo(project.source.test.compileClasspath))
-        assertThat(task.src, equalTo(project.source.test.scala))
+        assertThat(task.defaultSource, equalTo(project.source.test.scala))
         assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME, JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME))
 
         project.source.add('custom')
@@ -83,7 +83,7 @@ public class ScalaPluginTest {
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Scala source.'))
         assertThat(task.classpath, equalTo(project.source.custom.compileClasspath))
-        assertThat(task.src, equalTo(project.source.custom.scala))
+        assertThat(task.defaultSource, equalTo(project.source.custom.scala))
         assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME, 'compileCustomJava'))
     }
 
@@ -102,7 +102,7 @@ public class ScalaPluginTest {
 
         def task = project.createTask('otherCompile', type: ScalaCompile)
         assertThat(task.classpath, equalTo(project.source.main.compileClasspath))
-        assertThat(task.src, nullValue())
+        assertThat(task.defaultSource, nullValue())
         assertThat(task, dependsOn(ScalaPlugin.SCALA_DEFINE_TASK_NAME))
     }
 
@@ -112,7 +112,7 @@ public class ScalaPluginTest {
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         assertThat(task, instanceOf(ScalaDoc.class))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.scalaSrcDirs, equalTo(project.source.main.scala.srcDirs as List))
+        assertThat(task.defaultSource, equalTo(project.source.main.allScala))
     }
 
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
@@ -120,6 +120,6 @@ public class ScalaPluginTest {
 
         def task = project.createTask('otherScaladoc', type: ScalaDoc)
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.scalaSrcDirs, equalTo(project.source.main.scala.srcDirs as List))
+        assertThat(task.defaultSource, equalTo(project.source.main.allScala))
     }
 }

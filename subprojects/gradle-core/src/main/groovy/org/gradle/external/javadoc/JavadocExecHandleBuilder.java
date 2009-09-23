@@ -16,14 +16,13 @@
 
 package org.gradle.external.javadoc;
 
-import java.io.File;
-import java.io.IOException;
-
+import org.apache.tools.ant.util.JavaEnvUtils;
+import org.gradle.api.GradleException;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleBuilder;
-import org.gradle.api.GradleException;
-import org.apache.tools.ant.util.JavaEnvUtils;
-import org.apache.commons.lang.StringUtils;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author Tom Eyckmans
@@ -31,7 +30,7 @@ import org.apache.commons.lang.StringUtils;
 public class JavadocExecHandleBuilder {
     private File execDirectory;
     private MinimalJavadocOptions options;
-    private String optionsFilename;
+    private File optionsFile;
     private File destinationDirectory;
 
     public JavadocExecHandleBuilder() {
@@ -53,10 +52,8 @@ public class JavadocExecHandleBuilder {
         return this;
     }
 
-    public JavadocExecHandleBuilder optionsFilename(String optionsFilename) {
-        if ( StringUtils.isEmpty(optionsFilename) ) throw new IllegalArgumentException("optionsFilename is empty!");
-
-        this.optionsFilename = optionsFilename;
+    public JavadocExecHandleBuilder optionsFile(File optionsFile) {
+        this.optionsFile = optionsFile;
         return this;
     }
 
@@ -70,10 +67,8 @@ public class JavadocExecHandleBuilder {
     }
 
     public ExecHandle getExecHandle() {
-        final File javadocOptionsFile = new File(destinationDirectory, optionsFilename);
-
         try {
-            options.write(javadocOptionsFile);
+            options.write(optionsFile);
         }
         catch ( IOException e ) {
             throw new GradleException("Faild to store javadoc options.", e);
@@ -82,7 +77,7 @@ public class JavadocExecHandleBuilder {
         final ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder(true)
             .execDirectory(execDirectory)
             .execCommand(JavaEnvUtils.getJdkExecutable("javadoc")) // reusing Ant knowledge here would be stupid not to
-            .arguments("@"+javadocOptionsFile.getAbsolutePath());
+            .arguments("@"+ optionsFile.getAbsolutePath());
 
         options.contributeCommandLineOptions(execHandleBuilder);
 

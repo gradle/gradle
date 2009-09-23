@@ -15,14 +15,15 @@
  */
 package org.gradle.api.tasks.javadoc;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.BuildException;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
+import org.gradle.integtests.TestFile;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleState;
@@ -30,15 +31,12 @@ import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
@@ -46,25 +44,28 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private final List<File> srcDirs = WrapUtil.toList(new File("srcdir"));
-    private final File destDir = new File("destdir");
+    private final TestFile testDir = HelperUtil.makeNewTestDir();
+    private final File destDir = new File(testDir, "dest");
+    private final File srcDir = new File(testDir, "srcdir");
     private final Set<File> classpath = WrapUtil.toSet(new File("classpath"));
-    private JavadocExecHandleBuilder javadocExecHandleBuilderMock = context.mock(JavadocExecHandleBuilder.class);;
+    private final File optionsFile = new File(destDir, "javadoc.options");
+    private JavadocExecHandleBuilder javadocExecHandleBuilderMock = context.mock(JavadocExecHandleBuilder.class);
     private ExecHandle execHandleMock = context.mock(ExecHandle.class);
     private Javadoc task;
-    private ExistingDirsFilter existingDirsFilter = context.mock(ExistingDirsFilter.class);
     private FileCollection configurationMock = context.mock(FileCollection.class);
 
     @Before
     public void setUp() {
         super.setUp();
         task = createTask(Javadoc.class);
-        task.setExistentDirsFilter(existingDirsFilter);
-        task.setConfiguration(configurationMock);
+        task.setClasspath(configurationMock);
         task.setJavadocExecHandleBuilder(javadocExecHandleBuilderMock);
+        task.setOptionsFile(optionsFile);
         context.checking(new Expectations() {{
             allowing(configurationMock).getFiles(); will(returnValue(classpath));
         }});
+
+        GFileUtils.touch(new File(srcDir, "file.java"));
     }
 
     public ConventionTask getTask() {
@@ -77,7 +78,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).options(task.getOptions());
             will(returnValue(javadocExecHandleBuilderMock));
-            one(javadocExecHandleBuilderMock).optionsFilename("javadoc.options");
+            one(javadocExecHandleBuilderMock).optionsFile(optionsFile);
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).destinationDirectory(destDir);
             will(returnValue(javadocExecHandleBuilderMock));
@@ -89,14 +90,8 @@ public class JavadocTest extends AbstractConventionTaskTest {
     @Test
     public void defaultExecution() {
         task.setDestinationDir(destDir);
-        task.setSrcDirs(srcDirs);
+        task.source(srcDir);
 
-        context.checking(new Expectations() {
-            {
-                one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
-                will(returnValue(srcDirs));
-            }
-        });
         expectJavadocExecHandle();
         context.checking(new Expectations(){{
             one(execHandleMock).startAndWaitForFinish();
@@ -111,12 +106,8 @@ public class JavadocTest extends AbstractConventionTaskTest {
         final BuildException failure = new BuildException();
 
         task.setDestinationDir(destDir);
-        task.setSrcDirs(srcDirs);
+        task.source(srcDir);
 
-        context.checking(new Expectations() {{
-            one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
-            will(returnValue(srcDirs));
-        }});
         expectJavadocExecHandle();
         context.checking(new Expectations(){{
             one(execHandleMock).startAndWaitForFinish();
@@ -137,15 +128,11 @@ public class JavadocTest extends AbstractConventionTaskTest {
     @Test
     public void executionWithOptionalAtributes() {
         task.setDestinationDir(destDir);
-        task.setSrcDirs(srcDirs);
+        task.source(srcDir);
         task.setMaxMemory("max-memory");
         task.setTitle("title");
         task.setVerbose(true);
 
-        context.checking(new Expectations() {{
-            one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
-            will(returnValue(srcDirs));
-        }});
         expectJavadocExecHandle();
         context.checking(new Expectations(){{
             one(execHandleMock).startAndWaitForFinish();
@@ -153,30 +140,5 @@ public class JavadocTest extends AbstractConventionTaskTest {
         }});
 
         task.execute();
-    }
-
-    @Test
-    public void executionWithIncludesAndExcludes() {
-        task.setDestinationDir(destDir);
-        task.setSrcDirs(srcDirs);
-//        task.include("include");
-        task.getOptions().exclude("exclude");
-
-        context.checking(new Expectations() {{
-            one(existingDirsFilter).checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(destDir, srcDirs);
-            will(returnValue(srcDirs));
-        }});
-        expectJavadocExecHandle();
-        context.checking(new Expectations(){{
-            one(execHandleMock).startAndWaitForFinish();
-            will(returnValue(ExecHandleState.SUCCEEDED));
-        }});
-
-        task.execute();
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        FileUtils.deleteDirectory(destDir);
     }
 }

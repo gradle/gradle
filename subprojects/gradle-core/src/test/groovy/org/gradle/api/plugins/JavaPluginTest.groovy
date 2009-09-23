@@ -133,7 +133,7 @@ class JavaPluginTest {
         assertThat(task.description, equalTo('Compiles the custom Java source.'))
         assertThat(task, instanceOf(Compile))
         assertThat(task, dependsOn())
-        assertThat(task.src, equalTo(project.source.custom.java))
+        assertThat(task.defaultSource, equalTo(project.source.custom.java))
         assertThat(task.classpath, sameInstance(project.source.custom.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.custom.classesDir))
 
@@ -155,7 +155,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertThat(task, dependsOn())
-        assertThat(task.src, equalTo(project.source.main.java))
+        assertThat(task.defaultSource, equalTo(project.source.main.java))
         assertThat(task.classpath, sameInstance(project.source.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.main.classesDir))
 
@@ -172,7 +172,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]
         assertThat(task, instanceOf(Compile))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
-        assertThat(task.src, equalTo(project.source.test.java))
+        assertThat(task.defaultSource, equalTo(project.source.test.java))
         assertThat(task.classpath, sameInstance(project.source.test.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.source.test.classesDir))
 
@@ -203,8 +203,10 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
         assertThat(task, instanceOf(Javadoc))
         assertThat(task, dependsOn())
-        assertThat(task.configuration, sameInstance(project.source.main.compileClasspath))
+        assertThat(task.defaultSource, sameInstance(project.source.main.allJava))
+        assertThat(task.classpath, sameInstance(project.source.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
+        assertThat(task.optionsFile, equalTo(project.file('build/tmp/javadoc.options')))
 
         task = project.tasks["buildArchives"]
         assertThat(task, instanceOf(DefaultTask))
@@ -237,8 +239,9 @@ class JavaPluginTest {
 
         task = project.createTask('customJavadoc', type: Javadoc)
         assertThat(task, dependsOn())
-        assertThat(task.configuration, equalTo(project.source.main.compileClasspath))
+        assertThat(task.classpath, equalTo(project.source.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
+        assertThat(task.optionsFile, equalTo(project.file('build/tmp/javadoc.options')))
     }
 
     @Test public void appliesMappingsToArchiveTasks() {

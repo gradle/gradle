@@ -167,7 +167,7 @@ public class JavaPlugin implements Plugin {
                 return sourceSet.getCompileClasspath();
             }
         });
-        conventionMapping.map("src", new ConventionValue() {
+        conventionMapping.map("defaultSource", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return sourceSet.getJava();
             }
@@ -210,7 +210,28 @@ public class JavaPlugin implements Plugin {
     private void configureJavaDoc(final Project project) {
         project.getTasks().withType(Javadoc.class).allTasks(new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
-                javadoc.getConventionMapping().map(DefaultConventionsToPropertiesMapping.JAVADOC);
+                javadoc.getConventionMapping().map("classpath", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
+                                SourceSet.MAIN_SOURCE_SET_NAME).getCompileClasspath();
+                    }
+                });
+                javadoc.getConventionMapping().map("defaultSource", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
+                                SourceSet.MAIN_SOURCE_SET_NAME).getAllJava();
+                    }
+                });
+                javadoc.getConventionMapping().map("destinationDir", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return convention.getPlugin(JavaPluginConvention.class).getJavadocDir();
+                    }
+                });
+                javadoc.getConventionMapping().map("optionsFile", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return new File(project.getBuildDir(), "tmp/javadoc.options");
+                    }
+                });
                 addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
             }
         });

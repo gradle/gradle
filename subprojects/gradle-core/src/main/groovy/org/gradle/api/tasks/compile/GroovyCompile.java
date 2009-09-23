@@ -48,7 +48,7 @@ public class GroovyCompile extends Compile {
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         ProjectInternal project = (ProjectInternal) getProject();
-        antGroovyCompile.execute(project.getGradle().getIsolatedAntBuilder(), getFilteredSrc(), getDestinationDir(),
+        antGroovyCompile.execute(project.getGradle().getIsolatedAntBuilder(), getSource(), getDestinationDir(),
                 classpath, getSourceCompatibility(), getTargetCompatibility(), getGroovyOptions(), getOptions(),
                 taskClasspath);
         setDidWork(antGroovyCompile.getNumFilesCompiled() > 0);

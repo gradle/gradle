@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala
 
+import org.gradle.api.file.FileCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -37,36 +38,14 @@ class AntScalaDoc {
         this.extensionDirs = extensionDirs
     }
 
-    void execute(Iterable<File> srcDirs, Iterable<String> includes, Iterable<String> excludes, File targetDir,
-                 Iterable<File> classpathFiles, ScalaDocOptions docOptions) {
+    void execute(FileCollection source, File targetDir, Iterable<File> classpathFiles, ScalaDocOptions docOptions) {
 
         ant.mkdir(dir: targetDir.absolutePath)
 
         Map options = ['destDir': targetDir] + docOptions.optionMap()
-        if (logger.isInfoEnabled()) {
-            StringBuilder builder = new StringBuilder()
-            builder.append("Generating Scaladoc from source ${srcDirs}\n")
-            builder.append("    options = ${options}\n")
-            builder.append("    classpath = ${classpathFiles}\n")
-            if (includes) {
-                builder.append("    includes = ${includes}\n")
-            }
-            if (excludes) {
-                builder.append("    excludes = ${excludes}\n")
-            }
-            if (bootclasspathFiles) {
-                builder.append("    bootclasspath = ${bootclasspathFiles}\n")
-            }
-            if (extensionDirs) {
-                builder.append("    extDirs = ${extensionDirs}\n")
-            }
-            logger.info(builder.toString())
-        }
 
         ant.scaladoc(options) {
-            srcDirs.each {dir ->
-                src(location: dir)
-            }
+            source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
             bootclasspathFiles.each {file ->
                 bootclasspath(location: file)
             }
@@ -75,12 +54,6 @@ class AntScalaDoc {
             }
             classpathFiles.each {file ->
                 classpath(location: file)
-            }
-            includes.each {pattern ->
-                include(name: pattern)
-            }
-            excludes.each {pattern ->
-                exclude(name: pattern)
             }
         }
     }

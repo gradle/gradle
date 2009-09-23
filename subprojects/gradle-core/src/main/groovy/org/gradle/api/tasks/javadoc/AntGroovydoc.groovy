@@ -18,20 +18,28 @@ package org.gradle.api.tasks.javadoc
 
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.util.BootstrapUtil
+import org.gradle.api.file.FileCollection
+import org.gradle.api.Project
+import org.gradle.util.GradleUtil
 
 /**
  * @author Hans Dockter
  */
 class AntGroovydoc {
-    void execute(List sourceDirs, File destDir, List<String> packageNames, boolean use, String windowTitle,
+    void execute(FileCollection source, File destDir, boolean use, String windowTitle,
         String docTitle, String header, String footer, File overview, boolean includePrivate, IsolatedAntBuilder ant,
-        List groovyClasspath) {
-        Map args = [:]
-        args.sourcepath = sourceDirs.join(File.pathSeparator)
-        args.destdir = destDir
-        if (packageNames) {
-            args.packagenames = packageNames.join(',')
+        List groovyClasspath, Project project) {
+
+        File tmpDir = new File(project.buildDir, "tmp/groovydoc")
+        GradleUtil.deleteDir(tmpDir)
+        project.copy {
+            from source
+            into tmpDir
         }
+
+        Map args = [:]
+        args.sourcepath = tmpDir.toString()
+        args.destdir = destDir
         args.use = use
         args['private'] = includePrivate 
         addToMapIfNotNull(args, 'windowtitle', windowTitle)

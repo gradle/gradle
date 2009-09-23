@@ -71,7 +71,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
             one(antScalaCompileMock).execute(
-                    with(hasSameItems(scalaCompile.getFilteredSrc())),
+                    with(hasSameItems(scalaCompile.getSource())),
                     with(equalTo(scalaCompile.getDestinationDir())),
                     with(equalTo(scalaCompile.getClasspath())),
                     with(equalTo(scalaCompile.getScalaCompileOptions())));
@@ -82,7 +82,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
                 expectedClassPath.add(file);
             }
 
-            FileCollection javaSrc = scalaCompile.getFilteredJavaSrc();
+            FileCollection javaSrc = scalaCompile.getJavaSrc();
             one(antCompileMock).execute(
                     with(hasSameItems(javaSrc)),
                     with(equalTo(scalaCompile.getDestinationDir())),
@@ -98,7 +98,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
     }
 
     protected void setUpMocksAndAttributes(final ScalaCompile compile) {
-        compile.src(srcDir);
+        compile.source(srcDir);
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
         compile.setTargetCompatibility("1.5");

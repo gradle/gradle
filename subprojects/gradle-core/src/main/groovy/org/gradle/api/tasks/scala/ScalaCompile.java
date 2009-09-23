@@ -54,10 +54,15 @@ public class ScalaCompile extends Compile {
         this.scalaCompileOptions = scalaCompileOptions;
     }
 
-    public FileTree getFilteredJavaSrc() {
+    /**
+     * Returns the Java source for this task.
+     *
+     * @return The Java source.
+     */
+    public FileTree getJavaSrc() {
         PatternFilterable patternSet = new PatternSet();
         patternSet.include("**/*.java");
-        return getFilteredSrc().matching(patternSet);
+        return getSource().matching(patternSet);
     }
 
     @Override
@@ -67,14 +72,13 @@ public class ScalaCompile extends Compile {
             throw new InvalidUserDataException("The targetCompatibility must be set!");
         }
 
-        FileTree source = getFilteredSrc();
+        FileTree source = getSource();
         getAntScalaCompile().execute(source, getDestinationDir(), getClasspath(), getScalaCompileOptions());
 
-        FileTree javaSource = getFilteredJavaSrc();
+        FileTree javaSource = getJavaSrc();
         List<File> classpath = GUtil.addLists(Collections.singleton(getDestinationDir()), getClasspath());
         javaSource.stopExecutionIfEmpty();
-        antCompile.execute(javaSource, getDestinationDir(), getDependencyCacheDir(),
-                classpath, getSourceCompatibility(), getTargetCompatibility(), getOptions(), getAnt());
+        antCompile.execute(javaSource, getDestinationDir(), getDependencyCacheDir(), classpath,
+                getSourceCompatibility(), getTargetCompatibility(), getOptions(), getAnt());
     }
-
 }

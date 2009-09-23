@@ -62,7 +62,7 @@ public class ScalaPlugin implements Plugin {
             scalaCompile.dependsOn sourceSet.compileJavaTaskName
             javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
             scalaCompile.description = "Compiles the $sourceSet.scala.";
-            scalaCompile.conventionMapping.src = { sourceSet.scala }
+            scalaCompile.conventionMapping.defaultSource = { sourceSet.scala }
 
             project.tasks[sourceSet.compileTaskName].dependsOn(taskName)
         }
@@ -83,7 +83,7 @@ public class ScalaPlugin implements Plugin {
     private void configureScaladoc(final Project project) {
         project.getTasks().withType(ScalaDoc.class).allTasks {ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.classpath = { project.configurations[COMPILE_CONFIGURATION_NAME] }
-            scalaDoc.conventionMapping.scalaSrcDirs = { project.source.main.scala.srcDirs as List }
+            scalaDoc.conventionMapping.defaultSource = { project.source.main.allScala }
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
             scalaDoc.dependsOn(SCALA_DEFINE_TASK_NAME)
         }

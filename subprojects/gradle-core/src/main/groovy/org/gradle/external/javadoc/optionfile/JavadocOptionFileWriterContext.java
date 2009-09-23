@@ -57,10 +57,15 @@ public class JavadocOptionFileWriterContext {
 
     public JavadocOptionFileWriterContext writeValueOption(String option, String value) throws IOException {
         writeOptionHeader(option);
+        writeValue(value);
+        newLine();
+        return this;
+    }
+
+    public JavadocOptionFileWriterContext writeValue(String value) throws IOException {
         write("\'");
         write(value.replaceAll("\\\\", "\\\\\\\\"));
         write("\'");
-        newLine();
         return this;
     }
 

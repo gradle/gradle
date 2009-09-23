@@ -62,7 +62,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         assertNull(compile.getDestinationDir());
         assertNull(compile.getSourceCompatibility());
         assertNull(compile.getTargetCompatibility());
-        assertNull(compile.getSrc());
+        assertNull(compile.getSource());
     }
 
     @Test (expected = GradleScriptException.class) public void testExecuteWithUnspecifiedSourceCompatibility() {
@@ -87,7 +87,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     }
 
     protected void setUpMocksAndAttributes(final Compile compile) {
-        compile.src(srcDir);
+        compile.source(srcDir);
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
         compile.setSourceCompatibility("1.5");

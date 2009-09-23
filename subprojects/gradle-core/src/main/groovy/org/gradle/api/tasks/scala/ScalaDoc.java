@@ -16,39 +16,23 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SourceTask;
+import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
-import java.util.List;
-import java.util.Set;
 
 /**
- * Task to perform scala compilation.
+ * Task to generate Scala API documentation.
  */
-public class ScalaDoc extends ConventionTask {
+public class ScalaDoc extends SourceTask {
 
-    /**
-     * The directory to put the generated documentation.
-     */
     private File destinationDir;
-
-    /**
-     * Directories containing input scala source files.
-     */
-    private List<File> scalaSrcDirs;
-
-    private PatternFilterable scalaPatternSet = new PatternSet();
 
     private FileCollection classpath;
     private AntScalaDoc antScalaDoc;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
-    protected ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
 
     public AntScalaDoc getAntScalaDoc() {
         if (antScalaDoc == null) {
@@ -70,15 +54,6 @@ public class ScalaDoc extends ConventionTask {
         this.destinationDir = destinationDir;
     }
 
-    @InputFiles
-    public List<File> getScalaSrcDirs() {
-        return scalaSrcDirs;
-    }
-
-    public void setScalaSrcDirs(List<File> scalaSrcDirs) {
-        this.scalaSrcDirs = scalaSrcDirs;
-    }
-
     /**
      * <p>Returns the classpath to use to locate classes referenced by the documented source.</p>
      *
@@ -93,42 +68,6 @@ public class ScalaDoc extends ConventionTask {
         this.classpath = classpath;
     }
 
-    public Set<String> getScalaIncludes() {
-        return scalaPatternSet.getIncludes();
-    }
-
-    public void setScalaIncludes(Iterable<String> scalaIncludes) {
-        scalaPatternSet.setIncludes(scalaIncludes);
-    }
-
-    public ScalaDoc scalaInclude(String... includes) {
-        scalaPatternSet.include(includes);
-        return this;
-    }
-
-    public ScalaDoc scalaInclude(Iterable<String> includes) {
-        scalaPatternSet.include(includes);
-        return this;
-    }
-
-    public Set<String> getScalaExcludes() {
-        return scalaPatternSet.getExcludes();
-    }
-
-    public void setScalaExcludes(List<String> scalaExcludes) {
-        scalaPatternSet.setExcludes(scalaExcludes);
-    }
-
-    public ScalaDoc scalaExclude(String... excludes) {
-        scalaPatternSet.exclude(excludes);
-        return this;
-    }
-
-    public ScalaDoc scalaExclude(Iterable<String> excludes) {
-        scalaPatternSet.exclude(excludes);
-        return this;
-    }
-
     public ScalaDocOptions getScalaDocOptions() {
         return scalaDocOptions;
     }
@@ -139,12 +78,7 @@ public class ScalaDoc extends ConventionTask {
 
     @TaskAction
     protected void generate() {
-
-        List<File> existingSrcDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                getDestinationDir(), getScalaSrcDirs());
-
-        getAntScalaDoc().execute(existingSrcDirs, getScalaIncludes(), getScalaExcludes(), getDestinationDir(),
-                getClasspath(), getScalaDocOptions());
+        getAntScalaDoc().execute(getSource(), getDestinationDir(), getClasspath(), getScalaDocOptions());
     }
 
 }

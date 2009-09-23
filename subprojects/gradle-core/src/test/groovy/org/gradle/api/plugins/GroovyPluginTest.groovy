@@ -20,7 +20,6 @@ import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
-import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
 import org.junit.Test
 import static org.gradle.util.Matchers.*
@@ -77,13 +76,13 @@ class GroovyPluginTest {
         def task = project.tasks['compileGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the main Groovy source.'))
-        assertThat(task.src, equalTo(project.source.main.groovy))
+        assertThat(task.defaultSource, equalTo(project.source.main.groovy))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
         task = project.tasks['compileTestGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the test Groovy source.'))
-        assertThat(task.src, equalTo(project.source.test.groovy))
+        assertThat(task.defaultSource, equalTo(project.source.test.groovy))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.COMPILE_TASK_NAME))
 
         project.source.add('custom')
@@ -91,7 +90,7 @@ class GroovyPluginTest {
         task = project.tasks['compileCustomGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Groovy source.'))
-        assertThat(task.src, equalTo(project.source.custom.groovy))
+        assertThat(task.defaultSource, equalTo(project.source.custom.groovy))
         assertThat(task, dependsOn('compileCustomJava'))
     }
 
@@ -108,17 +107,10 @@ class GroovyPluginTest {
     @Test public void addsStandardTasksToTheProject() {
         groovyPlugin.use(project, project.getPlugins())
 
-        def task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
-        assertThat(task, instanceOf(Javadoc.class))
-        assertThat(task.srcDirs, hasItems(project.source.main.java.srcDirs as Object[]))
-        assertThat(task.srcDirs, hasItems(project.source.main.groovy.srcDirs as Object[]))
-        assertThat(task.exclude, hasItem('**/*.groovy'))
-
-        task = project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME]
+        def task = project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME]
         assertThat(task, instanceOf(Groovydoc.class))
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
-        assertThat(task.srcDirs, not(hasItems(project.source.main.java.srcDirs as Object[])))
-        assertThat(task.srcDirs, hasItems(project.source.main.groovy.srcDirs as Object[]))
+        assertThat(task.defaultSource, equalTo(project.source.main.allGroovy))
     }
 
     @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
@@ -126,16 +118,10 @@ class GroovyPluginTest {
         
         def task = project.createTask('otherCompile', type: GroovyCompile)
         assertThat(task.classpath, sameInstance(project.source.main.compileClasspath))
-        assertThat(task.src, equalTo(project.source.main.groovy))
-
-        task = project.createTask('otherJavadoc', type: Javadoc)
-        assertThat(task.srcDirs, hasItems(project.source.main.java.srcDirs as Object[]))
-        assertThat(task.srcDirs, hasItems(project.source.main.groovy.srcDirs as Object[]))
-        assertThat(task.exclude, hasItem('**/*.groovy'))
+        assertThat(task.defaultSource, equalTo(project.source.main.groovy))
 
         task = project.createTask('otherGroovydoc', type: Groovydoc)
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
-        assertThat(task.srcDirs, not(hasItems(project.source.main.java.srcDirs as Object[])))
-        assertThat(task.srcDirs, hasItems(project.source.main.groovy.srcDirs as Object[]))
+        assertThat(task.defaultSource, equalTo(project.source.main.allGroovy))
     }
 }

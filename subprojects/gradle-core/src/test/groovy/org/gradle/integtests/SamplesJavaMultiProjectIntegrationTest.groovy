@@ -24,6 +24,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -143,12 +144,14 @@ class SamplesJavaMultiProjectIntegrationTest {
 
     @Test
     public void multiProjectJavaDoc() {
-        executer.inDirectory(javaprojectDir).withTasks('javadoc').run()
-        assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
-        assertTrue(javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').text.contains("These are the shared classes."))
-        assertExists(javaprojectDir, API_NAME, 'build/docs/javadoc/index.html')
-        assertTrue(javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').text.contains("These are the API classes"))
-        assertExists(javaprojectDir, WEBAPP_PATH, 'build/docs/javadoc/index.html')
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'javadoc').run()
+        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/index.html').assertIsFile()
+        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/Person.html').assertIsFile()
+        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').assertContents(containsString("These are the shared classes."))
+        javaprojectDir.file(API_NAME, 'build/docs/javadoc/index.html').assertIsFile()
+        javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/PersonList.html').assertIsFile()
+        javaprojectDir.file(API_NAME, 'build/docs/javadoc/org/gradle/api/package-summary.html').assertContents(containsString("These are the API classes"))
+        javaprojectDir.file(WEBAPP_PATH, 'build/docs/javadoc/index.html').assertIsFile()
     }
 
     @Test

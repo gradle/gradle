@@ -15,31 +15,22 @@
  */
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.SourceTask;
+import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
 
-public class CodeNarc extends ConventionTask {
+public class CodeNarc extends SourceTask {
     private AntCodeNarc antCodeNarc = new AntCodeNarc();
 
-    private FileTree source;
     private File reportFile;
     private File configFile;
 
     @TaskAction
     public void check() {
         antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFile());
-    }
-
-    @InputFiles @SkipWhenEmpty
-    public FileTree getSource() {
-        return source;
-    }
-
-    public void setSource(FileTree source) {
-        this.source = source;
     }
 
     @InputFile

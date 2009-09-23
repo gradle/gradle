@@ -46,7 +46,6 @@ public class JavadocOptionFileWriter {
                 options.get(option).write(writerContext);
             }
 
-            optionFile.getPackageNames().write(writerContext);
             optionFile.getSourceNames().write(writerContext);
         }
         finally {

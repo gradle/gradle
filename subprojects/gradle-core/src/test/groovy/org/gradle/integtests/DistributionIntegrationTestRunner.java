@@ -118,7 +118,7 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
                 return testDir;
             }
 
-            public TestFile testFile(String... path) {
+            public TestFile testFile(Object... path) {
                 return testDir.file(path);
             }
         };

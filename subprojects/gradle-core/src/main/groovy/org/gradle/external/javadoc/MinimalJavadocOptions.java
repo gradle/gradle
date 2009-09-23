@@ -64,14 +64,6 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions source(String source);
 
-    List<File> getSourcepath();
-
-    void setSourcepath(List<File> sourcepath);
-
-    MinimalJavadocOptions sourcepath(List<File> sourcepath);
-
-    MinimalJavadocOptions sourcepath(File ... sourcepath);
-
     List<File> getClasspath();
 
     void setClasspath(List<File> classpath);
@@ -79,18 +71,6 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions classpath(List<File> classpath);
 
     MinimalJavadocOptions classpath(File ... classpath);
-
-    List<String> getSubPackages();
-
-    void setSubPackages(List<String> subPackages);
-
-    MinimalJavadocOptions subPackages(String ... subPackages);
-
-    List<String> getExclude();
-
-    void setExclude(List<String> exclude);
-
-    MinimalJavadocOptions exclude(String ... exclude);
 
     List<File> getBootClasspath();
 
@@ -159,12 +139,6 @@ public interface MinimalJavadocOptions {
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
     void write(File outputFile) throws IOException;
-
-    List<String> getPackageNames();
-
-    void setPackageNames(List<String> packageNames);
-
-    MinimalJavadocOptions packageNames(String ... packageNames);
 
     List<String> getSourceNames();
 

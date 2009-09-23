@@ -26,17 +26,11 @@ import java.util.*;
 public class JavadocOptionFile {
     private final Map<String, JavadocOptionFileOption> options;
 
-    private final OptionLessJavadocOptionFileOption<List<String>> packageNames;
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
 
     public JavadocOptionFile() {
         options = new HashMap<String, JavadocOptionFileOption>();
-        packageNames = new OptionLessStringsJavadocOptionFileOption();
         sourceNames = new OptionLessStringsJavadocOptionFileOption();
-    }
-
-    public OptionLessJavadocOptionFileOption<List<String>> getPackageNames() {
-        return packageNames;
     }
 
     public OptionLessJavadocOptionFileOption<List<String>> getSourceNames() {

@@ -16,17 +16,13 @@
 package org.gradle.api.plugins.quality;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.*;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Checkstyle extends ConventionTask {
-    private FileTree source;
-
+public class Checkstyle extends SourceTask {
     private File configFile;
 
     private File resultFile;
@@ -58,15 +54,6 @@ public class Checkstyle extends ConventionTask {
 
     public void setResultFile(File resultFile) {
         this.resultFile = resultFile;
-    }
-
-    @InputFiles @SkipWhenEmpty
-    public FileTree getSource() {
-        return source;
-    }
-
-    public void setSource(FileTree source) {
-        this.source = source;
     }
 
     @InputFiles

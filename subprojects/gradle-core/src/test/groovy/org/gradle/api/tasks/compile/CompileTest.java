@@ -59,7 +59,7 @@ public class CompileTest extends AbstractCompileTest {
         setUpMocksAndAttributes(compile);
         context.checking(new Expectations() {{
             one(antCompileMock).execute(
-                    with(hasSameItems(compile.getFilteredSrc())),
+                    with(hasSameItems(compile.getSource())),
                     with(equalTo(compile.getDestinationDir())),
                     with(equalTo(compile.getDependencyCacheDir())),
                     with(equalTo(compile.getClasspath())),

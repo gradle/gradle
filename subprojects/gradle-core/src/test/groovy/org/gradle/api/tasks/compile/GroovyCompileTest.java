@@ -79,7 +79,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
         context.checking(new Expectations(){{
             one(antGroovycCompileMock).execute(
                     with(equalTo(ant)),
-                    with(hasSameItems(testObj.getFilteredSrc())),
+                    with(hasSameItems(testObj.getSource())),
                     with(equalTo(testObj.getDestinationDir())),
                     with(equalTo(TEST_DEPENDENCY_MANAGER_CLASSPATH)),
                     with(equalTo(testObj.getSourceCompatibility())),
@@ -128,6 +128,6 @@ public class GroovyCompileTest extends AbstractCompileTest {
         }});
 
         compile.setGroovyClasspath(groovyClasspathCollection);
-        compile.src(srcDir);
+        compile.source(srcDir);
     }
 }

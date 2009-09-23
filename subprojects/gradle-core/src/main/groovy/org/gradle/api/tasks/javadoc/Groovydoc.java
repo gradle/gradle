@@ -18,16 +18,13 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.*;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 
 /**
  * This task generates html api doc for Groovy classes. It uses Groovy's Groovydoc tool for this. Please note that
@@ -37,18 +34,12 @@ import java.util.Arrays;
  *  
  * @author Hans Dockter
  */
-public class Groovydoc extends ConventionTask {
-    private List<File> srcDirs;
-
+public class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;
 
     private File destinationDir;
 
-    private ExistingDirsFilter existentDirsFilter = new ExistingDirsFilter();
-
     private AntGroovydoc antGroovydoc = new AntGroovydoc();
-
-    private List<String> packageNames;
 
     private boolean use;
 
@@ -70,37 +61,18 @@ public class Groovydoc extends ConventionTask {
 
     @TaskAction
     protected void generate() {
-        List existingSourceDirs = existentDirsFilter.checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(
-                getDestinationDir(), getSrcDirs());
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         ProjectInternal project = (ProjectInternal) getProject();
-        antGroovydoc.execute(existingSourceDirs, getDestinationDir(), getPackageNames(), isUse(), getWindowTitle(),
+        antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(),
                 getDocTitle(), getHeader(), getFooter(), getOverview(), isIncludePrivate(),
-                project.getGradle().getIsolatedAntBuilder(), taskClasspath);
+                project.getGradle().getIsolatedAntBuilder(), taskClasspath, project);
     }
 
     private void throwExceptionIfTaskClasspathIsEmpty(List taskClasspath) {
         if (taskClasspath.size() == 0) {
             throw new InvalidUserDataException("You must assign a Groovy library to the groovy configuration!");
         }
-    }
-
-    /**
-     * <p>Returns the source directories containing the groovy source files to generate documentation for.</p>
-     *
-     * @return The source directories. Never returns null.
-     */
-    @InputFiles
-    public List<File> getSrcDirs() {
-        return srcDirs;
-    }
-
-    /**
-     * <p>Sets the source directories containing the groovy source files to generate documentation for.</p>
-     */
-    public void setSrcDirs(List<File> srcDirs) {
-        this.srcDirs = srcDirs;
     }
 
     /**
@@ -137,36 +109,12 @@ public class Groovydoc extends ConventionTask {
         this.groovyClasspath = groovyClasspath;
     }
 
-    ExistingDirsFilter getExistentDirsFilter() {
-        return existentDirsFilter;
-    }
-
-    void setExistentDirsFilter(ExistingDirsFilter existentDirsFilter) {
-        this.existentDirsFilter = existentDirsFilter;
-    }
-
     public AntGroovydoc getAntGroovydoc() {
         return antGroovydoc;
     }
 
     public void setAntGroovydoc(AntGroovydoc antGroovydoc) {
         this.antGroovydoc = antGroovydoc;
-    }
-
-    /**
-     * Returns a comma separated list of package files to be included. Returns null if not set.
-     */
-    public List<String> getPackageNames() {
-        return packageNames;
-    }
-
-    /**
-     * Set's a comma separated list of package files to be included (with terminating wildcard).
-     *
-     * @param packageNames
-     */
-    public void setPackageNames(String... packageNames) {
-        this.packageNames = Arrays.asList(packageNames);
     }
 
     /**

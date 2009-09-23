@@ -53,10 +53,7 @@ public class StandardJavadocDocletOptionsTest {
         assertNull(options.getDoclet());
         assertEmpty(options.getDocletClasspath());
         assertNull(options.getSource());
-        assertEmpty(options.getSourcepath());
         assertEmpty(options.getClasspath());
-        assertEmpty(options.getSubPackages());
-        assertEmpty(options.getExclude());
         assertEmpty(options.getBootClasspath());
         assertEmpty(options.getExtDirs());
         assertEquals(options.getOutputLevel(), JavadocOutputLevel.QUIET);
@@ -64,7 +61,6 @@ public class StandardJavadocDocletOptionsTest {
         assertNull(options.getLocale());
         assertNull(options.getEncoding());
         assertEmpty(options.getJFlags());
-        assertEmpty(options.getPackageNames());
         assertEmpty(options.getSourceNames());
         assertEmpty(options.getOptionFiles());
         // standard doclet options
@@ -222,31 +218,10 @@ public class StandardJavadocDocletOptionsTest {
     }
 
     @Test
-    public void testFluentSourcepath() {
-        final File[] sourcepathValue = new File[]{new File("sources"), new File("sources2")};
-        assertEquals(options, options.sourcepath(sourcepathValue));
-        assertArrayEquals(sourcepathValue, options.getSourcepath().toArray());
-    }
-
-    @Test
     public void testFluentClasspath() {
         final File[] classpathValue = new File[]{new File("classpath.jar"), new File("classpath-dir")};
         assertEquals(options, options.classpath(classpathValue));
         assertArrayEquals(classpathValue, options.getClasspath().toArray());
-    }
-
-    @Test
-    public void testFluentSubpackages() {
-        final String[] subPackagesValue = new String[]{"org.gradle.util", "org.gradle.api"};
-        assertEquals(options, options.subPackages(subPackagesValue));
-        assertArrayEquals(subPackagesValue, options.getSubPackages().toArray());
-    }
-
-    @Test
-    public void testFluentExcludes() {
-        final String[] excludesValue = new String[]{"org.gradle.util.exec", "org.gradle.api.internal"};
-        assertEquals(options, options.exclude(excludesValue));
-        assertArrayEquals(excludesValue, options.getExclude().toArray());
     }
 
     @Test

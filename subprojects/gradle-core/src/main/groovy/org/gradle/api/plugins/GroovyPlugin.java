@@ -20,22 +20,19 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
-import org.gradle.api.internal.DynamicObjectAware;
 import static org.gradle.api.plugins.JavaPlugin.*;
 import org.gradle.api.tasks.ConventionValue;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.GroovySourceSet;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
-import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.ArrayList;
 
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to provide support for compiling and documenting Groovy
@@ -57,7 +54,6 @@ public class GroovyPlugin implements Plugin {
         configureCompileDefaults(project);
         configureSourceSetDefaults(project, javaPlugin);
 
-        configureJavadoc(project);
         configureGroovydoc(project);
     }
 
@@ -69,7 +65,7 @@ public class GroovyPlugin implements Plugin {
                         return project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME).copy().setTransitive(true);
                     }
                 });
-                compile.getConventionMapping().map("src", new ConventionValue() {
+                compile.getConventionMapping().map("defaultSource", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return mainGroovy(convention).getGroovy();
                     }
@@ -95,7 +91,7 @@ public class GroovyPlugin implements Plugin {
                 javaPlugin.configureForSourceSet(sourceSet, compile);
                 compile.dependsOn(sourceSet.getCompileJavaTaskName());
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
-                compile.conventionMapping("src", new ConventionValue() {
+                compile.conventionMapping("defaultSource", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return groovySourceSet.getGroovy();
                     }
@@ -114,9 +110,9 @@ public class GroovyPlugin implements Plugin {
                         return project.getConfigurations().getByName(GROOVY_CONFIGURATION_NAME).copy().setTransitive(true);
                     }
                 });
-                groovydoc.getConventionMapping().map("srcDirs", new ConventionValue() {
+                groovydoc.getConventionMapping().map("defaultSource", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new ArrayList<File>(mainGroovy(convention).getGroovy().getSrcDirs());
+                        return mainGroovy(convention).getAllGroovy();
                     }
                 });
                 groovydoc.getConventionMapping().map("destinationDir", new ConventionValue() {
@@ -127,21 +123,6 @@ public class GroovyPlugin implements Plugin {
             }
         });
         project.getTasks().add(GROOVYDOC_TASK_NAME, Groovydoc.class).setDescription("Generates the groovydoc for the source code.");
-    }
-
-    private void configureJavadoc(Project project) {
-        Action<Javadoc> taskListener = new Action<Javadoc>() {
-            public void execute(Javadoc javadoc) {
-                javadoc.exclude("**/*.groovy");
-                javadoc.conventionMapping("srcDirs", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return GUtil.addLists(main(convention).getJava().getSrcDirs(),
-                                mainGroovy(convention).getGroovy().getSrcDirs());
-                    }
-                });
-            }
-        };
-        project.getTasks().withType(Javadoc.class).allTasks(taskListener);
     }
 
     private JavaPluginConvention java(Convention convention) {

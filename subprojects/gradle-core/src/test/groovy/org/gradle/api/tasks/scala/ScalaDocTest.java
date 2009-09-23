@@ -19,20 +19,16 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.tasks.AbstractTaskTest;
 import static org.gradle.api.tasks.compile.AbstractCompileTest.*;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 public class ScalaDocTest extends AbstractTaskTest {
@@ -61,8 +57,7 @@ public class ScalaDocTest extends AbstractTaskTest {
     public void testExecutesAntScalaDoc() {
         setUpMocksAndAttributes(scalaDoc);
         context.checking(new Expectations() {{
-            one(antScalaDocMock).execute(scalaDoc.getScalaSrcDirs(), scalaDoc.getScalaIncludes(),
-                    scalaDoc.getScalaExcludes(), scalaDoc.getDestinationDir(), scalaDoc.getClasspath(),
+            one(antScalaDocMock).execute(scalaDoc.getSource(), scalaDoc.getDestinationDir(), scalaDoc.getClasspath(),
                     scalaDoc.getScalaDocOptions());
         }});
         scalaDoc.execute();
@@ -70,35 +65,26 @@ public class ScalaDocTest extends AbstractTaskTest {
 
     @Test
     public void testScalaIncludes() {
-        assertSame(scalaDoc.scalaInclude(TEST_PATTERN_1, TEST_PATTERN_2), scalaDoc);
-        assertEquals(scalaDoc.getScalaIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertSame(scalaDoc.include(TEST_PATTERN_1, TEST_PATTERN_2), scalaDoc);
+        assertEquals(scalaDoc.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
 
-        assertSame(scalaDoc.scalaInclude(TEST_PATTERN_3), scalaDoc);
-        assertEquals(scalaDoc.getScalaIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
+        assertSame(scalaDoc.include(TEST_PATTERN_3), scalaDoc);
+        assertEquals(scalaDoc.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 
     @Test
     public void testScalaExcludes() {
-        assertSame(scalaDoc.scalaExclude(TEST_PATTERN_1, TEST_PATTERN_2), scalaDoc);
-        assertEquals(scalaDoc.getScalaExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertSame(scalaDoc.exclude(TEST_PATTERN_1, TEST_PATTERN_2), scalaDoc);
+        assertEquals(scalaDoc.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
 
-        assertSame(scalaDoc.scalaExclude(TEST_PATTERN_3), scalaDoc);
-        assertEquals(scalaDoc.getScalaExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
+        assertSame(scalaDoc.exclude(TEST_PATTERN_3), scalaDoc);
+        assertEquals(scalaDoc.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 
     private void setUpMocksAndAttributes(final ScalaDoc docTask) {
-        docTask.setScalaSrcDirs(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
-        docTask.setScalaIncludes(TEST_INCLUDES);
-        docTask.setScalaExcludes(TEST_EXCLUDES);
-        docTask.existentDirsFilter = new ExistingDirsFilter() {
-            @Override
-            public List<File> checkDestDirAndFindExistingDirsAndThrowStopActionIfNone(File destDir,
-                                                                                      Collection<File> dirFiles) {
-                assertSame(destDir, docTask.getDestinationDir());
-                assertSame(dirFiles, docTask.getScalaSrcDirs());
-                return docTask.getScalaSrcDirs();
-            }
-        };
+        docTask.source(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
+        docTask.setIncludes(TEST_INCLUDES);
+        docTask.setExcludes(TEST_EXCLUDES);
         docTask.setDestinationDir(destDir);
 
         docTask.setClasspath(new AbstractFileCollection() {
