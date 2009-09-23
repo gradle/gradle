@@ -15,7 +15,6 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
-import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageButton;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
