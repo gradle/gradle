@@ -183,7 +183,7 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
      *
      * Defaults to true.
      */
-    // boolean useDefaultListeners = true
+    boolean useDefaultListeners = true
 
     /**
      * The maximum time out in milliseconds that all the tests should run under.
@@ -245,12 +245,11 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     List excludedFieldsFromOptionMap() {
         List excludedFieldsFromOptionMap = [   'testResources', 'projectDir', 
             'systemProperties', 'jvmArgs', 'environment',
-            'suiteXmlFiles','suiteXmlWriter','suiteXmlBuilder']
+            'suiteXmlFiles','suiteXmlWriter','suiteXmlBuilder', 'listeners']
 
         if ( includeGroups.empty ) excludedFieldsFromOptionMap << 'includeGroups'
         if ( excludeGroups.empty ) excludedFieldsFromOptionMap << 'excludeGroups'
         if ( jvm == null ) excludedFieldsFromOptionMap << 'jvm'
-        if ( listeners.empty ) excludedFieldsFromOptionMap << 'listeners'
         if ( skippedProperty == null ) excludedFieldsFromOptionMap << 'skippedProperty'
         if ( suiteRunnerClass == null ) excludedFieldsFromOptionMap << 'suiteRunnerClass'
         if ( parallel == null ) {
@@ -275,7 +274,12 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     }
 
     Map optionMap() {
-        super.optionMap()
+        Map optionMap = super.optionMap()
+
+        if (!listeners.empty)
+            optionMap.put('listeners', listeners.join(', '));
+
+        return optionMap;
     }
 
     MarkupBuilder suiteXmlBuilder() {
@@ -358,6 +362,18 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
 
     public TestNGOptions excludeGroups(String...excludeGroups) {
         this.excludeGroups.addAll(Arrays.asList(excludeGroups))
+        return this;
+    }
+
+    TestNGOptions useDefaultListeners() {
+        useDefaultListeners = true;
+        
+        return this;
+    }
+
+    TestNGOptions useDefaultListeners(boolean useDefaultListeners) {
+        this.useDefaultListeners = useDefaultListeners;
+
         return this;
     }
 

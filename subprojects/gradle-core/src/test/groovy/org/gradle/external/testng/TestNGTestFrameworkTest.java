@@ -89,8 +89,7 @@ public class TestNGTestFrameworkTest extends AbstractTestFrameworkTest {
             one(antTestNGExecuteMock).execute(
                 testClassesDir, null, testResultsDir, testReportDir, null, null,
                 testngOptionsMock,
-                antBuilderMock,
-                true
+                antBuilderMock
             );
         }});
 

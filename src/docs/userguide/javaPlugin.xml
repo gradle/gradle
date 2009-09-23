@@ -884,6 +884,10 @@
             and the for exclude it is <literal>"**/Abstract*.class"</literal>.
         </para>
         <para>Both JUnit and TestNG are supported through their Ant tasks.</para>
+        <para>
+            Regarding TestNG reporting, when the test report is disabled the default TestNG listeners are disabled
+            (options.useDefaultListeners is set to false). 
+        </para>
     </section>
 
     <section>
