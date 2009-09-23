@@ -30,6 +30,7 @@ import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.file.ConfigurableFileCollection
 
 /**
  * @author Hans Dockter
@@ -176,16 +177,10 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * Adds an arbitrary collection of files to the archive. In contrast to a fileset they don't need to have a common
      * basedir. The paths are evaluated as for {@link org.gradle.api.Project#files()}.
      */
-    public FileCollection files(Object... srcPaths) {
-        files(project.files(srcPaths))
-    }
-
-    /**
-     * Adds an arbitrary collection of files to this archive.
-     */
-    public FileCollection files(FileCollection fileCollection) {
-        resourceCollections(fileCollection)
-        fileCollection
+    public FileCollection from(Object... srcPaths) {
+        ConfigurableFileCollection files = project.files(srcPaths)
+        resourceCollections(files)
+        files
     }
 
     /**

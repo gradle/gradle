@@ -44,8 +44,8 @@ artifacts {
 // START SNIPPET dists
 task dist(type: Zip) {
     dependsOn spiJar
-    files configurations.runtime
-    files spiJar.archivePath
+    from configurations.runtime
+    from spiJar.archivePath
     fileSet dir: 'src/dist'
 }
 // END SNIPPET dists

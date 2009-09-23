@@ -27,6 +27,7 @@ import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.*
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileResolver
@@ -138,14 +139,13 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testFiles() {
-        FileCollection fileCollection = archiveTask.files('a', 'b')
+        FileCollection fileCollection = archiveTask.from('a', 'b')
         assertThat(archiveTask.resourceCollections, hasItem(fileCollection))
         assertEquals([new File(testDir, 'a'), new File(testDir, 'b')], fileCollection as List)
     }
 
     @Test public void testIncludeFileCollection() {
-        FileCollection fileCollection = [:] as FileCollection
-        assertSame(fileCollection, archiveTask.files(fileCollection))
+        FileCollection fileCollection = archiveTask.from([:] as FileCollection)
         assertThat(archiveTask.resourceCollections, hasItem(fileCollection))
     }
 
