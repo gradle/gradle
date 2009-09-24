@@ -37,10 +37,10 @@ import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.configuration.ProjectEvaluator;
-import org.gradle.logging.AntLoggingAdapter;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -19,7 +19,10 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.core.AppenderBase
 import org.apache.tools.ant.BuildException
-import org.gradle.api.Project
+import org.apache.tools.ant.Project
+import org.apache.tools.ant.taskdefs.ConditionTask
+import org.gradle.api.GradleException
+import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.util.BootstrapUtil
 import org.junit.After
 import org.junit.Before
@@ -27,7 +30,6 @@ import org.junit.Test
 import org.slf4j.LoggerFactory
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.apache.tools.ant.taskdefs.ConditionTask
 
 class DefaultIsolatedAntBuilderTest {
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder()
@@ -51,21 +53,27 @@ class DefaultIsolatedAntBuilderTest {
     @Test
     public void executesClosureAgainstDifferentVersionOfAntAndGroovy() {
         Object antBuilder = null
-        Object project = null
+        Object antProject = null
         builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
             antBuilder = delegate.builder
-            project = antProject
+            antProject = delegate.antProject
         }
         assertThat(antBuilder, notNullValue())
-        assertThat(antBuilder, not(instanceOf(AntBuilder)))
+        assertThat(antProject, notNullValue())
 
         ClassLoader loader = antBuilder.class.classLoader
         assertThat(loader, not(sameInstance(AntBuilder.classLoader)))
-        assertThat(antBuilder.class, equalTo(loader.loadClass('groovy.util.AntBuilder')))
 
-        assertThat(project, notNullValue())
-        assertThat(project, not(instanceOf(org.apache.tools.ant.Project)))
-        assertThat(project.class.classLoader, sameInstance(loader))
+        assertThat(antBuilder, not(instanceOf(BasicAntBuilder)))
+        assertThat(antBuilder, instanceOf(loader.loadClass(BasicAntBuilder.name)))
+
+        assertThat(antBuilder, not(instanceOf(AntBuilder)))
+        assertThat(antBuilder, instanceOf(loader.loadClass(AntBuilder.name)))
+
+        assertThat(antProject, not(instanceOf(Project)))
+        assertThat(antProject, instanceOf(loader.loadClass(Project.name)))
+
+        assertThat(loader.loadClass(AntBuilder.name).classLoader, sameInstance(loader.loadClass(Project.name).classLoader))
 
         assertThat(loader.loadClass(BuildException.name), not(sameInstance(BuildException)))
         assertThat(loader.loadClass(Closure.name), not(sameInstance(Closure)))
@@ -123,26 +131,26 @@ class DefaultIsolatedAntBuilderTest {
     public void setsContextClassLoader() {
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
         ClassLoader contextLoader = null
-        Object antBuilder = null
+        Object antProject = null
 
         builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
-            antBuilder = delegate.builder
+            antProject = delegate.antProject
             contextLoader = Thread.currentThread().contextClassLoader
         }
 
-        assertThat(contextLoader, sameInstance(antBuilder.class.classLoader))
+        assertThat(contextLoader, sameInstance(antProject.class.classLoader))
         assertThat(Thread.currentThread().contextClassLoader, sameInstance(originalLoader))
     }
 
     @Test
-    public void gradleClassesAreNotVisible() {
+    public void gradleClassesAreNotVisibleToAnt() {
         ClassLoader loader = null
         builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
-            loader = delegate.builder.getClass().classLoader
+            loader = antProject.getClass().classLoader
         }
 
         try {
-            loader.loadClass(Project.name)
+            loader.loadClass(GradleException.name)
             fail()
         } catch (ClassNotFoundException e) {
             // expected

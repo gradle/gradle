@@ -24,8 +24,8 @@ import java.io.File;
  */
 public interface IsolatedAntBuilder {
     /**
-     * Executes the given closure against an isolated AntBuilder. The provided classpath must contain a version of Ant,
-     * plus a version of Groovy. It may also contain other libraries
+     * Executes the given closure against an isolated {@link org.gradle.api.AntBuilder} instance. The provided
+     * classpath must contain a version of Ant, plus a version of Groovy. It may also contain other libraries.
      *
      * @param classpath The classpath to use
      * @param antClosure The closure to execute

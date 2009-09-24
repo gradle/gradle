@@ -1,13 +1,8 @@
 package org.gradle.api.internal.project
 
-import org.gradle.util.BootstrapUtil
-import org.gradle.util.ClasspathUtil
-import org.gradle.util.ConfigureUtil
-import org.gradle.util.FilteringClassLoader
-import org.gradle.util.MultiParentClassLoader
-import org.gradle.logging.AntLoggingAdapter
-import org.gradle.api.internal.file.ant.AntFileResource
-import org.gradle.api.internal.file.ant.BaseDirSelector
+import org.gradle.api.internal.project.ant.BasicAntBuilder
+import org.gradle.api.internal.project.ant.AntLoggingAdapter
+import org.gradle.util.*
 
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     private final Map<List<File>, Map<String, Object>> classloaders = [:]
@@ -44,16 +39,15 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().contextClassLoader = antLoader
         try {
-            Object antBuilder = antLoader.loadClass(AntBuilder.class.name).newInstance()
+            Object antBuilder = gradleLoader.loadClass(BasicAntBuilder.class.name).newInstance()
 
             Object antLogger = gradleLoader.loadClass(AntLoggingAdapter.class.name).newInstance()
             antBuilder.project.removeBuildListener(antBuilder.project.getBuildListeners()[0])
             antBuilder.project.addBuildListener(antLogger)
-            antBuilder.project.addDataTypeDefinition('gradleFileResource', gradleLoader.loadClass(AntFileResource.class.name))
-            antBuilder.project.addDataTypeDefinition('gradleBaseDirSelector', gradleLoader.loadClass(BaseDirSelector.class.name))
 
-            // Ideally, we'd delegate directly to the AntBuilder, but for some reason Groovy won't invoke methodMissing()
-            // on it. So, use some indirection
+            // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
+            // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
+            // because they are not an instanceof it's Closure class
             Object delegate = new AntBuilderDelegate(antBuilder)
             ConfigureUtil.configure(antClosure, delegate)
         } finally {
@@ -71,11 +65,6 @@ class AntBuilderDelegate extends BuilderSupport {
 
     def propertyMissing(String name) {
         builder."$name"
-    }
-
-    protected Object doInvokeMethod(String methodName, Object name, Object args) {
-    	super.doInvokeMethod(methodName, name, args)
-    	return builder.lastCompletedNode
     }
 
     protected Object createNode(Object name) {
@@ -100,5 +89,9 @@ class AntBuilderDelegate extends BuilderSupport {
 
     protected void nodeCompleted(Object parent, Object node) {
         builder.nodeCompleted(parent, node)
+    }
+
+    protected Object postNodeCompletion(Object parent, Object node) {
+        builder.postNodeCompletion(parent, node)
     }
 }

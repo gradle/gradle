@@ -87,11 +87,9 @@ public static class FileListTask extends MatchingTask {
 
     def void execute() {
         if (src) {
-            fileset.selectorElements().each { println "selector $it"}
             src.list().each {String dirName ->
                 File dir = getProject().resolveFile(dirName);
                 getDirectoryScanner(dir).includedFiles.each {String fileName ->
-                    println "found $fileName in $dirName"
                     assertTrue("File $fileName found multiple times", filenames.add(fileName.replace(File.separator, '/')))
                 }
             }

@@ -15,25 +15,22 @@
  */
 package org.gradle.api.internal.project
 
-import org.apache.tools.ant.PropertyHelper
-import java.beans.PropertyChangeListener
-import java.beans.PropertyChangeEvent
-import org.gradle.api.GradleException
-import org.apache.tools.ant.Target
-import org.gradle.api.tasks.ant.AntTarget
-import org.gradle.api.Project
 import org.apache.tools.ant.MagicNames
 import org.apache.tools.ant.ProjectHelper
-import org.gradle.api.internal.file.ant.AntFileResource
-import org.gradle.api.internal.file.ant.BaseDirSelector
+import org.apache.tools.ant.Target
+import org.gradle.api.GradleException
+import org.gradle.api.Project
+import org.gradle.api.internal.project.ant.BasicAntBuilder
+import org.gradle.api.tasks.ant.AntTarget
+import java.beans.PropertyChangeListener
+import java.beans.PropertyChangeEvent
+import org.apache.tools.ant.PropertyHelper
 
-public class DefaultAntBuilder extends org.gradle.api.AntBuilder {
+public class DefaultAntBuilder extends BasicAntBuilder {
     private final Project gradleProject
 
     def DefaultAntBuilder(Project gradleProject) {
         this.gradleProject = gradleProject;
-        antProject.addDataTypeDefinition('gradleFileResource', AntFileResource.class)
-        antProject.addDataTypeDefinition('gradleBaseDirSelector', BaseDirSelector.class)
     }
 
     def Object invokeMethod(String methodName, Object args) {

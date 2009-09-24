@@ -6,7 +6,10 @@ import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.*
 import org.gradle.api.tasks.ant.AntTarget
+import java.lang.reflect.Field
+import org.apache.tools.ant.Target
 
 class DefaultAntBuilderTest {
     private final Project project = HelperUtil.createRootProject()
@@ -50,7 +53,7 @@ class DefaultAntBuilderTest {
     }
 
     @Test
-    public void addsTaskForEachAntTarget() {
+    public void importAddsTaskForEachAntTarget() {
         File buildFile = new File(project.projectDir, 'build.xml')
         buildFile.withWriter {Writer writer ->
             def xml = new MarkupBuilder(writer)
@@ -74,5 +77,36 @@ class DefaultAntBuilderTest {
         task = project.tasks.target3
         assertThat(task, instanceOf(AntTarget))
         assertThat(task.target.name, equalTo('target3'))
+    }
+
+    @Test
+    public void canNestElements() {
+        ant.otherProp = 'true'
+        ant.condition(property: 'prop', value: 'someValue') {
+            or {
+                and {
+                    isSet(property: 'otherProp')
+                    not { isSet(property: 'missing') }
+                }
+            }
+        }
+        assertThat(ant.prop, equalTo('someValue'))
+    }
+    
+    @Test
+    public void discardsTasksAfterExecution() {
+        ant.echo(message: 'message')
+        ant.echo(message: 'message')
+        ant.echo(message: 'message')
+
+        assertThat(ant.antProject.targets.size(), equalTo(0))
+
+        Field field = AntBuilder.class.getDeclaredField('collectorTarget')
+        field.accessible = true
+        Target target = field.get(ant)
+        field = target.class.getDeclaredField('children')
+        field.accessible = true
+        List children = field.get(target)
+        assertThat(children, isEmpty())
     }
 }
