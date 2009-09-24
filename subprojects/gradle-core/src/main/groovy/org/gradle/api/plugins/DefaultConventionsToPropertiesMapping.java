@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.ConventionValue;
@@ -63,40 +62,10 @@ public class DefaultConventionsToPropertiesMapping {
             }
     );
 
-    public final static Map ARCHIVE = GUtil.map(
-            "version", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return "" + ((Task) conventionAwareObject).getProject().getVersion();
-        }
-        }, "baseName", new ConventionValue() {
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            return convention.getPlugin(BasePluginConvention.class).getArchivesBaseName();
-        }
-    });
-
-    public final static Map ZIP = new HashMap(ARCHIVE);
-
-    static {
-        ZIP.putAll(GUtil.map(
-                "destinationDir", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(BasePluginConvention.class).getDistsDir();
-                    }
-                }
-        ));
-    }
-
-    public final static Map TAR = new HashMap(ZIP);
-
-    public final static Map JAR = new HashMap(ARCHIVE);
+    public final static Map JAR = new HashMap();
 
     static {
         JAR.putAll(GUtil.map(
-                "destinationDir", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return convention.getPlugin(BasePluginConvention.class).getLibsDir();
-            }
-        },
                 "baseDir", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();

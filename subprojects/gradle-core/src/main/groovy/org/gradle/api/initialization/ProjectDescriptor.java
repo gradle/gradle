@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public interface ProjectDescriptor {
     void setProjectDir(File dir);
 
     /**
-     * Returns the name of the build file for this project. This name is interpretted relative to the project
+     * Returns the name of the build file for this project. This name is interpreted relative to the project
      * directory.
      *
      * @return The build file name.
@@ -66,7 +66,7 @@ public interface ProjectDescriptor {
     String getBuildFileName();
 
     /**
-     * Sets the name of the build file. This name is interpretted relative to the project directory.
+     * Sets the name of the build file. This name is interpreted relative to the project directory.
      *
      * @param name The build file name. Should not be null.
      */

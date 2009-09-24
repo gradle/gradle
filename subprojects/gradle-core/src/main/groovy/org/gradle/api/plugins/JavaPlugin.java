@@ -27,18 +27,13 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.api.tasks.bundling.Tar;
-import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Set;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -55,7 +50,6 @@ public class JavaPlugin implements Plugin {
     public static final String TEST_TASK_NAME = "test";
     public static final String JAR_TASK_NAME = "jar";
     public static final String CHECK_TASK_NAME = "check";
-    public static final String ASSEMBLE_TASK_NAME = "assemble";
     public static final String JAVADOC_TASK_NAME = "javadoc";
     public static final String BUILD_TASK_NAME = "build";
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
@@ -245,25 +239,9 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureArchives(final Project project) {
-        project.getTasks().withType(AbstractArchiveTask.class).allTasks(new Action<AbstractArchiveTask>() {
-            public void execute(AbstractArchiveTask task) {
-                if (task instanceof Jar) {
-                    task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.JAR);
-                }
-                else if (task instanceof Tar) {
-                    task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TAR);
-                }
-                else if (task instanceof Zip) {
-                    task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.ZIP);
-                }
-            }
-        });
-
-        Task assembleTask = project.getTasks().add(ASSEMBLE_TASK_NAME);
-        assembleTask.setDescription("Builds all Jar, War, Zip, and Tar archives.");
-        assembleTask.dependsOn(new TaskDependency(){
-            public Set<? extends Task> getDependencies(Task task) {
-                return project.getTasks().withType(Zip.class).getAll();
+        project.getTasks().withType(Jar.class).allTasks(new Action<Jar>() {
+            public void execute(Jar task) {
+                task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.JAR);
             }
         });
 
@@ -286,7 +264,7 @@ public class JavaPlugin implements Plugin {
     private void configureBuild(Project project) {
         DefaultTask buildTask = project.getTasks().add(BUILD_TASK_NAME, DefaultTask.class);
         buildTask.setDescription("Assembles and tests this project.");
-        buildTask.dependsOn(ASSEMBLE_TASK_NAME);
+        buildTask.dependsOn(BasePlugin.ASSEMBLE_TASK_NAME);
         buildTask.dependsOn(CHECK_TASK_NAME);
     }
 

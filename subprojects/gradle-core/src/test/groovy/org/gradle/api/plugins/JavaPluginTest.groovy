@@ -25,15 +25,13 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.Tar
-import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
 import org.junit.Test
+import static org.gradle.util.Matchers.*
 import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
 import static org.junit.Assert.*
 
 /**
@@ -192,8 +190,7 @@ class JavaPluginTest {
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.baseDir, equalTo(project.source.main.classesDir))
 
-        task = project.tasks[JavaPlugin.ASSEMBLE_TASK_NAME]
-        assertThat(task, instanceOf(DefaultTask))
+        task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
         assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
 
         task = project.tasks[JavaPlugin.CHECK_TASK_NAME]
@@ -216,7 +213,7 @@ class JavaPluginTest {
 
         task = project.tasks[JavaPlugin.BUILD_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, dependsOn(JavaPlugin.ASSEMBLE_TASK_NAME, JavaPlugin.CHECK_TASK_NAME))
+        assertThat(task, dependsOn(BasePlugin.ASSEMBLE_TASK_NAME, JavaPlugin.CHECK_TASK_NAME))
 
                 task = project.tasks[JavaPlugin.BUILD_NEEDED_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
@@ -249,27 +246,13 @@ class JavaPluginTest {
         assertThat(task.title, equalTo(project.apiDocTitle))
     }
 
-    @Test public void appliesMappingsToArchiveTasks() {
+    @Test public void appliesMappingsToCustomJarTasks() {
         javaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customJar', type: Jar)
         assertThat(task, dependsOn())
         assertThat(task.destinationDir, equalTo(project.libsDir))
         assertThat(task.baseDir, equalTo(project.source.main.classesDir))
-
-        assertThat(project.tasks[JavaPlugin.ASSEMBLE_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, 'customJar'))
-
-        task = project.createTask('customZip', type: Zip)
-        assertThat(task.destinationDir, equalTo(project.distsDir))
-        assertThat(task.version, equalTo(project.version))
-
-        assertThat(project.tasks[JavaPlugin.ASSEMBLE_TASK_NAME], dependsOn(hasItem('customZip')))
-
-        task = project.createTask('customTar', type: Tar)
-        assertThat(task.destinationDir, equalTo(project.distsDir))
-        assertThat(task.version, equalTo(project.version))
-
-        assertThat(project.tasks[JavaPlugin.ASSEMBLE_TASK_NAME], dependsOn(hasItem('customTar')))
     }
 
     @Test public void buildOtherProjects() {

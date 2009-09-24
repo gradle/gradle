@@ -28,6 +28,9 @@ import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.Task
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.bundling.Tar
 
 /**
  * @author Hans Dockter
@@ -49,6 +52,9 @@ class BasePluginTest {
         assertThat(task, instanceOf(Clean))
         assertThat(task, dependsOn())
         assertThat(task.dir, equalTo(project.buildDir))
+
+        task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
+        assertThat(task, instanceOf(DefaultTask))
     }
 
     @Test public void addsImplictTasksForConfiguration() {
@@ -66,5 +72,30 @@ class BasePluginTest {
         assertThat(task, instanceOf(Upload))
         assertThat(task, dependsOn('producer'))
         assertThat(task.configuration, sameInstance(project.configurations.conf))
+    }
+    
+    @Test public void appliesMappingsForArchiveTasks() {
+        plugin.use(project, project.getPlugins())
+
+        def task = project.tasks.add('someJar', Jar)
+        assertThat(task.destinationDir, equalTo(project.libsDir))
+        assertThat(task.version, equalTo(project.version))
+        assertThat(task.baseName, equalTo(project.archivesBaseName))
+
+        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar'))
+
+        task = project.tasks.add('someZip', Zip)
+        assertThat(task.destinationDir, equalTo(project.distsDir))
+        assertThat(task.version, equalTo(project.version))
+        assertThat(task.baseName, equalTo(project.archivesBaseName))
+
+        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar', 'someZip'))
+
+        task = project.tasks.add('someTar', Tar)
+        assertThat(task.destinationDir, equalTo(project.distsDir))
+        assertThat(task.version, equalTo(project.version))
+        assertThat(task.baseName, equalTo(project.archivesBaseName))
+        
+        assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar', 'someZip', 'someTar'))
     }
 }
