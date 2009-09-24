@@ -28,19 +28,23 @@ import java.io.File;
  * @author Steve Appling
  */
 public class DeleteOnExit {
-    private static ArrayList<File> files = new ArrayList<File>();
+    private static final ArrayList<File> files = new ArrayList<File>();
     static {
         Runtime.getRuntime().addShutdownHook(new DeleteOnExitThread());
     }
 
     public static void addFile(File file) {
-        files.add(file);
+        synchronized (files) {
+            files.add(file);
+        }
     }
 
     private static class DeleteOnExitThread extends Thread {
         public void run() {
-            for (File file : files) {
-                FileUtils.deleteQuietly(file);
+            synchronized (files) {
+                for (File file : files) {
+                    FileUtils.deleteQuietly(file);
+                }
             }
         }
     }
