@@ -20,7 +20,7 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.util.ListenerBroadcast;
+import org.gradle.listener.ListenerBroadcast;
 
 import java.util.*;
 

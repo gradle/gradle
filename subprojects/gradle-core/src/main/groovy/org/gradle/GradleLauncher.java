@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,6 @@ public class GradleLauncher {
     private final BuildLoader buildLoader;
     private final BuildConfigurer buildConfigurer;
     private final LoggingConfigurer loggingConfigurer;
-    private final ListenerManager listenerManager;
     private final InitScriptHandler initScriptHandler;
 
     /**
@@ -84,7 +83,6 @@ public class GradleLauncher {
         this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
         this.loggingConfigurer = loggingConfigurer;
-        this.listenerManager = listenerManager;
     }
 
     /**

@@ -47,12 +47,6 @@ public class ListenerBroadcast<T> {
                                                   new BroadcastInvocationHandler()));
     }
 
-    public ListenerBroadcast(ListenerBroadcast<T> delegate) {
-        type = delegate.type;
-        source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type },
-                                                  new DelegatingBroadcastInvocationHandler(Proxy.getInvocationHandler(delegate.source))));
-    }
-
     /**
      * Returns the broadcaster. Any method call on this object is broadcast to all listeners.
      *
@@ -110,19 +104,6 @@ public class ListenerBroadcast<T> {
                 handler.invoke(null, method, parameters);
             }
             return null;
-        }
-    }
-
-    private class DelegatingBroadcastInvocationHandler extends BroadcastInvocationHandler {
-        private final InvocationHandler delegate;
-
-        private DelegatingBroadcastInvocationHandler(InvocationHandler delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
-            delegate.invoke(target, method, parameters);
-            return super.invoke(target, method, parameters);
         }
     }
 

@@ -49,7 +49,9 @@ public class DefaultListenerManager implements ListenerManager {
     }
 
     public <T> ListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
-        return new ListenerBroadcast(getBroadcasterInternal(listenerClass));
+        ListenerBroadcast<T> broadcast = new ListenerBroadcast(listenerClass);
+        broadcast.add(getBroadcasterInternal(listenerClass).getSource());
+        return broadcast;
     }
 
     private <T> ListenerBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {

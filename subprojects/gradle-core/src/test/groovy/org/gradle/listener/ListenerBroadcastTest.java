@@ -165,25 +165,6 @@ public class ListenerBroadcastTest {
         }
     }
 
-    @Test
-    public void delegatesCorrectly() {
-        final TestListener delegatedListener = context.mock(TestListener.class, "delegated test listener");
-        final TestListener listener = context.mock(TestListener.class, "test listener");
-
-        context.checking(new Expectations() {{
-            one(delegatedListener).event1("param");
-            one(listener).event1("param");
-        }});
-
-        ListenerBroadcast<TestListener> delegatedBroadcast = new ListenerBroadcast<TestListener>(TestListener.class);
-        ListenerBroadcast<TestListener> delegatingBroadcast = new ListenerBroadcast<TestListener>(delegatedBroadcast);
-
-        delegatedBroadcast.add(delegatedListener);
-        delegatingBroadcast.add(listener);
-
-        delegatingBroadcast.getSource().event1("param");
-    }
-
     private interface TestListener {
         void event1(String param);
 
