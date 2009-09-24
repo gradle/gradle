@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
+import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.integtests.TestFile;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
@@ -93,12 +94,16 @@ public class JavadocTest extends AbstractConventionTaskTest {
         task.source(srcDir);
 
         expectJavadocExecHandle();
+        expectJavadocExec();
+
+        task.execute();
+    }
+
+    private void expectJavadocExec() {
         context.checking(new Expectations(){{
             one(execHandleMock).startAndWaitForFinish();
             will(returnValue(ExecHandleState.SUCCEEDED));
         }});
-
-        task.execute();
     }
 
     @Test
@@ -130,15 +135,26 @@ public class JavadocTest extends AbstractConventionTaskTest {
         task.setDestinationDir(destDir);
         task.source(srcDir);
         task.setMaxMemory("max-memory");
-        task.setTitle("title");
         task.setVerbose(true);
 
         expectJavadocExecHandle();
-        context.checking(new Expectations(){{
-            one(execHandleMock).startAndWaitForFinish();
-            will(returnValue(ExecHandleState.SUCCEEDED));
-        }});
+        expectJavadocExec();
 
         task.execute();
+    }
+
+    @Test
+    public void setsTheWindowAndDocTitleIfNotSet() {
+        task.setDestinationDir(destDir);
+        task.source(srcDir);
+        task.setTitle("title");
+
+        expectJavadocExecHandle();
+        expectJavadocExec();
+
+        task.execute();
+        StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
+        assertThat(options.getDocTitle(), equalTo("title"));
+        assertThat(options.getWindowTitle(), equalTo("title"));
     }
 }

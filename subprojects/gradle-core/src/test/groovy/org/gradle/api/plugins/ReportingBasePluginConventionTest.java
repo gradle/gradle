@@ -48,8 +48,25 @@ public class ReportingBasePluginConventionTest {
     }
 
     @Test
-    public void createsReportsDirFromReportsDirName() {
+    public void calculatesReportsDirFromReportsDirName() {
         convention.setReportsDirName("new-reports");
         assertThat(convention.getReportsDir(), equalTo(new File(buildDir, "new-reports")));
+    }
+
+    @Test
+    public void calculatesApiDocTitleFromProjectNameAndVersion() {
+        context.checking(new Expectations(){{
+            allowing(project).getName();
+            will(returnValue("<name>"));
+            one(project).getVersion();
+            will(returnValue(Project.DEFAULT_VERSION));
+        }});
+        assertThat(convention.getApiDocTitle(), equalTo("<name> API"));
+
+        context.checking(new Expectations(){{
+            one(project).getVersion();
+            will(returnValue("<not-the-default>"));
+        }});
+        assertThat(convention.getApiDocTitle(), equalTo("<name> <not-the-default> API"));
     }
 }

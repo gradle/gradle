@@ -20,7 +20,8 @@ import org.gradle.api.Project;
 import java.io.File;
 
 /**
- * <p>A {@code BasePluginConvention} defines the convention properties and methods used by the {@link ReportingBasePlugin}</p>
+ * <p>A {@code BasePluginConvention} defines the convention properties and methods used by the {@link
+ * ReportingBasePlugin}</p>
  */
 public class ReportingBasePluginConvention {
     private String reportsDirName = "reports";
@@ -55,5 +56,19 @@ public class ReportingBasePluginConvention {
      */
     public File getReportsDir() {
         return new File(project.getBuildDir(), reportsDirName);
+    }
+
+    /**
+     * Returns the title for API documentation for the project.
+     *
+     * @return The title. Never returns null.
+     */
+    public String getApiDocTitle() {
+        Object version = project.getVersion();
+        if (Project.DEFAULT_VERSION.equals(version)) {
+            return String.format("%s API", project.getName());
+        } else {
+            return String.format("%s %s API", project.getName(), version);
+        }
     }
 }

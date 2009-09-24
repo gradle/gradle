@@ -50,7 +50,7 @@ source.each {
         dist.testFile('src/org/gradle/test/resource.txt') << 'some text'
         dist.testFile('src/resources/org/gradle/main/resource2.txt') << 'some text'
         dist.testFile('src/resources/org/gradle/test/resource2.txt') << 'some text'
-        dist.testFile('src/org/gradle/main/JavaClass.java') << 'package org.gradle; class JavaClass { }'
+        dist.testFile('src/org/gradle/main/JavaClass.java') << 'package org.gradle; public class JavaClass { }'
         dist.testFile('src/org/gradle/test/JavaClassTest.java') << 'package org.gradle; class JavaClassTest { JavaClass c = new JavaClass(); }'
         dist.testFile('src/java/org/gradle/main/JavaClass2.java') << 'package org.gradle; class JavaClass2 { }'
         dist.testFile('src/java/org/gradle/test/JavaClassTest2.java') << 'package org.gradle; class JavaClassTest2 { JavaClass c = new JavaClass(); }'
@@ -65,7 +65,9 @@ source.each {
 
         executer.withTasks('build').run()
 
-        dist.testFile('build/classes/main').assertHasDescendants(
+        File buildDir = dist.testFile('build')
+
+        buildDir.file('classes/main').assertHasDescendants(
                 'org/gradle/main/resource.txt',
                 'org/gradle/main/resource2.txt',
                 'org/gradle/JavaClass.class',
@@ -76,7 +78,7 @@ source.each {
                 'org/gradle/ScalaClass2.class'
         )
 
-        dist.testFile('build/classes/test').assertHasDescendants(
+        buildDir.file('classes/test').assertHasDescendants(
                 'org/gradle/test/resource.txt',
                 'org/gradle/test/resource2.txt',
                 'org/gradle/JavaClassTest.class',
@@ -88,8 +90,7 @@ source.each {
         )
 
         TestFile tmpDir = dist.testFile('jarContents')
-        dist.testFile('build/libs/sharedSource-unspecified.jar').unzipTo(tmpDir)
-
+        buildDir.file('libs/sharedSource-unspecified.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/main/resource.txt',
@@ -101,5 +102,11 @@ source.each {
                 'org/gradle/ScalaClass.class',
                 'org/gradle/ScalaClass2.class'
         )
+
+        executer.withTasks('javadoc', 'groovydoc', 'scaladoc').run()
+
+        buildDir.file('docs/javadoc/index.html').assertIsFile()
+        buildDir.file('docs/groovydoc/index.html').assertIsFile()
+        buildDir.file('docs/scaladoc/index.html').assertIsFile()
     }
 }

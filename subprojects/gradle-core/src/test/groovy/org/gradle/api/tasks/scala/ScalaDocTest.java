@@ -15,27 +15,33 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.tasks.AbstractTaskTest;
 import static org.gradle.api.tasks.compile.AbstractCompileTest.*;
+import org.gradle.util.GFileUtils;
+import static org.gradle.util.Matchers.*;
 import org.gradle.util.WrapUtil;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.LinkedHashSet;
-import java.util.Set;
 
+@RunWith(JMock.class)
 public class ScalaDocTest extends AbstractTaskTest {
     private ScalaDoc scalaDoc;
     private AntScalaDoc antScalaDocMock;
     private JUnit4Mockery context = new JUnit4Mockery();
     private File destDir;
+    private File srcDir;
 
     @Override
     public AbstractTask getTask() {
@@ -47,6 +53,8 @@ public class ScalaDocTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         destDir = getProject().file("destDir");
+        srcDir = getProject().file("src");
+        GFileUtils.touch(new File(srcDir, "file.scala"));
         context.setImposteriser(ClassImposteriser.INSTANCE);
         scalaDoc = createTask(ScalaDoc.class);
         antScalaDocMock = context.mock(AntScalaDoc.class);
@@ -56,10 +64,6 @@ public class ScalaDocTest extends AbstractTaskTest {
     @Test
     public void testExecutesAntScalaDoc() {
         setUpMocksAndAttributes(scalaDoc);
-        context.checking(new Expectations() {{
-            one(antScalaDocMock).execute(scalaDoc.getSource(), scalaDoc.getDestinationDir(), scalaDoc.getClasspath(),
-                    scalaDoc.getScalaDocOptions());
-        }});
         scalaDoc.execute();
     }
 
@@ -81,22 +85,34 @@ public class ScalaDocTest extends AbstractTaskTest {
         assertEquals(scalaDoc.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3));
     }
 
-    private void setUpMocksAndAttributes(final ScalaDoc docTask) {
-        docTask.source(WrapUtil.toList(new File("sourceDir1"), new File("sourceDir2")));
-        docTask.setIncludes(TEST_INCLUDES);
-        docTask.setExcludes(TEST_EXCLUDES);
-        docTask.setDestinationDir(destDir);
+    @Test
+    public void testSetsDocTitleAndWindowTitleIfNotSet() {
+        setUpMocksAndAttributes(scalaDoc);
+        scalaDoc.setTitle("title");
 
-        docTask.setClasspath(new AbstractFileCollection() {
-            @Override
-            public String getDisplayName() {
-                throw new UnsupportedOperationException();
-            }
+        scalaDoc.execute();
 
-            public Set<File> getFiles() {
-                return new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH);
-            }
-        });
+        assertThat(scalaDoc.getScalaDocOptions().getDocTitle(), equalTo("title"));
+        assertThat(scalaDoc.getScalaDocOptions().getWindowTitle(), equalTo("title"));
     }
 
+    private void setUpMocksAndAttributes(final ScalaDoc docTask) {
+        docTask.source(srcDir);
+        docTask.setDestinationDir(destDir);
+
+        final FileCollection classpath = context.mock(FileCollection.class);
+        context.checking(new Expectations(){{
+            allowing(classpath).getFiles();
+            will(returnValue(new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH)));
+        }});
+        docTask.setClasspath(classpath);
+
+        context.checking(new Expectations() {{
+            one(antScalaDocMock).execute(
+                    with(hasSameItems(scalaDoc.getSource())),
+                    with(equalTo(scalaDoc.getDestinationDir())),
+                    with(equalTo(scalaDoc.getClasspath())),
+                    with(sameInstance(scalaDoc.getScalaDocOptions())));
+        }});
+    }
 }

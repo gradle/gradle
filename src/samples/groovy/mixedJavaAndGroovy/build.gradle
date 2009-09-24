@@ -1,4 +1,5 @@
 usePlugin 'groovy'
+version = 1.0
 
 repositories {
     mavenCentral()

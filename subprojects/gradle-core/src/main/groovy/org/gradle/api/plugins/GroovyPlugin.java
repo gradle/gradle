@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,12 +112,22 @@ public class GroovyPlugin implements Plugin {
                 });
                 groovydoc.getConventionMapping().map("defaultSource", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return mainGroovy(convention).getAllGroovy();
+                        return mainGroovy(convention).getGroovy();
                     }
                 });
                 groovydoc.getConventionMapping().map("destinationDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return new File(java(convention).getDocsDir(), "groovydoc");
+                    }
+                });
+                groovydoc.getConventionMapping().map("docTitle", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return convention.getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
+                    }
+                });
+                groovydoc.getConventionMapping().map("windowTitle", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return convention.getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
                     }
                 });
             }

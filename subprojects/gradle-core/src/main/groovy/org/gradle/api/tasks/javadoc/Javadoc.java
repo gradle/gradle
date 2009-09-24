@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ public class Javadoc extends SourceTask {
 
     private File optionsFile;
     private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
-    private boolean alwaysAppendDefaultClasspath = false;
 
     private FileCollection classpath;
 
@@ -58,14 +57,16 @@ public class Javadoc extends SourceTask {
             options
                 .destinationDirectory(destinationDir);
 
-        // todo LIST or SET
-        if ( options.getClasspath().isEmpty() || alwaysAppendDefaultClasspath ) {
-            options
-                .classpath(new ArrayList<File>(getClasspath().getFiles()));
-        }
+        options.classpath(new ArrayList<File>(getClasspath().getFiles()));
 
         if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
             options.windowTitle(getTitle());
+        }
+        if (options instanceof StandardJavadocDocletOptions) {
+            StandardJavadocDocletOptions docletOptions = (StandardJavadocDocletOptions) options;
+            if (!GUtil.isTrue(docletOptions.getDocTitle()) && GUtil.isTrue(getTitle())) {
+                docletOptions.setDocTitle(getTitle());
+            }
         }
 
         if ( maxMemory != null ) {
@@ -220,18 +221,5 @@ public class Javadoc extends SourceTask {
 
     public void setOptionsFile(File optionsFile) {
         this.optionsFile = optionsFile;
-    }
-
-    public boolean isAlwaysAppendDefaultClasspath() {
-        return alwaysAppendDefaultClasspath;
-    }
-
-    public void setAlwaysAppendDefaultClasspath(boolean alwaysAppendDefaultClasspath) {
-        this.alwaysAppendDefaultClasspath = alwaysAppendDefaultClasspath;
-    }
-
-    public Javadoc alwaysAppendDefaultClasspath() {
-        setAlwaysAppendDefaultClasspath(true);
-        return this;
     }
 }

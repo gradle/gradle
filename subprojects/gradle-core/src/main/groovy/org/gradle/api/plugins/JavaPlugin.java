@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -212,8 +212,9 @@ public class JavaPlugin implements Plugin {
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("classpath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
-                                SourceSet.MAIN_SOURCE_SET_NAME).getCompileClasspath();
+                        SourceSet mainSourceSet = convention.getPlugin(JavaPluginConvention.class).getSource()
+                                .getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                        return mainSourceSet.getClasses().plus(mainSourceSet.getCompileClasspath());
                     }
                 });
                 javadoc.getConventionMapping().map("defaultSource", new ConventionValue() {
@@ -230,6 +231,11 @@ public class JavaPlugin implements Plugin {
                 javadoc.getConventionMapping().map("optionsFile", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return new File(project.getBuildDir(), "tmp/javadoc.options");
+                    }
+                });
+                javadoc.getConventionMapping().map("title", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return convention.getPlugin(ReportingBasePluginConvention.class).getApiDocTitle();
                     }
                 });
                 addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);

@@ -146,6 +146,7 @@ class SamplesJavaMultiProjectIntegrationTest {
     public void multiProjectJavaDoc() {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'javadoc').run()
         javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/index.html').assertIsFile()
+        javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/index.html').assertContents(containsString("shared 1.0 API"))
         javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/Person.html').assertIsFile()
         javaprojectDir.file(SHARED_NAME, 'build/docs/javadoc/org/gradle/shared/package-summary.html').assertContents(containsString("These are the shared classes."))
         javaprojectDir.file(API_NAME, 'build/docs/javadoc/index.html').assertIsFile()

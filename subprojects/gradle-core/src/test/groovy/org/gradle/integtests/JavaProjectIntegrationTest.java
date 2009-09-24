@@ -77,7 +77,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     public void javadocGenerationFailureBreaksBuild() throws IOException {
         TestFile buildFile = testFile("javadocs.gradle");
         buildFile.write("usePlugin('java')");
-        testFile("src/main/java/org/gradle/broken.java").write("broken");
+        testFile("src/main/java/org/gradle/broken.java").write("class Broken { }");
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("javadoc").runWithFailure();
 

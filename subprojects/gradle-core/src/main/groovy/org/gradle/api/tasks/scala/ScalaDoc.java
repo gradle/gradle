@@ -20,6 +20,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -33,6 +34,7 @@ public class ScalaDoc extends SourceTask {
     private FileCollection classpath;
     private AntScalaDoc antScalaDoc;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
+    private String title;
 
     public AntScalaDoc getAntScalaDoc() {
         if (antScalaDoc == null) {
@@ -76,9 +78,24 @@ public class ScalaDoc extends SourceTask {
         this.scalaDocOptions = scalaDocOptions;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     @TaskAction
     protected void generate() {
-        getAntScalaDoc().execute(getSource(), getDestinationDir(), getClasspath(), getScalaDocOptions());
+        ScalaDocOptions options = getScalaDocOptions();
+        if (!GUtil.isTrue(options.getDocTitle())) {
+            options.setDocTitle(getTitle());
+        }
+        if (!GUtil.isTrue(options.getWindowTitle())) {
+            options.setWindowTitle(getTitle());
+        }
+        getAntScalaDoc().execute(getSource(), getDestinationDir(), getClasspath(), options);
     }
 
 }

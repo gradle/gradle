@@ -18,6 +18,7 @@ package org.gradle.integtests
 
 import org.junit.Test
 import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.*
 
 @RunWith (DistributionIntegrationTestRunner.class)
 class SamplesMixedJavaAndScalaIntegrationTest {
@@ -38,7 +39,7 @@ class SamplesMixedJavaAndScalaIntegrationTest {
 
         // Check contents of Jar
         TestFile jarContents = dist.testDir.file('jar')
-        projectDir.file("build/libs/mixedJavaAndScala-unspecified.jar").unzipTo(jarContents)
+        projectDir.file("build/libs/mixedJavaAndScala-1.0.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/sample/Person.class',
@@ -47,4 +48,24 @@ class SamplesMixedJavaAndScalaIntegrationTest {
                 'org/gradle/sample/impl/PersonList.class'
         )
     }
+
+    @Test
+    public void canBuildDocs() {
+        TestFile projectDir = dist.samplesDir.file('scala/mixedJavaAndScala')
+        executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'scaladoc').run()
+
+        TestFile javadocsDir = projectDir.file("build/docs/javadoc")
+        javadocsDir.file("index.html").assertIsFile()
+        javadocsDir.file("index.html").assertContents(containsString('mixedJavaAndScala 1.0 API'))
+        javadocsDir.file("org/gradle/sample/Person.html").assertIsFile()
+        javadocsDir.file("org/gradle/sample/impl/JavaPerson.html").assertIsFile()
+
+        TestFile scaladocsDir = projectDir.file("build/docs/scaladoc")
+        scaladocsDir.file("index.html").assertIsFile()
+        scaladocsDir.file("index.html").assertContents(containsString('mixedJavaAndScala 1.0 API'))
+        scaladocsDir.file("org/gradle/sample/impl/PersonImpl.html").assertIsFile()
+        scaladocsDir.file("org/gradle/sample/impl/JavaPerson.html").assertIsFile()
+        scaladocsDir.file("org/gradle/sample/impl/PersonList.html").assertIsFile()
+    }
+
 }

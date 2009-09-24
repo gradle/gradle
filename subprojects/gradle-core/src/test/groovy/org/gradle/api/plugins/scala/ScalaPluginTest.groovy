@@ -111,15 +111,23 @@ public class ScalaPluginTest {
 
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         assertThat(task, instanceOf(ScalaDoc.class))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, ScalaPlugin.SCALA_DEFINE_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.defaultSource, equalTo(project.source.main.allScala))
+        assertThat(task.defaultSource, equalTo(project.source.main.scala))
+        assertThat(task.classpath.sourceCollections, hasItem(project.source.main.classes))
+        assertThat(task.classpath.sourceCollections, hasItem(project.source.main.compileClasspath))
+        assertThat(task.title, equalTo(project.apiDocTitle))
     }
 
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
         scalaPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('otherScaladoc', type: ScalaDoc)
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME, ScalaPlugin.SCALA_DEFINE_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.defaultSource, equalTo(project.source.main.allScala))
+        assertThat(task.defaultSource, equalTo(project.source.main.scala))
+        assertThat(task.classpath.sourceCollections, hasItem(project.source.main.classes))
+        assertThat(task.classpath.sourceCollections, hasItem(project.source.main.compileClasspath))
+        assertThat(task.title, equalTo(project.apiDocTitle))
     }
 }

@@ -202,10 +202,12 @@ class JavaPluginTest {
 
         task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
         assertThat(task, instanceOf(Javadoc))
-        assertThat(task, dependsOn())
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
         assertThat(task.defaultSource, sameInstance(project.source.main.allJava))
-        assertThat(task.classpath, sameInstance(project.source.main.compileClasspath))
+        assertThat(task.classpath.sourceCollections, hasItem(project.source.main.classes))
+        assertThat(task.classpath.sourceCollections, hasItem(project.source.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
+        assertThat(task.title, equalTo(project.apiDocTitle))
         assertThat(task.optionsFile, equalTo(project.file('build/tmp/javadoc.options')))
 
         task = project.tasks["buildArchives"]
@@ -238,10 +240,13 @@ class JavaPluginTest {
         assertThat(task.testClassesDir, equalTo(project.source.test.classesDir))
 
         task = project.createTask('customJavadoc', type: Javadoc)
-        assertThat(task, dependsOn())
-        assertThat(task.classpath, equalTo(project.source.main.compileClasspath))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
+        assertThat(task.classpath.sourceCollections, hasItem(project.source.main.classes))
+        assertThat(task.classpath.sourceCollections, hasItem(project.source.main.compileClasspath))
+        assertThat(task.defaultSource, sameInstance(project.source.main.allJava))
         assertThat(task.destinationDir, equalTo(project.javadocDir))
         assertThat(task.optionsFile, equalTo(project.file('build/tmp/javadoc.options')))
+        assertThat(task.title, equalTo(project.apiDocTitle))
     }
 
     @Test public void appliesMappingsToArchiveTasks() {

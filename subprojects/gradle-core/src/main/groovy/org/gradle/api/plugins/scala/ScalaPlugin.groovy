@@ -70,7 +70,7 @@ public class ScalaPlugin implements Plugin {
 
     private void configureDefine(Project project) {
         ScalaDefine define = project.tasks.add(SCALA_DEFINE_TASK_NAME, ScalaDefine.class);
-        define.conventionMapping.classpath = { project.configurations.getByName(SCALA_TOOLS_CONFIGURATION_NAME) }
+        define.conventionMapping.classpath = { project.configurations[SCALA_TOOLS_CONFIGURATION_NAME] }
         define.description = "Defines the Scala ant tasks.";
     }
 
@@ -82,9 +82,10 @@ public class ScalaPlugin implements Plugin {
 
     private void configureScaladoc(final Project project) {
         project.getTasks().withType(ScalaDoc.class).allTasks {ScalaDoc scalaDoc ->
-            scalaDoc.conventionMapping.classpath = { project.configurations[COMPILE_CONFIGURATION_NAME] }
-            scalaDoc.conventionMapping.defaultSource = { project.source.main.allScala }
+            scalaDoc.conventionMapping.classpath = { project.source.main.classes + project.source.main.compileClasspath }
+            scalaDoc.conventionMapping.defaultSource = { project.source.main.scala }
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
+            scalaDoc.conventionMapping.title = { project.apiDocTitle }
             scalaDoc.dependsOn(SCALA_DEFINE_TASK_NAME)
         }
         project.tasks.add(SCALA_DOC_TASK_NAME, ScalaDoc.class).description = "Generates scaladoc for the source code.";

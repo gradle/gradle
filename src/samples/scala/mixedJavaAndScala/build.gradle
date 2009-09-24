@@ -1,5 +1,7 @@
 usePlugin 'scala'
 
+version = 1.0
+
 repositories {
     mavenRepo urls: 'http://scala-tools.org/repo-releases/'
     mavenCentral()
