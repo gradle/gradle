@@ -1,9 +1,13 @@
-include 'gradle-wrapper'
-include 'gradle-core'
-include 'gradle-ui'
-include 'gradle-open-api'
+include 'wrapper'
+include 'core'
+include 'ui'
+include 'openApi'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
-    project.projectDir = new File(settingsDir, "subprojects/$project.name")
+    String fileBaseName = project.name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }
+    project.projectDir = new File(settingsDir, "subprojects/gradle-$fileBaseName")
+    project.buildFileName = "${fileBaseName}.gradle"
+    assert project.projectDir.isDirectory()
+    assert project.buildFile.isFile()
 }

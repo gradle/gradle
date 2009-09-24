@@ -1,9 +1,0 @@
-usePlugin 'groovy'
-
-dependencies {
-    groovy libraries.groovy_depends
-    testCompile project(path: ':gradle-core', configuration: 'testFixtures')
-    testRuntime project(path: ':gradle-core', configuration: 'testFixturesRuntime')
-}
-
-manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.WrapperMain')

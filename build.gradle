@@ -28,7 +28,7 @@ import org.gradle.build.docs.SampleElementValidator
 
 defaultTasks "clean", "dists"
 
-usePlugin 'groovy'
+usePlugin BasePlugin
 
 svn = new Svn(project)
 
@@ -43,7 +43,7 @@ explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
 explodedDistGroovydocsDir = new File(explodedDistDocsDir, 'groovydoc')
 explodedDistSamplesDir = new File(explodedDistDir, 'samples')
 explodedDistLibDir = new File(explodedDistDir, 'lib')
-samplesSrcDir = new File(srcRoot, 'samples')
+samplesSrcDir = file('src/samples')
 userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
 
 archivesBaseName = 'gradle'
@@ -94,6 +94,7 @@ subprojects {
     usePlugin 'groovy'
     usePlugin 'code-quality'
 
+    archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
     dependencies {
         testCompile "junit:junit:4.5", FIRST_LEVEL_JMOCK
         testCompile module("org.jmock:jmock:2.4.0") {
@@ -124,6 +125,7 @@ allprojects {
 }
 
 configurations {
+    dists
     distLib {
         visible = false
     }
@@ -134,7 +136,7 @@ configurations {
 }
 
 dependencies {
-    distLib project(':gradle-wrapper'), project(':gradle-core'), project(':gradle-ui'), project(':gradle-open-api')
+    distLib project(':wrapper'), project(':core'), project(':ui'), project(':openApi')
 
     // todo: Improve dependency handling for xUnit jars
     ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
@@ -153,20 +155,10 @@ dependencies {
     userGuideTask 'xslthl:xslthl:2.0.1@jar'
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
-
-    groovy module("org.codehaus.groovy:groovy:1.6.4") {
-        dependency("asm:asm-all:2.2.3@jar")
-        dependency("antlr:antlr:2.7.7@jar")
-        dependency("commons-cli:commons-cli:1.2@jar")
-        module("org.apache.ant:ant:1.7.0") {
-            dependencies("org.apache.ant:ant-junit:1.7.0@jar", "org.apache.ant:ant-launcher:1.7.0@jar")
-        }
-    }
 }
 
 clean.dependsOn subprojects*.clean
 
-jar.enabled = false
 task groovydoc(overwrite: true, dependsOn: subprojects*.groovydoc)
 task check(overwrite: true, dependsOn: subprojects*.check)
 task test(overwrite: true, dependsOn: subprojects*.test)
@@ -197,9 +189,9 @@ gradle.taskGraph.whenReady {graph ->
     }
 }
 
-task explodedDistBase(dependsOn: [libs, configurations.distLib], description: 'Builds a minimal distribution image') << {
-    [explodedDistDir, explodedDistLibDir]*.mkdirs()
-    File explodedDistBinDir = mkdir(explodedDistDir, 'bin')
+task explodedDistBase(dependsOn: [configurations.distLib], description: 'Builds a minimal distribution image') << {
+    File explodedDistBinDir = new File(explodedDistDir, 'bin')
+    [explodedDistDir, explodedDistLibDir, explodedDistBinDir]*.mkdirs()
 
     logger.info('Generate lib dir')
     removeAnyExistingOldGradleLibs()
@@ -208,9 +200,9 @@ task explodedDistBase(dependsOn: [libs, configurations.distLib], description: 'B
         into explodedDistLibDir
     }
     logger.info('Generate start scripts')
-    StartScriptsGenerator.generate(project('gradle-core').jar.archiveName, explodedDistBinDir, archivesBaseName)
+    StartScriptsGenerator.generate(project(':core').jar.archiveName, explodedDistBinDir, archivesBaseName)
     logger.info('Copy and generate top level files.')
-    copy { from(new File(srcRoot, 'toplevel')).into explodedDistDir }
+    copy { from('src/toplevel'); into explodedDistDir }
     // Set permissions (important for running integration tests against the exploded dist)
     ant.chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
 }
@@ -219,7 +211,7 @@ def removeAnyExistingOldGradleLibs() {
     ant.delete { fileset(dir: explodedDistLibDir, includes: "$archivesBaseName-*.jar") }
 }
 
-task javadoc(overwrite: true, type: Javadoc) {
+task javadoc(type: Javadoc) {
     srcDirs = subprojects.inject([]) {list, project -> list + project.source.main.java.srcDirs + project.source.main.groovy.srcDirs}
     destinationDir = explodedDistJavadocsDir
     configuration = files(subprojects.collect { project-> [project.source.main.compileClasspath, project.source.main.classes] })
@@ -238,7 +230,7 @@ task docs(dependsOn: [javadoc, groovydoc, 'userguide', 'distDocs'])
 
 task explodedDist(dependsOn: [explodedDistBase, docs, 'samples'], description: 'Builds a complete distribution image') << {
     logger.info('Copy binary sources.')
-    File explodedDistSrcDir = mkdir(explodedDistDir, 'src')
+    File explodedDistSrcDir = new File(explodedDistDir, 'src')
     copy {
         into explodedDistSrcDir
         subprojects {
@@ -365,14 +357,19 @@ jdk14AllZip.doFirst {Task task ->
     }
 }
 
+tasks.withType(Zip).each {
+    it.destinationDir = file("$buildDir/distributions")
+    it.baseName = archivesBaseName
+    it.conventionMapping.version = { version.toString() }
+}
+
 artifacts {
-    tasks.findAll {task -> task.name.matches('.*Zip') }.each {
+    tasks.withType(Zip).each {
         dists it
     }
 }
 
 srcDocsDir = file('src/docs')
-userguideDir = new File(buildDir, "$docsDir.name/userguide")
 userguideSrcDir = new File(srcDocsDir, 'userguide')
 userguideHtmlDir = new File(explodedDistDocsDir, 'userguide')
 userguidePdfFile = new File(userguideHtmlDir, 'userguide.pdf')
@@ -621,11 +618,16 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, userguideSrc]) {
 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
 
-    testClassesDir = project('gradle-core').source.test.classesDir
-    configuration = project('gradle-core').source.test.runtimeClasspath
+    testClassesDir = project(':core').source.test.classesDir
+    configuration = project(':core').source.test.runtimeClasspath
+    testResultsDir = file('build/test-results')
+    testReportDir = file('build/reports/test')
+    testSrcDirs = []
 }
 
-task testedDists(dependsOn: [dists, check, test, integTest, ':gradle-ui:integTest'])
+task dists(dependsOn: tasks.withType(Zip).all)
+
+task testedDists(dependsOn: [dists, check, test, integTest, ':ui:integTest'])
 
 task nightlyBuild(dependsOn: [clean, testedDists, uploadDocs])
 
