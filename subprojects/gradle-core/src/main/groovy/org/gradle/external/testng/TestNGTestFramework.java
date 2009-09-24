@@ -54,6 +54,9 @@ public class TestNGTestFramework extends AbstractTestFramework {
     public void execute(Project project, Test testTask, Collection<String> includes, Collection<String> excludes) {
         options.setTestResources(testTask.getTestSrcDirs());
 
+        if ( !testTask.isTestReport() )
+            options.setUseDefaultListeners(false);
+
         antTestNGExecute.execute(
                 testTask.getTestClassesDir(),
                 testTask.getClasspath(),
@@ -62,8 +65,7 @@ public class TestNGTestFramework extends AbstractTestFramework {
                 includes,
                 excludes,
                 options,
-                project.getAnt(),
-                testTask.isTestReport());
+                project.getAnt());
     }
 
     public void report(Project project, Test testTask) {
