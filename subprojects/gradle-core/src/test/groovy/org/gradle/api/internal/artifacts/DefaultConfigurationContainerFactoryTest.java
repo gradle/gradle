@@ -19,13 +19,12 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
-import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingIvyService;
-import org.gradle.api.internal.artifacts.ivyservice.ShortcircuitEmptyConfigsIvyService;
-import static org.hamcrest.Matchers.*;
+import org.gradle.api.internal.artifacts.ivyservice.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -44,8 +43,15 @@ public class DefaultConfigurationContainerFactoryTest {
         final DependencyMetaDataProvider dependencyMetaDataProviderStub = context.mock(DependencyMetaDataProvider.class);
 
         HashMap clientModuleRegistry = new HashMap();
+        SettingsConverter settingsConverter = context.mock(SettingsConverter.class);
+        ModuleDescriptorConverter moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
+        IvyFactory ivyFactory = context.mock(IvyFactory.class);
+        IvyDependencyResolver ivyDependencyResolver = context.mock(IvyDependencyResolver.class);
+        IvyDependencyPublisher ivyDependencyPublisher = context.mock(IvyDependencyPublisher.class);
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
-                new DefaultConfigurationContainerFactory(clientModuleRegistry).createConfigurationContainer(resolverProviderDummy,
+                new DefaultConfigurationContainerFactory(clientModuleRegistry, settingsConverter,
+                        moduleDescriptorConverter, ivyFactory,
+                        ivyDependencyResolver, ivyDependencyPublisher).createConfigurationContainer(resolverProviderDummy,
                         dependencyMetaDataProviderStub);
 
         assertThat(configurationContainer.getIvyService(), instanceOf(ErrorHandlingIvyService.class));
@@ -55,7 +61,14 @@ public class DefaultConfigurationContainerFactoryTest {
         ShortcircuitEmptyConfigsIvyService service = (ShortcircuitEmptyConfigsIvyService) errorHandlingService.getIvyService();
 
         assertThat(service.getIvyService(), instanceOf(DefaultIvyService.class));
-        assertThat(((DefaultIvyService) service.getIvyService()).getMetaDataProvider(), sameInstance(dependencyMetaDataProviderStub));
-        assertThat(((DefaultIvyService) service.getIvyService()).getResolverProvider(), sameInstance(resolverProviderDummy));
+        DefaultIvyService defaultIvyService = (DefaultIvyService) service.getIvyService();
+        assertThat(defaultIvyService.getMetaDataProvider(), sameInstance(dependencyMetaDataProviderStub));
+        assertThat(defaultIvyService.getResolverProvider(), sameInstance(resolverProviderDummy));
+        assertThat((HashMap) defaultIvyService.getClientModuleRegistry(), sameInstance(clientModuleRegistry));
+        assertThat(defaultIvyService.getSettingsConverter(), sameInstance(settingsConverter));
+        assertThat(defaultIvyService.getModuleDescriptorConverter(), sameInstance(moduleDescriptorConverter));
+        assertThat(defaultIvyService.getIvyFactory(), sameInstance(ivyFactory));
+        assertThat(defaultIvyService.getDependencyResolver(), sameInstance(ivyDependencyResolver));
+        assertThat(defaultIvyService.getDependencyPublisher(), sameInstance(ivyDependencyPublisher));
     }
 }

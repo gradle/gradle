@@ -58,6 +58,23 @@ import org.gradle.invocation.DefaultGradle
 import org.gradle.api.internal.project.*
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.integtests.TestFile
+import org.gradle.api.internal.artifacts.ivyservice.DefaultSettingsConverter
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorFactory
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultConfigurationsToModuleDescriptorConverter
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultArtifactsToModuleDescriptorConverter
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyFactory
+import org.gradle.api.internal.artifacts.ivyservice.SelfResolvingDependencyResolver
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyResolver
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyReportConverter
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher
+import org.gradle.api.internal.artifacts.ivyservice.DefaultModuleDescriptorForUploadConverter
+import org.gradle.api.internal.artifacts.ivyservice.DefaultPublishOptionsFactory
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter
 
 /**
  * @author Hans Dockter
@@ -90,9 +107,25 @@ class HelperUtil {
                 [new SelfResolvingDependencyFactory()] as Set,
                 new DefaultClientModuleFactory(),
                 new DefaultProjectDependencyFactory(startParameter.projectDependenciesBuildInstruction))
+        Map clientModuleRegistry = new HashMap();
+        ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
         DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
                 repositoryHandlerFactory,
-                new DefaultConfigurationContainerFactory(),
+                new DefaultConfigurationContainerFactory(clientModuleRegistry,
+                new DefaultSettingsConverter(),
+                new DefaultModuleDescriptorConverter(
+                        new DefaultModuleDescriptorFactory(),
+                        new DefaultConfigurationsToModuleDescriptorConverter(),
+                        new DefaultDependenciesToModuleDescriptorConverter(
+                                new DefaultDependencyDescriptorFactory(excludeRuleConverter,
+                                        new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
+                                excludeRuleConverter),
+                        new DefaultArtifactsToModuleDescriptorConverter()),
+                new DefaultIvyFactory(),
+                new SelfResolvingDependencyResolver(
+                        new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
+                new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
+                        new DefaultPublishOptionsFactory())),
                 new DefaultPublishArtifactFactory(),
                 dependencyFactory,
                 new DefaultProjectEvaluator(),

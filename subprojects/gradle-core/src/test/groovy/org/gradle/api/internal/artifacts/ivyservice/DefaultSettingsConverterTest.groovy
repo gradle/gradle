@@ -27,6 +27,7 @@ import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
+import static org.junit.Assert.assertSame
 
 /**
  * @author Hans Dockter
@@ -112,6 +113,19 @@ class DefaultSettingsConverterTest {
         assertEquals(new File(testGradleUserHome, ResolverContainer.DEFAULT_CACHE_DIR_NAME),
                 settings.defaultCache)
         assertEquals(settings.defaultCacheArtifactPattern, ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN)
+    }
+
+    @Test
+    public void repositoryCacheManagerShouldBeSharedBetweenSettings() {
+        IvySettings settings1 = converter.convertForPublish([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
+                TEST_BUILD_RESOLVER)
+        IvySettings settings2 = converter.convertForPublish([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
+                TEST_BUILD_RESOLVER)
+        IvySettings settings3 = converter.convertForResolve([TEST_RESOLVER, TEST_RESOLVER_2], testGradleUserHome,
+                TEST_BUILD_RESOLVER, clientModuleRegistry)
+        assertSame(settings1.getDefaultRepositoryCacheManager(), settings2.getDefaultRepositoryCacheManager())
+        assertSame(settings1.getDefaultRepositoryCacheManager(), settings3.getDefaultRepositoryCacheManager())
+
     }
 
     @Test public void testWithGivenSettings() {

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.repository.Repository;
@@ -28,8 +29,8 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.Clock;
+import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.*;
@@ -39,6 +40,8 @@ import java.util.*;
  */
 public class DefaultSettingsConverter implements SettingsConverter {
     private static Logger logger = Logging.getLogger(DefaultSettingsConverter.class);
+
+    private RepositoryCacheManager repositoryCacheManager;
 
     private static final TransferListener TRANSFER_LISTENER = new TransferListener() {
         public void transferProgress(TransferEvent evt) {
@@ -149,7 +152,16 @@ public class DefaultSettingsConverter implements SettingsConverter {
         ivySettings.setDefaultCacheIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
         ivySettings.setDefaultCacheArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         ivySettings.setVariable("ivy.log.modules.in.use", "false");
+        setRepositoryCacheManager(ivySettings);
         return ivySettings;
+    }
+
+    private void setRepositoryCacheManager(IvySettings ivySettings) {
+        if (repositoryCacheManager == null) {
+            repositoryCacheManager = ivySettings.getDefaultRepositoryCacheManager();
+        } else {
+            ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
+        }
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {

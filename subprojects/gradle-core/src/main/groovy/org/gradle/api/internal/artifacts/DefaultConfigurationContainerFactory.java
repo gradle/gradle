@@ -21,10 +21,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultConfigurationHandler;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
 
 import java.util.Map;
 
@@ -33,32 +29,35 @@ import java.util.Map;
  */
 public class DefaultConfigurationContainerFactory implements ConfigurationContainerFactory {
     private Map clientModuleRegistry;
+    private SettingsConverter settingsConverter;
+    private ModuleDescriptorConverter moduleDescriptorConverter;
+    private IvyFactory ivyFactory;
+    private IvyDependencyResolver dependencyResolver;
+    private IvyDependencyPublisher dependencyPublisher;
 
-    public DefaultConfigurationContainerFactory(Map clientModuleRegistry) {
+    public DefaultConfigurationContainerFactory(Map clientModuleRegistry, SettingsConverter settingsConverter,
+                                                ModuleDescriptorConverter moduleDescriptorConverter, IvyFactory ivyFactory,
+                                                IvyDependencyResolver dependencyResolver, IvyDependencyPublisher dependencyPublisher) {
         this.clientModuleRegistry = clientModuleRegistry;
+        this.settingsConverter = settingsConverter;
+        this.dependencyPublisher = dependencyPublisher;
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
+        this.ivyFactory = ivyFactory;
+        this.dependencyResolver = dependencyResolver;
     }
 
     public ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider,
                                                              DependencyMetaDataProvider dependencyMetaDataProvider) {
-        DefaultExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
         IvyService ivyService = new ErrorHandlingIvyService(
                 new ShortcircuitEmptyConfigsIvyService(
                         new DefaultIvyService(
                                 dependencyMetaDataProvider,
                                 resolverProvider,
-                                new DefaultSettingsConverter(),
-                                new DefaultModuleDescriptorConverter(
-                                        new DefaultModuleDescriptorFactory(),
-                                        new DefaultConfigurationsToModuleDescriptorConverter(),
-                                        new DefaultDependenciesToModuleDescriptorConverter(
-                                                new DefaultDependencyDescriptorFactory(excludeRuleConverter,
-                                                        new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
-                                                excludeRuleConverter),
-                                        new DefaultArtifactsToModuleDescriptorConverter()),
-                                new DefaultIvyFactory(),
-                                new SelfResolvingDependencyResolver(
-                                        new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
-                                new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(), new DefaultPublishOptionsFactory()),
+                                settingsConverter,
+                                moduleDescriptorConverter,
+                                ivyFactory,
+                                dependencyResolver,
+                                dependencyPublisher,
                                 clientModuleRegistry)));
         return new DefaultConfigurationHandler(ivyService);
     }
