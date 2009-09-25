@@ -13,8 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                version="1.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
     <xsl:import href="xhtml/docbook.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
 
@@ -53,6 +52,9 @@
         <h1>
             <xsl:apply-templates select=".." mode="title.markup"/>
         </h1>
+    </xsl:template>
+
+    <xsl:template match="para|table|example|imageobject|programlisting|screen">
     </xsl:template>
 
 </xsl:stylesheet>
