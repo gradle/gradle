@@ -35,20 +35,29 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultIvyService implements IvyService {
-    private SettingsConverter settingsConverter = new DefaultSettingsConverter();
+    private SettingsConverter settingsConverter;
     private ModuleDescriptorConverter moduleDescriptorConverter;
-    private IvyFactory ivyFactory = new DefaultIvyFactory();
-    private IvyDependencyResolver dependencyResolver = new SelfResolvingDependencyResolver(
-            new DefaultIvyDependencyResolver(new DefaultIvyReportConverter()));
-    private IvyDependencyPublisher dependencyPublisher = new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory());
+    private IvyFactory ivyFactory;
+    private IvyDependencyResolver dependencyResolver;
+    private IvyDependencyPublisher dependencyPublisher;
     private final DependencyMetaDataProvider metaDataProvider;
     private final ResolverProvider resolverProvider;
     private Map clientModuleRegistry;
 
-    public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider, ModuleDescriptorConverter moduleDescriptorConverter, Map clientModuleRegistry) {
+    public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider,
+                             SettingsConverter settingsConverter,
+                             ModuleDescriptorConverter moduleDescriptorConverter,
+                             IvyFactory ivyFactory,
+                             IvyDependencyResolver dependencyResolver,
+                             IvyDependencyPublisher dependencyPublisher,
+                             Map clientModuleRegistry) {
         this.metaDataProvider = metaDataProvider;
         this.resolverProvider = resolverProvider;
+        this.settingsConverter = settingsConverter;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
+        this.ivyFactory = ivyFactory;
+        this.dependencyResolver = dependencyResolver;
+        this.dependencyPublisher = dependencyPublisher;
         this.clientModuleRegistry = clientModuleRegistry;
     }
 
@@ -142,5 +151,13 @@ public class DefaultIvyService implements IvyService {
 
     public void setDependencyPublisher(IvyDependencyPublisher dependencyPublisher) {
         this.dependencyPublisher = dependencyPublisher;
+    }
+
+    public Map getClientModuleRegistry() {
+        return clientModuleRegistry;
+    }
+
+    public void setClientModuleRegistry(Map clientModuleRegistry) {
+        this.clientModuleRegistry = clientModuleRegistry;
     }
 }

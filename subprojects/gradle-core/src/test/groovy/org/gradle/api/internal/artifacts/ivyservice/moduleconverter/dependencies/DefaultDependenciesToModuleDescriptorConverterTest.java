@@ -39,7 +39,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
-import java.util.HashMap;
 
 /**
  * @author Hans Dockter
@@ -65,9 +64,8 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
 
     @Test
     public void testAddDependencyDescriptors() {
-        DefaultDependenciesToModuleDescriptorConverter converter = new DefaultDependenciesToModuleDescriptorConverter(new DefaultDependencyDescriptorFactory(new HashMap()));
-        converter.setDependencyDescriptorFactory(dependencyDescriptorFactoryStub);
-        converter.setExcludeRuleConverter(excludeRuleConverterStub);
+        DefaultDependenciesToModuleDescriptorConverter converter = new DefaultDependenciesToModuleDescriptorConverter(
+                dependencyDescriptorFactoryStub, excludeRuleConverterStub);
         Configuration configurationStub1 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf1", GRADLE_EXCLUDE_RULE_DUMMY_1, dependencyDummy1, similarDependency1);
         Configuration configurationStub2 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf2", GRADLE_EXCLUDE_RULE_DUMMY_2, dependencyDummy2, similarDependency2);
         Configuration configurationStub3 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf3", null, similarDependency3);

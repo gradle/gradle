@@ -42,14 +42,20 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
     private ChainingTransformer<DefaultModuleDescriptor> transformer
             = new ChainingTransformer<DefaultModuleDescriptor>(DefaultModuleDescriptor.class);
 
-    private ModuleDescriptorFactory moduleDescriptorFactory = new DefaultModuleDescriptorFactory();
+    private ModuleDescriptorFactory moduleDescriptorFactory;
 
-    private ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter = new DefaultConfigurationsToModuleDescriptorConverter();
+    private ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
     private DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
-    private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter = new DefaultArtifactsToModuleDescriptorConverter();
+    private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter;
 
-    public DefaultModuleDescriptorConverter(DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter) {
+    public DefaultModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
+                                            ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+                                            DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
+                                            ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter) {
+        this.moduleDescriptorFactory = moduleDescriptorFactory;
+        this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
+        this.artifactsToModuleDescriptorConverter = artifactsToModuleDescriptorConverter;
     }
 
     public ModuleDescriptor convertForResolve(Configuration configuration, Module module, IvySettings settings) {

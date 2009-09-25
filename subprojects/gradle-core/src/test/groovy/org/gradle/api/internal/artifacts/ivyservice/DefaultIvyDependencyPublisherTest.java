@@ -60,7 +60,8 @@ public class DefaultIvyDependencyPublisherTest {
         publishOptionsFactoryMock = context.mock(PublishOptionsFactory.class);
         expectedPublishOptions = new PublishOptions();
         publishEngineMock = context.mock(PublishEngine.class);
-        ivyDependencyPublisher = new DefaultIvyDependencyPublisher(publishOptionsFactoryMock);
+        ivyDependencyPublisher = new DefaultIvyDependencyPublisher(context.mock(ModuleDescriptorForUploadConverter.class, "dummy"),
+                publishOptionsFactoryMock);
         expectedConf = "conf1";
         moduleDescriptorMock = context.mock(ModuleDescriptor.class);
         expectedIvyFile = new File(HelperUtil.makeNewTestDir(), "ivy.xml");

@@ -41,9 +41,10 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
 
     private PublishOptionsFactory publishOptionsFactory;
 
-    private ModuleDescriptorForUploadConverter moduleDescriptorForUploadConverter = new DefaultModuleDescriptorForUploadConverter();
+    private ModuleDescriptorForUploadConverter moduleDescriptorForUploadConverter;
 
-    public DefaultIvyDependencyPublisher(PublishOptionsFactory publishOptionsFactory) {
+    public DefaultIvyDependencyPublisher(ModuleDescriptorForUploadConverter moduleDescriptorForUploadConverter, PublishOptionsFactory publishOptionsFactory) {
+        this.moduleDescriptorForUploadConverter = moduleDescriptorForUploadConverter;
         this.publishOptionsFactory = publishOptionsFactory;
     }
 

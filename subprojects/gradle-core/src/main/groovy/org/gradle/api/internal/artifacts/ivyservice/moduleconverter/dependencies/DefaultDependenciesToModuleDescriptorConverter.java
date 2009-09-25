@@ -24,7 +24,6 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 
 import java.util.Set;
@@ -34,10 +33,12 @@ import java.util.Set;
  */
 public class DefaultDependenciesToModuleDescriptorConverter implements DependenciesToModuleDescriptorConverter {
     private DependencyDescriptorFactory dependencyDescriptorFactory;
-    private ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
+    private ExcludeRuleConverter excludeRuleConverter;
 
-    public DefaultDependenciesToModuleDescriptorConverter(DependencyDescriptorFactory dependencyDescriptorFactory) {
+    public DefaultDependenciesToModuleDescriptorConverter(DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                          ExcludeRuleConverter excludeRuleConverter) {
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+        this.excludeRuleConverter = excludeRuleConverter;
     }
 
     public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations,

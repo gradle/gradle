@@ -17,16 +17,16 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
-import org.junit.Before;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -37,27 +37,26 @@ public class DefaultIvyServiceTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
 
-    // SUT
-    private DefaultIvyService ivyService;
-    private DependencyMetaDataProvider dependencyMetaDataProvider;
-    private ModuleDescriptorConverter moduleDescriptorConverter;
-
-    @Before
-    public void setUp() {
-        dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider.class);
-        moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
-        ivyService = new DefaultIvyService(dependencyMetaDataProvider, context.mock(ResolverProvider.class), moduleDescriptorConverter, new HashMap());
-    }
-
     @Test
     public void init() {
+        DependencyMetaDataProvider dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider.class);
+        ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
+        SettingsConverter settingsConverter = context.mock(SettingsConverter.class);
+        ModuleDescriptorConverter moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
+        IvyFactory ivyFactory = context.mock(IvyFactory.class);
+        IvyDependencyResolver dependencyResolver = context.mock(IvyDependencyResolver.class);
+        IvyDependencyPublisher dependencyPublisher = context.mock(IvyDependencyPublisher.class);
+        Map clientModuleRegistry = new HashMap();
+
+        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProvider, resolverProvider,
+                settingsConverter, moduleDescriptorConverter, ivyFactory, dependencyResolver, dependencyPublisher, clientModuleRegistry);
+        
         assertThat(ivyService.getMetaDataProvider(), sameInstance(dependencyMetaDataProvider));
-        assertThat(ivyService.getSettingsConverter(), instanceOf(DefaultSettingsConverter.class));
+        assertThat(ivyService.getSettingsConverter(), sameInstance(settingsConverter));
         assertThat(ivyService.getModuleDescriptorConverter(), sameInstance(moduleDescriptorConverter));
-        assertThat(ivyService.getIvyFactory(), instanceOf(DefaultIvyFactory.class));
-        assertThat(ivyService.getDependencyResolver(), instanceOf(SelfResolvingDependencyResolver.class));
-        SelfResolvingDependencyResolver resolver = (SelfResolvingDependencyResolver) ivyService.getDependencyResolver();
-        assertThat(resolver.getResolver(), instanceOf(DefaultIvyDependencyResolver.class));
-        assertThat(ivyService.getDependencyPublisher(), instanceOf(DefaultIvyDependencyPublisher.class));
+        assertThat(ivyService.getIvyFactory(), sameInstance(ivyFactory));
+        assertThat(ivyService.getDependencyResolver(), sameInstance(dependencyResolver));
+        assertThat(ivyService.getDependencyPublisher(), sameInstance(dependencyPublisher));
+        assertThat(ivyService.getClientModuleRegistry(), sameInstance(clientModuleRegistry));
     }
 }

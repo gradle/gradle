@@ -84,9 +84,9 @@ public class DefaultIvyService_ResolveFromRepoTest {
             will(returnValue(dependencyResolversDummy));
         }});
 
-        ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider, moduleDescriptorConverterMock, clientModuleRegistryDummy);
-        ivyService.setSettingsConverter(settingsConverterMock);
-        ivyService.setDependencyResolver(ivyDependencyResolverMock);
+        ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
+                settingsConverterMock, moduleDescriptorConverterMock, new DefaultIvyFactory(), ivyDependencyResolverMock, 
+                context.mock(IvyDependencyPublisher.class), clientModuleRegistryDummy);
     }
 
     @Test

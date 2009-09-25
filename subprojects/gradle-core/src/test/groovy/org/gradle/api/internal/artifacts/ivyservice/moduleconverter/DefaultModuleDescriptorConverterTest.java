@@ -62,9 +62,8 @@ public class DefaultModuleDescriptorConverterTest {
         ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverterMock = context.mock(ConfigurationsToModuleDescriptorConverter.class);
         DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverterMock = context.mock(DependenciesToModuleDescriptorConverter.class);
 
-        moduleDescriptorConverter = new DefaultModuleDescriptorConverter(dependenciesToModuleDescriptorConverterMock);
-        moduleDescriptorConverter.setConfigurationsToModuleDescriptorConverter(configurationsToModuleDescriptorConverterMock);
-        moduleDescriptorConverter.setModuleDescriptorFactory(moduleDescriptorFactoryStub);
+        moduleDescriptorConverter = new DefaultModuleDescriptorConverter(moduleDescriptorFactoryStub, configurationsToModuleDescriptorConverterMock,
+                dependenciesToModuleDescriptorConverterMock, context.mock(ArtifactsToModuleDescriptorConverter.class, "dummy"));
     }
 
     @Test

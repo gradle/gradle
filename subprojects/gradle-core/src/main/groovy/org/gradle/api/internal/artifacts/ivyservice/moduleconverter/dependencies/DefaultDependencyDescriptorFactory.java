@@ -22,7 +22,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -36,11 +35,15 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultDependencyDescriptorFactory implements DependencyDescriptorFactory {
-    private ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
-    private ClientModuleDescriptorFactory clientModuleDescriptorFactory = new DefaultClientModuleDescriptorFactory();
+    private ExcludeRuleConverter excludeRuleConverter;
+    private ClientModuleDescriptorFactory clientModuleDescriptorFactory;
     Map<String, ModuleDescriptor> clientModuleRegistry;
 
-    public DefaultDependencyDescriptorFactory(Map<String, ModuleDescriptor> clientModuleRegistry) {
+    public DefaultDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter,
+                                              ClientModuleDescriptorFactory clientModuleDescriptorFactory,
+                                              Map<String, ModuleDescriptor> clientModuleRegistry) {
+        this.excludeRuleConverter = excludeRuleConverter;
+        this.clientModuleDescriptorFactory = clientModuleDescriptorFactory;
         this.clientModuleRegistry = clientModuleRegistry;
     }
 

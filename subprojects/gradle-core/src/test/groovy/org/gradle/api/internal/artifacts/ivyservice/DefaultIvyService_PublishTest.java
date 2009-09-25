@@ -82,9 +82,9 @@ public class DefaultIvyService_PublishTest {
         IvyDependencyPublisher ivyDependencyPublisherMock = context.mock(IvyDependencyPublisher.class);
         ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
 
-        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider, moduleDescriptorConverterStub, new HashMap());
-        ivyService.setSettingsConverter(settingsConverterStub);
-        ivyService.setDependencyPublisher(ivyDependencyPublisherMock);
+        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
+                settingsConverterStub, moduleDescriptorConverterStub, new DefaultIvyFactory(), context.mock(IvyDependencyResolver.class),
+                ivyDependencyPublisherMock, new HashMap());
 
         return ivyService;
     }

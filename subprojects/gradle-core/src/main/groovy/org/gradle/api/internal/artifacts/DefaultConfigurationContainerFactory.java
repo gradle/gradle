@@ -20,12 +20,11 @@ import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultConfigurationHandler;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
-import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingIvyService;
-import org.gradle.api.internal.artifacts.ivyservice.ShortcircuitEmptyConfigsIvyService;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
 
 import java.util.Map;
 
@@ -41,15 +40,25 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
 
     public ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider,
                                                              DependencyMetaDataProvider dependencyMetaDataProvider) {
+        DefaultExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
         IvyService ivyService = new ErrorHandlingIvyService(
                 new ShortcircuitEmptyConfigsIvyService(
                         new DefaultIvyService(
                                 dependencyMetaDataProvider,
                                 resolverProvider,
+                                new DefaultSettingsConverter(),
                                 new DefaultModuleDescriptorConverter(
+                                        new DefaultModuleDescriptorFactory(),
+                                        new DefaultConfigurationsToModuleDescriptorConverter(),
                                         new DefaultDependenciesToModuleDescriptorConverter(
-                                                new DefaultDependencyDescriptorFactory(clientModuleRegistry)
-                                        )),
+                                                new DefaultDependencyDescriptorFactory(excludeRuleConverter,
+                                                        new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
+                                                excludeRuleConverter),
+                                        new DefaultArtifactsToModuleDescriptorConverter()),
+                                new DefaultIvyFactory(),
+                                new SelfResolvingDependencyResolver(
+                                        new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
+                                new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(), new DefaultPublishOptionsFactory()),
                                 clientModuleRegistry)));
         return new DefaultConfigurationHandler(ivyService);
     }

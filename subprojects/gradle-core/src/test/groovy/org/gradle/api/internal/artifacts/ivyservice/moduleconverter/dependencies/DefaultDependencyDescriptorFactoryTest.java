@@ -70,8 +70,9 @@ public class DefaultDependencyDescriptorFactoryTest {
 
     @Before
     public void setUp() {
-        dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(clientModuleRegistry);
-        dependencyDescriptorFactory.setExcludeRuleConverter(excludeRuleConverterStub);
+        dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(excludeRuleConverterStub,
+                context.mock(ClientModuleDescriptorFactory.class, "dummy"),
+                clientModuleRegistry);
         context.checking(new Expectations() {{
             allowing(excludeRuleConverterStub).createExcludeRule(TEST_CONF, TEST_EXCLUDE_RULE);
             will(returnValue(TEST_IVY_EXCLUDE_RULE));
