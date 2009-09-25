@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.IvyObjectBuilder;
 import org.gradle.api.artifacts.Module;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,5 +33,5 @@ public interface ModuleDescriptorConverter extends IvyObjectBuilder<DefaultModul
 
     ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module, IvySettings settings);
 
-    ModuleDescriptor convertForResolve(Configuration configuration, Module module, Map clientModuleRegistry, IvySettings settings);
+    ModuleDescriptor convertForResolve(Configuration configuration, Module module, IvySettings settings);
 }

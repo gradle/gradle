@@ -17,17 +17,13 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public interface DependencyMetaDataProvider {
-    Map<String, ModuleDescriptor> getClientModuleRegistry();
-
     File getGradleUserHomeDir();
 
     InternalRepository getInternalRepository();

@@ -38,10 +38,14 @@ import java.util.Set;
 public class DefaultDependencyDescriptorFactory implements DependencyDescriptorFactory {
     private ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
     private ClientModuleDescriptorFactory clientModuleDescriptorFactory = new DefaultClientModuleDescriptorFactory();
+    Map<String, ModuleDescriptor> clientModuleRegistry;
+
+    public DefaultDependencyDescriptorFactory(Map<String, ModuleDescriptor> clientModuleRegistry) {
+        this.clientModuleRegistry = clientModuleRegistry;
+    }
 
     public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
-                                        ModuleDependency dependency,
-                                        Map<String, ModuleDescriptor> clientModuleRegistry) {
+                                        ModuleDependency dependency) {
         // todo Make this object oriented and enhancable
         InternalDependencyFactory internalDependencyFactory = null;
         if (dependency instanceof ClientModule) {
@@ -200,8 +204,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
             addExcludesArtifactsAndDependencies(configuration, clientModule, dependencyDescriptor);
 
             ModuleDescriptor moduleDescriptor = clientModuleDescriptorFactory.createModuleDescriptor(
-                    dependencyDescriptor.getDependencyRevisionId(), clientModule.getDependencies(), DefaultDependencyDescriptorFactory.this,
-                    clientModuleRegistry);
+                    dependencyDescriptor.getDependencyRevisionId(), clientModule.getDependencies(), DefaultDependencyDescriptorFactory.this);
             clientModuleRegistry.put(clientModule.getId(), moduleDescriptor);
 
             return dependencyDescriptor;

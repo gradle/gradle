@@ -34,12 +34,12 @@ import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.HashMap;
 
 /**
  * @author Hans Dockter
@@ -50,7 +50,6 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
 
     private static final ExcludeRule GRADLE_EXCLUDE_RULE_DUMMY_1 = new DefaultExcludeRule(toMap("org", "testOrg"));
     private static final ExcludeRule GRADLE_EXCLUDE_RULE_DUMMY_2 = new DefaultExcludeRule(toMap("org2", "testOrg2"));
-    private static final Map CLIENT_MODULE_REGISTRY_DUMMY = Collections.emptyMap();
 
     private ModuleDependency dependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
     private ModuleDependency dependencyDummy2 = context.mock(ModuleDependency.class, "dep2");
@@ -66,7 +65,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
 
     @Test
     public void testAddDependencyDescriptors() {
-        DefaultDependenciesToModuleDescriptorConverter converter = new DefaultDependenciesToModuleDescriptorConverter();
+        DefaultDependenciesToModuleDescriptorConverter converter = new DefaultDependenciesToModuleDescriptorConverter(new DefaultDependencyDescriptorFactory(new HashMap()));
         converter.setDependencyDescriptorFactory(dependencyDescriptorFactoryStub);
         converter.setExcludeRuleConverter(excludeRuleConverterStub);
         Configuration configurationStub1 = createNamedConfigurationStubWithDependenciesAndExcludeRules("conf1", GRADLE_EXCLUDE_RULE_DUMMY_1, dependencyDummy1, similarDependency1);
@@ -83,7 +82,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_2, ivyExcludeRuleStub_2, configurationStub2);
 
         converter.addDependencyDescriptors(moduleDescriptor, toSet(configurationStub1, configurationStub2, configurationStub3),
-                CLIENT_MODULE_REGISTRY_DUMMY, ivySettingsDummy);
+                ivySettingsDummy);
                 
         assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub1.getName())), equalTo(toArray(ivyExcludeRuleStub_1)));
         assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub2.getName())), equalTo(toArray(ivyExcludeRuleStub_2)));
@@ -116,7 +115,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         final String configurationName = configuration.getName();
         context.checking(new Expectations() {{
             allowing(dependencyDescriptorFactoryStub).addDependencyDescriptor(with(equal(configurationName)),
-                    with(equal(parent)), with(sameInstance(dependency)), with(equal(CLIENT_MODULE_REGISTRY_DUMMY)));
+                    with(equal(parent)), with(sameInstance(dependency)));
         }});
     }
     

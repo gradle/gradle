@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -26,6 +25,8 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.HashMap;
 
 /**
  * @author Hans Dockter
@@ -39,18 +40,20 @@ public class DefaultIvyServiceTest {
     // SUT
     private DefaultIvyService ivyService;
     private DependencyMetaDataProvider dependencyMetaDataProvider;
+    private ModuleDescriptorConverter moduleDescriptorConverter;
 
     @Before
     public void setUp() {
         dependencyMetaDataProvider = context.mock(DependencyMetaDataProvider.class);
-        ivyService = new DefaultIvyService(dependencyMetaDataProvider, context.mock(ResolverProvider.class));
+        moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
+        ivyService = new DefaultIvyService(dependencyMetaDataProvider, context.mock(ResolverProvider.class), moduleDescriptorConverter, new HashMap());
     }
 
     @Test
     public void init() {
         assertThat(ivyService.getMetaDataProvider(), sameInstance(dependencyMetaDataProvider));
         assertThat(ivyService.getSettingsConverter(), instanceOf(DefaultSettingsConverter.class));
-        assertThat(ivyService.getModuleDescriptorConverter(), instanceOf(DefaultModuleDescriptorConverter.class));
+        assertThat(ivyService.getModuleDescriptorConverter(), sameInstance(moduleDescriptorConverter));
         assertThat(ivyService.getIvyFactory(), instanceOf(DefaultIvyFactory.class));
         assertThat(ivyService.getDependencyResolver(), instanceOf(SelfResolvingDependencyResolver.class));
         SelfResolvingDependencyResolver resolver = (SelfResolvingDependencyResolver) ivyService.getDependencyResolver();

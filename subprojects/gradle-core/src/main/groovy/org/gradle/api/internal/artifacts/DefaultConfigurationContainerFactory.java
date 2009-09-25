@@ -23,18 +23,34 @@ import org.gradle.api.internal.artifacts.dsl.DefaultConfigurationHandler;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyService;
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingIvyService;
 import org.gradle.api.internal.artifacts.ivyservice.ShortcircuitEmptyConfigsIvyService;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
+
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultConfigurationContainerFactory implements ConfigurationContainerFactory {
+    private Map clientModuleRegistry;
+
+    public DefaultConfigurationContainerFactory(Map clientModuleRegistry) {
+        this.clientModuleRegistry = clientModuleRegistry;
+    }
+
     public ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider,
                                                              DependencyMetaDataProvider dependencyMetaDataProvider) {
         IvyService ivyService = new ErrorHandlingIvyService(
                 new ShortcircuitEmptyConfigsIvyService(
                         new DefaultIvyService(
                                 dependencyMetaDataProvider,
-                                resolverProvider)));
+                                resolverProvider,
+                                new DefaultModuleDescriptorConverter(
+                                        new DefaultDependenciesToModuleDescriptorConverter(
+                                                new DefaultDependencyDescriptorFactory(clientModuleRegistry)
+                                        )),
+                                clientModuleRegistry)));
         return new DefaultConfigurationHandler(ivyService);
     }
 }

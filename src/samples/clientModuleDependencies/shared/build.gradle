@@ -1,0 +1,13 @@
+import org.junit.Assert
+
+version = '1.0'
+dependencies {
+	runtime module("commons-lang:commons-lang:2.4") {
+	   dependency("commons-io:commons-io:1.2")
+	}
+}
+
+task testDeps << {
+	Assert.assertEquals(['commons-lang-2.4.jar', 'commons-io-1.2.jar'] as Set,
+            configurations.runtime.files.collect { it.name } as Set) 
+}

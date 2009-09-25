@@ -34,6 +34,9 @@ import org.gradle.util.WrapUtil;
 import org.gradle.listener.ListenerManager;
 import org.gradle.listener.DefaultListenerManager;
 
+import java.util.Map;
+import java.util.HashMap;
+
 /**
  * @author Hans Dockter
 */
@@ -73,7 +76,8 @@ public class DefaultGradleFactory implements GradleFactory {
                         new MasterDirSettingsFinderStrategy(),
                         new ParentDirSettingsFinderStrategy()))
         );
-        ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory();
+        Map clientModuleRegistry = new HashMap();
+        ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory(clientModuleRegistry);
         DefaultInternalRepository internalRepository = new DefaultInternalRepository(listenerManager);
         DependencyFactory dependencyFactory = new DefaultDependencyFactory(
                 WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),

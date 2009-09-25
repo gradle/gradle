@@ -23,7 +23,6 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -31,23 +30,21 @@ import java.util.Set;
  */
 public class DefaultClientModuleDescriptorFactory implements ClientModuleDescriptorFactory {
     public ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies,
-                                                   DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                   Map<String, ModuleDescriptor> clientModuleRegistry) {
+                                                   DependencyDescriptorFactory dependencyDescriptorFactory) {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId,
                 "release", null);
         moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION));
-        addDependencyDescriptors(moduleDescriptor, dependencies, dependencyDescriptorFactory, clientModuleRegistry);
+        addDependencyDescriptors(moduleDescriptor, dependencies, dependencyDescriptorFactory);
         moduleDescriptor.addArtifact(Dependency.DEFAULT_CONFIGURATION,
                 new DefaultArtifact(moduleRevisionId, null, moduleRevisionId.getName(), "jar", "jar"));
         return moduleDescriptor;
     }
 
     private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<ModuleDependency> dependencies,
-                                          DependencyDescriptorFactory dependencyDescriptorFactory,
-                                          Map<String, ModuleDescriptor> clientModuleRegistry) {
+                                          DependencyDescriptorFactory dependencyDescriptorFactory) {
         for (ModuleDependency dependency : dependencies) {
             dependencyDescriptorFactory.addDependencyDescriptor(Dependency.DEFAULT_CONFIGURATION, moduleDescriptor,
-                    dependency, clientModuleRegistry);
+                    dependency);
         }
     }
 }

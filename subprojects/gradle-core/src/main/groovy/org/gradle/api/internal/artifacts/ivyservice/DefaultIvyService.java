@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter;
 
 import java.io.File;
 import java.util.List;
@@ -37,17 +36,20 @@ import java.util.Set;
  */
 public class DefaultIvyService implements IvyService {
     private SettingsConverter settingsConverter = new DefaultSettingsConverter();
-    private ModuleDescriptorConverter moduleDescriptorConverter = new DefaultModuleDescriptorConverter();
+    private ModuleDescriptorConverter moduleDescriptorConverter;
     private IvyFactory ivyFactory = new DefaultIvyFactory();
     private IvyDependencyResolver dependencyResolver = new SelfResolvingDependencyResolver(
             new DefaultIvyDependencyResolver(new DefaultIvyReportConverter()));
     private IvyDependencyPublisher dependencyPublisher = new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory());
     private final DependencyMetaDataProvider metaDataProvider;
     private final ResolverProvider resolverProvider;
+    private Map clientModuleRegistry;
 
-    public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider) {
+    public DefaultIvyService(DependencyMetaDataProvider metaDataProvider, ResolverProvider resolverProvider, ModuleDescriptorConverter moduleDescriptorConverter, Map clientModuleRegistry) {
         this.metaDataProvider = metaDataProvider;
         this.resolverProvider = resolverProvider;
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
+        this.clientModuleRegistry = clientModuleRegistry;
     }
 
     private Ivy ivyForResolve(List<DependencyResolver> dependencyResolvers, File cacheParentDir,
@@ -101,11 +103,10 @@ public class DefaultIvyService implements IvyService {
     }
 
     public ResolvedConfiguration resolve(final Configuration configuration) {
-        Map<String, ModuleDescriptor> clientModuleRegistry = metaDataProvider.getClientModuleRegistry();
         Ivy ivy = ivyForResolve(resolverProvider.getResolvers(), metaDataProvider.getGradleUserHomeDir(),
                 clientModuleRegistry);
         ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForResolve(configuration,
-                metaDataProvider.getModule(), clientModuleRegistry, ivy.getSettings());
+                metaDataProvider.getModule(), ivy.getSettings());
         return dependencyResolver.resolve(configuration, ivy, moduleDescriptor);
     }
 

@@ -1,0 +1,14 @@
+subprojects {
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            classpath 'junit:junit:4.7'
+        }
+    }
+    usePlugin('java')
+    repositories {
+        mavenCentral()
+    }
+}

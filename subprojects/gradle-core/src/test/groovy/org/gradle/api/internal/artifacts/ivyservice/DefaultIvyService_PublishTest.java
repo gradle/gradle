@@ -40,6 +40,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.HashMap;
 
 /**
  * @author Hans Dockter
@@ -81,8 +82,7 @@ public class DefaultIvyService_PublishTest {
         IvyDependencyPublisher ivyDependencyPublisherMock = context.mock(IvyDependencyPublisher.class);
         ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
 
-        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider);
-        ivyService.setModuleDescriptorConverter(moduleDescriptorConverterStub);
+        DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider, moduleDescriptorConverterStub, new HashMap());
         ivyService.setSettingsConverter(settingsConverterStub);
         ivyService.setDependencyPublisher(ivyDependencyPublisherMock);
 

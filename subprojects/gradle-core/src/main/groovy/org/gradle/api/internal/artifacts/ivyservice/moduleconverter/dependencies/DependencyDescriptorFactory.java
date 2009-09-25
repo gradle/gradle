@@ -16,15 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleDependency;
-
-import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
 public interface DependencyDescriptorFactory {
     void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
-                                 ModuleDependency dependency, Map<String, ModuleDescriptor> clientModuleRegistry);
+                                 ModuleDependency dependency);
 }

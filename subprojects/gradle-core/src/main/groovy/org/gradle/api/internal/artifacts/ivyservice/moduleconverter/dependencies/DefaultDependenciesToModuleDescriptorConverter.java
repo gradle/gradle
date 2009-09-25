@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.conflict.LatestConflictManager;
@@ -28,30 +27,31 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultDependenciesToModuleDescriptorConverter implements DependenciesToModuleDescriptorConverter {
-    private DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory();
+    private DependencyDescriptorFactory dependencyDescriptorFactory;
     private ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
 
+    public DefaultDependenciesToModuleDescriptorConverter(DependencyDescriptorFactory dependencyDescriptorFactory) {
+        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    }
+
     public void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations,
-                                         Map<String, ModuleDescriptor> clientModuleRegistry, IvySettings ivySettings) {
+                                         IvySettings ivySettings) {
         assert !configurations.isEmpty();
-        addDependencies(moduleDescriptor, configurations, clientModuleRegistry);
+        addDependencies(moduleDescriptor, configurations);
         addExcludeRules(moduleDescriptor, configurations);
         addConflictManager(moduleDescriptor, ivySettings);
     }
 
-    private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations,
-                                 Map<String, ModuleDescriptor> clientModuleRegistry) {
+    private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ModuleDependency dependency : configuration.getDependencies(ModuleDependency.class)) {
-                dependencyDescriptorFactory.addDependencyDescriptor(configuration.getName(), moduleDescriptor,
-                        dependency, clientModuleRegistry);
+                dependencyDescriptorFactory.addDependencyDescriptor(configuration.getName(), moduleDescriptor, dependency);
             }
         }
     }

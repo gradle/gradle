@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
@@ -35,8 +34,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 
@@ -65,9 +62,8 @@ public class DefaultModuleDescriptorConverterTest {
         ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverterMock = context.mock(ConfigurationsToModuleDescriptorConverter.class);
         DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverterMock = context.mock(DependenciesToModuleDescriptorConverter.class);
 
-        moduleDescriptorConverter = new DefaultModuleDescriptorConverter();
+        moduleDescriptorConverter = new DefaultModuleDescriptorConverter(dependenciesToModuleDescriptorConverterMock);
         moduleDescriptorConverter.setConfigurationsToModuleDescriptorConverter(configurationsToModuleDescriptorConverterMock);
-        moduleDescriptorConverter.setDependenciesToModuleDescriptorConverter(dependenciesToModuleDescriptorConverterMock);
         moduleDescriptorConverter.setModuleDescriptorFactory(moduleDescriptorFactoryStub);
     }
 
@@ -95,7 +91,7 @@ public class DefaultModuleDescriptorConverterTest {
         commonSetUp();
         moduleDescriptorConverter.setArtifactsToModuleDescriptorConverter(context.mock(ArtifactsToModuleDescriptorConverter.class));
 
-        defineCommonExpectations(configurations, new HashMap());
+        defineCommonExpectations(configurations);
         context.checking(new Expectations() {{
             one(moduleDescriptorConverter.getArtifactsToModuleDescriptorConverter()).
                     addArtifacts(moduleDescriptorDummy, configurations);
@@ -120,17 +116,16 @@ public class DefaultModuleDescriptorConverterTest {
 
     private void convertForResolveInternal() {
         final Configuration configurationStub = context.mock(Configuration.class, "conf");
-        Map moduleRegistryDummy = WrapUtil.toMap("key", context.mock(ModuleDescriptor.class));
         context.checking(new Expectations() {{
             allowing(configurationStub).getHierarchy();
             will(returnValue(new ArrayList(configurationsDummy)));
         }});
         commonSetUp();
 
-        defineCommonExpectations(configurationsDummy, moduleRegistryDummy);
+        defineCommonExpectations(configurationsDummy);
 
         DefaultModuleDescriptor actualModuleDescriptor = (DefaultModuleDescriptor)
-                moduleDescriptorConverter.convertForResolve(configurationStub, moduleDummy, moduleRegistryDummy, ivySettingsDummy);
+                moduleDescriptorConverter.convertForResolve(configurationStub, moduleDummy, ivySettingsDummy);
 
         assertThat(actualModuleDescriptor, equalTo(moduleDescriptorDummy));
     }
@@ -142,13 +137,13 @@ public class DefaultModuleDescriptorConverterTest {
         }});
     }
 
-    private void defineCommonExpectations(final Set<Configuration> configurationsDummy, final Map clientModuleRegistry) {
+    private void defineCommonExpectations(final Set<Configuration> configurationsDummy) {
         context.checking(new Expectations() {{
             one(moduleDescriptorConverter.getConfigurationsToModuleDescriptorConverter()).
                     addConfigurations(moduleDescriptorDummy, configurationsDummy);
 
             one(moduleDescriptorConverter.getDependenciesToModuleDescriptorConverter()).
-                    addDependencyDescriptors(moduleDescriptorDummy, configurationsDummy, clientModuleRegistry, ivySettingsDummy);
+                    addDependencyDescriptors(moduleDescriptorDummy, configurationsDummy, ivySettingsDummy);
         }});
     }
 

@@ -25,15 +25,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -48,12 +45,16 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
     private ModuleDescriptorFactory moduleDescriptorFactory = new DefaultModuleDescriptorFactory();
 
     private ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter = new DefaultConfigurationsToModuleDescriptorConverter();
-    private DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter = new DefaultDependenciesToModuleDescriptorConverter();
+    private DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
     private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter = new DefaultArtifactsToModuleDescriptorConverter();
 
-    public ModuleDescriptor convertForResolve(Configuration configuration, Module module, Map clientModuleRegistry, IvySettings settings) {
+    public DefaultModuleDescriptorConverter(DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter) {
+        this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
+    }
+
+    public ModuleDescriptor convertForResolve(Configuration configuration, Module module, IvySettings settings) {
         Clock clock = new Clock();
-        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, (Set<Configuration>) new LinkedHashSet(configuration.getHierarchy()), clientModuleRegistry, settings);
+        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, (Set<Configuration>) new LinkedHashSet(configuration.getHierarchy()), settings);
         logger.debug("Timing: Ivy convert for resolve took {}", clock.getTime());
         return transformer.transform(moduleDescriptor);
     }
@@ -73,16 +74,14 @@ public class DefaultModuleDescriptorConverter implements ModuleDescriptorConvert
     }
 
     private ModuleDescriptor createPublishModuleDescriptor(Module module, Set<Configuration> configurations, IvySettings ivySettings) {
-        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, new HashMap(), ivySettings);
+        DefaultModuleDescriptor moduleDescriptor = createCommonModuleDescriptor(module, configurations, ivySettings);
         return transformer.transform(moduleDescriptor);
     }
 
-    private DefaultModuleDescriptor createCommonModuleDescriptor(Module module, Set<Configuration> configurations,
-                                                                 Map clientModuleRegistry, IvySettings ivySettings) {
+    private DefaultModuleDescriptor createCommonModuleDescriptor(Module module, Set<Configuration> configurations, IvySettings ivySettings) {
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations,
-                clientModuleRegistry, ivySettings);
+        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations, ivySettings);
         return moduleDescriptor;
     }
 

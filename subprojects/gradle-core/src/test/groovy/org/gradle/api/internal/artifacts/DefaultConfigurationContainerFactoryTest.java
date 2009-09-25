@@ -29,6 +29,8 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.HashMap;
+
 /**
  * @author Hans Dockter
  */
@@ -41,8 +43,9 @@ public class DefaultConfigurationContainerFactoryTest {
         ResolverProvider resolverProviderDummy = context.mock(ResolverProvider.class);
         final DependencyMetaDataProvider dependencyMetaDataProviderStub = context.mock(DependencyMetaDataProvider.class);
 
+        HashMap clientModuleRegistry = new HashMap();
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
-                new DefaultConfigurationContainerFactory().createConfigurationContainer(resolverProviderDummy,
+                new DefaultConfigurationContainerFactory(clientModuleRegistry).createConfigurationContainer(resolverProviderDummy,
                         dependencyMetaDataProviderStub);
 
         assertThat(configurationContainer.getIvyService(), instanceOf(ErrorHandlingIvyService.class));

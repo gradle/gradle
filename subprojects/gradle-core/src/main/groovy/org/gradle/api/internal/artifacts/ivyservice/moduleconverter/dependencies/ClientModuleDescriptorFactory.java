@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleDependency;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -27,6 +26,5 @@ import java.util.Set;
  */
 public interface ClientModuleDescriptorFactory {
     ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies,
-                                            DependencyDescriptorFactory dependencyDescriptorFactory,
-                                            Map<String, ModuleDescriptor> clientModuleRegistry);
+                                            DependencyDescriptorFactory dependencyDescriptorFactory);
 }

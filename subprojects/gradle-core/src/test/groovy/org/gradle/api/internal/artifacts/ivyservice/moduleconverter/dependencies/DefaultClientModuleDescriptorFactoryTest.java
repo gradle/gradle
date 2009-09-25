@@ -22,12 +22,10 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
-
-import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -43,17 +41,15 @@ public class DefaultClientModuleDescriptorFactoryTest {
         DependencyDescriptor dependencyDescriptorDummy = context.mock(DependencyDescriptor.class);
         final ModuleRevisionId TEST_MODULE_REVISION_ID = ModuleRevisionId.newInstance("org", "name", "version");
         DependencyDescriptorFactorySpy dependencyDescriptorFactorySpy = new DependencyDescriptorFactorySpy(dependencyDescriptorDummy);
-        Map clientModuleRegistryDummy = WrapUtil.toMap("key", "value");
 
         ModuleDescriptor moduleDescriptor = clientModuleDescriptorFactory.createModuleDescriptor(
                 TEST_MODULE_REVISION_ID,
                 WrapUtil.toSet(dependencyMock),
-                dependencyDescriptorFactorySpy,
-                clientModuleRegistryDummy);
+                dependencyDescriptorFactorySpy);
 
         assertThat(moduleDescriptor.getModuleRevisionId(), equalTo(TEST_MODULE_REVISION_ID));
         assertThatDescriptorHasOnlyDefaultConfiguration(moduleDescriptor);
-        assertCorrectCallToDependencyDescriptorFactory(dependencyDescriptorFactorySpy, Dependency.DEFAULT_CONFIGURATION, moduleDescriptor, dependencyMock, clientModuleRegistryDummy);
+        assertCorrectCallToDependencyDescriptorFactory(dependencyDescriptorFactorySpy, Dependency.DEFAULT_CONFIGURATION, moduleDescriptor, dependencyMock);
     }
 
     private void assertThatDescriptorHasOnlyDefaultConfiguration(ModuleDescriptor moduleDescriptor) {
@@ -64,12 +60,10 @@ public class DefaultClientModuleDescriptorFactoryTest {
     private void assertCorrectCallToDependencyDescriptorFactory(DependencyDescriptorFactorySpy dependencyDescriptorFactorySpy,
                                                                 String configuration,
                                                                 ModuleDescriptor parent,
-                                                                Dependency dependency,
-                                                                Map clientModuleRegistry) {
+                                                                Dependency dependency) {
         assertThat(dependencyDescriptorFactorySpy.configuration, equalTo(configuration));
         assertThat(dependencyDescriptorFactorySpy.parent, equalTo(parent));
         assertThat(dependencyDescriptorFactorySpy.dependency, equalTo(dependency));
-        assertThat(dependencyDescriptorFactorySpy.clientModuleRegistry, sameInstance(clientModuleRegistry));
     }
 
     private static class DependencyDescriptorFactorySpy implements DependencyDescriptorFactory {
@@ -78,18 +72,16 @@ public class DefaultClientModuleDescriptorFactoryTest {
         String configuration;
         ModuleDescriptor parent;
         Dependency dependency;
-        Map clientModuleRegistry;
 
         private DependencyDescriptorFactorySpy(DependencyDescriptor dependencyDescriptor) {
             this.dependencyDescriptor = dependencyDescriptor;
         }
 
         public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
-                                            ModuleDependency dependency, Map<String, ModuleDescriptor> clientModuleRegistry) {
+                                            ModuleDependency dependency) {
             this.configuration = configuration;
             this.parent = moduleDescriptor;
             this.dependency = dependency;
-            this.clientModuleRegistry = clientModuleRegistry;
         }
     }
 }

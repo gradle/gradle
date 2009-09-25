@@ -80,16 +80,12 @@ public class DefaultIvyService_ResolveFromRepoTest {
             allowing(dependencyMetaDataProviderMock).getModule();
             will(returnValue(moduleDummy));
 
-            allowing(dependencyMetaDataProviderMock).getClientModuleRegistry();
-            will(returnValue(clientModuleRegistryDummy));
-
             allowing(resolverProvider).getResolvers();
             will(returnValue(dependencyResolversDummy));
         }});
 
-        ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider);
+        ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider, moduleDescriptorConverterMock, clientModuleRegistryDummy);
         ivyService.setSettingsConverter(settingsConverterMock);
-        ivyService.setModuleDescriptorConverter(moduleDescriptorConverterMock);
         ivyService.setDependencyResolver(ivyDependencyResolverMock);
     }
 
@@ -112,7 +108,7 @@ public class DefaultIvyService_ResolveFromRepoTest {
             will(returnValue(resolvedConfiguration));
 
             allowing(ivyService.getModuleDescriptorConverter()).convertForResolve(configurationDummy, moduleDummy,
-                    clientModuleRegistryDummy, ivySettingsDummy);
+                    ivySettingsDummy);
             will(returnValue(moduleDescriptorDummy));
 
             allowing(ivyService.getSettingsConverter()).convertForResolve(dependencyResolversDummy, cacheParentDirDummy,

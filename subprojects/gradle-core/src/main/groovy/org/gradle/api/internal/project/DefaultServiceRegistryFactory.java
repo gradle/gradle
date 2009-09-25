@@ -44,9 +44,7 @@ import org.gradle.configuration.ProjectEvaluator;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 // todo - compose this
 public class DefaultServiceRegistryFactory implements ServiceRegistryFactory
@@ -242,10 +240,6 @@ public class DefaultServiceRegistryFactory implements ServiceRegistryFactory
                 return project.getGradle().getGradleUserHomeDir();
             }
 
-            public Map getClientModuleRegistry() {
-                return new HashMap();
-            }
-
             public Module getModule() {
                 return new Module() {
                     public String getGroup() {
@@ -320,11 +314,7 @@ public class DefaultServiceRegistryFactory implements ServiceRegistryFactory
             public File getGradleUserHomeDir() {
                 return gradle.getGradleUserHomeDir();
             }
-
-            public Map getClientModuleRegistry() {
-                return new HashMap();
-            }
-
+            
             public Module getModule() {
                 return new Module() {
                     public String getGroup() {
