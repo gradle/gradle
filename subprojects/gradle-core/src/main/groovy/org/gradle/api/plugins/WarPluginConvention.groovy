@@ -23,14 +23,10 @@ public class WarPluginConvention {
 
     def WarPluginConvention(Project project) {
         this.project = project
-        webAppDirName = 'main/webapp'
+        webAppDirName = 'src/main/webapp'
     }
 
     File getWebAppDir() {
-        new File(srcRoot, webAppDirName)
-    }
-    
-    private File getSrcRoot() {
-        project.convention.plugins.java.srcRoot
+        project.file(webAppDirName)
     }
 }

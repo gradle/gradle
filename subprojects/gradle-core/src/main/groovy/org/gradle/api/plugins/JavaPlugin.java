@@ -219,7 +219,7 @@ public class JavaPlugin implements Plugin {
                 });
                 javadoc.getConventionMapping().map("destinationDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getJavadocDir();
+                        return new File(convention.getPlugin(JavaPluginConvention.class).getDocsDir(), "javadoc");
                     }
                 });
                 javadoc.getConventionMapping().map("optionsFile", new ConventionValue() {

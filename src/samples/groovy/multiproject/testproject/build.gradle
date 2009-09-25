@@ -19,7 +19,7 @@ compileGroovy {
 }
 
 manifest.mainAttributes(myprop: 'myvalue')
-metaInf << fileTree(dir: new File(srcRoot, 'metaInfFiles'))
+metaInf << fileTree(dir: 'src/metaInfFiles')
 
 test {
 	useJUnit().options.systemProperties['org.gradle.integtest.buildDir'] = buildDir.absolutePath

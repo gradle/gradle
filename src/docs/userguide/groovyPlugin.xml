@@ -166,71 +166,12 @@
 
     <section>
         <title>Convention properties</title>
-        <para>The Groovy plugin adds the convention properties shown in <xref linkend='groovyconvention'/>
-        and <xref linkend='groovyconventionFloatingDir'/>.</para>
+        <para>The Groovy plugin does not add any convention properties.</para>
+    </section>
 
-        <table id='groovyconvention'>
-            <title>Groovy plugin - directory properties</title>
-            <thead>
-                <tr>
-                    <td>Dir Name</td>
-                    <td>Dir File</td>
-                    <td>Default Value Name</td>
-                    <td>Default Value File</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>groovySrcDirNames</td>
-                <td>groovySrcDirs</td>
-                <td>
-                    [<literal>main/groovy</literal>]
-                </td>
-                <td>
-                    [<literal><replaceable>srcRoot</replaceable>/main/groovy</literal>]
-                </td>
-            </tr>
-            <tr>
-                <td>groovyTestSrcDirNames</td>
-                <td>groovyTestSrcDirs</td>
-                <td>
-                    <literal>test/groovy</literal>
-                </td>
-                <td>
-                    [<literal><replaceable>srcRoot</replaceable>/test/groovy</literal>]
-                </td>
-            </tr>
-            <tr>
-                <td>groovydocDirName</td>
-                <td>groovydocDir</td>
-                <td>
-                    <literal>groovydoc</literal>
-                </td>
-                <td>
-                    <literal><replaceable>docsDir</replaceable>/groovydoc</literal>
-                </td>
-            </tr>
-
-        </table>
-        <table id='groovyconventionFloatingDir'>
-            <title>Groovy Plugin - floating directory properties</title>
-            <thead>
-                <tr>
-                    <td>Property</td>
-                    <td>Type</td>
-                    <td>Default Value</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>floatingGroovySrcDirs</td>
-                <td>List</td>
-                <td>empty</td>
-            </tr>
-            <tr>
-                <td>floatingGroovyTestSrcDirs</td>
-                <td>List</td>
-                <td>empty</td>
-            </tr>
-        </table>
+    <section>
+        <title>Source set properties</title>
+        <para>The Groovy plugin adds a <apilink class="org.gradle.api.tasks.GroovySourceSet"/> convention object to each source set.</para>
     </section>
 
     <section id='sec:groovyCompile'>

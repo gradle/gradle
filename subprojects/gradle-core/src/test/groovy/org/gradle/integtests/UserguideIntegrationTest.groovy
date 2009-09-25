@@ -46,7 +46,7 @@ class UserguideIntegrationTest {
             String classname = link.'@className'
             String lang = link.'@lang'
             File classDocFile = new File(gradleHome, "docs/${lang}doc/${classname.replace('.', '/')}.html")
-            Assert.assertTrue("Could not find javadoc for class '$classname' referenced in userguide.", classDocFile.isFile())
+            Assert.assertTrue("Could not find javadoc for class '$classname' referenced in userguide: $classDocFile does not exist.", classDocFile.isFile())
         }
     }
 

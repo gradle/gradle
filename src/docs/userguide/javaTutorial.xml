@@ -16,22 +16,33 @@
 <chapter id='tutorial_java_projects' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Java Quickstart</title>
 
-    <para>To build a Java project, you use the <emphasis>Java Plugin</emphasis>. This plugin adds some tasks to your
-        project which will compile and test your Java source code, and bundle it into a JAR file.  We have in-depth
-        coverage with many examples about the Java plugin, dependency management and multi-project builds in later
-        chapters. In this chapter we want to give you an initial idea of how to build a Java project.
+    <para>As we have seen, Gradle is a general-purpose build tool. It can build pretty much anything you care to
+        implement in your build script. Out-of-the-box, however, it doesn't build anything unless you code it up in the
+        build script. This isn't very useful, particularly if you have a lot of very similar projects you wish to build.
+        Gradle solves this problem through the use <firstterm>plugins</firstterm>. A plugin is an extension to Gradle
+        which configures your project in some way, typically by adding a bunch of pre-configured tasks which do
+        something useful. Gradle includes a number of plugins, and you can easily write your own and share them with others.
     </para>
 
-    <para>The Java plugin is heavily convention based. This means that the plugin defines defaults for many aspects of
-        the project, such as where the source files are located. If you follow the convention in your project,
+    <para>One such plugin is the <firstterm>Java Plugin</firstterm>. This plugin adds some tasks to your
+        project which will compile and test your Java source code, and bundle it into a JAR file.  The Java plugin is
+        convention based. This means that the plugin defines default values for many aspects of the project, such as
+        where the Java source files are located. If you follow the convention in your project,
         you generally don't need to do much in your build script to get a useful build. Gradle allows you to customize
-        your project if you don't want to or cannot follow the convention in some way.
+        your project if you don't want to or cannot follow the convention in some way. In fact, because support for
+        Java projects is implemented as a plugin, you don't even have to use the plugin at all to build a Java
+        project, if you don't want to.
+    </para>
+
+    <para>We have in-depth coverage with many examples about the Java plugin, dependency management and multi-project
+        builds in later chapters. In this chapter we want to give you an initial idea of how to use the Java plugin to
+        build a Java project.
     </para>
 
     <section>
         <title>A basic Java project</title>
         <para>Let's look at a simple example. To use the Java plugin, add the following to your build file:</para>
-        <sample id="javaQuickstart" dir="java/quickstart" includeLocation="true" title="Java plugin">
+        <sample id="javaQuickstart" dir="java/quickstart" includeLocation="true" title="Using the Java plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
         <para>This is all you need to define a Java project. This will apply the Java plugin to your project, which adds
@@ -53,8 +64,10 @@
         <section>
             <title>Building the project</title>
             <para>The Java plugin adds quite a few tasks to your project. However, there are only a handful of tasks
-                that you need to know about to build the project. The <literal>build</literal> task does a full
-                build of the project. Running <userinput>gradle build</userinput> will compile, test and jar your code.</para>
+                that you will need to use to build the project. The most commonly used task is the <literal>build</literal> task,
+                which does a full build of the project. When you run <userinput>gradle build</userinput>, Gradle will
+                compile and test your code, and create a JAR file containing your main classes and resources:</para>
+
             <sample id="javaQuickstart" dir="java/quickstart" title="Building a Java project">
                 <output args="build"/>
             </sample>
@@ -138,7 +151,7 @@
             <para>Usually the JAR file needs to be published somewhere. To do this, you need to tell Gradle where to
                 publish the JAR file. In Gradle, artifacts such as JAR files are published to repositories. In our
                 sample, we will publish to a local directory. You can also publish to a remote location, or multiple
-                location.
+                locations.
             </para>
             <sample id="javaQuickstart" dir="java/quickstart" title="Publishing the JAR file">
                 <sourcefile file="build.gradle" snippet="upload"/>

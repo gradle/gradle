@@ -16,10 +16,6 @@
 <chapter id="code_quality_plugin">
     <title>The Code Quality Plugin</title>
 
-    <note>
-        <para>This chapter is a work in progress</para>
-    </note>
-
     <para>The code quality plugin extends the Java and Groovy plugins to add code quality checking tasks and reports.
         The following tools are supported:
         <itemizedlist>
@@ -99,17 +95,163 @@
 
     <section>
         <title>Project layout</title>
-        <para>TBD</para>
+        <table>
+            <title>Code quality plugin - project layout</title>
+            <thead>
+                <tr>
+                    <td>File</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <filename>config/checkstyle/checkstyle.xml</filename>
+                </td>
+                <td>Checkstyle configuration file</td>
+            </tr>
+            <tr>
+                <td>
+                    <filename>config/codenarc/codenarc.xml</filename>
+                </td>
+                <td>CodeNarc configuration file</td>
+            </tr>
+        </table>
     </section>
 
     <section>
         <title>Dependency management</title>
-        <para>TBD</para>
+        <para>The code quality plugin does not add any dependency configurations.</para>
     </section>
 
     <section>
         <title>Convention properties</title>
-        <para>TBD</para>
+        <para>The code quality plugin adds the following convention properties:</para>
+        <table>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Type</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>checkstyleConfigFileName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <literal>config/checkstyle/checkstyle.xml</literal>
+                </td>
+                <td>
+                    The location of the Checkstyle configuration file, relative to the project directory.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>checkstyleConfigFile</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>projectDir</replaceable>/<replaceable>checkstyleConfigFileName</replaceable></literal>
+                </td>
+                <td>
+                    The Checkstyle configuration file.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>checkstyleResultsDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <literal>checkstyle</literal>
+                </td>
+                <td>
+                    The name of the directory to generate Checkstyle results into, relative to the build directory.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>checkstyleResultsDir</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/<replaceable>checkstyleResultsDirName</replaceable></literal>
+                </td>
+                <td>
+                    The directory to generate Checkstyle results into.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>codeNarcConfigFileName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <literal>config/codenarc/codenarc.xml</literal>
+                </td>
+                <td>
+                    The location of the CodeNarc configuration file, relative to the project directory.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>codeNarcConfigFile</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>projectDir</replaceable>/<replaceable>codeNarcConfigFileName</replaceable></literal>
+                </td>
+                <td>
+                    The CodeNarc configuration file.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>codeNarcReportsDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <literal>codenarc</literal>
+                </td>
+                <td>
+                    The name of the directory to generate CodeNarc reports into, relative to the reports directory.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>codeNarcReportsDir</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>reportsDir</replaceable>/<replaceable>codeNarcReportsDirName</replaceable></literal>
+                </td>
+                <td>
+                    The directory to generate CodeNarc reports into.
+                </td>
+            </tr>
+        </table>
+
+        <para>These convention properties are provided by convention objects of type
+            <apilink class="org.gradle.api.plugins.quality.JavaCodeQualityPluginConvention" lang="groovy"/> and 
+            <apilink class="org.gradle.api.plugins.quality.GroovyCodeQualityPluginConvention" lang="groovy"/>.</para>
     </section>
 
 </chapter>

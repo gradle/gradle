@@ -16,16 +16,30 @@
 <tgroup>
     <tr>
         <td>
-            reportsDirName
+            <literal>reportsDirName</literal>
         </td>
         <td>
-            reportsDir
+            <classname>String</classname>
         </td>
         <td>
             <filename>reports</filename>
         </td>
         <td>
-            <filename><replaceable>buildDir</replaceable>/reports</filename>
+            The name of the directory to generate reports into, relative to the build directory.
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <literal>reportsDir</literal>
+        </td>
+        <td>
+            <classname>File</classname> (read-only)
+        </td>
+        <td>
+            <filename><replaceable>buildDir</replaceable>/<replaceable>reportsDirName</replaceable></filename>
+        </td>
+        <td>
+            The directory to generate reports into.
         </td>
     </tr>
 </tgroup>

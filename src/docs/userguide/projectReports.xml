@@ -88,20 +88,44 @@
             <title>Project report plugin - directory properties</title>
             <thead>
                 <tr>
-                    <td>Directory Name Property</td>
-                    <td>Directory File Property</td>
-                    <td>Default Name</td>
-                    <td>Default File</td>
+                    <td>Property name</td>
+                    <td>Type</td>
+                    <td>Default value</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <xi:include href="reportingBasePluginProperties.xml"/>
             <tr>
-                <td>projectReportDirName</td>
-                <td>projectReportDir</td>
-                <td><filename>project</filename></td>
-                <td><filename><replaceable>reportsDir</replaceable>/project</filename></td>
+                <td>
+                    <literal>projectReportDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <literal>project</literal>
+                </td>
+                <td>
+                    The name of the directory to generate the project report into, relative to the reports directory.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>projectReportDir</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>reportsDir</replaceable>/<replaceable>projectReportDirName</replaceable></literal>
+                </td>
+                <td>
+                    The directory to generate the project report into.
+                </td>
             </tr>
         </table>
+
+        <para>These convention properties are provided by a convention object of type <apilink class="org.gradle.api.plugins.ProjectReportsPluginConvention" lang="groovy"/>.</para>
     </section>
     
 </chapter>

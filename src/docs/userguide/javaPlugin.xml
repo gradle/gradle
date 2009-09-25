@@ -29,10 +29,10 @@
         </para>
         <para>
             You might use a source set to define an integration test suite, or for the API classes of your project, or
-            for source which is compiled against different Java versions.
+            to separate source which needs to be compiled against different Java versions.
         </para>
-        <para>The Java plugin defines two standard source sets <literal>main</literal> and <literal>test</literal>. The
-            <literal>main</literal> source set contains your production source code, which is compiled and assembled
+        <para>The Java plugin defines two standard source sets, called <literal>main</literal> and <literal>test</literal>.
+            The <literal>main</literal> source set contains your production source code, which is compiled and assembled
             into a JAR file. The <literal>test</literal> source set contains your unit test source code, which is
             compiled and executed using JUnit or TestNG.
         </para>
@@ -40,11 +40,9 @@
     
     <section>
         <title>Tasks</title>
-        <para>The Java plugin adds the tasks shown in <xref linkend='javatasks'/> to a project.
-            These tasks constitute a lifecycle for Java builds.
-        </para>
+        <para>The Java plugin adds the following tasks to your project.</para>
 
-        <table id='javatasks'>
+        <table>
             <title>Java plugin - tasks</title>
             <thead>
                 <tr>
@@ -64,8 +62,8 @@
                 <td>
                     <literal>compileJava</literal>
                 </td>
-                <td>All tasks which produce the compile classpath. This includes the <literal>jar</literal> task in
-                    projects included in the <literal>compile</literal> configuration.
+                <td>All tasks which produce the compile classpath. This includes the <literal>jar</literal> task for
+                    project dependencies included in the <literal>compile</literal> configuration.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
             </tr>
@@ -82,7 +80,7 @@
                 </td>
                 <td>
                     All compilation tasks in the project, including <literal>compileJava</literal> and <literal>processResources</literal>.
-                    Other plugins may add additional compilation tasks.
+                    Some plugins add additional compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
@@ -108,7 +106,7 @@
                 </td>
                 <td>
                     All test compilation tasks in the project, including <literal>compileTestJava</literal> and <literal>processTestResources</literal>.
-                    Other plugins may add additional test compilation tasks.
+                    Some plugins add additional test compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
             </tr>
@@ -117,7 +115,7 @@
                     <literal>jar</literal>
                 </td>
                 <td>
-                    <literal>compile</literal>,
+                    <literal>compile</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/></td>
             </tr>
@@ -125,7 +123,7 @@
                 <td>
                     <literal>javadoc</literal>
                 </td>
-                <td>-</td>
+                <literal>compile</literal>
                 <td><apilink class="org.gradle.api.tasks.javadoc.Javadoc"/></td>
             </tr>
             <tr>
@@ -139,6 +137,68 @@
                 </td>
                 <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
             </tr>
+            <tr>
+                <td>
+                    <literal>uploadArchives</literal>
+                </td>
+                <td>
+                    The tasks which produce the artifacts in the <literal>archives</literal> configuration, including <literal>jar</literal>.
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Upload"/></td>
+            </tr>
+        </table>
+
+        <para>For each source set you add to the project, the Java plugin adds the following compilation tasks:</para>
+        <table>
+            <title>Java plugin - source set tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>compile<replaceable>SourceSet</replaceable>Java</literal>
+                </td>
+                <td>
+                    All tasks which produce the source set's compile classpath.
+                </td>
+                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>process<replaceable>SourceSet</replaceable>Resources</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>compile<replaceable>SourceSet</replaceable></literal>
+                </td>
+                <td>
+                    All compilation tasks for the source set, including
+                    <literal>compile<replaceable>SourceSet</replaceable>Java</literal> and
+                    <literal>process<replaceable>SourceSet</replaceable>Resources</literal>.
+                    Other plugins may add additional compilation tasks for the source set.
+                </td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+            </tr>
+        </table>
+        
+        <para>The Java plugin also adds a number of lifecycle tasks:</para>
+
+        <table>
+            <title>Java plugin - lifecycle tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
             <tr>
                 <td>
                     <literal>assemble</literal>
@@ -190,32 +250,6 @@
             </tr>
             <tr>
                 <td>
-                    <literal>compile<replaceable>SourceSet</replaceable>Java</literal>
-                </td>
-                <td>
-                    All tasks which produce the source set's compile classpath.
-                </td>
-                <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>process<replaceable>SourceSet</replaceable>Resources</literal>
-                </td>
-                <td>-</td>
-                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>compile<replaceable>SourceSet</replaceable></literal>
-                </td>
-                <td>
-                    All compilation tasks for the source set, including <literal>compile<replaceable>SourceSet</replaceable>Java</literal> and <literal>process<replaceable>SourceSet</replaceable>Resources</literal>.
-                    Other plugins may add additional compilation tasks for the source set.
-                </td>
-                <td><apilink class="org.gradle.api.Task"/></td>
-            </tr>
-            <tr>
-                <td>
                     <literal>build<replaceable>ConfigurationName</replaceable></literal>
                 </td>
                 <td>
@@ -233,6 +267,9 @@
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
             </tr>
         </table>
+
+        <para>The following diagram shows the relationships between these tasks.</para>
+
         <figure>
             <title>Java plugin - tasks</title>
             <imageobject>
@@ -263,7 +300,7 @@
 
         <section>
             <title>Changing the project layout</title>
-            <para>TBD</para>
+            <para>You configure the project layout by configuring the appropriate source set.</para>
             <sample id="customJavaSourceLayout" dir="java/customizedLayout" title="Custom Java source layout">
                 <sourcefile file="build.gradle" snippet="define-main"/>
             </sample>
@@ -272,9 +309,8 @@
 
     <section id="sec:java_plugin_and_dependency_management">
         <title>Dependency management</title>
-        <para>The Java plugin adds a number of dependency configurations to your project, as shown in
-            <xref linkend="tab:configurations"/>. It assigns those configurations to tasks such as
-            <literal>compile</literal> and <literal>test</literal>.
+        <para>The Java plugin adds a number of dependency configurations to your project, as shown below. It assigns
+            those configurations to tasks such as <literal>compileJava</literal> and <literal>test</literal>.
             To learn more about configurations see <xref linkend="sub:configurations"/> and
             <xref linkend="artifacts_and_configurations"/>. Note also that transitive dependencies
             are disabled by default for the compile configuration. This can be overridden by setting
@@ -339,206 +375,187 @@
     <section>
         <title>Convention properties</title>
         <para>
-            The Java plugin adds the convention properties shown in <xref linkend='javaconventionDir'/> and
-            <xref linkend='javaconventionNonDir'/>.
-            <footnote>
-                <para>The <emphasis>buildDir</emphasis> property is a property of the project object. It defaults to
-                    <literal>build</literal>.
-                </para>
-            </footnote>
-            Gradle's conventions contain a convention for the directory hierarchy as well as conventions for the element
-            names of the hierarchy. For example the <literal>srcDirs</literal> are relative to the
-            <literal>srcRoot</literal>. Therefore <literal>srcDirs</literal> is a read-only property. If you want to
-            change the name of the source dirs you need to do this via the <literal>srcDirNames</literal> property. But
-            the paths you specify here are <emphasis>relative</emphasis> to the <literal>srcRoot</literal>. This has the
-            advantage to make bulk changes easy. If you change <literal>srcRoot</literal> from <literal>src</literal>
-            to <literal>source</literal>, this automatically applies to all directory properties which are relative to
-            <literal>srcRoot</literal>. As this also introduces an inflexibility, we have additional floating dirs,
-            which are not bound to any hierarchy (see <xref linkend='javaconventionFloatingDir'/>). For example code
-            generation tool could make use of this, by adding a source dir which is located in the build folder.
+            The Java plugin adds the following convention properties to the project:
         </para>
 
         <table id='javaconventionDir'>
             <title>Java plugin - directory properties</title>
             <thead>
                 <tr>
-                    <td>Directory Name Property</td>
-                    <td>Directory File Property</td>
-                    <td>Default Name</td>
-                    <td>Default File</td>
+                    <td>Property name</td>
+                    <td>Type</td>
+                    <td>Default value</td>
+                    <td>Description</td>
                 </tr>
             </thead>
+            <xi:include href="reportingBasePluginProperties.xml"/>
             <tr>
-                <td>srcRootName</td>
-                <td>srcRoot</td>
                 <td>
-                    <literal>src</literal>
+                    <literal>testResultsDirName</literal>
                 </td>
                 <td>
-                    <literal><replaceable>projectDir</replaceable>/src</literal>
+                    <classname>String</classname>
                 </td>
-            </tr>
-            <tr>
-                <td>srcDirNames</td>
-                <td>srcDirs</td>
-                <td>
-                    [<literal>main/java</literal>]
-                </td>
-                <td>
-                    [<literal><replaceable>srcRoot</replaceable>/main/java</literal>]
-                </td>
-            </tr>
-            <tr>
-                <td>resourceDirNames</td>
-                <td>resourceDirs</td>
-                <td>
-                    [<literal>main/resources</literal>]
-                </td>
-                <td>
-                    [<literal><replaceable>srcRoot</replaceable>/main/resources</literal>]
-                </td>
-            </tr>
-            <tr>
-                <td>testSrcDirNames</td>
-                <td>testSrcDirs</td>
-                <td>
-                    [<literal>test/java</literal>]
-                </td>
-                <td>
-                    [<literal><replaceable>srcRoot</replaceable>/test/java</literal>]
-                </td>
-            </tr>
-            <tr>
-                <td>testResourceDirNames</td>
-                <td>testResourceDirs</td>
-                <td>
-                    <literal>test/resources</literal>
-                </td>
-                <td>
-                    [<literal><replaceable>srcRoot</replaceable>/test/resources</literal>]
-                </td>
-            </tr>
-            <tr>
-                <td>classesDirName</td>
-                <td>classesDir</td>
-                <td>
-                    <literal>classes</literal>
-                </td>
-                <td>
-                    <literal><replaceable>buildDir</replaceable>/classes</literal>
-                </td>
-            </tr>
-            <tr>
-                <td>testClassesDirName</td>
-                <td>testClassesDir</td>
-                <td>
-                    <literal>test-classes</literal>
-                </td>
-                <td>
-                    <literal><replaceable>buildDir</replaceable>/test-classes</literal>
-                </td>
-            </tr>
-            <tr>
-                <td>testResultsDirName</td>
-                <td>testResultsDir</td>
                 <td>
                     <literal>test-results</literal>
                 </td>
                 <td>
-                    <literal><replaceable>buildDir</replaceable>/test-results</literal>
+                    The name of the directory to generate test result .xml files into, relative to the build directory.
                 </td>
             </tr>
             <tr>
-                <td>testReportDirName</td>
-                <td>testReportDir</td>
+                <td>
+                    <literal>testResultsDir</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/<replaceable>testResultsDirName</replaceable></literal>
+                </td>
+                <td>
+                    The directory to generate test result .xml files into.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>testReportDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
                 <td>
                     <literal>tests</literal>
                 </td>
                 <td>
-                    <literal><replaceable>reportsDir</replaceable>/test</literal>
+                    The name of the directory to generate the test report into, relative to the reports directory.
                 </td>
             </tr>
             <tr>
-                <td>libsDirName</td>
-                <td>libsDir</td>
+                <td>
+                    <literal>testReportDir</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>reportsDir</replaceable>/<literal>testReportDirName</literal></literal>
+                </td>
+                <td>
+                    The directory to generate the test report into.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>libsDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
                 <td>
                     <literal>libs</literal>
                 </td>
                 <td>
-                    <literal><replaceable>buildDir</replaceable>/libs</literal>
+                    The name of the directory to generate libraries into, relative to the build directory.
                 </td>
             </tr>
             <tr>
-                <td>distsDirName</td>
-                <td>distsDir</td>
+                <td>
+                    <literal>libsDir</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/<replaceable>libsDirName</replaceable></literal>
+                </td>
+                <td>
+                    The directory to generate libraries into.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>distsDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
                 <td>
                     <literal>dists</literal>
                 </td>
                 <td>
-                    <literal><replaceable>buildDir</replaceable>/dists</literal>
+                    The name of the directory to generate distributions into, relative to the build directory.
                 </td>
             </tr>
             <tr>
-                <td>docsDirName</td>
-                <td>docsDir</td>
+                <td>
+                    <literal>distsDir</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/<replaceable>distsDirName</replaceable></literal>
+                </td>
+                <td>
+                    The directory to generate distributions into.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>docsDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
                 <td>
                     <literal>docs</literal>
                 </td>
                 <td>
-                    <literal><replaceable>buildDir</replaceable>/docs</literal>
+                    The name of the directory to generate documentation into, relative to the build directory.
                 </td>
             </tr>
             <tr>
-                <td>javadocDirName</td>
-                <td>javadocDir</td>
                 <td>
-                    <literal>javadoc</literal>
+                    <literal>docsDir</literal>
                 </td>
                 <td>
-                    <literal><replaceable>buildDir</replaceable>/javadoc</literal>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/<replaceable>docsDirName</replaceable></literal>
+                </td>
+                <td>
+                    The directory to generate documentation into.
                 </td>
             </tr>
             <tr>
-                <td>dependencyCacheDirName</td>
-                <td>dependencyCacheDir</td>
+                <td>
+                    <literal>dependencyCacheDirName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
                 <td>
                     <literal>dependency-cache</literal>
                 </td>
                 <td>
-                    <literal><replaceable>buildDir</replaceable>/dependency-cache</literal>
+                    The name of the directory to use to cache source dependency information, relative to the build directory.
                 </td>
             </tr>
-            <xi:include href="reportingBasePluginProperties.xml"/>
-        </table>
-
-        <table id='javaconventionFloatingDir'>
-            <title>Java plugin - floating directory properties</title>
-            <thead>
-                <tr>
-                    <td>Property</td>
-                    <td>Type</td>
-                    <td>Default Value</td>
-                </tr>
-            </thead>
             <tr>
-                <td>floatingSrcDirs</td>
-                <td>List</td>
-                <td>empty</td>
-            </tr>
-            <tr>
-                <td>floatingResourceDirs</td>
-                <td>List</td>
-                <td>empty</td>
-            </tr>
-            <tr>
-                <td>floatingTestSrcDirs</td>
-                <td>List</td>
-                <td>empty</td>
-            </tr>
-            <tr>
-                <td>floatingTestResourceDirs</td>
-                <td>List</td>
-                <td>empty</td>
+                <td>
+                    <literal>dependencyCacheDir</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <literal><replaceable>buildDir</replaceable>/<replaceable>dependencyCacheDirName</replaceable></literal>
+                </td>
+                <td>
+                    The directory to use to cache source dependency information.
+                </td>
             </tr>
         </table>
 
@@ -546,74 +563,109 @@
             <title>Java plugin - other properties</title>
             <thead>
                 <tr>
-                    <td>Property</td>
+                    <td>Property name</td>
                     <td>Type</td>
-                    <td>Default Value</td>
+                    <td>Default value</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
-                <td>sourceCompatibility</td>
+                <td>
+                    <literal>source</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.SourceSetContainer"/> (read-only)</td>
+                <td>Not null</td>
+                <td>Contains the project's source sets.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>sourceCompatibility</literal>
+                </td>
                 <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or a Number, eg
                     <literal>'1.5'</literal> or <literal>1.5</literal>.
                 </td>
                 <td>
                     <literal>1.5</literal>
                 </td>
+                <td>Java version compatibility to use when compiling Java source.</td>
             </tr>
             <tr>
-                <td>targetCompatibility</td>
+                <td>
+                    <literal>targetCompatibility</literal>
+                </td>
                 <td><apilink class="org.gradle.api.JavaVersion"/>. Can also set using a String or Number, eg
                     <literal>'1.5'</literal> or <literal>1.5</literal>.
                 </td>
                 <td>
                     <literal><replaceable>sourceCompatibility</replaceable></literal>
                 </td>
+                <td>Java version to generate classes for.</td>
             </tr>
             <tr>
-                <td>archivesBaseName</td>
-                <td>String</td>
+                <td>
+                    <literal>archivesBaseName</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
                 <td><literal><replaceable>projectName</replaceable></literal></td>
+                <td>The basename to use for archives, such as JAR or ZIP files.</td>
             </tr>
             <tr>
-                <td>manifest</td>
+                <td>
+                    <literal>manifest</literal>
+                </td>
                 <td><apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/></td>
-                <td>empty</td>
+                <td>an empty manifest</td>
+                <td>The manifest to include in all JAR files.</td>
             </tr>
             <tr>
-                <td>metaInf</td>
-                <td>List</td>
-                <td>empty</td>
+                <td>
+                    <literal>metaInf</literal>
+                </td>
+                <td>
+                    <classname>List</classname>
+                </td>
+                <td><literal>[]</literal></td>
+                <td>A set of <link linkend="sec:file_collections">file collections</link> which specify the files to
+                    include in the <filename>META-INF</filename> directory or all JAR files.</td>
             </tr>
         </table>
 
+        <para>
+            These properties are provided by convention objects of type <apilink class="org.gradle.api.plugins.JavaPluginConvention" lang="groovy"/>,
+            <apilink class="org.gradle.api.plugins.BasePluginConvention" lang="groovy"/> and
+            <apilink class="org.gradle.api.plugins.ReportingBasePluginConvention" lang="groovy"/>.
+        </para>
     </section>
 
     <section id="sec:source_sets">
-        <title>Source sets</title>
+        <title>Working with source sets</title>
         <para>Adding a source set:</para>
         <sample id="defineSourceSet" dir="userguide/java/sourceSets" title="Defining a source set">
             <sourcefile file="build.gradle" snippet="define-source-set"/>
         </sample>
-        <para>configuring the source directories of an existing source set:</para>
+        <para>Configuring the source directories of an existing source set.</para>
         <sample id="configureSourceSet" dir="java/customizedLayout" title="Configuring the source directories of a source set">
             <sourcefile file="build.gradle" snippet="define-main"/>
         </sample>
-        <para>using configurations to define classpath of source set:</para>
+        <para>Using configurations to define classpath of source set:</para>
         <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Defining the classpath of a source set">
             <sourcefile file="build.gradle" snippet="classpath-using-configurations"/>
         </sample>
-        <para>adding a JAR for a source set:</para>
+        <para>Adding a JAR for a source set:</para>
         <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Assembling a JAR for a source set">
             <sourcefile file="build.gradle" snippet="jar"/>
         </sample>
-        <para>adding Javadoc for a source set:</para>
+        <para>Adding Javadoc for a source set:</para>
         <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Generating the Javadoc for a source set">
             <sourcefile file="build.gradle" snippet="javadoc"/>
         </sample>
-        <para>adding a test suite for a source set:</para>
+        <para>Adding a test suite for a source set:</para>
         <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Running tests in a source set">
             <sourcefile file="build.gradle" snippet="test"/>
         </sample>
+        <para>Each source set instance implements <apilink class="org.gradle.api.tasks.SourceSet"/>.</para>
     </section>
 
     <section id='sec:javadoc'>

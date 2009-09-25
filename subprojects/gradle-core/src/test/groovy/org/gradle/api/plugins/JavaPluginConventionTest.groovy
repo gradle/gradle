@@ -43,10 +43,8 @@ class JavaPluginConventionTest {
         assertThat(convention.source, instanceOf(DefaultSourceSetContainer))
         assertThat(convention.manifest, notNullValue())
         assertEquals([], convention.metaInf)
-        assertEquals('src', convention.srcRootName)
         assertEquals('dependency-cache', convention.dependencyCacheDirName)
         assertEquals('docs', convention.docsDirName)
-        assertEquals('javadoc', convention.javadocDirName)
         assertEquals('test-results', convention.testResultsDirName)
         assertEquals('tests', convention.testReportDirName)
         assertEquals(JavaVersion.VERSION_1_5, convention.sourceCompatibility)
@@ -64,20 +62,17 @@ class JavaPluginConventionTest {
     }
     
     @Test public void testDefaultDirs() {
-        checkDirs(convention.srcRootName)
+        checkDirs()
     }
 
     @Test public void testDynamicDirs() {
-        convention.srcRootName = 'mysrc'
         project.buildDirName = 'mybuild'
-        checkDirs(convention.srcRootName)
+        checkDirs()
     }
 
-    private void checkDirs(String srcRootName) {
-        assertEquals(new File(testDir, srcRootName), convention.srcRoot)
+    private void checkDirs() {
         assertEquals(new File(project.buildDir, convention.dependencyCacheDirName), convention.dependencyCacheDir)
         assertEquals(new File(project.buildDir, convention.docsDirName), convention.docsDir)
-        assertEquals(new File(convention.docsDir, convention.javadocDirName), convention.javadocDir)
         assertEquals(new File(project.buildDir, convention.testResultsDirName), convention.testResultsDir)
         assertEquals(new File(convention.reportsDir, convention.testReportDirName), convention.testReportDir)
     }
@@ -89,15 +84,6 @@ class JavaPluginConventionTest {
         convention.testReportDirName = 'other-test-dir'
 
         assertEquals(new File(project.buildDir, 'other-reports-dir/other-test-dir'), convention.testReportDir)
-    }
-
-    @Test public void testJavadocDirIsCalculatedRelativeToDocsDir() {
-        assertEquals(new File(project.buildDir, 'docs/javadoc'), convention.javadocDir)
-
-        convention.docsDirName = 'other-docs-dir'
-        convention.javadocDirName = 'other-javadoc-dir'
-
-        assertEquals(new File(project.buildDir, 'other-docs-dir/other-javadoc-dir'), convention.javadocDir)
     }
 
     @Test public void testMkdir() {

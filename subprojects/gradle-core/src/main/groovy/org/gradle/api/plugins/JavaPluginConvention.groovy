@@ -30,10 +30,8 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 class JavaPluginConvention {
     Project project
 
-    String srcRootName
     String dependencyCacheDirName
     String docsDirName
-    String javadocDirName
     String testResultsDirName
     String testReportDirName
     final SourceSetContainer source
@@ -47,10 +45,8 @@ class JavaPluginConvention {
         source = new DefaultSourceSetContainer(project.fileResolver, project.tasks)
         manifest = new GradleManifest()
         metaInf = []
-        srcRootName = 'src'
         dependencyCacheDirName = 'dependency-cache'
         docsDirName = 'docs'
-        javadocDirName = 'javadoc'
         testResultsDirName = 'test-results'
         testReportDirName = 'tests'
     }
@@ -67,20 +63,12 @@ class JavaPluginConvention {
         result
     }
 
-    File getSrcRoot() {
-        project.file(srcRootName)
-    }
-
     File getDependencyCacheDir() {
         new File(project.buildDir, dependencyCacheDirName)
     }
 
     File getDocsDir() {
         new File(project.buildDir, docsDirName)
-    }
-
-    File getJavadocDir() {
-        new File(docsDir, javadocDirName)
     }
 
     File getTestResultsDir() {

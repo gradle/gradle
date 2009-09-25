@@ -136,7 +136,12 @@
 
     <section>
         <title>Convention Properties</title>
-        <para>TBD</para>
+        <para>The Scala plugin does not add any convention properties.</para>
     </section>
     
+    <section>
+        <title>Source set properties</title>
+        <para>The Scala plugin adds a <apilink class="org.gradle.api.tasks.ScalaSourceSet"/> convention object to each source set.</para>
+    </section>
+
 </chapter>

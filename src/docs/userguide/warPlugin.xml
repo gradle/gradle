@@ -97,27 +97,45 @@
             <title>War plugin - directory properties</title>
             <thead>
                 <tr>
-                    <td>Directory Name Property</td>
-                    <td>Directory File Property</td>
-                    <td>Default Name</td>
-                    <td>Default File</td>
+                    <td>Property name</td>
+                    <td>Type</td>
+                    <td>Default value</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
                 <td>
-                    webAppDirName
+                    <literal>webAppDirName</literal>
                 </td>
                 <td>
-                    webAppDir
+                    <classname>String</classname>
                 </td>
                 <td>
-                    <filename>main/webapp</filename>
+                    <filename>src/main/webapp</filename>
                 </td>
                 <td>
-                    <filename><replaceable>srcRoot</replaceable>/main/webapp</filename>
+                    The name of the web application source directory, relative to the project directory.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>webAppDir</literal>
+                </td>
+                <td>
+                    <classname>File</classname> (read-only)
+                </td>
+                <td>
+                    <filename><replaceable>projectDir</replaceable>/<replaceable>webAppDirName</replaceable></filename>
+                </td>
+                <td>
+                    The web application source directory.
                 </td>
             </tr>
         </table>
+
+        <para>These properties are provided by a <apilink class="org.gradle.api.plugins.WarPluginConvention" lang="groovy"/>
+            convention object.
+        </para>
     </section>
 
     <section id='sec:default_settings'>

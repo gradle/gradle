@@ -203,7 +203,7 @@ class JavaPluginTest {
         assertThat(task.defaultSource, sameInstance(project.source.main.allJava))
         assertThat(task.classpath.sourceCollections, hasItem(project.source.main.classes))
         assertThat(task.classpath.sourceCollections, hasItem(project.source.main.compileClasspath))
-        assertThat(task.destinationDir, equalTo(project.javadocDir))
+        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/javadoc")))
         assertThat(task.title, equalTo(project.apiDocTitle))
         assertThat(task.optionsFile, equalTo(project.file('build/tmp/javadoc.options')))
 
@@ -241,7 +241,7 @@ class JavaPluginTest {
         assertThat(task.classpath.sourceCollections, hasItem(project.source.main.classes))
         assertThat(task.classpath.sourceCollections, hasItem(project.source.main.compileClasspath))
         assertThat(task.defaultSource, sameInstance(project.source.main.allJava))
-        assertThat(task.destinationDir, equalTo(project.javadocDir))
+        assertThat(task.destinationDir, equalTo((project.file("$project.docsDir/javadoc"))))
         assertThat(task.optionsFile, equalTo(project.file('build/tmp/javadoc.options')))
         assertThat(task.title, equalTo(project.apiDocTitle))
     }

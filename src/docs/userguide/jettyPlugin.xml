@@ -15,9 +15,6 @@
   -->
 <chapter id="jetty_plugin">
     <title>The Jetty Plugin</title>
-    <note>
-        <para>This chapter is currently under construction.</para>
-    </note>
 
     <para>The Jetty Plugin extends the War Plugin, and adds tasks which you can use to deploy your web application to an
         embedded Jetty server.
@@ -71,7 +68,7 @@
 
     <section>
         <title>Project layout</title>
-        <para>TBD</para>
+        <para>The Jetty plugin uses the same layout as the War plugin.</para>
     </section>
 
     <section>
@@ -86,31 +83,57 @@
             <title>Jetty plugin - properties</title>
             <thead>
                 <tr>
-                    <td>Property</td>
+                    <td>Property name</td>
                     <td>Type</td>
-                    <td>Default Value</td>
+                    <td>Default value</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
-                <td>httpPort</td>
-                <td>Integer</td>
-                <td>8080</td>
-            </tr>
-            <tr>
-                <td>stopPort</td>
-                <td>Integer</td>
                 <td>
-                    <literal>null</literal>
+                    <literal>httpPort</literal>
+                </td>
+                <td>
+                    <classname>Integer</classname>
+                </td>
+                <td>
+                    <literal>8080</literal>
+                </td>
+                <td>
+                    The TCP port which Jetty should listen for HTTP requests on.
                 </td>
             </tr>
             <tr>
-                <td>stopKey</td>
-                <td>String</td>
+                <td>
+                    <literal>stopPort</literal>
+                </td>
+                <td>
+                    <classname>Integer</classname>
+                </td>
                 <td>
                     <literal>null</literal>
+                </td>
+                <td>
+                    The TCP port which Jetty should listen for admin requests on.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>stopKey</literal>
+                </td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <literal>null</literal>
+                </td>
+                <td>
+                    The key to pass to Jetty when requesting it to stop.
                 </td>
             </tr>
         </table>
+        <para>These properties are provided by a <apilink class="org.gradle.api.plugins.jetty.JettyPluginConvention"/>
+            convention object.</para>
     </section>
 
 </chapter>
