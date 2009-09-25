@@ -37,7 +37,7 @@ integTest.doFirst {
     }
 }
 
-compile.options.depend()
+compileJava.options.depend()
 
 //this is just to exclude integration tests
 test {

@@ -109,8 +109,6 @@ subprojects {
     checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
     codeNarcConfigFileName = "$rootDir/config/codenarc.xml"
     [checkstyleMain, checkstyleTest].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
-
-    groovydoc.destinationDir = explodedDistGroovydocsDir
 }
 
 allprojects {
@@ -159,7 +157,6 @@ dependencies {
 
 clean.dependsOn subprojects*.clean
 
-task groovydoc(overwrite: true, dependsOn: subprojects*.groovydoc)
 task check(overwrite: true, dependsOn: subprojects*.check)
 task test(overwrite: true, dependsOn: subprojects*.test)
 
@@ -212,18 +209,30 @@ def removeAnyExistingOldGradleLibs() {
 }
 
 task javadoc(type: Javadoc) {
-    srcDirs = subprojects.inject([]) {list, project -> list + project.source.main.java.srcDirs + project.source.main.groovy.srcDirs}
+    source subprojects.collect {project -> project.source.main.allJava }
     destinationDir = explodedDistJavadocsDir
-    configuration = files(subprojects.collect { project-> [project.source.main.compileClasspath, project.source.main.classes] })
-    // todo: include only the public packages
-    options.subPackages 'org.gradle'
-    exclude 'org.gradle.api.internal'
-    // todo: make this true
-    failOnError = false
+    classpath = files(subprojects.collect {project -> [project.source.main.compileClasspath, project.source.main.classes] })
+    include 'org/gradle/api/**'
+    include 'org/gradle/*'
+    include 'org/gradle/external/javadoc/**'
+    exclude 'org/gradle/api/internal/**'
+    optionsFile = file("$buildDir/tmp/javadoc.options")
     doFirst {
         title = "Gradle API $version"
-        options.docTitle = title
     }
+}
+
+task groovydoc(type: Groovydoc) {
+    source subprojects.collect { project -> project.source.main.groovy }
+    destinationDir = explodedDistGroovydocsDir
+    include 'org/gradle/api/**'
+    include 'org/gradle/*'
+    include 'org/gradle/external/javadoc/**'
+    exclude 'org/gradle/api/internal/**'
+    doFirst {
+        title = "Gradle API $version"
+    }
+    groovyClasspath = project(':core').configurations.groovy
 }
 
 task docs(dependsOn: [javadoc, groovydoc, 'userguide', 'distDocs'])
@@ -355,12 +364,6 @@ jdk14AllZip.doFirst {Task task ->
         }
         binFileSets(delegate)
     }
-}
-
-tasks.withType(Zip).each {
-    it.destinationDir = file("$buildDir/distributions")
-    it.baseName = archivesBaseName
-    it.conventionMapping.version = { version.toString() }
 }
 
 artifacts {
@@ -517,7 +520,7 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     it.onlyIf { !System.getProperty("os.name").toLowerCase().contains('windows') }
 }
 
-task uploadDocs(dependsOn: [userguide, javadoc, groovydoc]) << {
+task uploadDocs(dependsOn: docs) << {
     ftp(action: 'mkdir', remotedir: docsRemoteDir)
     ftp(action: 'delete', remotedir: docsRemoteDir) {
         fileset() {
@@ -625,9 +628,7 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, userguideSrc]) {
     testSrcDirs = []
 }
 
-task dists(dependsOn: tasks.withType(Zip).all)
-
-task testedDists(dependsOn: [dists, check, test, integTest, ':ui:integTest'])
+task testedDists(dependsOn: [assemble, check, integTest, ':ui:integTest'])
 
 task nightlyBuild(dependsOn: [clean, testedDists, uploadDocs])
 
