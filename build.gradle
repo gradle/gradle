@@ -426,6 +426,7 @@ task userguideStyleSheets << {
 
 task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+        jvmarg(value: '-Xmx128m')
         sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
@@ -449,6 +450,7 @@ task userguideSingleHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     userguideSingleHtmlFile.parentFile.mkdirs()
     
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+        jvmarg(value: '-Xmx128m')
         sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
@@ -478,6 +480,7 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     println "transforming docbook -> html"
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+        jvmarg(value: '-Xmx128m')
         sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
         arg(value: '-in')
         arg(value: new File(docbookSrc, 'userguide.xml'))
@@ -516,10 +519,6 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     println "done"
 }
 
-[userguideSingleHtml, userguidePdf].each {
-    it.onlyIf { !System.getProperty("os.name").toLowerCase().contains('windows') }
-}
-
 task uploadDocs(dependsOn: docs) << {
     ftp(action: 'mkdir', remotedir: docsRemoteDir)
     ftp(action: 'delete', remotedir: docsRemoteDir) {
@@ -552,6 +551,7 @@ distDocs << {
         include 'style.css'
     }
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+        jvmarg(value: '-Xmx128m')
         sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
         sysproperty(key: 'org.apache.xerces.xni.parser.XMLParserConfiguration', value: 'org.apache.xerces.parsers.XIncludeParserConfiguration')
         arg(value: '-in')
@@ -583,6 +583,7 @@ websiteDocs << {
     websiteDocs.mkdirs()
 
     ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+        jvmarg(value: '-Xmx128m')
         arg(value: '-in')
         arg(value: new File(docbookSrc , 'gettingStarted.xml'))
         arg(value: '-out')
@@ -624,11 +625,11 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, userguideSrc]) {
     testClassesDir = project(':core').source.test.classesDir
     configuration = project(':core').source.test.runtimeClasspath
     testResultsDir = file('build/test-results')
-    testReportDir = file('build/reports/test')
+    testReportDir = file('build/reports/tests')
     testSrcDirs = []
 }
 
-task testedDists(dependsOn: [assemble, check, integTest, ':ui:integTest'])
+task testedDists(dependsOn: [assemble, check, integTest])
 
 task nightlyBuild(dependsOn: [clean, testedDists, uploadDocs])
 
