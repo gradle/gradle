@@ -1,9 +1,25 @@
+// START SNIPPET define
+// Create a file tree with a base directory
 def tree = fileTree(dir: 'src/main')
 
 // Add include and exclude patterns to the tree
 tree.include '**/*.java'
 tree.exclude '**/Abstract*'
 
+// Create a tree using path
+tree = fileTree('src').include('**/*.java')
+
+// Create a tree using closure
+tree = fileTree {
+    from 'src'
+    include '**/*.java'
+}
+
+// Create a tree using a map
+tree = fileTree(dir: 'src', includes: ['**/*.java'])
+// END SNIPPET define
+
+// START SNIPPET use
 // Iterate over the contents of a tree
 tree.each {File file ->
     println file
@@ -17,10 +33,8 @@ def filtered = tree.matching {
 // Add trees together
 def sum = tree + fileTree(dir: 'src/test')
 
-// Construct a tree using path, map or closure
-def tree2 = fileTree('src').include('**/*.java')
-def tree3 = fileTree {
-    from 'src'
-    include '**/*.java'
+// Visit the nodes of the tree
+tree.visit {node ->
+    println "$node.relativePath => $node.file"
 }
-def tree4 = fileTree(dir: 'src', includes: ['**/*.java'])
+// END SNIPPET use

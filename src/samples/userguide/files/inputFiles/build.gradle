@@ -1,0 +1,33 @@
+task compile(type: Compile)
+
+// START SNIPPET set-input-files
+compile {
+    source = file('src/main/java')
+}
+
+compile {
+    source = 'src/main/java'
+}
+
+compile {
+    source = ['src/main/java', '../shared/java']
+}
+
+compile {
+    source = fileTree(dir: 'src/main/java').matching { include 'org/gradle/api/**' }
+}
+
+compile {
+    source = {
+        fileTree(dir: 'src/main/java') + fileTree(dir: '../shared/java')
+    }
+}
+// END SNIPPET set-input-files
+
+// START SNIPPET add-input-files
+compile {
+    source 'src/main/java', 'src/main/groovy'
+    source file('../shared/java')
+    source { file('src/test/').listFiles() }
+}
+// END SNIPPET add-input-files

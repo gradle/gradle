@@ -21,7 +21,7 @@
         build script. Most Java projects are pretty similar as far as the basics go: you need to compile your Java
         source files, run some unit tests, and create a JAR file containing your classes. It would be nice if you
         didn't have to code all this up for every project. Luckily, you don't have to.
-        Gradle solves this problem through the use <firstterm>plugins</firstterm>. A plugin is an extension to Gradle
+        Gradle solves this problem through the use of <firstterm>plugins</firstterm>. A plugin is an extension to Gradle
         which configures your project in some way, typically by adding a bunch of pre-configured tasks which together do
         something useful. Gradle ships with a number of plugins, and you can easily write your own and share them with
         others. One such plugin is the <firstterm>Java Plugin</firstterm>. This plugin adds some tasks to your

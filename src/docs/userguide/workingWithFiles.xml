@@ -20,22 +20,30 @@
     </note>
 
     <para>
-        Most builds do lots of work with files. Gradle adds some concepts and APIs to help you do this.
+        Most builds work with files. Gradle adds some concepts and APIs to help you do this.
     </para>
 
-    <section>
+    <section id="sec:locating_files">
         <title>Locating files</title>
-        <para>You can locate a file relative to the project directory using the <literal>file()</literal> method.</para>
+        <para>You can locate a file relative to the project directory using the
+            <apilink class="org.gradle.api.Project" method="file"/> method.
+        </para>
         <sample id="resolveFile" dir="userguide/files/file" title="Locating files">
             <sourcefile file="build.gradle"/>
         </sample>
+        <para>You can pass any object to the <literal>file()</literal> method, though usually you would pass it a
+            <classname>String</classname> or <classname>File</classname>. The supplied object's <literal>toString()</literal>
+            value is treated as a file path. If this path is an absolute path, it is used to construct a
+            <classname>File</classname> instance. Otherwise, a <classname>File</classname> instance is constructed by
+            prepending the project directory path to the supplied path.
+        </para>
+        <para>Using this method is a useful way to convert some user provided value into an absolute <classname>File</classname>.
+            It is preferable to using <literal>new File(somePath)</literal>, as <literal>file()</literal> always evaluates
+            the supplied path relative to the project directory, which is fixed, rather than the current working
+            directory, which may not always be the same.
+        </para>
     </section>
 
-    <section id="sec:specifying_multiple_files">
-        <title>Specifying a set of files</title>
-        <para>TBD</para>
-    </section>
-    
     <section id="sec:file_collections">
         <title>File collections</title>
 
@@ -47,12 +55,37 @@
         </para>
 
         <para>
-            One way to obtain a <literal>FileCollection</literal> instance is to use the <literal>files()</literal> method.
+            One way to obtain a <literal>FileCollection</literal> instance is to use the <apilink class="org.gradle.api.Project" method="files"/>
+            method. You can pass this method any number of objects, which are then converted into a set of <classname>File</classname>
+            objects. The <literal>files()</literal> method accepts <classname>File</classname> and <classname>String</classname>
+            arguments. These are evaluated relative to the project directory, as described in <xref linkend="sec:locating_files"/>.
+            You can also pass collections, maps and arrays to the <literal>files()</literal> method. These are flattened
+            and the contents converted to <classname>File</classname> instances.
         </para>
 
-        <sample id="fileCollections" dir="userguide/files/fileCollections" title="Using file collections">
-            <sourcefile file="build.gradle"/>
+        <sample id="fileCollections" dir="userguide/files/fileCollections" title="Creating a file collection">
+            <sourcefile file="build.gradle" snippet="simple-params"/>
         </sample>
+
+        <para>A file collection is iterable, and can be converted to a number of other types using the <literal>as</literal>
+            operator. You can also add 2 file collections together using the <literal>+</literal> operator. Here are some examples.
+        </para>
+        <sample id="fileCollections" dir="userguide/files/fileCollections" title="Using a file collection">
+            <sourcefile file="build.gradle" snippet="usage"/>
+        </sample>
+
+        <para>You can also pass the <literal>files()</literal> method a closure or a <classname>Callable</classname>
+            instance. This is called when the contents of the collection are queried, and its return value is converted
+            to a set of <classname>File</classname> instances. The return value can be an object of any of the types
+            supported by the <literal>files()</literal> method. This is a simple way to 'implement' the
+            <classname>FileCollection</classname> interface.
+        </para>
+        <sample id="fileCollections" dir="userguide/files/fileCollections" title="Implementing a file collection">
+            <sourcefile file="build.gradle" snippet="closure"/>
+            <output args="-q list"/>
+        </sample>
+
+        <para>The <literal>files()</literal> method also accepts <classname>FileCollection</classname> instances.</para>
     </section>
 
     <section id="sec:file_trees">
@@ -61,22 +94,64 @@
         <para>
             A <firstterm>file tree</firstterm> is a hierarchy of files, such as a directory tree. It is represented
             by the <apilink class="org.gradle.api.file.FileTree"/> interface. The <literal>FileTree</literal> interface
-            extends <literal>FileCollection</literal>, so you can treat a file tree exactly the same way as a file
-            collection. Several objects in Gradle implement the <literal>FileTree</literal> interface, such as
+            extends <literal>FileCollection</literal>, so you can treat a file tree exactly the same way as you would a
+            file collection. Several objects in Gradle implement the <literal>FileTree</literal> interface, such as
             <link linkend="sec:source_sets">source sets</link>.
         </para>
 
         <para>
-            One way to obtain a <literal>FileTree</literal> instance is to use the <literal>fileTree()</literal> method.
-            This creates a <literal>FileTree</literal> defined with a base directory and some include/exclude patterns.
+            One way to obtain a <literal>FileTree</literal> instance is to use the
+            <apilink class="org.gradle.api.Project" method="fileTree"/> method.
+            This creates a <literal>FileTree</literal> defined with a base directory, and optionally some Ant-style
+            include and exclude patterns.
         </para>
 
-        <sample id="fileCollections" dir="userguide/files/fileTrees" title="Using file trees">
-            <sourcefile file="build.gradle"/>
+        <sample id="fileTrees" dir="userguide/files/fileTrees" title="Creating a file tree">
+            <sourcefile file="build.gradle" snippet="define"/>
+        </sample>
+
+        <para>You use a file tree in the same way you use a file collection. You can also visit the contents of the
+            tree, and select a subtree using Ant-style patterns:
+        </para>
+        <sample id="fileTrees" dir="userguide/files/fileTrees" title="Using a file tree">
+            <sourcefile file="build.gradle" snippet="use"/>
         </sample>
     </section>
-    
+
+    <section id="sec:specifying_multiple_files">
+        <title>Specifying a set of files</title>
+        <para>Many objects in Gradle have properties which accept a logical set of files. For example, the
+            <apilink class="org.gradle.api.tasks.compile.Compile"/> task has a <literal>source</literal> property,
+            which defines the source files to compile. You can set the value of this property using any of the types
+            supported by the <link linkend="sec:file_collections">files()</link> method, which we have seen above. This
+            means you can set the property using, for example, a <classname>File</classname>, <classname>String</classname>,
+            collection, <classname>FileCollection</classname> or even a closure.
+            Here are some examples:
+        </para>
+        <sample id="inputFiles" dir="userguide/files/inputFiles" title="Specifying a set of files">
+            <sourcefile file="build.gradle" snippet="set-input-files"/>
+        </sample>
+        <para>Usually, there is a method with the same name as the property, which appends to the set of files. Again,
+            this method accepts any of the types supported by the <link linkend="sec:file_collections">files()</link>
+            method.
+        </para>
+        <sample id="inputFiles" dir="userguide/files/inputFiles" title="Specifying a set of files">
+            <sourcefile file="build.gradle" snippet="add-input-files"/>
+        </sample>
+    </section>
+
     <section>
         <title>Copying files</title>
+        <para>You can use the <apilink class="org.gradle.api.tasks.Copy"/> task to copy files. The copy task allows
+            you to filter the contents of the files as they are copied, and to map the files names.
+        </para>
+        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy task">
+            <sourcefile file="build.gradle" snippet="copy-task"/>
+            <test args="copyTask copyMethod"/>
+        </sample>
+        <para>You can also use the <apilink class="org.gradle.api.Project" method="copy"/> method.</para>
+        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method">
+            <sourcefile file="build.gradle" snippet="copy-method"/>
+        </sample>
     </section>
 </chapter>

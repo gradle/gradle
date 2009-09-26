@@ -1,0 +1,21 @@
+// START SNIPPET copy-task
+task copyTask(type: Copy) {
+    from 'src/main/webapp'
+    into 'build/explodedWar'
+    include '**/*.html'
+    include '**/*.jsp'
+    include 'assets/**'
+}
+// END SNIPPET copy-task
+
+// START SNIPPET copy-method
+task copyMethod << {
+    copy {
+        from 'src/main/webapp'
+        into 'build/explodedWar'
+        include '**/*.html'
+        include '**/*.jsp'
+        include 'assets/**'
+    }
+}
+// END SNIPPET copy-method
