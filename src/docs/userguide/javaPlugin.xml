@@ -49,6 +49,7 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
@@ -57,6 +58,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Clean"/></td>
+                <td>Deletes the project build directory.</td>
             </tr>
             <tr>
                 <td>
@@ -66,6 +68,7 @@
                     project dependencies included in the <literal>compile</literal> configuration.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td>Compiles production Java source files using javac.</td>
             </tr>
             <tr>
                 <td>
@@ -73,16 +76,18 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+                <td>Copies production resources into the production classes directory.</td>
             </tr>
             <tr>
                 <td>
                     <literal>compile</literal>
                 </td>
                 <td>
-                    All compilation tasks in the project, including <literal>compileJava</literal> and <literal>processResources</literal>.
+                    <literal>compileJava</literal> and <literal>processResources</literal>.
                     Some plugins add additional compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Assembles the production classes directory.</td>
             </tr>
             <tr>
                 <td>
@@ -92,6 +97,7 @@
                     <literal>compile</literal>, plus all tasks which produce the test compile classpath.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td>Compiles test Java source files using javac.</td>
             </tr>
             <tr>
                 <td>
@@ -99,16 +105,18 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+                <td>Copies test resources into the test classes directory.</td>
             </tr>
             <tr>
                 <td>
                     <literal>compileTest</literal>
                 </td>
                 <td>
-                    All test compilation tasks in the project, including <literal>compileTestJava</literal> and <literal>processTestResources</literal>.
+                    <literal>compileTestJava</literal> and <literal>processTestResources</literal>.
                     Some plugins add additional test compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Assembles the test classes directory.</td>
             </tr>
             <tr>
                 <td>
@@ -118,13 +126,15 @@
                     <literal>compile</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/></td>
+                <td>Assembles the JAR file</td>
             </tr>
             <tr>
                 <td>
                     <literal>javadoc</literal>
                 </td>
-                <literal>compile</literal>
+                <td><literal>compile</literal></td>
                 <td><apilink class="org.gradle.api.tasks.javadoc.Javadoc"/></td>
+                <td>Generates API documentation for the production Java source, using Javadoc </td>
             </tr>
             <tr>
                 <td>
@@ -136,6 +146,7 @@
                     plus all tasks which produce the test runtime classpath.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
+                <td>Runs the unit tests using JUnit or TestNG.</td>
             </tr>
             <tr>
                 <td>
@@ -145,6 +156,7 @@
                     The tasks which produce the artifacts in the <literal>archives</literal> configuration, including <literal>jar</literal>.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
+                <td>Uploads the artifacts in the <literal>archives</literal> configuration, including the JAR file.</td>
             </tr>
         </table>
 
@@ -156,6 +168,7 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
@@ -166,6 +179,7 @@
                     All tasks which produce the source set's compile classpath.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.compile.Compile"/></td>
+                <td>Compiles the given source set's Java source files using javac.</td>
             </tr>
             <tr>
                 <td>
@@ -173,18 +187,19 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+                <td>Copies the given source set's resources into the classes directory.</td>
             </tr>
             <tr>
                 <td>
                     <literal>compile<replaceable>SourceSet</replaceable></literal>
                 </td>
                 <td>
-                    All compilation tasks for the source set, including
                     <literal>compile<replaceable>SourceSet</replaceable>Java</literal> and
                     <literal>process<replaceable>SourceSet</replaceable>Resources</literal>.
-                    Other plugins may add additional compilation tasks for the source set.
+                    Some plugins add additional compilation tasks for the source set.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Assembles the given source set's classes directory.</td>
             </tr>
         </table>
         
@@ -197,6 +212,7 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
@@ -204,20 +220,22 @@
                     <literal>assemble</literal>
                 </td>
                 <td>
-                    All archive tasks in the project, including <literal>jar</literal>. Other plugins may add additional
+                    All archive tasks in the project, including <literal>jar</literal>. Some plugins add additional
                     archive tasks to the project.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Assembles all the archives in the project.</td>
             </tr>
             <tr>
                 <td>
                     <literal>check</literal>
                 </td>
                 <td>
-                    All verification tasks in the project, including <literal>test</literal>. Other plugins may add
+                    All verification tasks in the project, including <literal>test</literal>. Some plugins add
                     additional verification tasks to the project.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Performs all verification tasks in the project.</td>
             </tr>
             <tr>
                 <td>
@@ -227,6 +245,7 @@
                     <literal>check</literal> and <literal>assemble</literal>
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Performs a full build of the project.</td>
             </tr>
             <tr>
                 <td>
@@ -237,6 +256,7 @@
                     <literal>testRuntime</literal> configuration.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Performs a full build of the project and all projects it depends on.</td>
             </tr>
             <tr>
                 <td>
@@ -247,6 +267,7 @@
                     dependency on this project in a <literal>testRuntime</literal> configuration.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Performs a full build of the project and all projects which depend on it.</td>
             </tr>
             <tr>
                 <td>
@@ -256,6 +277,7 @@
                     The tasks which produce the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Assembles the artifacts in the specified configuration.</td>
             </tr>
             <tr>
                 <td>
@@ -265,6 +287,7 @@
                     The tasks which uploads the artifacts in configuration <replaceable>ConfigurationName</replaceable>.
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
+                <td>Assembles and uploads the artifacts in the specified configuration.</td>
             </tr>
         </table>
 

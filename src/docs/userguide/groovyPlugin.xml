@@ -23,7 +23,7 @@
                 <literal>javac</literal>. In particular as you would have to supply a groovy jar for doing this.
             </para>
         </footnote>
-        The Groovy plugin supports joint compilation of Java nad Groovy. This means that your project can contain Groovy
+        The Groovy plugin supports joint compilation of Java and Groovy. This means that your project can contain Groovy
         classes which use Java classes, and vice versa.
     </para>
 
@@ -37,27 +37,32 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
                 <td><literal>compileGroovy</literal></td>
                 <td><literal>compileJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
+                <td>Compiles production Groovy source files using groovyc.</td>
             </tr>
             <tr>
                 <td><literal>compileTestGroovy</literal></td>
                 <td><literal>compileTestJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
+                <td>Compiles test Groovy source files using groovyc.</td>
             </tr>
             <tr>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Groovy</literal></td>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
                 <td><apilink class="org.gradle.api.tasks.compile.GroovyCompile"/></td>
+                <td>Compiles the given source set's Groovy source files using groovyc.</td>
             </tr>
             <tr>
                 <td><literal>groovydoc</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.javadoc.Groovydoc"/></td>
+                <td>Generates API documentation for the production Groovy source files using groovydoc.</td>
             </tr>
         </table>
         <para>The Groovy plugin adds the following dependencies to tasks added by the Java plugin.</para>

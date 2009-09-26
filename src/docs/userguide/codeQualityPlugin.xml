@@ -34,22 +34,32 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
-                <td>checkstyleMain</td>
+                <td>
+                    <literal>checkstyleMain</literal>
+                </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
+                <td>Runs Checkstyle against the production Java source files.</td>
             </tr>
             <tr>
-                <td>checkstyleTest</td>
+                <td>
+                    <literal>checkstyleTest</literal>
+                </td>
                 <td><literal>compile</literal></td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
+                <td>Runs Checkstyle against the test Java source files.</td>
             </tr>
             <tr>
-                <td>checkstyle<replaceable>SourceSet</replaceable></td>
+                <td>
+                    <literal>checkstyle<replaceable>SourceSet</replaceable></literal>
+                </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
+                <td>Runs Checkstyle against the given source set's Java source files.</td>
             </tr>
         </table>
 
@@ -62,22 +72,26 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
                 <td>codenarcMain</td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
+                <td>Runs CodeNarc against the production Groovy source files.</td>
             </tr>
             <tr>
                 <td>codenarcTest</td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
+                <td>Runs CodeNarc against the test Groovy source files.</td>
             </tr>
             <tr>
                 <td>codenarc<replaceable>SourceSet</replaceable></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
+                <td>Runs CodeNarc against the given source set's Groovy source files.</td>
             </tr>
         </table>
         <para>The Code quality plugin adds the following dependencies to tasks added by the Java plugin.</para>

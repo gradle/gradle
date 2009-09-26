@@ -29,12 +29,18 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
-                <td>war</td>
-                <td>compile</td>
+                <td>
+                    <literal>war</literal>
+                </td>
+                <td>
+                    <literal>compile</literal>
+                </td>
                 <td><apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/></td>
+                <td>Assembles the application WAR file.</td>
             </tr>
         </table>
         <para>The War plugin adds the following dependencies to tasks added by the Java plugin.</para>

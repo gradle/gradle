@@ -36,6 +36,7 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
@@ -44,6 +45,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.diagnostics.DependencyReportTask"/></td>
+                <td>Generates the project dependency report.</td>
             </tr>
             <tr>
                 <td>
@@ -51,6 +53,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.diagnostics.PropertyReportTask"/></td>
+                <td>Generates the project property report.</td>
             </tr>
             <tr>
                 <td>
@@ -58,6 +61,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.diagnostics.TaskReportTask"/></td>
+                <td>Generates the project task report.</td>
             </tr>
             <tr>
                 <td>
@@ -67,6 +71,7 @@
                     <literal>dependencyReport</literal>, <literal>propertyReport</literal>, <literal>taskReport</literal>
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Generates all project reports.</td>
             </tr>
         </table>
     </section>

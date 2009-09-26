@@ -505,7 +505,13 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
     println "transforming html -> pdf, using ${System.getProperty('java.vm.version')}"
 
     def uris = configurations.userGuideTask.files.collect {it.toURI().toURL()}
+
+    println "using classpath $uris"
+
     def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
+
+    println "classloader constructed"
+
     def renderer = classloader.loadClass('org.xhtmlrenderer.pdf.ITextRenderer').newInstance()
 
     println "clases loaded"

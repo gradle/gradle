@@ -30,6 +30,7 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
@@ -40,6 +41,7 @@
                     <literal>compile</literal>
                 </td>
                 <td><apilink class="org.gradle.api.plugins.jetty.JettyRun"/></td>
+                <td>Starts a Jetty instance and deploys the exploded web application to it.</td>
             </tr>
             <tr>
                 <td>
@@ -49,6 +51,7 @@
                     <literal>war</literal>
                 </td>
                 <td><apilink class="org.gradle.api.plugins.jetty.JettyRunWar"/></td>
+                <td>Starts a Jetty instance and deploys the WAR to it.</td>
             </tr>
             <tr>
                 <td>
@@ -56,6 +59,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.jetty.JettyStop"/></td>
+                <td>Stops the Jetty instance.</td>
             </tr>
         </table>
         <figure>

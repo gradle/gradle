@@ -32,27 +32,32 @@
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
                 <td><literal>compileScala</literal></td>
                 <td><literal>compileJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
+                <td>Compiles production Scala source files using scalac.</td>
             </tr>
             <tr>
                 <td><literal>compileTestScala</literal></td>
                 <td><literal>compileTestJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
+                <td>Compiles test Scala source files using scalac.</td>
             </tr>
             <tr>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Scala</literal></td>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
+                <td>Compiles the given source set's Scala source files using scalac.</td>
             </tr>
             <tr>
                 <td><literal>scaladoc</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaDoc"/></td>
+                <td>Generates API documentation for the production Scala source files using scaladoc.</td>
             </tr>
         </table>
         <para>The Scala plugin adds the following dependencies to tasks added by the Java plugin.</para>
@@ -63,16 +68,28 @@
                 <td>Depends on</td>
             </thead>
             <tr>
-                <td>compile</td>
-                <td>compileScala</td>
+                <td>
+                    <literal>compile</literal>
+                </td>
+                <td>
+                    <literal>compileScala</literal>
+                </td>
             </tr>
             <tr>
-                <td>compileTest</td>
-                <td>compileTestScala</td>
+                <td>
+                    <literal>compileTest</literal>
+                </td>
+                <td>
+                    <literal>compileTestScala</literal>
+                </td>
             </tr>
             <tr>
-                <td>compile<replaceable>SourceSet</replaceable></td>
-                <td>compile<replaceable>SourceSet</replaceable>Scala</td>
+                <td>
+                    <literal>compile<replaceable>SourceSet</replaceable></literal>
+                </td>
+                <td>
+                    <literal>compile<replaceable>SourceSet</replaceable>Scala</literal>
+                </td>
             </tr>
         </table>
         <figure>
