@@ -128,6 +128,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
     private DynamicObjectHelper dynamicObjectHelper;
+    private boolean nagged;
 
     public AbstractProject(String name) {
         this.name = name;
@@ -569,6 +570,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Task createTask(Map args, String name, Closure action) {
+        warnDeprecated();
         Map<String, Object> allArgs = new HashMap<String, Object>(args);
         allArgs.put(Task.TASK_NAME, name);
         allArgs.put(Task.TASK_ACTION, action);
@@ -576,12 +578,20 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Task createTask(Map args, String name, TaskAction action) {
+        warnDeprecated();
         Map<String, Object> allArgs = new HashMap<String, Object>(args);
         allArgs.put(Task.TASK_NAME, name);
         if (action != null) {
             allArgs.put(Task.TASK_ACTION, action);
         }
         return taskContainer.add(allArgs);
+    }
+
+    private void warnDeprecated() {
+        if (!nagged) {
+            logger.warn("The Project.createTask() method is deprecated and will be removed in the next version of Gradle. You should use the task() method instead.");
+            nagged = true;
+        }
     }
 
     public void addChildProject(ProjectInternal childProject) {

@@ -120,14 +120,14 @@ class DefaultProject extends AbstractProject {
     /**
      * Adds a task with the given name and options. This is called by the task creation DSL.
      */
-    public Task task(Map<String, ?> options, String task) {
+    public Task task(Map options, String task) {
         tasks.add(options + [name: task])
     }
 
     /**
      * Adds a task with the given name, options and configure closure. This is called by the task creation DSL.
      */
-    public Task task(Map<String, ?> options, String task, Closure configureClosure) {
+    public Task task(Map options, String task, Closure configureClosure) {
         tasks.add(options + [name: task]).configure(configureClosure)
     }
 
