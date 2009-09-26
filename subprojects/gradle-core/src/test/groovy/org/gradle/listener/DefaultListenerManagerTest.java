@@ -21,6 +21,7 @@ import static org.junit.Assert.assertThat;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
+import org.jmock.Sequence;
 import static org.hamcrest.Matchers.equalTo;
 
 @RunWith(JMock.class)
@@ -30,23 +31,30 @@ public class DefaultListenerManagerTest {
 
     private final TestFooListener fooListener1 = context.mock(TestFooListener.class, "foo listener 1");
     private final TestFooListener fooListener2 = context.mock(TestFooListener.class, "foo listener 2");
+    private final TestFooListener fooListener3 = context.mock(TestFooListener.class, "foo listener 3");
+    private final TestFooListener fooListener4 = context.mock(TestFooListener.class, "foo listener 4");
     private final TestBarListener barListener1 = context.mock(TestBarListener.class, "bar listener 1");
 
     @Test
-    public void addedListenersGetMessages() {
+    public void addedListenersGetMessagesInOrderAdded() {
         context.checking(new Expectations() {{
-            one(fooListener1).foo("param");
-            one(fooListener2).foo("param");
+            Sequence sequence = context.sequence("sequence");
+            one(fooListener1).foo("param"); inSequence(sequence);
+            one(fooListener2).foo("param"); inSequence(sequence);
+            one(fooListener3).foo("param"); inSequence(sequence);
+            one(fooListener4).foo("param"); inSequence(sequence);
         }});
 
         manager.addListener(fooListener1);
         manager.addListener(barListener1);
+        manager.addListener(fooListener2);
+        manager.addListener(fooListener3);
 
         // get the broadcaster and then add more listeners (because broadcasters
         // are cached and so must be maintained correctly after getting defined
         TestFooListener broadcaster = manager.getBroadcaster(TestFooListener.class);
 
-        manager.addListener(fooListener2);
+        manager.addListener(fooListener4);
 
         assertThat(manager.getBroadcaster(TestFooListener.class), equalTo(broadcaster));
         broadcaster.foo("param");

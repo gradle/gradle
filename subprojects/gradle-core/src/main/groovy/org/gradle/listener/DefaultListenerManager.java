@@ -18,14 +18,11 @@ package org.gradle.listener;
 
 import groovy.lang.Closure;
 
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 
-@SuppressWarnings({ "unchecked" })
+@SuppressWarnings({"unchecked"})
 public class DefaultListenerManager implements ListenerManager {
-    private final Set allListeners = new HashSet();
+    private final Set<Object> allListeners = new LinkedHashSet<Object>();
     private final Map<Class<?>, ListenerBroadcast> broadcasterCache = new HashMap<Class<?>, ListenerBroadcast>();
 
     public void addListener(Object listener) {
@@ -97,19 +94,18 @@ public class DefaultListenerManager implements ListenerManager {
             if (broadcaster.getType().isAssignableFrom(closureListener.listenerType)) {
                 broadcaster.add(closureListener.method, closureListener.closure);
             }
-        }
-        else if (broadcaster.getType().isAssignableFrom(listener.getClass())) {
+        } else if (broadcaster.getType().isAssignableFrom(listener.getClass())) {
             broadcaster.add(listener);
         }
     }
 
     private void removeFromBroadcasterIfTypeMatches(ListenerBroadcast broadcaster, Object listener) {
-        if (broadcaster.getType().isAssignableFrom(listener.getClass()))
+        if (broadcaster.getType().isAssignableFrom(listener.getClass())) {
             broadcaster.remove(listener);
+        }
     }
 
-    private static class ClosureListener
-    {
+    private static class ClosureListener {
         final Class<?> listenerType;
         final String method;
         final Closure closure;
