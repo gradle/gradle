@@ -313,9 +313,9 @@
             those configurations to tasks such as <literal>compileJava</literal> and <literal>test</literal>.
             To learn more about configurations see <xref linkend="sub:configurations"/> and
             <xref linkend="artifacts_and_configurations"/>. Note also that transitive dependencies
-            are disabled by default for the compile configuration. This can be overridden by setting
-            <literal>configurations.compile.transitive = true</literal>.
+            are disabled by default for the compile configuration. This can be overridden using:
         </para>
+        <programlisting>configurations.compile.transitive = true</programlisting>
         <table id='tab:configurations'>
             <title>Java plugin - dependency configurations</title>
             <thead>
@@ -645,10 +645,175 @@
         <sample id="defineSourceSet" dir="userguide/java/sourceSets" title="Defining a source set">
             <sourcefile file="build.gradle" snippet="define-source-set"/>
         </sample>
+
+        <section>
+            <title>Source set properties</title>
+            <para>The following table lists some of the important properties of a source set.
+                You can find more details in the API documentation for <apilink class="org.gradle.api.tasks.SourceSet"/>.
+            </para>
+            <table>
+                <title>Java plugin - source set properties</title>
+                <thead>
+                    <tr>
+                        <td>Property name</td>
+                        <td>Type</td>
+                        <td>Default value</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>
+                        <literal>name</literal>
+                    </td>
+                    <td>
+                        <classname>String</classname> (read-only)
+                    </td>
+                    <td>
+                        Not null
+                    </td>
+                    <td>
+                        The name of the source set, used to identify it.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>classesDir</literal>
+                    </td>
+                    <td>
+                        <classname>File</classname>
+                    </td>
+                    <td>
+                        <literal><replaceable>buildDir</replaceable>/classes/<replaceable>name</replaceable></literal>
+                    </td>
+                    <td>
+                        The directory to generate the classes of this source set into.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>compileClasspath</literal>
+                    </td>
+                    <td>
+                        <apilink class="org.gradle.api.file.FileCollection"/>
+                    </td>
+                    <td>
+                        <literal>compile</literal> Configuration.
+                    </td>
+                    <td>
+                        The classpath to use when compiling the source files of this source set.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>runtimeClasspath</literal>
+                    </td>
+                    <td>
+                        <apilink class="org.gradle.api.file.FileCollection"/>
+                    </td>
+                    <td>
+                        <literal>classesDir</literal> + <literal>runtime</literal> Configuration.
+                    </td>
+                    <td>
+                        The classpath to use when executing the classes of this source set.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>java</literal>
+                    </td>
+                    <td>
+                        <apilink class="org.gradle.api.file.SourceDirectorySet"/> (read-only)
+                    </td>
+                    <td>
+                        Not null
+                    </td>
+                    <td>
+                        The Java source files of this source set. Contains only <filename>.java</filename> files
+                        found in the Java source directories, and excludes all other files.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>java.srcDirs</literal>
+                    </td>
+                    <td>
+                        <classname>Set&lt;File></classname>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.
+                    </td>
+                    <td>
+                        <literal>[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/java]</literal>
+                    </td>
+                    <td>
+                        The source directories containing the Java source files of this source set.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>resources</literal>
+                    </td>
+                    <td>
+                        <apilink class="org.gradle.api.file.SourceDirectorySet"/> (read-only)
+                    </td>
+                    <td>
+                        Not null
+                    </td>
+                    <td>
+                        The resources of this source set. Contains only resources, and excludes any
+                        <filename>.java</filename> files found in the resource source directories. Other plugins,
+                        such as the Groovy plugin, exclude additional types of files from this collection.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>resources.srcDirs</literal>
+                    </td>
+                    <td>
+                        <classname>Set&lt;File></classname>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.
+                    </td>
+                    <td>
+                        <literal>[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/resources]</literal>
+                    </td>
+                    <td>
+                        The source directories containing the resources of this source set.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>allJava</literal>
+                    </td>
+                    <td>
+                        <apilink class="org.gradle.api.file.FileTree"/> (read-only)
+                    </td>
+                    <td>
+                        <literal>java</literal>
+                    </td>
+                    <td>
+                        All <filename>.java</filename> files of this source set. Some plugins, such as the Groovy plugin,
+                        add additional Java source files to this collection.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>allSource</literal>
+                    </td>
+                    <td>
+                        <apilink class="org.gradle.api.file.FileTree"/> (read-only)
+                    </td>
+                    <td>
+                        <literal>resources + java</literal>
+                    </td>
+                    <td>
+                        All source files of this source set. This include all resource files and all Java source files.
+                        Some plugins, such as the Groovy plugin, add additional source files to this collection.
+                    </td>
+                </tr>
+            </table>
+        </section>
+
         <para>Configuring the source directories of an existing source set.</para>
         <sample id="configureSourceSet" dir="java/customizedLayout" title="Configuring the source directories of a source set">
             <sourcefile file="build.gradle" snippet="define-main"/>
         </sample>
+
         <para>Using configurations to define classpath of source set:</para>
         <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Defining the classpath of a source set">
             <sourcefile file="build.gradle" snippet="classpath-using-configurations"/>
@@ -665,7 +830,6 @@
         <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Running tests in a source set">
             <sourcefile file="build.gradle" snippet="test"/>
         </sample>
-        <para>Each source set instance implements <apilink class="org.gradle.api.tasks.SourceSet"/>.</para>
     </section>
 
     <section id='sec:javadoc'>

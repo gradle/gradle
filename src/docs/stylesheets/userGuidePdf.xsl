@@ -53,8 +53,4 @@
             <xsl:apply-templates select=".." mode="title.markup"/>
         </h1>
     </xsl:template>
-
-    <xsl:template match="para|table|example|imageobject|programlisting|screen">
-    </xsl:template>
-
 </xsl:stylesheet>

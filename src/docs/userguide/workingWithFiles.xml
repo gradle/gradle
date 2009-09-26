@@ -30,6 +30,11 @@
             <sourcefile file="build.gradle"/>
         </sample>
     </section>
+
+    <section id="sec:specifying_multiple_files">
+        <title>Specifying a set of files</title>
+        <para>TBD</para>
+    </section>
     
     <section id="sec:file_collections">
         <title>File collections</title>

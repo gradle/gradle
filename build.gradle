@@ -494,8 +494,6 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
         }
     }
 
-    println "copying resources"
-
     copy {
         from userguideSrcDir
         into pdfSourceHtml.parentFile
@@ -504,13 +502,21 @@ task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
         include 'images/*.png'
     }
 
-    println "transforming html -> pdf"
+    println "transforming html -> pdf, using ${System.getProperty('java.vm.version')}"
 
     def uris = configurations.userGuideTask.files.collect {it.toURI().toURL()}
     def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
     def renderer = classloader.loadClass('org.xhtmlrenderer.pdf.ITextRenderer').newInstance()
+
+    println "clases loaded"
+
     renderer.setDocument(pdfSourceHtml)
+
+    println "document loaded"
+
     renderer.layout()
+
+    println "layout done"
 
     userguidePdfFile.withOutputStream {
         renderer.createPDF(it)

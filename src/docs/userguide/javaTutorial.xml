@@ -17,11 +17,12 @@
     <title>Java Quickstart</title>
 
     <para>As we have seen, Gradle is a general-purpose build tool. It can build pretty much anything you care to
-        implement in your build script. Out-of-the-box, however, it doesn't build anything unless you code it up in the
-        build script. This isn't very useful, particularly if you have a lot of very similar projects you wish to build.
+        implement in your build script. Out-of-the-box, however, it doesn't build anything unless you write code in your
+        build script. This isn't very useful, particularly if you have several very similar projects you wish to build.
         Gradle solves this problem through the use <firstterm>plugins</firstterm>. A plugin is an extension to Gradle
-        which configures your project in some way, typically by adding a bunch of pre-configured tasks which do
-        something useful. Gradle includes a number of plugins, and you can easily write your own and share them with others.
+        which configures your project in some way, typically by adding a bunch of pre-configured tasks which together do
+        something useful. Gradle ships with a number of plugins, and you can easily write your own and share them with
+        others.
     </para>
 
     <para>One such plugin is the <firstterm>Java Plugin</firstterm>. This plugin adds some tasks to your

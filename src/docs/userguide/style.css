@@ -157,6 +157,7 @@ pre {
 
 .table table td {
     text-align: left;
+    vertical-align: text-top;
     padding-left: 0.8em;
     padding-right: 0.8em;
     padding-top: 0.3em;

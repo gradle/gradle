@@ -16,7 +16,7 @@
 <chapter id="code_quality_plugin">
     <title>The Code Quality Plugin</title>
 
-    <para>The code quality plugin extends the Java and Groovy plugins to add code quality checking tasks and reports.
+    <para>The code quality plugin adds tasks which perform code quality checks and generate reports from these checks.
         The following tools are supported:
         <itemizedlist>
             <listitem><para><ulink url="http://checkstyle.sourceforge.net/index.html">Checkstyle</ulink></para></listitem>
@@ -26,9 +26,9 @@
 
     <section>
         <title>Tasks</title>
-        <para>The code quality plugin adds the following tasks to the project.</para>
+        <para>When used with the Java plugin, the code quality plugin adds the following tasks to the project:</para>
         <table>
-            <title>Code quality plugin - tasks</title>
+            <title>Code quality plugin - Java tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -42,24 +42,37 @@
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
             </tr>
             <tr>
-                <td>codenarcMain</td>
-                <td>-</td>
-                <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
-            </tr>
-            <tr>
                 <td>checkstyleTest</td>
                 <td><literal>compile</literal></td>
                 <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
             </tr>
             <tr>
-                <td>codenarcTest</td>
+                <td>checkstyle<replaceable>SourceSet</replaceable></td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
+            </tr>
+        </table>
+
+        <para>When used with the Groovy plugin, the code quality plugin adds the following tasks to the project:</para>
+
+        <table>
+            <title>Code quality plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>codenarcMain</td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
             </tr>
             <tr>
-                <td>checkstyle<replaceable>SourceSet</replaceable></td>
+                <td>codenarcTest</td>
                 <td>-</td>
-                <td><apilink class="org.gradle.api.plugins.quality.Checkstyle"/></td>
+                <td><apilink class="org.gradle.api.plugins.quality.CodeNarc"/></td>
             </tr>
             <tr>
                 <td>codenarc<replaceable>SourceSet</replaceable></td>
@@ -76,12 +89,10 @@
             </thead>
             <tr>
                 <td>check</td>
-                <td><literal>checkstyleMain</literal>,
+                <td>All Checkstyle and CodeNarc tasks, including <literal>checkstyleMain</literal>,
                     <literal>checkstyleTest</literal>,
-                    <literal>checkstyle<replaceable>SourceSet</replaceable></literal>,
-                    <literal>codenarcMain</literal>,
+                    <literal>codenarcMain</literal> and
                     <literal>codenarcTest</literal>
-                    <literal>codenarc<replaceable>SourceSet</replaceable></literal>
                 </td>
             </tr>
         </table>
@@ -95,6 +106,7 @@
 
     <section>
         <title>Project layout</title>
+        <para>The code quality plugin expects the following project layout:</para>
         <table>
             <title>Code quality plugin - project layout</title>
             <thead>
@@ -125,8 +137,9 @@
 
     <section>
         <title>Convention properties</title>
-        <para>The code quality plugin adds the following convention properties:</para>
+        <para>When used with the Java plugin, the code quality plugin adds the following convention properties to the project:</para>
         <table>
+            <title>Code quality plugin - convention properties</title>
             <thead>
                 <tr>
                     <td>Property name</td>
@@ -191,6 +204,23 @@
                     The directory to generate Checkstyle results into.
                 </td>
             </tr>
+        </table>
+
+        <para>These convention properties are provided by a convention object of type
+            <apilink class="org.gradle.api.plugins.quality.JavaCodeQualityPluginConvention" lang="groovy"/>.</para>
+
+        <para>When used with the Groovy plugin, the code quality plugin adds the following convention properties to the project:</para>
+
+        <table>
+            <title>Code quality plugin - convention properties</title>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Type</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
             <tr>
                 <td>
                     <literal>codeNarcConfigFileName</literal>
@@ -249,8 +279,7 @@
             </tr>
         </table>
 
-        <para>These convention properties are provided by convention objects of type
-            <apilink class="org.gradle.api.plugins.quality.JavaCodeQualityPluginConvention" lang="groovy"/> and 
+        <para>These convention properties are provided by a convention object of type
             <apilink class="org.gradle.api.plugins.quality.GroovyCodeQualityPluginConvention" lang="groovy"/>.</para>
     </section>
 

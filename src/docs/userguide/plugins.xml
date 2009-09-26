@@ -14,12 +14,10 @@
   ~ limitations under the License.
   -->
 <chapter id='plugins' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>Plugins</title>
-    <para>Now we look at
-        <emphasis>how</emphasis>
-        Gradle provides build-by-convention and out of the box functionality. These features are decoupled from the core
-        of Gradle, and are provided via plugins. Although the plugins are decoupled, we would like to point out that
-        the Gradle core plugins are NEVER updated or changed for a
+    <title>Using Plugins</title>
+    <para>Now we look at <emphasis>how</emphasis> Gradle provides build-by-convention and out of the box functionality.
+        These features are decoupled from the core of Gradle, and are provided via plugins. Although the plugins are
+        decoupled, we would like to point out that the Gradle core plugins are NEVER updated or changed for a
         particular Gradle distribution. If there is a bug in the compile functionality of Gradle, we will release a new
         version of Gradle. There is no change of behavior for the lifetime of a given distribution of Gradle.
     </para>
