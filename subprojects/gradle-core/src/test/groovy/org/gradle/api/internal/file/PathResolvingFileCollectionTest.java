@@ -169,7 +169,7 @@ public class PathResolvingFileCollectionTest {
     }
 
     @Test
-    public void canUseNestedClosuresAndCollectionsToSpecifyTheContentsOfTheCollection() {
+    public void canUseAnArrayToSpecifyTheContentsOfTheCollection() {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
@@ -180,7 +180,23 @@ public class PathResolvingFileCollectionTest {
             will(returnValue(file2));
         }});
 
-        collection.from(HelperUtil.toClosure("{[{['src1', { 'src2' }]}]}"));
+        collection.from((Object)toArray("src1", "src2"));
+        assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
+    }
+
+    @Test
+    public void canUseNestedObjectsToSpecifyTheContentsOfTheCollection() {
+        final File file1 = new File("1");
+        final File file2 = new File("2");
+
+        context.checking(new Expectations() {{
+            allowing(resolverMock).resolve("src1");
+            will(returnValue(file1));
+            allowing(resolverMock).resolve("src2");
+            will(returnValue(file2));
+        }});
+
+        collection.from(HelperUtil.toClosure("{[{['src1', { ['src2'] as String[] }]}]}"));
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
     }
 

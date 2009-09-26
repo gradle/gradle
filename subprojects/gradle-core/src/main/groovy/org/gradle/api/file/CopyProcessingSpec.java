@@ -25,6 +25,7 @@ public interface CopyProcessingSpec {
      * Specifies the destination directory for a copy.
      * The path is evaluated relative to the project directory.
      * @param destPath Path to the destination directory for a Copy
+     * @return this
      */
     CopyProcessingSpec into(Object destPath);
 
@@ -35,6 +36,7 @@ public interface CopyProcessingSpec {
      * from the destination directory that the source file has from its source
      * directory.  The closure should return a File object with a new target destination.
      * @param closure remap closure
+     * @return this
      */
     CopyProcessingSpec remapTarget(Closure closure);
 
@@ -52,6 +54,7 @@ public interface CopyProcessingSpec {
      * would map the file 'style_OEM_BLUE_.css' to 'style.css'
      * @param sourceRegEx Source regular expression
      * @param replaceWith Replacement string (use $ syntax for capture groups)
+     * @return this
      */
     CopyProcessingSpec rename(String sourceRegEx, String replaceWith);
 
@@ -70,6 +73,7 @@ public interface CopyProcessingSpec {
      * </pre>
      * @param map map of filter parameters
      * @param filterType Class of filter to add
+     * @return this
      */
     CopyProcessingSpec filter(Map<String, Object> map, Class<FilterReader> filterType);
 
@@ -85,6 +89,7 @@ public interface CopyProcessingSpec {
      *    filter(com.mycompany.project.CustomFilter)
      * </pre>
      * @param filterType Class of filter to add
+     * @return this
      */
     CopyProcessingSpec filter(Class<FilterReader> filterType);
 
@@ -92,6 +97,7 @@ public interface CopyProcessingSpec {
      * Adds a content filter based on the provided closure.  The Closure will be called with each line
      * (stripped of line endings) and should return a String to replace the line. 
      * @param closure to implement line based filtering
+     * @return this
      */
     CopyProcessingSpec filter(Closure closure); 
 }

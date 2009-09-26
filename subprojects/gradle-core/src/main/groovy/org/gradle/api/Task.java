@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,8 +84,8 @@ import java.util.Set;
  *
  * <li>A {@link Buildable} object.</li>
  *
- * <li>A {@code Collection} or {@code Map}. The collection or map may contain any of the types listed here. The elements
- * of the collection/map are recursively converted to tasks.</li>
+ * <li>A {@code Collection}, {@code Map} or an array. May contain any of the types listed here. The elements of the
+ * collection/map/array are recursively converted to tasks.</li>
  *
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>

@@ -768,8 +768,8 @@ public interface Project extends Comparable<Project> {
      *
      * <li>A {@code String}. Interpreted relative to the project directory, as a call to {@link #file(Object)}.</li>
      *
-     * <li>A {@code Collection}. May contain any of the types listed here. The elements of the collection are
-     * recursively converted to files.</li>
+     * <li>A {@code Collection} or an array. May contain any of the types listed here. The elements of the collection
+     * are recursively converted to files.</li>
      *
      * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned
      * collection.</li>
@@ -789,6 +789,8 @@ public interface Project extends Comparable<Project> {
      * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
      * of the collection is queried.</p>
+     *
+     * <p>The returned file collection maintains the iteration order of the supplied paths.</p>
      *
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.

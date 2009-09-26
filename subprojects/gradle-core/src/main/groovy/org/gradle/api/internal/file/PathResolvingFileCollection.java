@@ -114,6 +114,9 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
             } else if (first instanceof Collection) {
                 Collection<?> collection = (Collection<?>) first;
                 queue.addAll(0, collection);
+            } else if (first instanceof Object[]) {
+                Object[] array = (Object[]) first;
+                queue.addAll(0, Arrays.asList(array));
             } else if (first instanceof Callable) {
                 Callable callable = (Callable) first;
                 Object callableResult;

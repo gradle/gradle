@@ -174,6 +174,13 @@ public class DefaultTaskDependencyTest {
     }
 
     @Test
+    public void flattensArrays() {
+        dependency.add([[otherTask] as Task[]])
+
+        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+    }
+
+    @Test
     public void canNestCollectionsAndMapsAndClosuresAndCallables() {
         Map nestedMap = [task: otherTask]
         List nestedCollection = [nestedMap]
@@ -181,7 +188,8 @@ public class DefaultTaskDependencyTest {
         Closure nestedClosure = {nestedCallable}
         List collection = [nestedClosure]
         Closure closure = {collection}
-        Map map = [key: closure]
+        Object[] array = [closure] as Object[]
+        Map map = [key: array]
         Callable callable = {map} as Callable
         dependency.add(callable)
 

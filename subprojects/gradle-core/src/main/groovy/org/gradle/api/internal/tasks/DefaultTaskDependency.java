@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,9 @@ public class DefaultTaskDependency implements TaskDependency {
             } else if (dependency instanceof Map) {
                 Map<?, ?> map = (Map) dependency;
                 queue.addAll(0, map.values());
+            } else if (dependency instanceof Object[]) {
+                Object[] array = (Object[]) dependency;
+                queue.addAll(0, Arrays.asList(array));
             } else if (dependency instanceof Callable) {
                 Callable callable = (Callable) dependency;
                 Object callableResult;
