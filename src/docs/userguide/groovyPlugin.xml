@@ -172,11 +172,14 @@
 
     <section>
         <title>Convention properties</title>
-        <para>The Groovy plugin does not add any convention properties.</para>
+        <para>The Groovy plugin does not add any convention properties to the project.</para>
     </section>
 
     <section>
         <title>Source set properties</title>
+        <para>The Groovy plugin adds the following convention properties to each source set in the project. You can
+            use these properties in your build script as though they were properties of the source set object (see
+            <xref linkend="sub:more_about_convention_objects"/>).</para>
         <table>
             <title>Groovy plugin - source set properties</title>
             <thead>
@@ -261,45 +264,49 @@
     </section>
 
     <section id='sec:groovyCompile'>
-        <title>Compile</title>
-        <para>The
-            <emphasis>GroovyCompile</emphasis>
-            task has two instances,
-            <literal>compile</literal>
-            and <literal>compileTest</literal>. The task type extends the
-            <literal>Compile</literal>
-            task (see <xref linkend='sec:compile'/>)
+        <title>CompileGroovy</title>
+        <para>The Groovy plugin adds a <apilink class="org.gradle.api.tasks.compile.GroovyCompile"/> instance for
+            each source set in the project. The task type extends the <literal>Compile</literal>
+            task (see <xref linkend='sec:compile'/>). The compile task delegates to the Ant Groovyc task to do the
+            compile. Via the compile task you can set most of the properties of Ants Groovyc task.
         </para>
         <table>
-            <title>Groovy Convention Object - source directory properties</title>
+            <title>Groovy plugin - CompileGroovy properties</title>
             <thead>
                 <tr>
-                    <td>Task Instance</td>
                     <td>Task Property</td>
-                    <td>Convention Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
                 </tr>
             </thead>
             <tr>
-                <td>compile</td>
-                <td>groovySourceDirs</td>
-                <td>groovySrcDirs</td>
+                <td>
+                    <literal>classpath</literal>
+                </td>
+                <td><apilink class="org.gradle.api.file.FileCollection"/></td>
+                <td><literal><replaceable>sourceSet</replaceable>.compileClasspath</literal></td>
             </tr>
             <tr>
-                <td>compileTest</td>
-                <td>groovySourceDirs</td>
-                <td>groovyTestSrcDirs</td>
+                <td>
+                    <literal>source</literal>
+                </td>
+                <td><apilink class="org.gradle.api.file.FileTree"/>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.</td>
+                <td><literal><replaceable>sourceSet</replaceable>.groovy</literal></td>
             </tr>
-
+            <tr>
+                <td>
+                    <literal>destinationDir</literal>
+                </td>
+                <td><classname>File</classname>.</td>
+                <td><literal><replaceable>sourceSet</replaceable>.classesDir</literal></td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>groovyClasspath</literal>
+                </td>
+                <td><apilink class="org.gradle.api.file.FileCollection"/></td>
+                <td><literal>groovy</literal> configuration</td>
+            </tr>
         </table>
-        <para>Have a look at <apilink class='org.gradle.api.tasks.compile.GroovyCompile'/>
-            to learn about the details. The compile task delegates to the Ant Groovyc task to do the compile. Via the
-            compile task you can set most of the properties of Ants Groovyc task.
-        </para>
-    </section>
-    <section id='sec:test'>
-        <title>Test</title>
-        <para>In contrast to the Java plugin the fork mode is set to once by default, because of the significant startup
-            time of Groovy. The Java plugin uses per test as fork mode (see <xref linkend='sec:java_test'/>).
-        </para>
     </section>
 </chapter>

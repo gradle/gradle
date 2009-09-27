@@ -2,4 +2,5 @@ usePlugin 'java'
 
 task show << {
     println relativePath(compileJava.destinationDir)
+    println relativePath(processResources.destinationDir)
 }

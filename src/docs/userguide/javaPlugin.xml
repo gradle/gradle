@@ -40,7 +40,7 @@
     
     <section>
         <title>Tasks</title>
-        <para>The Java plugin adds the following tasks to your project.</para>
+        <para>The Java plugin adds a number of tasks to your project, as shown below.</para>
 
         <table>
             <title>Java plugin - tasks</title>
@@ -203,7 +203,7 @@
             </tr>
         </table>
         
-        <para>The Java plugin also adds a number of lifecycle tasks:</para>
+        <para>The Java plugin also adds a number of tasks which form a lifecycle for the project:</para>
 
         <table>
             <title>Java plugin - lifecycle tasks</title>
@@ -303,9 +303,8 @@
 
     <section>
         <title>Project layout</title>
-        <para>The Java plugin assumes the project layout shown in <xref linkend='javalayout'/>. None of these
-            directories need exist or have anything in them. The Java plugin will compile whatever it finds, and
-            handles anything which is missing.
+        <para>The Java plugin assumes the project layout shown below. None of these directories need exist or have
+            anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
         </para>
 
         <table id='javalayout'>
@@ -323,7 +322,9 @@
 
         <section>
             <title>Changing the project layout</title>
-            <para>You configure the project layout by configuring the appropriate source set.</para>
+            <para>You configure the project layout by configuring the appropriate source set. This is discussed in
+                more detail in the following sections. Here is a brief example.
+            </para>
             <sample id="customJavaSourceLayout" dir="java/customizedLayout" title="Custom Java source layout">
                 <sourcefile file="build.gradle" snippet="define-main"/>
             </sample>
@@ -398,7 +399,9 @@
     <section>
         <title>Convention properties</title>
         <para>
-            The Java plugin adds the following convention properties to the project:
+            The Java plugin adds a number of convention properties to the project, shown below. You can use these properties
+            in your build script as though they were properties of the project object (see
+            <xref linkend="sub:more_about_convention_objects"/>).
         </para>
 
         <table id='javaconventionDir'>
@@ -857,55 +860,10 @@
 
     <section id='sec:javadoc'>
         <title>Javadoc</title>
-        <para>The
-            <literal>javadoc</literal>
-            task has no default association with any other task. It has no prerequisites on the actions of other tasks,
-            as it operates on the source. We support the core javadoc options and the options of the standard doclet
-            described in the <ulink url='http://java.sun.com/j2se/1.5.0/docs/tooldocs/windows/javadoc.html#referenceguide'>reference documentation</ulink>
+        <para>The <literal>javadoc</literal> task is an instance of <apilink class="org.gradle.api.tasks.javadoc.Javadoc"/>.
+            It supports the core javadoc options and the options of the standard doclet described in the
+            <ulink url='http://java.sun.com/j2se/1.5.0/docs/tooldocs/windows/javadoc.html#referenceguide'>reference documentation</ulink>
             of the Javadoc executable.
-        </para>
-        <para>
-            For some of the Javadoc options we provide defaults these defaults are only used when they are not set explicitly.
-            Except for the sourcepath and classpath option for these options you can in addition to setting your custom values
-            also make it so that the defaults get appended to these paths with the (alwaysAppendDefaultSourcepath and
-            alwaysAppendDefaultClasspath toggles).
-        </para>
-        <table>
-            <title>Javadoc options</title>
-            <thead>
-                <tr>
-                    <td>Javadoc option</td>
-                    <td>Default value</td>
-                    <td>When is the default used</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>destination directory</td>
-                <td>[javadocDir]</td>
-                <td>When the destination directory is not set explicitly</td>
-            </tr>
-            <tr>
-                <td>sourcepath</td>
-                <td>The java or groovy source directories</td>
-                <td>When the sourcepath is empty or when you set the alwaysAppendDefaultSourcepath to true</td>
-            </tr>
-            <tr>
-                <td>classpath</td>
-                <td>The dependencies from the compile configuration + the classesDir</td>
-                <td>When the classpath is empty or when you set the alwaysAppendDefaultClasspath to true</td>
-            </tr>
-            <tr>
-                <td>windowTitle</td>
-                <td>project name + version</td>
-                <td>When the window title is not set explicitly</td>
-            </tr>
-            <tr>
-                <td>subPackages</td>
-                <td>All first level sub directories in the srcDirs</td>
-                <td>When the following options are all empty: packageNames, sourceNames and subPackages</td>
-            </tr>
-        </table>
-        <para>
             For a complete list of supported Javadoc options consult the API documentation of the following classes:
             <apilink class="org.gradle.external.javadoc.CoreJavadocOptions"/> and <apilink class="org.gradle.external.javadoc.StandardJavadocDocletOptions"/>. 
         </para>
@@ -914,178 +872,174 @@
             <thead>
                 <tr>
                     <td>Task Property</td>
-                    <td>Convention Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
                 </tr>
             </thead>
             <tr>
-                <td>srcDirs</td>
-                <td>srcDirs</td>
+                <td>
+                    <literal>classpath</literal>
+                </td>
+                <td><apilink class="org.gradle.api.file.FileCollection"/></td>
+                <td><literal>sourceSets.main.classes + sourceSets.main.compileClasspath</literal></td>
             </tr>
             <tr>
-                <td>classesDir</td>
-                <td>classesDir</td>
+                <td><literal>source</literal></td>
+                <td><apilink class="org.gradle.api.file.FileTree"/>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.</td>
+                <td><literal>sourceSets.main.allJava</literal></td>
             </tr>
             <tr>
-                <td>destinationDir</td>
-                <td>[javadocDir]</td>
+                <td>
+                    <literal>destinationDir</literal>
+                </td>
+                <td><classname>File</classname></td>
+                <td><filename><replaceable>docsDir</replaceable>/javadoc</filename></td>
             </tr>
-
+            <tr>
+                <td>
+                    <literal>title</literal>
+                </td>
+                <td><classname>String</classname></td>
+                <td>The name and version of the project</td>
+            </tr>
         </table>
     </section>
 
     <section id='sec:clean'>
         <title>Clean</title>
-        <para>The
-            <literal>clean</literal>
-            task simply removes the directory denoted by its
-            <literal>dir</literal>
-            property. This property is mapped to the
-            <literal>buildDir</literal>
-            property of the project. In future releases there will be more control of what gets deleted. If you need
-            more control now, you can use the <emphasis>Ant delete task</emphasis>.
+        <para>The <literal>clean</literal> task is an instance of <apilink class="org.gradle.api.tasks.Clean"/>. It
+            simply removes the directory denoted by its <literal>dir</literal>
+            property.
         </para>
+        <table>
+            <title>Java plugin - Clean properties</title>
+            <thead>
+                <tr>
+                    <td>Task Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>dir</literal>
+                </td>
+                <td><classname>File</classname></td>
+                <td><filename><replaceable>buildDir</replaceable></filename></td>
+            </tr>
+        </table>
     </section>
 
     <section id='sec:resources'>
         <title>Resources</title>
-        <para>Gradle uses the
-            <emphasis>Copy</emphasis>
-            task for resource handling. It has two instances,
-            <literal>processResources</literal>
-            and <literal>processTestResources</literal>.
+        <para>The Java plugin uses the <apilink class="org.gradle.api.tasks.Copy"/> task for resource handling. It adds an
+            instance for each source set in the project. You can find out more about the copy task in
+            <xref linkend="sec:copying_files"/>.
         </para>
         <table>
-            <title>Java plugin - processResource properties</title>
+            <title>Java plugin - ProcessResources properties</title>
             <thead>
                 <tr>
-                    <td>Task Instance</td>
                     <td>Task Property</td>
-                    <td>Convention Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
                 </tr>
             </thead>
             <tr>
-                <td>processResources</td>
-                <td>sourceDirs</td>
-                <td>resourceDirs</td>
+                <td>
+                    <literal>srcDirs</literal>
+                </td>
+                <td><classname>Object</classname>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.</td>
+                <td><literal><replaceable>sourceSet</replaceable>.resources</literal></td>
             </tr>
             <tr>
-                <td>processResources</td>
-                <td>destinationDir</td>
-                <td>classesDir</td>
+                <td>
+                    <literal>destinationDir</literal>
+                </td>
+                <td><classname>File</classname>. Can set using anything described in <xref linkend="sec:locating_files"/>.</td>
+                <td><literal><replaceable>sourceSet</replaceable>.classesDir</literal></td>
             </tr>
-            <tr>
-                <td>processTestResources</td>
-                <td>sourceDirs</td>
-                <td>testResourceDirs</td>
-            </tr>
-            <tr>
-                <td>processTestResources</td>
-                <td>destinationDir</td>
-                <td>testClassesDir</td>
-            </tr>
-
         </table>
-        <para>The
-            <literal>processResources</literal>
-            task offers include and exclude directives as well as filters. Have a look at
-            <apilink class="org.gradle.api.tasks.Copy"/> to learn about the details.
-        </para>
     </section>
 
     <section id='sec:compile'>
-        <title>Compile</title>
-        <para>The
-            <emphasis>Compile</emphasis>
-            task has two instances,
-            <literal>compile</literal>
-            and <literal>compileTest</literal>.
+        <title>CompileJava</title>
+        <para>The Java plugin adds a <apilink class="org.gradle.api.tasks.compile.Compile"/> instance for each
+            source set in the project. The compile task delegates to Ant's javac task to do the compile. You can set most
+            of the properties of the Ant javac task.
         </para>
         <table>
-            <title>Java plugin - compile properties</title>
+            <title>Java plugin - Compile properties</title>
             <thead>
                 <tr>
-                    <td>Task Instance</td>
                     <td>Task Property</td>
-                    <td>Convention Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
                 </tr>
             </thead>
             <tr>
-                <td>compile</td>
-                <td>srcDirs</td>
-                <td>srcDirs</td>
+                <td>
+                    <literal>classpath</literal>
+                </td>
+                <td><apilink class="org.gradle.api.file.FileCollection"/></td>
+                <td><literal><replaceable>sourceSet</replaceable>.compileClasspath</literal></td>
             </tr>
             <tr>
-                <td>compile</td>
-                <td>destinationDir</td>
-                <td>classesDir</td>
+                <td>
+                    <literal>source</literal>
+                </td>
+                <td><apilink class="org.gradle.api.file.FileTree"/>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.</td>
+                <td><literal><replaceable>sourceSet</replaceable>.java</literal></td>
             </tr>
             <tr>
-                <td>compile</td>
-                <td>sourceCompatibility</td>
-                <td>sourceCompatibility</td>
+                <td>
+                    <literal>destinationDir</literal>
+                </td>
+                <td><classname>File</classname>.</td>
+                <td><literal><replaceable>sourceSet</replaceable>.classesDir</literal></td>
             </tr>
-            <tr>
-                <td>compile</td>
-                <td>targetCompatibility</td>
-                <td>targetCompatibility</td>
-            </tr>
-            <tr>
-                <td>compileTest</td>
-                <td>srcDirs</td>
-                <td>testSrcDirs</td>
-            </tr>
-            <tr>
-                <td>compileTest</td>
-                <td>destinationDir</td>
-                <td>testClassesDir</td>
-            </tr>
-            <tr>
-                <td>compileTest</td>
-                <td>sourceCompatibility</td>
-                <td>sourceCompatibility</td>
-            </tr>
-            <tr>
-                <td>compileTest</td>
-                <td>targetCompatibility</td>
-                <td>targetCompatibility</td>
-            </tr>
-
         </table>
-        <para>Have a look at <apilink class="org.gradle.api.tasks.compile.Compile"/>
-            to learn about the details. The compile task delegates to Ant's javac task to do the compile. You can set most
-            of the properties of the Ant javac task.
-        </para>
     </section>
 
     <section id='sec:java_test'>
         <title>Test</title>
-        <para>The
-            <literal>test</literal>
-            task executes the unit tests which have been compiled by the
-            <literal>compileTest</literal>
-            task.
+        <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.Test"/>. It
+            executes all unit tests found in the <literal>test</literal> source set.
         </para>
         <table>
             <title>Java plugin - test properties</title>
             <thead>
                 <tr>
                     <td>Task Property</td>
-                    <td>Convention Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
                 </tr>
             </thead>
             <tr>
-                <td>testClassesDir</td>
-                <td>testClassesDir</td>
+                <td><literal>testClassesDir</literal></td>
+                <td><classname>File</classname></td>
+                <td><literal>sourceSets.test.classesDir</literal></td>
             </tr>
             <tr>
-                <td>testResultsDir</td>
-                <td>testResultsDir</td>
+                <td><literal>configuration</literal></td>
+                <td><apilink class="org.gradle.api.file.FileCollection"/></td>
+                <td><literal>sourceSets.test.runtimeClasspath</literal></td>
             </tr>
             <tr>
-                <td>unmanagedClasspath</td>
-                <td>[classesDir]</td>
+                <td><literal>testResultsDir</literal></td>
+                <td><classname>File</classname></td>
+                <td><literal>testResultsDir</literal></td>
             </tr>
-
+            <tr>
+                <td><literal>testReportDir</literal></td>
+                <td><classname>File</classname></td>
+                <td><literal>testReportDir</literal></td>
+            </tr>
+            <tr>
+                <td><literal>testSrcDirs</literal></td>
+                <td><classname>List&lt;File></classname></td>
+                <td><literal>sourceSets.test.java.srcDirs</literal></td>
+            </tr>
         </table>
         <para>Have a look at <apilink class="org.gradle.api.tasks.testing.Test"/>
             for its complete API. Right now the test results are always in XML-format. The task has a

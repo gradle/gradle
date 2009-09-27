@@ -23,28 +23,29 @@
     </para>
     <section id='sec:using_plugins'>
         <title>Declaring plugins</title>
-        <para>If you want to use the plugin for building a Java project, simply type
+        <para>If you want to use the plugin for building a Java project, simply include
         </para>
         <programlisting><![CDATA[
-usePlugin('java')	
+usePlugin('java')
 ]]></programlisting>
-        <para>at the beginning of your script. That's all. From a technological point of view plugins use just the same
-            operations as you can use from your build scripts. That is they use the Project and Task API (see
-            <xref linkend='project_and_task_api'/>). The Gradle plugins use this API for:
+        <para>in your script. That's all. From a technological point of view plugins use just the same
+            operations as you can use from your build scripts. That is, they use the Project and Task API (see
+            <xref linkend='project_and_task_api'/>). The Gradle plugins use this API to:
         </para>
         <itemizedlist>
             <listitem>
-                <para>Adding tasks to your build (e.g. compile, test)
+                <para>Add tasks to the project (e.g. compile, test)
                 </para>
             </listitem>
             <listitem>
-                <para>Creating dependencies between those tasks to let them execute in the appropriate order.
+                <para>Create dependencies between those tasks to let them execute in the appropriate order.
                 </para>
             </listitem>
             <listitem>
-                <para>Adding a so called
-                    <emphasis>convention object</emphasis>
-                    to your project configuration.
+                <para>Add dependency configurations to the project.</para>
+            </listitem>
+            <listitem>
+                <para>Add a so called <firstterm>convention object</firstterm> to the project.
                 </para>
             </listitem>
         </itemizedlist>
@@ -54,8 +55,9 @@ usePlugin('java')
             <sourcefile file="build.gradle"/>
             <output args="-q show"/>
         </sample>
-        <para>The Java Plugin adds a <literal>compileJava</literal> task to the project object which can be accessed by
-            a build script.
+        <para>The Java Plugin adds a <literal>compileJava</literal> task and a <literal>processResources</literal> task
+            to the project object which can be accessed by a build script. It has configured the <literal>destinationDir</literal>
+            property of both of these tasks.
         </para>
         <para>The <literal>usePlugin()</literal> method either takes a string or a class as an argument. You can write
             <footnote>
@@ -68,7 +70,8 @@ usePlugin('java')
         <programlisting><![CDATA[
 usePlugin(org.gradle.api.plugins.JavaPlugin)
 ]]></programlisting>
-        <para>Any class, which implements the Plugin interface, can be used as a plugin. Just pass the class as an
+        <para>Any class, which implements the <apilink class="org.gradle.api.Plugin"/> interface, can be used as a
+            plugin. Just pass the class as an
             argument. You don't need to configure anything else for this. If you want to access a custom plugin via a
             string identifier, you must inform Gradle about the mapping. You can do this in the file
             <literal>plugin.properties</literal>
@@ -84,33 +87,34 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         </para>
     </section>
     <section id='sub:more_about_convention_objects'>
-        <title>Configuration</title>
-        <para>If you use the <emphasis>Java Plugin</emphasis>
-            for example, there are a compile and a processResources task for your production code (the same is true for your test
-            code). The default location for the output of those tasks is the directory <literal>build/classes</literal>.
+        <title>Using the convention object</title>
+        <para>If you use the Java Plugin
+            for example, there are a <literal>compileJava</literal> and a <literal>processResources</literal> task for
+            your production code (the same is true for your test
+            code). The default location for the output of those tasks is the directory <literal>build/classes/main</literal>.
             What if you want to change this? Let's try:
         </para>
-        <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig" title="Configuring a plugin">
+        <sample id="pluginConfig" dir="userguide/tutorial/pluginConfig" title="Configuring a plugin task">
             <sourcefile file="build.gradle"/>
             <output args="-q show"/>
         </sample>
-        <para>Setting the
-            <literal>destinationDir</literal>
-            of the processResources task had only an effect on the processResources task. Maybe this was what you wanted. But what if
+        <para>Setting the <literal>destinationDir</literal>
+            of the <literal>processResources</literal> task had only an effect on the <literal>processResources</literal>
+            task. Maybe this was what you wanted. But what if
             you want to change the output directory for all tasks? It would be unfortunate if you had to do this for
             each task separately.
         </para>
-        <para>Gradles tasks are usually <emphasis>convention aware</emphasis>. A plugin can add a convention object to
-            your build. It can also map certain values of this convention object to task properties.
+        <para>Gradle's tasks are usually <firstterm>convention aware</firstterm>. A plugin can add a convention object to
+            your project, and map certain values of this convention object to task properties.
         </para>
         <sample id="pluginConvention" dir="userguide/tutorial/pluginConvention" title="Plugin convention object">
             <sourcefile file="build.gradle"/>
             <output args="-q show"/>
         </sample>
-        <para>The <emphasis>Java Plugin</emphasis> has added a convention object with a <literal>classesDirName</literal>
-            property. The properties of a convention object can be accessed like project properties. As shown in the
-            example, you can also access the convention object explicitly.
-        </para>
+        <para>The Java Plugin has added a convention object with a <literal>sourceSets</literal>
+            property, which we use to set the classes directory. Notice that setting this has changed the <literal>destinationDir</literal>
+            property of both the <literal>processResources</literal> and
+            <literal>compileJava</literal> tasks.</para>
         <para>By setting a task attribute explicitly (as we have done in the first example) you overwrite the convention
             value for this particular task.
         </para>
@@ -118,25 +122,22 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
             to decide what are the shared properties and then bundle them in a convention object and map them to the
             tasks.
         </para>
-        <section>
-            <title>More about convention objects</title>
-            <para>Every project object has a convention object which is a container for convention objects contributed
-                by the plugins declared for your project. If you simply access or set a property or access a method in
-                your build script, the project object first looks if this is a property of itself. If not, it delegates
-                the request to its convention object. The convention object checks if any of the plugin convention
-                objects can fulfill the request (first wins and the order is not defined). The plugin convention objects
-                also introduce a namespace.
-            </para>
-            <programlisting><![CDATA[
-usePlugin('java')
-println classesDir
-println convention.classesDir
-println convention.plugins.java.classesDir
-]]></programlisting>
-            <para>All three statements print out the same property. The more specific statements are useful if there are
-                ambiguities.
-            </para>
-        </section>
+        <para>
+            The properties of a convention object can be accessed as project properties. As shown in the following
+            example, you can also access the convention object explicitly.
+        </para>
+        <sample id="pluginAccessConvention" dir="userguide/tutorial/pluginAccessConvention" title="Using the plugin convention object">
+            <sourcefile file="build.gradle"/>
+            <output args="-q show"/>
+        </sample>
+        <para>Every project object has a <apilink class="org.gradle.api.plugins.Convention"/> object which is a
+            container for convention objects contributed
+            by the plugins declared for your project. If you simply access or set a property or access a method in
+            your build script, the project object first looks if this is a property of itself. If not, it delegates
+            the request to its convention object. The convention object checks if any of the plugin convention
+            objects can fulfill the request (first wins and the order is not defined). The plugin convention objects
+            also introduce a namespace.
+        </para>
         <section id='sub:declaring_plugins_multiple_times'>
             <title>Declaring plugins multiple times</title>
             <para>A plugin is only called once for a given project, even if you have multiple

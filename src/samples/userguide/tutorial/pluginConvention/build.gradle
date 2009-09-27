@@ -4,5 +4,4 @@ task show << {
     sourceSets.main.classesDir = new File(buildDir, 'output')
     println relativePath(processResources.destinationDir)
     println relativePath(compileJava.destinationDir)
-    println relativePath(convention.sourceSets.main.classesDir)
 }

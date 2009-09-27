@@ -154,12 +154,95 @@
 
     <section>
         <title>Convention Properties</title>
-        <para>The Scala plugin does not add any convention properties.</para>
+        <para>The Scala plugin does not add any convention properties to the project.</para>
     </section>
     
     <section>
         <title>Source set properties</title>
-        <para>The Scala plugin adds a <apilink class="org.gradle.api.tasks.ScalaSourceSet"/> convention object to each source set.</para>
+        <para>The Scala plugin adds the following convention properties to each source set in the project. You can
+            use these properties in your build script as though they were properties of the source set object (see
+            <xref linkend="sub:more_about_convention_objects"/>).</para>
+        <table>
+            <title>Scala plugin - source set properties</title>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Type</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>scala</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.file.SourceDirectorySet"/> (read-only)
+                </td>
+                <td>
+                    Not null
+                </td>
+                <td>
+                    The Scala source files of this source set. Contains all <filename>.scala</filename> and
+                    <filename>.java</filename> files found in the Scala source directories, and excludes all other
+                    types of files.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>scala.srcDirs</literal>
+                </td>
+                <td>
+                    <classname>Set&lt;File></classname>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.
+                </td>
+                <td>
+                    <literal>[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/scala]</literal>
+                </td>
+                <td>
+                    The source directories containing the Scala source files of this source set. May also contain
+                    Java source files for joint compilation.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>allScala</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.file.FileTree"/> (read-only)
+                </td>
+                <td>
+                    Not null
+                </td>
+                <td>
+                    All Scala source files of this source set. Contains only the <filename>.scala</filename> files
+                    found in the Scala source directories.
+                </td>
+            </tr>
+        </table>
+
+        <para>These convention properties are provided by a convention object of type <apilink class="org.gradle.api.tasks.ScalaSourceSet"/>.</para>
+        <para>The Scala plugin also modifies some source set properties:</para>
+        <table>
+            <title>Scala plugin - source set properties</title>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Change</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>allJava</literal>
+                </td>
+                <td>Adds all <filename>.java</filename> files found in the Scala source directories.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>allSource</literal>
+                </td>
+                <td>Adds all source files found in the Scala source directories.</td>
+            </tr>
+        </table>
     </section>
 
 </chapter>

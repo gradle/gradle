@@ -140,7 +140,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:copying_files">
         <title>Copying files</title>
         <para>You can use the <apilink class="org.gradle.api.tasks.Copy"/> task to copy files. The copy task allows
             you to filter the contents of the files as they are copied, and to map the files names.
