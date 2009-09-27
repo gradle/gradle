@@ -42,10 +42,10 @@ import java.util.Arrays;
  */
 public class JavaPlugin implements Plugin {
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
-    public static final String COMPILE_TASK_NAME = "compile";
+    public static final String CLASSES_TASK_NAME = "classes";
     public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
     public static final String PROCESS_TEST_RESOURCES_TASK_NAME = "processTestResources";
-    public static final String COMPILE_TEST_TASK_NAME = "compileTest";
+    public static final String TEST_CLASSES_TASK_NAME = "testClasses";
     public static final String COMPILE_TEST_JAVA_TASK_NAME = "compileTestJava";
     public static final String TEST_TASK_NAME = "test";
     public static final String JAR_TASK_NAME = "jar";
@@ -84,9 +84,9 @@ public class JavaPlugin implements Plugin {
     private void configureSourceSets(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
 
-        final SourceSet main = pluginConvention.getSource().add(SourceSet.MAIN_SOURCE_SET_NAME);
+        final SourceSet main = pluginConvention.getSourceSets().add(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        final SourceSet test = pluginConvention.getSource().add(SourceSet.TEST_SOURCE_SET_NAME);
+        final SourceSet test = pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
         ConventionMapping conventionMapping = ((IConventionAware) test).getConventionMapping();
         conventionMapping.map("compileClasspath", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -101,7 +101,7 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
-        pluginConvention.getSource().allObjects(new Action<SourceSet>() {
+        pluginConvention.getSourceSets().allObjects(new Action<SourceSet>() {
             public void execute(final SourceSet sourceSet) {
                 final Project project = pluginConvention.getProject();
                 ConventionMapping conventionMapping = ((IConventionAware) sourceSet).getConventionMapping();
@@ -139,15 +139,15 @@ public class JavaPlugin implements Plugin {
                     }
                 });
 
-                String compileTaskName = String.format("%sJava", sourceSet.getCompileTaskName());
+                String compileTaskName = sourceSet.getCompileTaskName("java");
                 Compile compileJava = project.getTasks().add(compileTaskName, Compile.class);
                 configureForSourceSet(sourceSet, compileJava);
 
-                Task compile = project.getTasks().add(sourceSet.getCompileTaskName());
-                compile.dependsOn(sourceSet.getProcessResourcesTaskName(), compileTaskName);
-                compile.setDescription(String.format("Compiles the %s source.", sourceSet.getName()));
+                Task classes = project.getTasks().add(sourceSet.getClassesTaskName());
+                classes.dependsOn(sourceSet.getProcessResourcesTaskName(), compileTaskName);
+                classes.setDescription(String.format("Assembles the %s classes.", sourceSet.getName()));
 
-                sourceSet.compiledBy(sourceSet.getCompileTaskName());
+                sourceSet.compiledBy(sourceSet.getClassesTaskName());
             }
         });
     }
@@ -206,14 +206,14 @@ public class JavaPlugin implements Plugin {
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("classpath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        SourceSet mainSourceSet = convention.getPlugin(JavaPluginConvention.class).getSource()
+                        SourceSet mainSourceSet = convention.getPlugin(JavaPluginConvention.class).getSourceSets()
                                 .getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                         return mainSourceSet.getClasses().plus(mainSourceSet.getCompileClasspath());
                     }
                 });
                 javadoc.getConventionMapping().map("defaultSource", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
+                        return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
                                 SourceSet.MAIN_SOURCE_SET_NAME).getAllJava();
                     }
                 });
@@ -253,7 +253,7 @@ public class JavaPlugin implements Plugin {
         jar.setDescription("Generates a jar archive with all the compiled classes.");
         jar.conventionMapping("resourceCollections", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                FileCollection classes = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
+                FileCollection classes = convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
                         SourceSet.MAIN_SOURCE_SET_NAME).getClasses();
                 return Arrays.asList(classes.getAsFileTree());
             }

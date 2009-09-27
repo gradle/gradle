@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.UnionFileTree;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -82,12 +83,12 @@ public class DefaultSourceSet implements SourceSet {
         return displayName;
     }
 
-    public String getCompileTaskName() {
-        return String.format("compile%s", getTaskBaseName());
+    public String getClassesTaskName() {
+        return StringUtils.uncapitalize(String.format("%sClasses", getTaskBaseName()));
     }
 
-    public String getCompileJavaTaskName() {
-        return String.format("compile%sJava", getTaskBaseName());
+    public String getCompileTaskName(String language) {
+        return String.format("compile%s%s", getTaskBaseName(), StringUtils.capitalize(language));
     }
 
     public String getProcessResourcesTaskName() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,24 +89,24 @@ public class EclipsePlugin implements Plugin {
         eclipseClasspath.getConventionMapping().map(GUtil.map(
                 "srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        SourceSet sourceSet = java(convention).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                        SourceSet sourceSet = java(convention).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                         return GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
                     }
                 },
                 "testSrcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        SourceSet sourceSet = java(convention).getSource().getByName(SourceSet.TEST_SOURCE_SET_NAME);
+                        SourceSet sourceSet = java(convention).getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
                         return GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
                     }
                 },
                 "outputDirectory", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return java(convention).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
+                        return java(convention).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
                     }
                 },
                 "testOutputDirectory", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return java(convention).getSource().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();
+                        return java(convention).getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();
                     }
                 },
                 "classpathLibs", new ConventionValue() {
@@ -135,7 +135,7 @@ public class EclipsePlugin implements Plugin {
         eclipseWtpModule.conventionMapping(
                 "srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        SourceSet sourceSet = java(convention).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                        SourceSet sourceSet = java(convention).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                         return GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
                     }
                 });
@@ -148,7 +148,7 @@ public class EclipsePlugin implements Plugin {
         eclipseWtp.getConventionMapping().map(GUtil.map(
                 "warResourceMappings", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        SourceSet sourceSet = java(convention).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                        SourceSet sourceSet = java(convention).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                         List allSrcDirs = GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
                         Map resourceMappings = WrapUtil.toMap("/WEB-INF/classes", allSrcDirs);
                         resourceMappings.put("/", WrapUtil.toList(war(convention).getWebAppDir()));
@@ -157,7 +157,7 @@ public class EclipsePlugin implements Plugin {
                 },
                 "outputDirectory", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return java(convention).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
+                        return java(convention).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
                     }
                 },
                 "deployName", new ConventionValue() {

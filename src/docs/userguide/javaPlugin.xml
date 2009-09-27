@@ -80,7 +80,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>compile</literal>
+                    <literal>classes</literal>
                 </td>
                 <td>
                     <literal>compileJava</literal> and <literal>processResources</literal>.
@@ -109,7 +109,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>compileTest</literal>
+                    <literal>testClasses</literal>
                 </td>
                 <td>
                     <literal>compileTestJava</literal> and <literal>processTestResources</literal>.
@@ -191,7 +191,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>compile<replaceable>SourceSet</replaceable></literal>
+                    <literal><replaceable>sourceSet</replaceable>Classes</literal>
                 </td>
                 <td>
                     <literal>compile<replaceable>SourceSet</replaceable>Java</literal> and
@@ -594,7 +594,7 @@
             </thead>
             <tr>
                 <td>
-                    <literal>source</literal>
+                    <literal>sourceSets</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.SourceSetContainer"/> (read-only)</td>
                 <td>Not null</td>

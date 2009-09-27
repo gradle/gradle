@@ -65,13 +65,13 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
         writeShortInterface();
         writeTestClass();
 
-        inDirectory(testDir).withTasks("compile").run();
+        inDirectory(testDir).withTasks("classes").run();
 
         // Update interface, compile will pass even though build is broken
         writeLongInterface();
-        inDirectory(testDir).withTasks("compile").run();
+        inDirectory(testDir).withTasks("classes").run();
 
-        ExecutionFailure failure = inDirectory(testDir).withTasks("clean", "compile").runWithFailure();
+        ExecutionFailure failure = inDirectory(testDir).withTasks("clean", "classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
     }
 
@@ -84,7 +84,7 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
         writeShortInterface();
         writeTestClass();
 
-        inDirectory(testDir).withTasks("compile").run();
+        inDirectory(testDir).withTasks("classes").run();
 
         // file system time stamp may not see change without this wait
         try {
@@ -93,7 +93,7 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
         
         // Update interface, compile should fail because depend deletes old class
         writeLongInterface();
-        ExecutionFailure failure = inDirectory(testDir).withTasks("compile").runWithFailure();
+        ExecutionFailure failure = inDirectory(testDir).withTasks("classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
 
         // assert that dependency caching is on

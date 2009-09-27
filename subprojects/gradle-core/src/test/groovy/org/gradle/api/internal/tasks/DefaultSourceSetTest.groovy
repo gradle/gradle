@@ -62,16 +62,16 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.allSource.toString(), equalTo('set name source'))
         assertThat(sourceSet.allSource.sourceTrees, not(isEmpty()))
 
-        assertThat(sourceSet.compileTaskName, equalTo('compileSetName'))
-        assertThat(sourceSet.compileJavaTaskName, equalTo('compileSetNameJava'))
+        assertThat(sourceSet.classesTaskName, equalTo('setNameClasses'))
+        assertThat(sourceSet.getCompileTaskName('java'), equalTo('compileSetNameJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processSetNameResources'))
     }
     
     @Test public void mainSourceSetUsesSpecialCaseTaskNames() {
         SourceSet sourceSet = new DefaultSourceSet('main', fileResolver, taskResolver)
 
-        assertThat(sourceSet.compileTaskName, equalTo('compile'))
-        assertThat(sourceSet.compileJavaTaskName, equalTo('compileJava'))
+        assertThat(sourceSet.classesTaskName, equalTo('classes'))
+        assertThat(sourceSet.getCompileTaskName('java'), equalTo('compileJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processResources'))
     }
 

@@ -29,7 +29,7 @@ dependencies {
     compile group: 'org.scala-lang', name: 'scala-library', version: '2.7.6'
 }
 
-source.each {
+sourceSets.each {
     configure(it) {
         resources.srcDir 'src'
         resources.srcDir 'src/resources'

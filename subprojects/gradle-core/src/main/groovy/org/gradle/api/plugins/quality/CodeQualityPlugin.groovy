@@ -59,10 +59,10 @@ public class CodeQualityPlugin implements Plugin {
     private void configureForJavaPlugin(Project project, JavaCodeQualityPluginConvention pluginConvention) {
         configureCheckTask(project);
 
-        project.convention.getPlugin(JavaPluginConvention.class).source.allObjects {SourceSet set ->
+        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.allObjects {SourceSet set ->
             Checkstyle checkstyle = project.tasks.add("checkstyle${GUtil.toCamelCase(set.name)}", Checkstyle.class);
             checkstyle.description = "Runs Checkstyle against the $set.name Java source code."
-            checkstyle.conventionMapping.map("source") { set.allJava; }
+            checkstyle.conventionMapping.defaultSource = { set.allJava; }
             checkstyle.conventionMapping.configFile = { pluginConvention.checkstyleConfigFile }
             checkstyle.conventionMapping.resultFile = { new File(pluginConvention.checkstyleResultsDir, "${set.name}.xml") }
             checkstyle.conventionMapping.classpath = { set.compileClasspath; }
@@ -70,11 +70,11 @@ public class CodeQualityPlugin implements Plugin {
     }
 
     private void configureForGroovyPlugin(Project project, GroovyCodeQualityPluginConvention pluginConvention) {
-        project.convention.getPlugin(JavaPluginConvention.class).source.allObjects {SourceSet set ->
+        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.allObjects {SourceSet set ->
             GroovySourceSet groovySourceSet = set.convention.getPlugin(GroovySourceSet.class)
             CodeNarc codeNarc = project.tasks.add("codenarc${GUtil.toCamelCase(set.name)}", CodeNarc.class);
             codeNarc.setDescription("Runs CodeNarc against the $set.name Groovy source code.");
-            codeNarc.conventionMapping.map("source") { groovySourceSet.allGroovy; }
+            codeNarc.conventionMapping.defaultSource = { groovySourceSet.allGroovy; }
             codeNarc.conventionMapping.configFile = { pluginConvention.codeNarcConfigFile; }
             codeNarc.conventionMapping.reportFile = { new File(pluginConvention.codeNarcReportsDir, "${set.name}.html"); }
         }

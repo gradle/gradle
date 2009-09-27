@@ -27,7 +27,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDefine
 import org.gradle.api.tasks.scala.ScalaDoc
-import static org.gradle.api.plugins.JavaPlugin.*
 
 public class ScalaPlugin implements Plugin {
     // public configurations
@@ -50,21 +49,21 @@ public class ScalaPlugin implements Plugin {
     }
 
     private void configureSourceSetDefaults(Project project, JavaPlugin javaPlugin) {
-        project.convention.getPlugin(JavaPluginConvention.class).source.allObjects {SourceSet sourceSet ->
+        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.allObjects {SourceSet sourceSet ->
             sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, project.fileResolver)
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
             sourceSet.allJava.add(sourceSet.scala.matching(sourceSet.java.filter))
             sourceSet.allSource.add(sourceSet.scala)
             sourceSet.resources.filter.exclude('**/*.scala')
 
-            String taskName = "${sourceSet.compileTaskName}Scala"
+            String taskName = sourceSet.getCompileTaskName('scala')
             ScalaCompile scalaCompile = project.tasks.add(taskName, ScalaCompile.class);
-            scalaCompile.dependsOn sourceSet.compileJavaTaskName
+            scalaCompile.dependsOn sourceSet.getCompileTaskName('java')
             javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
             scalaCompile.description = "Compiles the $sourceSet.scala.";
             scalaCompile.conventionMapping.defaultSource = { sourceSet.scala }
 
-            project.tasks[sourceSet.compileTaskName].dependsOn(taskName)
+            project.tasks[sourceSet.classesTaskName].dependsOn(taskName)
         }
     }
 
@@ -82,8 +81,8 @@ public class ScalaPlugin implements Plugin {
 
     private void configureScaladoc(final Project project) {
         project.getTasks().withType(ScalaDoc.class).allTasks {ScalaDoc scalaDoc ->
-            scalaDoc.conventionMapping.classpath = { project.source.main.classes + project.source.main.compileClasspath }
-            scalaDoc.conventionMapping.defaultSource = { project.source.main.scala }
+            scalaDoc.conventionMapping.classpath = { project.sourceSets.main.classes + project.sourceSets.main.compileClasspath }
+            scalaDoc.conventionMapping.defaultSource = { project.sourceSets.main.scala }
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
             scalaDoc.conventionMapping.title = { project.apiDocTitle }
             scalaDoc.dependsOn(SCALA_DEFINE_TASK_NAME)

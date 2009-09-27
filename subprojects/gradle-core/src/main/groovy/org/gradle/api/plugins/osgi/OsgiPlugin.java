@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class OsgiPlugin implements Plugin {
     private OsgiManifest createDefaultOsgiManifest(Project project) {
         OsgiHelper osgiHelper = new OsgiHelper();
         OsgiManifest osgiManifest = new DefaultOsgiManifest();
-        osgiManifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(
+        osgiManifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
                 SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir());
         osgiManifest.setVersion(osgiHelper.getVersion((String) project.property("version")));
         osgiManifest.setName(project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName());

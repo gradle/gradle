@@ -1,11 +1,11 @@
 :compileJava
 :processResources
-:compile
+:classes
 :jar
 :assemble
 :compileTestJava
 :processTestResources
-:compileTest
+:testClasses
 :test
 :check
 :build

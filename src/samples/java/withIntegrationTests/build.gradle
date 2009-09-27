@@ -18,18 +18,18 @@ dependencies {
     integrationTestCompile group: 'commons-collections', name: 'commons-collections', version: '3.2'
 }
 
-source {
+sourceSets {
     integrationTest {
         java.srcDir file('src/integration-test/java')
         resources.srcDir file('src/integration-test/resources')
-        compileClasspath = source.main.classes + source.test.classes + configurations.integrationTestCompile
+        compileClasspath = sourceSets.main.classes + sourceSets.test.classes + configurations.integrationTestCompile
         runtimeClasspath = classes + compileClasspath + configurations.integrationTestRuntime
     }
 }
 
 task integrationTest(type: Test, dependsOn: jar) {
-    testClassesDir = source.integrationTest.classesDir
-    configuration = source.integrationTest.runtimeClasspath
+    testClassesDir = sourceSets.integrationTest.classesDir
+    configuration = sourceSets.integrationTest.runtimeClasspath
     options.systemProperties['jar.path'] = jar.archivePath
 }
 

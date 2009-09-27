@@ -1,7 +1,7 @@
 usePlugin 'java'
 
 // START SNIPPET define-source-set
-source {
+sourceSets {
     intTest
 }
 // END SNIPPET define-source-set
@@ -16,29 +16,29 @@ configurations {
     intTestRuntime { extendsFrom intTestCompile, runtime }
 }
 
-source {
+sourceSets {
     intTest {
-        compileClasspath = source.main.classes + configurations.intTestCompile
-        runtimeClasspath = classes + source.main.classes + configurations.intTestRuntime
+        compileClasspath = sourceSets.main.classes + configurations.intTestCompile
+        runtimeClasspath = classes + sourceSets.main.classes + configurations.intTestRuntime
     }
 }
 // END SNIPPET classpath-using-configurations
 
 // START SNIPPET jar
 task intTestJar(type: Jar) {
-    from source.intTest.classes
+    from sourceSets.intTest.classes
 }
 // END SNIPPET jar
 
 // START SNIPPET javadoc
 task intTestJavadoc(type: Javadoc) {
-    source project.source.intTest.allJava
+    source project.sourceSets.intTest.allJava
 }
 // END SNIPPET javadoc
 
 // START SNIPPET test
 task intTest(type: Test) {
-    testClassesDir = source.intTest.classesDir
-    configuration = source.intTest.runtimeClasspath
+    testClassesDir = sourceSets.intTest.classesDir
+    configuration = sourceSets.intTest.runtimeClasspath
 }
 // END SNIPPET test

@@ -165,7 +165,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         checkPartialWebAppBuild(packagePrefix, javaprojectDir, testPackagePrefix)
 
         // Partial build using task path
-        executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:compile".toString()).run()
+        executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:classes".toString()).run()
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')
         assertDoesNotExist(javaprojectDir, false, API_NAME, packagePrefix, API_NAME, 'PersonList.class')
     }
@@ -179,7 +179,7 @@ class SamplesJavaMultiProjectIntegrationTest {
 
     @Test
     public void clean() {
-        executer.inDirectory(javaprojectDir).withTasks('compile').run()
+        executer.inDirectory(javaprojectDir).withTasks('classes').run()
         executer.inDirectory(javaprojectDir).withTasks('clean').run()
         projects.each {assert !(new File(dist.samplesDir, "$it/build").exists())}
     }
@@ -187,10 +187,10 @@ class SamplesJavaMultiProjectIntegrationTest {
     @Test
     public void noRebuildOfProjectDependencies() {
         TestFile apiDir = javaprojectDir.file(API_NAME)
-        executer.inDirectory(apiDir).withTasks('compile').run()
+        executer.inDirectory(apiDir).withTasks('classes').run()
         TestFile sharedJar = javaprojectDir.file(".gradle/internal-repository/org.gradle/shared/1.0/jars/shared.jar")
         long oldTimeStamp = sharedJar.lastModified()
-        executer.inDirectory(apiDir).withTasks('clean', 'compile').withArguments("-a").run()
+        executer.inDirectory(apiDir).withTasks('clean', 'classes').withArguments("-a").run()
         long newTimeStamp = sharedJar.lastModified()
         assertThat(newTimeStamp, Matchers.equalTo(oldTimeStamp))
     }
@@ -198,7 +198,7 @@ class SamplesJavaMultiProjectIntegrationTest {
     @Test
     public void additionalProjectDependenciesTasks() {
         TestFile apiDir = javaprojectDir.file(API_NAME)
-        executer.inDirectory(apiDir).withTasks('compile').withArguments("-A javadoc").run()
+        executer.inDirectory(apiDir).withTasks('classes').withArguments("-A javadoc").run()
         assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
     }
            

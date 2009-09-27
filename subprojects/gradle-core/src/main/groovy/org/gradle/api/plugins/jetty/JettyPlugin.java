@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class JettyPlugin implements Plugin {
                 });
                 jettyRun.getConventionMapping().map("classpath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return getJavaConvention(project).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+                        return getJavaConvention(project).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
                 jettyRun.getConventionMapping().map("webAppSourceDirectory", new ConventionValue() {

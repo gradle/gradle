@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class WarPlugin implements Plugin {
         project.getTasks().withType(War.class).allTasks(new Action<War>() {
             public void execute(War task) {
                 task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.WAR);
-                Buildable runtimeClasspath = task.getProject().getConvention().getPlugin(JavaPluginConvention.class).getSource().getByName(
+                Buildable runtimeClasspath = task.getProject().getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
                         SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
                 task.dependsOn(runtimeClasspath);
             }

@@ -1,11 +1,11 @@
 :api:compileJava
 :api:processResources
-:api:compile
+:api:classes
 :api:jar
 :api:assemble
 :api:compileTestJava
 :api:processTestResources
-:api:compileTest
+:api:testClasses
 :api:test
 :api:check
 :api:build

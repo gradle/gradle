@@ -76,7 +76,7 @@ public class GroovyPlugin implements Plugin {
 
     private void configureSourceSetDefaults(final Project project, final JavaPlugin javaPlugin) {
         final ProjectInternal projectInternal = (ProjectInternal) project;
-        project.getConvention().getPlugin(JavaPluginConvention.class).getSource().allObjects(new Action<SourceSet>() {
+        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().allObjects(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
                 final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), projectInternal.getFileResolver());
                 ((DynamicObjectAware) sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
@@ -86,10 +86,10 @@ public class GroovyPlugin implements Plugin {
                 sourceSet.getAllJava().add(groovySourceSet.getGroovy().matching(sourceSet.getJava().getFilter()));
                 sourceSet.getAllSource().add(groovySourceSet.getGroovy());
 
-                String compileTaskName = String.format("%sGroovy", sourceSet.getCompileTaskName());
+                String compileTaskName = sourceSet.getCompileTaskName("groovy");
                 GroovyCompile compile = project.getTasks().add(compileTaskName, GroovyCompile.class);
                 javaPlugin.configureForSourceSet(sourceSet, compile);
-                compile.dependsOn(sourceSet.getCompileJavaTaskName());
+                compile.dependsOn(sourceSet.getCompileTaskName("java"));
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
                 compile.conventionMapping("defaultSource", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -97,7 +97,7 @@ public class GroovyPlugin implements Plugin {
                     }
                 });
 
-                project.getTasks().getByName(sourceSet.getCompileTaskName()).dependsOn(compileTaskName);
+                project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(compileTaskName);
             }
         });
     }
@@ -140,7 +140,7 @@ public class GroovyPlugin implements Plugin {
     }
 
     private SourceSet main(Convention convention) {
-        return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
     private GroovySourceSet mainGroovy(Convention convention) {

@@ -10,7 +10,7 @@ dependencies {
 }
 
 // START SNIPPET define-main
-source {
+sourceSets {
     main {
         groovy {
             srcDir 'src/groovy'

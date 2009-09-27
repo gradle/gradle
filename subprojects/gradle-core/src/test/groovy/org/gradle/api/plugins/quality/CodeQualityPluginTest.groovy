@@ -34,22 +34,22 @@ class CodeQualityPluginTest {
 
         def task = project.tasks[CodeQualityPlugin.CHECKSTYLE_MAIN_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.source, equalTo(project.source.main.allJava))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.main.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/main.xml")))
         assertThat(task, dependsOn())
 
         task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TEST_TASK]
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.source, equalTo(project.source.test.allJava))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.test.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/test.xml")))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
 
-        project.source.add('custom')
+        project.sourceSets.add('custom')
         task = project.tasks['checkstyleCustom']
         assertThat(task, instanceOf(Checkstyle))
-        assertThat(task.source, equalTo(project.source.custom.allJava))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/custom.xml")))
         assertThat(task, dependsOn())
@@ -65,22 +65,22 @@ class CodeQualityPluginTest {
 
         def task = project.tasks[CodeQualityPlugin.CODE_NARC_MAIN_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.source, equalTo(project.source.main.allGroovy))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.main.allGroovy))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/main.html")))
         assertThat(task, dependsOn())
 
         task = project.tasks[CodeQualityPlugin.CODE_NARC_TEST_TASK]
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.source, equalTo(project.source.test.allGroovy))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.test.allGroovy))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/test.html")))
         assertThat(task, dependsOn())
 
-        project.source.add('custom')
+        project.sourceSets.add('custom')
         task = project.tasks['codenarcCustom']
         assertThat(task, instanceOf(CodeNarc))
-        assertThat(task.source, equalTo(project.source.custom.allGroovy))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.allGroovy))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/custom.html")))
         assertThat(task, dependsOn())

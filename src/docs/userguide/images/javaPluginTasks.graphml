@@ -25,7 +25,7 @@
           <y:Geometry height="30.0" width="140.0" x="540.0" y="69.07352941176471"/>
           <y:Fill color="#C3D9E6" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Arial" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.40625" modelName="internal" modelPosition="c" textColor="#555555" visible="true" width="68.6875" x="35.65625" y="6.296875">compileTest</y:NodeLabel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Arial" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.40625" modelName="internal" modelPosition="c" textColor="#555555" visible="true" width="66.021484375" x="36.9892578125" y="6.296875">testClasses</y:NodeLabel>
           <y:Shape type="roundrectangle"/>
         </y:ShapeNode>
       </data>
@@ -121,7 +121,7 @@
           <y:Geometry height="30.0" width="140.0" x="180.0" y="38.25"/>
           <y:Fill color="#C3D9E6" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Arial" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.40625" modelName="internal" modelPosition="c" textColor="#555555" visible="true" width="45.349609375" x="47.3251953125" y="6.296875">compile</y:NodeLabel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Arial" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="17.40625" modelName="internal" modelPosition="c" textColor="#555555" visible="true" width="44.013671875" x="47.9931640625" y="6.296875">classes</y:NodeLabel>
           <y:Shape type="roundrectangle"/>
         </y:ShapeNode>
       </data>

@@ -34,7 +34,7 @@ class JavaPluginConvention {
     String docsDirName
     String testResultsDirName
     String testReportDirName
-    final SourceSetContainer source
+    final SourceSetContainer sourceSets
     private JavaVersion srcCompat
     private JavaVersion targetCompat
     GradleManifest manifest
@@ -42,7 +42,7 @@ class JavaPluginConvention {
 
     JavaPluginConvention(Project project) {
         this.project = project
-        source = new DefaultSourceSetContainer(project.fileResolver, project.tasks)
+        sourceSets = new DefaultSourceSetContainer(project.fileResolver, project.tasks)
         manifest = new GradleManifest()
         metaInf = []
         dependencyCacheDirName = 'dependency-cache'
@@ -51,8 +51,8 @@ class JavaPluginConvention {
         testReportDirName = 'tests'
     }
 
-    def source(Closure closure) {
-        source.configure(closure)
+    def sourceSets(Closure closure) {
+        sourceSets.configure(closure)
     }
     
     File mkdir(File parent = null, String name) {

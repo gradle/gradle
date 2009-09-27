@@ -35,12 +35,12 @@ public class DefaultConventionsToPropertiesMapping {
     public final static Map TEST = GUtil.map(
             "testClassesDir", new ConventionValue() {
                 public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                    return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();
+                    return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();
                 }
             },
             "configuration", new ConventionValue() {
                 public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                    return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
+                    return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
                 }
             },
             "testResultsDir", new ConventionValue() {
@@ -55,7 +55,7 @@ public class DefaultConventionsToPropertiesMapping {
             },
             "testSrcDirs", new ConventionValue() {
                 public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                    Set<File> srcDirs = convention.getPlugin(JavaPluginConvention.class).getSource().getByName(
+                    Set<File> srcDirs = convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
                             SourceSet.TEST_SOURCE_SET_NAME).getJava().getSrcDirs();
                     return new ArrayList<File>(srcDirs);
                 }
@@ -68,7 +68,7 @@ public class DefaultConventionsToPropertiesMapping {
         JAR.putAll(GUtil.map(
                 "baseDir", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return convention.getPlugin(JavaPluginConvention.class).getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
+                return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClassesDir();
             }
         },
                 "manifest", new ConventionValue() {
@@ -95,7 +95,7 @@ public class DefaultConventionsToPropertiesMapping {
                 "classesFileSets", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 JavaPluginConvention pluginConvention = convention.getPlugin(JavaPluginConvention.class);
-                FileCollection classes = pluginConvention.getSource().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses();
+                FileCollection classes = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses();
                 return Arrays.asList(classes.getAsFileTree());
             }
         },      "resourceCollections", new ConventionValue() {

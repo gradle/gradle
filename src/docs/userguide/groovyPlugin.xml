@@ -73,15 +73,15 @@
                 <td>Depends on</td>
             </thead>
             <tr>
-                <td>compile</td>
+                <td>classes</td>
                 <td>compileGroovy</td>
             </tr>
             <tr>
-                <td>compileTest</td>
+                <td>testClasses</td>
                 <td>compileTestGroovy</td>
             </tr>
             <tr>
-                <td>compile<replaceable>SourceSet</replaceable></td>
+                <td><replaceable>sourceSet</replaceable>Classes</td>
                 <td>compile<replaceable>SourceSet</replaceable>Groovy</td>
             </tr>
         </table>

@@ -149,11 +149,11 @@ public interface SourceSet {
     FileTree getAllSource();
 
     /**
-     * Returns the name of the compile task for this source set.
+     * Returns the name of the classes task for this source set.
      *
      * @return The task name. Never returns null.
      */
-    String getCompileTaskName();
+    String getClassesTaskName();
 
     /**
      * Returns the name of the resource process task for this source set.
@@ -163,9 +163,10 @@ public interface SourceSet {
     String getProcessResourcesTaskName();
 
     /**
-     * Returns the name of the Java compile task for this source set.
+     * Returns the name of a compile task for this source set.
      *
+     * @param language The language to be compiled.
      * @return The task name. Never returns null.
      */
-    String getCompileJavaTaskName();
+    String getCompileTaskName(String language);
 }

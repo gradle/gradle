@@ -40,7 +40,7 @@ class JavaPluginConventionTest {
     }
 
     @Test public void defaultValues() {
-        assertThat(convention.source, instanceOf(DefaultSourceSetContainer))
+        assertThat(convention.sourceSets, instanceOf(DefaultSourceSetContainer))
         assertThat(convention.manifest, notNullValue())
         assertEquals([], convention.metaInf)
         assertEquals('dependency-cache', convention.dependencyCacheDirName)
@@ -53,12 +53,12 @@ class JavaPluginConventionTest {
 
     @Test public void canConfigureSourceSets() {
         File dir = new File('classes-dir')
-        convention.source {
+        convention.sourceSets {
             main {
                 classesDir = dir
             }
         }
-        assertThat(convention.source.main.classesDir, equalTo(project.file(dir)))
+        assertThat(convention.sourceSets.main.classesDir, equalTo(project.file(dir)))
     }
     
     @Test public void testDefaultDirs() {

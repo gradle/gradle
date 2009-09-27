@@ -42,7 +42,7 @@ public class JettyPluginTest {
 
         def task = project.tasks[JettyPlugin.JETTY_RUN]
         assertThat(task, instanceOf(JettyRun))
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks[JettyPlugin.JETTY_RUN_WAR]
@@ -60,7 +60,7 @@ public class JettyPluginTest {
         new JettyPlugin().use(project, project.getPlugins())
 
         def task = project.tasks.add('customRun', JettyRun)
-        assertThat(task, dependsOn(JavaPlugin.COMPILE_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks.add('customWar', JettyRunWar)
