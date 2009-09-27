@@ -50,14 +50,13 @@ task build << {
     transformClosure("$webContentSrcDir/index.php" as File, new File(webPhpSrcDir, "indexPhpNews.php").text)
     File indexPhp = new File(buildWebsiteDir, "index.php")
     indexPhp.write(new File(webPhpSrcDir, 'indexPhpHeader.php').text + indexPhp.text)
+    new File(buildWebsiteDir, "test-index.html").write(indexPhp.text)
 
-    ant {
-        copy(todir: new File(buildWebsiteDir, 'css')) {
-            fileset(dir: new File(webSrcDir, 'css'))
-        }
-        copy(todir: new File(buildWebsiteDir, 'img')) {
-            fileset(dir: new File(webSrcDir, 'img'))
-        }
+    copy {
+        from webSrcDir
+        into buildWebsiteDir
+        include 'css/**'
+        include 'img/**'
     }
 }
 
