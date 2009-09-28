@@ -54,7 +54,7 @@ class DistributionIntegrationTest {
         contentsDir.file('docs/groovydoc/org/gradle/api/tasks/bundling/Zip.html').assertIsFile()
         contentsDir.file('docs/userguide/userguide.html').assertIsFile()
         contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
-        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
+//        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
     }
 
     private def checkMinimalContents(TestFile contentsDir) {

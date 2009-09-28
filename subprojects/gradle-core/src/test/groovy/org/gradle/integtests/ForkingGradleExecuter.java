@@ -101,7 +101,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         String windowsCmd;
         String unixCmd;
         if (command != null) {
-            windowsCmd = command;
+            windowsCmd = command.replace('/', File.separatorChar);
             unixCmd = String.format("%s/%s", workingDir.getAbsolutePath(), command);
         } else {
             windowsCmd = "gradle";
