@@ -28,17 +28,18 @@ import org.apache.ivy.Ivy;
 class GradleVersionTest {
     @Test public void testGradleVersion() {
         GradleVersion gradleVersion = new GradleVersion()
-        assertEquals(TestConsts.VERSION, gradleVersion.version)
-        assertEquals(TestConsts.BUILD_TIME, gradleVersion.buildTime)
+        assertNotNull(gradleVersion.version)
+        assertNotNull(gradleVersion.buildTime)
     }
 
     @Test public void testPrettyPrint() {
+        GradleVersion version = new GradleVersion()
         String expectedText = """
 ------------------------------------------------------------
-Gradle $TestConsts.VERSION
+Gradle $version.version
 ------------------------------------------------------------
 
-Gradle buildtime: $TestConsts.BUILD_TIME
+Gradle buildtime: $version.buildTime
 Groovy: $InvokerHelper.version
 Ant: $Main.antVersion
 Ivy: ${Ivy.ivyVersion}
@@ -47,6 +48,6 @@ JVM: ${System.getProperty("java.vm.version")}
 JVM Vendor: ${System.getProperty("java.vm.vendor")}
 OS Name: ${System.getProperty("os.name")}
 """
-        assertEquals(expectedText, new GradleVersion().prettyPrint())
+        assertEquals(expectedText, version.prettyPrint())
     }
 }

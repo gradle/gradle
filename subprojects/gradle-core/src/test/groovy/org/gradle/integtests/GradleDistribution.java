@@ -20,19 +20,33 @@ import java.io.File;
 
 public interface GradleDistribution {
     /**
-     * Returns true if the given file is either part of the distributions, samples, or test files.
+     * The user home dir used for the current test. This is usually shared with other tests.
      */
-    boolean isFileUnderTest(File file);
-
     TestFile getUserHomeDir();
 
+    /**
+     * The distribution for the current test. This is usually shared with other tests.
+     */
     TestFile getGradleHomeDir();
 
+    /**
+     * The samples from the distribution.
+     */
     TestFile getSamplesDir();
 
     TestFile getUserGuideInfoDir();
 
     TestFile getUserGuideOutputDir();
+
+    /**
+     * The directory containing the distribution Zips
+     */
+    TestFile getDistributionsDir();
+
+    /**
+     * Returns true if the given file is either part of the distributions, samples, or test files.
+     */
+    boolean isFileUnderTest(File file);
 
     /**
      * Returns a scratch-pad directory for the current test.

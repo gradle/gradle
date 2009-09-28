@@ -84,6 +84,7 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         TestFile srcDir = file("integTest.srcDir", new File("src"));
         final TestFile userGuideOutputDir = new TestFile(srcDir, "samples/userguideOutput");
         final TestFile userGuideInfoDir = file("integTest.userGuideInfoDir", new File("build/docbook/src"));
+        final TestFile distsDir = file("integTest.distsDir", new File("build/distributions"));
         final TestFile testDir = new TestFile(GFileUtils.canonicalise(HelperUtil.makeNewTestDir()));
 
         return new GradleDistribution() {
@@ -112,6 +113,10 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
 
             public TestFile getUserGuideOutputDir() {
                 return userGuideOutputDir;
+            }
+
+            public TestFile getDistributionsDir() {
+                return distsDir;
             }
 
             public TestFile getTestDir() {

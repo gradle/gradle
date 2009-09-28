@@ -71,13 +71,18 @@ jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
 
 processResources.doLast {
     File versionPropertiesDestination = new File(source.main.classesDir, GradleVersion.FILE_NAME)
-    logger.info('Write version properties to: {}', versionPropertiesDestination.absoluteFile)
-    Properties versionProperties = new Properties()
-    versionProperties.putAll([
-            (GradleVersion.VERSION): version.toString(),
-            (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime)
-    ])
-    versionProperties.store(new FileOutputStream(versionPropertiesDestination), '')
+    [versionPropertiesDestination, new File(buildDir, "resources/test/$GradleVersion.FILE_NAME")].each { File file ->
+        logger.info('Write version properties to: {}', file.absoluteFile)
+        Properties versionProperties = new Properties()
+        versionProperties.putAll([
+                (GradleVersion.VERSION): version.toString(),
+                (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime)
+        ])
+        file.parentFile.mkdirs()
+        file.withOutputStream {
+            versionProperties.store(it, '')
+        }
+    }
 }
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')

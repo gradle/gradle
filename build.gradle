@@ -322,6 +322,7 @@ binZip.doFirst {task ->
     task.configure {
         zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
             exclude 'bin/*'
+            exclude 'docs/'
             exclude 'src/'
             exclude 'samples/'
         }
@@ -330,7 +331,6 @@ binZip.doFirst {task ->
 }
 
 task srcZip(type: Zip) {
-    dependsOn explodedDist
     classifier = 'src'
 }
 srcZip.doFirst {task ->
@@ -339,7 +339,16 @@ srcZip.doFirst {task ->
             include 'gradlew'
         }
         zipFileSet(dir: projectDir, prefix: zipRootFolder) {
-            include 'buildSrc/', 'wrapper/', 'lib/', 'src/', 'gradle.properties', 'build.gradle', 'gradlew.bat'
+            ['buildSrc', 'subprojects/*'].each {
+                include "$it/*.gradle"
+                include "$it/src/"
+            }
+            include 'config/'
+            include 'src/'
+            include '*.gradle'
+            include 'gradle.properties'
+            include 'wrapper/'
+            include 'gradlew.bat'
         }
     }
 }
@@ -629,7 +638,7 @@ task intTestImage(dependsOn: explodedDist) {
 }
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
-task integTest(type: Test, dependsOn: [intTestImage, binZip, userguideSrc]) {
+task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, userguideSrc]) {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m'])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
