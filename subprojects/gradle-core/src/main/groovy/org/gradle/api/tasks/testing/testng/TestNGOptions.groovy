@@ -311,7 +311,7 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         suiteXmlFiles.each { File it ->
             final File targetSuiteFile = new File(testSuitesDir, it.getName())
 
-            if ( !targetSuiteFile.delete() ) {
+            if ( targetSuiteFile.exists() && !targetSuiteFile.delete() ) {
                 throw new GradleException("Failed to delete TestNG suite XML file " + targetSuiteFile.absolutePath);
             }
 
