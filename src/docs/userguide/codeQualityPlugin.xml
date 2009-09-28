@@ -24,6 +24,9 @@
         </itemizedlist>
     </para>
 
+    <para>To use the plugin, add the following to your build script:</para>
+    <programlisting>usePlugin 'code-quality'</programlisting>
+    
     <section>
         <title>Tasks</title>
         <para>When used with the Java plugin, the code quality plugin adds the following tasks to the project:</para>
