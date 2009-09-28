@@ -29,8 +29,8 @@ class AntJavac {
     static final String CLASSPATH_ID = 'compile.classpath'
 
     int numFilesCompiled;
-    
-    void execute(FileCollection source, File targetDir, File depCacheDir, 
+
+    void execute(FileCollection source, File targetDir, File depCacheDir,
                  Iterable classpath, String sourceCompatibility, String targetCompatibility,
                  CompileOptions compileOptions, AntBuilder ant) {
         createAntClassPath(ant, classpath)
@@ -64,10 +64,8 @@ class AntJavac {
         logger.debug("Running ant javac with the following options {}", options)
         def task = ant.javac(options) {
             source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
-            compileOptions.compilerArgs.each {argValue ->
-                argValue.each {key, value ->
-                    compilerarg((key): value)
-                }
+            compileOptions.compilerArgs.each {value ->
+                compilerarg(value: value)
             }
         }
 

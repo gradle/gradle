@@ -46,7 +46,11 @@ class AntGroovyc {
             def task = groovyc([includeAntRuntime: false, destdir: targetDir, classpath: (classpath + antBuilderClasspath).join(File.pathSeparator)]
                     + groovyOptions.optionMap()) {
                 source.addToAntBuilder(delegate, 'src', FileCollection.AntType.MatchingTask)
-                javac([source: sourceCompatibility, target: targetCompatibility] + filterNonGroovycOptions(compileOptions))
+                javac([source: sourceCompatibility, target: targetCompatibility] + filterNonGroovycOptions(compileOptions))  {
+                    compileOptions.compilerArgs.each { value ->
+                        compilerarg(value: value)
+                    }
+                }
             }
             numFilesCompiled = task.fileList.length
         }
