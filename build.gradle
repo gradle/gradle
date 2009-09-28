@@ -722,7 +722,8 @@ task developerBuild(dependsOn: [clean, testedDists])
 task ciBuild(dependsOn: [clean, testedDists])
 
 task release(dependsOn: [uploadDists, uploadDocs]) << {
-    svn.release()
+// todo rewrite release functionality for Git. Until then we have to do tagging and branching manually.
+//    svn.release()
 }
 
 task wrapper(type: Wrapper, dependsOn: binZip)
