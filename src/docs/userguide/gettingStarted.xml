@@ -31,9 +31,14 @@
 </section>
 
 <section>
+    <title>Download</title>
+    <para>You can download one of the Gradle distributions from the <ulink url="http://www.gradle.org/downloads.html">Gradle web site</ulink>.</para>
+</section>
+
+<section>
 <title>Unpacking</title>
 
-<para>The Gradle distribution comes packaged as a zip. The distribution contains:</para>
+<para>The Gradle distribution comes packaged as a ZIP. The full distribution contains:</para>
 
 <itemizedlist>
     <listitem><para>The Gradle binaries.</para></listitem>
@@ -110,6 +115,7 @@ of the <command>gradle</command> or <command>gradlew</command> script.
 <title>Getting help</title>
 
 <para>You might check the user guide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.
+It is also available on the <ulink url="http://www.gradle.org/userguide.html">Gradle web site</ulink>.
 Typing <command>gradle -h</command> prints the command line help. Typing <command>gradle -t</command> shows all the
 tasks of a Gradle build.
 </para>

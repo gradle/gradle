@@ -149,7 +149,12 @@
 
     <section>
         <title>Dependency Management</title>
-        <para>TBD</para>
+        <para>The Scala plugin adds a <literal>scalaTools</literal> configuration, which it uses to locate the Scala
+            tools, such as scalac, to use. You must specify the version of Scala to use. Below is an example.
+        </para>
+        <sample id="declareScalaTools" dir="scala/quickstart" title="Declaring the Scala version to use">
+            <sourcefile file="build.gradle" snippet="declare-scala-version"/>
+        </sample>
     </section>
 
     <section>

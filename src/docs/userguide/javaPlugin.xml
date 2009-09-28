@@ -161,7 +161,7 @@
         </table>
 
         <para>For each source set you add to the project, the Java plugin adds the following compilation tasks:</para>
-        <table>
+        <table id="java_source_set_tasks">
             <title>Java plugin - source set tasks</title>
             <thead>
                 <tr>
@@ -323,7 +323,8 @@
         <section>
             <title>Changing the project layout</title>
             <para>You configure the project layout by configuring the appropriate source set. This is discussed in
-                more detail in the following sections. Here is a brief example.
+                more detail in the following sections. Here is a brief example which changes the main Java and resource
+                source directories.
             </para>
             <sample id="customJavaSourceLayout" dir="java/customizedLayout" title="Custom Java source layout">
                 <sourcefile file="build.gradle" snippet="define-main"/>
@@ -667,7 +668,27 @@
 
     <section id="sec:source_sets">
         <title>Working with source sets</title>
-        <para>Adding a source set:</para>
+        <para>You can access the source sets of a project using the <literal>sourceSets</literal> property. This
+            is a container for the project's source sets, of type <apilink class="org.gradle.api.tasks.SourceSetContainer"/>.
+            There is also a <literal>sourceSets()</literal> method, which you can pass a closure to which configures the
+            source set container. The source set container works pretty much the same way as other containers, such
+            as <literal>tasks</literal>.
+        </para>
+        <sample id="defineSourceSet" dir="userguide/java/sourceSets" title="Accessing a source set">
+            <sourcefile file="build.gradle" snippet="access-source-set"/>
+        </sample>
+        <para>To configure an existing source set, you simply use one of the above access methods to set the
+            properties of the source set. The properties are described below. Here is an example which configures the
+            main Java and resources directories:</para>
+        <sample id="configureSourceSet" dir="java/customizedLayout" title="Configuring the source directories of a source set">
+            <sourcefile file="build.gradle" snippet="define-main"/>
+        </sample>
+        <para>To define a new source set, you simply reference it in the <literal>sourceSets { }</literal> block.
+            When you define a source set, the Java plugin adds a number of tasks which assemble the classes for the
+            source set, as shown in <xref linkend="java_source_set_tasks"/>. For example, if you add a source set called
+            <literal>intTest</literal>, the Java plugin adds <literal>compileIntTestJava</literal>, <literal>processIntTestResources</literal>
+            and <literal>intTestClasses</literal> tasks.
+        </para>
         <sample id="defineSourceSet" dir="userguide/java/sourceSets" title="Defining a source set">
             <sourcefile file="build.gradle" snippet="define-source-set"/>
         </sample>
@@ -835,27 +856,25 @@
             </table>
         </section>
 
-        <para>Configuring the source directories of an existing source set.</para>
-        <sample id="configureSourceSet" dir="java/customizedLayout" title="Configuring the source directories of a source set">
-            <sourcefile file="build.gradle" snippet="define-main"/>
-        </sample>
-
-        <para>Using configurations to define classpath of source set:</para>
-        <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Defining the classpath of a source set">
-            <sourcefile file="build.gradle" snippet="classpath-using-configurations"/>
-        </sample>
-        <para>Adding a JAR for a source set:</para>
-        <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Assembling a JAR for a source set">
-            <sourcefile file="build.gradle" snippet="jar"/>
-        </sample>
-        <para>Adding Javadoc for a source set:</para>
-        <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Generating the Javadoc for a source set">
-            <sourcefile file="build.gradle" snippet="javadoc"/>
-        </sample>
-        <para>Adding a test suite for a source set:</para>
-        <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Running tests in a source set">
-            <sourcefile file="build.gradle" snippet="test"/>
-        </sample>
+        <section>
+            <title>Some common source set examples</title>
+            <para>Using dependency configurations to define the source set classpath:</para>
+            <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Defining the classpath of a source set">
+                <sourcefile file="build.gradle" snippet="classpath-using-configurations"/>
+            </sample>
+            <para>Adding a JAR containing the classes of a source set:</para>
+            <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Assembling a JAR for a source set">
+                <sourcefile file="build.gradle" snippet="jar"/>
+            </sample>
+            <para>Generating Javadoc for a source set:</para>
+            <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Generating the Javadoc for a source set">
+                <sourcefile file="build.gradle" snippet="javadoc"/>
+            </sample>
+            <para>Adding a test suite to run the tests in a source set:</para>
+            <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Running tests in a source set">
+                <sourcefile file="build.gradle" snippet="test"/>
+            </sample>
+        </section>
     </section>
 
     <section id='sec:javadoc'>
@@ -1021,7 +1040,7 @@
                 <td><literal>sourceSets.test.classesDir</literal></td>
             </tr>
             <tr>
-                <td><literal>configuration</literal></td>
+                <td><literal>classpath</literal></td>
                 <td><apilink class="org.gradle.api.file.FileCollection"/></td>
                 <td><literal>sourceSets.test.runtimeClasspath</literal></td>
             </tr>
