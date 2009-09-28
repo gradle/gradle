@@ -16,7 +16,48 @@
 <chapter id="custom_plugins" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Writing Custom Plugins</title>
 
-    <para>t.b.d.
+    <para>A Gradle plugin packages up some reusable piece of build logic, which can be used across many different
+        projects and builds. Gradle allows you to implement your own custom plugins, so you can reuse your
+        build logic, and potentially share it with others.
     </para>
+
+    <para>
+        You can implement a custom plugin in any language you like, provided the implementation ends up compiled as class
+        files. For the examples here, we are going to use Groovy as the implementation language. You could use
+        Java or Scala instead, if you wanted.
+    </para>
+
+    <para>There are several places where you can put the source for the plugin. Two convenient options
+        are to add the task implementation to your build script, or to put the source in the
+        <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory. Gradle will
+        take care of compiling the task and making it available on the classpath of the build script.
+        See <xref linkend="organizing_build_logic"/> for more details, and some other options.
+        In our examples, we will put the task implementation in the build script, to keep things simple.
+    </para>
+
+    <para>To create a custom plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
+        Gradle instantiates the plugin and calls the plugin instance's <literal>use()</literal> method when the plugin
+        is used with a project. The project
+        object is passed as a parameter, which the plugin can use to configure the project however it needs to.
+        The following sample contains a greeting plugin, which adds a <literal>hello</literal> task to the project.
+    </para>
+
+    <sample id="customPlugin" dir="userguide/organizeBuildLogic/customPlugin" title="A custom plugin">
+        <sourcefile file="build.gradle"/>
+        <output args="-q hello"/>
+    </sample>
+
+    <para>One thing to note is that only one instance of a given plugin is created for a given build. The same plugin
+        instance is used for all projects in the build.
+    </para>
+
+    <para>Let's add a convention object to the project. Here we add a <literal>greeting</literal> property to the
+        project, which allows you to configure the greeting.
+    </para>
+
+    <sample id="customPluginWithConvention" dir="userguide/organizeBuildLogic/customPluginWithConvention" title="A custom plugin convention">
+        <sourcefile file="build.gradle"/>
+        <output args="-q hello"/>
+    </sample>
 
 </chapter>

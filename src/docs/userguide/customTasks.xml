@@ -16,21 +16,32 @@
 <chapter id="custom_tasks">
     <title>Writing Custom Tasks</title>
 
-    <note>
-        <para>This chapter is a work in progress.</para>
-    </note>
-
+    <para>Gradle supports 2 types of task. One such type is the simple task, where you define the task with an
+        action closure. We have seen these in <xref linkend="tutorial_using_tasks"/>. For this type of task, the action
+        closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your
+        build script.
+    </para>
     <para>
-        Implementing a custom task in Gradle is easy.
-        You can implement a custom task in pretty much any language you like, provided it ends up compiled to Java
-        bytecode. In our examples, we are going to use Groovy as the implementation language, but you could use, for
+        The other type of task is the enhanced task, where the behaviour is built into the task, and the task provides some
+        properties which you can use to configure the behaviour. We have seen these in
+        <xref linkend="more_about_tasks"/>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need
+        to implement the task behaviour as you do with simple tasks. You simply declare and configure the task using
+        its properties.
+        In this way, enhanced tasks let you reuse a piece of behaviour in many different places, potentially
+        across different builds.
+    </para>
+
+    <para>Gradle allows you to implement your own custom enhanced tasks.
+        Implementing such a custom task in Gradle is easy.
+        You can implement a custom task in pretty much any language you like, provided it ends up compiled to classes
+        files. In our examples, we are going to use Groovy as the implementation language, but you could use, for
         example, Java or Scala.
     </para>
     <para>There are several places where you can put the source for the task. Two convenient options
         are to add the task implementation to your build script, or to put the source in the
         <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory. Gradle will
         take care of compiling the task and making it available on the classpath of the build script.
-        See <xref linkend="organizing_build_logic"/> for more details, and other options.
+        See <xref linkend="organizing_build_logic"/> for more details, and some other options.
         In our examples, we will put the task implementation in the build script, to keep things simple.
     </para>
     <para>To implement a custom task, you extend <apilink class="org.gradle.api.DefaultTask" lang="groovy"/>.
