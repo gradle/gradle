@@ -38,7 +38,7 @@ public class DefaultConventionsToPropertiesMapping {
                     return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();
                 }
             },
-            "configuration", new ConventionValue() {
+            "classpath", new ConventionValue() {
                 public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                     return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
                 }

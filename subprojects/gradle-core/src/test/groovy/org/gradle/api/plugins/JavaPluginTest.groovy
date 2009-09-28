@@ -181,7 +181,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.TEST_TASK_NAME]
         assertThat(task, instanceOf(org.gradle.api.tasks.testing.Test))
         assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.configuration, equalTo(project.sourceSets.test.runtimeClasspath))
+        assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))
 
         task = project.tasks[JavaPlugin.JAR_TASK_NAME]
@@ -233,7 +233,7 @@ class JavaPluginTest {
 
         task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
         assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.configuration, equalTo(project.sourceSets.test.runtimeClasspath))
+        assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))
 
         task = project.createTask('customJavadoc', type: Javadoc)

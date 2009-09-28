@@ -1,5 +1,24 @@
 usePlugin 'java'
 
+// START SNIPPET access-source-set
+// Various ways to access the main source set
+println sourceSets.main.classesDir
+println sourceSets['main'].classesDir
+sourceSets {
+    println main.classesDir
+}
+sourceSets {
+    main {
+        println classesDir
+    }
+}
+
+// Iterate over the source sets
+sourceSets.each {SourceSet set ->
+    println set.name
+}
+// END SNIPPET access-source-set
+
 // START SNIPPET define-source-set
 sourceSets {
     intTest
@@ -32,13 +51,13 @@ task intTestJar(type: Jar) {
 
 // START SNIPPET javadoc
 task intTestJavadoc(type: Javadoc) {
-    source project.sourceSets.intTest.allJava
+    source sourceSets.intTest.allJava
 }
 // END SNIPPET javadoc
 
 // START SNIPPET test
 task intTest(type: Test) {
     testClassesDir = sourceSets.intTest.classesDir
-    configuration = sourceSets.intTest.runtimeClasspath
+    classpath = sourceSets.intTest.runtimeClasspath
 }
 // END SNIPPET test

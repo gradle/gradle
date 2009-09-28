@@ -29,10 +29,10 @@ public class AntTestNGExecute {
 
     public static final String TESTNG_JARS_PATH = 'org.gradle.api.tasks.testing.testng.jars.path'
 
-    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, File testReportDir, Collection<String> includes, Collection<String> excludes, TestNGOptions options, AntBuilder ant) {
+    void execute(File compiledTestsClassesDir, Iterable classPath, File testResultsDir, File testReportDir, Collection<String> includes, Collection<String> excludes, TestNGOptions options, AntBuilder ant) {
         ant.mkdir(dir: testResultsDir.absolutePath)
 
-        testngTaskDef(classPath, ant, options)
+        testngTaskDef(classPath as List, ant, options)
 
         Map otherArgs = [
             failureProperty : Test.FAILURES_OR_ERRORS_PROPERTY,

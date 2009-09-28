@@ -16,19 +16,18 @@
 
 package org.gradle.external.testng;
 
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.GradleException;
 import org.gradle.api.testing.execution.AbstractTestFrameworkDetector;
 import org.gradle.api.testing.execution.TestClassVisitor;
-import org.gradle.api.GradleException;
 import org.objectweb.asm.ClassReader;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.InputStream;
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
-import java.util.List;
+import java.io.InputStream;
 
 /**
  * @author Tom Eyckmans
@@ -36,7 +35,7 @@ import java.util.List;
 class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetecter> {
     private static final Logger logger = LoggerFactory.getLogger(TestNGDetector.class);
 
-    TestNGDetector(File testClassesDirectory, List<File> testClasspath) {
+    TestNGDetector(File testClassesDirectory, Iterable<File> testClasspath) {
         super(testClassesDirectory, testClasspath);
     }
 

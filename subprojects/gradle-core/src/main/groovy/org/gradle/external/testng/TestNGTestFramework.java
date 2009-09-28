@@ -16,17 +16,16 @@
 
 package org.gradle.external.testng;
 
-import org.gradle.api.Project;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.tasks.testing.Test;
-
+import org.gradle.api.Project;
 import org.gradle.api.tasks.testing.AbstractTestFramework;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 
 import java.io.File;
-import java.util.Set;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Tom Eyckmans

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.gradle.external.testng.TestNGTestFramework;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +63,7 @@ public class Test extends ConventionTask implements PatternFilterable {
     
     private boolean stopAtFailuresOrErrors = true;
 
-    private FileCollection configuration;
+    private FileCollection classpath;
 
     private TestFramework testFramework = null;
 
@@ -119,10 +118,6 @@ public class Test extends ConventionTask implements PatternFilterable {
         if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
         }
-    }
-
-    public List<File> getClasspath() {
-        return GUtil.addLists(WrapUtil.toList(getTestClassesDir()), getConfiguration());
     }
 
     /**
@@ -362,12 +357,12 @@ public class Test extends ConventionTask implements PatternFilterable {
     }
 
     @InputFiles
-    public FileCollection getConfiguration() {
-        return configuration;
+    public FileCollection getClasspath() {
+        return classpath;
     }
 
-    public void setConfiguration(FileCollection configuration) {
-        this.configuration = configuration;
+    public void setClasspath(FileCollection configuration) {
+        this.classpath = configuration;
     }
 
     public boolean isTestReport() {

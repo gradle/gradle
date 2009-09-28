@@ -39,7 +39,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     protected final Map<String, File> extractedJarClasses;
     protected final Set<String> testClassNames;
 
-    protected AbstractTestFrameworkDetector(File testClassesDirectory, List<File> testClasspath) {
+    protected AbstractTestFrameworkDetector(File testClassesDirectory, Iterable<File> testClasspath) {
         this.testClassesDirectory = testClassesDirectory;
         this.testClassNames = new HashSet<String>();
         this.packageJarFilesMappings = new HashMap<String, Set<File>>();
@@ -47,7 +47,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
         testClassDirectories = new ArrayList<File>();
         testClassDirectories.add(testClassesDirectory);
-        if ( testClasspath != null && !testClasspath.isEmpty() ) {
+        if ( testClasspath != null ) {
             for (File testClasspathItem : testClasspath) {
                 if ( testClasspathItem.isDirectory() ) {
                     testClassDirectories.add(testClasspathItem);

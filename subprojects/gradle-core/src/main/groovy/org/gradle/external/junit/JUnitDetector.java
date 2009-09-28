@@ -16,16 +16,18 @@
 
 package org.gradle.external.junit;
 
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.GradleException;
 import org.gradle.api.testing.execution.AbstractTestFrameworkDetector;
 import org.gradle.api.testing.execution.TestClassVisitor;
-import org.gradle.api.GradleException;
 import org.objectweb.asm.ClassReader;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.List;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 /**
  * @author Tom Eyckmans
@@ -33,7 +35,7 @@ import java.util.List;
 public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetecter> {
     private static final Logger logger = LoggerFactory.getLogger(JUnitDetector.class);
 
-    public JUnitDetector(File testClassesDirectory, List<File> testClasspath) {
+    public JUnitDetector(File testClassesDirectory, Iterable<File> testClasspath) {
         super(testClassesDirectory, testClasspath);
     }
 

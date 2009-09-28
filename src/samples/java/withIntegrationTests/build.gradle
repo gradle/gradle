@@ -29,7 +29,7 @@ sourceSets {
 
 task integrationTest(type: Test, dependsOn: jar) {
     testClassesDir = sourceSets.integrationTest.classesDir
-    configuration = sourceSets.integrationTest.runtimeClasspath
+    classpath = sourceSets.integrationTest.runtimeClasspath
     options.systemProperties['jar.path'] = jar.archivePath
 }
 

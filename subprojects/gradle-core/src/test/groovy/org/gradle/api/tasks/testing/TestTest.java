@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ public class TestTest extends AbstractConventionTaskTest {
     @org.junit.Test public void testInit() {
         assertNotNull(test.getTestFramework());
         assertNull(test.getTestClassesDir());
-        assertNull(test.getConfiguration());
+        assertNull(test.getClasspath());
         assertNull(test.getTestResultsDir());
         assertNull(test.getTestReportDir());
         assertEquals(WrapUtil.toLinkedSet(), test.getIncludes());
@@ -152,12 +152,6 @@ public class TestTest extends AbstractConventionTaskTest {
         test.execute();
     }
 
-    @org.junit.Test
-    public void testGetClasspath() {
-        setUpMocks(test);
-        assertEquals(convertedClasspath, test.getClasspath());
-    }
-
     public void testExecuteWithUnspecifiedCompiledTestsDir() {
         setUpMocks(test);
         test.setTestClassesDir(null);
@@ -184,7 +178,7 @@ public class TestTest extends AbstractConventionTaskTest {
         test.setTestClassesDir(classesDir);
         test.setTestResultsDir(resultsDir);
         test.setTestReportDir(reportDir);
-        test.setConfiguration(configurationMock);
+        test.setClasspath(configurationMock);
         test.setTestSrcDirs(Collections.<File>emptyList());
 
         context.checking(new Expectations() {{

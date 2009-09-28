@@ -33,9 +33,8 @@ class AntJUnitExecute {
 
     private static final String CLASSPATH_ID = 'runtests.classpath'
 
-    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, Collection<String> includes, Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant) {
-        ant.mkdir(dir: testResultsDir.absolutePath)
-        createAntClassPath(ant, classPath + BootstrapUtil.antJunitJarFiles)
+    void execute(File compiledTestsClassesDir, Iterable classPath, File testResultsDir, Collection<String> includes, Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant) {
+        createAntClassPath(ant, (classPath as List) + BootstrapUtil.antJunitJarFiles)
         Map otherArgs = [
                 includeantruntime: 'false',
                 errorproperty: Test.FAILURES_OR_ERRORS_PROPERTY,
