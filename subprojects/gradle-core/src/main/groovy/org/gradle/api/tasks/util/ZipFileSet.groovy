@@ -22,10 +22,10 @@ import org.gradle.api.internal.file.FileResolver
  * @author Hans Dockter
  */
 class ZipFileSet extends FileSet {
-    String prefix
-    String fullPath
-    String fileMode
-    String dirMode
+    Object prefix
+    Object fullPath
+    Object fileMode
+    Object dirMode
 
     ZipFileSet(File dir, FileResolver resolver) {
         super(dir, resolver)
@@ -36,7 +36,11 @@ class ZipFileSet extends FileSet {
     }
 
     protected doAddFileSet(Object builder, File dir, String nodeName) {
-        Map args = [prefix: prefix, fullpath: fullPath, filemode: fileMode, dirmode: dirMode]
+        Map args = [:]
+        addToArgsIfNotNull(args, 'prefix', prefix)
+        addToArgsIfNotNull(args, 'fullpath', fullPath)
+        addToArgsIfNotNull(args, 'filemode', fileMode)
+        addToArgsIfNotNull(args, 'dirmode', dirMode)
         if (dir.isDirectory()) {
             args.dir = dir.absolutePath
         } else {
@@ -53,4 +57,8 @@ class ZipFileSet extends FileSet {
         emptyKeys.each { args.remove(it) }
     }
 
+
+    void addToArgsIfNotNull(Map args, String key, Object value) {
+        if (value) args[key] = value.toString()
+    }
 }
