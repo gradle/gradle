@@ -209,9 +209,9 @@ def removeAnyExistingOldGradleLibs() {
 }
 
 task javadoc(type: Javadoc) {
-    source subprojects.collect {project -> project.source.main.allJava }
+    source subprojects.collect {project -> project.sourceSets.main.allJava }
     destinationDir = explodedDistJavadocsDir
-    classpath = files(subprojects.collect {project -> [project.source.main.compileClasspath, project.source.main.classes] })
+    classpath = files(subprojects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.classes] })
     include 'org/gradle/api/**'
     include 'org/gradle/*'
     include 'org/gradle/external/javadoc/**'
@@ -223,7 +223,7 @@ task javadoc(type: Javadoc) {
 }
 
 task groovydoc(type: Groovydoc) {
-    source subprojects.collect { project -> project.source.main.groovy }
+    source subprojects.collect { project -> project.sourceSets.main.groovy }
     destinationDir = explodedDistGroovydocsDir
     include 'org/gradle/api/**'
     include 'org/gradle/*'
@@ -243,7 +243,7 @@ task explodedDist(dependsOn: [explodedDistBase, docs, 'samples'], description: '
     copy {
         into explodedDistSrcDir
         subprojects {
-            from source.main.java.srcDirs, source.main.resources.srcDirs, source.main.groovy.srcDirs
+            from sourceSets.main.java.srcDirs, sourceSets.main.resources.srcDirs, sourceSets.main.groovy.srcDirs
         }
     }
 }
@@ -647,8 +647,8 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, use
 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
 
-    testClassesDir = project(':core').source.test.classesDir
-    configuration = project(':core').source.test.runtimeClasspath
+    testClassesDir = project(':core').sourceSets.test.classesDir
+    classpath = project(':core').sourceSets.test.runtimeClasspath
     testResultsDir = file('build/test-results')
     testReportDir = file('build/reports/tests')
     testSrcDirs = []

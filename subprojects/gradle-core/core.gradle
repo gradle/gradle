@@ -64,13 +64,13 @@ dependencies {
     runtime "checkstyle:checkstyle:5.0@jar", libraries.antlr, "org.slf4j:jcl-over-slf4j:1.5.3@jar",
             "com.google.collections:google-collections:0.9@jar", BEAN_UTILS
 
-    testFixtures source.test.classes, source.main.classes
+    testFixtures sourceSets.test.classes, sourceSets.main.classes
 }
 
 jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
 
 processResources.doLast {
-    File versionPropertiesDestination = new File(source.main.classesDir, GradleVersion.FILE_NAME)
+    File versionPropertiesDestination = new File(sourceSets.main.classesDir, GradleVersion.FILE_NAME)
     [versionPropertiesDestination, new File(buildDir, "resources/test/$GradleVersion.FILE_NAME")].each { File file ->
         logger.info('Write version properties to: {}', file.absoluteFile)
         Properties versionProperties = new Properties()
