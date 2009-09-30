@@ -27,13 +27,13 @@ task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
     include 'org/gradle/integtests/**/*IntegrationTest.*'
 }
 
+// todo: Check why do we recreate the integ test distribution
 integTest.doFirst {
+    integTestGradleHome = new File(integTestDistDir, "gradle-" + version.toString())
     ant {
         delete(dir: integTestDistDir)
-        copy(todir: integTestDistDir) {
-            fileset(dir: explodedDistDir )
-        }
-        chmod(dir: "$integTestDistDir/bin", perm: "ugo+rx", includes: "**/*")
+        unzip(dest: integTestDistDir, src: allZip.archivePath)
+        chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
     }
 }
 

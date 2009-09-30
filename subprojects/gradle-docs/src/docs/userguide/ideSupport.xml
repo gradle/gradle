@@ -54,7 +54,7 @@
         </para>
         <figure>
             <title>gradle-imports</title>
-            <programlisting><xi:include href='../../toplevel/gradle-imports' parse='text'/></programlisting>
+            <programlisting><xi:include href='../../../../../src/toplevel/gradle-imports' parse='text'/></programlisting>
         </figure>
         <para>You can define a project specific set of imports to be added to your build scripts. Just place a file
             called

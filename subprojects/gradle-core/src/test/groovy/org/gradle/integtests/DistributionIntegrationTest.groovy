@@ -5,6 +5,7 @@ import org.junit.Test
 import org.gradle.util.GradleVersion
 import org.apache.tools.ant.taskdefs.Chmod
 import org.gradle.util.AntUtil
+import org.apache.tools.ant.taskdefs.Expand
 
 @RunWith(DistributionIntegrationTestRunner)
 class DistributionIntegrationTest {
@@ -76,9 +77,9 @@ class DistributionIntegrationTest {
 
     @Test
     public void sourceZipContents() {
-        TestFile binZip = dist.distributionsDir.file("gradle-$version-src.zip")
-        binZip.assertIsFile()
-        binZip.unzipTo(dist.testDir)
+        TestFile srcZip = dist.distributionsDir.file("gradle-$version-src.zip")
+        srcZip.assertIsFile()
+        srcZip.unzipTo(dist.testDir)
         TestFile contentsDir = dist.testDir.file("gradle-$version")
 
         Chmod chmod = new Chmod()
@@ -87,10 +88,17 @@ class DistributionIntegrationTest {
         AntUtil.execute(chmod)
 
         // Build self using wrapper in source distribution
-        executer.inDirectory(contentsDir).usingExecutable('gradlew').withTasks('explodedDistBase').run()
+        executer.inDirectory(contentsDir).usingExecutable('gradlew').withTasks('binZip').run()
+
+        File binZip = contentsDir.file('build/distributions').listFiles()[0]
+        Expand unpack = new Expand()
+        unpack.src = binZip
+        unpack.dest = contentsDir.file('build/distributions/unzip')
+        AntUtil.execute(unpack)
+        TestFile unpackedRoot = new TestFile(contentsDir.file('build/distributions/unzip').listFiles()[0])
 
         // Make sure the build distribution does something useful
-        contentsDir.file('build/distributions/exploded/bin/gradle').assertIsFile()
-        executer.inDirectory(contentsDir.file('build/distributions/exploded')).usingExecutable('bin/gradle').withArguments('-t').run()
+        unpackedRoot.file("bin/gradle").assertIsFile()
+        // todo run something with the gradle build by the source dist
     }
 }

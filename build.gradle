@@ -37,14 +37,8 @@ type = 'jar'
 buildTime = new Date()
 versionModifier = null
 
-explodedDistDir = new File(distsDir, 'exploded')
-explodedDistDocsDir = new File(explodedDistDir, 'docs')
-explodedDistJavadocsDir = new File(explodedDistDocsDir, 'javadoc')
-explodedDistGroovydocsDir = new File(explodedDistDocsDir, 'groovydoc')
-explodedDistSamplesDir = new File(explodedDistDir, 'samples')
-explodedDistLibDir = new File(explodedDistDir, 'lib')
-samplesSrcDir = file('src/samples')
-userguideOutputDir = new File(samplesSrcDir, 'userguideOutput')
+startScriptsDir = new File("$buildDir/startScripts")
+distLibsDir = new File("$buildDir/distLibs")
 
 archivesBaseName = 'gradle'
 
@@ -89,7 +83,7 @@ allprojects {
 }
 
 def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
-subprojects {
+configure(groovyProjects()) {
 
     usePlugin 'groovy'
     usePlugin 'code-quality'
@@ -111,6 +105,14 @@ subprojects {
     [checkstyleMain, checkstyleTest].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
 }
 
+project(':docs') {
+    docsDir = file("$buildDir/docs")
+    samplesDir = file("$buildDir/samples")
+    distDocsDir = file("$buildDir/distDocs")
+    docbookSrc = new File(project.buildDir, 'docbook/src')
+    samplesSrcDir = file('src/samples')
+}
+
 allprojects {
     task ide << {task ->
         def libDir = task.project.file('lib')
@@ -127,38 +129,20 @@ configurations {
     distLib {
         visible = false
     }
-    ftpAntTask
     retrotranslatorAntTask
-    userGuideStyleSheets
-    userGuideTask
 }
 
 dependencies {
     distLib project(':wrapper'), project(':core'), project(':ui'), project(':openApi')
 
-    // todo: Improve dependency handling for xUnit jars
-    ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
-        module("commons-net:commons-net:1.4.1") {
-            dependencies("oro:oro:2.0.8@jar")
-        }
-    }
-
     retrotranslatorAntTask 'net.sf.retrotranslator:retrotranslator-runtime:1.2.7@jar', 'net.sf.retrotranslator:retrotranslator-transformer:1.2.7@jar',
             'backport-util-concurrent:backport-util-concurrent:3.1@jar'
-
-    userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.9.1'
-    userGuideTask module('xhtmlrenderer:xhtmlrenderer:R8rc1') {
-        dependency 'itext:itext:2.0.8@jar'
-    }
-    userGuideTask 'xslthl:xslthl:2.0.1@jar'
-
-    userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
 }
 
-clean.dependsOn subprojects*.clean
+clean.dependsOn subprojects.collect { "$it.path:clean" }
 
-task check(overwrite: true, dependsOn: subprojects*.check)
-task test(overwrite: true, dependsOn: subprojects*.test)
+task check(overwrite: true, dependsOn: groovyProjects()*.check)
+task test(overwrite: true, dependsOn: groovyProjects()*.test)
 
 distributionUploadUrl = null
 docsRemoteDir = ''
@@ -178,7 +162,7 @@ gradle.taskGraph.whenReady {graph ->
     docsRemoteDir = prefix + '/docs'
     javadocRemoteDir = docsRemoteDir + '/javadoc'
     groovydocRemoteDir = docsRemoteDir + '/groovydoc'
-    subprojects {
+    configure(groovyProjects()) {
       jar.manifest.mainAttributes([
               (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
               (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
@@ -186,78 +170,75 @@ gradle.taskGraph.whenReady {graph ->
     }
 }
 
-task explodedDistBase(dependsOn: [configurations.distLib], description: 'Builds a minimal distribution image') << {
-    File explodedDistBinDir = new File(explodedDistDir, 'bin')
-    [explodedDistDir, explodedDistLibDir, explodedDistBinDir]*.mkdirs()
+task startScripts << {
+    ant.mkdir(dir: startScriptsDir)
+    StartScriptsGenerator.generate(project(':core').jar.archiveName, startScriptsDir, archivesBaseName)    
+}
 
-    logger.info('Generate lib dir')
+task distLibs(dependsOn: configurations.distLib) << {
     removeAnyExistingOldGradleLibs()
     copy {
         from configurations.distLib
-        into explodedDistLibDir
+        into distLibsDir
     }
-    logger.info('Generate start scripts')
-    StartScriptsGenerator.generate(project(':core').jar.archiveName, explodedDistBinDir, archivesBaseName)
-    logger.info('Copy and generate top level files.')
-    copy { from('src/toplevel'); into explodedDistDir }
-    // Set permissions (important for running integration tests against the exploded dist)
-    ant.chmod(dir: "$explodedDistDir/bin", perm: "ugo+rx", includes: "**/*")
 }
 
 def removeAnyExistingOldGradleLibs() {
-    ant.delete { fileset(dir: explodedDistLibDir, includes: "$archivesBaseName-*.jar") }
-}
-
-task javadoc(type: Javadoc) {
-    source subprojects.collect {project -> project.sourceSets.main.allJava }
-    destinationDir = explodedDistJavadocsDir
-    classpath = files(subprojects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.classes] })
-    include 'org/gradle/api/**'
-    include 'org/gradle/*'
-    include 'org/gradle/external/javadoc/**'
-    exclude 'org/gradle/api/internal/**'
-    optionsFile = file("$buildDir/tmp/javadoc.options")
-    doFirst {
-        title = "Gradle API $version"
-    }
-}
-
-task groovydoc(type: Groovydoc) {
-    source subprojects.collect { project -> project.sourceSets.main.groovy }
-    destinationDir = explodedDistGroovydocsDir
-    include 'org/gradle/api/**'
-    include 'org/gradle/*'
-    include 'org/gradle/external/javadoc/**'
-    exclude 'org/gradle/api/internal/**'
-    doFirst {
-        title = "Gradle API $version"
-    }
-    groovyClasspath = project(':core').configurations.groovy
-}
-
-task docs(dependsOn: [javadoc, groovydoc, 'userguide', 'distDocs'])
-
-task explodedDist(dependsOn: [explodedDistBase, docs, 'samples'], description: 'Builds a complete distribution image') << {
-    logger.info('Copy binary sources.')
-    File explodedDistSrcDir = new File(explodedDistDir, 'src')
-    copy {
-        into explodedDistSrcDir
-        subprojects {
-            from sourceSets.main.java.srcDirs, sourceSets.main.resources.srcDirs, sourceSets.main.groovy.srcDirs
-        }
-    }
+    if (distLibsDir.exists()) ant.delete { fileset(dir: distLibsDir, includes: "$archivesBaseName-*.jar") }
 }
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 
+task allZip(type: Zip, dependsOn: [startScripts, distLibs, 'docs:docs']) {
+    classifier = 'all'
+    zipFileSet(dir: startScriptsDir, prefix: "$zipRootFolder/bin", fileMode: '775')
+    zipFileSet(dir: 'src/toplevel', prefix: zipRootFolder)
+    groovyProjects().each { project ->
+        project.sourceSets.main.java.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
+        project.sourceSets.main.resources.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
+        project.sourceSets.main.groovy.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
+    }
+    zipFileSet(dir: distLibsDir, prefix: "$zipRootFolder/lib")
+    zipFileSet(dir: project(':docs').distDocsDir, prefix: zipRootFolder)
+    zipFileSet(dir: project(':docs').docsDir, prefix: "$zipRootFolder/docs")
+    zipFileSet(dir: project(':docs').samplesDir, prefix: "$zipRootFolder/samples")
+}
+
+task binZip(type: Zip, dependsOn: [startScripts, distLibs, 'docs:distDocs']) {
+    classifier = 'bin'
+    zipFileSet(dir: startScriptsDir, prefix: "$zipRootFolder/bin", fileMode: '775')
+    zipFileSet(dir: 'src/toplevel', prefix: zipRootFolder)
+    zipFileSet(dir: distLibsDir, prefix: "$zipRootFolder/lib")
+    zipFileSet(dir: project(':docs').distDocsDir, prefix: zipRootFolder)
+}
+
+task srcZip(type: Zip) {
+    classifier = 'src'
+    zipFileSet(dir: projectDir, prefix: zipRootFolder, fileMode: '775') {
+        include 'gradlew'
+    }
+    zipFileSet(dir: projectDir, prefix: zipRootFolder) {
+        ['buildSrc', 'subprojects/*'].each {
+            include "$it/*.gradle"
+            include "$it/src/"
+        }
+        include 'config/'
+        include 'src/'
+        include '*.gradle'
+        include 'gradle.properties'
+        include 'wrapper/'
+        include 'gradlew.bat'
+    }
+}
+
 distsRetroLibsFolder = new File(distsDir, 'retroLibs')
 
-task retroTranslateLibs(dependsOn: explodedDist) << {
+task retroTranslateLibs(dependsOn: distLibs) << {
     distsRetroLibsFolder.mkdirs()
     ant {
         taskdef(name: "retrotranslator", classname: "net.sf.retrotranslator.transformer.RetrotranslatorTask",
                 classpath: configurations.retrotranslatorAntTask.asPath)
-        List libFiles = explodedDistLibDir.listFiles()
+        List libFiles = distLibsDir.listFiles()
         File logbackCore = libFiles.find { it.name.startsWith('logback-core') }
         File logbackClassic = libFiles.find { it.name.startsWith('logback-classic') }
         File gradle = libFiles.find { it.name.startsWith('gradle-') && !it.name.startsWith('gradle-wrapper') }
@@ -267,20 +248,17 @@ task retroTranslateLibs(dependsOn: explodedDist) << {
         retroFiles.each {File file ->
             retroExe(file) {
                 fileset(dir: distsRetroLibsFolder)
-                fileset(dir: explodedDistLibDir, excludes: libExcludes)
+                fileset(dir: distLibsDir, excludes: libExcludes)
                 fileset(dir: gradle_retroLibsDir)
             }
         }
     }
 }
-retroTranslateLibs {
-    enabled = project.hasProperty('gradle_retroLibsDir')
-}
 
 void retroExe(File file, Closure fileSet) {
     ant {
         retrotranslator(target: "1.4", destjar: new File(distsRetroLibsFolder, file.name), smart: true, verify: false, failonwarning: false) {
-            jarfileset(dir: explodedDistLibDir, includes: file.name)
+            jarfileset(dir: distLibsDir, includes: file.name)
             classpath() {
                 fileset(dir: gradle_retroLibsDir)
                 fileSet.delegate = delegate
@@ -290,89 +268,28 @@ void retroExe(File file, Closure fileSet) {
     }
 }
 
-Closure binFileSets = {task ->
-    delegate = task
-    zipFileSet(dir: explodedDistDir, prefix: zipRootFolder, fileMode: '775') {
-        include 'bin/*'
-        exclude 'bin/*.*'
-    }
-    zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-        include 'bin/*.*'
-    }
-}
-
-task allZip(type: Zip) {
-    dependsOn explodedDist
-    classifier = 'all'
-}
-allZip.doFirst {task ->
-    task.configure {
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-            exclude 'bin/*'
-        }
-        binFileSets(delegate)
-    }
-}
-
-task binZip(type: Zip) {
-    dependsOn explodedDist
-    classifier = 'bin'
-}
-binZip.doFirst {task ->
-    task.configure {
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-            exclude 'bin/*'
-            exclude 'docs/'
-            exclude 'src/'
-            exclude 'samples/'
-        }
-        binFileSets(delegate)
-    }
-}
-
-task srcZip(type: Zip) {
-    classifier = 'src'
-}
-srcZip.doFirst {task ->
-    task.configure {
-        zipFileSet(dir: projectDir, prefix: zipRootFolder, fileMode: '775') {
-            include 'gradlew'
-        }
-        zipFileSet(dir: projectDir, prefix: zipRootFolder) {
-            ['buildSrc', 'subprojects/*'].each {
-                include "$it/*.gradle"
-                include "$it/src/"
-            }
-            include 'config/'
-            include 'src/'
-            include '*.gradle'
-            include 'gradle.properties'
-            include 'wrapper/'
-            include 'gradlew.bat'
-        }
-    }
-}
-
-task jdk14AllZip(type: Zip) {
-    dependsOn retroTranslateLibs, explodedDist
+task jdk14AllZip(type: Zip, dependsOn: [retroTranslateLibs, startScripts]) {
     classifier = 'all-jdk14'
-    enabled = project.hasProperty('gradle_retroLibsDir')
-}
-jdk14AllZip.doFirst {Task task ->
-    task.configure {
-        zipFileSet(dir: explodedDistDir, prefix: zipRootFolder) {
-            exclude 'bin/*'
-            exclude 'lib/gradle*.jar'
-            exclude 'lib/logback*.jar'
-        }
-        zipFileSet(dir: distsRetroLibsFolder, prefix: "$zipRootFolder/lib")
-        configurations.retrotranslatorAntTask.each {File file ->
-            zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
-                include file.name
-            }
-        }
-        binFileSets(delegate)
+    zipFileSet(dir: distLibsDir, prefix: "$zipRootFolder/lib") {
+        exclude 'gradle*.jar'
+        exclude 'logback*.jar'
     }
+    zipFileSet(dir: distsRetroLibsFolder, prefix: "$zipRootFolder/lib")
+    configurations.retrotranslatorAntTask.each {File file ->
+        zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
+            include file.name
+        }
+    }
+    zipFileSet(dir: startScriptsDir, prefix: "$zipRootFolder/bin", fileMode: '775')
+    zipFileSet(dir: 'src/toplevel', prefix: zipRootFolder)
+    groovyProjects().each { project ->
+        project.sourceSets.main.java.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
+        project.sourceSets.main.resources.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
+        project.sourceSets.main.groovy.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
+    }
+    zipFileSet(dir: project(':docs').distDocsDir, prefix: zipRootFolder)
+    zipFileSet(dir: project(':docs').docsDir, prefix: "$zipRootFolder/docs")
+    zipFileSet(dir: project(':docs').samplesDir, prefix: "$zipRootFolder/samples")
 }
 
 artifacts {
@@ -381,268 +298,26 @@ artifacts {
     }
 }
 
-srcDocsDir = file('src/docs')
-userguideSrcDir = new File(srcDocsDir, 'userguide')
-userguideHtmlDir = new File(explodedDistDocsDir, 'userguide')
-userguidePdfFile = new File(userguideHtmlDir, 'userguide.pdf')
-userguideSingleHtmlFile = new File(userguideHtmlDir, 'userguide_single.html')
-docbookSrc = new File(project.buildDir, 'docbook/src')
-docbookDir = new File(project.buildDir, 'docbook/stylesheets')
-snippetsDir = new File(project.buildDir, 'docbook/snippets')
-
-task userguide(dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'], description: 'Generates the userguide')
-
-task samples(type: ExtractSnippetsTask) {
-    sourceFiles = ant.fileset(dir: samplesSrcDir) {
-        exclude(name: 'userguideOutput/**')
-        exclude(name: 'userguide/tutorial/antChecksumFiles/**')
-    }
-    destDir = explodedDistSamplesDir
-    snippetsDir = project.snippetsDir
-}
-samples << {
-    copy {
-        from samplesSrcDir
-        into explodedDistSamplesDir
-        include 'userguide/tutorial/antChecksumFiles/**'
-    }
-    WrapperProjectCreator.createProject(explodedDistSamplesDir, binZip.archivePath.parentFile,
-            version.toString())
-}
-
-task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
-    sourceFile = new File(userguideSrcDir, 'userguide.xml')
-    destFile = new File(docbookSrc, 'userguide.xml')
-    snippetsDir = project.snippetsDir
-    classpath = configurations.userGuideTask
-    validator = new SampleElementValidator()
-}
-userguideSrc.doFirst {
-    userguideSrc.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-    userguideSrc.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
-}
-
-task userguideStyleSheets << {
-    ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
-        globmapper(from: 'docbook-xsl-1.75.2/*', to: '*')
-    }
-    copy {
-        from new File(srcDocsDir, 'stylesheets')
-        into docbookDir
-        include '*.xsl'
-    }
-}
-
-task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
-        arg(value: '-in')
-        arg(value: new File(docbookSrc, 'userguide.xml'))
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'userGuideHtml.xsl'))
-        arg(line: "-param base.dir ${userguideHtmlDir}/")
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-        }
-    }
-    copy {
-        from userguideSrcDir
-        into userguideHtmlDir
-        include 'style.css'
-        include 'images/*.png'
-    }
-}
-
-task userguideSingleHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
-    userguideSingleHtmlFile.parentFile.mkdirs()
-    
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
-        arg(value: '-in')
-        arg(value: new File(docbookSrc, 'userguide.xml'))
-        arg(value: '-out')
-        arg(value: userguideSingleHtmlFile)
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'userGuideSingleHtml.xsl'))
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-        }
-    }
-    copy {
-        from userguideSrcDir
-        into userguideSingleHtmlFile.parentFile
-        include 'style.css'
-        include 'images/*.png'
-    }
-}
-
-task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
-    File pdfSourceHtml = new File(docbookSrc, 'userguidePdf.html')
-
-    pdfSourceHtml.parentFile.mkdirs()
-    userguidePdfFile.parentFile.mkdirs()
-
-    println "transforming docbook -> html"
-
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
-        arg(value: '-in')
-        arg(value: new File(docbookSrc, 'userguide.xml'))
-        arg(value: '-out')
-        arg(value: pdfSourceHtml)
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'userGuidePdf.xsl'))
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-        }
-    }
-
-    copy {
-        from userguideSrcDir
-        into pdfSourceHtml.parentFile
-        include 'style.css'
-        include 'print.css'
-        include 'images/*.png'
-    }
-
-    println "transforming html -> pdf, using ${System.getProperty('java.vm.version')}"
-
-    def uris = configurations.userGuideTask.files.collect {it.toURI().toURL()}
-
-    println "using classpath $uris"
-
-    def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
-
-    println "classloader constructed"
-
-    def renderer = classloader.loadClass('org.xhtmlrenderer.pdf.ITextRenderer').newInstance()
-
-    println "clases loaded"
-
-    renderer.setDocument(pdfSourceHtml)
-
-    println "document loaded"
-
-    renderer.layout()
-
-    println "layout done"
-
-    userguidePdfFile.withOutputStream {
-        renderer.createPDF(it)
-    }
-
-    println "done"
-}
-
-[userguidePdf].each {
-    it.onlyIf { !System.getProperty("os.name").toLowerCase().contains('windows') }
-}
-
-task uploadDocs(dependsOn: docs) << {
-    ftp(action: 'mkdir', remotedir: docsRemoteDir)
-    ftp(action: 'delete', remotedir: docsRemoteDir) {
-        fileset() {
-            include(name: '**/*')
-        }
-    }
-    ftp(action: 'send', remotedir: docsRemoteDir) {
-        fileset(dir: explodedDistDocsDir)
-    }
-}
-
-task distDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) {
-    standalone = true
-    sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
-    destFile = new File(docbookSrc, 'gettingStarted.xml')
-    snippetsDir = project.snippetsDir
-    classpath = configurations.userGuideTask
-}
-distDocs.doFirst {
-    distDocs.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-    distDocs.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
-}
-distDocs << {
-    explodedDistDir.mkdirs()
-
-    copy {
-        from userguideSrcDir
-        into docbookDir
-        include 'style.css'
-    }
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
-        sysproperty(key: 'org.apache.xerces.xni.parser.XMLParserConfiguration', value: 'org.apache.xerces.parsers.XIncludeParserConfiguration')
-        arg(value: '-in')
-        arg(value: new File(docbookSrc , 'gettingStarted.xml'))
-        arg(value: '-out')
-        arg(value: new File(explodedDistDir, 'getting-started.html'))
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'standaloneHtml.xsl'))
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-        }
-    }
-}
-
-task websiteDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) {
-    standalone = true
-    sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
-    destFile = new File(docbookSrc, 'gettingStarted.xml')
-    snippetsDir = project.snippetsDir
-    classpath = configurations.userGuideTask
-}
-websiteDocs.doFirst {
-    websiteDocs.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-    websiteDocs.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
-}
-websiteDocs << {
-    File websiteDocs = new File(buildDir, 'docs')
-    websiteDocs.mkdirs()
-
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        arg(value: '-in')
-        arg(value: new File(docbookSrc , 'gettingStarted.xml'))
-        arg(value: '-out')
-        arg(value: new File(websiteDocs, 'getting-started.html'))
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'docFragment.xsl'))
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-        }
-    }
-}
-
-integTestDistDir = file("$buildDir/integ test")
+integTestDistDir = file("$buildDir/integ-test")
 integTestUserDir = file('intTestHomeDir')
+integTestGradleHome = null
 
-task intTestImage(dependsOn: explodedDist) {
-    doFirst {
-        ant {
-            delete(dir: integTestDistDir)
-            copy(todir: integTestDistDir) {
-                fileset(dir: explodedDistDir)
-            }
-            chmod(dir: "$integTestDistDir/bin", perm: "ugo+rx", includes: "**/*")
-        }
+task intTestImage(dependsOn: assemble) << {
+    integTestGradleHome = new File(integTestDistDir, "gradle-" + version.toString())
+    ant {
+        delete(dir: integTestDistDir)
+        unzip(dest: integTestDistDir, src: allZip.archivePath)
+        chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
     }
+    WrapperProjectCreator.createProject(new File(integTestGradleHome, 'samples'), binZip.archivePath.parentFile, version.toString())
 }
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
-task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, userguideSrc]) {
+task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideSrc']) {
     options.fork(forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m'])
-    options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
-    options.systemProperties['integTest.userGuideInfoDir'] = docbookSrc.absolutePath
+    options.systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
+    options.systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
     options.systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
@@ -654,9 +329,11 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, use
     testSrcDirs = []
 }
 
+integTest.doFirst { task -> task.options.systemProperties['integTest.gradleHomeDir'] = integTestGradleHome.absolutePath }
+
 task testedDists(dependsOn: [assemble, check, integTest])
 
-task nightlyBuild(dependsOn: [clean, testedDists, uploadDocs])
+task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 
 task install(dependsOn: binZip, description: 'Installs the distribution into directory $gradle_installPath') << {
     ant.delete(dir: installDir)
@@ -721,7 +398,7 @@ gradle.taskGraph.whenReady {graph ->
 task developerBuild(dependsOn: [clean, testedDists])
 task ciBuild(dependsOn: [clean, testedDists])
 
-task release(dependsOn: [uploadDists, uploadDocs]) << {
+task release(dependsOn: [uploadDists, ':docs:uploadDocs']) << {
 // todo rewrite release functionality for Git. Until then we have to do tagging and branching manually.
 //    svn.release()
 }
@@ -736,19 +413,6 @@ wrapper.doFirst {task ->
 
 task rebuildWrapper(dependsOn: [clean, wrapper])
 
-void ftp(Map args, Closure antFileset = {}) {
-    ant {
-        taskdef(name: 'ftp',
-                classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
-                classpath: configurations.ftpAntTask.asPath)
-        Map ftpArgs = args + [
-                server: 'ftp.gradle.org',
-                userid: websiteFtpUserName,
-                password: websiteFtpUserPassword
-        ]
-        delegate.ftp(ftpArgs) {
-            antFileset.delegate = delegate
-            antFileset()
-        }
-    }
+def groovyProjects() {
+    subprojects.findAll { project -> project.name != 'docs' }
 }

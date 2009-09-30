@@ -79,7 +79,7 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         </para>
         <figure>
             <title>plugin.properties</title>
-            <programlisting><xi:include href='../../toplevel/plugin.properties' parse='text'/></programlisting>
+            <programlisting><xi:include href='../../../../../src/toplevel/plugin.properties' parse='text'/></programlisting>
         </figure>
         <para>If you want to use your own plugins, you must make sure that they are accessible via the build script
             classpath (see <xref linkend='organizing_build_logic'/> for more information). To learn more about how

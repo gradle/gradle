@@ -2,6 +2,7 @@ include 'wrapper'
 include 'core'
 include 'ui'
 include 'openApi'
+include 'docs'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->
