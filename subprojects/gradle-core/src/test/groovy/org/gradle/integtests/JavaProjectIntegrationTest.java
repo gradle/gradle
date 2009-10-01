@@ -23,18 +23,14 @@ import java.io.IOException;
 public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesEmptyProject() {
-        testFile("build.gradle").writelns(
-                "usePlugin('java')"
-        );
+        testFile("build.gradle").writelns("usePlugin('java')");
         inTestDirectory().withTasks("build").run();
     }
 
     @Test
     public void compilationFailureBreaksBuild() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns(
-                "usePlugin('java')"
-        );
+        buildFile.writelns("usePlugin('java')");
         testFile("src/main/java/org/gradle/broken.java").write("broken");
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
@@ -47,9 +43,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testCompilationFailureBreaksBuild() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns(
-                "usePlugin('java')"
-        );
+        buildFile.writelns("usePlugin('java')");
         testFile("src/main/java/org/gradle/ok.java").write("package org.gradle; class ok { }");
         testFile("src/test/java/org/gradle/broken.java").write("broken");
 
@@ -61,14 +55,10 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void handlesTestSrcDoesNotContainAnyTestCases() {
+    public void handlesTestSrcWhichDoesNotContainAnyTestCases() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns(
-                "usePlugin('java')"
-        );
-        testFile("src/test/java/org/gradle/NotATest.java").writelns(
-                "package org.gradle;",
-                "public class NotATest {}");
+        buildFile.writelns("usePlugin('java')");
+        testFile("src/test/java/org/gradle/NotATest.java").writelns("package org.gradle;", "public class NotATest {}");
 
         usingBuildFile(buildFile).withTasks("build").run();
     }
@@ -94,5 +84,19 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
         usingBuildFile(buildFile).withTasks("build").run();
         testFile("build/classes/main/org/gradle/resource.file").assertExists();
+    }
+
+    @Test
+    public void generatesArtifactsWhenVersionIsEmpty() {
+        testFile("settings.gradle").write("rootProject.name = 'empty'");
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns(
+                "usePlugin('java')",
+                "version = ''"
+        );
+        testFile("src/main/resources/org/gradle/resource.file").write("some resource");
+
+        usingBuildFile(buildFile).withTasks("jar").run();
+        testFile("build/libs/empty.jar").assertIsFile();
     }
 }

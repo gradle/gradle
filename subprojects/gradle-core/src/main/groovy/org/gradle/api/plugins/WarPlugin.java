@@ -70,8 +70,11 @@ public class WarPlugin implements Plugin {
     private void removeJarTaskFromArchivesConfiguration(Configuration archivesConfiguration, Jar jar) {
         // todo: There should be a richer connection between an ArchiveTask and a PublishArtifact
         for (PublishArtifact publishArtifact : archivesConfiguration.getAllArtifacts()) {
-            if (publishArtifact.getFile().equals(jar.getArchivePath())) {
-                archivesConfiguration.removeArtifact(publishArtifact);
+            if (publishArtifact instanceof ArchivePublishArtifact) {
+                ArchivePublishArtifact archivePublishArtifact = (ArchivePublishArtifact) publishArtifact;
+                if (archivePublishArtifact.getArchiveTask() == jar) {
+                    archivesConfiguration.removeArtifact(publishArtifact);
+                }
             }
         }
     }

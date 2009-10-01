@@ -42,19 +42,38 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canCustomiseWarUsingConventionProperties() {
+    public void canCustomiseArchiveNamesUsingConventionProperties() {
         testFile("settings.gradle").writelns("rootProject.name = 'test'");
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
                 "usePlugin('war')",
+                "jar.enabled = true",
                 "buildDirName = 'output'",
-                "libsDirName = 'wars'",
+                "libsDirName = 'archives'",
                 "archivesBaseName = 'test'",
                 "version = '0.5-RC2'"
         );
-        testFile("src/main/webapp/index.jsp").write("<p>hi</p>");
+        testFile("src/main/resources/org/gradle/resource.file").write("some resource");
 
         usingBuildFile(buildFile).withTasks("assemble").run();
-        testFile("output/wars/test-0.5-RC2.war").assertIsFile();
+        testFile("output/archives/test-0.5-RC2.jar").assertIsFile();
+        testFile("output/archives/test-0.5-RC2.war").assertIsFile();
     }
+
+    @Test
+    public void generatesArtifactsWhenVersionIsEmpty() {
+        testFile("settings.gradle").write("rootProject.name = 'empty'");
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns(
+                "usePlugin('war')",
+                "jar.enabled = true",
+                "version = ''"
+        );
+        testFile("src/main/resources/org/gradle/resource.file").write("some resource");
+
+        usingBuildFile(buildFile).withTasks("assemble").run();
+        testFile("build/libs/empty.jar").assertIsFile();
+        testFile("build/libs/empty.war").assertIsFile();
+    }
+
 }
