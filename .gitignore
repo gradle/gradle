@@ -3,10 +3,10 @@
 build
 out
 userguide-trunk.tmproj
-lib
 buildSrc/lib
 buildSrc/build
 buildSrc/.gradle
+subprojects/*/lib
 subprojects/gradle-core/build
 subprojects/gradle-open-api/build
 subprojects/gradle-ui/build
