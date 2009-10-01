@@ -144,15 +144,6 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         this
     }
 
-    protected addIncludesAndExcludesToBuilder(node) {
-        this.includes.each {String pattern ->
-            node.include(name: pattern)
-        }
-        this.excludes.each {String pattern ->
-            node.exclude(name: pattern)
-        }
-    }
-
     def addToAntBuilder(node, String childNodeName = null) {
         node.and {
             if (includes) {

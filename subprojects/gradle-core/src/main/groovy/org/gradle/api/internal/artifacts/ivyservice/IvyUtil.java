@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.Dependency;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.gradle.api.artifacts.Module;
 
 /**
  * @author Hans Dockter
  */
 public class IvyUtil {
-    public static List<String> getAllMasterConfs(Configuration[] allMasterConfigurationObjects) {
-        List<String> masterConfigurationNames = new ArrayList<String>();
-        for (Configuration masterConfigurationObject : allMasterConfigurationObjects) {
-            masterConfigurationNames.add(masterConfigurationObject.getName());
-        }
-        return masterConfigurationNames;
-    }
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {
-        return new ModuleRevisionId(new ModuleId(module.getGroup(), module.getName()), module.getVersion().toString());
+        return new ModuleRevisionId(new ModuleId(module.getGroup(), module.getName()), module.getVersion());
     }
 
     public static ModuleRevisionId createModuleRevisionId(Dependency dependency) {
-        return new ModuleRevisionId(new ModuleId(dependency.getGroup(), dependency.getName()), dependency.getVersion().toString());
+        return new ModuleRevisionId(new ModuleId(dependency.getGroup(), dependency.getName()), dependency.getVersion());
     }
 }

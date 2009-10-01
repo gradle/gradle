@@ -105,10 +105,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     @TaskAction
     public void generateArchive() {
         logger.debug("Creating archive: {}", name)
-        if (!getDestinationDir()) {
-            throw new InvalidUserDataException('You mustspecify the destinationDir.')
-        }
-        getDestinationDir().mkdirs()
         createAntArchiveTask().call()
     }
 

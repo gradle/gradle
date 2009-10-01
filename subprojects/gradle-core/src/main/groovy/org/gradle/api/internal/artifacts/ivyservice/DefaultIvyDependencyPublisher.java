@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,6 @@ import java.util.Set;
 public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
     public static final String FILE_PATH_EXTRA_ATTRIBUTE = "filePath";
     public static final List<String> ARTIFACT_PATTERN = WrapUtil.toList(String.format("[%s]", FILE_PATH_EXTRA_ATTRIBUTE));
-    public static final String POM_FILE_NAME = "pom.xml";
-    public static final String IVY_FILE_NAME = "ivy.xml";
 
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
 
