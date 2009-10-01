@@ -254,6 +254,7 @@ task retroTranslateLibs(dependsOn: distLibs) << {
         }
     }
 }
+retroTranslateLibs.enabled = project.hasProperty('gradle_retroLibsDir')
 
 void retroExe(File file, Closure fileSet) {
     ant {
@@ -291,6 +292,7 @@ task jdk14AllZip(type: Zip, dependsOn: [retroTranslateLibs, startScripts]) {
     zipFileSet(dir: project(':docs').docsDir, prefix: "$zipRootFolder/docs")
     zipFileSet(dir: project(':docs').samplesDir, prefix: "$zipRootFolder/samples")
 }
+jdk14AllZip.enabled = project.hasProperty('gradle_retroLibsDir')
 
 artifacts {
     tasks.withType(Zip).each {
