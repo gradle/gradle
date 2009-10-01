@@ -27,15 +27,7 @@ task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
     include 'org/gradle/integtests/**/*IntegrationTest.*'
 }
 
-// todo: Check why do we recreate the integ test distribution
-integTest.doFirst {
-    integTestGradleHome = new File(integTestDistDir, "gradle-" + version.toString())
-    ant {
-        delete(dir: integTestDistDir)
-        unzip(dest: integTestDistDir, src: allZip.archivePath)
-        chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
-    }
-}
+integTest.doFirst { task -> task.options.systemProperties['integTest.gradleHomeDir'] = integTestGradleHome.absolutePath }
 
 compileJava.options.depend()
 
