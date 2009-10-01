@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,11 @@
 package org.gradle.initialization;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.*;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.BasePlugin;
@@ -35,10 +33,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.net.URLClassLoader;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -92,13 +90,6 @@ public class BuildSourceBuilder {
         try {
             Logging.LIFECYCLE.add(Logging.DISABLED);
 
-            // todo Remove this redundancy. We have defined the buildResolverDir already somewhere else.
-            // We should get the build resolver dir from the root project. But as we need to get the dir before
-            // the build is executed, the GradleLauncher class should offer distinct methods for gettting an evaluated
-            // project tree and running a build against such a tree. In the case of a valid cache, this would also
-            // save the time to build the dag.
-            File buildResolverDir = new File(startParameter.getCurrentDir(), Project.TMP_DIR_NAME + "/" + ResolverContainer.INTERNAL_REPOSITORY_NAME);
-
             StartParameter startParameterArg = startParameter.newInstance();
             startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
             startParameterArg.setSearchUpwards(false);
@@ -106,7 +97,8 @@ public class BuildSourceBuilder {
                     Configurations.uploadInternalTaskName(Dependency.ARCHIVES_CONFIGURATION)));
             boolean executeBuild = true;
 
-            if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(buildArtifactFile(buildResolverDir), startParameter.getCurrentDir())) {
+            File artifactFile = buildArtifactFile(startParameter.getCurrentDir());
+            if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(artifactFile, startParameter.getCurrentDir())) {
                 executeBuild = false;
             }
 
@@ -125,7 +117,6 @@ public class BuildSourceBuilder {
             buildResult.rethrowFailure();
 
             Set<File> buildSourceClasspath = new LinkedHashSet<File>();
-            File artifactFile = buildArtifactFile(buildResolverDir);
             if (artifactFile.exists()) {
                 buildSourceClasspath.add(artifactFile);
             } else {
@@ -150,17 +141,15 @@ public class BuildSourceBuilder {
         }
     }
 
-    public File buildArtifactFile(File buildResolverDir) {
-        String path = IvyPatternHelper.substitute(buildResolverDir.getAbsolutePath() + "/" + ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN,
-                BUILD_SRC_ORG, BUILD_SRC_MODULE, BUILD_SRC_REVISION, BUILD_SRC_MODULE, BUILD_SRC_TYPE, BUILD_SRC_TYPE);
-        return new File(path);
+    public File buildArtifactFile(File buildSrcDir) {
+        return new File(buildSrcDir, String.format("build/libs/buildSrc-%s.jar", BuildSourceBuilder.BUILD_SRC_REVISION));
     }
 
     private Map getDependencyProjectProps() {
         return GUtil.map(
-                "group", BuildSourceBuilder.BUILD_SRC_ORG,
-                "version", BuildSourceBuilder.BUILD_SRC_REVISION,
-                "type", "jar");
+                "group", BUILD_SRC_ORG,
+                "version", BUILD_SRC_REVISION,
+                "type", BUILD_SRC_TYPE);
     }
 
     public GradleFactory getGradleFactory() {

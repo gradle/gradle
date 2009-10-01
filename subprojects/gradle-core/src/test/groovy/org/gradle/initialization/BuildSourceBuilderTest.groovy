@@ -18,7 +18,6 @@ package org.gradle.initialization
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.JavaPlugin
@@ -30,7 +29,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.*
-import static org.junit.Assert.assertEquals
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -46,7 +45,6 @@ class BuildSourceBuilderTest {
     CacheInvalidationStrategy cacheInvalidationStrategyMock
     File rootDir
     File testBuildSrcDir
-    File testBuildResolverDir
     Set testDependencies
     StartParameter expectedStartParameter
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
@@ -58,7 +56,6 @@ class BuildSourceBuilderTest {
         File testDir = HelperUtil.makeNewTestDir()
         (rootDir = new File(testDir, 'root')).mkdir()
         (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
-        (testBuildResolverDir = new File(testBuildSrcDir, Project.TMP_DIR_NAME + '/' + ResolverContainer.INTERNAL_REPOSITORY_NAME)).mkdir()
         gradleFactoryMock = context.mock(GradleFactory)
         gradleMock = context.mock(GradleLauncher)
         rootProjectMock = context.mock(Project)
@@ -74,8 +71,7 @@ class BuildSourceBuilderTest {
                 projectProperties: dependencyProjectProps
         )
         testDependencies = ['dep1' as File, 'dep2' as File]
-        expectedArtifactPath = "$testBuildResolverDir.absolutePath/$BuildSourceBuilder.BUILD_SRC_ORG" +
-                "/$BuildSourceBuilder.BUILD_SRC_MODULE/jars/${BuildSourceBuilder.BUILD_SRC_MODULE}-${BuildSourceBuilder.BUILD_SRC_REVISION}.jar"
+        expectedArtifactPath = "$testBuildSrcDir.absolutePath/build/libs/${BuildSourceBuilder.BUILD_SRC_MODULE}-${BuildSourceBuilder.BUILD_SRC_REVISION}.jar"
         Gradle build = context.mock(Gradle)
         context.checking {
             allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationHandlerStub))
@@ -95,7 +91,7 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testBuildArtifactFile() {
-        assertEquals(new File(expectedArtifactPath), buildSourceBuilder.buildArtifactFile(testBuildResolverDir))
+        assertEquals(new File(expectedArtifactPath), buildSourceBuilder.buildArtifactFile(testBuildSrcDir))
     }
 
     @Test public void testCreateDependencyWithExistingBuildSources() {
@@ -178,8 +174,8 @@ class BuildSourceBuilderTest {
     }
 
     private createArtifact() {
-        buildSourceBuilder.buildArtifactFile(testBuildResolverDir).parentFile.mkdirs()
-        buildSourceBuilder.buildArtifactFile(testBuildResolverDir).createNewFile()
+        buildSourceBuilder.buildArtifactFile(testBuildSrcDir).parentFile.mkdirs()
+        buildSourceBuilder.buildArtifactFile(testBuildSrcDir).createNewFile()
     }
 
     private Map getDependencyProjectProps() {

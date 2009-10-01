@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,12 @@ public class ClientModuleResolver extends BasicResolver {
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dde, ResolveData data) {
-        if (dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY) != null) {
-            IvyContext context = IvyContext.pushNewCopyContext();
+        if (dde.getExtraAttribute(ClientModule.CLIENT_MODULE_KEY) == null) {
+            return null;
+        }
+
+        IvyContext context = IvyContext.pushNewCopyContext();
+        try {
             context.setDependencyDescriptor(dde);
             context.setResolveData(data);
             DefaultModuleDescriptor moduleDescriptor =
@@ -58,16 +62,15 @@ public class ClientModuleResolver extends BasicResolver {
             MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
             downloadReport.setDownloadStatus(DownloadStatus.NO);
             downloadReport.setSearched(false);
-            IvyContext.popContext();
             return new ResolvedModuleRevision(userResolver, userResolver, moduleDescriptor, downloadReport);
+        } finally {
+            IvyContext.popContext();
         }
-        return null;
     }
 
     public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
         return null;
     }
-
 
     protected Collection findNames(Map tokenValues, String token) {
         return null;

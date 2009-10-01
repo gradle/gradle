@@ -15,74 +15,157 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
-import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.plugins.lock.NoLockStrategy;
-import org.apache.ivy.plugins.resolver.FileSystemResolver;
+import org.apache.ivy.core.IvyContext;
+import org.apache.ivy.core.cache.ArtifactOrigin;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.report.ArtifactDownloadReport;
+import org.apache.ivy.core.report.DownloadReport;
+import org.apache.ivy.core.report.DownloadStatus;
+import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
+import org.apache.ivy.core.resolve.DownloadOptions;
+import org.apache.ivy.core.resolve.ResolveData;
+import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.apache.ivy.plugins.repository.Resource;
+import org.apache.ivy.plugins.repository.file.FileRepository;
+import org.apache.ivy.plugins.repository.file.FileResource;
+import org.apache.ivy.plugins.resolver.BasicResolver;
+import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.CacheUsage;
-import org.gradle.listener.ListenerManager;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.artifacts.DefaultModule;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.util.GradleUtil;
+import org.gradle.listener.ListenerManager;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultInternalRepository extends FileSystemResolver implements InternalRepository, BuildListener {
+public class DefaultInternalRepository extends BasicResolver implements InternalRepository, BuildListener {
     private File dir;
+    private final Map<ModuleRevisionId, Project> projects = new HashMap<ModuleRevisionId, Project>();
+    private final ModuleDescriptorConverter moduleDescriptorConverter;
 
-    public DefaultInternalRepository(ListenerManager listenerManager) {
+    public DefaultInternalRepository(ListenerManager listenerManager,
+                                     ModuleDescriptorConverter moduleDescriptorConverter) {
+        this.moduleDescriptorConverter = moduleDescriptorConverter;
         listenerManager.addListener(this);
-    }
-
-    private void configure(File dir) {
-        setRepositoryCacheManager(createCacheManager());
         setName(ResolverContainer.INTERNAL_REPOSITORY_NAME);
-        String patternRoot = String.format(dir.getAbsolutePath() + "/");
-        addIvyPattern(patternRoot + ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
-        addArtifactPattern(patternRoot + ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
-        setValidate(false);
     }
 
-    private RepositoryCacheManager createCacheManager() {
-        File cacheDir = new File(dir, ResolverContainer.DEFAULT_CACHE_DIR_NAME);
-        DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager();
-        cacheManager.setBasedir(cacheDir);
-        cacheManager.setName(ResolverContainer.DEFAULT_CACHE_NAME);
-        cacheManager.setUseOrigin(true);
-        cacheManager.setLockStrategy(new NoLockStrategy());
-        cacheManager.setIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
-        cacheManager.setArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
-        return cacheManager;
+    @Override
+    public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
+        if (!projects.containsKey(dd.getDependencyRevisionId())) {
+            return data.getCurrentResolvedModuleRevision();
+        }
+
+        IvyContext context = IvyContext.pushNewCopyContext();
+        try {
+            context.setDependencyDescriptor(dd);
+            context.setResolveData(data);
+            Project project = projects.get(dd.getDependencyRevisionId());
+            DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getName(),
+                    project.getVersion().toString(), project.getStatus().toString());
+            ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForPublish(
+                    project.getConfigurations().getAll(), false, module,
+                    IvyContext.getContext().getIvy().getSettings());
+            MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
+            downloadReport.setDownloadStatus(DownloadStatus.NO);
+            downloadReport.setSearched(false);
+            return new ResolvedModuleRevision(this, this, moduleDescriptor, downloadReport);
+        } finally {
+            IvyContext.popContext();
+        }
+    }
+
+    @Override
+    protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
+        String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+        if (path == null) {
+            return null;
+        }
+        File file = new File(path);
+        return new ResolvedResource(new FileResource(new FileRepository(), file), artifact.getId().getRevision());
+    }
+
+    @Override
+    public DownloadReport download(Artifact[] artifacts, DownloadOptions options) {
+        DownloadReport dr = new DownloadReport();
+        for (Artifact artifact : artifacts) {
+            ArtifactDownloadReport artifactDownloadReport = new ArtifactDownloadReport(artifact);
+            String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+            if (path == null) {
+                artifactDownloadReport.setDownloadStatus(DownloadStatus.FAILED);
+            } else {
+                File file = new File(path);
+                artifactDownloadReport.setDownloadStatus(DownloadStatus.SUCCESSFUL);
+                artifactDownloadReport.setArtifactOrigin(new ArtifactOrigin(artifact, true, getName()));
+                artifactDownloadReport.setLocalFile(file);
+                artifactDownloadReport.setSize(file.length());
+            }
+            dr.addArtifactReport(artifactDownloadReport);
+        }
+        return dr;
+    }
+
+    @Override
+    protected Resource getResource(String source) throws IOException {
+        return null;
+    }
+
+    @Override
+    protected Collection findNames(Map tokenValues, String token) {
+        return null;
+    }
+
+    @Override
+    protected long get(Resource resource, File dest) throws IOException {
+        return 0;
+    }
+
+    public ResolvedResource findIvyFileRef(DependencyDescriptor dd, ResolveData data) {
+        return null;
+    }
+
+    public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
     }
 
     public File getDir() {
-        return dir;
+        throw new UnsupportedOperationException();
     }
 
     public void buildStarted(Gradle gradle) {
     }
 
     public void settingsEvaluated(Settings settings) {
-        dir = new File(settings.getSettingsDir(), Project.TMP_DIR_NAME + "/" + ResolverContainer.INTERNAL_REPOSITORY_NAME);
-        if (settings.getStartParameter().getCacheUsage() != CacheUsage.ON) {
-            GradleUtil.deleteDir(dir);
-        }
-        configure(dir);
     }
 
     public void projectsLoaded(Gradle gradle) {
     }
 
     public void projectsEvaluated(Gradle gradle) {
+        for (Project project : gradle.getRootProject().getAllprojects()) {
+            DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getName(),
+                    project.getVersion().toString(), project.getStatus().toString());
+            projects.put(IvyUtil.createModuleRevisionId(module), project);
+        }
     }
 
     public void taskGraphPopulated(TaskExecutionGraph graph) {

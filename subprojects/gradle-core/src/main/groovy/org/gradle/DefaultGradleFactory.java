@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.WrapUtil;
 import org.gradle.listener.ListenerManager;
 import org.gradle.listener.DefaultListenerManager;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -79,25 +80,27 @@ public class DefaultGradleFactory implements GradleFactory {
                         new MasterDirSettingsFinderStrategy(),
                         new ParentDirSettingsFinderStrategy()))
         );
-        Map clientModuleRegistry = new HashMap();
+        Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
         ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
+        ModuleDescriptorConverter moduleDescriptorConverter = new DefaultModuleDescriptorConverter(
+                new DefaultModuleDescriptorFactory(),
+                new DefaultConfigurationsToModuleDescriptorConverter(),
+                new DefaultDependenciesToModuleDescriptorConverter(
+                        new DefaultDependencyDescriptorFactory(
+                                excludeRuleConverter,
+                                new DefaultClientModuleDescriptorFactory(),
+                                clientModuleRegistry),
+                        excludeRuleConverter),
+                new DefaultArtifactsToModuleDescriptorConverter());
         ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory(
                 clientModuleRegistry,
-                new DefaultSettingsConverter(),
-                new DefaultModuleDescriptorConverter(
-                        new DefaultModuleDescriptorFactory(),
-                        new DefaultConfigurationsToModuleDescriptorConverter(),
-                        new DefaultDependenciesToModuleDescriptorConverter(
-                                new DefaultDependencyDescriptorFactory(excludeRuleConverter,
-                                        new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
-                                excludeRuleConverter),
-                        new DefaultArtifactsToModuleDescriptorConverter()),
+                new DefaultSettingsConverter(), moduleDescriptorConverter,
                 new DefaultIvyFactory(),
                 new SelfResolvingDependencyResolver(
                         new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
                 new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
                         new DefaultPublishOptionsFactory()));
-        DefaultInternalRepository internalRepository = new DefaultInternalRepository(listenerManager);
+        DefaultInternalRepository internalRepository = new DefaultInternalRepository(listenerManager, moduleDescriptorConverter);
         DependencyFactory dependencyFactory = new DefaultDependencyFactory(
                 WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),
                         new SelfResolvingDependencyFactory()),

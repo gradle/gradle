@@ -75,6 +75,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultModuleDescriptorForUp
 import org.gradle.api.internal.artifacts.ivyservice.DefaultPublishOptionsFactory
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
 
 /**
  * @author Hans Dockter
@@ -109,18 +110,19 @@ class HelperUtil {
                 new DefaultProjectDependencyFactory(startParameter.projectDependenciesBuildInstruction))
         Map clientModuleRegistry = new HashMap();
         ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
-        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
-                repositoryHandlerFactory,
-                new DefaultConfigurationContainerFactory(clientModuleRegistry,
-                new DefaultSettingsConverter(),
-                new DefaultModuleDescriptorConverter(
+        ModuleDescriptorConverter moduleDescriptorConverter = new DefaultModuleDescriptorConverter(
                         new DefaultModuleDescriptorFactory(),
                         new DefaultConfigurationsToModuleDescriptorConverter(),
                         new DefaultDependenciesToModuleDescriptorConverter(
                                 new DefaultDependencyDescriptorFactory(excludeRuleConverter,
                                         new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
                                 excludeRuleConverter),
-                        new DefaultArtifactsToModuleDescriptorConverter()),
+                        new DefaultArtifactsToModuleDescriptorConverter())
+        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
+                repositoryHandlerFactory,
+                new DefaultConfigurationContainerFactory(clientModuleRegistry,
+                new DefaultSettingsConverter(),
+                moduleDescriptorConverter,
                 new DefaultIvyFactory(),
                 new SelfResolvingDependencyResolver(
                         new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
@@ -136,7 +138,7 @@ class HelperUtil {
                 new StringScriptSource("embedded build file", "embedded"))
 
         DefaultListenerManager listenerManager = new DefaultListenerManager()
-        DefaultInternalRepository internalRepo = new DefaultInternalRepository(listenerManager)
+        DefaultInternalRepository internalRepo = new DefaultInternalRepository(listenerManager, moduleDescriptorConverter)
         internalRepo.setName('testInternalRepo') 
         DefaultGradle build = new DefaultGradle(startParameter, internalRepo, serviceRegistryFactory,
                                                 new DefaultStandardOutputRedirector(), listenerManager)
