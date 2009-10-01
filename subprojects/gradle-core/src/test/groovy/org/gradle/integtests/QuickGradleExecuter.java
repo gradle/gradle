@@ -29,6 +29,7 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
 
     public QuickGradleExecuter(GradleDistribution dist) {
         this.dist = dist;
+        directory = dist.getTestDir();
     }
 
     @Override
@@ -55,11 +56,10 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setGradleHomeDir(dist.getGradleHomeDir());
+        parameter.setGradleUserHomeDir(dist.getUserHomeDir());
 
         GradleExecuter executer = new InProcessGradleExecuter(parameter);
-        if (directory != null) {
-            executer.inDirectory(directory);
-        }
+        executer.inDirectory(directory);
         if (!tasks.isEmpty()) {
             executer.withTasks(tasks);
         }

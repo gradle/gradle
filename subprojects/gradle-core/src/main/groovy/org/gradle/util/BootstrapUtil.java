@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,17 +57,13 @@ public class BootstrapUtil {
     }
 
     public static List<File> getGradleClasspath() {
-        File customGradleBin = null;
+        File customGradleBin;
         List<File> pathElements = new ArrayList<File>();
         if (System.getProperty("gradle.bootstrap.gradleBin") != null) {
             customGradleBin = new File(System.getProperty("gradle.bootstrap.gradleBin"));
             pathElements.add(customGradleBin);
         }
-        for (File homeLibFile : getGradleHomeLibClasspath()) {
-            if (homeLibFile.exists() && !(customGradleBin != null && homeLibFile.getName().startsWith("gradle-"))) {
-                pathElements.add(homeLibFile);
-            }
-        }
+        pathElements.addAll(getGradleHomeLibClasspath());
         return pathElements;
     }
 

@@ -78,18 +78,22 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
     }
 
     private GradleDistribution getDist() throws IOException {
-        final TestFile userHomeDir = file("integTest.gradleUserHomeDir", new File("intTestHomeDir"));
-        final TestFile gradleHomeDir = file("integTest.gradleHomeDir", new File("build/distributions/exploded"));
-        final TestFile samplesDir = new TestFile(gradleHomeDir, "samples");
-        final TestFile userGuideOutputDir = file("integTest.userGuideOutputDir", new File("build/docbook/src"));
-        final TestFile userGuideInfoDir = file("integTest.userGuideInfoDir", new File("build/docbook/src"));
-        final TestFile distsDir = file("integTest.distsDir", new File("build/distributions"));
+        final TestFile userHomeDir = file("integTest.gradleUserHomeDir", "intTestHomeDir");
+        final TestFile gradleHomeDir = file("integTest.gradleHomeDir", null);
+        TestFile samplesDir = new TestFile(gradleHomeDir, "samples");
+        if (!samplesDir.exists()) {
+            samplesDir = new TestFile(new File("subprojects/gradle-docs/build/samples"));
+        }
+        final TestFile samples = samplesDir;
+        final TestFile userGuideOutputDir = file("integTest.userGuideOutputDir", "subprojects/gradle-docs/build/docbook/src");
+        final TestFile userGuideInfoDir = file("integTest.userGuideInfoDir", "subprojects/gradle-docs/build/docbook/src");
+        final TestFile distsDir = file("integTest.distsDir", "build/distributions");
         final TestFile testDir = new TestFile(GFileUtils.canonicalise(HelperUtil.makeNewTestDir()));
 
         return new GradleDistribution() {
             public boolean isFileUnderTest(File file) {
                 return gradleHomeDir.isSelfOrDescendent(file)
-                        || samplesDir.isSelfOrDescendent(file)
+                        || samples.isSelfOrDescendent(file)
                         || testDir.isSelfOrDescendent(file)
                         || userHomeDir.isSelfOrDescendent(file);
             }
@@ -103,7 +107,7 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
             }
 
             public TestFile getSamplesDir() {
-                return samplesDir;
+                return samples;
             }
 
             public TestFile getUserGuideInfoDir() {
@@ -128,8 +132,12 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         };
     }
 
-    private static TestFile file(String propertyName, File defaultFile) {
-        String path = System.getProperty(propertyName, defaultFile.getAbsolutePath());
+    private static TestFile file(String propertyName, String defaultFile) {
+        String path = System.getProperty(propertyName, defaultFile);
+        if (path == null) {
+            throw new RuntimeException(String.format("You must set the '%s' property to run the integration tests.",
+                    propertyName));
+        }
         return new TestFile(new File(path));
     }
 }
