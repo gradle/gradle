@@ -302,7 +302,7 @@ integTestDistDir = file("$buildDir/integ-test")
 integTestUserDir = file('intTestHomeDir')
 integTestGradleHome = null
 
-task intTestImage(dependsOn: assemble) << {
+task intTestImage(dependsOn: [allZip, binZip, srcZip]) << {
     integTestGradleHome = new File(integTestDistDir, "gradle-" + version.toString())
     ant {
         delete(dir: integTestDistDir)
