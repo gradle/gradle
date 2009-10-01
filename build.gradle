@@ -1,7 +1,6 @@
 import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.gradle.api.Task
 import org.gradle.api.artifacts.repositories.WebdavResolver
 import org.gradle.api.tasks.testing.ForkMode
 import org.gradle.api.tasks.wrapper.Wrapper
@@ -10,9 +9,6 @@ import org.gradle.build.release.Version
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.apache.ivy.plugins.resolver.*
-import org.gradle.build.docs.UserGuideTransformTask
-import org.gradle.build.docs.ExtractSnippetsTask
-import org.gradle.build.docs.SampleElementValidator
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -115,10 +111,14 @@ project(':docs') {
 
 allprojects {
     task ide << {task ->
+        def config = task.project.configurations.findByName('testRuntime')
+        if (!config) {
+            return
+        }
         def libDir = task.project.file('lib')
         ant.delete(dir: libDir)
         copy {
-            from task.project.configurations.testRuntime.copyRecursive(DependencySpecs.type(Type.EXTERNAL)).files
+            from config.copyRecursive(DependencySpecs.type(Type.EXTERNAL)).files
             into libDir
         }
     }
