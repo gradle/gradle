@@ -35,7 +35,6 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
     public void buildJar(File jarFile) {
         rootDir.file("build.gradle").writelns(
                 "usePlugin 'java'",
-                "test.enabled = false",
                 String.format("jar.destinationDir = file('%s')", GradleUtil.unbackslash(jarFile.getParentFile())),
                 String.format("jar.customName = '%s'", jarFile.getName())
         );
