@@ -17,11 +17,8 @@ package org.gradle.api.artifacts.repositories;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 
-import java.io.File;
-
 /**
  * @author Hans Dockter
  */
 public interface InternalRepository extends DependencyResolver {
-    File getDir();
 }

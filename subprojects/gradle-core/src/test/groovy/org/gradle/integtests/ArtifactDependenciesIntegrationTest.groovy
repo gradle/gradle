@@ -1,27 +1,9 @@
-/*
- * Copyright 2009 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.gradle.integtests;
+package org.gradle.integtests
 
-import static org.hamcrest.Matchers.*;
-import org.junit.Test;
+import org.junit.Test
+import static org.hamcrest.Matchers.*
 
-import java.io.File;
-import java.io.IOException;
-
-public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
+class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void dependencyReportWithConflicts() {
         File buildFile = getTestBuildFile("projectWithConflicts.gradle");
@@ -59,12 +41,12 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
     @Test
     public void reportsProjectDependsOnSelfError() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns(
-                "configurations { compile }",
-                "dependencies { compile project(':') }",
-                "defaultTasks 'listJars'",
-                "task listJars << { configurations.compile.each { println it } }"
-        );
+        buildFile << '''
+            configurations { compile }
+            dependencies { compile project(':') }
+            defaultTasks 'listJars'
+            task listJars << { configurations.compile.each { println it } }
+'''
         ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
         failure.assertHasDescription("Execution failed for task ':listJars'");
@@ -75,18 +57,46 @@ public class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest
     @Test
     public void canSpecifyProducerTasksForFileDependency() {
         testFile("settings.gradle").write("include 'sub'");
-        TestFile buildFile = testFile("build.gradle").writelns(
-                "configurations { compile }",
-                "dependencies { compile project(path: ':sub', configuration: 'compile') }",
-                "task test(dependsOn: configurations.compile) << { assertTrue(file('sub/sub.jar').isFile()) }"
-        );
-        testFile("sub/build.gradle").writelns(
-                "usePlugin org.gradle.api.plugins.BasePlugin",
-                "configurations { compile }",
-                "dependencies { compile files('sub.jar') { builtBy 'jar' } }",
-                "task jar << { file('sub.jar').text = 'content' }"
-        );
+        testFile("build.gradle") << '''
+            configurations { compile }
+            dependencies { compile project(path: ':sub', configuration: 'compile') }
+            task test(dependsOn: configurations.compile) << { assertTrue(file('sub/sub.jar').isFile()) }
+'''
+        testFile("sub/build.gradle") << '''
+            usePlugin org.gradle.api.plugins.BasePlugin
+            configurations { compile }
+            dependencies { compile files('sub.jar') { builtBy 'jar' } }
+            task jar << { file('sub.jar').text = 'content' }
+'''
 
-        usingBuildFile(buildFile).withTasks("test").run().assertTasksExecuted(":sub:jar", ":sub:uploadCompileInternal", ":test");
+        inTestDirectory().withTasks("test").run().assertTasksExecuted(":sub:jar", ":sub:uploadCompileInternal", ":test");
     }
+
+    @Test
+    public void projectArtifactsContainProjectVersionNumber() {
+        testFile('settings.gradle').write("include 'a', 'b'");
+        testFile('a/build.gradle') << '''
+            usePlugin('base')
+            configurations { compile }
+            task aJar(type: Jar) { }
+            artifacts { compile aJar }
+'''
+        testFile('b/build.gradle') << '''
+            usePlugin('base')
+            version = 'early'
+            configurations { compile }
+            task bJar(type: Jar) { }
+            bJar.doFirst { project.version = 'late' }
+            artifacts { compile bJar }
+'''
+        testFile('build.gradle') << '''
+            configurations { compile }
+            dependencies { compile project(path: ':a', configuration: 'compile'), project(path: ':b', configuration: 'compile') }
+            task test(dependsOn: configurations.compile) << {
+                assertEquals(configurations.compile.collect { it.name }, ['a.jar', 'b-late.jar'])
+            }
+'''
+        inTestDirectory().withTasks('test').run()
+    }
+
 }

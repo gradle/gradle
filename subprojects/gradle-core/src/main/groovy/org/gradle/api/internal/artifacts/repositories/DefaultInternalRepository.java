@@ -42,7 +42,6 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.listener.ListenerManager;
@@ -59,9 +58,9 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultInternalRepository extends BasicResolver implements InternalRepository, BuildListener {
-    private File dir;
-    private final Map<ModuleRevisionId, Project> projects = new HashMap<ModuleRevisionId, Project>();
+    private final Map<ModuleRevisionId, ModuleDescriptor> projects = new HashMap<ModuleRevisionId, ModuleDescriptor>();
     private final ModuleDescriptorConverter moduleDescriptorConverter;
+    private Gradle gradle;
 
     public DefaultInternalRepository(ListenerManager listenerManager,
                                      ModuleDescriptorConverter moduleDescriptorConverter) {
@@ -72,6 +71,9 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
 
     @Override
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
+        if (projects.isEmpty()) {
+            populateProjects();
+        }
         if (!projects.containsKey(dd.getDependencyRevisionId())) {
             return data.getCurrentResolvedModuleRevision();
         }
@@ -80,18 +82,27 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         try {
             context.setDependencyDescriptor(dd);
             context.setResolveData(data);
-            Project project = projects.get(dd.getDependencyRevisionId());
-            DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getName(),
-                    project.getVersion().toString(), project.getStatus().toString());
-            ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForPublish(
-                    project.getConfigurations().getAll(), false, module,
-                    IvyContext.getContext().getIvy().getSettings());
+            ModuleDescriptor moduleDescriptor = projects.get(dd.getDependencyRevisionId());
             MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
             downloadReport.setDownloadStatus(DownloadStatus.NO);
             downloadReport.setSearched(false);
             return new ResolvedModuleRevision(this, this, moduleDescriptor, downloadReport);
         } finally {
             IvyContext.popContext();
+        }
+    }
+
+    private void populateProjects() {
+        if (gradle == null) {
+            return;
+        }
+        for (Project project : gradle.getRootProject().getAllprojects()) {
+            DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getName(),
+                    project.getVersion().toString(), project.getStatus().toString());
+            ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForPublish(
+                    project.getConfigurations().getAll(), false, module,
+                    IvyContext.getContext().getIvy().getSettings());
+            projects.put(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
         }
     }
 
@@ -147,10 +158,6 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
     public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
     }
 
-    public File getDir() {
-        throw new UnsupportedOperationException();
-    }
-
     public void buildStarted(Gradle gradle) {
     }
 
@@ -161,11 +168,7 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
     }
 
     public void projectsEvaluated(Gradle gradle) {
-        for (Project project : gradle.getRootProject().getAllprojects()) {
-            DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getName(),
-                    project.getVersion().toString(), project.getStatus().toString());
-            projects.put(IvyUtil.createModuleRevisionId(module), project);
-        }
+        this.gradle = gradle;
     }
 
     public void taskGraphPopulated(TaskExecutionGraph graph) {

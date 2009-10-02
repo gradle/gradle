@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,8 @@ public class AbstractIntegrationTest {
                 "scala=org.gradle.api.plugins.scala.ScalaPlugin",
                 "war=org.gradle.api.plugins.WarPlugin",
                 "maven=org.gradle.api.plugins.MavenPlugin",
-                "code-quality=org.gradle.api.plugins.quality.CodeQualityPlugin"
+                "code-quality=org.gradle.api.plugins.quality.CodeQualityPlugin",
+                "base=org.gradle.api.plugins.BasePlugin"
         );
 
         parameter.setGradleUserHomeDir(getUserHomeDir());
