@@ -41,11 +41,11 @@ class SamplesJavaCustomizedLayoutIntegrationTest {
         javaprojectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
 
         // Check jar exists
-        javaprojectDir.file('build/libs/customizedLayout-unspecified.jar').assertIsFile()
+        javaprojectDir.file('build/libs/customizedLayout.jar').assertIsFile()
 
         // Check contents of Jar
         TestFile jarContents = dist.testDir.file('jar')
-        javaprojectDir.file('build/libs/customizedLayout-unspecified.jar').unzipTo(jarContents)
+        javaprojectDir.file('build/libs/customizedLayout.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/Person.class'

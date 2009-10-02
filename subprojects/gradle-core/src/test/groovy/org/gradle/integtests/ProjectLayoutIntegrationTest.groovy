@@ -90,7 +90,7 @@ sourceSets.each {
         )
 
         TestFile tmpDir = dist.testFile('jarContents')
-        buildDir.file('libs/sharedSource-unspecified.jar').unzipTo(tmpDir)
+        buildDir.file('libs/sharedSource.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/main/resource.txt',

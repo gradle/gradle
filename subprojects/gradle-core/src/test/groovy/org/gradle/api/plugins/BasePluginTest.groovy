@@ -57,7 +57,7 @@ class BasePluginTest {
         assertThat(task, instanceOf(DefaultTask))
     }
 
-    @Test public void addsImplictTasksForConfiguration() {
+    @Test public void addsImplicitTasksForConfiguration() {
         plugin.use(project, project.getPlugins())
 
         Task producer = [getName: {-> 'producer'}] as Task
@@ -76,6 +76,8 @@ class BasePluginTest {
     
     @Test public void appliesMappingsForArchiveTasks() {
         plugin.use(project, project.getPlugins())
+
+        project.version = '1.0'
 
         def task = project.tasks.add('someJar', Jar)
         assertThat(task.destinationDir, equalTo(project.libsDir))
@@ -97,5 +99,17 @@ class BasePluginTest {
         assertThat(task.baseName, equalTo(project.archivesBaseName))
         
         assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar', 'someZip', 'someTar'))
+    }
+
+    @Test public void usesNullVersionWhenProjectVersionNotSpecified() {
+        plugin.use(project, project.getPlugins())
+
+        def task = project.tasks.add('someJar', Jar)
+        assertThat(task.version, nullValue())
+
+        project.version = '1.0'
+
+        task = project.tasks.add('someOtherJar', Jar)
+        assertThat(task.version, equalTo('1.0'))
     }
 }

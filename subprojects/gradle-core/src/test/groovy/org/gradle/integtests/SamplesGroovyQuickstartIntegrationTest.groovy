@@ -36,7 +36,7 @@ class SamplesGroovyQuickstartIntegrationTest {
 
         // Check contents of jar
         TestFile tmpDir = dist.testDir.file('jarContents')
-        groovyProjectDir.file('build/libs/quickstart-unspecified.jar').unzipTo(tmpDir)
+        groovyProjectDir.file('build/libs/quickstart.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/Person.class'

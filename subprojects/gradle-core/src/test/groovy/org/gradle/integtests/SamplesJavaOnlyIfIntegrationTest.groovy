@@ -48,7 +48,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
         assertExists(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
 
         // Check jar exists
-        assertExists(javaprojectDir, "build/libs/onlyif-unspecified.jar")
+        assertExists(javaprojectDir, "build/libs/onlyif.jar")
 
         // remove test results
         removeFile(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')

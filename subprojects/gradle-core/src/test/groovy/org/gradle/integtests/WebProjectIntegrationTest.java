@@ -38,7 +38,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("src/main/webapp/index.jsp").write("<p>hi</p>");
 
         usingBuildFile(buildFile).withTasks("assemble").run();
-        testFile("build/libs/test-unspecified.war").assertIsFile();
+        testFile("build/libs/test.war").assertIsFile();
     }
 
     @Test

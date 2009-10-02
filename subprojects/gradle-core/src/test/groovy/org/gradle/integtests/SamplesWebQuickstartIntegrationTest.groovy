@@ -39,7 +39,7 @@ class SamplesWebQuickstartIntegrationTest {
 
         // Check contents of War
         TestFile warContents = dist.testDir.file('jar')
-        webProjectDir.file("build/libs/quickstart-unspecified.war").unzipTo(warContents)
+        webProjectDir.file("build/libs/quickstart.war").unzipTo(warContents)
         warContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'index.jsp',

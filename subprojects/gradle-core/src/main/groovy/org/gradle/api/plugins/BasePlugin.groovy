@@ -42,7 +42,7 @@ class BasePlugin implements Plugin {
             } else {
                 task.conventionMapping.destinationDir = { pluginConvention.distsDir }
             }
-            task.conventionMapping.version = { project.version.toString() }
+            task.conventionMapping.version = { project.version == Project.DEFAULT_VERSION ? null : project.version.toString() }
             task.conventionMapping.baseName = { pluginConvention.archivesBaseName }
         }
     }

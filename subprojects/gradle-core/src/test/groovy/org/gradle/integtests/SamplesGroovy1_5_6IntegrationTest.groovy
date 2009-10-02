@@ -36,6 +36,6 @@ class SamplesGroovy1_5_6IntegrationTest {
         groovyProjectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
 
         // Check jar exists
-        groovyProjectDir.file("build/libs/groovy-1.5.6-unspecified.jar").assertIsFile()
+        groovyProjectDir.file("build/libs/groovy-1.5.6.jar").assertIsFile()
     }
 }
