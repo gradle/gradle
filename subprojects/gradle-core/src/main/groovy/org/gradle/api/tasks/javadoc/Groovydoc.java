@@ -23,15 +23,14 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * This task generates html api doc for Groovy classes. It uses Groovy's Groovydoc tool for this. Please note that
  * the Groovydoc tool has some severe limitations at the moment (for example no doc for properties comments). The
  * version of the Groovydoc that is used, is the one from the Groovy defined in the build script. Please note also,
  * that the Groovydoc tool prints to System.out for many of its statements and does circumvents our logging currently.
- *  
+ *
  * @author Hans Dockter
  */
 public class Groovydoc extends SourceTask {
@@ -51,7 +50,11 @@ public class Groovydoc extends SourceTask {
 
     private String footer;
 
-    private File overview;
+    private String overview;
+
+    private List<String> packageNames = new ArrayList<String>();
+
+    private Set<Link> links = new HashSet<Link>();
 
     boolean includePrivate;
 
@@ -64,8 +67,8 @@ public class Groovydoc extends SourceTask {
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         ProjectInternal project = (ProjectInternal) getProject();
-        antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(),
-                getDocTitle(), getHeader(), getFooter(), getOverview(), isIncludePrivate(),
+        antGroovydoc.execute(getSource(), getPackageNames(), getDestinationDir(), isUse(), getWindowTitle(),
+                getDocTitle(), getHeader(), getFooter(), getOverview(), isIncludePrivate(), getLinks(),
                 project.getGradle().getIsolatedAntBuilder(), taskClasspath, project);
     }
 
@@ -158,7 +161,7 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Set's title for the package index(first) page (optional).
-     * 
+     *
      * @param docTitle the docTitle as html-code
      */
     public void setDocTitle(String docTitle) {
@@ -174,7 +177,7 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Set's header text for each page (optional).
-     * 
+     *
      * @param header the header as html-code
      */
     public void setHeader(String header) {
@@ -200,9 +203,7 @@ public class Groovydoc extends SourceTask {
     /**
      * Returns a html file to be used for overview documentation. Returns null if such a file is not set.
      */
-    @InputFile
-    @Optional
-    public File getOverview() {
+    public String getOverview() {
         return overview;
     }
 
@@ -211,7 +212,7 @@ public class Groovydoc extends SourceTask {
      *
      * @param overview
      */
-    public void setOverview(File overview) {
+    public void setOverview(String overview) {
         this.overview = overview;
     }
 
@@ -224,10 +225,118 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Set's whether to include all classes and members (i.e. including private ones) if set to true. Defaults to false.
-     * 
-     * @param includePrivate 
+     *
+     * @param includePrivate
      */
     public void setIncludePrivate(boolean includePrivate) {
         this.includePrivate = includePrivate;
+    }
+
+    /**
+     * Returns the list of package names.
+     */
+    public List<String> getPackageNames() {
+        return packageNames;
+    }
+
+    /**
+     * Set's a list of package names (with terminating wildcard).
+     *
+     * @param packageNames The list of package names
+     */
+    public void setPackageNames(List<String> packageNames) {
+        this.packageNames = packageNames;
+    }
+
+    /**
+     * Returns links to groovydoc/javadoc output at the given URL
+     */
+    public Set<Link> getLinks() {
+        return Collections.unmodifiableSet(links);
+    }
+
+    /**
+     * Sets links to groovydoc/javadoc output at the given URL
+     *
+     * @param links The links to set
+     * @see #link(String, String[]) 
+     */
+    public void setLinks(Set<Link> links) {
+        this.links = links;
+    }
+
+    /**
+     * Add links to groovydoc/javadoc output at the given URL
+     *
+     * @param url Base URL of external site
+     * @param packages list of package prefixes
+     */
+    public void link(String url, String... packages) {
+        links.add(new Link(url, packages));
+    }
+
+    /**
+     * A Link class represent a link between groovydoc/javadoc output and url.
+     */
+    public static class Link {
+        private List<String> packages = new ArrayList<String>();
+        private String url;
+
+        /**
+         *
+         * @param url Base URL of external site
+         * @param packages list of package prefixes
+         */
+        public Link(String url, String... packages) {
+            throwExceptionIfNull(url, "Url must not be null");
+            if (packages.length == 0) {
+                throw new InvalidUserDataException("You must specify at least one package!");
+            }
+            for (String aPackage : packages) {
+                throwExceptionIfNull(aPackage, "A package must not be null");
+            }
+            this.packages = Arrays.asList(packages);
+            this.url = url;
+        }
+
+        private void throwExceptionIfNull(String value, String message) {
+            if (value == null) {
+                throw new InvalidUserDataException(message);
+            }
+        }
+
+        /**
+         * Returns a list of package prefixes to be linked with an external site.
+         */
+        public List<String> getPackages() {
+            return Collections.unmodifiableList(packages);
+        }
+
+        /**
+         * Returns the base url for the external site.
+         */
+        public String getUrl() {
+            return url;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Link link = (Link) o;
+
+            if (packages != null ? !packages.equals(link.packages) : link.packages != null) return false;
+            if (url != null ? !url.equals(link.url) : link.url != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = packages != null ? packages.hashCode() : 0;
+            result = 31 * result + (url != null ? url.hashCode() : 0);
+            return result;
+        }
     }
 }
