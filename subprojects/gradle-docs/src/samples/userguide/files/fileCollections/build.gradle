@@ -24,11 +24,11 @@ task list << {
 
     srcDir = file('src')
     println "Contents of $srcDir.name"
-    collection.each { println relativePath(it) }
+    collection.collect { relativePath(it) }.sort().each { println it }
 
     srcDir = file('src2')
     println "Contents of $srcDir.name"
-    collection.each { println relativePath(it) }
+    collection.collect { relativePath(it) }.sort().each { println it }
 }
 // END SNIPPET closure
 
