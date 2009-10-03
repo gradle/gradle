@@ -15,16 +15,16 @@
  */
 package org.gradle.api.tasks.javadoc;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Test;
-import org.junit.Before;
-import static org.junit.Assert.assertThat;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.util.WrapUtil;
-import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.Set;
 
@@ -32,8 +32,6 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class GroovydocTest extends AbstractConventionTaskTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
-
     private Groovydoc groovydoc;
 
     @Before
@@ -44,6 +42,11 @@ public class GroovydocTest extends AbstractConventionTaskTest {
 
     public ConventionTask getTask() {
         return groovydoc;
+    }
+
+    @Override
+    protected DefaultStandardOutputCapture getExpectedStandardOutputCapture() {
+        return new DefaultStandardOutputCapture(true, LogLevel.INFO);    
     }
 
     @Test(expected = InvalidUserDataException.class)
