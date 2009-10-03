@@ -23,13 +23,12 @@ import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifactTest;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import static org.gradle.util.WrapUtil.toList;
-import static org.gradle.util.WrapUtil.toSet;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -77,34 +76,6 @@ public class DefaultIvyDependencyResolverTest {
     }
 
     @Test
-    // For performance optimization a spec that returns all dependencies is retrieved in a special way. Therefore we need
-    // a separate test for this use case.
-    public void testResolveAndGetFilesForAllModuleDependencies() throws IOException, ParseException {
-        prepareResolveReport();
-        final ModuleDependency moduleDependencyDummy = context.mock(ModuleDependency.class);
-        final SelfResolvingDependency selfResolvingDependencyDummy = context.mock(SelfResolvingDependency.class);
-        final Set<File> expectedClasspath = toSet(new File(""));
-        final String configurationName = configurationStub.getName();
-        context.checking(new Expectations() {{
-            allowing(configurationStub).getAllDependencies();
-            will(returnValue(WrapUtil.toSet(moduleDependencyDummy, selfResolvingDependencyDummy)));
-            allowing(configurationStub).getAllDependencies(ModuleDependency.class);
-            will(returnValue(WrapUtil.toSet(moduleDependencyDummy)));
-            allowing(ivyReportConverterStub).getClasspath(configurationName, resolveReportMock);
-            will(returnValue(expectedClasspath));
-        }});
-        ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
-        prepareTestsThatRetrieveDependencies(moduleDescriptor);
-
-        assertSame(expectedClasspath, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).getFiles(
-                new Spec<Dependency>() {
-                    public boolean isSatisfiedBy(Dependency element) {
-                        return element == moduleDependencyDummy;
-                    }
-                }));
-    }
-
-    @Test
     public void testResolveAndGetFilesWithDependencySubset() throws IOException, ParseException {
         prepareResolveReport();
         final ModuleDependency moduleDependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
@@ -122,9 +93,9 @@ public class DefaultIvyDependencyResolverTest {
 
         context.checking(new Expectations() {{
             allowing(resolvedDependency1).getAllArtifacts(null);
-            will(returnValue(WrapUtil.toSet(new DefaultResolvedArtifact("someName", "someType", "someExtension", new File("file1")))));
+            will(returnValue(WrapUtil.toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "someName", "someType", "someExtension", new File("file1")))));
             allowing(resolvedDependency2).getAllArtifacts(null);
-            will(returnValue(WrapUtil.toSet(new DefaultResolvedArtifact("someName2", "someType", "someExtension", new File("file2")))));
+            will(returnValue(WrapUtil.toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "someName2", "someType", "someExtension", new File("file2")))));
             allowing(configurationStub).getAllDependencies();
             will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
             allowing(configurationStub).getAllDependencies(ModuleDependency.class);

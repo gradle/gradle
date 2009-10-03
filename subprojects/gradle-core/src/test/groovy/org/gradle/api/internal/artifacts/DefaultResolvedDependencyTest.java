@@ -23,6 +23,8 @@ import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 
 import java.io.File;
 import java.util.Collections;
@@ -32,6 +34,10 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultResolvedDependencyTest {
+    private JUnit4Mockery context = new JUnit4Mockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
+    
     private static final Set<String> SOME_CONFIGURATION_HIERARCHY = WrapUtil.toSet("someConfiguration", "conf1");
 
     @Test
@@ -77,7 +83,7 @@ public class DefaultResolvedDependencyTest {
     }
 
     private ResolvedArtifact createArtifact(String name) {
-        return new DefaultResolvedArtifact(name, "someType", "someExt", new File("pathTo" + name));
+        return DefaultResolvedArtifactTest.createResolvedArtifact(context, name, "someType", "someExt", new File("pathTo" + name));
     }
 
     private DefaultResolvedDependency createResolvedDependency(Set<ResolvedArtifact> moduleArtifacts) {

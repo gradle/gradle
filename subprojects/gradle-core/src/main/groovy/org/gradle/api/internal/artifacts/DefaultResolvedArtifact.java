@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.resolve.ResolveEngine;
+import org.apache.ivy.core.resolve.DownloadOptions;
 
 import java.io.File;
 
@@ -25,16 +28,13 @@ import java.io.File;
  */
 public class DefaultResolvedArtifact implements ResolvedArtifact {
     private ResolvedDependency resolvedDependency;
-    private String name;
-    private String type;
-    private String extension;
-    private File file;
+    private Artifact artifact;
+    private ResolveEngine resolvedEngine;
+    private File file = null;
 
-    public DefaultResolvedArtifact(String name, String type, String extension, File file) {
-        this.name = name;
-        this.type = type;
-        this.extension = extension;
-        this.file = file;
+    public DefaultResolvedArtifact(Artifact artifact, ResolveEngine resolvedEngine) {
+        this.artifact = artifact;
+        this.resolvedEngine = resolvedEngine;
     }
 
     public ResolvedDependency getResolvedDependency() {
@@ -46,15 +46,15 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     public String getName() {
-        return name;
+        return artifact.getName();
     }
 
     public String getType() {
-        return type;
+        return artifact.getType();
     }
 
     public String getExtension() {
-        return extension;
+        return artifact.getExt();
     }
 
     public String getVersion() {
@@ -66,6 +66,9 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     public File getFile() {
+        if (file == null) {
+            file = resolvedEngine.download(artifact, new DownloadOptions()).getLocalFile();
+        }
         return file;
     }
 }

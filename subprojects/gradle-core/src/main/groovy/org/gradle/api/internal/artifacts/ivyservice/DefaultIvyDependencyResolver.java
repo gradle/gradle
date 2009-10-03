@@ -59,6 +59,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
 
     private ResolveOptions createResolveOptions(Configuration configuration) {
         ResolveOptions resolveOptions = new ResolveOptions();
+        resolveOptions.setDownload(false);
         resolveOptions.setConfs(WrapUtil.toArray(configuration.getName()));
         return resolveOptions;
     }
@@ -88,9 +89,6 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         public Set<File> getFiles(Spec<Dependency> dependencySpec) {
-            if (doesSpecContainAllModuleDependencies(dependencySpec)) {
-                return ivyReportTranslator.getClasspath(configuration.getName(), resolveReport);
-            }
             buildResolvedDependencies();
             Set<ModuleDependency> allModuleDependencies = Specs.filterIterable(configuration.getAllDependencies(ModuleDependency.class), dependencySpec);
             Set<File> files = new LinkedHashSet<File>();

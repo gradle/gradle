@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ConfigurationResolveReport;
@@ -122,7 +121,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
             if (isRootCaller(configurationResolveReport, caller)) {
                 for (DefaultResolvedDependency resolvedDependency : resolvedDependencies.values()) {
                     resolvedDependency.getParents().add(null);
-                    resolvedDependency.addParentSpecificArtifacts(null, getParentSpecificArtifacts(resolvedDependency, conf, ivyNode.getRoot(), caller, resolveReport));
+                    resolvedDependency.addParentSpecificArtifacts(null, getParentSpecificArtifacts(resolvedDependency, conf, ivyNode.getRoot(), caller, ivyNode, resolveReport));
                 }
                 continue;
             }
@@ -149,42 +148,37 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
                 parentResolvedDependency.getChildren().add(resolvedDependency);
                 resolvedDependency.getParents().add(parentResolvedDependency);
                 Set<ResolvedArtifact> parentSpecificResolvedArtifacts = getParentSpecificArtifacts(resolvedDependency, parentResolvedDependency.getConfiguration(),
-                        callerNode, caller, resolveReport);
+                        callerNode, caller, ivyNode, resolveReport);
                 resolvedDependency.addParentSpecificArtifacts(parentResolvedDependency, parentSpecificResolvedArtifacts);
                 resolvedArtifacts.addAll(parentSpecificResolvedArtifacts);
             }
         }
     }
 
-    private Set<ResolvedArtifact> getParentSpecificArtifacts(DefaultResolvedDependency resolvedDependency, String parentConfiguration, IvyNode callerNode, IvyNodeCallers.Caller caller, ResolveReport resolveReport) {
+    private Set<ResolvedArtifact> getParentSpecificArtifacts(DefaultResolvedDependency resolvedDependency, String parentConfiguration, IvyNode callerNode, IvyNodeCallers.Caller caller, IvyNode childNode, ResolveReport resolveReport) {
         Set<String> parentConfigurations = getConfigurationHierarchy(callerNode, parentConfiguration);
         Set<DependencyArtifactDescriptor> parentArtifacts = new LinkedHashSet<DependencyArtifactDescriptor>();
         for (String configuration : parentConfigurations) {
             parentArtifacts.addAll(WrapUtil.toSet(caller.getDependencyDescriptor().getDependencyArtifacts(configuration)));
         }
-        ArtifactDownloadReport[] artifactDownloadReports = resolveReport.getArtifactsReports(caller.getDependencyDescriptor().getDependencyRevisionId());
+
+        Artifact[] allArtifacts = childNode.getSelectedArtifacts(null);
         Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-        if (artifactDownloadReports != null) {
-            for (ArtifactDownloadReport artifactDownloadReport : artifactDownloadReports) {
-                for (DependencyArtifactDescriptor parentArtifact : parentArtifacts) {
-                    Artifact downloadedArtifact = artifactDownloadReport.getArtifact();
-                    if (isEquals(parentArtifact, downloadedArtifact)) {
-                        DefaultResolvedArtifact resolvedArtifact = createResolvedArtifact(downloadedArtifact, artifactDownloadReport.getLocalFile());
-                        resolvedArtifact.setResolvedDependency(resolvedDependency);
-                        artifacts.add(resolvedArtifact);
-                    }
+        for (Artifact artifact : allArtifacts) {
+            for (DependencyArtifactDescriptor parentArtifact : parentArtifacts) {
+                if (isEquals(parentArtifact, artifact)) {
+                    DefaultResolvedArtifact resolvedArtifact = createResolvedArtifact(artifact, childNode);
+                    resolvedArtifact.setResolvedDependency(resolvedDependency);
+                    artifacts.add(resolvedArtifact);
+                    break;
                 }
             }
         }
         return artifacts;
     }
 
-    private DefaultResolvedArtifact createResolvedArtifact(Artifact artifact, File localFile) {
-        return new DefaultResolvedArtifact(
-                artifact.getName(),
-                artifact.getType(),
-                artifact.getExt(),
-                localFile);
+    private DefaultResolvedArtifact createResolvedArtifact(Artifact artifact, IvyNode ivyNode) {
+        return new DefaultResolvedArtifact(artifact, ivyNode.getData().getEngine());
     }
 
     private boolean isEquals(DependencyArtifactDescriptor parentArtifact, Artifact artifact) {
@@ -257,35 +251,20 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
                 moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision(),
                 configuration,
                 configurations,
-                getArtifactsForReport(ivyNode, resolveReport.getArtifactsReports(ivyNode.getId()), configurations));
+                getArtifacts(ivyNode));
         for (ResolvedArtifact resolvedArtifact : resolvedDependency.getModuleArtifacts()) {
             ((DefaultResolvedArtifact) resolvedArtifact).setResolvedDependency(resolvedDependency);
         }
         return resolvedDependency;
     }
 
-    private Set<ResolvedArtifact> getArtifactsForReport(IvyNode dependencyNode, ArtifactDownloadReport[] artifactDownloadReports, Set<String> configurations) {
-        Set<ArtifactRevisionId> moduleArtifactsIdsForConfiguration = getModuleArtifactsIdsForConfiguration(dependencyNode, configurations);
-        Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-        if (artifactDownloadReports != null) {
-            for (ArtifactDownloadReport artifactDownloadReport : artifactDownloadReports) {
-                if (moduleArtifactsIdsForConfiguration.contains(artifactDownloadReport.getArtifact().getId())) {
-                    artifacts.add(createResolvedArtifact(artifactDownloadReport.getArtifact(), artifactDownloadReport.getLocalFile()));
-                }
-            }
+    private Set<ResolvedArtifact> getArtifacts(IvyNode dependencyNode) {
+        Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>();
+        Artifact[] artifacts = dependencyNode.getSelectedArtifacts(null);
+        for (Artifact artifact : artifacts) {
+            resolvedArtifacts.add(createResolvedArtifact(artifact, dependencyNode));
         }
-        return artifacts;
-    }
-
-    private Set<ArtifactRevisionId> getModuleArtifactsIdsForConfiguration(IvyNode dependencyNode, Set<String> configurations) {
-        Set<ArtifactRevisionId> artifactRevisionIds = new LinkedHashSet<ArtifactRevisionId>();
-        for (String hierarchyConfiguration : configurations) {
-            Artifact[] artifactSubSet = dependencyNode.getDescriptor().getArtifacts(hierarchyConfiguration);
-            for (Artifact artifact : artifactSubSet) {
-                artifactRevisionIds.add(artifact.getId());
-            }
-        }
-        return artifactRevisionIds;
+        return resolvedArtifacts;
     }
 
     private Map<ModuleRevisionId, Map<String, ModuleDependency>> createFirstLevelDependenciesModuleRevisionIds(Set<ModuleDependency> firstLevelDependencies) {
