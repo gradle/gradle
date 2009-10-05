@@ -27,11 +27,11 @@ import org.junit.runner.RunWith
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
 import static org.hamcrest.Matchers.*
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.artifacts.ConfigurationContainer
 
 /**
  * @author Hans Dockter
@@ -44,7 +44,7 @@ class WarTest extends AbstractArchiveTaskTest {
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    ConfigurationHandler configurationContainer = context.mock(ConfigurationHandler)
+    ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer)
   
     War war
 

@@ -61,6 +61,8 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.invocation.Gradle
 import org.gradle.listener.DefaultListenerManager
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 
 /**
  * @author Hans Dockter
@@ -97,7 +99,7 @@ class DefaultProjectTest {
     AntBuilder testAntBuilder
 
     ConfigurationContainerFactory configurationContainerFactoryMock;
-    ConfigurationHandler configurationContainerMock;
+    DefaultConfigurationContainer configurationContainerMock;
     InternalRepository internalRepositoryDummy = context.mock(InternalRepository)
     ResolverFactory resolverFactoryMock = context.mock(ResolverFactory.class);
     RepositoryHandlerFactory repositoryHandlerFactoryMock = context.mock(RepositoryHandlerFactory.class);
@@ -128,7 +130,7 @@ class DefaultProjectTest {
             allowing(outputRedirectorOtherProjectsMock).on(withParam(any(LogLevel)));
             allowing(antBuilderFactoryMock).createAntBuilder(); will(returnValue(testAntBuilder))
         }
-        configurationContainerMock = context.mock(ConfigurationHandler)
+        configurationContainerMock = context.mock(DefaultConfigurationContainer)
         configurationContainerFactoryMock = [createConfigurationContainer: {
           resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction ->
             assertSame(build.startParameter.projectDependenciesBuildInstruction, projectDependenciesBuildInstruction)
@@ -161,7 +163,7 @@ class DefaultProjectTest {
             allowing(taskContainerMock).getAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
             allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
             allowing(serviceRegistryMock).get(RepositoryHandlerFactory); will(returnValue(repositoryHandlerFactoryMock))
-            allowing(serviceRegistryMock).get(ConfigurationHandler); will(returnValue(configurationContainerMock))
+            allowing(serviceRegistryMock).get(ConfigurationContainer); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
             allowing(serviceRegistryMock).get(Convention); will(returnValue(convention))

@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.dsl.ConfigurationHandler;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.DefaultConfigurationHandler;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 
 import java.util.Map;
@@ -46,7 +46,7 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
         this.dependencyResolver = dependencyResolver;
     }
 
-    public ConfigurationHandler createConfigurationContainer(ResolverProvider resolverProvider,
+    public ConfigurationContainer createConfigurationContainer(ResolverProvider resolverProvider,
                                                              DependencyMetaDataProvider dependencyMetaDataProvider) {
         IvyService ivyService = new ErrorHandlingIvyService(
                 new ShortcircuitEmptyConfigsIvyService(
@@ -59,6 +59,6 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
                                 dependencyResolver,
                                 dependencyPublisher,
                                 clientModuleRegistry)));
-        return new DefaultConfigurationHandler(ivyService);
+        return new DefaultConfigurationContainer(ivyService);
     }
 }

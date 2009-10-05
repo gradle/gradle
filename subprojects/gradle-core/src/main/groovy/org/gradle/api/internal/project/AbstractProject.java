@@ -20,6 +20,7 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.*;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopyAction;
@@ -111,7 +112,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private DependencyHandler dependencyHandler;
 
-    private ConfigurationHandler configurationContainer;
+    private ConfigurationContainer configurationContainer;
 
     private ArtifactHandler artifactHandler;
 
@@ -177,7 +178,7 @@ public abstract class AbstractProject implements ProjectInternal {
         repositoryHandlerFactory = serviceRegistry.get(RepositoryHandlerFactory.class);
         projectEvaluator = serviceRegistry.get(ProjectEvaluator.class);
         repositoryHandler = serviceRegistry.get(RepositoryHandler.class);
-        configurationContainer = serviceRegistry.get(ConfigurationHandler.class);
+        configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
         projectPluginsHandler = serviceRegistry.get(ProjectPluginsContainer.class);
         artifactHandler = serviceRegistry.get(ArtifactHandler.class);
         dependencyHandler = serviceRegistry.get(DependencyHandler.class);
@@ -375,11 +376,11 @@ public abstract class AbstractProject implements ProjectInternal {
         this.repositoryHandlerFactory = repositoryHandlerFactory;
     }
 
-    public ConfigurationHandler getConfigurations() {
+    public ConfigurationContainer getConfigurations() {
         return configurationContainer;
     }
 
-    public void setConfigurationContainer(ConfigurationHandler configurationContainer) {
+    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
         this.configurationContainer = configurationContainer;
     }
 

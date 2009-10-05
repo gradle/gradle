@@ -18,7 +18,6 @@ package org.gradle.initialization
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.dsl.ConfigurationHandler
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.HelperUtil
@@ -30,6 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.*
 import static org.junit.Assert.*
+import org.gradle.api.artifacts.ConfigurationContainer
 
 /**
  * @author Hans Dockter
@@ -41,7 +41,7 @@ class BuildSourceBuilderTest {
     GradleLauncher gradleMock
     Project rootProjectMock
     Configuration configurationMock
-    ConfigurationHandler configurationHandlerStub
+    ConfigurationContainer configurationContainerStub
     CacheInvalidationStrategy cacheInvalidationStrategyMock
     File rootDir
     File testBuildSrcDir
@@ -59,7 +59,7 @@ class BuildSourceBuilderTest {
         gradleFactoryMock = context.mock(GradleFactory)
         gradleMock = context.mock(GradleLauncher)
         rootProjectMock = context.mock(Project)
-        configurationHandlerStub = context.mock(ConfigurationHandler)
+        configurationContainerStub = context.mock(ConfigurationContainer)
         configurationMock = context.mock(Configuration)
         cacheInvalidationStrategyMock = context.mock(CacheInvalidationStrategy)
         buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, cacheInvalidationStrategyMock)
@@ -74,8 +74,8 @@ class BuildSourceBuilderTest {
         expectedArtifactPath = "$testBuildSrcDir.absolutePath/build/libs/${BuildSourceBuilder.BUILD_SRC_MODULE}-${BuildSourceBuilder.BUILD_SRC_REVISION}.jar"
         Gradle build = context.mock(Gradle)
         context.checking {
-            allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationHandlerStub))
-            allowing(configurationHandlerStub).getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
+            allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationContainerStub))
+            allowing(configurationContainerStub).getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
             allowing(build).getRootProject(); will(returnValue(rootProjectMock))
         }
         expectedBuildResult = new BuildResult(build, null)

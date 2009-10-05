@@ -169,7 +169,7 @@ public class DefaultServiceRegistryFactory implements ServiceRegistryFactory
                 }
             });
 
-            services.add(new Service(ConfigurationHandler.class) {
+            services.add(new Service(ConfigurationContainer.class) {
                 @Override
                 protected Object create() {
                     return configurationContainerFactory.createConfigurationContainer(get(ResolverProvider.class),
@@ -208,7 +208,7 @@ public class DefaultServiceRegistryFactory implements ServiceRegistryFactory
                 protected Object create() {
                     RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(
                             new DefaultConvention());
-                    ConfigurationHandler configurationContainer = configurationContainerFactory
+                    ConfigurationContainer configurationContainer = configurationContainerFactory
                             .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
                     DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
                             dependencyFactory, get(ProjectFinder.class));
@@ -289,7 +289,7 @@ public class DefaultServiceRegistryFactory implements ServiceRegistryFactory
                 protected Object create() {
                     RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(
                             new DefaultConvention());
-                    ConfigurationHandler configurationContainer = configurationContainerFactory
+                    ConfigurationContainer configurationContainer = configurationContainerFactory
                             .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
                     DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
                             dependencyFactory, get(ProjectFinder.class));

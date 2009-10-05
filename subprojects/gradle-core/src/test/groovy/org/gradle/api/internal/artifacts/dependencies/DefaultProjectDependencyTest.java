@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
@@ -46,7 +45,7 @@ import java.util.Set;
 public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     private final ProjectDependenciesBuildInstruction instruction = new ProjectDependenciesBuildInstruction(WrapUtil.<String>toList());
     private final Project targetProjectStub = context.mock(Project.class);
-    private final ConfigurationHandler targetConfigurationHandlerStub = context.mock(ConfigurationHandler.class);
+    private final ConfigurationContainer targetConfigurationsStub = context.mock(ConfigurationContainer.class);
     private final Configuration targetConfigurationMock = context.mock(Configuration.class);
     private final TaskContainer targetTaskContainerStub = context.mock(TaskContainer.class);
     private final DefaultProjectDependency projectDependency = new DefaultProjectDependency(targetProjectStub, instruction);
@@ -76,8 +75,8 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     public void setUp() {
         context.checking(new Expectations() {{
             allowing(targetProjectStub).getConfigurations();
-            will(returnValue(targetConfigurationHandlerStub));
-            allowing(targetConfigurationHandlerStub).getByName("default");
+            will(returnValue(targetConfigurationsStub));
+            allowing(targetConfigurationsStub).getByName("default");
             will(returnValue(targetConfigurationMock));
             allowing(targetProjectStub).getTasks();
             will(returnValue(targetTaskContainerStub));
@@ -101,7 +100,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     @Test
     public void getConfiguration() {
         context.checking(new Expectations() {{
-            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            allowing(targetConfigurationsStub).getByName("conf1");
             will(returnValue(targetConfigurationMock));
         }});
 
@@ -116,7 +115,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         final Set<File> selfResolvingFiles = toSet(new File("somePath"));
         final Set<File> selfResolvingTargetProjectDependencyFiles = toSet(new File("someOtherPath"));
         context.checking(new Expectations() {{
-            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            allowing(targetConfigurationsStub).getByName("conf1");
             will(returnValue(targetConfigurationMock));
 
             allowing(targetConfigurationMock).getAllDependencies(SelfResolvingDependency.class);
@@ -141,7 +140,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         final Set<File> selfResolvingFiles = toSet(new File("somePath"));
         final Set<File> selfResolvingTargetProjectDependencyFiles = toSet(new File("someOtherPath"));
         context.checking(new Expectations() {{
-            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            allowing(targetConfigurationsStub).getByName("conf1");
             will(returnValue(targetConfigurationMock));
 
             allowing(targetConfigurationMock).getAllDependencies(SelfResolvingDependency.class);
@@ -164,7 +163,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         final Set<File> selfResolvingFiles = toSet(new File("somePath"));
         final Set<File> selfResolvingTargetProjectDependencyFiles = toSet(new File("someOtherPath"));
         context.checking(new Expectations() {{
-            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            allowing(targetConfigurationsStub).getByName("conf1");
             will(returnValue(targetConfigurationMock));
 
             allowing(targetConfigurationMock).getAllDependencies(SelfResolvingDependency.class);

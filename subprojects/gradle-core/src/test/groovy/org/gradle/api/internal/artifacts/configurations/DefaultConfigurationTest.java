@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -472,7 +471,7 @@ public class DefaultConfigurationTest {
         final Project dependentProject = context.mock(Project.class, "dependentProject");
         final Task desiredTask = context.mock(Task.class, "desiredTask");
         final Set<Task> taskSet = toSet(desiredTask);
-        final ConfigurationHandler configHandler = context.mock(ConfigurationHandler.class);
+        final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
         final Configuration dependentConfig = context.mock(Configuration.class);
         final ProjectDependency projectDependency = context.mock(ProjectDependency.class);
         final Set<ProjectDependency> projectDependencies = toSet(projectDependency);
@@ -483,8 +482,8 @@ public class DefaultConfigurationTest {
             allowing(taskProject).getRootProject(); will(returnValue(rootProject));
             allowing(rootProject).getTasksByName(taskName, true); will(returnValue(taskSet));
             allowing(desiredTask).getProject(); will(returnValue(dependentProject));
-            allowing(dependentProject).getConfigurations(); will(returnValue(configHandler));
-            allowing(configHandler).findByName(configName); will(returnValue(dependentConfig));
+            allowing(dependentProject).getConfigurations(); will(returnValue(configurationContainer));
+            allowing(configurationContainer).findByName(configName); will(returnValue(dependentConfig));
 
             allowing(dependentConfig).getAllDependencies(ProjectDependency.class); will(returnValue(projectDependencies));
             allowing(projectDependency).getDependencyProject(); will(returnValue(taskProject));
@@ -508,17 +507,17 @@ public class DefaultConfigurationTest {
         final Project dependentProject = context.mock(Project.class, "dependentProject");
         final Task desiredTask = context.mock(Task.class, "desiredTask");
         final Set<Task> taskSet = toSet(desiredTask);
-        final ConfigurationHandler configHandler = context.mock(ConfigurationHandler.class);
+        final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
 
         context.checking(new Expectations() {{
             allowing(tdTask).getProject(); will(returnValue(taskProject));
             allowing(taskProject).getRootProject(); will(returnValue(rootProject));
             allowing(rootProject).getTasksByName(taskName, true); will(returnValue(taskSet));
             allowing(desiredTask).getProject(); will(returnValue(dependentProject));
-            allowing(dependentProject).getConfigurations(); will(returnValue(configHandler));
+            allowing(dependentProject).getConfigurations(); will(returnValue(configurationContainer));
 
             // return null to mock not finding the given configuration
-            allowing(configHandler).findByName(configName); will(returnValue(null));
+            allowing(configurationContainer).findByName(configName); will(returnValue(null));
         }});
 
         TaskDependency td = configuration.getTaskDependencyFromProjectDependency(false, taskName);

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.artifacts.dsl.*;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -55,7 +56,7 @@ public class DefaultServiceRegistryFactoryTest {
             projectEvaluator, context.mock(ClassGenerator.class));
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
-    private final ConfigurationHandler configurationHandler = context.mock(ConfigurationHandler.class);
+    private final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
 
     @Test
     public void projectProvidesAConvention() {
@@ -99,8 +100,8 @@ public class DefaultServiceRegistryFactoryTest {
 
         expectConfigurationHandlerCreated();
 
-        assertThat(registry.get(ConfigurationHandler.class), sameInstance(configurationHandler));
-        assertThat(registry.get(ConfigurationHandler.class), sameInstance(registry.get(ConfigurationHandler.class)));
+        assertThat(registry.get(ConfigurationContainer.class), sameInstance(configurationContainer));
+        assertThat(registry.get(ConfigurationContainer.class), sameInstance(registry.get(ConfigurationContainer.class)));
     }
 
     @Test
@@ -152,7 +153,7 @@ public class DefaultServiceRegistryFactoryTest {
             allowing(gradle).getBuildScriptClassLoader();
             will(returnValue(null));
 
-            ignoring(configurationHandler);
+            ignoring(configurationContainer);
         }});
 
         ServiceRegistry registry = factory.createForProject(project);
@@ -176,7 +177,7 @@ public class DefaultServiceRegistryFactoryTest {
             allowing(gradle).getBuildScriptClassLoader();
             will(returnValue(null));
 
-            ignoring(configurationHandler);
+            ignoring(configurationContainer);
         }});
 
         ServiceRegistry registry = factory.createForBuild(gradle);
@@ -216,7 +217,7 @@ public class DefaultServiceRegistryFactoryTest {
 
             one(configurationContainerFactory).createConfigurationContainer(with(sameInstance(repositoryHandler)), with(
                     notNullValue(DependencyMetaDataProvider.class)));
-            will(returnValue(configurationHandler));
+            will(returnValue(configurationContainer));
         }});
     }
 }
