@@ -98,7 +98,7 @@ class WarPluginTest {
         }
 
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
-        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, hasItem(':child:uploadArchivesInternal'))
+        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, hasItem(':child:jar'))
     }
 
     @Test public void appliesMappingsToArchiveTasks() {

@@ -2,7 +2,6 @@
 :shared:processResources
 :shared:classes
 :shared:jar
-:shared:uploadDefaultInternal
 :api:compileJava
 :api:processResources
 :api:classes
@@ -14,7 +13,6 @@
 :api:test
 :api:check
 :api:build
-:api:uploadDefaultInternal
 :services:personService:compileJava
 :services:personService:processResources
 :services:personService:classes

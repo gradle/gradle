@@ -331,11 +331,6 @@ public class DefaultConfigurationTest {
     }
 
     @Test
-    public void uploadInternalTaskName() {
-        assertThat(configuration.getUploadInternalTaskName(), equalTo("uploadConfNameInternal"));
-    }
-
-    @Test
     public void uploadTaskName() {
         assertThat(configuration.getUploadTaskName(), equalTo("uploadConfName"));
     }

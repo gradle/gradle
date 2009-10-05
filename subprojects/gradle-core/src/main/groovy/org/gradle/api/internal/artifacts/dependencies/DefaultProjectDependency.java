@@ -95,7 +95,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
                 DefaultTaskDependency taskDependency = new DefaultTaskDependency();
                 Configuration configuration = getProjectConfiguration();
                 taskDependency.add(configuration);
-                taskDependency.add(dependencyProject.getTasks().getByName(configuration.getUploadInternalTaskName()));
+                taskDependency.add(configuration.getBuildArtifacts());
                 for (String taskName : instruction.getTaskNames()) {
                     taskDependency.add(dependencyProject.getTasks().getByName(taskName));
                 }

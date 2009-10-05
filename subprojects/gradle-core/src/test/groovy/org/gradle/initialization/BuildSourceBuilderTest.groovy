@@ -66,7 +66,7 @@ class BuildSourceBuilderTest {
         expectedStartParameter = new StartParameter(
                 searchUpwards: false,
                 currentDir: testBuildSrcDir,
-                taskNames: ['clean', 'uploadArchivesInternal'],
+                taskNames: ['clean', 'build'],
                 gradleUserHomeDir: new File('gradleUserHome'),
                 projectProperties: dependencyProjectProps
         )

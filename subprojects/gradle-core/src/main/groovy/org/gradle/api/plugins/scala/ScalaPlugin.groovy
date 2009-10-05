@@ -27,6 +27,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDefine
 import org.gradle.api.tasks.scala.ScalaDoc
+import org.gradle.api.file.FileTreeElement
 
 public class ScalaPlugin implements Plugin {
     // public configurations
@@ -54,7 +55,7 @@ public class ScalaPlugin implements Plugin {
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
             sourceSet.allJava.add(sourceSet.scala.matching(sourceSet.java.filter))
             sourceSet.allSource.add(sourceSet.scala)
-            sourceSet.resources.filter.exclude('**/*.scala')
+            sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
 
             String taskName = sourceSet.getCompileTaskName('scala')
             ScalaCompile scalaCompile = project.tasks.add(taskName, ScalaCompile.class);

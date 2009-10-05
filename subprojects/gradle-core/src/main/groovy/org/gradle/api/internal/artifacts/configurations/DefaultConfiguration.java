@@ -354,10 +354,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    public String getUploadInternalTaskName() {
-        return Configurations.uploadInternalTaskName(getName());
-    }
-
     public String getUploadTaskName() {
         return Configurations.uploadTaskName(getName());
     }
