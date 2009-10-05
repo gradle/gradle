@@ -18,8 +18,8 @@ package org.gradle.initialization;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
-import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.classic.filter.LevelFilter;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
@@ -27,10 +27,10 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.ListenerManager;
 import org.gradle.logging.IvyLoggingAdaper;
 import org.gradle.logging.MarkerFilter;
-import org.gradle.listener.ListenerManager;
-import org.gradle.listener.ListenerBroadcast;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -65,8 +65,8 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         SLF4JBridgeHandler.install();
 
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        lc.shutdownAndReset();
-        ch.qos.logback.classic.Logger rootLogger = lc.getLogger(LoggerContext.ROOT_NAME);
+        lc.reset();
+        ch.qos.logback.classic.Logger rootLogger = lc.getLogger("ROOT");
 
         stderrConsoleAppender.setContext(lc);
         stderrConsoleAppender.setTarget("System.err");
@@ -138,7 +138,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
 
     private static class Layout extends PatternLayout {
         @Override
-        public String doLayout(LoggingEvent loggingEvent) {
+        public String doLayout(ILoggingEvent loggingEvent) {
             if (loggingEvent.getMarker() == Logging.PROGRESS) {
                 return loggingEvent.getFormattedMessage();
             }
@@ -146,7 +146,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         }
     }
 
-    private static class Appender extends ConsoleAppender<LoggingEvent> {
+    private static class Appender extends ConsoleAppender<ILoggingEvent> {
         private ListenerBroadcast<StandardOutputListener> listeners;
 
         public void setListeners(ListenerBroadcast<StandardOutputListener> listeners) {
@@ -166,7 +166,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         }
 
         @Override
-        protected void append(LoggingEvent event) {
+        protected void append(ILoggingEvent event) {
             super.append(event);
             if (listeners != null) {
                 listeners.getSource().onOutput(layout.doLayout(event));

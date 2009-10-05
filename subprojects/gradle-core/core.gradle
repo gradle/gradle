@@ -12,35 +12,33 @@ configurations {
 dependencies {
     groovy libraries.groovy_depends
 
-    compile "commons-httpclient:commons-httpclient:3.0@jar", "commons-codec:commons-codec:1.2@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar"
+    compile "commons-httpclient:commons-httpclient:3.0@jar", "commons-codec:commons-codec:1.2@jar", "org.slf4j:jcl-over-slf4j:1.5.8@jar"
 
     // Needed by the eclipse plugin
     compile "dom4j:dom4j:1.6.1@jar", "jaxen:jaxen:1.1@jar"
 
-    compile "org.mortbay.jetty:jetty-plus:6.1.14@jar",
-            "org.mortbay.jetty:jetty-util:6.1.14@jar",
+    compile "org.mortbay.jetty:jetty:6.1.21@jar",
+            "org.mortbay.jetty:jetty-plus:6.1.21@jar",
+            "org.mortbay.jetty:jetty-util:6.1.21@jar",
             "javax.servlet:servlet-api:2.5@jar"
 
     // todo - the transtive dependencies should be runtime dependencies
     // todo jsp stuff should be bundled
-    compile "org.mortbay.jetty:jetty:6.1.14@jar", "javax.servlet:servlet-api:2.5@jar",
-                libraries.ant,
-                "org.mortbay.jetty:jsp-api-2.1:6.1.14@jar",
+    runtime "org.mortbay.jetty:jsp-api-2.1:6.1.14@jar",
                 "org.mortbay.jetty:jsp-2.1:6.1.14@jar",
                 "org.eclipse.jdt:core:3.1.1@jar",
-                "org.mortbay.jetty:jetty-util:6.1.14@jar",
-                "org.mortbay.jetty:jetty-naming:6.1.14@jar",
-                "org.mortbay.jetty:jetty-annotations:6.1.14@jar"
+                "org.mortbay.jetty:jetty-naming:6.1.21@jar",
+                "org.mortbay.jetty:jetty-annotations:6.1.21@jar"
 
     compile "org.apache.ivy:ivy:2.1.0-rc2@jar", "jsch:jsch:0.1.31@jar"
 
     compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",
             libraries.ant,
             "org.apache.ant:ant-nodeps:1.7.0@jar",
-            "ch.qos.logback:logback-classic:0.9.9@jar",
-            "org.slf4j:slf4j-api:1.5.3@jar",
-            "org.slf4j:jul-to-slf4j:1.5.3@jar",
-            "ch.qos.logback:logback-core:0.9.9@jar",
+            "ch.qos.logback:logback-classic:0.9.17@jar",
+            "org.slf4j:slf4j-api:1.5.8@jar",
+            "org.slf4j:jul-to-slf4j:1.5.8@jar",
+            "ch.qos.logback:logback-core:0.9.17@jar",
             libraries.commons_io,
             "commons-lang:commons-lang:2.3@jar",
             "commons-codec:commons-codec:1.2@jar",
@@ -50,9 +48,9 @@ dependencies {
             "org.apache.maven:maven-ant-tasks:2.0.9@jar",
             libraries.asm_all
 
-    runtime "org.slf4j:log4j-over-slf4j:1.5.3@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar"
+    runtime "org.slf4j:log4j-over-slf4j:1.5.8@jar", "org.slf4j:jcl-over-slf4j:1.5.8@jar"
 
-    compile "org.codenarc:CodeNarc:0.7@jar", "org.slf4j:log4j-over-slf4j:1.5.3@jar"
+    compile "org.codenarc:CodeNarc:0.7@jar", "org.slf4j:log4j-over-slf4j:1.5.8@jar"
 
     testCompile "xmlunit:xmlunit:1.2"
 
@@ -60,8 +58,8 @@ dependencies {
             libraries.ant_launcher,
             "org.apache.ant:ant-trax:1.7.0@jar"
 
-    def BEAN_UTILS = ["commons-beanutils:commons-beanutils-core:1.7.0@jar", "commons-collections:commons-collections:2.0@jar", "org.slf4j:jcl-over-slf4j:1.5.3@jar"]
-    runtime "checkstyle:checkstyle:5.0@jar", libraries.antlr, "org.slf4j:jcl-over-slf4j:1.5.3@jar",
+    def BEAN_UTILS = ["commons-beanutils:commons-beanutils-core:1.7.0@jar", "commons-collections:commons-collections:2.0@jar", "org.slf4j:jcl-over-slf4j:1.5.8@jar"]
+    runtime "checkstyle:checkstyle:5.0@jar", libraries.antlr, "org.slf4j:jcl-over-slf4j:1.5.8@jar",
             "com.google.collections:google-collections:0.9@jar", BEAN_UTILS
 
     testFixtures sourceSets.test.classes, sourceSets.main.classes

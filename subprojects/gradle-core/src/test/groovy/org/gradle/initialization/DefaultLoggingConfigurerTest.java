@@ -47,7 +47,7 @@ public class DefaultLoggingConfigurerTest {
     @After
     public void tearDown() {
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        lc.shutdownAndReset();
+        lc.reset();
     }
 
     @Test

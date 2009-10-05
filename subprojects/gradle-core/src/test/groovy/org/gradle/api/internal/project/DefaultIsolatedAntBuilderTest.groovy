@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project
 
 import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.core.AppenderBase
 import org.apache.tools.ant.BuildException
 import org.apache.tools.ant.Project
@@ -33,14 +32,14 @@ import static org.junit.Assert.*
 
 class DefaultIsolatedAntBuilderTest {
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder()
-    private TestAppender appender;
-    private ch.qos.logback.classic.Logger delegateLogger;
+    private TestAppender appender
+    private ch.qos.logback.classic.Logger delegateLogger
 
     @Before
     public void attachAppender() {
-        appender = new TestAppender();
-        delegateLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(LoggerContext.ROOT_NAME);
-        delegateLogger.addAppender(appender);
+        appender = new TestAppender()
+        delegateLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger('ROOT')
+        delegateLogger.addAppender(appender)
         appender.context = LoggerFactory.getILoggerFactory()
         delegateLogger.setLevel(Level.INFO);
     }
