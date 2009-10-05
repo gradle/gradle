@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.*
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
 import org.gradle.api.file.FileTreeElement
+import java.util.regex.Pattern
 
 /**
  * @author Hans Dockter
@@ -154,7 +155,7 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         if (!file.isFile()) {
             return false
         }
-        RelativePath path = new RelativePath(true, file.absolutePath.substring(prefix.length()).split(File.separator))
+        RelativePath path = new RelativePath(true, file.absolutePath.substring(prefix.length()).split(Pattern.quote(File.separator)))
         return patternSet.asSpec.isSatisfiedBy(new DefaultFileTreeElement(file, path))
     }
 
