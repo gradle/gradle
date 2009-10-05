@@ -77,6 +77,34 @@ public class CompositeFileCollectionTest {
     }
 
     @Test
+    public void containsFileWhenAtLeastOneSourceCollectionContainsFile() {
+        final File file1 = new File("1");
+
+        context.checking(new Expectations() {{
+            one(source1).contains(file1);
+            will(returnValue(false));
+            one(source2).contains(file1);
+            will(returnValue(true));
+        }});
+
+        assertTrue(collection.contains(file1));
+    }
+
+    @Test
+    public void doesNotContainFileWhenNoSourceCollectionsContainFile() {
+        final File file1 = new File("1");
+
+        context.checking(new Expectations() {{
+            one(source1).contains(file1);
+            will(returnValue(false));
+            one(source2).contains(file1);
+            will(returnValue(false));
+        }});
+
+        assertFalse(collection.contains(file1));
+    }
+    
+    @Test
     public void stopActionThrowsExceptionWhenSetIsEmpty() {
         CompositeFileCollection set = new TestCompositeFileCollection();
         try {

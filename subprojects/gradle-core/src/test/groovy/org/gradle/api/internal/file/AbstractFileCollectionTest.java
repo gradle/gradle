@@ -88,6 +88,15 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
+    public void containsFile() {
+        File file1 = new File("f1");
+
+        TestFileCollection collection = new TestFileCollection(file1);
+        assertTrue(collection.contains(file1));
+        assertFalse(collection.contains(new File("f2")));
+    }
+
+    @Test
     public void canGetFilesAsAPath() {
         File file1 = new File("f1");
         File file2 = new File("f2");

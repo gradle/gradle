@@ -40,6 +40,16 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
     }
 
     @Override
+    public boolean contains(File file) {
+        for (FileCollection collection : getSourceCollections()) {
+            if (collection.contains(file)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public FileCollection stopExecutionIfEmpty() throws StopExecutionException {
         for (FileCollection collection : getSourceCollections()) {
             try {

@@ -45,6 +45,15 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     Set<File> getFiles();
 
     /**
+     * Determines whether this collection contains the given file. Generally, this method is more efficient
+     * than calling {@code getFiles().contains(file)}.
+     *
+     * @param file The file to check for.
+     * @return true if this collection contains the given file, false otherwise.
+     */
+    boolean contains(File file);
+    
+    /**
      * Returns the contents of this collection as a platform-specific path. This can be used, for example, in an Ant
      * <path> element.
      *

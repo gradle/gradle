@@ -23,6 +23,9 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.tasks.WorkResult
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.file.*
+import org.gradle.api.file.RelativePath
+import org.gradle.api.specs.Spec
+import org.gradle.api.file.FileTreeElement
 
 /**
  * @author Hans Dockter
@@ -113,6 +116,16 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         this
     }
 
+    public PatternFilterable include(Closure includeSpec) {
+        patternSet.include(includeSpec)
+        this
+    }
+
+    public PatternFilterable include(Spec<FileTreeElement> includeSpec) {
+        patternSet.include(includeSpec)
+        this
+    }
+
     public PatternFilterable exclude(String ... excludes) {
         patternSet.exclude(excludes)
         this
@@ -121,6 +134,28 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     public PatternFilterable exclude(Iterable<String> excludes) {
         patternSet.exclude(excludes)
         this
+    }
+
+    public PatternFilterable exclude(Spec<FileTreeElement> excludeSpec) {
+        patternSet.exclude(excludeSpec)
+        this
+    }
+
+    public PatternFilterable exclude(Closure excludeSpec) {
+        patternSet.exclude(excludeSpec)
+        this
+    }
+
+    public boolean contains(File file) {
+        String prefix = getDir().absolutePath + File.separator
+        if (!file.absolutePath.startsWith(prefix)) {
+            return false
+        }
+        if (!file.isFile()) {
+            return false
+        }
+        RelativePath path = new RelativePath(true, file.absolutePath.substring(prefix.length()).split(File.separator))
+        return patternSet.asSpec.isSatisfiedBy(new DefaultFileTreeElement(file, path))
     }
 
     protected void addAsFileSet(Object builder, String nodeName) {
@@ -145,3 +180,5 @@ class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         }
     }
 }
+
+

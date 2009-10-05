@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
@@ -44,7 +45,7 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
     private static Logger logger = LoggerFactory.getLogger(BreadthFirstDirectoryWalker.class);
 
     private FileVisitor visitor;
-    private Spec<RelativePath> spec;
+    private Spec<FileTreeElement> spec;
 
     public BreadthFirstDirectoryWalker(FileVisitor visitor) {
         spec = Specs.satisfyAll();
@@ -79,46 +80,39 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
 
     private void processSingleFile(File file, AtomicBoolean stopFlag) {
         RelativePath path = new RelativePath(true, file.getName());
-        if (isAllowed(path)) {
-            notifyFile(file, path, stopFlag);
+        FileVisitDetailsImpl details = new FileVisitDetailsImpl(file, path, stopFlag);
+        if (isAllowed(details)) {
+            visitor.visitFile(details);
         }
     }
 
     private void walkDir(File file, RelativePath path, AtomicBoolean stopFlag) {
         File[] children = file.listFiles();
-        List<File> dirs = new ArrayList<File>();
+        List<FileVisitDetailsImpl> dirs = new ArrayList<FileVisitDetailsImpl>();
         for (int i = 0; !stopFlag.get() && i < children.length; i++) {
             File child = children[i];
             boolean isFile = child.isFile();
             RelativePath childPath = new RelativePath(isFile, path, child.getName());
-            if (isAllowed(childPath)) {
+            FileVisitDetailsImpl details = new FileVisitDetailsImpl(child, childPath, stopFlag);
+            if (isAllowed(details)) {
                 if (isFile) {
-                    notifyFile(child, childPath, stopFlag);
+                    visitor.visitFile(details);
                 } else {
-                    dirs.add(child);
+                    dirs.add(details);
                 }
             }
         }
 
         // now handle dirs
         for (int i = 0; !stopFlag.get() && i < dirs.size(); i++) {
-            File dir = dirs.get(i);
-            RelativePath dirPath = new RelativePath(false, path, dir.getName());
-            notifyDir(dir, dirPath, stopFlag);
-            walkDir(dir, dirPath, stopFlag);
+            FileVisitDetailsImpl dir = dirs.get(i);
+            visitor.visitDir(dir);
+            walkDir(dir.file, dir.relativePath, stopFlag);
         }
     }
 
-    boolean isAllowed(RelativePath path) {
-        return spec.isSatisfiedBy(path);
-    }
-
-    private void notifyDir(File dir, RelativePath path, AtomicBoolean stopFalg) {
-        visitor.visitDir(new FileVisitDetailsImpl(dir, path, stopFalg));
-    }
-
-    private void notifyFile(File file, RelativePath path, AtomicBoolean stopFlag) {
-        visitor.visitFile(new FileVisitDetailsImpl(file, path, stopFlag));
+    boolean isAllowed(FileTreeElement element) {
+        return spec.isSatisfiedBy(element);
     }
 
     private static class FileVisitDetailsImpl implements FileVisitDetails {

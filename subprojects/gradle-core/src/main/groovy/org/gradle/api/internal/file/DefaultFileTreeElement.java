@@ -13,15 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.file;
+package org.gradle.api.internal.file;
 
-/**
- * Contains details about the file or directory being visited.
- */
-public interface FileVisitDetails extends FileTreeElement {
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.RelativePath;
 
-    /**
-     * Requests that file visiting terminate after the current file.
-     */
-    void stopVisiting();
+import java.io.File;
+
+public class DefaultFileTreeElement implements FileTreeElement {
+    private final File file;
+    private final RelativePath relativePath;
+
+    public DefaultFileTreeElement(File file, RelativePath relativePath) {
+        this.file = file;
+        this.relativePath = relativePath;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public RelativePath getRelativePath() {
+        return relativePath;
+    }
 }

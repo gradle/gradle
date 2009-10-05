@@ -17,6 +17,7 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.specs.Spec;
 
 import java.util.Map;
 import java.io.FilterReader;
@@ -99,6 +100,18 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
+    CopySpec include(Spec<FileTreeElement> includeSpec);
+
+    /**
+     * {@inheritDoc}
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     */
+    CopySpec include(Closure includeSpec);
+
+    /**
+     * {@inheritDoc}
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     */
     CopySpec exclude(String... excludes);
 
     /**
@@ -107,6 +120,17 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      */
     CopySpec exclude(Iterable<String> excludes);
 
+    /**
+     * {@inheritDoc}
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     */
+    CopySpec exclude(Spec<FileTreeElement> excludeSpec);
+
+    /**
+     * {@inheritDoc}
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     */
+    CopySpec exclude(Closure excludeSpec);
 
     // CopyProcessingSpec overrides to broaden return type
 

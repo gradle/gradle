@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * @author Steve Appling
  */
-public class  CopyActionImpl extends CopySpecImpl implements CopyAction {
+public class CopyActionImpl extends CopySpecImpl implements CopyAction {
     private static Logger logger = LoggerFactory.getLogger(CopyActionImpl.class);
 
     private boolean caseSensitive = true;

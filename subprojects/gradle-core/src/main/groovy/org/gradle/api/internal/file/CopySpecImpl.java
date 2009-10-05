@@ -18,8 +18,10 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ReflectionUtil;
@@ -137,6 +139,16 @@ public class CopySpecImpl implements CopySpec {
         return this;
     }
 
+    public CopySpec include(Spec<FileTreeElement> includeSpec) {
+        patternSet.include(includeSpec);
+        return this;
+    }
+
+    public CopySpec include(Closure includeSpec) {
+        patternSet.include(includeSpec);
+        return this;
+    }
+
     public Set<String> getIncludes() {
         return patternSet.getIncludes();
     }
@@ -162,6 +174,16 @@ public class CopySpecImpl implements CopySpec {
 
     public CopySpec exclude(Iterable<String> excludes) {
         patternSet.exclude(excludes);
+        return this;
+    }
+
+    public CopySpec exclude(Spec<FileTreeElement> excludeSpec) {
+        patternSet.exclude(excludeSpec);
+        return this;
+    }
+
+    public CopySpec exclude(Closure excludeSpec) {
+        patternSet.exclude(excludeSpec);
         return this;
     }
 

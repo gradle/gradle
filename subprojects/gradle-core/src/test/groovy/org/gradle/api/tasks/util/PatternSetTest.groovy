@@ -16,12 +16,13 @@
  
 package org.gradle.api.tasks.util
 
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
+import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
+import org.junit.Test
+import static org.gradle.util.Matchers.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
 * @author Hans Dockter
@@ -40,12 +41,14 @@ class PatternSetTest extends AbstractTestForPatternSet {
         assertThat(patternSet.excludes, equalTo([TEST_PATTERN_2] as Set))
     }
 
-    @Test public void patternSetsAreEqualWhenIncludesAndExcludesAreTheEqual() {
+    @Test public void patternSetsAreEqualWhenAllPropertiesAreEqual() {
         assertThat(new PatternSet(), strictlyEqual(new PatternSet()))
+        assertThat(new PatternSet(caseSensitive: false), strictlyEqual(new PatternSet(caseSensitive: false)))
         assertThat(new PatternSet(includes: ['i']), strictlyEqual(new PatternSet(includes: ['i'])))
         assertThat(new PatternSet(excludes: ['e']), strictlyEqual(new PatternSet(excludes: ['e'])))
         assertThat(new PatternSet(includes: ['i'], excludes: ['e']), strictlyEqual(new PatternSet(includes: ['i'], excludes: ['e'])))
 
+        assertThat(new PatternSet(), not(equalTo(new PatternSet(caseSensitive: false))))
         assertThat(new PatternSet(), not(equalTo(new PatternSet(includes: ['i']))))
         assertThat(new PatternSet(), not(equalTo(new PatternSet(excludes: ['e']))))
         assertThat(new PatternSet(includes: ['i']), not(equalTo(new PatternSet(includes: ['other']))))
@@ -56,101 +59,176 @@ class PatternSetTest extends AbstractTestForPatternSet {
         PatternSet other = new PatternSet()
         other.include 'a', 'b'
         other.exclude 'c'
+        other.include({true} as Spec)
+        other.exclude({false} as Spec)
         patternSet.copyFrom(other)
         assertThat(patternSet.includes, equalTo(['a', 'b'] as Set))
         assertThat(patternSet.excludes, equalTo(['c'] as Set))
         assertThat(patternSet.includes, not(sameInstance(other.includes)))
         assertThat(patternSet.excludes, not(sameInstance(other.excludes)))
+        assertThat(patternSet.includeSpecs, equalTo(other.includeSpecs))
+        assertThat(patternSet.excludeSpecs, equalTo(other.excludeSpecs))
     }
 
     @Test public void createsSpecForEmptyPatternSet() {
-        Spec<RelativePath> spec = patternSet.asSpec
+        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'a')))
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'b')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'b')))
     }
 
-    @Test public void createsSpecForIncludeOnlyPatternSet() {
+    private FileTreeElement element(boolean isFile, String... elements) {
+        [
+                getRelativePath: { return new RelativePath(isFile, elements) },
+                getFile: { return new File(elements.join('/')) }
+        ] as FileTreeElement
+    }
+
+    @Test public void createsSpecForIncludePatterns() {
         patternSet.include '*a*'
         patternSet.include '*b*'
-        Spec<RelativePath> spec = patternSet.asSpec
+        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'a')))
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'b')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'c')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'b')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
     }
 
-    @Test public void createsSpecForExcludeOnlyPatternSet() {
+    @Test public void createsSpecForExcludePatterns() {
         patternSet.exclude '*b*'
         patternSet.exclude '*c*'
-        Spec<RelativePath> spec = patternSet.asSpec
+        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'b')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'c')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
     }
 
-    @Test public void createsSpecForIncludeAndExcludePatternSet() {
+    @Test public void createsSpecForIncludeAndExcludePatterns() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'
-        Spec<RelativePath> spec = patternSet.asSpec
+        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'ab')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'ba')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'ab')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'ba')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+    }
+
+    @Test public void createsSpecForIncludeSpecs() {
+        patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
+        Spec<FileTreeElement> spec = patternSet.asSpec
+
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+    }
+
+    @Test public void createsSpecForExcludeSpecs() {
+        patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
+        Spec<FileTreeElement> spec = patternSet.asSpec
+
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+    }
+
+    @Test public void createsSpecForIncludeAndExcludeSpecs() {
+        patternSet.include({ FileTreeElement element -> element.file.name.contains('a') } as Spec)
+        patternSet.exclude({ FileTreeElement element -> element.file.name.contains('b') } as Spec)
+        Spec<FileTreeElement> spec = patternSet.asSpec
+
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'ab')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
+    }
+
+    @Test public void createsSpecForIncludeClosure() {
+        patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
+        Spec<FileTreeElement> spec = patternSet.asSpec
+
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+    }
+
+    @Test public void createsSpecForExcludeClosure() {
+        patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
+        Spec<FileTreeElement> spec = patternSet.asSpec
+
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'b')))
+    }
+
+    @Test public void createsSpecForIncludeAndExcludeClosures() {
+        patternSet.include { FileTreeElement element -> element.file.name.contains('a') }
+        patternSet.exclude { FileTreeElement element -> element.file.name.contains('b') }
+        Spec<FileTreeElement> spec = patternSet.asSpec
+
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'ab')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
     }
 
     @Test public void isCaseSensitiveByDefault() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'
-        Spec<RelativePath> spec = patternSet.asSpec
+        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'A')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'Ab')))
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'aB')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'A')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'Ab')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'aB')))
     }
     
     @Test public void createsSpecForCaseInsensitivePatternSet() {
         patternSet.include '*a*'
         patternSet.exclude '*b*'
         patternSet.caseSensitive = false
-        Spec<RelativePath> spec = patternSet.asSpec
+        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'A')))
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'AB')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'bA')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'A')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'AB')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'bA')))
     }
 
     @Test public void createIntersectPatternSet() {
         patternSet.include '*a*'
+        patternSet.include { FileTreeElement element -> element.file.name.contains('1') }
         patternSet.exclude '*b*'
+        patternSet.exclude { FileTreeElement element -> element.file.name.contains('2') }
         PatternSet intersection = patternSet.intersect()
         intersection.include '*c*'
+        intersection.include { FileTreeElement element -> element.file.name.contains('3') }
         intersection.exclude '*d*'
-        Spec<RelativePath> spec = intersection.asSpec
+        intersection.exclude { FileTreeElement element -> element.file.name.contains('4') }
+        Spec<FileTreeElement> spec = intersection.asSpec
 
-        assertTrue(spec.isSatisfiedBy(new RelativePath(true, 'ac')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'a')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'c')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'acb')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'acd')))
+        assertTrue(spec.isSatisfiedBy(element(true, 'ac')))
+        assertTrue(spec.isSatisfiedBy(element(true, '13')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'a')))
+        assertFalse(spec.isSatisfiedBy(element(true, '1')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'c')))
+        assertFalse(spec.isSatisfiedBy(element(true, '3')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'acb')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'acd')))
+        assertFalse(spec.isSatisfiedBy(element(true, '132')))
+        assertFalse(spec.isSatisfiedBy(element(true, '132')))
     }
 
     @Test public void addsGlobalExcludesToExcludePatterns() {
-        Spec<RelativePath> spec = patternSet.asSpec
+        Spec<FileTreeElement> spec = patternSet.asSpec
 
-        assertFalse(spec.isSatisfiedBy(new RelativePath(false, '.svn')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, '.svn', 'abc')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(false, 'a', 'b', '.svn')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'a', 'b', '.svn', 'c')))
+        assertFalse(spec.isSatisfiedBy(element(false, '.svn')))
+        assertFalse(spec.isSatisfiedBy(element(true, '.svn', 'abc')))
+        assertFalse(spec.isSatisfiedBy(element(false, 'a', 'b', '.svn')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'a', 'b', '.svn', 'c')))
 
         PatternSet.globalExcludes = ['*a*']
 
         spec = patternSet.asSpec
 
-        assertTrue(spec.isSatisfiedBy(new RelativePath(false, '.svn')))
-        assertFalse(spec.isSatisfiedBy(new RelativePath(true, 'abc')))
+        assertTrue(spec.isSatisfiedBy(element(false, '.svn')))
+        assertFalse(spec.isSatisfiedBy(element(true, 'abc')))
     }
 }

@@ -19,7 +19,9 @@ package org.gradle.api.tasks.testing;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -138,6 +140,16 @@ public class Test extends ConventionTask implements PatternFilterable {
         return this;
     }
 
+    public Test include(Spec<FileTreeElement> includeSpec) {
+        patternSet.include(includeSpec);
+        return this;
+    }
+
+    public Test include(Closure includeSpec) {
+        patternSet.include(includeSpec);
+        return this;
+    }
+
     /**
      * Adds exclude patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).
      * @see #setExcludes(Iterable)
@@ -153,6 +165,16 @@ public class Test extends ConventionTask implements PatternFilterable {
      */
     public Test exclude(Iterable<String> excludes) {
         patternSet.exclude(excludes);
+        return this;
+    }
+
+    public Test exclude(Spec<FileTreeElement> excludeSpec) {
+        patternSet.exclude(excludeSpec);
+        return this;
+    }
+
+    public Test exclude(Closure excludeSpec) {
+        patternSet.exclude(excludeSpec);
         return this;
     }
 
