@@ -54,6 +54,7 @@ libraries = [
         logback_classic : 'ch.qos.logback:logback-classic:0.9.9@jar',
         logback_core    : 'ch.qos.logback:logback-core:0.9.9@jar',
         slf4j_api       : 'org.slf4j:slf4j-api:1.5.3@jar',
+        junit           : 'junit:junit:4.5'
     ]
 
 libraries.groovy_depends  = [libraries.groovy, libraries.ant, libraries.ant_launcher, libraries.asm_all,
@@ -86,7 +87,7 @@ configure(groovyProjects()) {
 
     archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
     dependencies {
-        testCompile "junit:junit:4.5", FIRST_LEVEL_JMOCK
+        testCompile libraries.junit, FIRST_LEVEL_JMOCK
         testCompile module("org.jmock:jmock:2.4.0") {
             dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3')
             dependencies(FIRST_LEVEL_JMOCK as Object[])
