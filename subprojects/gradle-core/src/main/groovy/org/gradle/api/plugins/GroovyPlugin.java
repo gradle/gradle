@@ -19,6 +19,8 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
@@ -82,7 +84,11 @@ public class GroovyPlugin implements Plugin {
                 ((DynamicObjectAware) sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
                 groovySourceSet.getGroovy().srcDir(String.format("src/%s/groovy", sourceSet.getName()));
-                sourceSet.getResources().getFilter().exclude("**/*.groovy");
+                sourceSet.getResources().getFilter().exclude(new Spec<FileTreeElement>() {
+                    public boolean isSatisfiedBy(FileTreeElement element) {
+                        return groovySourceSet.getGroovy().contains(element.getFile());
+                    }
+                });
                 sourceSet.getAllJava().add(groovySourceSet.getGroovy().matching(sourceSet.getJava().getFilter()));
                 sourceSet.getAllSource().add(groovySourceSet.getGroovy());
 

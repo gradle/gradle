@@ -19,11 +19,13 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.api.internal.file.UnionFileTree;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.apache.commons.lang.StringUtils;
@@ -57,7 +59,11 @@ public class DefaultSourceSet implements SourceSet {
 
         String resourcesDisplayName = String.format("%s resources", displayName);
         resources = new DefaultSourceDirectorySet(resourcesDisplayName, fileResolver);
-        resources.getFilter().exclude("**/*.java");
+        resources.getFilter().exclude(new Spec<FileTreeElement>() {
+            public boolean isSatisfiedBy(FileTreeElement element) {
+                return javaSource.contains(element.getFile());
+            }
+        });
 
         String allSourceDisplayName = String.format("%s source", displayName);
         allSource = new UnionFileTree(allSourceDisplayName, resources, javaSource);

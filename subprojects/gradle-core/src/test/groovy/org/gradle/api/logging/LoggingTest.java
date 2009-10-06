@@ -16,6 +16,7 @@
 package org.gradle.api.logging;
 
 import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
 import org.hamcrest.BaseMatcher;
@@ -36,7 +37,7 @@ import org.slf4j.Marker;
 @RunWith(JMock.class)
 public class LoggingTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private Appender<LoggingEvent> appender;
+    private Appender<ILoggingEvent> appender;
     private ch.qos.logback.classic.Logger delegateLogger;
 
     @Before

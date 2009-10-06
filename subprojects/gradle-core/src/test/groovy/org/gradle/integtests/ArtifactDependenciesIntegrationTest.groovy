@@ -63,17 +63,16 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
             task test(dependsOn: configurations.compile) << { assertTrue(file('sub/sub.jar').isFile()) }
 '''
         testFile("sub/build.gradle") << '''
-            usePlugin org.gradle.api.plugins.BasePlugin
             configurations { compile }
             dependencies { compile files('sub.jar') { builtBy 'jar' } }
             task jar << { file('sub.jar').text = 'content' }
 '''
 
-        inTestDirectory().withTasks("test").run().assertTasksExecuted(":sub:jar", ":sub:uploadCompileInternal", ":test");
+        inTestDirectory().withTasks("test").run().assertTasksExecuted(":sub:jar", ":test");
     }
 
     @Test
-    public void projectArtifactsContainProjectVersionNumber() {
+    public void resolvedProjectArtifactsContainProjectVersionInTheirNames() {
         testFile('settings.gradle').write("include 'a', 'b'");
         testFile('a/build.gradle') << '''
             usePlugin('base')

@@ -15,25 +15,10 @@
  */
 package org.gradle.api.file;
 
-import java.io.File;
-
 /**
  * Contains details about the file or directory being visited.
  */
-public interface FileVisitDetails {
-    /**
-     * Returns the file being visited.
-     *
-     * @return The file. Never returns null.
-     */
-    File getFile();
-
-    /**
-     * Returns the path of the file being visited.
-     *
-     * @return The path. Never returns null.
-     */
-    RelativePath getRelativePath();
+public interface FileVisitDetails extends FileTreeElement {
 
     /**
      * Requests that file visiting terminate after the current file.

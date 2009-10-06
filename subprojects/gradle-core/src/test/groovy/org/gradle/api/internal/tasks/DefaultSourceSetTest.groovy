@@ -39,7 +39,7 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.resources.toString(), equalTo('set name resources'))
 
         assertThat(sourceSet.resources.filter.includes, isEmpty())
-        assertThat(sourceSet.resources.filter.excludes, equalTo(['**/*.java'] as Set))
+        assertThat(sourceSet.resources.filter.excludes, isEmpty())
 
         assertThat(sourceSet.java, instanceOf(DefaultSourceDirectorySet))
         assertThat(sourceSet.java, isEmpty())

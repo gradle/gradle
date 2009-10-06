@@ -16,8 +16,10 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -26,6 +28,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import groovy.lang.Closure;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final PathResolvingFileCollection srcDirs;
@@ -76,6 +80,16 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         return this;
     }
 
+    public PatternFilterable include(Spec<FileTreeElement> includeSpec) {
+        patterns.include(includeSpec);
+        return this;
+    }
+
+    public PatternFilterable include(Closure includeSpec) {
+        patterns.include(includeSpec);
+        return this;
+    }
+
     public PatternFilterable exclude(Iterable<String> excludes) {
         patterns.exclude(excludes);
         return this;
@@ -83,6 +97,16 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     public PatternFilterable exclude(String... excludes) {
         patterns.exclude(excludes);
+        return this;
+    }
+
+    public PatternFilterable exclude(Spec<FileTreeElement> excludeSpec) {
+        patterns.exclude(excludeSpec);
+        return this;
+    }
+
+    public PatternFilterable exclude(Closure excludeSpec) {
+        patterns.exclude(excludeSpec);
         return this;
     }
 

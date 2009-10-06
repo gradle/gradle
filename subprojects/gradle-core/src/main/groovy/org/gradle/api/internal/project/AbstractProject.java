@@ -19,7 +19,11 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.dsl.*;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopyAction;
@@ -111,7 +115,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private DependencyHandler dependencyHandler;
 
-    private ConfigurationHandler configurationContainer;
+    private ConfigurationContainer configurationContainer;
 
     private ArtifactHandler artifactHandler;
 
@@ -126,7 +130,7 @@ public abstract class AbstractProject implements ProjectInternal {
     private ListenerBroadcast<Action> afterEvaluateActions = new ListenerBroadcast<Action>(Action.class);
     private ListenerBroadcast<Action> beforeEvaluateActions = new ListenerBroadcast<Action>(Action.class);
 
-    private StandardOutputRedirector standardOutputRedirector = new DefaultStandardOutputRedirector();
+    private StandardOutputRedirector standardOutputRedirector;
     private DynamicObjectHelper dynamicObjectHelper;
     private boolean nagged;
 
@@ -147,7 +151,6 @@ public abstract class AbstractProject implements ProjectInternal {
                            File projectDir,
                            File buildFile,
                            ScriptSource buildScriptSource,
-                           IProjectRegistry projectRegistry,
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory) {
         assert name != null;
@@ -156,7 +159,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.parent = parent;
         this.name = name;
         this.buildFile = buildFile;
-        this.projectRegistry = projectRegistry;
         this.state = State.CREATED;
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
@@ -171,18 +173,20 @@ public abstract class AbstractProject implements ProjectInternal {
 
         fileResolver = new BaseDirConverter(getProjectDir());
 
-        ServiceRegistry serviceRegistry = serviceRegistryFactory.createForProject(this);
+        ServiceRegistry serviceRegistry = serviceRegistryFactory.createFor(this);
         antBuilderFactory = serviceRegistry.get(AntBuilderFactory.class);
         taskContainer = serviceRegistry.get(TaskContainerInternal.class);
         repositoryHandlerFactory = serviceRegistry.get(RepositoryHandlerFactory.class);
         projectEvaluator = serviceRegistry.get(ProjectEvaluator.class);
         repositoryHandler = serviceRegistry.get(RepositoryHandler.class);
-        configurationContainer = serviceRegistry.get(ConfigurationHandler.class);
+        configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
         projectPluginsHandler = serviceRegistry.get(ProjectPluginsContainer.class);
         artifactHandler = serviceRegistry.get(ArtifactHandler.class);
         dependencyHandler = serviceRegistry.get(DependencyHandler.class);
         scriptHandler = serviceRegistry.get(ScriptHandler.class);
         scriptClassLoaderProvider = serviceRegistry.get(ScriptClassLoaderProvider.class);
+        projectRegistry = serviceRegistry.get(IProjectRegistry.class);
+        standardOutputRedirector = serviceRegistry.get(StandardOutputRedirector.class);
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(serviceRegistry.get(Convention.class));
@@ -375,11 +379,11 @@ public abstract class AbstractProject implements ProjectInternal {
         this.repositoryHandlerFactory = repositoryHandlerFactory;
     }
 
-    public ConfigurationHandler getConfigurations() {
+    public ConfigurationContainer getConfigurations() {
         return configurationContainer;
     }
 
-    public void setConfigurationContainer(ConfigurationHandler configurationContainer) {
+    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
         this.configurationContainer = configurationContainer;
     }
 

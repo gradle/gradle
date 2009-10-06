@@ -19,7 +19,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.HelperUtil;
@@ -66,7 +65,7 @@ public class DependencyReportTaskTest {
 
     @Test
     public void passesEachProjectConfigurationToRenderer() throws IOException {
-        final ConfigurationContainer configurationContainer = context.mock(ConfigurationHandler.class);
+        final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
         final Configuration configuration1 = context.mock(Configuration.class, "Configuration1");
         final Configuration configuration2 = context.mock(Configuration.class, "Configuration2");
         context.checking(new Expectations() {{

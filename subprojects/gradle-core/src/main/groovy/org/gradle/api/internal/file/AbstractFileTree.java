@@ -107,9 +107,9 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     private static class FilteredFileTree extends AbstractFileTree {
         private final AbstractFileTree fileTree;
-        private final Spec<RelativePath> spec;
+        private final Spec<FileTreeElement> spec;
 
-        public FilteredFileTree(AbstractFileTree fileTree, Spec<RelativePath> spec) {
+        public FilteredFileTree(AbstractFileTree fileTree, Spec<FileTreeElement> spec) {
             this.fileTree = fileTree;
             this.spec = spec;
         }
@@ -122,13 +122,13 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         public FileTree visit(final FileVisitor visitor) {
             fileTree.visit(new FileVisitor() {
                 public void visitDir(FileVisitDetails dirDetails) {
-                    if (spec.isSatisfiedBy(dirDetails.getRelativePath())) {
+                    if (spec.isSatisfiedBy(dirDetails)) {
                         visitor.visitDir(dirDetails);
                     }
                 }
 
                 public void visitFile(FileVisitDetails fileDetails) {
-                    if (spec.isSatisfiedBy(fileDetails.getRelativePath())) {
+                    if (spec.isSatisfiedBy(fileDetails)) {
                         visitor.visitFile(fileDetails);
                     }
                 }

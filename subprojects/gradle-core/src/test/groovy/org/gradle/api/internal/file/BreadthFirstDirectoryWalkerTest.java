@@ -15,9 +15,13 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.specs.Spec;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.Sequence;
@@ -26,13 +30,9 @@ import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.hamcrest.Matcher;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,47 +61,17 @@ public class BreadthFirstDirectoryWalkerTest {
         walker.start(root.getMock());
     }
 
-    @Test public void testIsAllowedBothIncludeExclude() {
+    @Test public void testUsesSpecFromPatternSetToMatchFilesAndDirs() {
+        final PatternSet patternSet = context.mock(PatternSet.class);
+        final Spec spec = context.mock(Spec.class);
+
+        context.checking(new Expectations(){{
+            one(patternSet).getAsSpec();
+            will(returnValue(spec));
+        }});
+
         walker = new BreadthFirstDirectoryWalker(visitor);
-
-        PatternSet patterns = new PatternSet();
-        patterns.include("*.java");
-        patterns.exclude("*Test.java");
-        walker.match(patterns);
-
-        assertTrue(walker.isAllowed(new RelativePath(true, "Fred.java")));
-        assertFalse(walker.isAllowed(new RelativePath(true, "Fred")));
-        assertFalse(walker.isAllowed(new RelativePath(true, "FredTest.java")));
-    }
-
-    @Test public void testIsAllowedOnlyInclude() {
-        walker = new BreadthFirstDirectoryWalker(visitor);
-
-        PatternSet patterns = new PatternSet();
-        patterns.include("*.java");
-        walker.match(patterns);
-
-        assertTrue(walker.isAllowed(new RelativePath(true, "Fred.java")));
-        assertFalse(walker.isAllowed(new RelativePath(true, "Fred")));
-        assertTrue(walker.isAllowed(new RelativePath(true, "FredTest.java")));
-    }
-
-    @Test public void testIsAllowedOnlyExclude() {
-        walker = new BreadthFirstDirectoryWalker(visitor);
-
-        PatternSet patterns = new PatternSet();
-        patterns.exclude("*.bak");
-        walker.match(patterns);
-
-        assertTrue(walker.isAllowed(new RelativePath(true, "Fred.java")));
-        assertFalse(walker.isAllowed(new RelativePath(true, "Fred.bak")));
-    }
-
-    @Test public void testIsAllowedNoIncludeExclude() {
-        walker = new BreadthFirstDirectoryWalker(visitor);
-
-        assertTrue(walker.isAllowed(new RelativePath(true, "Fred.java")));
-        assertTrue(walker.isAllowed(new RelativePath(true, "Fred.bak")));
+        walker.match(patternSet);
     }
 
     @Test public void walkSingleFile() throws IOException {

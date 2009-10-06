@@ -20,6 +20,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.artifacts.dsl.*;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
@@ -71,7 +72,7 @@ import java.util.Set;
  *
  * <p>A project generally has a number of dependencies it needs in order to do its work.  Also, a project generally
  * produces a number of artifacts, which other projects can use. Those dependencies are grouped in configurations, and
- * can be retrieved and uploaded from repositories. You use the {@link org.gradle.api.artifacts.dsl.ConfigurationHandler}
+ * can be retrieved and uploaded from repositories. You use the {@link org.gradle.api.artifacts.ConfigurationContainer}
  * returned by {@link #getConfigurations()} ()} method to manage the configurations. The {@link
  * org.gradle.api.artifacts.dsl.DependencyHandler} returned by {@link #getDependencies()} method to manage the
  * dependencies. The {@link org.gradle.api.artifacts.dsl.ArtifactHandler} returned by {@link #getArtifacts()} ()} method
@@ -912,11 +913,12 @@ public interface Project extends Comparable<Project> {
      *
      * @return The configuration of this project.
      */
-    ConfigurationHandler getConfigurations();
+    ConfigurationContainer getConfigurations();
 
     /**
      * Configures the dependency configurations for this project. Executes the given closure against the {@link
-     * ConfigurationHandler} for this project. The {@link ConfigurationHandler} is passed to the closure as the
+     * org.gradle.api.artifacts.ConfigurationContainer} for this project.
+     * The {@link org.gradle.api.artifacts.ConfigurationContainer} is passed to the closure as the
      * closure's delegate.
      *
      * @param configureClosure the closure to use to configure the dependency configurations.

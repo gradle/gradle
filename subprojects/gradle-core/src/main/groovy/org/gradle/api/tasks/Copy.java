@@ -19,10 +19,12 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.CopyActionImpl;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.specs.Spec;
 
 import java.io.File;
 import java.io.FilterReader;
@@ -175,7 +177,21 @@ public class Copy extends ConventionTask implements CopyAction {
     public CopySpec include(Iterable<String> includes) {
         return copyAction.include(includes);
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
+    public CopySpec include(Spec<FileTreeElement> includeSpec) {
+        return copyAction.include(includeSpec);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CopySpec include(Closure includeSpec) {
+        return copyAction.include(includeSpec);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -188,6 +204,20 @@ public class Copy extends ConventionTask implements CopyAction {
      */
     public CopySpec exclude(Iterable<String> excludes) {
         return copyAction.exclude(excludes);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CopySpec exclude(Spec<FileTreeElement> excludeSpec) {
+        return copyAction.exclude(excludeSpec);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CopySpec exclude(Closure excludeSpec) {
+        return copyAction.exclude(excludeSpec);
     }
 
     /**

@@ -96,6 +96,24 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertVisits(fileSet, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
 
+    @Test public void testContainsFiles() {
+        File included1 = new File(testDir, 'subDir/included1')
+        File included2 = new File(testDir, 'subDir2/included2')
+        [included1, included2].each {File file ->
+            file.parentFile.mkdirs()
+            file.text = 'some text'
+        }
+
+        assertTrue(fileSet.contains(included1))
+        assertTrue(fileSet.contains(included2))
+        assertFalse(fileSet.contains(testDir))
+        assertFalse(fileSet.contains(included1.parentFile))
+        assertFalse(fileSet.contains(included2.parentFile))
+        assertFalse(fileSet.contains(new File(testDir, 'does not exist')))
+        assertFalse(fileSet.contains(testDir.parentFile))
+        assertFalse(fileSet.contains(new File('something')))
+    }
+
     @Test public void testCanAddToAntTask() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
@@ -131,6 +149,9 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertThat(fileSet.files, equalTo([included1, included2] as Set))
         assertSetContainsForAllTypes(fileSet, 'subDir/included1', 'subDir2/included2')
         assertVisits(fileSet, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
+        assertTrue(fileSet.contains(included1))
+        assertFalse(fileSet.contains(excluded1))
+        assertFalse(fileSet.contains(ignored1))
     }
 
     @Test public void testCanFilterFileSetUsingConfigureClosure() {
@@ -151,6 +172,9 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
+        assertTrue(filtered.contains(included1))
+        assertFalse(filtered.contains(excluded1))
+        assertFalse(filtered.contains(ignored1))
     }
     
     @Test public void testCanFilterFileSetUsingPatternSet() {
@@ -169,6 +193,9 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
+        assertTrue(filtered.contains(included1))
+        assertFalse(filtered.contains(excluded1))
+        assertFalse(filtered.contains(ignored1))
     }
     
     @Test public void testCanFilterAndLimitFileSet() {
@@ -192,6 +219,9 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
         assertVisits(filtered, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
+        assertTrue(filtered.contains(included1))
+        assertFalse(filtered.contains(excluded1))
+        assertFalse(filtered.contains(ignored1))
     }
 
     @Test public void testCanAddFileSetsTogether() {

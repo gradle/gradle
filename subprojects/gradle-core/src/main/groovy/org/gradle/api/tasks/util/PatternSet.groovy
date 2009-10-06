@@ -26,6 +26,7 @@ import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.NotSpec
 import org.gradle.api.specs.OrSpec
 import org.apache.tools.ant.DirectoryScanner
+import org.gradle.api.file.FileTreeElement
 
 /**
  * @author Hans Dockter
@@ -44,6 +45,8 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
 
     private Set includes = [] as LinkedHashSet
     private Set excludes = [] as LinkedHashSet
+    private Set includeSpecs = [] as LinkedHashSet
+    private Set excludeSpecs = [] as LinkedHashSet
     def boolean caseSensitive = true
 
     static {
@@ -62,7 +65,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         if (o == null || o.getClass() != getClass()) {
             return false
         }
-        return o.includes.equals(includes) && o.excludes.equals(excludes)
+        return o.includes.equals(includes) && o.excludes.equals(excludes) && o.caseSensitive == caseSensitive
     }
 
     def int hashCode() {
@@ -72,6 +75,11 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
     public PatternSet copyFrom(PatternFilterable sourcePattern) {
         setIncludes(sourcePattern.includes)
         setExcludes(sourcePattern.excludes)
+        PatternSet other = sourcePattern
+        includeSpecs.clear()
+        includeSpecs.addAll(other.includeSpecs)
+        excludeSpecs.clear()
+        excludeSpecs.addAll(other.excludeSpecs)
         this
     }
 
@@ -79,33 +87,37 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         return new IntersectionPatternSet(this)
     }
     
-    public Spec<RelativePath> getAsSpec() {
-        Spec<RelativePath> includeSpec = Specs.satisfyAll()
+    public Spec<FileTreeElement> getAsSpec() {
+        Spec<FileTreeElement> includeSpec = Specs.satisfyAll()
 
-        if (includes) {
-            List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>()
+        boolean hasIncludes = includes || includeSpecs
+        if (hasIncludes) {
+            List<Spec<FileTreeElement>> matchers = new ArrayList<Spec<FileTreeElement>>()
             for (String include: includes) {
-                matchers.add(PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include))
+                matchers.add(new RelativePathSpec(PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include)))
             }
-            includeSpec = new OrSpec<RelativePath>(matchers as Spec[])
+            matchers.addAll(includeSpecs)
+            includeSpec = new OrSpec<FileTreeElement>(matchers as Spec[])
         }
 
         Collection<String> allExcludes = excludes + globalExcludes
-        if (!allExcludes) {
+        boolean hasExcludes = allExcludes || excludeSpecs
+        if (!hasExcludes) {
             return includeSpec
         }
 
-        List<Spec<RelativePath>> matchers = new ArrayList<Spec<RelativePath>>()
+        List<Spec<FileTreeElement>> matchers = new ArrayList<Spec<FileTreeElement>>()
         for (String exclude: allExcludes) {
-            matchers.add(PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude))
+            matchers.add(new RelativePathSpec(PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude)))
         }
-        Spec<RelativePath> excludeSpec = new NotSpec<RelativePath>(new OrSpec<RelativePath>(matchers as Spec[]))
+        matchers.addAll(excludeSpecs)
+        Spec<FileTreeElement> excludeSpec = new NotSpec<FileTreeElement>(new OrSpec<FileTreeElement>(matchers as Spec[]))
 
-        if (!includes) {
+        if (!hasIncludes) {
             return excludeSpec
         }
 
-        return new AndSpec<RelativePath>([includeSpec, excludeSpec] as Spec[])
+        return new AndSpec<FileTreeElement>([includeSpec, excludeSpec] as Spec[])
     }
 
     public Set<String> getIncludes() {
@@ -135,6 +147,16 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         this
     }
 
+    public PatternFilterable include(Spec<FileTreeElement> spec) {
+        includeSpecs << spec
+        this
+    }
+
+    public PatternFilterable include(Closure closure) {
+        include(closure as Spec)
+        this
+    }
+
     public PatternFilterable exclude(String... excludes) {
         exclude(excludes as List)
     }
@@ -144,7 +166,20 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         this
     }
 
+    public PatternFilterable exclude(Spec<FileTreeElement> spec) {
+        excludeSpecs << spec
+        this
+    }
+
+    public PatternFilterable exclude(Closure closure) {
+        exclude(closure as Spec)
+        this
+    }
+
     def addToAntBuilder(node, String childNodeName = null) {
+        if (!includeSpecs.empty || !excludeSpecs.empty) {
+            throw new UnsupportedOperationException('Cannot add include/exclude specs to Ant node. Only include/exclude patterns are currently supported.')
+        }
         node.and {
             if (includes) {
                 or {
@@ -173,8 +208,8 @@ class IntersectionPatternSet extends PatternSet {
         this.other = other
     }
 
-    def Spec<RelativePath> getAsSpec() {
-        return new AndSpec<RelativePath>([super.getAsSpec(), other.getAsSpec()] as Spec[])
+    def Spec<FileTreeElement> getAsSpec() {
+        return new AndSpec<FileTreeElement>([super.getAsSpec(), other.getAsSpec()] as Spec[])
     }
 
     def addToAntBuilder(Object node, String childNodeName) {
@@ -182,5 +217,17 @@ class IntersectionPatternSet extends PatternSet {
             super.addToAntBuilder(node, null)
             other.addToAntBuilder(node, null)
         }
+    }
+}
+
+class RelativePathSpec implements Spec<FileTreeElement> {
+    private final Spec<? super RelativePath> pathSpec
+
+    def RelativePathSpec(Spec<? super RelativePath> pathSpec) {
+        this.pathSpec = pathSpec
+    }
+
+    public boolean isSatisfiedBy(FileTreeElement element) {
+        pathSpec.isSatisfiedBy(element.relativePath)
     }
 }

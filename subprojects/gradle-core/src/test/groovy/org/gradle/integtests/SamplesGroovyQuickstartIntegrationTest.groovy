@@ -39,7 +39,11 @@ class SamplesGroovyQuickstartIntegrationTest {
         groovyProjectDir.file('build/libs/quickstart.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class'
+                'org/gradle/Person.class',
+                'org/gradle/Person$_closure1.class',
+                'org/gradle/Person$_closure2.class',
+                'resource.txt',
+                'script.groovy'
         )
     }
 }

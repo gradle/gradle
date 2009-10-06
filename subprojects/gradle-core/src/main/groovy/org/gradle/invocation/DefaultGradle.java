@@ -19,20 +19,19 @@ package org.gradle.invocation;
 import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
-import org.gradle.listener.ListenerManager;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.*;
-import org.gradle.execution.DefaultTaskExecuter;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.execution.TaskExecuter;
+import org.gradle.listener.ListenerManager;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GradleVersion;
 
@@ -48,28 +47,27 @@ public class DefaultGradle implements GradleInternal {
     private ClassLoader buildScriptClassLoader;
     private InternalRepository internalRepository;
     private StandardOutputRedirector standardOutputRedirector;
-    private DefaultProjectRegistry<ProjectInternal> projectRegistry;
-    private DefaultPluginRegistry pluginRegistry;
+    private IProjectRegistry<ProjectInternal> projectRegistry;
+    private PluginRegistry pluginRegistry;
     private ScriptHandler scriptHandler;
     private ScriptClassLoaderProvider scriptClassLoaderProvider;
     private final ListenerManager listenerManager;
     private final DefaultIsolatedAntBuilder isolatedAntBuilder = new DefaultIsolatedAntBuilder();
+    private final ServiceRegistryFactory serviceRegistryFactory;
 
     public DefaultGradle(StartParameter startParameter, InternalRepository internalRepository,
-                         ServiceRegistryFactory serviceRegistryFactory,
-                         StandardOutputRedirector standardOutputRedirector,
+                         ServiceRegistryFactory parentRegistry,
                          ListenerManager listenerManager) {
         this.startParameter = startParameter;
+        this.serviceRegistryFactory = parentRegistry.createFor(this);
         this.internalRepository = internalRepository;
-        this.standardOutputRedirector = standardOutputRedirector;
         this.listenerManager = listenerManager;
-        this.projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
-        this.pluginRegistry = new DefaultPluginRegistry(startParameter.getPluginPropertiesFile());
-        this.taskGraph = new DefaultTaskExecuter();
-
-        ServiceRegistry serviceRegistry = serviceRegistryFactory.createForBuild(this);
-        scriptHandler = serviceRegistry.get(ScriptHandler.class);
-        scriptClassLoaderProvider = serviceRegistry.get(ScriptClassLoaderProvider.class);
+        this.standardOutputRedirector = serviceRegistryFactory.get(StandardOutputRedirector.class);
+        projectRegistry = serviceRegistryFactory.get(IProjectRegistry.class);
+        pluginRegistry = serviceRegistryFactory.get(PluginRegistry.class);
+        taskGraph = serviceRegistryFactory.get(TaskExecuter.class);
+        scriptHandler = serviceRegistryFactory.get(ScriptHandler.class);
+        scriptClassLoaderProvider = serviceRegistryFactory.get(ScriptClassLoaderProvider.class);
     }
 
     public String getGradleVersion() {
@@ -132,7 +130,7 @@ public class DefaultGradle implements GradleInternal {
         this.internalRepository = internalRepository;
     }
 
-    public DefaultPluginRegistry getPluginRegistry() {
+    public PluginRegistry getPluginRegistry() {
         return pluginRegistry;
     }
 
@@ -206,5 +204,9 @@ public class DefaultGradle implements GradleInternal {
 
     public IsolatedAntBuilder getIsolatedAntBuilder() {
         return isolatedAntBuilder;
+    }
+
+    public ServiceRegistryFactory getServiceRegistryFactory() {
+        return serviceRegistryFactory;
     }
 }

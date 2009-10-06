@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.dsl.ConfigurationHandler;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
@@ -46,7 +45,7 @@ import java.util.Set;
 public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     private final ProjectDependenciesBuildInstruction instruction = new ProjectDependenciesBuildInstruction(WrapUtil.<String>toList());
     private final Project targetProjectStub = context.mock(Project.class);
-    private final ConfigurationHandler targetConfigurationHandlerStub = context.mock(ConfigurationHandler.class);
+    private final ConfigurationContainer targetConfigurationsStub = context.mock(ConfigurationContainer.class);
     private final Configuration targetConfigurationMock = context.mock(Configuration.class);
     private final TaskContainer targetTaskContainerStub = context.mock(TaskContainer.class);
     private final DefaultProjectDependency projectDependency = new DefaultProjectDependency(targetProjectStub, instruction);
@@ -76,8 +75,8 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     public void setUp() {
         context.checking(new Expectations() {{
             allowing(targetProjectStub).getConfigurations();
-            will(returnValue(targetConfigurationHandlerStub));
-            allowing(targetConfigurationHandlerStub).getByName("default");
+            will(returnValue(targetConfigurationsStub));
+            allowing(targetConfigurationsStub).getByName("default");
             will(returnValue(targetConfigurationMock));
             allowing(targetProjectStub).getTasks();
             will(returnValue(targetTaskContainerStub));
@@ -87,8 +86,6 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
             will(returnValue("target-group"));
             allowing(targetProjectStub).getVersion();
             will(returnValue("target-version"));
-            allowing(targetConfigurationMock).getUploadInternalTaskName();
-            will(returnValue("target-upload"));
         }});
     }
 
@@ -103,7 +100,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     @Test
     public void getConfiguration() {
         context.checking(new Expectations() {{
-            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            allowing(targetConfigurationsStub).getByName("conf1");
             will(returnValue(targetConfigurationMock));
         }});
 
@@ -118,7 +115,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         final Set<File> selfResolvingFiles = toSet(new File("somePath"));
         final Set<File> selfResolvingTargetProjectDependencyFiles = toSet(new File("someOtherPath"));
         context.checking(new Expectations() {{
-            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            allowing(targetConfigurationsStub).getByName("conf1");
             will(returnValue(targetConfigurationMock));
 
             allowing(targetConfigurationMock).getAllDependencies(SelfResolvingDependency.class);
@@ -143,7 +140,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         final Set<File> selfResolvingFiles = toSet(new File("somePath"));
         final Set<File> selfResolvingTargetProjectDependencyFiles = toSet(new File("someOtherPath"));
         context.checking(new Expectations() {{
-            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            allowing(targetConfigurationsStub).getByName("conf1");
             will(returnValue(targetConfigurationMock));
 
             allowing(targetConfigurationMock).getAllDependencies(SelfResolvingDependency.class);
@@ -166,7 +163,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         final Set<File> selfResolvingFiles = toSet(new File("somePath"));
         final Set<File> selfResolvingTargetProjectDependencyFiles = toSet(new File("someOtherPath"));
         context.checking(new Expectations() {{
-            allowing(targetConfigurationHandlerStub).getByName("conf1");
+            allowing(targetConfigurationsStub).getByName("conf1");
             will(returnValue(targetConfigurationMock));
 
             allowing(targetConfigurationMock).getAllDependencies(SelfResolvingDependency.class);
@@ -193,20 +190,33 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     }
 
     @Test
-    public void dependsOnTargetConfigurationAndUploadInternalTaskOfTargetConfiguration() {
-        Task uploadTask = taskInTargetProject("target-upload");
+    public void dependsOnTargetConfigurationAndArtifactsOfTargetConfiguration() {
         Task a = taskInTargetProject("a");
         Task b = taskInTargetProject("b");
+        Task c = taskInTargetProject("c");
         expectTargetConfigurationHasDependencies(a, b);
+        expectTargetConfigurationHasArtifacts(c);
 
-        assertThat(projectDependency.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(uploadTask, a, b)));
+        assertThat(projectDependency.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(a, b, c)));
     }
 
     private void expectTargetConfigurationHasDependencies(final Task... tasks) {
         context.checking(new Expectations(){{
-            TaskDependency dependencyStub = context.mock(TaskDependency.class);
+            TaskDependency dependencyStub = context.mock(TaskDependency.class, "dependencies");
 
             allowing(targetConfigurationMock).getBuildDependencies();
+            will(returnValue(dependencyStub));
+
+            allowing(dependencyStub).getDependencies(null);
+            will(returnValue(toSet(tasks)));
+        }});
+    }
+
+    private void expectTargetConfigurationHasArtifacts(final Task... tasks) {
+        context.checking(new Expectations(){{
+            TaskDependency dependencyStub = context.mock(TaskDependency.class, "artifacts");
+
+            allowing(targetConfigurationMock).getBuildArtifacts();
             will(returnValue(dependencyStub));
 
             allowing(dependencyStub).getDependencies(null);
@@ -219,6 +229,9 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
             TaskDependency dependencyStub = context.mock(TaskDependency.class);
 
             allowing(targetConfigurationMock).getBuildDependencies();
+            will(returnValue(dependencyStub));
+
+            allowing(targetConfigurationMock).getBuildArtifacts();
             will(returnValue(dependencyStub));
 
             allowing(dependencyStub).getDependencies(null);
@@ -237,13 +250,12 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     public void dependsOnAdditionalTasksFromTargetProject() {
         expectTargetConfigurationHasNoDependencies();
 
-        Task uploadTask = taskInTargetProject("target-upload");
         Task a = taskInTargetProject("a");
         Task b = taskInTargetProject("b");
 
         DefaultProjectDependency dependency = new DefaultProjectDependency(targetProjectStub,
                 new ProjectDependenciesBuildInstruction(toList("a", "b")));
-        assertThat(dependency.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(uploadTask, a, b)));
+        assertThat(dependency.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(a, b)));
     }
 
     @Test

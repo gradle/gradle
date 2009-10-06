@@ -156,7 +156,7 @@
                 building or testing your software (e.g. additional JDBC drivers to be shipped with your distribution).
                 The configurations are managed by a <literal>configurations</literal> object. The closure you pass to
                 the configurations object is applied against its API. To learn more about this API have a look at
-                <apilink class='org.gradle.api.artifacts.dsl.ConfigurationHandler'/>.
+                <apilink class='org.gradle.api.artifacts.ConfigurationContainer'/>.
             </para>
         </section>
         <section id='sub:module_dependencies'>

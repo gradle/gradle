@@ -13,11 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.dsl;
+package org.gradle.api.file;
 
-import groovy.lang.Closure;
-import org.gradle.api.artifacts.ConfigurationContainer;
+import java.io.File;
 
-public interface ConfigurationHandler extends ConfigurationContainer {
-    void configure(Closure closure);
+/**
+ * Information about a file in a {@link FileTree}.
+ */
+public interface FileTreeElement {
+    /**
+     * Returns the file being visited.
+     *
+     * @return The file. Never returns null.
+     */
+    File getFile();
+
+    /**
+     * Returns the path of the file being visited.
+     *
+     * @return The path. Never returns null.
+     */
+    RelativePath getRelativePath();
 }

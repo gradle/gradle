@@ -23,6 +23,7 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 
 /**
  * @author Hans Dockter
@@ -33,7 +34,7 @@ class DefaultConfigurationHandlerTest {
 
     private IvyService ivyService = context.mock(IvyService)
 
-    private DefaultConfigurationHandler configurationHandler = new DefaultConfigurationHandler(ivyService)
+    private DefaultConfigurationContainer configurationHandler = new DefaultConfigurationContainer(ivyService)
 
     @Test void addsNewConfigurationWhenConfiguringSelf() {
         configurationHandler.configure {

@@ -207,12 +207,6 @@ public interface Configuration extends FileCollection {
     ResolvedConfiguration getResolvedConfiguration();
 
     /**
-     * Returns the name of the task that upload the artifacts of this configuration to the internal
-     * Gradle repository used resolving inter-project dependencies.
-     */
-    String getUploadInternalTaskName();
-
-    /**
      * Returns the name of the task that upload the artifacts of this configuration to repositories
      * declared by the user.
      *

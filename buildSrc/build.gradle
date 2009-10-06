@@ -24,8 +24,6 @@ checkstyleConfigFileName = new File(checkstyleConfigDir, 'checkstyle.xml')
 codeNarcConfigFileName = "$rootDir/../config/codenarc.xml"
 [checkstyleMain, checkstyleTest].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
 
-uploadArchivesInternal.dependsOn check, test
-
 task ide << {
     def libDir = file('lib')
     ant.delete(dir: libDir)

@@ -87,6 +87,8 @@ public abstract class AbstractTaskTest {
         assertNotNull(getTask().getOutput());
         assertEquals(getExpectedStandardOutputCapture(), getTask().getStandardOutputCapture());
         assertEquals(new HashMap(), getTask().getAdditionalProperties());
+        assertNotNull(getTask().getInputs());
+        assertNotNull(getTask().getOutputs());
     }
 
     protected DefaultStandardOutputCapture getExpectedStandardOutputCapture() {

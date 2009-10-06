@@ -16,13 +16,17 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.specs.Spec;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import groovy.lang.Closure;
 
 /**
  * A {@code SourceTask} performs some operation on source files.
@@ -96,6 +100,22 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    public SourceTask include(Spec<FileTreeElement> includeSpec) {
+        patternSet.include(includeSpec);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public SourceTask include(Closure includeSpec) {
+        patternSet.include(includeSpec);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public SourceTask exclude(String... excludes) {
         patternSet.exclude(excludes);
         return this;
@@ -106,6 +126,22 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
      */
     public SourceTask exclude(Iterable<String> excludes) {
         patternSet.exclude(excludes);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public SourceTask exclude(Spec<FileTreeElement> excludeSpec) {
+        patternSet.exclude(excludeSpec);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public SourceTask exclude(Closure excludeSpec) {
+        patternSet.exclude(excludeSpec);
         return this;
     }
 

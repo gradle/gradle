@@ -74,22 +74,6 @@ class BasePlugin implements Plugin {
     private void configureUploadRules(final Project project) {
         Rule rule = [
                 getDescription: {
-                    "Pattern: upload<ConfigurationName>Internal: Uploads the project artifacts of a configuration to the internal Gradle repository."
-                },
-                apply: {String taskName ->
-                    Set<Configuration> configurations = project.configurations.all
-                    for (Configuration configuration: configurations) {
-                        if (taskName.equals(configuration.uploadInternalTaskName)) {
-                            Upload uploadInternal = createUploadTask(configuration.uploadInternalTaskName, configuration, project)
-                            uploadInternal.repositories.add(project.gradle.internalRepository)
-                        }
-                    }
-                }
-        ] as Rule
-        project.tasks.addRule(rule)
-
-        rule = [
-                getDescription: {
                     "Pattern: upload<ConfigurationName>: Uploads the project artifacts of a configuration to a public Gradle repository."
                 },
                 apply: {String taskName ->

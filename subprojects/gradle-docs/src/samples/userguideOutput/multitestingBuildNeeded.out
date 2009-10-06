@@ -2,7 +2,6 @@
 :shared:processResources
 :shared:classes
 :shared:jar
-:shared:uploadDefaultInternal
 :api:compileJava
 :api:processResources
 :api:classes

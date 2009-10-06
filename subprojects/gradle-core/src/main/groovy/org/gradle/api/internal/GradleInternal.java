@@ -16,10 +16,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.internal.project.IProjectRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.StandardOutputRedirector;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.project.*;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.invocation.Gradle;
@@ -96,4 +93,6 @@ public interface GradleInternal extends Gradle {
     StandardOutputRedirector getStandardOutputRedirector();
 
     IsolatedAntBuilder getIsolatedAntBuilder();
+
+    ServiceRegistryFactory getServiceRegistryFactory();
 }

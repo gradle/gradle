@@ -20,14 +20,12 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.configuration.ProjectEvaluator;
@@ -36,7 +34,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -62,18 +60,15 @@ public class ProjectFactoryTest {
     private final ClassLoader buildScriptClassLoader = new URLClassLoader(new URL[0]);
     private final File rootDir = HelperUtil.makeNewTestDir();
     private final File projectDir = new File(rootDir, "project");
-    private ConfigurationContainerFactory configurationContainerFactory = context.mock(ConfigurationContainerFactory.class);
-    private DependencyFactory dependencyFactoryMock = context.mock(DependencyFactory.class);
+    private ConfigurationContainerFactory configurationContainerFactory = context.mock(
+            ConfigurationContainerFactory.class);
     private RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
-    private PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory.class);
     private ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
     private ClassGenerator classGenerator = context.mock(ClassGenerator.class);
     private ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
-            repositoryHandlerFactory, configurationContainerFactory, publishArtifactFactoryMock, dependencyFactoryMock,
+            repositoryHandlerFactory, configurationContainerFactory, context.mock(DependencyFactory.class),
             projectEvaluator, classGenerator);
-    private PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
-    private IProjectRegistry projectRegistry = new DefaultProjectRegistry();
     private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;
@@ -81,26 +76,28 @@ public class ProjectFactoryTest {
 
     @Before
     public void setUp() throws Exception {
+        startParameterStub.setPluginPropertiesFile(new File("plugins"));
         context.checking(new Expectations() {{
             allowing(repositoryHandlerFactory).createRepositoryHandler(with(any(Convention.class)));
             will(returnValue(repositoryHandler));
         }});
+        final ServiceRegistryFactory gradleServices = serviceRegistryFactory.createFor(gradle);
         context.checking(new Expectations() {{
+            allowing(gradle).getServiceRegistryFactory();
+            will(returnValue(gradleServices));
             allowing(gradle).getStartParameter();
             will(returnValue(startParameterStub));
             allowing(configurationContainerFactory).createConfigurationContainer(with(any(ResolverProvider.class)),
                     with(any(DependencyMetaDataProvider.class)));
             allowing(gradle).getProjectRegistry();
-            will(returnValue(projectRegistry));
-            allowing(gradle).getPluginRegistry();
-            will(returnValue(pluginRegistry));
+            will(returnValue(gradleServices.get(IProjectRegistry.class)));
             allowing(gradle).getBuildScriptClassLoader();
             will(returnValue(buildScriptClassLoader));
             allowing(gradle).getGradleUserHomeDir();
             will(returnValue(new File("gradleUserHomeDir")));
         }});
 
-        projectFactory = new ProjectFactory(serviceRegistryFactory, null);
+        projectFactory = new ProjectFactory(null);
     }
 
     @Test
@@ -149,7 +146,7 @@ public class ProjectFactoryTest {
         ScriptSource expectedScriptSource = new FileScriptSource("build file", buildFile);
         assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
     }
-    
+
     @Test
     public void testAddsProjectToProjectRegistry() throws IOException {
         ProjectDescriptor rootDescriptor = descriptor("root");
@@ -158,7 +155,7 @@ public class ProjectFactoryTest {
         DefaultProject rootProject = projectFactory.createProject(rootDescriptor, null, gradle);
         DefaultProject project = projectFactory.createProject(parentDescriptor, rootProject, gradle);
 
-        assertThat(projectRegistry.getProject(":somename"), sameInstance((ProjectIdentifier) project));
+        assertThat(gradle.getProjectRegistry().getProject(":somename"), sameInstance((ProjectIdentifier) project));
     }
 
     @Test
@@ -175,7 +172,7 @@ public class ProjectFactoryTest {
     public void testConstructsRootProjectWithEmbeddedBuildScript() {
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
 
-        ProjectFactory projectFactory = new ProjectFactory(serviceRegistryFactory, expectedScriptSource);
+        ProjectFactory projectFactory = new ProjectFactory(expectedScriptSource);
 
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, gradle);
 
@@ -198,10 +195,11 @@ public class ProjectFactoryTest {
         return descriptor(name, projectDir, new File(projectDir, "build.gradle"), "build.gradle");
     }
 
-    private ProjectDescriptor descriptor(final String name, final File projectDir, final File buildFile, final String buildFileName) {
+    private ProjectDescriptor descriptor(final String name, final File projectDir, final File buildFile,
+                                         final String buildFileName) {
         final ProjectDescriptor descriptor = context.mock(ProjectDescriptor.class, name);
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(descriptor).getName();
             will(returnValue(name));
             allowing(descriptor).getProjectDir();
@@ -215,8 +213,6 @@ public class ProjectFactoryTest {
     }
 
     private void checkProjectResources(DefaultProject project) {
-        assertSame(projectRegistry, project.getProjectRegistry());
-        assertSame(repositoryHandler, project.getRepositories());
         assertSame(gradle, project.getGradle());
     }
 }

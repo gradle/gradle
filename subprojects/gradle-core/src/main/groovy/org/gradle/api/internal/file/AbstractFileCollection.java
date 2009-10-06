@@ -62,6 +62,10 @@ public abstract class AbstractFileCollection implements FileCollection {
         return GUtil.join(getFiles(), File.pathSeparator);
     }
 
+    public boolean contains(File file) {
+        return getFiles().contains(file);
+    }
+
     public FileCollection plus(FileCollection collection) {
         return new UnionFileCollection(this, collection);
     }

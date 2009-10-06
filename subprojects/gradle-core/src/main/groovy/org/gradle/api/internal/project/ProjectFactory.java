@@ -28,14 +28,12 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class ProjectFactory implements IProjectFactory {
-    private ServiceRegistryFactory serviceRegistryFactory;
     private ScriptSource embeddedScript;
 
     public ProjectFactory() {
     }
 
-    public ProjectFactory(ServiceRegistryFactory serviceRegistryFactory, ScriptSource embeddedScript) {
-        this.serviceRegistryFactory = serviceRegistryFactory;
+    public ProjectFactory(ScriptSource embeddedScript) {
         this.embeddedScript = embeddedScript;
     }
 
@@ -56,9 +54,8 @@ public class ProjectFactory implements IProjectFactory {
                 projectDescriptor.getProjectDir(),
                 projectDescriptor.getBuildFile(),
                 source,
-                gradle.getProjectRegistry(),
                 gradle,
-                serviceRegistryFactory);
+                gradle.getServiceRegistryFactory());
 
         if (parent != null) {
             parent.addChildProject(project);

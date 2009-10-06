@@ -21,8 +21,6 @@ import org.gradle.*;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -93,8 +91,7 @@ public class BuildSourceBuilder {
             StartParameter startParameterArg = startParameter.newInstance();
             startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
             startParameterArg.setSearchUpwards(false);
-            startParameterArg.setTaskNames(WrapUtil.toList(BasePlugin.CLEAN_TASK_NAME,
-                    Configurations.uploadInternalTaskName(Dependency.ARCHIVES_CONFIGURATION)));
+            startParameterArg.setTaskNames(WrapUtil.toList(BasePlugin.CLEAN_TASK_NAME, JavaPlugin.BUILD_TASK_NAME));
             boolean executeBuild = true;
 
             File artifactFile = buildArtifactFile(startParameter.getCurrentDir());
