@@ -190,6 +190,10 @@ public class DefaultExecHandle implements ExecHandle {
         }
     }
 
+    public int getNormalTerminationExitCode() {
+        return normalTerminationExitCode;
+    }
+
     public int getExitCode() {
         lock.lock();
         try {

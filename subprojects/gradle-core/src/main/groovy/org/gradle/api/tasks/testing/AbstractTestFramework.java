@@ -16,7 +16,8 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.testing.TestFramework;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.testing.fabric.TestFramework;
 
 /**
  * @author Tom Eyckmans
@@ -28,10 +29,18 @@ public abstract class AbstractTestFramework implements TestFramework {
         "            - Call useJUnit(), useTestNG() or useTestFramework(<your own TestFramework implementation class>) as first statement in the test { } block. \n" +
         "            - Set the test.framework.default property in a gradle.properties file ";
 
-    protected String name;
+    protected final String id;
+    protected final String name;
 
-    protected AbstractTestFramework(String name) {
+    protected AbstractTestFramework(final String id, final String name) {
+        if (StringUtils.isEmpty(id)) throw new IllegalArgumentException("id == empty!");
+        if (StringUtils.isEmpty(name)) throw new IllegalArgumentException("name == empty!");
+        this.id = id;
         this.name = name;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getName() {

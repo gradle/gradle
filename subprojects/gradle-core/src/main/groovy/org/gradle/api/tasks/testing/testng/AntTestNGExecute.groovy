@@ -17,7 +17,6 @@ package org.gradle.api.tasks.testing.testng
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.tasks.testing.Test
 
 /**
  * @author Tom Eyckmans

@@ -35,6 +35,8 @@ public interface ExecHandle {
 
     ExecHandleState getState();
 
+    int getNormalTerminationExitCode();
+
     int getExitCode();
 
     Throwable getFailureCause();

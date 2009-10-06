@@ -1,29 +1,13 @@
-/*
- * Copyright 2009 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.gradle.external.testng;
 
-import org.objectweb.asm.commons.EmptyVisitor;
+import org.gradle.api.testing.detection.TestClassVisitor;
+import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.gradle.api.testing.execution.TestClassVisitor;
-import org.gradle.api.testing.TestFrameworkDetector;
-import org.slf4j.LoggerFactory;
+import org.objectweb.asm.commons.EmptyVisitor;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
@@ -76,7 +60,6 @@ class TestNGTestClassDetecter extends TestClassVisitor {
     }
 
 
-
     /**
      * Visits an annotation of the class.
      *
@@ -111,15 +94,14 @@ class TestNGTestClassDetecter extends TestClassVisitor {
             int access) {
         boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
         boolean isPublic = (access & Opcodes.ACC_PUBLIC) != 0;
-        if( outerName != null && innerName != null && isStatic && isPublic ) {
+        if (outerName != null && innerName != null && isStatic && isPublic) {
             final File innerTestClassFile = new File(detector.getTestClassesDirectory(), className + "$" + innerName + ".class");
-            if ( innerTestClassFile.exists() ) {
-                if ( detector.processPossibleTestClass(innerTestClassFile) )
-                    LOG.debug("test-class-scan : [inner test class] : "+className+" : [name: " + name + ", outerName: " + outerName + ", innerName: " + innerName + "]");
+            if (innerTestClassFile.exists()) {
+                if (detector.processPossibleTestClass(innerTestClassFile))
+                    LOG.debug("test-class-scan : [inner test class] : " + className + " : [name: " + name + ", outerName: " + outerName + ", innerName: " + innerName + "]");
             }
         }
     }
-
 
 
     /**
@@ -148,7 +130,7 @@ class TestNGTestClassDetecter extends TestClassVisitor {
             String desc,
             String signature,
             String[] exceptions) {
-        if ( !isAbstract && !test )
+        if (!isAbstract && !test)
             return new TestNGTestMethodDetecter(this);
         else
             return new EmptyVisitor();

@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.api.testing.TestFramework;
+import org.gradle.api.testing.fabric.TestFramework;
 import org.jmock.lib.legacy.ClassImposteriser;
 
 /**

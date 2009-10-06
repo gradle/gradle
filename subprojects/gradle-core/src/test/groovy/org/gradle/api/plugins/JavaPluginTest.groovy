@@ -179,7 +179,7 @@ class JavaPluginTest {
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME))
 
         task = project.tasks[JavaPlugin.TEST_TASK_NAME]
-        assertThat(task, instanceOf(org.gradle.api.tasks.testing.Test))
+        assertThat(task, instanceOf(org.gradle.api.tasks.testing.AntTest))
         assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))
@@ -231,7 +231,7 @@ class JavaPluginTest {
         assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.sourceCompatibility, equalTo(project.sourceCompatibility.toString()))
 
-        task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
+        task = project.createTask('customTest', type: org.gradle.api.tasks.testing.AntTest)
         assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))

@@ -30,7 +30,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.AntTest;
 
 import java.io.File;
 import java.util.Arrays;
@@ -283,12 +283,12 @@ public class JavaPlugin implements Plugin {
     }
 
     private void configureTest(final Project project) {
-        project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
-            public void execute(Test test) {
+        project.getTasks().withType(AntTest.class).allTasks(new Action<AntTest>() {
+            public void execute(AntTest test) {
                 test.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TEST);
             }
         });
-        project.getTasks().add(TEST_TASK_NAME, Test.class).setDescription("Runs the unit tests.");
+        project.getTasks().add(TEST_TASK_NAME, AntTest.class).setDescription("Runs the unit tests.");
     }
 
     void configureConfigurations(final Project project) {

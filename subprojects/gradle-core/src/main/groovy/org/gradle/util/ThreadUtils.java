@@ -19,6 +19,8 @@ package org.gradle.util;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.Condition;
 
 /**
  * @author Tom Eyckmans
@@ -85,5 +87,24 @@ public class ThreadUtils {
         runnableThread.start();
 
         return runnableThread;
+    }
+
+    public static void interleavedConditionWait(Lock lock, Condition condition, long waitLength, TimeUnit waitUnit, ConditionWaitHandle handle) {
+        while (!handle.checkCondition()) {
+            lock.lock();
+            try {
+                condition.await(waitLength, waitUnit);
+
+                Thread.yield();
+            }
+            catch (InterruptedException e) {
+                // ignore - TODO add interruptHandler?
+            }
+            finally {
+                lock.unlock();
+            }
+        }
+
+        handle.conditionMatched();
     }
 }
