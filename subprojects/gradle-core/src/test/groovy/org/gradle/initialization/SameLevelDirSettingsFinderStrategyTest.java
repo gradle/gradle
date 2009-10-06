@@ -35,7 +35,6 @@ public class SameLevelDirSettingsFinderStrategyTest extends AbstractSettingsFind
 
     @Before
     public void setUp() {
-        super.setUp();
         sameLevelDirSettingsFinderStrategy = new SameLevelDirSettingsFinderStrategy();
         rootDir = new File(testDir, "root");
         rootDir.mkdirs();

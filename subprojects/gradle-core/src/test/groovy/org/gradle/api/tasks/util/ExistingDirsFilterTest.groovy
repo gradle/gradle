@@ -18,10 +18,12 @@ package org.gradle.api.tasks.util
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.StopActionException
-import org.gradle.util.HelperUtil
-import static org.junit.Assert.*
+import org.gradle.util.TemporaryFolder
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Rule
+import org.junit.Test
+import static org.junit.Assert.*
+
 
 /**
  * @author Hans Dockter
@@ -30,11 +32,11 @@ class ExistingDirsFilterTest {
     ExistingDirsFilter testObj
     File existingDir, destDir, nonExistingDir
     List allDirs
-
+    @Rule public TemporaryFolder testDir = new TemporaryFolder();
 
     @Before public void setUp() {
         testObj = new ExistingDirsFilter()
-        File root = HelperUtil.makeNewTestDir()
+        File root = testDir.dir
         existingDir = new File(root, 'dir1')
         destDir = new File(root, 'dir11')
         existingDir.mkdirs()

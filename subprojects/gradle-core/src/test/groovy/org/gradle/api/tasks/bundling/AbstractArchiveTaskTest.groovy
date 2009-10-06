@@ -18,26 +18,23 @@ package org.gradle.api.tasks.bundling
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.ZipFileSet
 import org.gradle.util.HelperUtil
-import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.file.FileResolver
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
  */
 abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
-    File testDir = HelperUtil.makeNewTestDir()
     FileResolver resolver = [resolve: {it as File}] as FileResolver
     
     abstract AbstractArchiveTask getArchiveTask()
@@ -49,10 +46,6 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     abstract MockFor getAntMocker(boolean toBeCalled)
 
     abstract def getAnt()
-
-    @Before public void setUp() {
-        super.setUp()
-    }
 
     void checkConstructor() {
         assertFalse(archiveTask.createIfEmpty)
@@ -67,10 +60,9 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.appendix = 'testappendix'
         archiveTask.version = '1.0'
         archiveTask.classifier = 'src'
-        archiveTask.destinationDir = new File(testDir, 'destinationDir')
-        archiveTask.resourceCollections = [new FileSet(testDir, resolver)]
-        archiveTask.baseDir = testDir
-
+        archiveTask.destinationDir = new File(tmpDir.dir, 'destinationDir')
+        archiveTask.resourceCollections = [new FileSet(tmpDir.dir, resolver)]
+        archiveTask.baseDir = tmpDir.dir
     }
 
     @Test public void testExecute() {
@@ -141,7 +133,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     @Test public void testFiles() {
         FileCollection fileCollection = archiveTask.from('a', 'b')
         assertThat(archiveTask.resourceCollections, hasItem(fileCollection))
-        assertEquals([new File(testDir, 'a'), new File(testDir, 'b')], fileCollection as List)
+        assertEquals([project.file('a'), project.file('b')], fileCollection as List)
     }
 
     @Test public void testIncludeFileCollection() {

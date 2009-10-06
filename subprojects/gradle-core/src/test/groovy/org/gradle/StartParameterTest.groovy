@@ -28,8 +28,9 @@ import org.gradle.initialization.BuildFileProjectSpec
 import org.gradle.initialization.DefaultProjectSpec
 import org.gradle.initialization.ProjectDirectoryProjectSpec
 import org.gradle.initialization.ProjectSpec
-import org.gradle.util.HelperUtil
-import org.junit.Before
+import org.gradle.integtests.TestFile
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
@@ -39,11 +40,8 @@ import static org.junit.Assert.*
  * @author Hans Dockter
  */
 class StartParameterTest {
-    File gradleHome
-
-    @Before public void setUp() {
-        gradleHome = HelperUtil.testDir
-    }
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Test public void testNewInstance() {
         StartParameter testObj = new StartParameter()
@@ -190,6 +188,7 @@ class StartParameterTest {
 
     @Test public void testSettingGradleHomeSetsDefaultLocationsIfNotAlreadySet() {
         StartParameter parameter = new StartParameter()
+        TestFile gradleHome = tmpDir.dir
         parameter.gradleHomeDir = gradleHome
         assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
         assertThat(parameter.defaultImportsFile, equalTo(new File(gradleHome.canonicalFile, Main.IMPORTS_FILE_NAME)))
@@ -219,7 +218,7 @@ class StartParameterTest {
         StartParameter parameter = new StartParameter()
 
         // Copied properties
-        parameter.gradleHomeDir = gradleHome
+        parameter.gradleHomeDir = tmpDir.dir
         parameter.gradleUserHomeDir = new File("home")
         parameter.cacheUsage = CacheUsage.OFF
         parameter.pluginPropertiesFile = new File("plugins")

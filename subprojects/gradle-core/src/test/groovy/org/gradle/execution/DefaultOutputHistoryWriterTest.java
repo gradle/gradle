@@ -18,13 +18,13 @@ package org.gradle.execution;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.After;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +35,9 @@ import java.io.IOException;
 public class DefaultOutputHistoryWriterTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private File historyDir = HelperUtil.makeNewTestDir();
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
+    private File historyDir = testDir.getDir();
     private DefaultOutputHistoryWriter outputHistoryWriter = new DefaultOutputHistoryWriter();
     private Task taskStub = context.mock(Task.class);
     private Project projectStub = context.mock(Project.class);
@@ -55,11 +57,6 @@ public class DefaultOutputHistoryWriterTest {
         }});   
     }
     
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
-    }
-
     @org.junit.Test
     public void shouldHaveHistoryFileWhenTaskSuccessfullyExecuted() throws IOException {
         long timestampLowerLimit = System.currentTimeMillis();

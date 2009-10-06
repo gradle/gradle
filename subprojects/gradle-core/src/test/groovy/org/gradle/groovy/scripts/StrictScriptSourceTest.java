@@ -15,17 +15,18 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.Expectations;
+import org.gradle.api.GradleException;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
-import org.gradle.api.GradleException;
 
 import java.io.File;
 
@@ -33,7 +34,9 @@ import java.io.File;
 public class StrictScriptSourceTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ScriptSource delegate = context.mock(ScriptSource.class);
-    private final File sourceFile = new File(HelperUtil.makeNewTestDir(), "source");
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
+    private final File sourceFile = new File(testDir.getDir(), "source");
     private final StrictScriptSource scriptSource = new StrictScriptSource(delegate);
 
     @Before

@@ -18,18 +18,18 @@ package org.gradle.initialization
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TemporaryFolder
 import org.jmock.lib.legacy.ClassImposteriser
-import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.*
 import static org.junit.Assert.*
-import org.gradle.api.artifacts.ConfigurationContainer
 
 /**
  * @author Hans Dockter
@@ -50,10 +50,11 @@ class BuildSourceBuilderTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     String expectedArtifactPath
     BuildResult expectedBuildResult
+    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        File testDir = HelperUtil.makeNewTestDir()
+        File testDir = tmpDir.dir
         (rootDir = new File(testDir, 'root')).mkdir()
         (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
         gradleFactoryMock = context.mock(GradleFactory)
@@ -79,11 +80,6 @@ class BuildSourceBuilderTest {
             allowing(build).getRootProject(); will(returnValue(rootProjectMock))
         }
         expectedBuildResult = new BuildResult(build, null)
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir()
     }
 
     @Test public void testBuildSourceBuilder() {

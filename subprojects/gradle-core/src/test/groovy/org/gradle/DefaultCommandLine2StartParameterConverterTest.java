@@ -21,16 +21,14 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.groovy.scripts.StrictScriptSource;
-import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.Matchers;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Rule;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,6 +63,8 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private String expectedEmbeddedScript = "somescript";
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private StartParameter actualStartParameter;
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
 
     @Before
     public void setUp() throws IOException {
@@ -131,13 +131,13 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     @Test
     public void withSpecifiedGradleUserHomeDirectory() {
-        expectedGradleUserHome = HelperUtil.makeNewTestDir();
+        expectedGradleUserHome = testDir.getDir();
         checkConversion("-g", expectedGradleUserHome.getAbsoluteFile().toString());
     }
 
     @Test
     public void withSpecifiedProjectDirectory() {
-        expectedProjectDir = HelperUtil.makeNewTestDir();
+        expectedProjectDir = testDir.getDir();
         checkConversion("-p", expectedProjectDir.getAbsoluteFile().toString());
     }
 

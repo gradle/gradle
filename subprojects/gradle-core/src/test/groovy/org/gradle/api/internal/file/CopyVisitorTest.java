@@ -17,16 +17,15 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
-import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.filters.ReplaceTokens;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
-import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -42,17 +41,14 @@ public class CopyVisitorTest {
     private File testDir;
     private File sourceDir;
     private CopyVisitor visitor;
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
 
     @Before public void setUp() throws IOException {
-        testDir = HelperUtil.makeNewTestDir();
+        testDir = tmpDir.getDir();
         sourceDir = getResource("testfiles");
         assertTrue(sourceDir.isDirectory());
-    }
-
-    @After
-    public void tearDown() {
-        FileUtils.deleteQuietly(testDir);
     }
 
     private File getResource(String path) {

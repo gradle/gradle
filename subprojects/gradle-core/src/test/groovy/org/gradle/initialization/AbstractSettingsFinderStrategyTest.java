@@ -17,10 +17,9 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
-import org.gradle.util.HelperUtil;
-import org.junit.After;
+import org.gradle.util.TemporaryFolder;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.Before;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,15 +28,12 @@ import java.io.IOException;
  * @author Hans Dockter
  */
 public abstract class AbstractSettingsFinderStrategyTest {
-    protected File testDir;
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
+    protected File testDir = tmpDir.getDir();
     protected File currentDir;
 
     protected abstract ISettingsFileSearchStrategy getStrategy();
-
-    @Before
-    public void setUp() {
-        testDir = HelperUtil.makeNewTestDir();
-    }
 
     protected File createSettingsFile(File dir) {
         File file = new File(dir, Settings.DEFAULT_SETTINGS_FILE);
@@ -55,11 +51,6 @@ public abstract class AbstractSettingsFinderStrategyTest {
         startParameter.setCurrentDir(currentDir);
         startParameter.setSearchUpwards(searchUpwards);
         return startParameter;
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     @Test

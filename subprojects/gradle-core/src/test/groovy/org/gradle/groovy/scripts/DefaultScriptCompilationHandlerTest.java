@@ -28,7 +28,7 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.InputStreamClassLoader;
 import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -37,6 +37,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -72,11 +73,13 @@ public class DefaultScriptCompilationHandlerTest {
     private CachePropertiesHandler cachePropertiesHandlerMock;
 
     private JUnit4Mockery context = new JUnit4Mockery();
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void setUp() throws IOException, ClassNotFoundException {
         cachePropertiesHandlerMock = context.mock(CachePropertiesHandler.class);
-        File testProjectDir = HelperUtil.makeNewTestDir("projectdir");
+        File testProjectDir = tmpDir.dir("projectDir");
         classLoader = new InputStreamClassLoader();
         InputStream inputStream = this.getClass().getResourceAsStream("/org/gradle/api/ClasspathTester.dat");
         classLoader.loadClass("org.gradle.api.ClasspathTester", inputStream);
@@ -114,7 +117,6 @@ public class DefaultScriptCompilationHandlerTest {
 
     @After
     public void tearDown() {
-        HelperUtil.deleteTestDir();
         System.getProperties().remove(TEST_EXPECTED_SYSTEMPROP_KEY);
     }
 

@@ -17,33 +17,27 @@ package org.gradle.integtests;
 
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import org.junit.Before;
+import org.junit.Rule;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 
 public class AbstractIntegrationTest {
-    private File testDir;
+    @Rule public TemporaryFolder testDir = new TemporaryFolder();
 
-    @Before
-    public void setupTestDir() throws IOException {
-        testDir = HelperUtil.makeNewTestDir().getCanonicalFile();
-    }
-
-    public File getTestDir() {
-        return testDir;
+    public TestFile getTestDir() {
+        return testDir.getDir();
     }
 
     public TestFile testFile(String name) {
-        return new TestFile(new File(getTestDir(), name));
+        return getTestDir().file(name);
     }
 
     public TestFile testFile(File dir, String name) {
-        return new TestFile(new File(dir, name));
+        return new TestFile(dir, name);
     }
 
     protected File getTestBuildFile(String name) {
@@ -61,24 +55,16 @@ public class AbstractIntegrationTest {
         parameter.setGradleHomeDir(testFile("gradle-home"));
 
         //todo - this should use the src/toplevel/gradle-imports file
-        testFile("gradle-home/gradle-imports").writelns(
-                "import static org.junit.Assert.*",
-                "import static org.hamcrest.Matchers.*",
-                "import org.gradle.api.*",
-                "import org.gradle.api.file.*",
-                "import org.gradle.api.logging.*",
-                "import org.gradle.api.tasks.*",
+        testFile("gradle-home/gradle-imports").writelns("import static org.junit.Assert.*",
+                "import static org.hamcrest.Matchers.*", "import org.gradle.api.*", "import org.gradle.api.file.*",
+                "import org.gradle.api.logging.*", "import org.gradle.api.tasks.*",
                 "import org.gradle.api.tasks.bundling.*");
 
-        testFile("gradle-home/plugin.properties").writelns(
-                "java=org.gradle.api.plugins.JavaPlugin",
-                "groovy=org.gradle.api.plugins.GroovyPlugin",
-                "scala=org.gradle.api.plugins.scala.ScalaPlugin",
-                "war=org.gradle.api.plugins.WarPlugin",
-                "maven=org.gradle.api.plugins.MavenPlugin",
+        testFile("gradle-home/plugin.properties").writelns("java=org.gradle.api.plugins.JavaPlugin",
+                "groovy=org.gradle.api.plugins.GroovyPlugin", "scala=org.gradle.api.plugins.scala.ScalaPlugin",
+                "war=org.gradle.api.plugins.WarPlugin", "maven=org.gradle.api.plugins.MavenPlugin",
                 "code-quality=org.gradle.api.plugins.quality.CodeQualityPlugin",
-                "base=org.gradle.api.plugins.BasePlugin"
-        );
+                "base=org.gradle.api.plugins.BasePlugin");
 
         parameter.setGradleUserHomeDir(getUserHomeDir());
 
@@ -95,7 +81,7 @@ public class AbstractIntegrationTest {
     }
 
     protected GradleExecuter inTestDirectory() {
-        return inDirectory(testDir);
+        return inDirectory(getTestDir());
     }
 
     protected GradleExecuter inDirectory(File directory) {
@@ -119,6 +105,6 @@ public class AbstractIntegrationTest {
     }
 
     protected ArtifactBuilder artifactBuilder() {
-        return new GradleBackedArtifactBuilder(new InProcessGradleExecuter(startParameter()), new File(getTestDir(), "artifacts"));
+        return new GradleBackedArtifactBuilder(new InProcessGradleExecuter(startParameter()), getTestDir().file("artifacts"));
     }
 }

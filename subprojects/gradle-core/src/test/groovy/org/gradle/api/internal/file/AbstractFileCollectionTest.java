@@ -21,25 +21,29 @@ import org.gradle.api.file.FileTree;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
-import org.gradle.util.HelperUtil;
 import org.gradle.integtests.TestFile;
+import static org.gradle.util.Matchers.*;
+import org.gradle.util.TemporaryFolder;
+import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.Matcher;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.*;
 
 public class AbstractFileCollectionTest {
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
+
     @Test
     public void usesDisplayNameAsToString() {
         TestFileCollection collection = new TestFileCollection();
         assertThat(collection.toString(), equalTo("collection-display-name"));
     }
-    
+
     @Test
     public void canIterateOverFiles() {
         File file1 = new File("f1");
@@ -127,7 +131,7 @@ public class AbstractFileCollectionTest {
             assertThat(e.getMessage(), equalTo("Collection-display-name does not allow modification."));
         }
     }
-    
+
     @Test
     public void canAddToAntBuilderAsResourceCollection() {
         File file1 = new File("f1");
@@ -136,10 +140,10 @@ public class AbstractFileCollectionTest {
         TestFileCollection collection = new TestFileCollection(file1, file2);
         assertSetContains(collection, toSet("f1", "f2"));
     }
-    
+
     @Test
     public void includesOnlyExistingFilesWhenAddedToAntBuilderAsAFileSetOrMatchingTask() {
-        TestFile testDir = HelperUtil.makeNewTestDir();
+        TestFile testDir = this.testDir.getDir();
         TestFile file1 = testDir.file("f1").touch();
         TestFile dir1 = testDir.file("dir1").createDir();
         TestFile file2 = dir1.file("f2").touch();
@@ -213,14 +217,15 @@ public class AbstractFileCollectionTest {
         CompositeFileTree compositeTree = (CompositeFileTree) tree;
         assertThat(compositeTree.getSourceCollections(), hasItems((Matcher) instanceOf(SingletonFileTree.class)));
     }
-    
+
     @Test
     public void throwsUnsupportedOperationExceptionWhenConvertingToUnsupportedType() {
         try {
             new TestFileCollection().asType(Integer.class);
             fail();
         } catch (UnsupportedOperationException e) {
-            assertThat(e.getMessage(), equalTo("Cannot convert collection-display-name to type Integer, as this type is not supported."));
+            assertThat(e.getMessage(), equalTo(
+                    "Cannot convert collection-display-name to type Integer, as this type is not supported."));
         }
     }
 

@@ -16,10 +16,11 @@
 
 package org.gradle.wrapper
 
-import static org.junit.Assert.*
+import org.gradle.util.TemporaryFolder
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import org.gradle.util.HelperUtil;
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -31,10 +32,12 @@ class DownloadTest {
     File rootDir
     String sourceRoot
     File remoteFile
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before public void setUp()  {
         download = new Download()
-        testDir = HelperUtil.makeNewTestDir()
+        testDir = tmpDir.dir
         rootDir = new File(testDir, 'root')
         downloadFile = new File(rootDir, 'file')
         (remoteFile = new File(testDir, 'remoteFile')).write('sometext')

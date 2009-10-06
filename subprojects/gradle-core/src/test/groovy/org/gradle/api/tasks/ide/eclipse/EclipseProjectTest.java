@@ -19,11 +19,8 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
 import org.hamcrest.Matchers;
-import org.junit.After;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,11 +42,6 @@ public class EclipseProjectTest extends AbstractTaskTest {
         super.setUp();
         eclipseProject = createTask(EclipseProject.class);
         eclipseProject.setProjectName("myProject");
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     @Test

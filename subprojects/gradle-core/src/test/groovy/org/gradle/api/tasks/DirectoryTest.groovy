@@ -17,12 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.util.HelperUtil
-import static org.junit.Assert.*
+import org.gradle.api.internal.AbstractTask
 import org.junit.Before
 import org.junit.Test
-import org.junit.After
-import org.gradle.api.internal.AbstractTask;
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -40,12 +38,6 @@ class DirectoryTest extends AbstractTaskTest {
         super.setUp()
         directoryForAbstractTest = new Directory(project, AbstractTaskTest.TEST_TASK_NAME)
         directory = createTask(Directory.class, project, TASK_DIR_NAME)
-        HelperUtil.makeNewTestDir()
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir()
     }
 
     @Test public void testInit() {

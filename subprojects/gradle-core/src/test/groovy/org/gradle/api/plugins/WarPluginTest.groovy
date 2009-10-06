@@ -89,7 +89,7 @@ class WarPluginTest {
     @Test public void dependsOnRuntimeConfig() {
         warPlugin.use(project, project.getPlugins())
 
-        Project childProject = HelperUtil.createChildProject(project, 'child', HelperUtil.makeNewTestDir('child'))
+        Project childProject = HelperUtil.createChildProject(project, 'child')
         JavaPlugin javaPlugin = new JavaPlugin()
         javaPlugin.use(childProject, childProject.getPlugins())
 

@@ -16,12 +16,12 @@
 
 package org.gradle.wrapper
 
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import static org.junit.Assert.assertEquals
-import org.gradle.util.HelperUtil
 import org.gradle.api.tasks.wrapper.Wrapper.PathBase
+import org.gradle.util.TemporaryFolder
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -47,10 +47,12 @@ class InstallTest {
     File gradleScript
     File gradleHomeDir
     File zipDestination
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before public void setUp() {
         downloadCalled = false
-        testDir = HelperUtil.makeNewTestDir()
+        testDir = tmpDir.dir
         testZipBase = PathBase.PROJECT.toString()
         testZipPath = 'someZipPath'
         testDistBase = PathBase.GRADLE_USER_HOME.toString()
@@ -90,11 +92,6 @@ class InstallTest {
             assertEquals(testDistClassifier, distClassifier)
             zipDestination.getAbsolutePath()
         }] as PathAssembler
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir()
     }
 
     @Test public void testInit() {

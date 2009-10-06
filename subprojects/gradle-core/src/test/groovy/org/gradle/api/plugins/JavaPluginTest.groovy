@@ -256,9 +256,9 @@ class JavaPluginTest {
     }
 
     @Test public void buildOtherProjects() {
-        DefaultProject commonProject = HelperUtil.createChildProject(project, "common", HelperUtil.makeNewTestDir("common"));
-        DefaultProject middleProject = HelperUtil.createChildProject(project, "middle", HelperUtil.makeNewTestDir("middle"));
-        DefaultProject appProject = HelperUtil.createChildProject(project, "app", HelperUtil.makeNewTestDir("app"));
+        DefaultProject commonProject = HelperUtil.createChildProject(project, "common");
+        DefaultProject middleProject = HelperUtil.createChildProject(project, "middle");
+        DefaultProject appProject = HelperUtil.createChildProject(project, "app");
 
         javaPlugin.use(project, project.getPlugins());
         javaPlugin.use(commonProject, commonProject.getPlugins());

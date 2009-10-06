@@ -21,11 +21,13 @@ import org.apache.tools.ant.Target;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Rule;
 
 import java.io.File;
 import java.util.Set;
@@ -34,7 +36,9 @@ public class AntTargetTest {
     private final Target antTarget = new Target();
     private final DefaultProject project = HelperUtil.createRootProject();
     private final AntTarget task = HelperUtil.createTask(AntTarget.class, project);
-    private final File baseDir = HelperUtil.makeNewTestDir();
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
+    private final File baseDir = testDir.getDir();
 
     @Before
     public void setUp() {

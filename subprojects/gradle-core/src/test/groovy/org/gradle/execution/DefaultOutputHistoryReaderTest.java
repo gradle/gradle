@@ -18,13 +18,13 @@ package org.gradle.execution;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.equalTo;
+import org.gradle.util.TemporaryFolder;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.After;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 
 import java.io.File;
 
@@ -40,7 +40,9 @@ public class DefaultOutputHistoryReaderTest {
     private static final String TASK_PATH = ":someProjectPath:someTaskName";
     private static final String CONVERTED_TASK_PATH = TASK_PATH.replace(":", "/");
     private static final String HISTORY_FILE_PATH = OutputHistoryWriter.HISTORY_DIR_NAME + "/" + CONVERTED_TASK_PATH;
-    private File historyDir = HelperUtil.makeNewTestDir();
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
+    private File historyDir = testDir.getDir();
 
     @Before
     public void setUp() {
@@ -52,11 +54,6 @@ public class DefaultOutputHistoryReaderTest {
             allowing(projectStub).getBuildDir();
             will(returnValue(historyDir));
         }});
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     @org.junit.Test

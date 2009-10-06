@@ -1,17 +1,19 @@
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file
 
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
-import org.gradle.util.HelperUtil
+import org.gradle.util.TemporaryFolder
 import org.hamcrest.Matchers
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
+import static org.junit.Assert.*;
 
 public class CopySpecImplTest {
 
     private CopySpecImpl spec;
-    private File baseFile = HelperUtil.makeNewTestDir();
+    @Rule public TemporaryFolder testDir = new TemporaryFolder();
+    private File baseFile = testDir.dir
     private final FileResolver fileResolver = new BaseDirConverter(baseFile);
 
     @Before

@@ -23,6 +23,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
+import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -30,6 +31,7 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,7 +48,9 @@ public class AnnotationProcessingTaskFactoryTest {
     private final ITaskFactory delegate = context.mock(ITaskFactory.class);
     private final Project project = context.mock(Project.class);
     private final Map args = new HashMap();
-    private final File testDir = HelperUtil.makeNewTestDir();
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
+    private final File testDir = tmpDir.getDir();
     private final AnnotationProcessingTaskFactory factory = new AnnotationProcessingTaskFactory(delegate);
 
     @Test

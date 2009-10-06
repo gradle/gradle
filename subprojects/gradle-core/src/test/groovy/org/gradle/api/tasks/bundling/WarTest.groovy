@@ -58,12 +58,12 @@ class WarTest extends AbstractArchiveTaskTest {
         war = createTask(War)
         configure(war)
         war.manifest = new GradleManifest()
-        war.metaInfResourceCollections = [new FileSet(testDir, resolver)]
-        war.webInfFileSets = [new FileSet(testDir, resolver)]
-        war.webXml = new File(testDir, 'myweb.xml')
+        war.metaInfResourceCollections = [new FileSet(tmpDir.dir, resolver)]
+        war.webInfFileSets = [new FileSet(tmpDir.dir, resolver)]
+        war.webXml = new File(tmpDir.dir, 'myweb.xml')
         war.webXml.text = '<web/>'
-        war.classesFileSets = [new FileSet(testDir, resolver)]
-        war.additionalLibFileSets = [new FileSet(testDir, resolver)]
+        war.classesFileSets = [new FileSet(tmpDir.dir, resolver)]
+        war.additionalLibFileSets = [new FileSet(tmpDir.dir, resolver)]
         war.libConfigurations = TEST_LIB_CONFIGURATIONS
         war.libExcludeConfigurations = TEST_LIB_EXCLUDE_CONFIGURATIONS
         antWarMocker = new MockFor(AntWar)
@@ -197,8 +197,8 @@ class WarTest extends AbstractArchiveTaskTest {
             include 'a'
         }
         war."$methodName"(dir: 'y')
-        assertEquals(new File(testDir, 'x'), war."$propertyName"[0].dir)
+        assertEquals(project.file('x'), war."$propertyName"[0].dir)
         assertEquals(['a'] as Set, war."$propertyName"[0].includes)
-        assertEquals(new File(testDir, 'y'), war."$propertyName"[1].dir)
+        assertEquals(project.file('y'), war."$propertyName"[1].dir)
     }
 }

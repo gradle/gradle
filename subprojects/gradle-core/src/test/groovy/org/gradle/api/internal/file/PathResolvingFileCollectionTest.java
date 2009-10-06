@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -30,6 +31,7 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -40,7 +42,9 @@ import java.util.concurrent.Callable;
 @RunWith(JMock.class)
 public class PathResolvingFileCollectionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final File testDir = HelperUtil.makeNewTestDir();
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
+    private final File testDir = tmpDir.getDir();
     private final FileResolver resolverMock = context.mock(FileResolver.class);
     private final TaskResolver taskResolverStub = context.mock(TaskResolver.class);
     private final PathResolvingFileCollection collection = new PathResolvingFileCollection(resolverMock,

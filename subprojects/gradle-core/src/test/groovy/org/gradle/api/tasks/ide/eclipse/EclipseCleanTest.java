@@ -18,9 +18,7 @@ package org.gradle.api.tasks.ide.eclipse;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
-import org.junit.After;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,7 +39,7 @@ public class EclipseCleanTest extends AbstractTaskTest {
     @Before
     public void setUp() {
         super.setUp();
-        projectDir = HelperUtil.makeNewTestDir();
+        projectDir = getProject().getProjectDir();
         eclipseClean = createTask(EclipseClean.class);
         try {
             createEclipseFiles();
@@ -55,11 +53,6 @@ public class EclipseCleanTest extends AbstractTaskTest {
         new File(projectDir, EclipseClasspath.CLASSPATH_FILE_NAME).createNewFile();
         new File(projectDir, EclipseWtp.WTP_FILE_DIR).mkdirs();
         new File(projectDir, EclipseWtp.WTP_FILE_DIR + "/" + EclipseWtp.WTP_FILE_NAME).createNewFile();
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     @Test

@@ -35,7 +35,6 @@ public class MasterDirSettingsFinderStrategyTest extends AbstractSettingsFinderS
 
     @Before
     public void setUp() {
-        super.setUp();
         masterDirSettingsFinderStrategy = new MasterDirSettingsFinderStrategy();
         masterDir = new File(testDir, MasterDirSettingsFinderStrategy.MASTER_DIR_NAME);
         masterDir.mkdirs();

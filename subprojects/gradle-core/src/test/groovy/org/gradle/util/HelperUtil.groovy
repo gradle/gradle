@@ -171,20 +171,8 @@ class HelperUtil {
         }
     }
 
-    static void deleteTestDir() {
-        GradleUtil.deleteDir(new File(TMP_DIR_FOR_TEST))
-    }
-
     static TestFile makeNewTestDir() {
         new TestFile(GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST)))
-    }
-
-    static TestFile makeNewTestDir(String dirName) {
-        new TestFile(GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST, dirName)))
-    }
-
-    static File getTestDir() {
-        new File(TMP_DIR_FOR_TEST)
     }
 
     static DefaultExcludeRule getTestExcludeRule() {

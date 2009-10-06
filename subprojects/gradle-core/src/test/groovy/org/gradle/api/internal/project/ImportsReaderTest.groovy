@@ -17,10 +17,11 @@
 package org.gradle.api.internal.project
 
 import org.gradle.Main
-import org.gradle.util.HelperUtil
-import static org.junit.Assert.*
+import org.gradle.util.TemporaryFolder
 import org.junit.Before
-import org.junit.Test;
+import org.junit.Rule
+import org.junit.Test
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -35,10 +36,10 @@ class ImportsReaderTest {
     File testDir
     File testDefaultImportsFile
     File testProjectImportsFile
-
+    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before public void setUp()  {
-        testDir = HelperUtil.makeNewTestDir()
+        testDir = tmpDir.dir
         (testDefaultImportsFile = new File(testDir, 'defaultImports')).write(TEST_DEFAULT_IMPORTS)
         (testProjectImportsFile = new File(testDir, Main.IMPORTS_FILE_NAME)).write(TEST_PROJECT_IMPORTS)
         testObj = new ImportsReader(testDefaultImportsFile)

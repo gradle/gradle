@@ -15,19 +15,18 @@
  */
 package org.gradle.initialization;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.After;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
+import org.gradle.util.WrapUtil;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -55,20 +54,17 @@ public class DefaultCacheInvalidationStrategyTest {
             ".gradle");
 
     private File artifactFile;
-    
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
+
     @Before
     public void setUp() {
         cacheInvalidationStrategy = new DefaultCacheInvalidationStrategy();
-        projectDir = HelperUtil.makeNewTestDir("buildSrc");
-        buildResolverDir = HelperUtil.makeNewTestDir("buildResolver");
+        projectDir = tmpDir.dir("buildSrc");
+        buildResolverDir = tmpDir.dir("buildResolver");
         artifactFile = new File(projectDir, "build/buildSrc.jar");
     }
 
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
-    }
-    
     @Test
     public void isValidWithNoNewerFiles() throws IOException {
         createTestFile();

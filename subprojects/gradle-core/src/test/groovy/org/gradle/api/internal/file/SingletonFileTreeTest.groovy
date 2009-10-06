@@ -18,8 +18,9 @@ package org.gradle.api.internal.file
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.integtests.TestFile
-import org.gradle.util.HelperUtil
+import org.gradle.util.TemporaryFolder
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import static org.gradle.api.file.FileVisitorUtil.*
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*
@@ -28,10 +29,10 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 class SingletonFileTreeTest {
-    private final TestFile rootDir = new TestFile(HelperUtil.makeNewTestDir())
-    private final TestFile testFile = rootDir.file('test.txt')
-    private final TestFile missingFile = rootDir.file('missing')
-    private final TestFile testDir = rootDir.file('test-dir')
+    @Rule public TemporaryFolder rootDir = new TemporaryFolder();
+    private final TestFile testFile = rootDir.dir.file('test.txt')
+    private final TestFile missingFile = rootDir.dir.file('missing')
+    private final TestFile testDir = rootDir.dir.file('test-dir')
     private final TaskDependency dependency = [:] as TaskDependency
 
     @Before

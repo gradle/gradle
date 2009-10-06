@@ -24,7 +24,6 @@ import org.gradle.external.javadoc.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.integtests.TestFile;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleState;
@@ -45,7 +44,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private final TestFile testDir = HelperUtil.makeNewTestDir();
+    private final TestFile testDir = tmpDir.getDir();
     private final File destDir = new File(testDir, "dest");
     private final File srcDir = new File(testDir, "srcdir");
     private final Set<File> classpath = WrapUtil.toSet(new File("classpath"));

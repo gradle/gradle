@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
 import static org.gradle.util.HelperUtil.*;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -26,6 +27,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -38,6 +40,8 @@ public class AbstractReportTaskTest {
     private Runnable generator;
     private TestReportTask task;
     private ProjectReportRenderer renderer;
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void setUp() throws Exception {
@@ -67,7 +71,7 @@ public class AbstractReportTaskTest {
 
     @Test
     public void setsOutputFileNameOnRendererBeforeGeneration() throws IOException {
-        final File file = new File(getTestDir(), "report.txt");
+        final File file = tmpDir.getDir().file("report.txt");
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("sequence");
@@ -122,7 +126,7 @@ public class AbstractReportTaskTest {
 
     @Test
     public void createsMissingOutputDirectory() throws IOException {
-        final File file = new File(getTestDir(), "missing/missing.txt");
+        final File file = tmpDir.getDir().file("missing/missing.txt");
         assertFalse(file.getParentFile().isDirectory());
 
         context.checking(new Expectations() {{

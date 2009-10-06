@@ -18,13 +18,13 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
-import org.gradle.util.HelperUtil
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.gradle.api.file.FileCollection
+import org.gradle.util.TemporaryFolder
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -33,24 +33,17 @@ class BaseDirConverterTest {
     static final String TEST_PATH = 'testpath'
 
     File baseDir
-    File rootDir
     File testFile
     File testDir
 
     BaseDirConverter baseDirConverter
+    @Rule public TemporaryFolder rootDir = new TemporaryFolder();
 
     @Before public void setUp() {
-        rootDir = HelperUtil.makeNewTestDir()
-        baseDir = new File(rootDir, 'basedir')
-        baseDir.mkdir()
+        baseDir = rootDir.dir
         baseDirConverter = new BaseDirConverter(baseDir)
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir()
     }
 
     @Test (expected = IllegalArgumentException) public void testWithNullPath() {

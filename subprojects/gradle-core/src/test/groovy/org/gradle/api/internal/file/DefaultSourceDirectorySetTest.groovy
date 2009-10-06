@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.util.GFileUtils
-import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.junit.Assert.*;
 
 @RunWith (JMock)
 public class DefaultSourceDirectorySetTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final File testDir = HelperUtil.makeNewTestDir()
+    @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
+    private final File testDir = tmpDir.dir
     private FileResolver resolver
     private DefaultSourceDirectorySet set
 

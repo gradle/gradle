@@ -19,6 +19,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.CompressUtil;
+import org.gradle.util.GradleUtil;
 import static org.junit.Assert.*;
 import org.hamcrest.Matcher;
 
@@ -195,6 +196,11 @@ public class TestFile extends File {
 
     public TestFile createDir() {
         assertTrue(isDirectory() || mkdirs());
+        return this;
+    }
+
+    public TestFile deleteDir() {
+        GradleUtil.deleteDir(this);
         return this;
     }
 }

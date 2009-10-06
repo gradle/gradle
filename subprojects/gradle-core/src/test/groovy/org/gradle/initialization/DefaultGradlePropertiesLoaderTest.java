@@ -18,11 +18,11 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
-import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -41,12 +41,13 @@ public class DefaultGradlePropertiesLoaderTest {
     private Map<String, String> userHomeProperties;
     private Map<String, String> settingsDirProperties;
     private StartParameter startParameter;
-
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void setUp() {
-        gradleUserHomeDir = HelperUtil.makeNewTestDir("gradleUserHome");
-        settingsDir = HelperUtil.makeNewTestDir("settingsDir");
+        gradleUserHomeDir = tmpDir.dir("gradleUserHome");
+        settingsDir = tmpDir.dir("settingsDir");
         gradlePropertiesLoader = new DefaultGradlePropertiesLoader();
         startParameter = new StartParameter();
         startParameter.setGradleUserHomeDir(gradleUserHomeDir);
@@ -65,11 +66,6 @@ public class DefaultGradlePropertiesLoaderTest {
                 "settingsProp2", "settingsValue2",
                 Project.SYSTEM_PROP_PREFIX + ".userSystemProp", "settingsSystemValue",
                 Project.SYSTEM_PROP_PREFIX + ".settingsSystemProp2", "settingsSystemValue2"));
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     private void writePropertyFile(File location, Map<String, String> propertiesMap) {
@@ -92,7 +88,7 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Test
     public void loadPropertiesWithNoExceptionForNonExistingUserHomeAndSettingsDir() {
-        HelperUtil.deleteTestDir();
+        tmpDir.getDir().deleteDir();
         gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);
     }
 
@@ -100,7 +96,7 @@ public class DefaultGradlePropertiesLoaderTest {
     public void reloadsProperties() {
         writePropertyFile(settingsDir, GUtil.map("prop1", "value", "prop2", "value"));
 
-        File otherSettingsDir = HelperUtil.makeNewTestDir("otherSettingsDir");
+        File otherSettingsDir = tmpDir.dir("otherSettingsDir");
         writePropertyFile(otherSettingsDir, GUtil.map("prop1", "otherValue"));
 
         gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);

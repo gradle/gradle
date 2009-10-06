@@ -33,13 +33,14 @@ import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
 import org.gradle.util.WrapUtil;
+import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.Rule;
 
 import java.util.*;
 
@@ -48,6 +49,8 @@ import java.util.*;
  */
 public abstract class AbstractTaskTest {
     public static final String TEST_TASK_NAME = "taskname";
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     private AbstractProject project;
 

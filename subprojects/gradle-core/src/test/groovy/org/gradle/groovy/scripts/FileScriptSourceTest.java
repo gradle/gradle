@@ -16,12 +16,12 @@
 package org.gradle.groovy.scripts;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
+import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
-import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -31,19 +31,16 @@ public class FileScriptSourceTest {
     private File testDir;
     private File scriptFile;
     private FileScriptSource source;
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void setUp() {
-        testDir = HelperUtil.makeNewTestDir();
+        testDir = tmpDir.getDir();
         scriptFile = new File(testDir, "build.script");
         source = new FileScriptSource("<file-type>", scriptFile);
     }
 
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
-    }
-    
     @Test
     public void loadsScriptFileContentWhenFileExists() throws IOException {
         FileUtils.writeStringToFile(scriptFile, "<content>");

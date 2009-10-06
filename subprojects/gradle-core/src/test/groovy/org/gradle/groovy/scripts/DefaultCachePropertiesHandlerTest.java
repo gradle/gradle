@@ -17,10 +17,10 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.HelperUtil;
-import org.junit.After;
+import org.gradle.util.TemporaryFolder;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -41,19 +41,16 @@ public class DefaultCachePropertiesHandlerTest {
 
     private ScriptSource scriptSource;
     private Map<String, Object> additionalProperties;
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
     private File testCacheDir;
 
     @Before
     public void setUp() {
-        testCacheDir = HelperUtil.makeNewTestDir();
+        testCacheDir = testDir.getDir();
         cachePropertyHandler = new DefaultCachePropertiesHandler();
         scriptSource = new StringScriptSource("script", TEST_SCRIPT_TEXT);
         additionalProperties = GUtil.map("a", "valuea");
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     @Test

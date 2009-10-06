@@ -30,9 +30,10 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.GUtil
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock
-import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.initialization.*
@@ -59,12 +60,13 @@ class BuildLoaderTest {
     InternalRepository internalRepository
     GradleInternal build
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before public void setUp()  {
         projectFactory = context.mock(IProjectFactory)
         internalRepository = context.mock(InternalRepository)
         buildLoader = new BuildLoader(projectFactory)
-        testDir = HelperUtil.makeNewTestDir()
+        testDir = tmpDir.dir
         (rootProjectDir = new File(testDir, 'root')).mkdirs()
         (childProjectDir = new File(rootProjectDir, 'child')).mkdirs()
         startParameter.currentDir = rootProjectDir
@@ -78,11 +80,6 @@ class BuildLoaderTest {
             allowing(build).getStartParameter()
             will(returnValue(startParameter))
         }
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir()
     }
 
     @Test public void createsBuildWithRootProject() {

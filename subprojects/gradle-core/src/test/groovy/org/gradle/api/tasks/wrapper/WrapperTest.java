@@ -24,9 +24,9 @@ import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -51,6 +51,8 @@ public class WrapperTest extends AbstractTaskTest {
     private Mockery context = new Mockery();
     private File expectedTargetWrapperJar;
     private File expectedTargetWrapperProperties;
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void setUp() {
@@ -60,7 +62,7 @@ public class WrapperTest extends AbstractTaskTest {
         wrapperScriptGeneratorMock = context.mock(WrapperScriptGenerator.class);
         wrapper.setScriptDestinationPath("scriptDestination");
         wrapper.setGradleVersion("1.0");
-        testDir = HelperUtil.makeNewTestDir();
+        testDir = tmpDir.getDir();
         File testGradleHome = new File(testDir, "testGradleHome");
         File testGradleHomeLib = new File(testGradleHome, "lib");
         testGradleHomeLib.mkdirs();
@@ -87,11 +89,6 @@ public class WrapperTest extends AbstractTaskTest {
         jarTask.setBasedir(sourceWrapperExplodedDir);
         jarTask.setDestFile(sourceWrapperJar);
         AntUtil.execute(jarTask);
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     public AbstractTask getTask() {
@@ -142,7 +139,7 @@ public class WrapperTest extends AbstractTaskTest {
             }
         });
         wrapper.execute();
-        File unjarDir = HelperUtil.makeNewTestDir("unjar");
+        File unjarDir = tmpDir.dir("unjar");
         CompressUtil.unzip(expectedTargetWrapperJar, unjarDir);
         assertEquals(TEST_TEXT, FileUtils.readFileToString(new File(unjarDir, TEST_FILE_NAME)));
         Properties properties = GUtil.loadProperties(expectedTargetWrapperProperties);

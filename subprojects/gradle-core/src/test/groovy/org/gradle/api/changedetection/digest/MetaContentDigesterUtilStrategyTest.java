@@ -17,16 +17,16 @@
 package org.gradle.api.changedetection.digest;
 
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.HelperUtil;
-import org.junit.Before;
-import org.junit.Test;
-import org.jmock.lib.legacy.ClassImposteriser;
+import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
-import static org.junit.Assert.*;
+import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-import java.security.MessageDigest;
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
+import java.security.MessageDigest;
 
 /**
  * @author Tom Eyckmans
@@ -38,6 +38,8 @@ public class MetaContentDigesterUtilStrategyTest {
     private MessageDigest digesterMock;
 
     private MetaContentDigesterUtilStrategy strategy;
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
 
     @Before
     public void setUp() {
@@ -50,36 +52,25 @@ public class MetaContentDigesterUtilStrategyTest {
 
     @Test
     public void digestFile() throws IOException {
-        final File tempFile = File.createTempFile("gradle", "test");
-        try {
-            context.checking(new Expectations(){{
-                one(digesterMock).update(tempFile.getAbsolutePath().getBytes());
-                one(digesterMock).update(((Long)tempFile.lastModified()).byteValue());
-                one(digesterMock).update(((Long)tempFile.length()).byteValue());
-            }});
+        final File tempFile = testDir.file("test");
+        context.checking(new Expectations(){{
+            one(digesterMock).update(tempFile.getAbsolutePath().getBytes());
+            one(digesterMock).update(((Long)tempFile.lastModified()).byteValue());
+            one(digesterMock).update(((Long)tempFile.length()).byteValue());
+        }});
 
-            strategy.digestFile(digesterMock, tempFile);
-
-        }
-        finally {
-            assertTrue(tempFile.delete());
-        }
+        strategy.digestFile(digesterMock, tempFile);
     }
 
     @Test
     public void digestDirectory() throws IOException {
-        final File tempDir = HelperUtil.makeNewTestDir();
-        try {
-            context.checking(new Expectations(){{
-                one(digesterMock).update(tempDir.getAbsolutePath().getBytes());
-                one(digesterMock).update(((Long)tempDir.lastModified()).byteValue());
-                one(digesterMock).update(((Long)okDirectorySize).byteValue());
-            }});
+        final File tempDir = testDir.getDir();
+        context.checking(new Expectations(){{
+            one(digesterMock).update(tempDir.getAbsolutePath().getBytes());
+            one(digesterMock).update(((Long)tempDir.lastModified()).byteValue());
+            one(digesterMock).update(((Long)okDirectorySize).byteValue());
+        }});
 
-            strategy.digestDirectory(digesterMock, tempDir, okDirectorySize);
-        }
-        finally {
-            assertTrue(tempDir.delete());
-        }
+        strategy.digestDirectory(digesterMock, tempDir, okDirectorySize);
     }
 }

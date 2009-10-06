@@ -19,13 +19,12 @@ package org.gradle.initialization
 import groovy.mock.interceptor.MockFor
 import org.gradle.StartParameter
 import org.gradle.api.internal.project.ImportsReader
-import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.gradle.groovy.scripts.*
+import org.gradle.initialization.*
 import static org.gradle.util.Matchers.*
 import static org.junit.Assert.*
 
@@ -84,11 +83,6 @@ class ScriptEvaluatingSettingsProcessorTest {
     private void initSettingsFinder() {
         expectedSettingsFinder = new DefaultSettingsFinder()
         scriptSourceMock = context.mock(ScriptSource)
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir()
     }
 
     @Test public void testSettingsProcessor() {

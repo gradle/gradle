@@ -19,17 +19,15 @@ package org.gradle.api.tasks;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.util.HelperUtil;
+import org.gradle.integtests.TestFile;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.After;
 import org.junit.runner.RunWith;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -51,11 +49,6 @@ public class CleanTest extends AbstractConventionTaskTest {
         existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
     }
 
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
-    }
-
     public ConventionTask getTask() {
         return clean;
     }
@@ -67,13 +60,14 @@ public class CleanTest extends AbstractConventionTaskTest {
 
     @Test
     public void testExecute() throws IOException {
-        clean.setDir(HelperUtil.makeNewTestDir());
+        TestFile dir = tmpDir.getDir();
+        clean.setDir(dir);
         context.checking(new Expectations() {
             {
                 allowing(existentDirsFilterMock).checkExistenceAndThrowStopActionIfNot(clean.getDir());
             }
         });
-        (new File(clean.getDir(), "somefile")).createNewFile();
+        dir.file("somefile");
         clean.execute();
         assertFalse(clean.getDir().exists());
     }

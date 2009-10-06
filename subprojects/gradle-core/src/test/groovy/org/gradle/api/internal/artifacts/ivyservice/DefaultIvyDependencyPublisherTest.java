@@ -20,12 +20,13 @@ import org.apache.ivy.core.publish.PublishEngine;
 import org.apache.ivy.core.publish.PublishOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.PublishInstruction;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -54,6 +55,7 @@ public class DefaultIvyDependencyPublisherTest {
     };
     private ModuleDescriptor moduleDescriptorMock;
     private List<DependencyResolver> expectedResolverList;
+    @Rule public TemporaryFolder testDir = new TemporaryFolder();
 
     @Before
     public void setUp() {
@@ -64,7 +66,7 @@ public class DefaultIvyDependencyPublisherTest {
                 publishOptionsFactoryMock);
         expectedConf = "conf1";
         moduleDescriptorMock = context.mock(ModuleDescriptor.class);
-        expectedIvyFile = new File(HelperUtil.makeNewTestDir(), "ivy.xml");
+        expectedIvyFile = testDir.file("ivy.xml");
         expectedResolverList = WrapUtil.toList(context.mock(DependencyResolver.class));
     }
 

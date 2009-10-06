@@ -16,13 +16,14 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
-import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
+import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,6 +35,8 @@ import java.io.StringWriter;
 @RunWith(JMock.class)
 public class TextProjectReportRendererTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
 
     @Test
     public void writesReportToStandardOutByDefault() throws IOException {
@@ -47,8 +50,7 @@ public class TextProjectReportRendererTest {
 
     @Test
     public void writesReportToAFile() throws IOException {
-        File outDir = HelperUtil.makeNewTestDir();
-        File outFile = new File(outDir, "report.txt");
+        File outFile = new File(testDir.getDir(), "report.txt");
         TextProjectReportRenderer renderer = new TextProjectReportRenderer();
         renderer.setOutputFile(outFile);
         assertThat(renderer.getWriter(), instanceOf(FileWriter.class));

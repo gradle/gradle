@@ -21,8 +21,9 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.UnionFileTree
 import org.gradle.api.tasks.StopExecutionException
-import org.gradle.util.HelperUtil
+import org.gradle.util.TemporaryFolder
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import static org.gradle.api.file.FileVisitorUtil.*
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*
@@ -36,8 +37,8 @@ import static org.junit.Assert.*
 class FileSetTest extends AbstractTestForPatternSet {
     FileSet fileSet
     FileResolver resolver = [resolve: {it as File}] as FileResolver
-
-    File testDir
+    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
+    File testDir = tmpDir.dir
 
     PatternFilterable getPatternSet() {
         return fileSet
@@ -49,7 +50,6 @@ class FileSetTest extends AbstractTestForPatternSet {
 
     @Before public void setUp()  {
         super.setUp()
-        testDir = HelperUtil.makeNewTestDir()
         fileSet = patternSetType.newInstance(testDir, resolver)
     }
 

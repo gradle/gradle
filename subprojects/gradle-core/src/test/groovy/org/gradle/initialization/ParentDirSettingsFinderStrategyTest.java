@@ -35,7 +35,6 @@ public class ParentDirSettingsFinderStrategyTest extends AbstractSettingsFinderS
 
     @Before
     public void setUp() {
-        super.setUp();
         parentDirSettingsFinderStrategy = new ParentDirSettingsFinderStrategy();
         rootDir = new File(testDir, "root");
         rootDir.mkdirs();

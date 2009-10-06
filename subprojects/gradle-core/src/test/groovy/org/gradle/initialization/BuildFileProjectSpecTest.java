@@ -15,34 +15,30 @@
  */
 package org.gradle.initialization;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.Expectations;
-import static org.junit.Assert.*;
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.GFileUtils;
-import static org.gradle.util.WrapUtil.*;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.util.TemporaryFolder;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 
 @RunWith(JMock.class)
 public class BuildFileProjectSpecTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final File file = new File(HelperUtil.makeNewTestDir(), "build");
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
+    private final File file = tmpDir.file("build");
     private final BuildFileProjectSpec spec = new BuildFileProjectSpec(file);
     private int counter;
-
-    @Before
-    public void setUp() {
-        GFileUtils.writeStringToFile(file, "build file");
-    }
 
     @Test
     public void containsMatchWhenAtLeastOneProjectHasSpecifiedBuildFile() {

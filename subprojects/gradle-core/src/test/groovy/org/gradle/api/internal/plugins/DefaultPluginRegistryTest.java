@@ -15,22 +15,22 @@
  */
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.TestPlugin1;
 import org.gradle.api.internal.project.TestPlugin2;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.api.Plugin;
-import org.junit.Assert;
-import org.junit.After;
+import org.gradle.util.TemporaryFolder;
+import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
+import org.junit.Assert;
+import static org.junit.Assert.*;
+import org.junit.Rule;
+import org.junit.Test;
 
-import java.util.Properties;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * @author Hans Dockter
@@ -38,13 +38,14 @@ import java.io.IOException;
 
 public class DefaultPluginRegistryTest extends AbstractPluginContainerTest {
     private DefaultPluginRegistry pluginRegistry;
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
 
     protected DefaultPluginRegistry getPluginContainer() {
         if (pluginRegistry == null) {
             Properties properties = new Properties();
             properties.putAll(WrapUtil.toMap(pluginId, TestPlugin1.class.getName()));
-            File testDir = HelperUtil.makeNewTestDir();
-            File propertiesFile = new File(testDir, "plugin.properties");
+            File propertiesFile = testDir.file("plugin.properties");
             try {
                 properties.store(new FileOutputStream(propertiesFile), "");
             } catch (IOException e) {
@@ -69,11 +70,6 @@ public class DefaultPluginRegistryTest extends AbstractPluginContainerTest {
 
     protected Plugin addWithId(String pluginId) {
         return getPluginContainer().loadPlugin(pluginId);
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     @Test

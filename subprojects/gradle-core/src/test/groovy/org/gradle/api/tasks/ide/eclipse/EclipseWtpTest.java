@@ -28,9 +28,7 @@ import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.After;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,11 +66,6 @@ public class EclipseWtpTest extends AbstractTaskTest {
             allowing(projectDependencyMock).getDependencyProject(); will(returnValue(testProject));
         }});
         eclipseWtp = createTask(EclipseWtp.class);
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     @Test

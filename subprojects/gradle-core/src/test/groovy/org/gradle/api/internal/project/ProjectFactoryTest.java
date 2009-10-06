@@ -32,8 +32,8 @@ import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
+import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -41,6 +41,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -58,7 +59,9 @@ public class ProjectFactoryTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private final ClassLoader buildScriptClassLoader = new URLClassLoader(new URL[0]);
-    private final File rootDir = HelperUtil.makeNewTestDir();
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
+    private final File rootDir = testDir.getDir();
     private final File projectDir = new File(rootDir, "project");
     private ConfigurationContainerFactory configurationContainerFactory = context.mock(
             ConfigurationContainerFactory.class);

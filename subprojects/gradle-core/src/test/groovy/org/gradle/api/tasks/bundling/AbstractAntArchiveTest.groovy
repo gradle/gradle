@@ -16,24 +16,25 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.TarFileSet
 import org.gradle.api.tasks.util.ZipFileSet
-import org.gradle.util.HelperUtil
-import org.junit.After
+import org.gradle.util.TemporaryFolder
 import org.junit.Before
+import org.junit.Rule
 import static org.junit.Assert.*
-import org.gradle.api.internal.file.FileResolver
 
 /**
 * @author Hans Dockter
 */
 abstract class AbstractAntArchiveTest {
     static final String METAINFS_KEY = 'mymetainfs'
+    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
 
     FileResolver resolver = [resolve: { it as File}] as FileResolver
-    File testDir
+    File testDir = tmpDir.dir
     File txtFile
     File jpgFile
     File xmlFile
@@ -67,7 +68,6 @@ abstract class AbstractAntArchiveTest {
     Map fileSetDuosFiles = [:]
 
     @Before public void setUp()  {
-        testDir = HelperUtil.makeNewTestDir()
         mergeGroupFile = new File(testDir, 'test_mergegroup.zip')
         mergeZipFile = new File(testDir, 'test_merge_zip.zip')
         mergeTarFile = new File(testDir, 'test_merge_tar.tar')
@@ -105,11 +105,6 @@ abstract class AbstractAntArchiveTest {
         manifest.file = manifestFile
         manifest.mainAttributes(mainAttributes)
         manifest.sections(sectionAttributes, sectionName)
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir()
     }
 
     void checkResourceFiles() {

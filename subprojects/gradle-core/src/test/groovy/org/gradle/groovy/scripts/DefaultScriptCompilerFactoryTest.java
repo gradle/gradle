@@ -18,7 +18,7 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.CacheUsage;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
@@ -27,6 +27,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -61,6 +62,8 @@ public class DefaultScriptCompilerFactoryTest {
 
     ScriptSource source;
     private ScriptRunner expectedScriptRunner;
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void setUp() {
@@ -68,9 +71,8 @@ public class DefaultScriptCompilerFactoryTest {
         scriptCompilationHandlerMock = context.mock(ScriptCompilationHandler.class);
         scriptRunnerFactoryMock = context.mock(ScriptRunnerFactory.class);
         testClassLoader = new URLClassLoader(new URL[0]);
-        File testDir = HelperUtil.makeNewTestDir("projectdir");
-        testScriptFile = new File(testDir, "script/mybuild.craidle");
-        cacheDir = new File(testDir, "cache");
+        testScriptFile = new File(tmpDir.getDir(), "script/mybuild.craidle");
+        cacheDir = new File(tmpDir.getDir(), "cache");
         expectedScriptCacheDir = new File(cacheDir, "scriptCache/<class-name>/NoTransformer");
         expectedScript = context.mock(Script.class);
         expectedScriptRunner = context.mock(ScriptRunner.class);

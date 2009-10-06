@@ -26,9 +26,9 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.TaskExecuter;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.*;
+import org.gradle.listener.DefaultListenerManager;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
-import org.gradle.listener.DefaultListenerManager;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -36,7 +36,6 @@ import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,7 +81,6 @@ public class GradleLauncherTest {
     @Before
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        HelperUtil.deleteTestDir();
         initscriptHandlerMock = context.mock(InitScriptHandler.class);
         settingsHandlerMock = context.mock(SettingsHandler.class);
         gradlePropertiesLoaderMock = context.mock(IGradlePropertiesLoader.class);
@@ -139,11 +137,6 @@ public class GradleLauncherTest {
         for (String task : tasks) {
             expectedTasks.add(toSortedSet(expectedCurrentProject.createTask(task)));
         }
-    }
-
-    @After
-    public void tearDown() {
-        HelperUtil.deleteTestDir();
     }
 
     @Test
