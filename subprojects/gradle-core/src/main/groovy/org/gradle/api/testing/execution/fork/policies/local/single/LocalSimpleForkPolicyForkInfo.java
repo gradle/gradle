@@ -1,6 +1,5 @@
-package org.gradle.api.testing.execution.fork.policies.local.single;
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +13,7 @@ package org.gradle.api.testing.execution.fork.policies.local.single;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.testing.execution.fork.policies.local.single;
 
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyForkInfo;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;

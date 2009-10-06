@@ -1,3 +1,18 @@
+/*
+ * Copyright 2009 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gradle.external.junit;
 
 import org.gradle.api.testing.detection.TestClassVisitor;
@@ -5,7 +20,6 @@ import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.EmptyVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +49,16 @@ class JUnitTestClassDetecter extends TestClassVisitor {
      * @param access     the class's access flags (see {@link Opcodes}). This
      *                   parameter also indicates if the class is deprecated.
      * @param name       the internal name of the class (see
-     *                   {@link Type#getInternalName() getInternalName}).
+     *                   {@link org.objectweb.asm.Type#getInternalName() getInternalName}).
      * @param signature  the signature of this class. May be <tt>null</tt> if
      *                   the class is not a generic one, and does not extend or implement
      *                   generic classes or interfaces.
      * @param superName  the internal of name of the super class (see
-     *                   {@link Type#getInternalName() getInternalName}). For interfaces,
+     *                   {@link org.objectweb.asm.Type#getInternalName() getInternalName}). For interfaces,
      *                   the super class is {@link Object}. May be <tt>null</tt>, but
      *                   only for the {@link Object} class.
      * @param interfaces the internal names of the class's interfaces (see
-     *                   {@link Type#getInternalName() getInternalName}). May be
+     *                   {@link org.objectweb.asm.Type#getInternalName() getInternalName}). May be
      *                   <tt>null</tt>.
      */
     public void visit(
@@ -81,9 +95,9 @@ class JUnitTestClassDetecter extends TestClassVisitor {
      * necessarily a member of the class being visited.
      *
      * @param name      the internal name of an inner class (see
-     *                  {@link Type#getInternalName() getInternalName}).
+     *                  {@link org.objectweb.asm.Type#getInternalName() getInternalName}).
      * @param outerName the internal name of the class to which the inner class
-     *                  belongs (see {@link Type#getInternalName() getInternalName}). May
+     *                  belongs (see {@link org.objectweb.asm.Type#getInternalName() getInternalName}). May
      *                  be <tt>null</tt> for not member classes.
      * @param innerName the (simple) name of the inner class inside its
      *                  enclosing class. May be <tt>null</tt> for anonymous inner
@@ -117,12 +131,12 @@ class JUnitTestClassDetecter extends TestClassVisitor {
      *                   parameter also indicates if the method is synthetic and/or
      *                   deprecated.
      * @param name       the method's name.
-     * @param desc       the method's descriptor (see {@link Type Type}).
+     * @param desc       the method's descriptor (see {@link org.objectweb.asm.Type Type}).
      * @param signature  the method's signature. May be <tt>null</tt> if the
      *                   method parameters, return type and exceptions do not use generic
      *                   types.
      * @param exceptions the internal names of the method's exception classes
-     *                   (see {@link Type#getInternalName() getInternalName}). May be
+     *                   (see {@link org.objectweb.asm.Type#getInternalName() getInternalName}). May be
      *                   <tt>null</tt>.
      * @return an object to visit the byte code of the method, or <tt>null</tt>
      *         if this class visitor is not interested in visiting the code of

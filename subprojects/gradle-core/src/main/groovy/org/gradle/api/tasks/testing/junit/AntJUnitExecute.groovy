@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.testing.junit
 
 import org.gradle.api.tasks.testing.AntTest
-import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.util.BootstrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
