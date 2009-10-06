@@ -18,18 +18,17 @@ package org.gradle.invocation;
 
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
-import org.gradle.listener.DefaultListenerManager;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
-import org.gradle.api.internal.project.DefaultProjectRegistry;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.DefaultTaskExecuter;
+import org.gradle.execution.TaskExecuter;
+import org.gradle.listener.DefaultListenerManager;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
@@ -52,23 +51,42 @@ public class DefaultGradleTest {
         setPluginPropertiesFile(new File("plugin.properties"));
     }};
     private final ScriptHandler scriptHandlerMock = context.mock(ScriptHandler.class);
-    private final ServiceRegistryFactory serviceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class);
-    private final ServiceRegistry serviceRegistryMock = context.mock(ServiceRegistry.class);
+    private final ServiceRegistryFactory serviceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, "parent");
+    private final ServiceRegistryFactory gradleServiceRegistryMock = context.mock(ServiceRegistryFactory.class, "gradle");
     private final StandardOutputRedirector standardOutputRedirectorMock = context.mock(StandardOutputRedirector.class);
+    private final IProjectRegistry projectRegistry = context.mock(IProjectRegistry.class);
+    private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
+    private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
     private DefaultGradle gradle;
 
     @Before
     public void setUp() {
         context.checking(new Expectations(){{
-            one(serviceRegistryFactoryMock).createForBuild(with(any(DefaultGradle.class)));
-            will(returnValue(serviceRegistryMock));
-            allowing(serviceRegistryMock).get(ScriptHandler.class);
+            one(serviceRegistryFactoryMock).createFor(with(any(DefaultGradle.class)));
+            will(returnValue(gradleServiceRegistryMock));
+            allowing(gradleServiceRegistryMock).get(ScriptHandler.class);
             will(returnValue(scriptHandlerMock));
-            allowing(serviceRegistryMock).get(ScriptClassLoaderProvider.class);
+            allowing(gradleServiceRegistryMock).get(ScriptClassLoaderProvider.class);
             will(returnValue(context.mock(ScriptClassLoaderProvider.class)));
+            allowing(gradleServiceRegistryMock).get(StandardOutputRedirector.class);
+            will(returnValue(standardOutputRedirectorMock));
+            allowing(gradleServiceRegistryMock).get(IProjectRegistry.class);
+            will(returnValue(projectRegistry));
+            allowing(gradleServiceRegistryMock).get(PluginRegistry.class);
+            will(returnValue(pluginRegistry));
+            allowing(gradleServiceRegistryMock).get(TaskExecuter.class);
+            will(returnValue(taskExecuter));
         }});
-        gradle = new DefaultGradle(parameter, null, serviceRegistryFactoryMock, standardOutputRedirectorMock,
-                                   new DefaultListenerManager());
+        gradle = new DefaultGradle(parameter, null, serviceRegistryFactoryMock, new DefaultListenerManager());
+    }
+
+    @Test
+    public void defaultValues() {
+        assertThat(gradle.getServiceRegistryFactory(), sameInstance(gradleServiceRegistryMock));
+        assertThat(gradle.getStandardOutputRedirector(), sameInstance(standardOutputRedirectorMock));
+        assertThat(gradle.getProjectRegistry(), sameInstance(projectRegistry));
+        assertThat(gradle.getPluginRegistry(), sameInstance(pluginRegistry));
+        assertThat(gradle.getTaskGraph(), sameInstance(taskExecuter));
     }
 
     @Test
@@ -83,21 +101,6 @@ public class DefaultGradleTest {
 
         assertThat(gradle.getGradleHomeDir(), equalTo(new File("home").getCanonicalFile()));
         assertThat(gradle.getGradleUserHomeDir(), equalTo(new File("user").getCanonicalFile()));
-    }
-
-    @Test
-    public void createsADefaultProjectRegistry() {
-        assertTrue(gradle.getProjectRegistry().getClass().equals(DefaultProjectRegistry.class));
-    }
-
-    @Test
-    public void createsATaskGraph() {
-        assertTrue(gradle.getTaskGraph().getClass().equals(DefaultTaskExecuter.class));
-    }
-
-    @Test
-    public void createsAPluginRegistry() {
-        assertTrue(gradle.getPluginRegistry().getClass().equals(DefaultPluginRegistry.class));
     }
 
     @Test

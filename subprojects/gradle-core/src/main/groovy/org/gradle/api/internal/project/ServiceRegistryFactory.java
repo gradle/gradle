@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.internal.GradleInternal;
-
-public interface ServiceRegistryFactory
-{
-    ServiceRegistry createForProject(ProjectInternal project);
-    ServiceRegistry createForBuild(GradleInternal gradle);
+public interface ServiceRegistryFactory extends ServiceRegistry {
+    /**
+     * Creates the services for the given domain object.
+     *
+     * @param domainObject The domain object.
+     * @return The registry containing the services for the domain object.
+     */
+    ServiceRegistryFactory createFor(Object domainObject);
 }

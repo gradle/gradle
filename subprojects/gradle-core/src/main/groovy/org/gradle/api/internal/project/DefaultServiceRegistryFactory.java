@@ -15,325 +15,37 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.dsl.*;
-import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.initialization.DefaultScriptHandler;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultConvention;
-import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
-import org.gradle.api.internal.tasks.DefaultTaskContainer;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.project.ant.AntLoggingAdapter;
-import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ProjectPluginsContainer;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.configuration.ProjectEvaluator;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-// todo - compose this
-public class DefaultServiceRegistryFactory implements ServiceRegistryFactory
-{
-    private final ITaskFactory taskFactory;
-    private final RepositoryHandlerFactory repositoryHandlerFactory;
-    private final ConfigurationContainerFactory configurationContainerFactory;
-    private final PublishArtifactFactory publishArtifactFactory;
-    private final DependencyFactory dependencyFactory;
-    private final ProjectEvaluator projectEvaluator;
-
+/**
+ * Contains the singleton services which are shared by all builds.
+ */
+public class DefaultServiceRegistryFactory extends AbstractServiceRegistry implements ServiceRegistryFactory {
     public DefaultServiceRegistryFactory(RepositoryHandlerFactory repositoryHandlerFactory,
-                                                ConfigurationContainerFactory configurationContainerFactory,
-                                                PublishArtifactFactory publishArtifactFactory,
-                                                DependencyFactory dependencyFactory,
-                                                ProjectEvaluator projectEvaluator,
-                                                ClassGenerator classGenerator) {
-        this.repositoryHandlerFactory = repositoryHandlerFactory;
-        this.configurationContainerFactory = configurationContainerFactory;
-        this.publishArtifactFactory = publishArtifactFactory;
-        this.dependencyFactory = dependencyFactory;
-        this.projectEvaluator = projectEvaluator;
-        taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(classGenerator));
+                                         ConfigurationContainerFactory configurationContainerFactory,
+                                         DependencyFactory dependencyFactory, ProjectEvaluator projectEvaluator,
+                                         ClassGenerator classGenerator) {
+        add(RepositoryHandlerFactory.class, repositoryHandlerFactory);
+        add(ConfigurationContainerFactory.class, configurationContainerFactory);
+        add(DependencyFactory.class, dependencyFactory);
+        add(ProjectEvaluator.class, projectEvaluator);
+        add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
+        add(ITaskFactory.class, new AnnotationProcessingTaskFactory(new TaskFactory(classGenerator)));
+        add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
     }
 
-    public ServiceRegistry createForProject(ProjectInternal project) {
-        return new ProjectServiceRegistryImpl(project);
-    }
-
-    private class ServiceRegistryImpl implements ServiceRegistry
-    {
-        protected final List<Service> services = new ArrayList<Service>();
-
-        public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
-             for (Service service : services) {
-                 T t = service.getService(serviceType);
-                 if (t != null) {
-                     return t;
-                 }
-             }
-
-             throw new IllegalArgumentException(String.format("No service of type %s available.",
-                     serviceType.getSimpleName()));
+    public ServiceRegistryFactory createFor(Object domainObject) {
+        if (domainObject instanceof GradleInternal) {
+            return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);
         }
-
-        protected abstract class Service {
-            final Class<?> serviceType;
-            Object service;
-
-            Service(Class<?> serviceType) {
-                this.serviceType = serviceType;
-            }
-
-            <T> T getService(Class<T> serviceType) {
-                if (!serviceType.isAssignableFrom(this.serviceType)) {
-                    return null;
-                }
-                if (service == null) {
-                    service = create();
-                    assert service != null;
-                }
-                return serviceType.cast(service);
-            }
-
-            protected abstract Object create();
-        }
-    }
-
-    private class ProjectServiceRegistryImpl extends ServiceRegistryImpl
-    {
-        private final ProjectInternal project;
-
-        public ProjectServiceRegistryImpl(final ProjectInternal project) {
-            this.project = project;
-
-            services.add(new Service(ProjectEvaluator.class) {
-                @Override
-                protected Object create() {
-                    return projectEvaluator;
-                }
-            });
-
-            services.add(new Service(RepositoryHandlerFactory.class) {
-                @Override
-                protected Object create() {
-                    return repositoryHandlerFactory;
-                }
-            });
-
-            services.add(new Service(AntBuilderFactory.class) {
-                @Override
-                protected Object create() {
-                    return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
-                }
-            });
-
-            services.add(new Service(ProjectPluginsContainer.class) {
-                @Override
-                protected Object create() {
-                    return new DefaultProjectsPluginContainer(project.getGradle().getPluginRegistry());
-                }
-            });
-
-            services.add(new Service(TaskContainerInternal.class) {
-                @Override
-                protected Object create() {
-                    return new DefaultTaskContainer(project, taskFactory);
-                }
-            });
-
-            services.add(new Service(Convention.class) {
-                @Override
-                protected Object create() {
-                    return new DefaultConvention();
-                }
-            });
-
-            services.add(new Service(RepositoryHandler.class) {
-                @Override
-                protected Object create() {
-                    return repositoryHandlerFactory.createRepositoryHandler(get(Convention.class));
-                }
-            });
-
-            services.add(new Service(ConfigurationContainer.class) {
-                @Override
-                protected Object create() {
-                    return configurationContainerFactory.createConfigurationContainer(get(ResolverProvider.class),
-                            new DependencyMetaDataProviderImpl());
-                }
-            });
-
-            services.add(new Service(ArtifactHandler.class) {
-                @Override
-                protected Object create() {
-                    return new DefaultArtifactHandler(get(ConfigurationContainer.class), publishArtifactFactory);
-                }
-            });
-
-            services.add(new Service(ProjectFinder.class) {
-                @Override
-                protected Object create() {
-                    return new ProjectFinder() {
-                        public Project getProject(String path) {
-                            return project.project(path);
-                        }
-                    };
-                }
-            });
-
-            services.add(new Service(DependencyHandler.class) {
-                @Override
-                protected Object create() {
-                    return new DefaultDependencyHandler(get(ConfigurationContainer.class), dependencyFactory, get(
-                            ProjectFinder.class));
-                }
-            });
-
-            services.add(new Service(ScriptHandler.class) {
-                @Override
-                protected Object create() {
-                    RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(
-                            new DefaultConvention());
-                    ConfigurationContainer configurationContainer = configurationContainerFactory
-                            .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
-                    DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
-                            dependencyFactory, get(ProjectFinder.class));
-                    ClassLoader parentClassLoader;
-                    if (project.getParent() != null) {
-                        parentClassLoader = project.getParent().getClassLoaderProvider().getClassLoader();
-                    } else {
-                        parentClassLoader = project.getGradle().getBuildScriptClassLoader();
-                    }
-                    return new DefaultScriptHandler(repositoryHandler, dependencyHandler,
-                            configurationContainer, parentClassLoader);
-                }
-            });
-
-            services.add(new Service(ScriptClassLoaderProvider.class) {
-                @Override
-                protected Object create() {
-                    return get(ScriptHandler.class);
-                }
-            });
-        }
-
-        private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-            public InternalRepository getInternalRepository() {
-                return project.getGradle().getInternalRepository();
-            }
-
-            public File getGradleUserHomeDir() {
-                return project.getGradle().getGradleUserHomeDir();
-            }
-
-            public Module getModule() {
-                return new Module() {
-                    public String getGroup() {
-                        return project.getGroup().toString();
-                    }
-
-                    public String getName() {
-                        return project.getName();
-                    }
-
-                    public String getVersion() {
-                        return project.getVersion().toString();
-                    }
-
-                    public String getStatus() {
-                        return project.getStatus().toString();
-                    }
-                };
-            }
-        }
-    }
-
-    public ServiceRegistry createForBuild(GradleInternal gradle) {
-        return new BuildServiceRegistryImpl(gradle);
-    }
-
-    private class BuildServiceRegistryImpl extends ServiceRegistryImpl
-    {
-        private final GradleInternal gradle;
-
-        public BuildServiceRegistryImpl(final GradleInternal gradle) {
-            this.gradle = gradle;
-
-            services.add(new Service(ProjectFinder.class) {
-                @Override
-                protected Object create() {
-                    return new ProjectFinder() {
-                        public Project getProject(String path) {
-                            return gradle.getRootProject().project(path);
-                        }
-                    };
-                }
-            });
-
-            services.add(new Service(ScriptHandler.class) {
-                @Override
-                protected Object create() {
-                    RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(
-                            new DefaultConvention());
-                    ConfigurationContainer configurationContainer = configurationContainerFactory
-                            .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
-                    DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
-                            dependencyFactory, get(ProjectFinder.class));
-                    return new DefaultScriptHandler(repositoryHandler, dependencyHandler,
-                            configurationContainer, Thread.currentThread().getContextClassLoader());
-                }
-            });
-
-            services.add(new Service(ScriptClassLoaderProvider.class) {
-                @Override
-                protected Object create() {
-                    return get(ScriptHandler.class);
-                }
-            });
-        }
-
-        private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-            public InternalRepository getInternalRepository() {
-                return gradle.getInternalRepository();
-            }
-
-            public File getGradleUserHomeDir() {
-                return gradle.getGradleUserHomeDir();
-            }
-            
-            public Module getModule() {
-                return new Module() {
-                    public String getGroup() {
-                        return "";
-                    }
-
-                    public String getName() {
-                        return "";
-                    }
-
-                    public String getVersion() {
-                        return "";
-                    }
-
-                    public String getStatus() {
-                        return "";
-                    }
-                };
-            }
-        }
+        throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
+                domainObject.getClass().getSimpleName()));
     }
 }

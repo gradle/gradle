@@ -15,31 +15,33 @@
  */
 package org.gradle;
 
-import org.gradle.api.internal.ClassGenerator;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
+import org.gradle.api.internal.project.ImportsReader;
+import org.gradle.api.internal.project.ProjectFactory;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.util.WrapUtil;
-import org.gradle.listener.ListenerManager;
 import org.gradle.listener.DefaultListenerManager;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.listener.ListenerManager;
+import org.gradle.util.WrapUtil;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -121,7 +123,6 @@ public class DefaultGradleFactory implements GradleFactory {
         ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
                 new DefaultRepositoryHandlerFactory(resolverFactory, classGenerator),
                 configurationContainerFactory,
-                new DefaultPublishArtifactFactory(),
                 dependencyFactory, projectEvaluator,
                 classGenerator);
         InitScriptHandler initScriptHandler = new InitScriptHandler(
@@ -132,7 +133,6 @@ public class DefaultGradleFactory implements GradleFactory {
                 startParameter,
                 internalRepository,
                 serviceRegistryFactory,
-                new DefaultStandardOutputRedirector(),
                 listenerManager);
         return new GradleLauncher(
                 gradle,
@@ -152,7 +152,7 @@ public class DefaultGradleFactory implements GradleFactory {
                         )),
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(
-                        new ProjectFactory(serviceRegistryFactory,
+                        new ProjectFactory(
                                 startParameter.getBuildScriptSource())),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()),
                 loggingConfigurer,

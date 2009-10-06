@@ -20,12 +20,20 @@ import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.file.FileCollection
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.BeanDynamicObject
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactoryTest
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactoryTest.ConventionAwareRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
@@ -33,7 +41,9 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.PathResolvingFileCollection
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 import org.gradle.api.internal.plugins.DefaultConvention
+import org.gradle.api.internal.project.AbstractProject.State
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
 import org.gradle.api.plugins.Convention
@@ -43,7 +53,6 @@ import org.gradle.api.tasks.Directory
 import org.gradle.configuration.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.invocation.DefaultGradle
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
@@ -53,16 +62,10 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import groovy.lang.*
-import java.util.*
 import org.gradle.api.*
-import org.gradle.api.artifacts.dsl.*
+import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.invocation.Gradle
-import org.gradle.listener.DefaultListenerManager
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 
 /**
  * @author Hans Dockter
@@ -152,13 +155,13 @@ class DefaultProjectTest {
         testTask = HelperUtil.createTask(DefaultTask)
         
         projectEvaluator = context.mock(ProjectEvaluator)
+        projectRegistry = new DefaultProjectRegistry()
 
-        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory)
-        serviceRegistryMock = context.mock(ServiceRegistry)
+        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory, 'parent')
+        serviceRegistryMock = context.mock(ServiceRegistryFactory, 'project')
 
         context.checking {
-            allowing(projectServiceRegistryFactoryMock).createForProject(withParam(any(Project))); will(returnValue(serviceRegistryMock))
-            allowing(projectServiceRegistryFactoryMock).createForBuild(withParam(any(Gradle))); will(returnValue(serviceRegistryMock))
+            allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))
             allowing(serviceRegistryMock).get(TaskContainerInternal); will(returnValue(taskContainerMock))
             allowing(taskContainerMock).getAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
             allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
@@ -172,22 +175,23 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ProjectPluginsContainer); will(returnValue(projectPluginsHandlerMock))
             allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
+            allowing(serviceRegistryMock).get(StandardOutputRedirector); will(returnValue(outputRedirectorMock))
+            allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
         }
 
-        build = new DefaultGradle(parameter, null, projectServiceRegistryFactoryMock, null, new DefaultListenerManager())
+        build = context.mock(GradleInternal)
 
         rootDir = new File("/path/root").absoluteFile
-        projectRegistry = build.projectRegistry
         project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script,
-                projectRegistry, build, projectServiceRegistryFactoryMock);
+                build, projectServiceRegistryFactoryMock);
         child1 = new DefaultProject("child1", project, new File("child1"), null, script,
-                projectRegistry, build, projectServiceRegistryFactoryMock)
+                build, projectServiceRegistryFactoryMock)
         project.addChildProject(child1)
         childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script,
-                projectRegistry, build, projectServiceRegistryFactoryMock)
+                build, projectServiceRegistryFactoryMock)
         child1.addChildProject(childchild)
         child2 = new DefaultProject("child2", project, new File("child2"), null, script,
-                projectRegistry, build, projectServiceRegistryFactoryMock)
+                build, projectServiceRegistryFactoryMock)
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
@@ -248,7 +252,7 @@ class DefaultProjectTest {
         checkProject(project, null, 'root', rootDir)
 
         assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script,
-                new DefaultProjectRegistry(), build, projectServiceRegistryFactoryMock).standardOutputRedirector)
+                build, projectServiceRegistryFactoryMock).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 

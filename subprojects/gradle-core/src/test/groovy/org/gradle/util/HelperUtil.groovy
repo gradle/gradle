@@ -36,7 +36,6 @@ import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory
@@ -128,25 +127,20 @@ class HelperUtil {
                         new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
                 new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
                         new DefaultPublishOptionsFactory())),
-                new DefaultPublishArtifactFactory(),
                 dependencyFactory,
                 new DefaultProjectEvaluator(),
                 new GroovySourceGenerationBackedClassGenerator()
         )
-        IProjectFactory projectFactory = new ProjectFactory(
-                serviceRegistryFactory,
-                new StringScriptSource("embedded build file", "embedded"))
+        IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
 
         DefaultListenerManager listenerManager = new DefaultListenerManager()
         DefaultInternalRepository internalRepo = new DefaultInternalRepository(listenerManager, moduleDescriptorConverter)
         internalRepo.setName('testInternalRepo') 
-        DefaultGradle build = new DefaultGradle(startParameter, internalRepo, serviceRegistryFactory,
-                                                new DefaultStandardOutputRedirector(), listenerManager)
+        DefaultGradle build = new DefaultGradle(startParameter, internalRepo, serviceRegistryFactory, listenerManager)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)
         project.setScript(new EmptyScript())
-        project."_service_registry_factory_" = serviceRegistryFactory
         return project;
     }
 
@@ -157,9 +151,8 @@ class HelperUtil {
                 projectDir ?: new File(parentProject.getProjectDir(), name),
                 parentProject.buildFile,
                 new StringScriptSource("test build file", null),
-                parentProject.projectRegistry,
                 parentProject.gradle,
-                parentProject."_service_registry_factory_"
+                parentProject.gradle.serviceRegistryFactory
         )
         parentProject.addChildProject project
         parentProject.projectRegistry.addProject project
