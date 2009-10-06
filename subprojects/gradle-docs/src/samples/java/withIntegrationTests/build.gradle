@@ -27,7 +27,7 @@ sourceSets {
     }
 }
 
-task integrationTest(type: Test, dependsOn: jar) {
+task integrationTest(type: AntTest, dependsOn: jar) {
     testClassesDir = sourceSets.integrationTest.classesDir
     classpath = sourceSets.integrationTest.runtimeClasspath
     options.systemProperties['jar.path'] = jar.archivePath
