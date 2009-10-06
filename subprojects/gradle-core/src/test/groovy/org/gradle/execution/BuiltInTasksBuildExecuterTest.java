@@ -50,6 +50,7 @@ public class BuiltInTasksBuildExecuterTest {
             will(returnValue(":path"));
             allowing(project).getConvention();
             allowing(project).getTasks();
+            allowing(project).getFileResolver();
         }});
     }
 

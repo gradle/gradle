@@ -22,6 +22,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.execution.OutputHandler;
 
 import java.util.List;
@@ -447,5 +449,19 @@ public interface Task extends Comparable<Task> {
      * @return true if any task this task depends on did work.
      */
     boolean dependsOnTaskDidWork();
+
+    /**
+     * <p>Returns the inputs of this task.</p>
+     *
+     * @return The inputs. Never returns null.
+     */
+    TaskInputs getInputs();
+
+    /**
+     * <p>Returns the outputs of this task.</p>
+     *
+     * @return The outputs. Never returns null.
+     */
+    TaskOutputs getOutputs();
 }
 

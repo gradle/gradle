@@ -23,12 +23,12 @@ import org.gradle.api.*;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskInputs;
+import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.logging.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.StopActionException;
-import org.gradle.api.tasks.StopExecutionException;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.*;
 import org.gradle.execution.DefaultOutputHandler;
 import org.gradle.execution.OutputHandler;
 
@@ -73,6 +73,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private OutputHandler outputHandler;
 
+    private final TaskOutputs outputs;
+
+    private final TaskInputs inputs;
+
     protected AbstractTask() {
         this(taskInfo());
     }
@@ -94,7 +98,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         path = project == null ? null : project.absolutePath(name);
         dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention());
         outputHandler = new DefaultOutputHandler(this);
-        dependencies = new DefaultTaskDependency(project == null ? null : ((ProjectInternal) project).getTasks());
+        dependencies = new DefaultTaskDependency(this.project == null ? null : this.project.getTasks());
+        outputs = new DefaultTaskOutputs(this.project == null ? null : this.project.getFileResolver());
+        inputs = new DefaultTaskInputs(this.project == null ? null : this.project.getFileResolver());
     }
 
     public static void injectIntoNextInstance(Project project, String name) {
@@ -383,6 +389,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public TaskInputs getInputs() {
+        return inputs;
+    }
+
+    public TaskOutputs getOutputs() {
+        return outputs;
     }
 
     public boolean dependsOnTaskDidWork() {
