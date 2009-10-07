@@ -28,6 +28,7 @@ import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -39,6 +40,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -77,6 +79,8 @@ public class GradleLauncherTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     private LoggingConfigurer loggingConfigurerMock = context.mock(LoggingConfigurer.class);
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void setUp() {
@@ -106,7 +110,7 @@ public class GradleLauncherTest {
         expectedStartParams.setTaskNames(expectedTaskNames);
         expectedStartParams.setCurrentDir(expectedCurrentDir);
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
-        expectedStartParams.setGradleUserHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleUserHomeDir"));
+        expectedStartParams.setGradleUserHomeDir(tmpDir.dir("gradleUserHome"));
 
         gradleLauncher = new GradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
                 gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock, new DefaultListenerManager());
@@ -344,7 +348,7 @@ public class GradleLauncherTest {
     @Test
     public void testNewInstanceFactory() {
         StartParameter startParameter = new StartParameter();
-        startParameter.setGradleHomeDir(new File(HelperUtil.TMP_DIR_FOR_TEST, "gradleHomeDir"));
+        startParameter.setGradleHomeDir(tmpDir.dir("gradleHome"));
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
         assertThat(gradleLauncher, notNullValue());
     }

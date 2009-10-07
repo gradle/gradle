@@ -15,8 +15,7 @@
  */
 package org.gradle.integtests;
 
-import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -47,19 +46,20 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
     }
 
     @Override
-    protected Statement withBefores(FrameworkMethod method, final Object target, Statement statement) {
+    protected Statement withBefores(final FrameworkMethod method, final Object target, Statement statement) {
         final Statement setup = super.withBefores(method, target, statement);
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                attachDistribution(target);
+                attachDistribution(method, target);
                 setup.evaluate();
             }
         };
     }
 
-    private void attachDistribution(Object target) throws Exception {
-        GradleDistribution distribution = getDist();
+    private void attachDistribution(FrameworkMethod method, Object target) throws Exception {
+        TemporaryFolder temporaryFolder = TemporaryFolder.newInstance(method, target);
+        GradleDistribution distribution = getDist(temporaryFolder);
         injectValue(target, distribution, GradleDistribution.class);
         boolean noFork = System.getProperty(NOFORK_SYS_PROP) != null;
         GradleExecuter executer = noFork ? new QuickGradleExecuter(distribution) : new ForkingGradleExecuter(distribution);
@@ -77,7 +77,7 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         }
     }
 
-    private GradleDistribution getDist() throws IOException {
+    private GradleDistribution getDist(TemporaryFolder temporaryFolder) throws IOException {
         final TestFile userHomeDir = file("integTest.gradleUserHomeDir", "intTestHomeDir");
         final TestFile gradleHomeDir = file("integTest.gradleHomeDir", null);
         TestFile samplesDir = new TestFile(gradleHomeDir, "samples");
@@ -88,7 +88,7 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         final TestFile userGuideOutputDir = file("integTest.userGuideOutputDir", "subprojects/gradle-docs/src/samples/userguideOutput");
         final TestFile userGuideInfoDir = file("integTest.userGuideInfoDir", "subprojects/gradle-docs/build/docbook/src");
         final TestFile distsDir = file("integTest.distsDir", "build/distributions");
-        final TestFile testDir = new TestFile(GFileUtils.canonicalise(HelperUtil.makeNewTestDir()));
+        final TestFile testDir = temporaryFolder.getDir();
 
         return new GradleDistribution() {
             public boolean isFileUnderTest(File file) {

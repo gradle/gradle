@@ -25,7 +25,6 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.api.tasks.util.ZipFileSet
-import org.gradle.util.HelperUtil
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -161,14 +160,14 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     @Test public void testMerge() {
         archiveTask.archiveDetector = [archiveFileSetType: {File file -> ZipFileSet }] as ArchiveDetector
-        List fileDescriptions = ['a.zip' as File, new File(HelperUtil.TMP_DIR_FOR_TEST, 'b.zip').absolutePath]
+        List fileDescriptions = ['a.zip' as File, tmpDir.dir.file('b.zip').absolutePath]
         assert archiveTask.merge(fileDescriptions) {
             include('x')
         }.is(archiveTask)
         List mergeFileSets = archiveTask.mergeFileSets
         assertEquals(fileDescriptions.size(), mergeFileSets.size())
         assert mergeFileSets[0] instanceof ZipFileSet
-        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
+        assertEquals(project.file('a.zip').absoluteFile, mergeFileSets[0].dir)
         assertEquals(['x'] as Set, mergeFileSets[0].includes)
         assert mergeFileSets[1] instanceof ZipFileSet
         assertEquals(['x'] as Set, mergeFileSets[1].includes)
@@ -180,7 +179,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         List mergeFileSets = archiveTask.mergeFileSets
         assertEquals(1, mergeFileSets.size())
         assert mergeFileSets[0] instanceof ZipFileSet
-        assertEquals(new File(HelperUtil.TMP_DIR_FOR_TEST, 'a.zip').absoluteFile, mergeFileSets[0].dir)
+        assertEquals(project.file('a.zip').absoluteFile, mergeFileSets[0].dir)
     }
 
     @Test public void testMergeWithListArguments() {

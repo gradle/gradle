@@ -25,7 +25,7 @@ import java.io.File;
 
 public class TemporaryFolder implements MethodRule {
     private TestFile dir;
-    private boolean initialised;
+    private String prefix;
     private static TestFile root;
 
     static {
@@ -33,16 +33,18 @@ public class TemporaryFolder implements MethodRule {
     }
 
     public TestFile getDir() {
-        if (!initialised) {
-            if (dir == null) {
+        if (dir == null) {
+            if (prefix == null) {
                 // This can happen if this is used in a constructor or a @Before method. It also happens when using
                 // @RunWith(SomeRunner) when the runner does not support rules.
-                String prefix = determinePrefix();
-                dir = root.file(prefix);
+                prefix = determinePrefix();
             }
-            GradleUtil.deleteDir(dir);
-            dir.mkdirs();
-            initialised = true;
+            for (int counter = 1; true; counter++) {
+                dir = root.file(counter == 1 ? prefix : String.format("%s%d", prefix, counter));
+                if (dir.mkdirs()) {
+                    break;
+                }
+            }
         }
         return dir;
     }
@@ -61,21 +63,33 @@ public class TemporaryFolder implements MethodRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                if (dir == null) {
-                    dir = root.file(target.getClass().getSimpleName(), method.getName());
-                }
+                init(method, target);
                 base.evaluate();
             }
         };
     }
 
+    private void init(FrameworkMethod method, Object target) {
+        if (prefix == null) {
+            prefix = String.format("%s/%s", target.getClass().getSimpleName(), method.getName());
+        }
+    }
+
+    public static TemporaryFolder newInstance() {
+        return new TemporaryFolder();
+    }
+
+    public static TemporaryFolder newInstance(FrameworkMethod method, Object target) {
+        TemporaryFolder temporaryFolder = new TemporaryFolder();
+        temporaryFolder.init(method, target);
+        return temporaryFolder;
+    }
+
     public TestFile file(String... path) {
-        return getDir().file((Object[])path).touch();
+        return getDir().file((Object[]) path).touch();
     }
 
     public TestFile dir(String... path) {
-        TestFile dir = getDir().file((Object[])path);
-        dir.mkdirs();
-        return dir;
+        return getDir().file((Object[]) path).createDir();
     }
 }

@@ -56,7 +56,6 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultGradle
 import org.gradle.api.internal.project.*
 import org.gradle.listener.DefaultListenerManager
-import org.gradle.integtests.TestFile
 import org.gradle.api.internal.artifacts.ivyservice.DefaultSettingsConverter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorFactory
@@ -78,12 +77,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
 
 /**
  * @author Hans Dockter
- * todo: deleteTestDir throws an exception if dir does not exists. failonerror attribute seems not to work. Check this out.
  */
 class HelperUtil {
 
     public static final Closure TEST_CLOSURE = {}
-    public static final String TMP_DIR_FOR_TEST = 'tmpTest'
     public static final Spec TEST_SEPC  = new AndSpec()
     private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new GroovySourceGenerationBackedClassGenerator()));
 
@@ -96,7 +93,7 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject() {
-        createRootProject(makeNewTestDir())
+        createRootProject(TemporaryFolder.newInstance().dir)
     }
 
     static DefaultProject createRootProject(File rootDir) {
@@ -169,10 +166,6 @@ class HelperUtil {
         collection.collect {
             it.toString()
         }
-    }
-
-    static TestFile makeNewTestDir() {
-        new TestFile(GradleUtil.makeNewDir(new File(TMP_DIR_FOR_TEST)))
     }
 
     static DefaultExcludeRule getTestExcludeRule() {

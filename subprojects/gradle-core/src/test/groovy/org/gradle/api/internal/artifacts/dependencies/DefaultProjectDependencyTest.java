@@ -282,7 +282,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     }
 
     private ProjectDependency createProjectDependency() {
-        ProjectDependency projectDependency = new DefaultProjectDependency(HelperUtil.createRootProject(), "conf", instruction);
+        ProjectDependency projectDependency = new DefaultProjectDependency(targetProjectStub, "conf", instruction);
         projectDependency.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"));
         return projectDependency;
     }

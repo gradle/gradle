@@ -118,6 +118,7 @@ public class TestFile extends File {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        assertIsFile();
         return this;
     }
 
