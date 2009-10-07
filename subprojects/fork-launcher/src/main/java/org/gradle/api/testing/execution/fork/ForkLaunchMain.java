@@ -247,7 +247,7 @@ public class ForkLaunchMain {
         final List<URL> urls = new ArrayList<URL>();
         for (final File path : paths) {
             try {
-                urls.add(path.toURL());
+                urls.add(path.toURI().toURL());
             } catch (MalformedURLException e) {
                 throw new RuntimeException(configSection + " failed to convert [" + path.getAbsolutePath() + "] into a URL", e);
             }
