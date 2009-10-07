@@ -29,6 +29,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
     public static String DEPENDENCY_AUTO_WIRE = "dependencyAutoWire";
@@ -177,21 +178,45 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private static class Validator implements Action<Task> {
         private Set<PropertyInfo> properties = new LinkedHashSet<PropertyInfo>();
 
-        public void addDependencies(Task task) {
+        public void addDependencies(final Task task) {
             for (final PropertyInfo property : properties) {
-                final Transformer<Object> transformer = property.actions.getTaskDependency();
-                if (transformer != null) {
+                final Transformer<Object> depTransformer = property.actions.getTaskDependency();
+                if (depTransformer != null) {
                     task.dependsOn(new TaskDependency() {
                         public Set<? extends Task> getDependencies(Task task) {
                             Object value = ReflectionUtil.invoke(task, property.method.getName(), new Object[0]);
                             if (value != null) {
-                                value = transformer.transform(value);
+                                value = depTransformer.transform(value);
                             }
                             DefaultTaskDependency dependency = new DefaultTaskDependency();
                             if (value != null) {
                                 dependency.add(value);
                             }
                             return dependency.getDependencies(task);
+                        }
+                    });
+                }
+                final Transformer<Object> inputFilesTransformer = property.actions.getInputFiles();
+                if (inputFilesTransformer != null) {
+                    task.getInputs().inputFiles(new Callable() {
+                        public Object call() throws Exception {
+                            Object value = ReflectionUtil.invoke(task, property.method.getName(), new Object[0]);
+                            if (value != null) {
+                                value = inputFilesTransformer.transform(value);
+                            }
+                            return value;
+                        }
+                    });
+                }
+                final Transformer<Object> outputFilesTransformer = property.actions.getOutputFiles();
+                if (outputFilesTransformer != null) {
+                    task.getOutputs().outputFiles(new Callable() {
+                        public Object call() throws Exception {
+                            Object value = ReflectionUtil.invoke(task, property.method.getName(), new Object[0]);
+                            if (value != null) {
+                                value = outputFilesTransformer.transform(value);
+                            }
+                            return value;
                         }
                     });
                 }

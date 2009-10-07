@@ -63,6 +63,18 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
             public Transformer<Object> getTaskDependency() {
                 return dependencyTransformer;
             }
+
+            public Transformer<Object> getInputFiles() {
+                return new Transformer<Object>() {
+                    public Object transform(Object original) {
+                        return original;
+                    }
+                };
+            }
+
+            public Transformer<Object> getOutputFiles() {
+                return null;
+            }
         };
     }
 }

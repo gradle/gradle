@@ -25,6 +25,7 @@ import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
 import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
+import org.gradle.integtests.TestFile;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -50,7 +51,11 @@ public class AnnotationProcessingTaskFactoryTest {
     private final Map args = new HashMap();
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
-    private final File testDir = tmpDir.getDir();
+    private final TestFile testDir = tmpDir.getDir();
+    private final File existingFile = testDir.file("file.txt").touch();
+    private final File missingFile = testDir.file("missing.txt");
+    private final File existingDir = testDir.file("dir").createDir();
+    private final File missingDir = testDir.file("missing-dir");
     private final AnnotationProcessingTaskFactory factory = new AnnotationProcessingTaskFactory(delegate);
 
     @Test
@@ -66,20 +71,19 @@ public class AnnotationProcessingTaskFactoryTest {
         task.execute();
     }
 
-    private void expectTaskCreated(final Task task) {
+    private <T extends Task> T expectTaskCreated(final T task) {
         context.checking(new Expectations() {{
             one(delegate).createTask(project, args);
             will(returnValue(task));
         }});
 
         assertThat(factory.createTask(project, args), sameInstance((Object) task));
+        return task;
     }
 
     @Test
     public void doesNothingToTaskWithNoTaskActionAnnotations() {
-        final TaskInternal task = new DefaultTask(HelperUtil.createRootProject(), "name");
-
-        expectTaskCreated(task);
+        TaskInternal task = expectTaskCreated(new DefaultTask(HelperUtil.createRootProject(), "name"));
 
         assertThat(task.getActions(), isEmpty());
     }
@@ -87,9 +91,7 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void propagatesExceptionThrownByTaskActionMethod() {
         final Runnable action = context.mock(Runnable.class);
-        TestTask task = new TestTask(action);
-
-        expectTaskCreated(task);
+        TestTask task = expectTaskCreated(new TestTask(action));
 
         final RuntimeException failure = new RuntimeException();
         context.checking(new Expectations() {{
@@ -108,9 +110,7 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void canHaveMultipleMethodsWithTaskActionAnnotation() {
         final Runnable action = context.mock(Runnable.class);
-        TaskWithMultipleMethods task = new TaskWithMultipleMethods(action);
-
-        expectTaskCreated(task);
+        TaskWithMultipleMethods task = expectTaskCreated(new TaskWithMultipleMethods(action));
 
         context.checking(new Expectations() {{
             exactly(3).of(action).run();
@@ -121,11 +121,8 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void cachesClassMetaInfo() {
-        TaskWithInputFile task = new TaskWithInputFile(null);
-        expectTaskCreated(task);
-
-        TaskWithInputFile task2 = new TaskWithInputFile(null);
-        expectTaskCreated(task2);
+        TaskWithInputFile task = expectTaskCreated(new TaskWithInputFile(null));
+        TaskWithInputFile task2 = expectTaskCreated(new TaskWithInputFile(null));
 
         assertThat(task.getActions().get(0), sameInstance((Action) task2.getActions().get(0)));
     }
@@ -156,9 +153,7 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void taskActionWorksForInheritedMethods() {
         final Runnable action = context.mock(Runnable.class);
-        final TaskWithInheritedMethod task = new TaskWithInheritedMethod(action);
-
-        expectTaskCreated(task);
+        TaskWithInheritedMethod task = expectTaskCreated(new TaskWithInheritedMethod(action));
 
         context.checking(new Expectations() {{
             one(action).run();
@@ -169,9 +164,7 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void taskActionWorksForProtectedMethods() {
         final Runnable action = context.mock(Runnable.class);
-        final TaskWithProtectedMethod task = new TaskWithProtectedMethod(action);
-
-        expectTaskCreated(task);
+        TaskWithProtectedMethod task = expectTaskCreated(new TaskWithProtectedMethod(action));
 
         context.checking(new Expectations() {{
             one(action).run();
@@ -181,58 +174,51 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void validationActionSucceedsWhenSpecifiedInputFileExists() {
-        TaskWithInputFile task = new TaskWithInputFile(new File(testDir, "input.txt"));
-
-        expectTaskCreated(task);
-        GFileUtils.touch(task.inputFile);
-
+        TaskWithInputFile task = expectTaskCreated(new TaskWithInputFile(existingFile));
         task.execute();
     }
 
     @Test
     public void validationActionFailsWhenInputFileNotSpecified() {
-        TaskWithInputFile task = new TaskWithInputFile(null);
-
-        expectTaskCreated(task);
-
+        TaskWithInputFile task = expectTaskCreated(new TaskWithInputFile(null));
         assertValidationFails(task, "No value has been specified for property 'inputFile'.");
     }
 
     @Test
     public void validationActionFailsWhenInputFileDoesNotExist() {
-        TaskWithInputFile task = new TaskWithInputFile(new File(testDir, "input.txt"));
-
-        expectTaskCreated(task);
-
+        TaskWithInputFile task = expectTaskCreated(new TaskWithInputFile(missingFile));
         assertValidationFails(task, String.format("File '%s' specified for property 'inputFile' does not exist.",
                 task.inputFile));
     }
 
     @Test
     public void validationActionFailsWhenInputFileIsADirectory() {
-        TaskWithInputFile task = new TaskWithInputFile(testDir);
-
-        expectTaskCreated(task);
-
+        TaskWithInputFile task = expectTaskCreated(new TaskWithInputFile(existingDir));
         assertValidationFails(task, String.format("File '%s' specified for property 'inputFile' is not a file.",
                 task.inputFile));
     }
 
     @Test
+    public void registersSpecifiedInputFile() {
+        TaskWithInputFile task = expectTaskCreated(new TaskWithInputFile(existingFile));
+        assertThat(task.getInputs().getInputFiles().getFiles(), equalTo(toSet(existingFile)));
+    }
+
+    @Test
+    public void doesNotRegistersInputFileWhenNoneSpecified() {
+        TaskWithInputFile task = expectTaskCreated(new TaskWithInputFile(null));
+        assertThat(task.getInputs().getInputFiles().getFiles(), isEmpty());
+    }
+    
+    @Test
     public void validationActionSucceedsWhenSpecifiedOutputFileIsAFile() {
-        TaskWithOutputFile task = new TaskWithOutputFile(new File(testDir, "output.txt"));
-
-        expectTaskCreated(task);
-        GFileUtils.touch(task.outputFile);
-
+        TaskWithOutputFile task = expectTaskCreated(new TaskWithOutputFile(existingFile));
         task.execute();
     }
 
     @Test
     public void validationActionSucceedsWhenSpecifiedOutputFileIsNotAFile() {
-        TaskWithOutputFile task = new TaskWithOutputFile(new File(testDir, "subdir/output.txt"));
-
-        expectTaskCreated(task);
+        TaskWithOutputFile task = expectTaskCreated(new TaskWithOutputFile(new File(testDir, "subdir/output.txt")));
 
         task.execute();
 
@@ -241,29 +227,22 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void validationActionFailsWhenOutputFileNotSpecified() {
-        TaskWithOutputFile task = new TaskWithOutputFile(null);
-
-        expectTaskCreated(task);
-
+        TaskWithOutputFile task = expectTaskCreated(new TaskWithOutputFile(null));
         assertValidationFails(task, "No value has been specified for property 'outputFile'.");
     }
 
     @Test
     public void validationActionFailsWhenSpecifiedOutputFileIsADirectory() {
-        TaskWithOutputFile task = new TaskWithOutputFile(testDir);
-
-        expectTaskCreated(task);
-
+        TaskWithOutputFile task = expectTaskCreated(new TaskWithOutputFile(existingDir));
         assertValidationFails(task, String.format(
-                "Cannot write to file '%s' specified for property 'outputFile' as it is a directory.", task.outputFile));
+                "Cannot write to file '%s' specified for property 'outputFile' as it is a directory.",
+                task.outputFile));
     }
 
     @Test
     public void validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
-        TaskWithOutputFile task = new TaskWithOutputFile(new File(testDir, "subdir/output.txt"));
+        TaskWithOutputFile task = expectTaskCreated(new TaskWithOutputFile(new File(testDir, "subdir/output.txt")));
         GFileUtils.touch(task.outputFile.getParentFile());
-
-        expectTaskCreated(task);
 
         assertValidationFails(task, String.format(
                 "Cannot create parent directory '%s' of file specified for property 'outputFile'.",
@@ -271,20 +250,39 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    public void registersSpecifiedOutputFile() {
+        TaskWithOutputFile task = expectTaskCreated(new TaskWithOutputFile(existingFile));
+        assertThat(task.getOutputs().getOutputFiles().getFiles(), equalTo(toSet(existingFile)));
+    }
+
+    @Test
+    public void doesNotRegisterOutputFileWhenNoneSpecified() {
+        TaskWithOutputFile task = expectTaskCreated(new TaskWithOutputFile(null));
+        assertThat(task.getOutputs().getOutputFiles().getFiles(), isEmpty());
+    }
+
+    @Test
     public void validationActionSucceedsWhenInputFilesSpecified() {
-        TaskWithInputFiles task = new TaskWithInputFiles(toList(testDir));
-
-        expectTaskCreated(task);
-
+        TaskWithInputFiles task = expectTaskCreated(new TaskWithInputFiles(toList(testDir)));
         task.execute();
     }
 
     @Test
     public void validationActionFailsWhenInputFilesNotSpecified() {
-        TaskWithInputFiles task = new TaskWithInputFiles(null);
-        expectTaskCreated(task);
-
+        TaskWithInputFiles task = expectTaskCreated(new TaskWithInputFiles(null));
         assertValidationFails(task, "No value has been specified for property 'input'.");
+    }
+
+    @Test
+    public void registersSpecifiedInputFiles() {
+        TaskWithInputFiles task = expectTaskCreated(new TaskWithInputFiles(toList(testDir, missingFile)));
+        assertThat(task.getInputs().getInputFiles().getFiles(), equalTo(toSet(testDir, missingFile)));
+    }
+
+    @Test
+    public void doesNotRegisterInputFilesWhenNoneSpecified() {
+        TaskWithInputFiles task = expectTaskCreated(new TaskWithInputFiles(null));
+        assertThat(task.getInputs().getInputFiles().getFiles(), isEmpty());
     }
 
     @Test
@@ -309,9 +307,7 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void addsInputFileCollectionAsADependencyOfTheTask() {
         final FileCollection inputFiles = context.mock(FileCollection.class);
-        final TaskWithInputFiles task = new TaskWithInputFiles(inputFiles);
-
-        expectTaskCreated(task);
+        final TaskWithInputFiles task = expectTaskCreated(new TaskWithInputFiles(inputFiles));
 
         context.checking(new Expectations(){{
             TaskDependency dependency = context.mock(TaskDependency.class);
@@ -328,9 +324,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void validationActionSucceedsWhenSpecifiedOutputDirectoryDoesNotExist() {
-        TaskWithOutputDir task = new TaskWithOutputDir(new File(testDir, "subdir"));
-        expectTaskCreated(task);
-
+        TaskWithOutputDir task = expectTaskCreated(new TaskWithOutputDir(missingDir));
         task.execute();
 
         assertTrue(task.outputDir.isDirectory());
@@ -338,34 +332,26 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void validationActionSucceedsWhenSpecifiedOutputDirectoryIsDirectory() {
-        TaskWithOutputDir task = new TaskWithOutputDir(testDir);
-        expectTaskCreated(task);
-
+        TaskWithOutputDir task = expectTaskCreated(new TaskWithOutputDir(existingDir));
         task.execute();
     }
 
     @Test
     public void validationActionFailsWhenOutputDirectoryNotSpecified() {
-        TaskWithOutputDir task = new TaskWithOutputDir(null);
-        expectTaskCreated(task);
-
+        TaskWithOutputDir task = expectTaskCreated(new TaskWithOutputDir(null));
         assertValidationFails(task, "No value has been specified for property 'outputDir'.");
     }
 
     @Test
     public void validationActionFailsWhenOutputDirectoryIsAFile() {
-        TaskWithOutputDir task = new TaskWithOutputDir(new File(testDir, "output"));
-        expectTaskCreated(task);
-        GFileUtils.touch(task.outputDir);
-
+        TaskWithOutputDir task = expectTaskCreated(new TaskWithOutputDir(existingFile));
         assertValidationFails(task, String.format("Cannot create directory '%s' specified for property 'outputDir'.",
                 task.outputDir));
     }
 
     @Test
     public void validationActionFailsWhenParentOfOutputDirectoryIsAFile() {
-        TaskWithOutputDir task = new TaskWithOutputDir(new File(testDir, "subdir/output"));
-        expectTaskCreated(task);
+        TaskWithOutputDir task = expectTaskCreated(new TaskWithOutputDir(new File(testDir, "subdir/output")));
         GFileUtils.touch(task.outputDir.getParentFile());
 
         assertValidationFails(task, String.format("Cannot create directory '%s' specified for property 'outputDir'.",
@@ -373,46 +359,61 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
-    public void validationActionSucceedsWhenSpecifiedInputDirectoryIsDirectory() {
-        TaskWithInputDir task = new TaskWithInputDir(testDir);
-        expectTaskCreated(task);
+    public void registersSpecifiedOutputDirectory() {
+        TaskWithOutputDir task = expectTaskCreated(new TaskWithOutputDir(missingDir));
+        assertThat(task.getOutputs().getOutputFiles().getFiles(), equalTo(toSet(missingDir)));
+    }
 
+    @Test
+    public void doesNotRegisterOutputDirectoryWhenNoneSpecified() {
+        TaskWithOutputDir task = expectTaskCreated(new TaskWithOutputDir(null));
+        assertThat(task.getOutputs().getOutputFiles().getFiles(), isEmpty());
+    }
+
+    @Test
+    public void validationActionSucceedsWhenSpecifiedInputDirectoryIsDirectory() {
+        TaskWithInputDir task = expectTaskCreated(new TaskWithInputDir(existingDir));
         task.execute();
     }
 
     @Test
     public void validationActionFailsWhenInputDirectoryNotSpecified() {
-        TaskWithInputDir task = new TaskWithInputDir(null);
-        expectTaskCreated(task);
-
+        TaskWithInputDir task = expectTaskCreated(new TaskWithInputDir(null));
         assertValidationFails(task, "No value has been specified for property 'inputDir'.");
     }
     
     @Test
     public void validationActionFailsWhenInputDirectoryDoesNotExist() {
-        TaskWithInputDir task = new TaskWithInputDir(new File(testDir, "input"));
-        expectTaskCreated(task);
-
+        TaskWithInputDir task = expectTaskCreated(new TaskWithInputDir(missingDir));
         assertValidationFails(task, String.format("Directory '%s' specified for property 'inputDir' does not exist.",
                 task.inputDir));
     }
 
     @Test
     public void validationActionFailsWhenInputDirectoryIsAFile() {
-        TaskWithInputDir task = new TaskWithInputDir(new File(testDir, "input"));
-        expectTaskCreated(task);
+        TaskWithInputDir task = expectTaskCreated(new TaskWithInputDir(existingFile));
         GFileUtils.touch(task.inputDir);
 
-        assertValidationFails(task, String.format("Directory '%s' specified for property 'inputDir' is not a directory.",
-                task.inputDir));
+        assertValidationFails(task, String.format(
+                "Directory '%s' specified for property 'inputDir' is not a directory.", task.inputDir));
+    }
+
+    @Test
+    public void registersSpecifiedInputDirectory() {
+        TaskWithInputDir task = expectTaskCreated(new TaskWithInputDir(existingDir));
+        assertThat(task.getInputs().getInputFiles().getFiles(), equalTo(toSet(existingDir)));
+    }
+
+    @Test
+    public void doesNotRegisterInputDirectoryWhenNoneSpecified() {
+        TaskWithInputDir task = expectTaskCreated(new TaskWithInputDir(null));
+        assertThat(task.getInputs().getInputFiles().getFiles(), isEmpty());
     }
 
     @Test
     public void skipsTaskWhenInputDirectoryIsEmptyAndSkipWhenEmpty() {
-        File inputDir = new File(testDir, "input");
-        inputDir.mkdirs();
 
-        TaskWithInputDir task = new TaskWithInputDir(inputDir) {
+        TaskWithInputDir task = new TaskWithInputDir(existingDir) {
             @Override @InputDirectory @SkipWhenEmpty
             public File getInputDir() {
                 return super.getInputDir();
@@ -431,9 +432,8 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void skipsTaskWhenInputDirectoryIsDoesNotExistAndSkipWhenEmpty() {
-        File inputDir = new File(testDir, "input");
 
-        TaskWithInputDir task = new TaskWithInputDir(inputDir) {
+        TaskWithInputDir task = new TaskWithInputDir(missingDir) {
             @Override @InputDirectory @SkipWhenEmpty
             public File getInputDir() {
                 return super.getInputDir();
@@ -452,17 +452,13 @@ public class AnnotationProcessingTaskFactoryTest {
     
     @Test
     public void validationActionSucceedsWhenPropertyMarkedWithOptionalAnnotationNotSpecified() {
-        TaskWithOptionalInputFile task = new TaskWithOptionalInputFile();
-        expectTaskCreated(task);
-
+        TaskWithOptionalInputFile task = expectTaskCreated(new TaskWithOptionalInputFile());
         task.execute();
     }
 
     @Test
     public void canAttachAnnotationToGroovyProperty() {
-        InputFileTask task = new InputFileTask();
-        expectTaskCreated(task);
-
+        InputFileTask task = expectTaskCreated(new InputFileTask());
         assertValidationFails(task, "No value has been specified for property 'srcFile'.");
     }
     
@@ -595,15 +591,15 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     public static class TaskWithInputFiles extends DefaultTask {
-        Iterable<File> input;
+        Iterable<? extends File> input;
 
-        public TaskWithInputFiles(Iterable<File> input) {
+        public TaskWithInputFiles(Iterable<? extends File> input) {
             super(HelperUtil.createRootProject(), "someName");
             this.input = input;
         }
 
         @InputFiles @SkipWhenEmpty
-        public Iterable<File> getInput() {
+        public Iterable<? extends File> getInput() {
             return input;
         }
     }
