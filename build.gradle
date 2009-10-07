@@ -301,7 +301,7 @@ artifacts {
     }
 }
 
-integTestDistDir = file("$buildDir/integ-test")
+integTestDistDir = file("$buildDir/integ test")
 integTestUserDir = file('intTestHomeDir')
 integTestGradleHome = null
 
