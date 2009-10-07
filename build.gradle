@@ -79,7 +79,7 @@ allprojects {
     version = new Version(svn, project, false)
 }
 
-def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.4.0@jar']
+def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.5.1@jar']
 configure(groovyProjects()) {
 
     usePlugin 'groovy'
@@ -88,12 +88,12 @@ configure(groovyProjects()) {
     archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
     dependencies {
         testCompile libraries.junit, FIRST_LEVEL_JMOCK
-        testCompile module("org.jmock:jmock:2.4.0") {
-            dependencies('org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3')
+        testCompile module("org.jmock:jmock:2.5.1") {
+            dependencies('org.jmock:jmock-legacy:2.5.1@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3')
             dependencies(FIRST_LEVEL_JMOCK as Object[])
         }
         // todo - these should not be here
-        testCompile 'org.jmock:jmock-legacy:2.4.0@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3'
+        testCompile 'org.jmock:jmock-legacy:2.5.1@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3'
     }
 
     checkstyleConfigDir = "$rootDir/config/checkstyle"
