@@ -58,8 +58,7 @@ public class GradleLauncher {
     }
 
     private static final Logger logger = LoggerFactory.getLogger(GradleLauncher.class);
-    private static GradleFactory factory = new DefaultGradleFactory(new DefaultLoggingConfigurer(),
-            new DefaultCommandLine2StartParameterConverter());
+    private static GradleFactory factory = new DefaultGradleLauncherFactory(new DefaultCommandLine2StartParameterConverter());
 
     private final GradleInternal gradle;
     private final SettingsHandler settingsHandler;
@@ -209,8 +208,7 @@ public class GradleLauncher {
 
     // This is used for mocking
     public static void injectCustomFactory(GradleFactory gradleFactory) {
-        factory = gradleFactory == null ? new DefaultGradleFactory(new DefaultLoggingConfigurer(),
-                new DefaultCommandLine2StartParameterConverter()) : gradleFactory;
+        factory = gradleFactory == null ? new DefaultGradleLauncherFactory(new DefaultCommandLine2StartParameterConverter()) : gradleFactory;
     }
 
     /**

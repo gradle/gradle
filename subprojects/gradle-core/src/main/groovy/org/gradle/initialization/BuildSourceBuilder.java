@@ -103,7 +103,7 @@ public class BuildSourceBuilder {
                 logger.debug("Gradle script file does not exists. Using default one.");
                 startParameterArg.useEmbeddedBuildFile(getDefaultScript());
             }
-
+//            if (true) return new HashSet<File>();
             GradleLauncher gradleLauncher = gradleFactory.newInstance(startParameterArg);
             BuildResult buildResult;
             if (executeBuild) {

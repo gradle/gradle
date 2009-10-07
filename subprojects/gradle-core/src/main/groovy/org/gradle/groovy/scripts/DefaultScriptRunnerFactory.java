@@ -56,6 +56,7 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
                         script.getScriptSource());
             } finally {
                 script.getStandardOutputRedirector().flush();
+                script.getStandardOutputRedirector().off();
                 Thread.currentThread().setContextClassLoader(originalLoader);
             }
         }

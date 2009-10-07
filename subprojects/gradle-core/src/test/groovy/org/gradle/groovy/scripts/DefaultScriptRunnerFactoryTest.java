@@ -93,6 +93,7 @@ public class DefaultScriptRunnerFactoryTest {
                 }
             }));
             one(standardOutputRedirectorMock).flush();
+            one(standardOutputRedirectorMock).off();
         }});
 
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
@@ -114,6 +115,7 @@ public class DefaultScriptRunnerFactoryTest {
             one(scriptMock).run();
             will(throwException(failure));
             one(standardOutputRedirectorMock).flush();
+            one(standardOutputRedirectorMock).off();
         }});
 
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();

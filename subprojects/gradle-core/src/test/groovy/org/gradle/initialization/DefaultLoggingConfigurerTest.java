@@ -52,6 +52,7 @@ public class DefaultLoggingConfigurerTest {
 
     @Test
     public void canListenOnStdOutput() {
+        System.setProperty("keykey", "value");
         configurer.configure(LogLevel.INFO);
 
         logger.debug("debug message");
@@ -60,10 +61,24 @@ public class DefaultLoggingConfigurerTest {
         logger.error("error message");
 
         assertThat(outputListener.toString(), equalTo(String.format("info message%nwarn message%n")));
+
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        lc.reset();
+
+        DefaultLoggingConfigurer configurer = new DefaultLoggingConfigurer();
+
+        ListenerManager listenerManager = new DefaultListenerManager();
+        configurer.initialize(listenerManager);
+        configurer.addStandardOutputListener(outputListener);
+        configurer.addStandardErrorListener(errorListener);
+
+        configurer.configure(LogLevel.INFO);
+        logger.info("hihihi");
     }
 
     @Test
     public void canListenOnStdError() {
+        System.out.println("System.getProperty(\"keykey\"); = " + System.getProperty("keykey"));
         configurer.configure(LogLevel.INFO);
 
         logger.debug("debug message");
