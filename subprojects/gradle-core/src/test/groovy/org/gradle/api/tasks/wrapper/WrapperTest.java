@@ -97,7 +97,7 @@ public class WrapperTest extends AbstractTaskTest {
 
     @Test
     public void testWrapper() {
-        wrapper = new Wrapper(getProject(), AbstractTaskTest.TEST_TASK_NAME);
+        wrapper = new Wrapper();
         assertEquals("", wrapper.getJarPath());
         assertEquals("", wrapper.getScriptDestinationPath());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getDistributionPath());

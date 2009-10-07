@@ -42,10 +42,6 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
             return null;
         }
 
-        public Transformer<Object> getTaskDependency() {
-            return null;
-        }
-
         public Transformer<Object> getInputFiles() {
             return null;
         }

@@ -48,10 +48,6 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
             return null;
         }
 
-        public Transformer<Object> getTaskDependency() {
-            return null;
-        }
-
         public Transformer<Object> getInputFiles() {
             return null;
         }

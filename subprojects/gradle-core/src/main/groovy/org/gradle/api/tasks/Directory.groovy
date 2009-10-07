@@ -16,10 +16,8 @@
  
 package org.gradle.api.tasks
 
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 
 /**
  * @author Hans Dockter
@@ -27,8 +25,7 @@ import org.gradle.api.DefaultTask
 public class Directory extends DefaultTask {
     File dir
     
-    Directory(Project project, String name) {
-        super(project, name);
+    Directory() {
         if (new File(name).isAbsolute()) { throw new InvalidUserDataException('Path must not be absolute.')}
         dir = project.file(name)
     }

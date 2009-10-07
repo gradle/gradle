@@ -16,15 +16,10 @@
 package org.gradle.integtests;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
 
 public class TestTask extends DefaultTask {
     private String property;
     
-    public TestTask(Project project, String name) {
-        super(project, name);
-    }
-
     public String getProperty() {
         return property;
     }

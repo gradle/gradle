@@ -65,10 +65,6 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
                 return null;
             }
 
-            public Transformer<Object> getTaskDependency() {
-                return null;
-            }
-
             public Transformer<Object> getInputFiles() {
                 return new Transformer<Object>() {
                     public Object transform(Object original) {

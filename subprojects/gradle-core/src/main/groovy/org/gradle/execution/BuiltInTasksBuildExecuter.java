@@ -25,6 +25,7 @@ import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 
 import java.util.Collections;
+import java.util.concurrent.Callable;
 
 /**
  * A {@link BuildExecuter} which executes the built-in tasks which are executable from the command-line.
@@ -74,8 +75,11 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
 
     public void select(GradleInternal gradle) {
         this.gradle = gradle;
-        AbstractTask.injectIntoNextInstance(gradle.getDefaultProject(), "reportTask");
-        task = options.createTask();
+        task = AbstractTask.injectIntoNewInstance(gradle.getDefaultProject(), "reportTask", new Callable<AbstractReportTask>() {
+            public AbstractReportTask call() throws Exception {
+                return options.createTask();
+            }
+        });
         task.setProject(gradle.getDefaultProject());
         task.doFirst(new TaskAction() {
             public void execute(Task x) {

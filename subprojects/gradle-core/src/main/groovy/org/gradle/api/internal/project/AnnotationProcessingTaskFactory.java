@@ -17,10 +17,8 @@ package org.gradle.api.internal.project;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.ReflectionUtil;
 
 import java.lang.annotation.Annotation;
@@ -32,7 +30,6 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
-    public static String DEPENDENCY_AUTO_WIRE = "dependencyAutoWire";
     private final ITaskFactory taskFactory;
     private final Map<Class, List<Action<Task>>> actionsForType = new HashMap<Class, List<Action<Task>>>();
     private final List<? extends PropertyAnnotationHandler> handlers = Arrays.asList(
@@ -52,7 +49,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         this.taskFactory = taskFactory;
     }
 
-    public Task createTask(Project project, Map args) {
+    public Task createTask(Project project, Map<String, ?> args) {
         Task task = taskFactory.createTask(project, args);
 
         Class<? extends Task> type = task.getClass();
@@ -62,22 +59,16 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             actionsForType.put(type, actions);
         }
 
-        boolean autoWire = get(args, DEPENDENCY_AUTO_WIRE);
 
         for (Action<Task> action : actions) {
             task.doFirst(action);
-            if (autoWire && action instanceof Validator) {
+            if (action instanceof Validator) {
                 Validator validator = (Validator) action;
-                validator.addDependencies(task);
+                validator.addInputsAndOutputs(task);
             }
         }
 
         return task;
-    }
-
-    private boolean get(Map args, String key) {
-        Object value = args.get(key);
-        return value == null ? true : Boolean.valueOf(value.toString());
     }
 
     private List<Action<Task>> createActionsForType(Class<? extends Task> type) {
@@ -178,24 +169,8 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private static class Validator implements Action<Task> {
         private Set<PropertyInfo> properties = new LinkedHashSet<PropertyInfo>();
 
-        public void addDependencies(final Task task) {
+        public void addInputsAndOutputs(final Task task) {
             for (final PropertyInfo property : properties) {
-                final Transformer<Object> depTransformer = property.actions.getTaskDependency();
-                if (depTransformer != null) {
-                    task.dependsOn(new TaskDependency() {
-                        public Set<? extends Task> getDependencies(Task task) {
-                            Object value = ReflectionUtil.invoke(task, property.method.getName(), new Object[0]);
-                            if (value != null) {
-                                value = depTransformer.transform(value);
-                            }
-                            DefaultTaskDependency dependency = new DefaultTaskDependency();
-                            if (value != null) {
-                                dependency.add(value);
-                            }
-                            return dependency.getDependencies(task);
-                        }
-                    });
-                }
                 final Transformer<Object> inputFilesTransformer = property.actions.getInputFiles();
                 if (inputFilesTransformer != null) {
                     task.getInputs().inputFiles(new Callable() {

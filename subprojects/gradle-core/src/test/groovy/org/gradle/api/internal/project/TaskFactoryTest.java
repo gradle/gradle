@@ -96,14 +96,6 @@ public class TaskFactoryTest {
     }
 
     @Test
-    public void testCreateTaskOfTypeWithProjectAndNameCustructor() {
-        Task task = checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestDefaultTaskWithConstructor.class)));
-        assertThat(task.getProject(), sameInstance((Project) testProject));
-        assertThat(task.getName(), equalTo("task"));
-        assertTrue(TestDefaultTaskWithConstructor.class.isAssignableFrom(task.getClass()));
-    }
-
-    @Test
     public void testAppliesConventionMappingToEachGetter() {
         TestConventionTask task = (TestConventionTask) checkTask(taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, TestConventionTask.class)));
 
@@ -156,7 +148,7 @@ public class TaskFactoryTest {
             fail();
         } catch (GradleException e) {
             assertEquals(
-                    "Cannot create task of type 'MissingConstructorTask' as it does not have an appropriate public constructor.",
+                    "Cannot create task of type 'MissingConstructorTask' as it does not have a public no-args constructor.",
                     e.getMessage());
         }
     }
@@ -200,12 +192,6 @@ public class TaskFactoryTest {
     public static class TestDefaultTask extends DefaultTask {
     }
 
-    public static class TestDefaultTaskWithConstructor extends DefaultTask {
-        public TestDefaultTaskWithConstructor(Project project, String name) {
-            super(project, name);
-        }
-    }
-
     public static class TestConventionTask extends ConventionTask {
         private String property;
 
@@ -227,8 +213,7 @@ public class TaskFactoryTest {
     }
 
     public static class CannotConstructTask extends DefaultTask {
-        public CannotConstructTask(Project project, String name) {
-            super(project, name);
+        public CannotConstructTask() {
             throw new RuntimeException("fail");
         }
     }

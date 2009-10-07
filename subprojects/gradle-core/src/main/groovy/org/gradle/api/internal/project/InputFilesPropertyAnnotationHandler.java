@@ -32,14 +32,6 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
             }
         }
     };
-    private final Transformer<Object> dependencyTransformer = new Transformer<Object>() {
-        public Object transform(Object value) {
-            if (value instanceof FileCollection) {
-                return value;
-            }
-            return null;
-        }
-    };
 
     public Class<? extends Annotation> getAnnotationType() {
         return InputFiles.class;
@@ -58,10 +50,6 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
 
             public ValidationAction getSkipAction() {
                 return finalSkipAction;
-            }
-
-            public Transformer<Object> getTaskDependency() {
-                return dependencyTransformer;
             }
 
             public Transformer<Object> getInputFiles() {

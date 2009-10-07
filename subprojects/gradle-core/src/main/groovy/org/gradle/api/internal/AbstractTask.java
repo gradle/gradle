@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * @author Hans Dockter
@@ -90,9 +91,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this(taskInfo.project, taskInfo.name);
     }
 
-    @Deprecated
-    protected AbstractTask(Project project, String name) {
-        nextInstance.set(null);
+    private AbstractTask(Project project, String name) {
         this.project = (ProjectInternal) project;
         this.name = name;
         path = project == null ? null : project.absolutePath(name);
@@ -103,10 +102,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         inputs = new DefaultTaskInputs(this.project == null ? null : this.project.getFileResolver());
     }
 
-    public static void injectIntoNextInstance(Project project, String name) {
-        if (project != null || name != null) {
-            nextInstance.set(new TaskInfo(project, name));
-        } else {
+    public static <T extends Task> T injectIntoNewInstance(Project project, String name, Callable<T> factory) {
+        nextInstance.set(new TaskInfo(project, name));
+        try {
+            try {
+                return factory.call();
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } finally {
             nextInstance.set(null);
         }
     }

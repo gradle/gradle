@@ -21,6 +21,8 @@ import org.gradle.api.internal.AbstractTask
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
+import org.gradle.api.GradleException
 
 /**
  * @author Hans Dockter
@@ -36,7 +38,7 @@ class DirectoryTest extends AbstractTaskTest {
 
     @Before public void setUp() {
         super.setUp()
-        directoryForAbstractTest = new Directory(project, AbstractTaskTest.TEST_TASK_NAME)
+        directoryForAbstractTest = createTask(Directory.class)
         directory = createTask(Directory.class, project, TASK_DIR_NAME)
     }
 
@@ -44,8 +46,13 @@ class DirectoryTest extends AbstractTaskTest {
         assertEquals(new File(project.projectDir, TASK_DIR_NAME).absoluteFile, directory.dir)
     }
 
-    @Test (expected = InvalidUserDataException) public void testInitWithAbsolutePathName() {
-        directory = new Directory(project, new File('nonRelative').absolutePath)
+    @Test public void testInitWithAbsolutePathName() {
+        try {
+            createTask(Directory.class, project, new File('nonRelative').absolutePath)
+            fail()
+        } catch (GradleException e) {
+            assertThat(e.cause, instanceOf(InvalidUserDataException.class))
+        }
     }
 
     @Test public void testExecute() {
@@ -67,7 +74,7 @@ class DirectoryTest extends AbstractTaskTest {
     @Test (expected = InvalidUserDataException) public void testWithExistingFile() {
         File file = new File(project.projectDir, 'testname')
         file.createNewFile()
-        directory = new Directory(project, 'testname')
+        directory = createTask(Directory.class, project, 'testname')
         directory.mkdir()
     }
 }

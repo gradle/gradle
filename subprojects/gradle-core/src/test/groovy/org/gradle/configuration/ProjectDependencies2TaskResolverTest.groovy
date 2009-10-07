@@ -18,6 +18,7 @@ package org.gradle.configuration
 
 import org.gradle.util.HelperUtil
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Test
 import org.gradle.api.Task
@@ -44,6 +45,6 @@ class ProjectDependencies2TaskResolverTest {
     @Test public void testResolve() {
         child.dependsOn(root.path, false)
         resolver.resolve(root)
-        assertEquals([rootTask] as Set, childTask.dependsOn)
+        assertThat(childTask.taskDependencies.getDependencies(childTask), equalTo([rootTask] as Set))
     }
 }

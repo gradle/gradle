@@ -54,12 +54,6 @@ public interface PropertyAnnotationHandler {
         ValidationAction getSkipAction();
 
         /**
-         * Returns the transformer used to create the dependency which must be added to the task based on the value of
-         * this property. May return null. The transformer is passed the value of this property.
-         */
-        Transformer<Object> getTaskDependency();
-
-        /**
          * Returns the transformer used to determine the input files of the task based on the value of this property.
          * May return null. The transformer is passed the value of this property.
          */

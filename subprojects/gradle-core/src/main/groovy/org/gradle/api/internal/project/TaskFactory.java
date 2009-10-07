@@ -23,8 +23,9 @@ import org.gradle.util.GUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * @author Hans Dockter
@@ -37,28 +38,28 @@ public class TaskFactory implements ITaskFactory {
         this.generator = generator;
     }
 
-    public Task createTask(Project project, Map args) {
-        args = new HashMap<String, Object>(args);
-        checkTaskArgsAndCreateDefaultValues(args);
+    public Task createTask(Project project, Map<String, ?> args) {
+        Map<String, Object> actualArgs = new HashMap<String, Object>(args);
+        checkTaskArgsAndCreateDefaultValues(actualArgs);
 
-        String name = args.get(Task.TASK_NAME).toString();
+        String name = actualArgs.get(Task.TASK_NAME).toString();
         if (!GUtil.isTrue(name)) {
             throw new InvalidUserDataException("The task name must be provided.");
         }
 
-        Class type = (Class) args.get(Task.TASK_TYPE);
-        Boolean generateSubclass = Boolean.valueOf(args.get(GENERATE_SUBCLASS).toString());
+        Class<? extends Task> type = (Class) actualArgs.get(Task.TASK_TYPE);
+        Boolean generateSubclass = Boolean.valueOf(actualArgs.get(GENERATE_SUBCLASS).toString());
         Task task = createTaskObject(project, type, name, generateSubclass);
 
-        Object dependsOnTasks = args.get(Task.TASK_DEPENDS_ON);
+        Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
         if (dependsOnTasks != null) {
             task.dependsOn(dependsOnTasks);
         }
-        Object description = args.get(Task.TASK_DESCRIPTION);
+        Object description = actualArgs.get(Task.TASK_DESCRIPTION);
         if (description != null) {
             task.setDescription(description.toString());
         }
-        Object action = args.get(Task.TASK_ACTION);
+        Object action = actualArgs.get(Task.TASK_ACTION);
         if (action instanceof TaskAction) {
             TaskAction taskAction = (TaskAction) action;
             task.doFirst(taskAction);
@@ -70,7 +71,7 @@ public class TaskFactory implements ITaskFactory {
         return task;
     }
 
-    private Task createTaskObject(Project project, Class<? extends Task> type, String name, boolean generateGetters) {
+    private Task createTaskObject(Project project, final Class<? extends Task> type, String name, boolean generateGetters) {
         if (!Task.class.isAssignableFrom(type)) {
             throw new GradleException(String.format(
                     "Cannot create task of type '%s' as it does not implement the Task interface.",
@@ -84,38 +85,30 @@ public class TaskFactory implements ITaskFactory {
             generatedType = type;
         }
 
-        Constructor<? extends Task> constructor = null;
-        Object[] params = null;
+        final Constructor<? extends Task> constructor;
+        final Object[] params;
         try {
             constructor = generatedType.getDeclaredConstructor();
             params = new Object[0];
         } catch (NoSuchMethodException e) {
             // Ignore
-        }
-        try {
-            constructor = generatedType.getDeclaredConstructor(Project.class, String.class);
-            params = new Object[]{project, name};
-        } catch (NoSuchMethodException e) {
-            // Ignore
-        }
-        if (constructor == null) {
             throw new GradleException(String.format(
-                    "Cannot create task of type '%s' as it does not have an appropriate public constructor.",
+                    "Cannot create task of type '%s' as it does not have a public no-args constructor.",
                     type.getSimpleName()));
         }
 
-        AbstractTask.injectIntoNextInstance(project, name);
-        try {
-            return constructor.newInstance(params);
-        } catch (InvocationTargetException e) {
-            throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()),
-                    e.getCause());
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()), e);
-        }
-        finally {
-            AbstractTask.injectIntoNextInstance(null, null);
-        }
+        return AbstractTask.injectIntoNewInstance(project, name, new Callable<Task>() {
+            public Task call() throws Exception {
+                try {
+                    return constructor.newInstance(params);
+                } catch (InvocationTargetException e) {
+                    throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()),
+                            e.getCause());
+                } catch (Exception e) {
+                    throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()), e);
+                }
+            }
+        });
     }
 
     private void checkTaskArgsAndCreateDefaultValues(Map<String, Object> args) {

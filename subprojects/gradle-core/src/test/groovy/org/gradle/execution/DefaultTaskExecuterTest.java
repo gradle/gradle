@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import static org.gradle.util.HelperUtil.*;
@@ -37,6 +38,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * @author Hans Dockter
@@ -371,7 +373,11 @@ public class DefaultTaskExecuterTest {
     }
     
     private Task createTask(String name, final Task... dependsOn) {
-        final TaskInternal task = new DefaultTask(root, name);
+        final TaskInternal task = AbstractTask.injectIntoNewInstance(root, name, new Callable<TaskInternal>() {
+            public TaskInternal call() throws Exception {
+                return new DefaultTask();
+            }
+        });
         task.dependsOn((Object[]) dependsOn);
         task.doFirst(new TaskAction() {
             public void execute(Task task) {

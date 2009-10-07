@@ -32,17 +32,20 @@ import org.gradle.test.util.Check;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
-import org.gradle.util.WrapUtil;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
-import org.junit.*;
+import org.junit.Before;
 import org.junit.Rule;
+import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -75,8 +78,7 @@ public abstract class AbstractTaskTest {
     public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
         Task task = taskFactory.createTask(project,
                 GUtil.map(Task.TASK_TYPE, type,
-                        Task.TASK_NAME, name,
-                        AnnotationProcessingTaskFactory.DEPENDENCY_AUTO_WIRE, false));
+                        Task.TASK_NAME, name));
         assertTrue(type.isAssignableFrom(task.getClass()));
         return type.cast(task);
     }
@@ -472,23 +474,22 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDependentTaskDidWork() {
-        AbstractProject project = HelperUtil.createRootProject();
-
-        final Set<Task> depTasks = new HashSet<Task>();
+        final Task task1 = context.mock(Task.class, "task1");
+        final Task task2 = context.mock(Task.class, "task2");
         final TaskDependency dependencyMock = context.mock(TaskDependency.class);
         getTask().dependsOn(dependencyMock);
         context.checking(new Expectations() {{
-            allowing(dependencyMock).getDependencies(getTask()); will(returnValue(depTasks));
+            allowing(dependencyMock).getDependencies(getTask()); will(returnValue(WrapUtil.toSet(task1, task2)));
+
+            exactly(2).of(task1).getDidWork();
+            will(returnValue(false));
+
+            exactly(2).of(task2).getDidWork();
+            will(onConsecutiveCalls(returnValue(false), returnValue(true)));
         }});
 
-        DefaultTask task1 = new DefaultTask(project, "task1");
-        DefaultTask task2 = new DefaultTask(project, "task2");
-
-        depTasks.add(task1);
-        depTasks.add(task2);
         assertFalse(getTask().dependsOnTaskDidWork());
 
-        task2.setDidWork(true);
         assertTrue(getTask().dependsOnTaskDidWork());
     }
 }

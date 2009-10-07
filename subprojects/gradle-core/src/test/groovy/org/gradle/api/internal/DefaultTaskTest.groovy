@@ -24,6 +24,7 @@ import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import java.util.concurrent.Callable
 
 /**
  * @author Hans Dockter
@@ -53,8 +54,8 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test public void testCanConstructUsingNoArgsConstructor() {
-        AbstractTask.injectIntoNextInstance(project, TEST_TASK_NAME)
-        DefaultTask task = new DefaultTask()
+
+        DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, { new DefaultTask()} as Callable)
         assertThat(task.project, sameInstance(project))
         assertThat(task.name, equalTo(TEST_TASK_NAME))
     }

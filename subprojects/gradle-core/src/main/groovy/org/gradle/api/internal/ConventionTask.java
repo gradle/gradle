@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.ConventionValue;
 
@@ -28,12 +27,6 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
     private ConventionMapping conventionMapping;
 
     protected ConventionTask() {
-        conventionMapping = new ConventionAwareHelper(this, getProject().getConvention());
-    }
-
-    @Deprecated
-    protected ConventionTask(Project project, String name) {
-        super(project, name);
         conventionMapping = new ConventionAwareHelper(this, getProject().getConvention());
     }
 

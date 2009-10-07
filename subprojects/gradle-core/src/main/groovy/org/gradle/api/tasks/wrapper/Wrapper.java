@@ -80,8 +80,7 @@ public class Wrapper extends DefaultTask {
 
     private WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator();
 
-    public Wrapper(Project project, String name) {
-        super(project, name);
+    public Wrapper() {
         scriptDestinationPath = "";
         jarPath = "";
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;

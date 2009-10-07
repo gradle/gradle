@@ -37,7 +37,10 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
         add(DependencyFactory.class, dependencyFactory);
         add(ProjectEvaluator.class, projectEvaluator);
         add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
-        add(ITaskFactory.class, new AnnotationProcessingTaskFactory(new TaskFactory(classGenerator)));
+        add(ITaskFactory.class, new DependencyAutoWireTaskFactory(
+                new AnnotationProcessingTaskFactory(
+                        new TaskFactory(
+                                classGenerator))));
         add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
     }
 

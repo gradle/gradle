@@ -21,7 +21,7 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.WrapUtil;
+import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -44,7 +44,6 @@ public class ProjectReportsPluginTest {
     public void addsTasksToProject() {
         plugin.use(project, project.getPlugins());
 
-
         Task task = project.getTasks().getByName(ProjectReportsPlugin.TASK_REPORT);
         assertThat(task, instanceOf(TaskReportTask.class));
         assertThat(task.property("outputFile"), equalTo((Object) new File(project.getBuildDir(), "reports/project/tasks.txt")));
@@ -58,6 +57,6 @@ public class ProjectReportsPluginTest {
         assertThat(task.property("outputFile"), equalTo((Object) new File(project.getBuildDir(), "reports/project/dependencies.txt")));
 
         task = project.getTasks().getByName(ProjectReportsPlugin.PROJECT_REPORT);
-        assertThat(task.getDependsOn(), equalTo(WrapUtil.toSet((Object) ProjectReportsPlugin.TASK_REPORT, ProjectReportsPlugin.PROPERTY_REPORT, ProjectReportsPlugin.DEPENDENCY_REPORT)));
+        assertThat(task, dependsOn(ProjectReportsPlugin.TASK_REPORT, ProjectReportsPlugin.PROPERTY_REPORT, ProjectReportsPlugin.DEPENDENCY_REPORT));
     }
 }
