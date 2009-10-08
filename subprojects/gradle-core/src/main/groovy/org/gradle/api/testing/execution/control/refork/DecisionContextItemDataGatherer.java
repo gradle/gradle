@@ -20,8 +20,8 @@ import java.util.List;
 /**
  * A decision context item data gatherer operates within the test fork process.
  * <p/>
- * The test fork will call {@see processDataGatherMoment} for each data gather moment returned by
- * {@see getDataGatherMoments}.
+ * The test fork will call {@link #processDataGatherMoment} for each data gather moment returned by
+ * {@link #getDataGatherMoments}.
  *
  * @author Tom Eyckmans
  */
@@ -45,7 +45,7 @@ public interface DecisionContextItemDataGatherer {
     List<DataGatherMoment> getDataGatherMoments();
 
     /**
-     * Called for each data gather moment specified by {@see getDataGatherMoments}.
+     * Called for each data gather moment specified by {@link #getDataGatherMoments}.
      *
      * @param currentMoment The current data gather moment.
      * @param momentData    Variable size array of Objects, the amount of data depends on the data gather moment.
