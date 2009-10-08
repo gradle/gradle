@@ -37,7 +37,7 @@ import static org.junit.Assert.*
 @RunWith (org.jmock.integration.junit4.JMock)
 class BuildSourceBuilderTest {
     BuildSourceBuilder buildSourceBuilder
-    GradleFactory gradleFactoryMock
+    GradleLauncherFactory gradleFactoryMock
     GradleLauncher gradleMock
     Project rootProjectMock
     Configuration configurationMock
@@ -57,7 +57,7 @@ class BuildSourceBuilderTest {
         File testDir = tmpDir.dir
         (rootDir = new File(testDir, 'root')).mkdir()
         (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
-        gradleFactoryMock = context.mock(GradleFactory)
+        gradleFactoryMock = context.mock(GradleLauncherFactory)
         gradleMock = context.mock(GradleLauncher)
         rootProjectMock = context.mock(Project)
         configurationContainerStub = context.mock(ConfigurationContainer)
@@ -83,7 +83,7 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testBuildSourceBuilder() {
-        assert buildSourceBuilder.gradleFactory.is(gradleFactoryMock)
+        assert buildSourceBuilder.gradleLauncherFactory.is(gradleFactoryMock)
     }
 
     @Test public void testBuildArtifactFile() {

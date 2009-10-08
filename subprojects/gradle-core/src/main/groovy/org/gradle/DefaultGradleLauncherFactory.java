@@ -48,11 +48,21 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultGradleLauncherFactory implements GradleFactory {
+public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
+    private LoggingConfigurer loggingConfigurer;
     private CommandLine2StartParameterConverter commandLine2StartParameterConverter;
 
-    public DefaultGradleLauncherFactory(CommandLine2StartParameterConverter commandLine2StartParameterConverter) {
+    public DefaultGradleLauncherFactory(LoggingConfigurer loggingConfigurer, CommandLine2StartParameterConverter commandLine2StartParameterConverter) {
+        this.loggingConfigurer = loggingConfigurer;
         this.commandLine2StartParameterConverter = commandLine2StartParameterConverter;
+    }
+
+    public LoggingConfigurer getLoggingConfigurer() {
+        return loggingConfigurer;
+    }
+
+    public void setLoggingConfigurer(LoggingConfigurer loggingConfigurer) {
+        this.loggingConfigurer = loggingConfigurer;
     }
 
     public StartParameter createStartParameter(String[] commandLineArgs) {
@@ -70,7 +80,6 @@ public class DefaultGradleLauncherFactory implements GradleFactory {
         // always be closed. But as we expose this functionality to the builds, we can't
         // guarantee this.
         StandardOutputLogging.off();
-        LoggingConfigurer loggingConfigurer = new DefaultLoggingConfigurer();
         ListenerManager listenerManager = new DefaultListenerManager();
         loggingConfigurer.initialize(listenerManager);
         loggingConfigurer.configure(startParameter.getLogLevel());
@@ -145,6 +154,7 @@ public class DefaultGradleLauncherFactory implements GradleFactory {
                         ),
                         new BuildSourceBuilder(
                                 new DefaultGradleLauncherFactory(
+                                        loggingConfigurer,
                                         commandLine2StartParameterConverter),
                                 new DefaultCacheInvalidationStrategy()
                         )),

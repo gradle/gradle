@@ -21,7 +21,7 @@ package org.gradle;
  *
  * @author Hans Dockter
  */
-public interface GradleFactory {
+public interface GradleLauncherFactory {
     /**
      * Creates a new {@link GradleLauncher} instance for the given parameters.
      *

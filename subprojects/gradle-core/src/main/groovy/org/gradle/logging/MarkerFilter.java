@@ -18,7 +18,6 @@ package org.gradle.logging;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
-import org.gradle.api.logging.Logging;
 import org.slf4j.Marker;
 
 import java.util.Arrays;
@@ -45,7 +44,7 @@ public class MarkerFilter extends Filter {
     public FilterReply decide(Object event) {
         LoggingEvent loggingEvent = (LoggingEvent) event;
         Marker marker = loggingEvent.getMarker();
-        if (markers.contains(marker) && !marker.contains(Logging.DISABLED)) {
+        if (markers.contains(marker)) {
             return FilterReply.ACCEPT;
         } else {
             return onMismatch;

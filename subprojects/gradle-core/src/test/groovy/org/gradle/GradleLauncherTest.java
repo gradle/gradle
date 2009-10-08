@@ -281,6 +281,7 @@ public class GradleLauncherTest {
                 one(settingsHandlerMock).findAndLoadSettings(gradleMock, gradlePropertiesLoaderMock);
                 will(returnValue(settingsMock));
                 one(buildBroadcaster).settingsEvaluated(settingsMock);
+                one(loggingConfigurerMock).configure(expectedStartParams.getLogLevel());
             }
         });
     }

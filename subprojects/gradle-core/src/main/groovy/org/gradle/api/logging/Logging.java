@@ -16,7 +16,6 @@
 package org.gradle.api.logging;
 
 import org.apache.ivy.util.Message;
-import org.slf4j.helpers.BasicMarker;
 import org.slf4j.MarkerFactory;
 import org.slf4j.Marker;
 import org.slf4j.LoggerFactory;
@@ -31,8 +30,7 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class Logging {
-    public static final BasicMarker LIFECYCLE = (BasicMarker) MarkerFactory.getDetachedMarker("LIFECYCLE");
-    public static final Marker DISABLED = MarkerFactory.getDetachedMarker("DISABLED");
+    public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");
     public static final Marker PROGRESS = MarkerFactory.getDetachedMarker("PROGRESS");
     public static final Marker QUIET = MarkerFactory.getDetachedMarker("QUIET");
 

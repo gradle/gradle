@@ -56,23 +56,30 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
     }
 
     public void configure(LogLevel logLevel) {
-        if (applied) {
-            return;
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ch.qos.logback.classic.Logger rootLogger;
+        if (!applied) {
+            SLF4JBridgeHandler.install();
+            lc.reset();
+            stderrConsoleAppender.setContext(lc);
+            stderrConsoleAppender.setTarget("System.err");
+            stdoutConsoleAppender.setContext(lc);
+            rootLogger = lc.getLogger("ROOT");
+            rootLogger.addAppender(stdoutConsoleAppender);
+            rootLogger.addAppender(stderrConsoleAppender);
+            Message.setDefaultLogger(new IvyLoggingAdaper());
+        } else {
+            rootLogger = lc.getLogger("ROOT");
         }
 
         applied = true;
+        stderrConsoleAppender.stop();
+        stdoutConsoleAppender.stop();
+        stderrConsoleAppender.clearAllFilters();
+        stdoutConsoleAppender.clearAllFilters();
 
-        SLF4JBridgeHandler.install();
-
-        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        lc.reset();
-        ch.qos.logback.classic.Logger rootLogger = lc.getLogger("ROOT");
-
-        stderrConsoleAppender.setContext(lc);
-        stderrConsoleAppender.setTarget("System.err");
         stderrConsoleAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.ACCEPT, FilterReply.DENY));
         Level level = Level.INFO;
-        stdoutConsoleAppender.setContext(lc);
 
         setLayouts(logLevel, stderrConsoleAppender, stdoutConsoleAppender, lc);
 
@@ -97,12 +104,9 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
             }
             stdoutConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.DENY));
         }
-        rootLogger.addAppender(stdoutConsoleAppender);
-        stdoutConsoleAppender.start();
-        rootLogger.addAppender(stderrConsoleAppender);
-        stderrConsoleAppender.start();
-        Message.setDefaultLogger(new IvyLoggingAdaper());
         rootLogger.setLevel(level);
+        stdoutConsoleAppender.start();
+        stderrConsoleAppender.start();
     }
 
     private void setLayouts(LogLevel logLevel, ConsoleAppender errorConsoleAppender,

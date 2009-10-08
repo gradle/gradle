@@ -61,19 +61,6 @@ public class DefaultLoggingConfigurerTest {
         logger.error("error message");
 
         assertThat(outputListener.toString(), equalTo(String.format("info message%nwarn message%n")));
-
-        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        lc.reset();
-
-        DefaultLoggingConfigurer configurer = new DefaultLoggingConfigurer();
-
-        ListenerManager listenerManager = new DefaultListenerManager();
-        configurer.initialize(listenerManager);
-        configurer.addStandardOutputListener(outputListener);
-        configurer.addStandardErrorListener(errorListener);
-
-        configurer.configure(LogLevel.INFO);
-        logger.info("hihihi");
     }
 
     @Test

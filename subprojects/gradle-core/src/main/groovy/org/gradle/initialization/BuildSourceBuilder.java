@@ -21,7 +21,6 @@ import org.gradle.*;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.util.GUtil;
@@ -47,13 +46,13 @@ public class BuildSourceBuilder {
     public static final String BUILD_SRC_REVISION = "SNAPSHOT";
     public static final String BUILD_SRC_TYPE = "jar";
 
-    private GradleFactory gradleFactory;
+    private GradleLauncherFactory gradleLauncherFactory;
     private CacheInvalidationStrategy cacheInvalidationStrategy;
 
     private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
-    public BuildSourceBuilder(GradleFactory gradleFactory, CacheInvalidationStrategy cacheInvalidationStrategy) {
-        this.gradleFactory = gradleFactory;
+    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, CacheInvalidationStrategy cacheInvalidationStrategy) {
+        this.gradleLauncherFactory = gradleLauncherFactory;
         this.cacheInvalidationStrategy = cacheInvalidationStrategy;
     }
 
@@ -85,49 +84,43 @@ public class BuildSourceBuilder {
             return new HashSet<File>();
         }
         logger.info("================================================" + " Start building buildSrc");
-        try {
-            Logging.LIFECYCLE.add(Logging.DISABLED);
+        StartParameter startParameterArg = startParameter.newInstance();
+        startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
+        startParameterArg.setSearchUpwards(false);
+        startParameterArg.setTaskNames(WrapUtil.toList(BasePlugin.CLEAN_TASK_NAME, JavaPlugin.BUILD_TASK_NAME));
+        boolean executeBuild = true;
 
-            StartParameter startParameterArg = startParameter.newInstance();
-            startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
-            startParameterArg.setSearchUpwards(false);
-            startParameterArg.setTaskNames(WrapUtil.toList(BasePlugin.CLEAN_TASK_NAME, JavaPlugin.BUILD_TASK_NAME));
-            boolean executeBuild = true;
-
-            File artifactFile = buildArtifactFile(startParameter.getCurrentDir());
-            if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(artifactFile, startParameter.getCurrentDir())) {
-                executeBuild = false;
-            }
-
-            if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
-                logger.debug("Gradle script file does not exists. Using default one.");
-                startParameterArg.useEmbeddedBuildFile(getDefaultScript());
-            }
-//            if (true) return new HashSet<File>();
-            GradleLauncher gradleLauncher = gradleFactory.newInstance(startParameterArg);
-            BuildResult buildResult;
-            if (executeBuild) {
-                buildResult = gradleLauncher.run();
-            } else {
-                buildResult = gradleLauncher.getBuildAnalysis();
-            }
-            buildResult.rethrowFailure();
-
-            Set<File> buildSourceClasspath = new LinkedHashSet<File>();
-            if (artifactFile.exists()) {
-                buildSourceClasspath.add(artifactFile);
-            } else {
-                logger.info("Building buildSrc has not produced any artifacts.");
-            }
-            Configuration runtimeConfiguration = buildResult.getGradle().getRootProject().getConfigurations().getByName(
-                    JavaPlugin.RUNTIME_CONFIGURATION_NAME);
-            buildSourceClasspath.addAll(runtimeConfiguration.getFiles());
-            logger.debug("Gradle source classpath is: {}", buildSourceClasspath);
-            logger.info("================================================" + " Finished building buildSrc");
-            return buildSourceClasspath;
-        } finally {
-            Logging.LIFECYCLE.remove(Logging.DISABLED);
+        File artifactFile = buildArtifactFile(startParameter.getCurrentDir());
+        if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(artifactFile, startParameter.getCurrentDir())) {
+            executeBuild = false;
         }
+
+        if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
+            logger.debug("Gradle script file does not exists. Using default one.");
+            startParameterArg.useEmbeddedBuildFile(getDefaultScript());
+        }
+
+        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameterArg);
+        BuildResult buildResult;
+        if (executeBuild) {
+            buildResult = gradleLauncher.run();
+        } else {
+            buildResult = gradleLauncher.getBuildAnalysis();
+        }
+        buildResult.rethrowFailure();
+
+        Set<File> buildSourceClasspath = new LinkedHashSet<File>();
+        if (artifactFile.exists()) {
+            buildSourceClasspath.add(artifactFile);
+        } else {
+            logger.info("Building buildSrc has not produced any artifacts.");
+        }
+        Configuration runtimeConfiguration = buildResult.getGradle().getRootProject().getConfigurations().getByName(
+                JavaPlugin.RUNTIME_CONFIGURATION_NAME);
+        buildSourceClasspath.addAll(runtimeConfiguration.getFiles());
+        logger.debug("Gradle source classpath is: {}", buildSourceClasspath);
+        logger.info("================================================" + " Finished building buildSrc");
+        return buildSourceClasspath;
     }
 
     static String getDefaultScript() {
@@ -149,11 +142,11 @@ public class BuildSourceBuilder {
                 "type", BUILD_SRC_TYPE);
     }
 
-    public GradleFactory getGradleFactory() {
-        return gradleFactory;
+    public GradleLauncherFactory getGradleLauncherFactory() {
+        return gradleLauncherFactory;
     }
 
-    public void setGradleFactory(GradleFactory gradleFactory) {
-        this.gradleFactory = gradleFactory;
+    public void setGradleLauncherFactory(GradleLauncherFactory gradleLauncherFactory) {
+        this.gradleLauncherFactory = gradleLauncherFactory;
     }
 }

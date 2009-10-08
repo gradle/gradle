@@ -38,11 +38,11 @@ public class MainTest {
 
     private void setUpGradle(final BuildResult buildResult, final StartParameter startParameter) {
         final GradleLauncher gradleMockLauncher = context.mock(GradleLauncher.class);
-        final GradleFactory gradleFactoryMock = context.mock(GradleFactory.class);
+        final GradleLauncherFactory gradleLauncherFactoryMock = context.mock(GradleLauncherFactory.class);
 
-        GradleLauncher.injectCustomFactory(gradleFactoryMock);
+        GradleLauncher.injectCustomFactory(gradleLauncherFactoryMock);
         context.checking(new Expectations() {{
-            one(gradleFactoryMock).newInstance(startParameter); will(returnValue(gradleMockLauncher));
+            one(gradleLauncherFactoryMock).newInstance(startParameter); will(returnValue(gradleMockLauncher));
             allowing(gradleMockLauncher).addListener(with(any(BuildListener.class)));
             one(gradleMockLauncher).run(); will(returnValue(buildResult));
         }});
