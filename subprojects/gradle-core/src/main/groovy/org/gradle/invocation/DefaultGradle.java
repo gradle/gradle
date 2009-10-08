@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
@@ -45,7 +44,6 @@ public class DefaultGradle implements GradleInternal {
     private TaskExecuter taskGraph;
     private StartParameter startParameter;
     private ClassLoader buildScriptClassLoader;
-    private InternalRepository internalRepository;
     private StandardOutputRedirector standardOutputRedirector;
     private IProjectRegistry<ProjectInternal> projectRegistry;
     private PluginRegistry pluginRegistry;
@@ -53,21 +51,19 @@ public class DefaultGradle implements GradleInternal {
     private ScriptClassLoaderProvider scriptClassLoaderProvider;
     private final ListenerManager listenerManager;
     private final DefaultIsolatedAntBuilder isolatedAntBuilder = new DefaultIsolatedAntBuilder();
-    private final ServiceRegistryFactory serviceRegistryFactory;
+    private final ServiceRegistryFactory services;
 
-    public DefaultGradle(StartParameter startParameter, InternalRepository internalRepository,
-                         ServiceRegistryFactory parentRegistry,
+    public DefaultGradle(StartParameter startParameter, ServiceRegistryFactory parentRegistry,
                          ListenerManager listenerManager) {
         this.startParameter = startParameter;
-        this.serviceRegistryFactory = parentRegistry.createFor(this);
-        this.internalRepository = internalRepository;
         this.listenerManager = listenerManager;
-        this.standardOutputRedirector = serviceRegistryFactory.get(StandardOutputRedirector.class);
-        projectRegistry = serviceRegistryFactory.get(IProjectRegistry.class);
-        pluginRegistry = serviceRegistryFactory.get(PluginRegistry.class);
-        taskGraph = serviceRegistryFactory.get(TaskExecuter.class);
-        scriptHandler = serviceRegistryFactory.get(ScriptHandler.class);
-        scriptClassLoaderProvider = serviceRegistryFactory.get(ScriptClassLoaderProvider.class);
+        this.services = parentRegistry.createFor(this);
+        this.standardOutputRedirector = services.get(StandardOutputRedirector.class);
+        projectRegistry = services.get(IProjectRegistry.class);
+        pluginRegistry = services.get(PluginRegistry.class);
+        taskGraph = services.get(TaskExecuter.class);
+        scriptHandler = services.get(ScriptHandler.class);
+        scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
     }
 
     public String getGradleVersion() {
@@ -120,14 +116,6 @@ public class DefaultGradle implements GradleInternal {
 
     public void setBuildScriptClassLoader(ClassLoader buildScriptClassLoader) {
         this.buildScriptClassLoader = buildScriptClassLoader;
-    }
-
-    public InternalRepository getInternalRepository() {
-        return internalRepository;
-    }
-
-    public void setInternalRepository(InternalRepository internalRepository) {
-        this.internalRepository = internalRepository;
     }
 
     public PluginRegistry getPluginRegistry() {
@@ -207,6 +195,6 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public ServiceRegistryFactory getServiceRegistryFactory() {
-        return serviceRegistryFactory;
+        return services;
     }
 }

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -40,7 +41,8 @@ public class DefaultServiceRegistryFactoryTest {
     private final ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
 
     private final DefaultServiceRegistryFactory factory = new DefaultServiceRegistryFactory(repositoryHandlerFactory,
-            configurationContainerFactory, dependencyFactory, projectEvaluator, context.mock(ClassGenerator.class));
+            configurationContainerFactory, dependencyFactory, projectEvaluator, context.mock(ClassGenerator.class),
+            context.mock(ModuleDescriptorConverter.class));
 
     @Test
     public void throwsExceptionForUnknownService() {

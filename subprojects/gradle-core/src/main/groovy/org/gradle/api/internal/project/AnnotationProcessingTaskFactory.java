@@ -49,7 +49,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         this.taskFactory = taskFactory;
     }
 
-    public Task createTask(Project project, Map<String, ?> args) {
+    public Task createTask(ProjectInternal project, Map<String, ?> args) {
         Task task = taskFactory.createTask(project, args);
 
         Class<? extends Task> type = task.getClass();

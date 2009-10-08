@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectFactory;
@@ -103,7 +102,6 @@ public class DefaultGradleLauncherFactory implements GradleFactory {
                         new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
                 new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
                         new DefaultPublishOptionsFactory()));
-        DefaultInternalRepository internalRepository = new DefaultInternalRepository(listenerManager, moduleDescriptorConverter);
         DependencyFactory dependencyFactory = new DefaultDependencyFactory(
                 WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),
                         new SelfResolvingDependencyFactory()),
@@ -125,14 +123,14 @@ public class DefaultGradleLauncherFactory implements GradleFactory {
                 new DefaultRepositoryHandlerFactory(resolverFactory, classGenerator),
                 configurationContainerFactory,
                 dependencyFactory, projectEvaluator,
-                classGenerator);
+                classGenerator,
+                moduleDescriptorConverter);
         InitScriptHandler initScriptHandler = new InitScriptHandler(
                 new UserHomeInitScriptFinder(
                         new DefaultInitScriptFinder()),
                 new DefaultInitScriptProcessor(scriptCompilerFactory, importsReader));
         DefaultGradle gradle = new DefaultGradle(
                 startParameter,
-                internalRepository,
                 serviceRegistryFactory,
                 listenerManager);
         return new GradleLauncher(

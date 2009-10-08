@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Task;
-import org.gradle.api.Project;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -29,7 +28,7 @@ public class DependencyAutoWireTaskFactory implements ITaskFactory {
         this.taskFactory = taskFactory;
     }
 
-    public Task createTask(Project project, Map<String, ?> args) {
+    public Task createTask(ProjectInternal project, Map<String, ?> args) {
         Map<String, Object> actualArgs = new HashMap<String, Object>(args);
         boolean autoWire = get(actualArgs, DEPENDENCY_AUTO_WIRE);
 

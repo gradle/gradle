@@ -53,9 +53,8 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertEquals('task \':taskname\'', task.toString())
     }
 
-    @Test public void testCanConstructUsingNoArgsConstructor() {
-
-        DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, { new DefaultTask()} as Callable)
+    @Test public void testCanInjectValuesIntoTaskWhenUsingNoArgsConstructor() {
+        DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, { new DefaultTask() } as Callable)
         assertThat(task.project, sameInstance(project))
         assertThat(task.name, equalTo(TEST_TASK_NAME))
     }

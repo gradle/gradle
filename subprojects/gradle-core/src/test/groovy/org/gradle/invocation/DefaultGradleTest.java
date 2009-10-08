@@ -18,7 +18,6 @@ package org.gradle.invocation;
 
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
-import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
@@ -28,7 +27,7 @@ import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.TaskExecuter;
-import org.gradle.listener.DefaultListenerManager;
+import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
@@ -57,6 +56,7 @@ public class DefaultGradleTest {
     private final IProjectRegistry projectRegistry = context.mock(IProjectRegistry.class);
     private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
+    private final ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DefaultGradle gradle;
 
     @Before
@@ -77,7 +77,7 @@ public class DefaultGradleTest {
             allowing(gradleServiceRegistryMock).get(TaskExecuter.class);
             will(returnValue(taskExecuter));
         }});
-        gradle = new DefaultGradle(parameter, null, serviceRegistryFactoryMock, new DefaultListenerManager());
+        gradle = new DefaultGradle(parameter, serviceRegistryFactoryMock, listenerManager);
     }
 
     @Test
@@ -105,44 +105,37 @@ public class DefaultGradleTest {
 
     @Test
     public void broadcastsProjectEventsToListeners() {
-        final ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener.class);
-        final Project project = context.mock(Project.class);
-        final RuntimeException failure = new RuntimeException();
+        final ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener.class, "listener");
+        final ProjectEvaluationListener broadcaster = context.mock(ProjectEvaluationListener.class, "broadcaster");
         context.checking(new Expectations() {{
-            one(listener).beforeEvaluate(project);
-            one(listener).afterEvaluate(project, failure);
+            one(listenerManager).addListener(listener);
+            one(listenerManager).getBroadcaster(ProjectEvaluationListener.class);
+            will(returnValue(broadcaster));
         }});
 
         gradle.addListener(listener);
 
-        gradle.getProjectEvaluationBroadcaster().beforeEvaluate(project);
-        gradle.getProjectEvaluationBroadcaster().afterEvaluate(project, failure);
+        assertThat(gradle.getProjectEvaluationBroadcaster(), sameInstance(broadcaster));
     }
 
     @Test
     public void broadcastsBeforeProjectEvaluateEventsToClosures() {
-        final TestClosure closure = context.mock(TestClosure.class);
-        final Project project = context.mock(Project.class);
+        final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations(){{
-            one(closure).call(project);
+            one(listenerManager).addListener(ProjectEvaluationListener.class, "beforeEvaluate", closure);
         }});
 
-        gradle.beforeProject(HelperUtil.toClosure(closure));
-
-        gradle.getProjectEvaluationBroadcaster().beforeEvaluate(project);
+        gradle.beforeProject(closure);
     }
 
     @Test
     public void broadcastsAfterProjectEvaluateEventsToClosures() {
-        final TestClosure closure = context.mock(TestClosure.class);
-        final Project project = context.mock(Project.class);
+        final Closure closure = HelperUtil.TEST_CLOSURE;
         context.checking(new Expectations(){{
-            one(closure).call(project);
+            one(listenerManager).addListener(ProjectEvaluationListener.class, "afterEvaluate", closure);
         }});
 
-        gradle.afterProject(HelperUtil.toClosure(closure));
-
-        gradle.getProjectEvaluationBroadcaster().afterEvaluate(project, null);
+        gradle.afterProject(closure);
     }
 
     @Test

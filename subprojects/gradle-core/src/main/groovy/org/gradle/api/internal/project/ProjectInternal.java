@@ -51,4 +51,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier {
     ScriptClassLoaderProvider getClassLoaderProvider();
 
     FileResolver getFileResolver();
+
+    ServiceRegistryFactory getServiceRegistryFactory();
 }

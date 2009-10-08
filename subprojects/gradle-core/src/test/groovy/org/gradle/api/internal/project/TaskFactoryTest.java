@@ -47,7 +47,7 @@ public class TaskFactoryTest {
     @Before
     public void setUp() {
         taskFactory = new TaskFactory(new GroovySourceGenerationBackedClassGenerator());
-        testProject = new DefaultProject("projectName");
+        testProject = HelperUtil.createRootProject();
         empyArgMap = new HashMap();
     }
 

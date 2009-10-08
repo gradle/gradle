@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -31,7 +32,7 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
     public DefaultServiceRegistryFactory(RepositoryHandlerFactory repositoryHandlerFactory,
                                          ConfigurationContainerFactory configurationContainerFactory,
                                          DependencyFactory dependencyFactory, ProjectEvaluator projectEvaluator,
-                                         ClassGenerator classGenerator) {
+                                         ClassGenerator classGenerator, ModuleDescriptorConverter moduleDescriptorConverter) {
         add(RepositoryHandlerFactory.class, repositoryHandlerFactory);
         add(ConfigurationContainerFactory.class, configurationContainerFactory);
         add(DependencyFactory.class, dependencyFactory);
@@ -42,6 +43,7 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
                         new TaskFactory(
                                 classGenerator))));
         add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
+        add(ModuleDescriptorConverter.class, moduleDescriptorConverter);
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

@@ -33,48 +33,40 @@ import org.apache.ivy.plugins.repository.file.FileRepository;
 import org.apache.ivy.plugins.repository.file.FileResource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
-import org.gradle.BuildListener;
-import org.gradle.BuildResult;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.listener.ListenerManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultInternalRepository extends BasicResolver implements InternalRepository, BuildListener {
-    private final Map<ModuleRevisionId, ModuleDescriptor> projects = new HashMap<ModuleRevisionId, ModuleDescriptor>();
+public class DefaultInternalRepository extends BasicResolver implements InternalRepository {
     private final ModuleDescriptorConverter moduleDescriptorConverter;
-    private Gradle gradle;
+    private final Gradle gradle;
 
-    public DefaultInternalRepository(ListenerManager listenerManager,
-                                     ModuleDescriptorConverter moduleDescriptorConverter) {
+    public DefaultInternalRepository(Gradle gradle, ModuleDescriptorConverter moduleDescriptorConverter) {
+        this.gradle = gradle;
         this.moduleDescriptorConverter = moduleDescriptorConverter;
-        listenerManager.addListener(this);
         setName(ResolverContainer.INTERNAL_REPOSITORY_NAME);
     }
 
     @Override
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
-        if (projects.isEmpty()) {
-            populateProjects();
-        }
-        if (!projects.containsKey(dd.getDependencyRevisionId())) {
+        ModuleDescriptor moduleDescriptor = findProject(dd);
+        if (moduleDescriptor == null) {
             return data.getCurrentResolvedModuleRevision();
         }
 
@@ -82,7 +74,6 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         try {
             context.setDependencyDescriptor(dd);
             context.setResolveData(data);
-            ModuleDescriptor moduleDescriptor = projects.get(dd.getDependencyRevisionId());
             MetadataArtifactDownloadReport downloadReport = new MetadataArtifactDownloadReport(moduleDescriptor.getMetadataArtifact());
             downloadReport.setDownloadStatus(DownloadStatus.NO);
             downloadReport.setSearched(false);
@@ -92,18 +83,21 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         }
     }
 
-    private void populateProjects() {
-        if (gradle == null) {
-            return;
-        }
+    private ModuleDescriptor findProject(DependencyDescriptor descriptor) {
         for (Project project : gradle.getRootProject().getAllprojects()) {
+            Set<Configuration> configurations = project.getConfigurations().getAll();
+            if (configurations.isEmpty()) {
+                continue;
+            }
             DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getName(),
                     project.getVersion().toString(), project.getStatus().toString());
-            ModuleDescriptor moduleDescriptor = moduleDescriptorConverter.convertForPublish(
-                    project.getConfigurations().getAll(), false, module,
-                    IvyContext.getContext().getIvy().getSettings());
-            projects.put(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
+            ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(module.getGroup(), module.getName(), module.getVersion());
+            if (moduleRevisionId.equals(descriptor.getDependencyRevisionId())) {
+                return moduleDescriptorConverter.convertForPublish(configurations, false, module,
+                        IvyContext.getContext().getIvy().getSettings());
+            }
         }
+        return null;
     }
 
     @Override
@@ -156,24 +150,5 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
     }
 
     public void publish(Artifact artifact, File src, boolean overwrite) throws IOException {
-    }
-
-    public void buildStarted(Gradle gradle) {
-    }
-
-    public void settingsEvaluated(Settings settings) {
-    }
-
-    public void projectsLoaded(Gradle gradle) {
-    }
-
-    public void projectsEvaluated(Gradle gradle) {
-        this.gradle = gradle;
-    }
-
-    public void taskGraphPopulated(TaskExecutionGraph graph) {
-    }
-
-    public void buildFinished(BuildResult result) {
     }
 }

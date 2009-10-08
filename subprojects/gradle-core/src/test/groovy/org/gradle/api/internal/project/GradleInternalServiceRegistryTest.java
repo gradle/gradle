@@ -19,6 +19,8 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.GradleInternal;
@@ -27,6 +29,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.plugins.Convention;
 import org.gradle.execution.DefaultTaskExecuter;
 import org.gradle.execution.TaskExecuter;
@@ -53,6 +56,7 @@ public class GradleInternalServiceRegistryTest {
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final GradleInternalServiceRegistry registry = new GradleInternalServiceRegistry(parent, gradle);
     private final StartParameter startParameter = new StartParameter();
+    private final ModuleDescriptorConverter moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
 
     @Before
     public void setUp() {
@@ -64,6 +68,8 @@ public class GradleInternalServiceRegistryTest {
             will(returnValue(configurationContainerFactory));
             allowing(parent).get(DependencyFactory.class);
             will(returnValue(dependencyFactory));
+            allowing(parent).get(ModuleDescriptorConverter.class);
+            will(returnValue(moduleDescriptorConverter));
             allowing(gradle).getBuildScriptClassLoader();
             will(returnValue(new ClassLoader() {
             }));
@@ -104,6 +110,12 @@ public class GradleInternalServiceRegistryTest {
         assertThat(registry.get(ScriptHandler.class), instanceOf(DefaultScriptHandler.class));
         assertThat(registry.get(ScriptHandler.class), sameInstance(registry.get(ScriptHandler.class)));
         assertThat(registry.get(ScriptClassLoaderProvider.class), sameInstance((Object) registry.get(ScriptHandler.class)));
+    }
+
+    @Test
+    public void providesAnInternalRepository() {
+        assertThat(registry.get(InternalRepository.class), instanceOf(DefaultInternalRepository.class));
+        assertThat(registry.get(InternalRepository.class), sameInstance(registry.get(InternalRepository.class)));
     }
 
     private void expectConfigurationHandlerCreated() {

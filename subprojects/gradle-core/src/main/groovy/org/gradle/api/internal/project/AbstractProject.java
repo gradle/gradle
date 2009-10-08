@@ -58,6 +58,7 @@ import java.util.*;
 public abstract class AbstractProject implements ProjectInternal {
     private static Logger logger = Logging.getLogger(AbstractProject.class);
     private static Logger buildLogger = Logging.getLogger(Project.class);
+    private ServiceRegistryFactory services;
 
     public enum State {
         CREATED, INITIALIZING, INITIALIZED
@@ -173,23 +174,23 @@ public abstract class AbstractProject implements ProjectInternal {
 
         fileResolver = new BaseDirConverter(getProjectDir());
 
-        ServiceRegistry serviceRegistry = serviceRegistryFactory.createFor(this);
-        antBuilderFactory = serviceRegistry.get(AntBuilderFactory.class);
-        taskContainer = serviceRegistry.get(TaskContainerInternal.class);
-        repositoryHandlerFactory = serviceRegistry.get(RepositoryHandlerFactory.class);
-        projectEvaluator = serviceRegistry.get(ProjectEvaluator.class);
-        repositoryHandler = serviceRegistry.get(RepositoryHandler.class);
-        configurationContainer = serviceRegistry.get(ConfigurationContainer.class);
-        projectPluginsHandler = serviceRegistry.get(ProjectPluginsContainer.class);
-        artifactHandler = serviceRegistry.get(ArtifactHandler.class);
-        dependencyHandler = serviceRegistry.get(DependencyHandler.class);
-        scriptHandler = serviceRegistry.get(ScriptHandler.class);
-        scriptClassLoaderProvider = serviceRegistry.get(ScriptClassLoaderProvider.class);
-        projectRegistry = serviceRegistry.get(IProjectRegistry.class);
-        standardOutputRedirector = serviceRegistry.get(StandardOutputRedirector.class);
+        services = serviceRegistryFactory.createFor(this);
+        antBuilderFactory = services.get(AntBuilderFactory.class);
+        taskContainer = services.get(TaskContainerInternal.class);
+        repositoryHandlerFactory = services.get(RepositoryHandlerFactory.class);
+        projectEvaluator = services.get(ProjectEvaluator.class);
+        repositoryHandler = services.get(RepositoryHandler.class);
+        configurationContainer = services.get(ConfigurationContainer.class);
+        projectPluginsHandler = services.get(ProjectPluginsContainer.class);
+        artifactHandler = services.get(ArtifactHandler.class);
+        dependencyHandler = services.get(DependencyHandler.class);
+        scriptHandler = services.get(ScriptHandler.class);
+        scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
+        projectRegistry = services.get(IProjectRegistry.class);
+        standardOutputRedirector = services.get(StandardOutputRedirector.class);
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(serviceRegistry.get(Convention.class));
+        dynamicObjectHelper.setConvention(services.get(Convention.class));
         if (parent != null) {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }
@@ -847,5 +848,9 @@ public abstract class AbstractProject implements ProjectInternal {
         configure(result,  closure);
         result.execute();
         return result;
+    }
+
+    public ServiceRegistryFactory getServiceRegistryFactory() {
+        return services;
     }
 }

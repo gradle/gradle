@@ -40,6 +40,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 
@@ -153,12 +154,15 @@ public class ProjectInternalServiceRegistry extends AbstractServiceRegistry impl
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {
+        if (domainObject instanceof TaskInternal) {
+            return new TaskInternalServiceRegistry(this, project);
+        }
         throw new UnsupportedOperationException();
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
         public InternalRepository getInternalRepository() {
-            return project.getGradle().getInternalRepository();
+            return get(InternalRepository.class);
         }
 
         public File getGradleUserHomeDir() {

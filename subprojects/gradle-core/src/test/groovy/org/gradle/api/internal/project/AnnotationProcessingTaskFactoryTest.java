@@ -49,7 +49,7 @@ public class AnnotationProcessingTaskFactoryTest {
     }};
 
     private final ITaskFactory delegate = context.mock(ITaskFactory.class);
-    private final Project project = context.mock(Project.class);
+    private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final Map args = new HashMap();
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -72,7 +72,8 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     private <T extends Task> T expectTaskCreated(final Class<T> type, final Object... params) {
-        T task = AbstractTask.injectIntoNewInstance(HelperUtil.createRootProject(), "task", new Callable<T>() {
+        DefaultProject project = HelperUtil.createRootProject();
+        T task = AbstractTask.injectIntoNewInstance(project, "task", new Callable<T>() {
             public T call() throws Exception {
                 if (params.length > 0) {
                     return type.cast(type.getConstructors()[0].newInstance(params));
@@ -104,7 +105,7 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void propagatesExceptionThrownByTaskActionMethod() {
         final Runnable action = context.mock(Runnable.class);
-        TestTask task = expectTaskCreated(new TestTask(action));
+        TestTask task = expectTaskCreated(TestTask.class, action);
 
         final RuntimeException failure = new RuntimeException();
         context.checking(new Expectations() {{
@@ -134,29 +135,27 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void cachesClassMetaInfo() {
-        TaskWithInputFile task = expectTaskCreated(new TaskWithInputFile(null));
-        TaskWithInputFile task2 = expectTaskCreated(new TaskWithInputFile(null));
+        TaskWithInputFile task = expectTaskCreated(TaskWithInputFile.class, existingFile);
+        TaskWithInputFile task2 = expectTaskCreated(TaskWithInputFile.class, missingFile);
 
         assertThat(task.getActions().get(0), sameInstance((Action) task2.getActions().get(0)));
     }
     
     @Test
     public void failsWhenStaticMethodHasTaskActionAnnotation() {
-        TaskWithStaticMethod task = new TaskWithStaticMethod();
-        assertTaskCreationFails(task,
+        assertTaskCreationFails(TaskWithStaticMethod.class,
                 "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff().");
     }
 
     @Test
     public void failsWhenMethodWithParametersHasTaskActionAnnotation() {
-        TaskWithParamMethod task = new TaskWithParamMethod();
-        assertTaskCreationFails(task,
+        assertTaskCreationFails(TaskWithParamMethod.class,
                 "Cannot use @TaskAction annotation on method TaskWithParamMethod.doStuff() as this method takes parameters.");
     }
 
-    private void assertTaskCreationFails(Task task, String message) {
+    private void assertTaskCreationFails(Class<? extends Task> type, String message) {
         try {
-            expectTaskCreated(task);
+            expectTaskCreated(type);
             fail();
         } catch (GradleException e) {
             assertThat(e.getMessage(), equalTo(message));
@@ -219,7 +218,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void doesNotRegistersInputFileWhenNoneSpecified() {
-        TaskWithInputFile task = expectTaskCreated(new TaskWithInputFile(null));
+        TaskWithInputFile task = expectTaskCreated(TaskWithInputFile.class, new Object[]{null});
         assertThat(task.getInputs().getInputFiles().getFiles(), isEmpty());
     }
     
@@ -270,7 +269,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void doesNotRegisterOutputFileWhenNoneSpecified() {
-        TaskWithOutputFile task = expectTaskCreated(new TaskWithOutputFile(null));
+        TaskWithOutputFile task = expectTaskCreated(TaskWithOutputFile.class, new Object[]{null});
         assertThat(task.getOutputs().getOutputFiles().getFiles(), isEmpty());
     }
 
@@ -294,7 +293,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void doesNotRegisterInputFilesWhenNoneSpecified() {
-        TaskWithInputFiles task = expectTaskCreated(new TaskWithInputFiles(null));
+        TaskWithInputFiles task = expectTaskCreated(TaskWithInputFiles.class, new Object[]{null});
         assertThat(task.getInputs().getInputFiles().getFiles(), isEmpty());
     }
 
@@ -355,7 +354,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void doesNotRegisterOutputDirectoryWhenNoneSpecified() {
-        TaskWithOutputDir task = expectTaskCreated(new TaskWithOutputDir(null));
+        TaskWithOutputDir task = expectTaskCreated(TaskWithOutputDir.class, new Object[]{null});
         assertThat(task.getOutputs().getOutputFiles().getFiles(), isEmpty());
     }
 
@@ -395,7 +394,7 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void doesNotRegisterInputDirectoryWhenNoneSpecified() {
-        TaskWithInputDir task = expectTaskCreated(new TaskWithInputDir(null));
+        TaskWithInputDir task = expectTaskCreated(TaskWithInputDir.class, new Object[]{null});
         assertThat(task.getInputs().getInputFiles().getFiles(), isEmpty());
     }
 

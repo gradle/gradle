@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
@@ -75,7 +76,13 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(dependencyFactory));
         }});
     }
-    
+
+    @Test
+    public void createsARegistryForATask() {
+        ServiceRegistryFactory taskRegistry = registry.createFor(context.mock(TaskInternal.class));
+        assertThat(taskRegistry, instanceOf(TaskInternalServiceRegistry.class));
+    }
+
     @Test
     public void projectProvidesAConvention() {
         assertThat(registry.get(Convention.class), instanceOf(DefaultConvention.class));

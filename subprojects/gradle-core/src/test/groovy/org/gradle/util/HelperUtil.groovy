@@ -43,7 +43,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultProjectDependen
 import org.gradle.api.internal.artifacts.dsl.dependencies.SelfResolvingDependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
 import org.gradle.configuration.DefaultProjectEvaluator
@@ -111,33 +110,31 @@ class HelperUtil {
         Map clientModuleRegistry = new HashMap();
         ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
         ModuleDescriptorConverter moduleDescriptorConverter = new DefaultModuleDescriptorConverter(
-                        new DefaultModuleDescriptorFactory(),
-                        new DefaultConfigurationsToModuleDescriptorConverter(),
-                        new DefaultDependenciesToModuleDescriptorConverter(
-                                new DefaultDependencyDescriptorFactory(excludeRuleConverter,
-                                        new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
-                                excludeRuleConverter),
-                        new DefaultArtifactsToModuleDescriptorConverter())
+                new DefaultModuleDescriptorFactory(),
+                new DefaultConfigurationsToModuleDescriptorConverter(),
+                new DefaultDependenciesToModuleDescriptorConverter(
+                        new DefaultDependencyDescriptorFactory(excludeRuleConverter,
+                                new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
+                        excludeRuleConverter),
+                new DefaultArtifactsToModuleDescriptorConverter())
         DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
                 repositoryHandlerFactory,
                 new DefaultConfigurationContainerFactory(clientModuleRegistry,
-                new DefaultSettingsConverter(),
-                moduleDescriptorConverter,
-                new DefaultIvyFactory(),
-                new SelfResolvingDependencyResolver(
-                        new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
-                new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
-                        new DefaultPublishOptionsFactory())),
+                        new DefaultSettingsConverter(),
+                        moduleDescriptorConverter,
+                        new DefaultIvyFactory(),
+                        new SelfResolvingDependencyResolver(
+                                new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
+                        new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
+                                new DefaultPublishOptionsFactory())),
                 dependencyFactory,
                 new DefaultProjectEvaluator(),
-                new GroovySourceGenerationBackedClassGenerator()
+                new GroovySourceGenerationBackedClassGenerator(),
+                moduleDescriptorConverter
         )
         IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
 
-        DefaultListenerManager listenerManager = new DefaultListenerManager()
-        DefaultInternalRepository internalRepo = new DefaultInternalRepository(listenerManager, moduleDescriptorConverter)
-        internalRepo.setName('testInternalRepo') 
-        DefaultGradle build = new DefaultGradle(startParameter, internalRepo, serviceRegistryFactory, listenerManager)
+        DefaultGradle build = new DefaultGradle(startParameter, serviceRegistryFactory, new DefaultListenerManager())
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)

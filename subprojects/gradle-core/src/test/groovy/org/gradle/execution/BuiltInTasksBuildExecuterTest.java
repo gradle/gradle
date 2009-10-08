@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -36,7 +37,7 @@ public class BuiltInTasksBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
-    private final ProjectInternal project = context.mock(ProjectInternal.class, "project");
+    private final ProjectInternal project = HelperUtil.createRootProject();
     private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
 
     @Before
@@ -46,11 +47,6 @@ public class BuiltInTasksBuildExecuterTest {
             will(returnValue(project));
             allowing(gradle).getTaskGraph();
             will(returnValue(taskExecuter));
-            allowing(project).absolutePath(with(notNullValue(String.class)));
-            will(returnValue(":path"));
-            allowing(project).getConvention();
-            allowing(project).getTasks();
-            allowing(project).getFileResolver();
         }});
     }
 

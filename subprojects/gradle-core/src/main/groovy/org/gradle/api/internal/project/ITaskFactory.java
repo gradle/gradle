@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 
 import java.util.Map;
@@ -24,5 +23,5 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public interface ITaskFactory {
-    public Task createTask(Project project, Map<String, ?> args);
+    public Task createTask(ProjectInternal project, Map<String, ?> args);
 }

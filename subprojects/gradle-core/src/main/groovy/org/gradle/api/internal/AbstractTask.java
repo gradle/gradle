@@ -22,9 +22,8 @@ import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.DefaultTaskInputs;
-import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.logging.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
@@ -84,25 +83,25 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private static TaskInfo taskInfo() {
         TaskInfo taskInfo = nextInstance.get();
-        return taskInfo == null ? new TaskInfo(null, null) : taskInfo;
+        assert taskInfo != null;
+        return taskInfo;
     }
 
     private AbstractTask(TaskInfo taskInfo) {
-        this(taskInfo.project, taskInfo.name);
-    }
-
-    private AbstractTask(Project project, String name) {
-        this.project = (ProjectInternal) project;
-        this.name = name;
-        path = project == null ? null : project.absolutePath(name);
+        this.project = taskInfo.project;
+        this.name = taskInfo.name;
+        assert project != null;
+        assert name != null;
+        path = project.absolutePath(name);
         dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention());
         outputHandler = new DefaultOutputHandler(this);
-        dependencies = new DefaultTaskDependency(this.project == null ? null : this.project.getTasks());
-        outputs = new DefaultTaskOutputs(this.project == null ? null : this.project.getFileResolver());
-        inputs = new DefaultTaskInputs(this.project == null ? null : this.project.getFileResolver());
+        dependencies = new DefaultTaskDependency(project.getTasks());
+        ServiceRegistry serviceRegistry = project.getServiceRegistryFactory().createFor(this);
+        outputs = serviceRegistry.get(TaskOutputs.class);
+        inputs = serviceRegistry.get(TaskInputs.class);
     }
 
-    public static <T extends Task> T injectIntoNewInstance(Project project, String name, Callable<T> factory) {
+    public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Callable<T> factory) {
         nextInstance.set(new TaskInfo(project, name));
         try {
             try {
@@ -416,10 +415,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private static class TaskInfo {
-        private final Project project;
+        private final ProjectInternal project;
         private final String name;
 
-        private TaskInfo(Project project, String name) {
+        private TaskInfo(ProjectInternal project, String name) {
             this.name = name;
             this.project = project;
         }

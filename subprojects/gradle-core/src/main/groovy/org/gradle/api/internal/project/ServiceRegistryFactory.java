@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.project;
 
+/**
+ * A heirarchical service registry.
+ */
 public interface ServiceRegistryFactory extends ServiceRegistry {
     /**
      * Creates the services for the given domain object.

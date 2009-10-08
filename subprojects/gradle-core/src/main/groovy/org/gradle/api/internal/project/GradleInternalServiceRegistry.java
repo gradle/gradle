@@ -25,6 +25,8 @@ import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -45,8 +47,7 @@ import java.io.File;
 public class GradleInternalServiceRegistry extends AbstractServiceRegistry implements ServiceRegistryFactory {
     private final GradleInternal gradle;
 
-    public GradleInternalServiceRegistry(ServiceRegistry parent,
-                                         final GradleInternal gradle) {
+    public GradleInternalServiceRegistry(ServiceRegistry parent, final GradleInternal gradle) {
         super(parent);
         this.gradle = gradle;
 
@@ -89,8 +90,8 @@ public class GradleInternalServiceRegistry extends AbstractServiceRegistry imple
                         new DefaultConvention());
                 ConfigurationContainer configurationContainer = get(ConfigurationContainerFactory.class)
                         .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
-                DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
-                        get(DependencyFactory.class), get(ProjectFinder.class));
+                DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, get(
+                        DependencyFactory.class), get(ProjectFinder.class));
                 return new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer,
                         Thread.currentThread().getContextClassLoader());
             }
@@ -100,6 +101,12 @@ public class GradleInternalServiceRegistry extends AbstractServiceRegistry imple
             @Override
             protected Object create() {
                 return get(ScriptHandler.class);
+            }
+        });
+
+        add(new Service(InternalRepository.class) {
+            protected Object create() {
+                return new DefaultInternalRepository(gradle, get(ModuleDescriptorConverter.class));
             }
         });
     }
@@ -113,7 +120,7 @@ public class GradleInternalServiceRegistry extends AbstractServiceRegistry imple
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
         public InternalRepository getInternalRepository() {
-            return gradle.getInternalRepository();
+            return get(InternalRepository.class);
         }
 
         public File getGradleUserHomeDir() {
@@ -123,19 +130,19 @@ public class GradleInternalServiceRegistry extends AbstractServiceRegistry imple
         public Module getModule() {
             return new Module() {
                 public String getGroup() {
-                    return "";
+                    return Project.DEFAULT_GROUP;
                 }
 
                 public String getName() {
-                    return "";
+                    return "unspecified";
                 }
 
                 public String getVersion() {
-                    return "";
+                    return Project.DEFAULT_VERSION;
                 }
 
                 public String getStatus() {
-                    return "";
+                    return Project.DEFAULT_STATUS;
                 }
             };
         }

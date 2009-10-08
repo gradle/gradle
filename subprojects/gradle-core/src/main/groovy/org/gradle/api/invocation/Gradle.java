@@ -15,19 +15,17 @@
  */
 package org.gradle.api.invocation;
 
+import groovy.lang.Closure;
+import org.gradle.BuildListener;
+import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.StartParameter;
-import org.gradle.BuildListener;
 
 import java.io.File;
-
-import groovy.lang.Closure;
 
 /**
  * <p>A {@code Gradle} represents an invocation of Gradle.</p>
@@ -78,13 +76,6 @@ public interface Gradle {
      * @return The start parameter. Never returns null.
      */
     StartParameter getStartParameter();
-
-    /**
-     * Returns the repository used to pass artifacts between projects in this build.
-     *
-     * @return The internal repository. Never returns null.
-     */
-    InternalRepository getInternalRepository();
 
     /**
      * Adds a listener to this build, to receive notifications as projects are evaluated.

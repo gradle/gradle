@@ -18,18 +18,19 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 
 public class DefaultTaskCollection<T extends Task> extends DefaultDomainObjectContainer<T> implements TaskCollection<T> {
-    protected final Project project;
+    protected final ProjectInternal project;
 
-    public DefaultTaskCollection(Class<T> type, Project project) {
+    public DefaultTaskCollection(Class<T> type, ProjectInternal project) {
         super(type);
         this.project = project;
     }
 
-    protected DefaultTaskCollection(Class<T> type, Project project, Store<T> store) {
+    protected DefaultTaskCollection(Class<T> type, ProjectInternal project, Store<T> store) {
         super(type, store);
         this.project = project;
     }

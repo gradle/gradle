@@ -23,6 +23,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
@@ -71,7 +72,7 @@ public class ProjectFactoryTest {
     private ClassGenerator classGenerator = context.mock(ClassGenerator.class);
     private ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
             repositoryHandlerFactory, configurationContainerFactory, context.mock(DependencyFactory.class),
-            projectEvaluator, classGenerator);
+            projectEvaluator, classGenerator, context.mock(ModuleDescriptorConverter.class));
     private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;

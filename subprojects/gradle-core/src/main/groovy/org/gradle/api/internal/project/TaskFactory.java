@@ -38,7 +38,7 @@ public class TaskFactory implements ITaskFactory {
         this.generator = generator;
     }
 
-    public Task createTask(Project project, Map<String, ?> args) {
+    public Task createTask(ProjectInternal project, Map<String, ?> args) {
         Map<String, Object> actualArgs = new HashMap<String, Object>(args);
         checkTaskArgsAndCreateDefaultValues(actualArgs);
 
@@ -71,7 +71,7 @@ public class TaskFactory implements ITaskFactory {
         return task;
     }
 
-    private Task createTaskObject(Project project, final Class<? extends Task> type, String name, boolean generateGetters) {
+    private Task createTaskObject(ProjectInternal project, final Class<? extends Task> type, String name, boolean generateGetters) {
         if (!Task.class.isAssignableFrom(type)) {
             throw new GradleException(String.format(
                     "Cannot create task of type '%s' as it does not implement the Task interface.",
