@@ -344,10 +344,11 @@ integTest.doFirst { task ->
 }
 
 boolean noForkIntegTests() {
-    if (project.hasProperty('noForkIntegTests')) {
-        return true
+    if (project.hasProperty('forkIntegTests')) {
+        return !Boolean.valueOf(forkIntegTests)
     }
-    return gradle.taskGraph.hasTask(':developerBuild')
+//    return gradle.taskGraph.hasTask(':developerBuild')
+    return false
 }
 
 task testedDists(dependsOn: [assemble, check, integTest])
