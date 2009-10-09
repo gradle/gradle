@@ -1,3 +1,4 @@
 task consume(dependsOn: ':producer:produce') << {
-    println "Consuming message: " +  System.getProperty('org.gradle.message')
+    println("Consuming message: " +
+            (rootProject.hasProperty('producerMessage') ? rootProject.producerMessage : 'null'))
 }

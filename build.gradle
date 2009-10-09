@@ -314,15 +314,14 @@ task intTestImage(dependsOn: [allZip, binZip, srcZip]) << {
     }
     WrapperProjectCreator.createProject(new File(integTestGradleHome, 'samples'), binZip.archivePath.parentFile, version.toString())
 }
+
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
-task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideSrc']) {
-    options.fork(forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m'])
+task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideSrc']) {
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
     options.systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
     options.systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
     options.systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-
     include 'org/gradle/integtests/**/*IntegrationTest.*'
 
     testClassesDir = project(':core').sourceSets.test.classesDir
@@ -332,7 +331,24 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':d
     testSrcDirs = []
 }
 
-integTest.doFirst { task -> task.options.systemProperties['integTest.gradleHomeDir'] = integTestGradleHome.absolutePath }
+integTest.doFirst { task ->
+    task.options.systemProperties['integTest.gradleHomeDir'] = integTestGradleHome.absolutePath
+    def forkArgs = [:]
+    if (noForkIntegTests()) {
+        task.options.systemProperties['org.gradle.integtest.nofork'] = "true"
+        forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx1512m', '-XX:MaxPermSize=256m']]
+    } else {
+        forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m']]
+    }
+    task.options.fork(forkArgs)
+}
+
+boolean noForkIntegTests() {
+    if (project.hasProperty('noForkIntegTests')) {
+        return true
+    }
+    return gradle.taskGraph.hasTask(':developerBuild')
+}
 
 task testedDists(dependsOn: [assemble, check, integTest])
 

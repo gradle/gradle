@@ -23,11 +23,13 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.StartParameter
+import org.gradle.integtests.QuickGradleExecuter.StartParameterModifier
 
 /**
  * @author Hans Dockter
  */
-@RunWith(DistributionIntegrationTestRunner.class)
+@RunWith (DistributionIntegrationTestRunner.class)
 class UserguideIntegrationTest {
 
     private static Logger logger = LoggerFactory.getLogger(UserguideIntegrationTest)
@@ -39,7 +41,7 @@ class UserguideIntegrationTest {
 
     @Test
     public void apiLinks() {
-        TestFile gradleHome = dist.gradleHomeDir
+        TestFile gradleHome = dist.gradleHomeDir         
         TestFile userguideInfoDir = dist.userGuideInfoDir
         Node links = new XmlParser().parse(new File(userguideInfoDir, 'links.xml'))
         links.children().each {Node link ->
@@ -60,7 +62,11 @@ class UserguideIntegrationTest {
         testRuns.each {GradleRun run ->
             try {
                 logger.info("Test Id: $run.id, dir: $run.subDir, args: $run.execute")
-                executer.inDirectory(new File(samplesDir, run.subDir)).withTasks(run.execute).withEnvironmentVars(run.envs)
+                File rootProjectDir = new File(samplesDir, run.subDir)
+                executer.inDirectory(rootProjectDir).withArguments(run.execute as String[]).withEnvironmentVars(run.envs)
+                if (executer instanceof QuickGradleExecuter) {
+                    ((QuickGradleExecuter) executer).setInProcessStartParameterModifier(createModifier(rootProjectDir))
+                }
                 ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
                 if (run.outputFile) {
                     String expectedResult = replaceWithPlatformNewLines(new File(userguideOutputDir, run.outputFile).text)
@@ -82,15 +88,14 @@ class UserguideIntegrationTest {
     }
 
     private static def compareStrings(String expected, String actual) {
-        List actualLines = actual.readLines()
-        List expectedLines = expected.readLines()
+        List actualLines = removePotentialBuildSuccessfulMessages(actual.readLines())
+        List expectedLines = removePotentialBuildSuccessfulMessages(expected.readLines())
         int pos = 0
         for (; pos < actualLines.size() && pos < expectedLines.size(); pos++) {
             String expectedLine = expectedLines[pos]
             String actualLine = actualLines[pos]
             String normalisedActual = actualLine.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
-            boolean matches = normalisedActual == expectedLine ||
-                    expectedLine.matches('Total time: .+ secs') && actualLine.matches('Total time: .+ secs')
+            boolean matches = normalisedActual == expectedLine
             if (!matches) {
                 if (expectedLine.contains(actualLine)) {
                     Assert.fail("Missing text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
@@ -147,5 +152,42 @@ class UserguideIntegrationTest {
                 }
             }
         }.flatten()
+    }
+
+    static List removePotentialBuildSuccessfulMessages(List lines) {
+        if (lines.isEmpty()) return lines
+        List normalizedLines = null
+        if (lines.last().matches('Total time: .+ secs')) {
+            normalizedLines = lines[0..lines.size() - 5]
+        }
+        return normalizedLines ?: lines;
+    }
+
+    static org.gradle.integtests.QuickGradleExecuter.StartParameterModifier createModifier(File rootProjectDir) {
+        {StartParameter parameter ->
+            if (parameter.getBuildFile() != null) {
+                parameter.setBuildFile(normalizedPath(parameter.getBuildFile(), rootProjectDir));
+            }
+            if (parameter.getCurrentDir() != null) {
+                parameter.setCurrentDir(normalizedPath(parameter.getCurrentDir(), rootProjectDir));
+            }
+            List<File> initScripts = new ArrayList<File>();
+            for (File initScript: parameter.getInitScripts()) {
+                initScripts.add(normalizedPath(initScript, rootProjectDir));
+            }
+            parameter.setInitScripts(initScripts);
+        } as StartParameterModifier
+    }
+
+    static File normalizedPath(File path, File rootProjectDir) {
+        String pathName = path.getAbsolutePath();
+        if (!pathName.startsWith(rootProjectDir.getAbsolutePath())) {
+            String currentDirName = new File("").getAbsolutePath();
+            if (!pathName.startsWith(currentDirName)) {
+                throw new RuntimeException("Path " + path + " is neither subdir of Gradle home nor of the root project!.")
+            }
+            pathName = new File(rootProjectDir, pathName.substring(currentDirName.length() + 1)).getAbsolutePath();
+        }
+        return new File(pathName);
     }
 }

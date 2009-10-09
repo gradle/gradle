@@ -1,7 +1,5 @@
-key = 'unknown'
-if (project(':producer').hasProperty('key')) {
-    key = project(':producer').key
-}
-task consume(dependsOn: ':producer:produce') << {
-    println "Consuming message from key '$key': " +  System.getProperty(key)
+message = rootProject.hasProperty('producerMessage') ? rootProject.producerMessage : 'null'
+
+task consume << {
+    println("Consuming message: " + message)
 }

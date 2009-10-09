@@ -1,6 +1,1 @@
-key = 'org.gradle.message'
-
-task produce << {
-    println "Producing message:"
-    System.setProperty(key, 'Watch the order of execution.')
-}
+rootProject.producerMessage = 'Watch the order of evaluation.'

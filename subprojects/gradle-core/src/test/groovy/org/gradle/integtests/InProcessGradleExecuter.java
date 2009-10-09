@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-// todo: implement more of the unsupported methods
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final StartParameter parameter;
     private final List<String> tasks = new ArrayList<String>();
@@ -46,6 +45,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     public InProcessGradleExecuter(StartParameter parameter) {
         this.parameter = parameter;
+    }
+
+    public StartParameter getParameter() {
+        return parameter;
     }
 
     @Override
@@ -115,6 +118,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     public ExecutionResult run() {
+        System.out.println("parameter = " + parameter);
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
         gradleLauncher.addListener(new BuildListenerImpl());
         gradleLauncher.addStandardOutputListener(outputListener);
@@ -218,7 +222,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void assertHasCause(String description) {
-            assertThatCause(equalTo(description));
+            assertThatCause(startsWith(description));
         }
 
         public void assertThatCause(final Matcher<String> matcher) {

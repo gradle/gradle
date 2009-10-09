@@ -18,7 +18,7 @@ dependencies {
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
 
-task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
+task integTest(type: AntTest, dependsOn: [ rootProject.intTestImage ]) {
     options.fork(jvmArgs: ["-ea"])
     options.systemProperties['integTest.gradleHomeDir'] = integTestDistDir.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath

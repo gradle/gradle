@@ -520,4 +520,34 @@ public class StartParameter {
     public void setLaunchGUI(boolean launchGUI) {
         this.launchGUI = launchGUI;
     }
+
+    @Override
+    public String toString() {
+        return "StartParameter{" +
+                "taskNames=" + taskNames +
+                ", excludedTaskNames=" + excludedTaskNames +
+                ", currentDir=" + currentDir +
+                ", searchUpwards=" + searchUpwards +
+                ", projectProperties=" + projectProperties +
+                ", systemPropertiesArgs=" + systemPropertiesArgs +
+                ", gradleUserHomeDir=" + gradleUserHomeDir +
+                ", defaultImportsFile=" + defaultImportsFile +
+                ", pluginPropertiesFile=" + pluginPropertiesFile +
+                ", gradleHomeDir=" + gradleHomeDir +
+                ", cacheUsage=" + cacheUsage +
+                ", buildScriptSource=" + buildScriptSource +
+                ", settingsScriptSource=" + settingsScriptSource +
+                ", buildExecuter=" + buildExecuter +
+                ", defaultProjectSelector=" + defaultProjectSelector +
+                ", logLevel=" + logLevel +
+                ", showStacktrace=" + showStacktrace +
+                ", buildFile=" + buildFile +
+                ", initScripts=" + initScripts +
+                ", showHelp=" + showHelp +
+                ", showVersion=" + showVersion +
+                ", launchGUI=" + launchGUI +
+                ", dryRun=" + dryRun +
+                ", noOpt=" + noOpt +
+                '}';
+    }
 }

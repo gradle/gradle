@@ -77,11 +77,11 @@ class LoggingIntegrationTest {
                 'A trace log message.'
         ]
         List allOuts = [errorMessages, quietMessages, warningMessages, lifecycleMessages, infoMessages, debugMessages, traceMessages]
-
-        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-q', '-I', 'init.gradle').run(), allOuts, 1)
-        checkOutput(executer.withArguments('-I', 'init.gradle').run(), allOuts, 3)
-        checkOutput(executer.withArguments('-i', '-I', 'init.gradle').run(), allOuts, 4)
-        checkOutput(executer.withArguments('-d', '-I', 'init.gradle').run(), allOuts, 5)
+        String initScript = new File(loggingDir, 'init.gradle').absolutePath
+        checkOutput(executer.inDirectory(loggingDir).withTasks('log').withArguments('-q', '-I', initScript).run(), allOuts, 1)
+        checkOutput(executer.withArguments('-I', initScript).run(), allOuts, 3)
+        checkOutput(executer.withArguments('-i', '-I', initScript).run(), allOuts, 4)
+        checkOutput(executer.withArguments('-d', '-I', initScript).run(), allOuts, 5)
     }
 
     static void checkOutput(ExecutionResult result, List allOuts, int includedIndex) {
