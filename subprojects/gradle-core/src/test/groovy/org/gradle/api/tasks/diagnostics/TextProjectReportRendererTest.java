@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
+import org.gradle.api.logging.StandardOutputLogging;
 import static org.gradle.util.Matchers.*;
 import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
@@ -41,11 +42,11 @@ public class TextProjectReportRendererTest {
     @Test
     public void writesReportToStandardOutByDefault() throws IOException {
         TextProjectReportRenderer renderer = new TextProjectReportRenderer();
-        assertThat(renderer.getWriter(), sameInstance((Appendable) System.out));
+        assertThat(renderer.getWriter(), sameInstance((Appendable) StandardOutputLogging.OUT_LOGGING_STREAM.get()));
 
         renderer.complete();
 
-        assertThat(renderer.getWriter(), sameInstance((Appendable) System.out));
+        assertThat(renderer.getWriter(), sameInstance((Appendable) StandardOutputLogging.OUT_LOGGING_STREAM.get()));
     }
 
     @Test
@@ -58,7 +59,7 @@ public class TextProjectReportRendererTest {
         renderer.complete();
 
         assertTrue(outFile.isFile());
-        assertThat(renderer.getWriter(), sameInstance((Appendable) System.out));
+        assertThat(renderer.getWriter(), sameInstance((Appendable) StandardOutputLogging.OUT_LOGGING_STREAM.get()));
     }
 
     @Test

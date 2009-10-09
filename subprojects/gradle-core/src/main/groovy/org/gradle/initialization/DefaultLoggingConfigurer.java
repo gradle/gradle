@@ -27,6 +27,7 @@ import org.apache.ivy.util.Message;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.IvyLoggingAdaper;
@@ -176,5 +177,17 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
                 listeners.getSource().onOutput(layout.doLayout(event));
             }
         }
+
+        @Override
+        public void start() {
+            super.start();
+            if (target.equals(SYSTEM_OUT)) {
+                setWriter(createWriter(StandardOutputLogging.DEFAULT_OUT));
+            } else {
+                setWriter(createWriter(StandardOutputLogging.DEFAULT_OUT));
+            }
+        }
+
+
     }
 }
