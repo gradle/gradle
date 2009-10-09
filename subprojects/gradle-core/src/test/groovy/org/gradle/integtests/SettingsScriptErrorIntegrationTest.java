@@ -32,7 +32,7 @@ public class SettingsScriptErrorIntegrationTest extends AbstractIntegrationTest 
 
         failure.assertHasFileName(String.format("Settings file '%s'", settingsFile));
         failure.assertHasLineNumber(3);
-        failure.assertHasDescription("A problem occurred evaluating settings 'reportsSettingsScriptEvaluationFailsWithRuntimeException'.");
+        failure.assertHasDescription("A problem occurred evaluating settings 'reportsSettingsScriptEvaluationFailsWithRuntimeException");
         failure.assertHasCause("<failure message>");
     }
 }

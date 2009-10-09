@@ -17,6 +17,7 @@ package org.gradle.api.tasks.testing.testng
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.tasks.testing.AntTest
 
 /**
  * @author Tom Eyckmans
@@ -34,7 +35,7 @@ public class AntTestNGExecute {
         testngTaskDef(classPath as List, ant, options)
 
         Map otherArgs = [
-            failureProperty : Test.FAILURES_OR_ERRORS_PROPERTY,
+            failureProperty : AntTest.FAILURES_OR_ERRORS_PROPERTY,
             outputDir : testReportDir.absolutePath,
             workingDir : testResultsDir.absolutePath, 
             haltonfailure : false,

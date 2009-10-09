@@ -27,8 +27,8 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName("Embedded build file");
         failure.assertHasLineNumber(2);
-        failure.assertHasDescription("A problem occurred evaluating root project 'reportsProjectEvaulationFailsWithGroovyException'");
-        failure.assertHasCause("Could not find method createTakk() for arguments [do-stuff] on root project 'reportsProjectEvaulationFailsWithGroovyException'.");
+        failure.assertHasDescription("A problem occurred evaluating root project 'reportsProjectEvaulationFailsWithGroovyException");
+        failure.assertHasCause("Could not find method createTakk() for arguments [do-stuff] on root project 'reportsProjectEvaulationFailsWithGroovyException");
     }
 
     @Test
