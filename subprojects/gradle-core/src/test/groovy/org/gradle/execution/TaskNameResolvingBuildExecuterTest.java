@@ -40,7 +40,7 @@ public class TaskNameResolvingBuildExecuterTest {
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final TaskContainerInternal taskContainer = context.mock(TaskContainerInternal.class, "[projecTasks]");
     private final TaskContainerInternal subProjectTaskContainer = context.mock(TaskContainerInternal.class, "[subProjectTasks]");
-    private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
+    private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private int counter;
 
     @Before

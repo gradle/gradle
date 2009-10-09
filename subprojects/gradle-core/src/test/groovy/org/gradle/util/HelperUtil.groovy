@@ -130,7 +130,8 @@ class HelperUtil {
                 dependencyFactory,
                 new DefaultProjectEvaluator(),
                 new GroovySourceGenerationBackedClassGenerator(),
-                moduleDescriptorConverter
+                moduleDescriptorConverter,
+                startParameter
         )
         IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
 

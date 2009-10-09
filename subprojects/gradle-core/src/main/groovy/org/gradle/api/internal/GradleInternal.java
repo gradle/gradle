@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.*;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.BuildListener;
 
 /**
@@ -36,7 +36,7 @@ public interface GradleInternal extends Gradle {
     /**
      * {@inheritDoc}
      */
-    TaskExecuter getTaskGraph();
+    TaskGraphExecuter getTaskGraph();
 
     /**
      * Returns the default project. This is used to resolve relative names and paths provided on the UI.

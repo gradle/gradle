@@ -26,7 +26,7 @@ import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.HelperUtil;
@@ -55,7 +55,7 @@ public class DefaultGradleTest {
     private final StandardOutputRedirector standardOutputRedirectorMock = context.mock(StandardOutputRedirector.class);
     private final IProjectRegistry projectRegistry = context.mock(IProjectRegistry.class);
     private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
-    private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
+    private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
     private DefaultGradle gradle;
 
@@ -74,7 +74,7 @@ public class DefaultGradleTest {
             will(returnValue(projectRegistry));
             allowing(gradleServiceRegistryMock).get(PluginRegistry.class);
             will(returnValue(pluginRegistry));
-            allowing(gradleServiceRegistryMock).get(TaskExecuter.class);
+            allowing(gradleServiceRegistryMock).get(TaskGraphExecuter.class);
             will(returnValue(taskExecuter));
         }});
         gradle = new DefaultGradle(parameter, serviceRegistryFactoryMock, listenerManager);

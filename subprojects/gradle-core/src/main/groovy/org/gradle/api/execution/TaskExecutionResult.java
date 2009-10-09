@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.execution;
 
-package org.gradle.api.internal;
-
-import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionResult;
-import org.gradle.api.logging.StandardOutputCapture;
-import org.gradle.api.specs.Spec;
-
-public interface TaskInternal extends Task {
-    Spec<? super TaskInternal> getOnlyIf();
+/**
+ * A {@code TaskExecutionResult} contains the result of executing a task.
+ */
+public interface TaskExecutionResult {
+    /**
+     * Returns the exception describing the task failure, if any.
+     *
+     * @return The exception, or null if the task did not fail.
+     */
+    Throwable getFailure();
 
     /**
-     * Executes this task. If execution fails with an exception, the exception is packaged in the returned result.
+     * Throws the task failure, if any. Does nothing if the task did not fail.
      */
-    TaskExecutionResult execute();
+    void rethrowFailure();
 
-    StandardOutputCapture getStandardOutputCapture();
+    /**
+     * Returns a message describing why the task was skipped.
+     *
+     * @return the mesages. returns null if the task was not skipped.
+     */
+    String getSkipMessage();
 }

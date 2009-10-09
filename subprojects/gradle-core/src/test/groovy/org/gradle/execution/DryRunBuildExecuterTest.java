@@ -29,7 +29,7 @@ public class DryRunBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final BuildExecuter delegate = context.mock(BuildExecuter.class);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
-    private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
+    private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private final DryRunBuildExecuter executer = new DryRunBuildExecuter(delegate);
 
     @Test

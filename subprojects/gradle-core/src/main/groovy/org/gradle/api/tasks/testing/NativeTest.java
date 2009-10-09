@@ -15,15 +15,13 @@
  */
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.*;
-import org.gradle.api.tasks.*;
+import org.gradle.api.GradleException;
 import org.gradle.api.testing.TestOrchestrator;
 import org.gradle.api.testing.execution.PipelineConfig;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,15 +44,6 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void executeTests() {
-        final File testClassesDir = getTestClassesDir();
-
-        if (testClassesDir == null)
-            throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!");
-        if (getTestResultsDir() == null)
-            throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!");
-
-        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(testClassesDir);
-
         final TestOrchestrator orchestrator = new TestOrchestrator(this);
 
         orchestrator.execute();

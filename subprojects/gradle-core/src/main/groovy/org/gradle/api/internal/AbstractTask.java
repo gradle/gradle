@@ -18,16 +18,21 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
+import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskState;
 import org.gradle.api.logging.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.*;
+import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.execution.DefaultOutputHandler;
 import org.gradle.execution.OutputHandler;
 
@@ -41,7 +46,6 @@ import java.util.concurrent.Callable;
  * @author Hans Dockter
  */
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
-    private static Logger logger = Logging.getLogger(AbstractTask.class);
     private static Logger buildLogger = Logging.getLogger(Task.class);
     private static ThreadLocal<TaskInfo> nextInstance = new ThreadLocal<TaskInfo>();
     private ProjectInternal project;
@@ -50,16 +54,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private List<Action<? super Task>> actions = new ArrayList<Action<? super Task>>();
 
-    private boolean executing;
-
-    private boolean executed;
-
-   // will be set to a default value of true before task is executed.  Derived classes may set to a more useful value
-    private boolean didWork = false;
+    private String path;
 
     private boolean enabled = true;
-
-    private String path = null;
 
     private StandardOutputCapture standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
 
@@ -69,13 +66,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String description;
 
-    private Spec<? super Task> onlyIfSpec;
+    private Spec<? super Task> onlyIfSpec = Specs.satisfyAll();
 
     private OutputHandler outputHandler;
 
     private final TaskOutputs outputs;
 
     private final TaskInputs inputs;
+
+    private TaskExecuter executer;
+
+    private final TaskState state = new TaskState();
 
     protected AbstractTask() {
         this(taskInfo());
@@ -96,9 +97,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention());
         outputHandler = new DefaultOutputHandler(this);
         dependencies = new DefaultTaskDependency(project.getTasks());
-        ServiceRegistry serviceRegistry = project.getServiceRegistryFactory().createFor(this);
-        outputs = serviceRegistry.get(TaskOutputs.class);
-        inputs = serviceRegistry.get(TaskInputs.class);
+        ServiceRegistry services = project.getServiceRegistryFactory().createFor(this);
+        outputs = services.get(TaskOutputs.class);
+        inputs = services.get(TaskInputs.class);
+        executer = services.get(TaskExecuter.class);
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Callable<T> factory) {
@@ -164,32 +166,24 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.onlyIfSpec = onlyIfSpec;
     }
 
+    public Spec<? super TaskInternal> getOnlyIf() {
+        return onlyIfSpec;
+    }
+
     public OutputHandler getOutput() {
         return outputHandler;
     }
 
-    public boolean isExecuted() {
-        return executed;
-    }
-
     public boolean getExecuted() {
-        return executed;
-    }
-
-    public void setExecuted(boolean executed) {
-        this.executed = executed;
-    }
-
-    public boolean isDidWork() {
-        return didWork;
+        return state.isExecuted();
     }
 
     public boolean getDidWork() {
-        return isDidWork();
+        return state.isDidWork();
     }
 
     public void setDidWork(boolean didWork) {
-        this.didWork = didWork;
+        state.setDidWork(didWork);
     }
 
     public boolean isEnabled() {
@@ -217,62 +211,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
-    public void execute() {
-        executing = true;
-        logger.debug("Starting to execute Task: {}", path);
-        if (!isSkipped()) {
-            if (onlyIfSpec == null ||
-                    project.getGradle().getStartParameter().isNoOpt() ||
-                    onlyIfSpec.isSatisfiedBy(this)) {
-                logger.lifecycle(path);
-                didWork = true;   // assume true unless changed during execution
-                standardOutputCapture.start();
-                for (Action<? super Task> action : actions) {
-                    logger.debug("Executing Action:");
-                    try {
-                        doExecute(action);
-                    } catch (StopExecutionException e) {
-                        logger.info("Execution stopped by some action with message: {}", e.getMessage());
-                        break;
-                    } catch (StopActionException e) {
-                        logger.debug("Action stopped by some action with message: {}", e.getMessage());
-                    } catch (Throwable t) {
-                        executing = false;
-                        standardOutputCapture.stop();
-                        outputHandler.writeHistory(false);
-                        throw new GradleScriptException(String.format("Execution failed for %s.", this), t, project.getBuildScriptSource());
-                    }
-                }
-                outputHandler.writeHistory(true);
-                standardOutputCapture.stop();
-            } else {
-                logger.lifecycle("{} SKIPPED as onlyIf is false", path);
-            }
-        }
-        executing = false;
-        executed = true;
-        logger.debug("Finished executing Task: {}", path);
+    public TaskExecutionResult execute() {
+        return executer.execute(this, state);
     }
 
-    private boolean isSkipped() {
-        if (!enabled) {
-            logger.info("Skipping execution as task is disabled.");
-            logger.lifecycle("{} SKIPPED", path);
-            return true;
-        }
-        return false;
+    public TaskExecuter getExecuter() {
+        return executer;
     }
 
-    private void doExecute(Action<? super Task> action) throws Throwable {
-        try {
-            action.execute(this);
-            // todo Due to a Groovy bug which wraps Exceptions from Java classes into InvokerInvocationExceptions we have to do this. After the Groovy bug is fixed we can remove this.
-        } catch (InvokerInvocationException e) {
-            if (e.getCause() != null) {
-                throw e.getCause();
-            }
-            throw e;
-        }
+    public void setExecuter(TaskExecuter executer) {
+        this.executer = executer;
     }
 
     public Task dependsOn(Object... paths) {
@@ -343,7 +291,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private void throwExceptionDuringExecutionTime(String operation) {
-        if (executing) {
+        if (state.isExecuting()) {
             throw new IllegalOperationAtExecutionTimeException("The operation " + operation + " must not be called at execution time.");
         }
     }

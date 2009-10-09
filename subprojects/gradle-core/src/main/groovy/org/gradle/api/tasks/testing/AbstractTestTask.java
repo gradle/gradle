@@ -19,15 +19,13 @@ package org.gradle.api.tasks.testing;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.api.tasks.*;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.external.junit.JUnitTestFramework;
@@ -62,22 +60,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     protected FileCollection classpath;
 
-    protected ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
-
     protected TestFrameworkInstance testFrameworkInstance = null;
 
     protected boolean testReport = true;
 
     protected boolean scanForTestClasses = true;
 
-    protected AbstractTestTask(){
-        doFirst(new org.gradle.api.TaskAction() {
-            public void execute(Task task) {
-                executeTests();
-            }
-        });
-    }
-
+    @TaskAction
     protected abstract void executeTests();
 
     /**

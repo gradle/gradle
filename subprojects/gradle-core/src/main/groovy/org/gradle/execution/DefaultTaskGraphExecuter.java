@@ -18,15 +18,15 @@ package org.gradle.execution;
 
 import groovy.lang.Closure;
 import org.gradle.api.CircularReferenceException;
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.util.Clock;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +35,8 @@ import java.util.*;
 /**
  * @author Hans Dockter
  */
-public class DefaultTaskExecuter implements TaskExecuter {
-    private static Logger logger = LoggerFactory.getLogger(DefaultTaskExecuter.class);
+public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
+    private static Logger logger = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
 
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners
             = new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class);
@@ -160,20 +160,9 @@ public class DefaultTaskExecuter implements TaskExecuter {
 
     private void executeTask(Task task) {
         fireBeforeTask(task);
-        Throwable failure = null;
-        try {
-            ((TaskInternal) task).execute();
-        } catch (Throwable e) {
-            failure = e;
-        }
-        fireAfterTask(task, failure);
-        if (failure == null) {
-            return;
-        }
-        if (failure instanceof RuntimeException) {
-            throw (RuntimeException) failure;
-        }
-        throw new GradleException(String.format("Task %s failed with an exception.", task), failure);
+        TaskExecutionResult result = ((TaskInternal) task).execute();
+        fireAfterTask(task, result.getFailure());
+        result.rethrowFailure();
     }
 
     private void fireBeforeTask(Task task) {

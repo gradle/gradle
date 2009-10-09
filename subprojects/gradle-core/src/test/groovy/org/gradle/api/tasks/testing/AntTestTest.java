@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
@@ -25,13 +24,13 @@ import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.testing.detection.SetBuildingTestClassReceiver;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.GFileUtils;
-import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -111,7 +110,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     @org.junit.Test
     public void testExecute() {
         setUpMocks(test);
-        setExistingDirsFilter();
         context.checking(new Expectations() {{
             one(testFrameworkInstanceMock).prepare(getProject(), test, testClassReceiverMock);
             one(testClassReceiverMock).getTestClassNames(); will(returnValue(okTestClassNames));
@@ -125,7 +123,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     @org.junit.Test
     public void testExecuteWithoutReporting() {
         setUpMocks(test);
-        setExistingDirsFilter();
         test.setTestReport(false);
         context.checking(new Expectations() {{
             one(testFrameworkInstanceMock).prepare(getProject(), test, testClassReceiverMock);
@@ -136,21 +133,24 @@ public class AntTestTest extends AbstractConventionTaskTest {
         test.execute();
     }
 
-    @org.junit.Test(expected = GradleException.class)
     public void testExecuteWithTestFailuresAndStopAtFailures() {
         setUpMocks(test);
-        setExistingDirsFilter();
         context.checking(new Expectations() {{
             one(testFrameworkInstanceMock).prepare(getProject(), test, testClassReceiverMock);
             one(testClassReceiverMock).getTestClassNames(); will(returnValue(okTestClassNames));
             one(testFrameworkInstanceMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
         }});
-        test.execute();
+        getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
+        try {
+            test.executeTests();
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), equalTo("??"));
+        }
     }
 
     @org.junit.Test public void testExecuteWithTestFailuresAndContinueWithFailures() {
         setUpMocks(test);
-        setExistingDirsFilter();
         test.setStopAtFailuresOrErrors(false);
         context.checking(new Expectations() {{
             one(testFrameworkInstanceMock).prepare(getProject(), test, testClassReceiverMock);
@@ -158,29 +158,8 @@ public class AntTestTest extends AbstractConventionTaskTest {
             one(testFrameworkInstanceMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
             one(testFrameworkInstanceMock).report(getProject(), test);
         }});
+        getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
         test.execute();
-    }
-
-    public void testExecuteWithUnspecifiedCompiledTestsDir() {
-        setUpMocks(test);
-        test.setTestClassesDir(null);
-        try {
-            test.execute();
-            fail();
-        } catch (Exception e) {
-            assertThat(e.getCause(), Matchers.instanceOf(InvalidUserDataException.class));
-        }
-    }
-
-    public void testExecuteWithUnspecifiedTestResultsDir() {
-        setUpMocks(test);
-        test.setTestResultsDir(null);
-        try {
-            test.execute();
-            fail();
-        } catch (Exception e) {
-            assertThat(e.getCause(), Matchers.instanceOf(InvalidUserDataException.class));
-        }
     }
 
     private void setUpMocks(final AntTest test) {
@@ -208,12 +187,5 @@ public class AntTestTest extends AbstractConventionTaskTest {
         assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2), test.getExcludes());
         test.exclude(TEST_PATTERN_3);
         assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getExcludes());
-    }
-
-    private void setExistingDirsFilter() {
-        context.checking(new Expectations() {{
-            allowing(existentDirsFilterMock).checkExistenceAndThrowStopActionIfNot(classesDir);
-        }});
-        test.existingDirsFilter = existentDirsFilterMock;
     }
 }

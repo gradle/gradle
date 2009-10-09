@@ -49,13 +49,6 @@ public class AntTest extends AbstractTestTask {
     public void executeTests() {
         final File testClassesDir = getTestClassesDir();
 
-        if (testClassesDir == null)
-            throw new InvalidUserDataException("The testClassesDir property is not set, testing can't be triggered!");
-        if (getTestResultsDir() == null)
-            throw new InvalidUserDataException("The testResultsDir property is not set, testing can't be triggered!");
-
-        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(testClassesDir);
-
         final TestFrameworkInstance testInstance = getTestFramework();
 
         testInstance.prepare(getProject(), this, testClassReceiver);

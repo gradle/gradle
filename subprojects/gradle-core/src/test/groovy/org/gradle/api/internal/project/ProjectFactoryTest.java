@@ -72,7 +72,7 @@ public class ProjectFactoryTest {
     private ClassGenerator classGenerator = context.mock(ClassGenerator.class);
     private ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
             repositoryHandlerFactory, configurationContainerFactory, context.mock(DependencyFactory.class),
-            projectEvaluator, classGenerator, context.mock(ModuleDescriptorConverter.class));
+            projectEvaluator, classGenerator, context.mock(ModuleDescriptorConverter.class), new StartParameter());
     private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;

@@ -38,7 +38,7 @@ public class BuiltInTasksBuildExecuterTest {
     private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ProjectInternal project = HelperUtil.createRootProject();
-    private final TaskExecuter taskExecuter = context.mock(TaskExecuter.class);
+    private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
 
     @Before
     public void setUp() {

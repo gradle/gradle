@@ -36,8 +36,8 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.execution.DefaultTaskExecuter;
-import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.DefaultTaskGraphExecuter;
+import org.gradle.execution.TaskGraphExecuter;
 
 import java.io.File;
 
@@ -69,10 +69,10 @@ public class GradleInternalServiceRegistry extends AbstractServiceRegistry imple
             }
         });
 
-        add(new Service(TaskExecuter.class) {
+        add(new Service(TaskGraphExecuter.class) {
             @Override
             protected Object create() {
-                return new DefaultTaskExecuter();
+                return new DefaultTaskGraphExecuter();
             }
         });
 

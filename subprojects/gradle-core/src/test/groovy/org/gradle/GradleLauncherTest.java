@@ -23,7 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
-import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
@@ -72,7 +72,7 @@ public class GradleLauncherTest {
 
     private GradleLauncher gradleLauncher;
 
-    private TaskExecuter taskExecuterMock;
+    private TaskGraphExecuter taskExecuterMock;
 
     private ProjectDescriptor expectedRootProjectDescriptor;
     
@@ -89,7 +89,7 @@ public class GradleLauncherTest {
         settingsHandlerMock = context.mock(SettingsHandler.class);
         gradlePropertiesLoaderMock = context.mock(IGradlePropertiesLoader.class);
         settingsMock = context.mock(SettingsInternal.class);
-        taskExecuterMock = context.mock(TaskExecuter.class);
+        taskExecuterMock = context.mock(TaskGraphExecuter.class);
         buildLoaderMock = context.mock(BuildLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         gradleMock = context.mock(GradleInternal.class);

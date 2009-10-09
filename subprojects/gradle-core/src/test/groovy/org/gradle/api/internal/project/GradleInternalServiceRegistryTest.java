@@ -31,8 +31,8 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.plugins.Convention;
-import org.gradle.execution.DefaultTaskExecuter;
-import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.DefaultTaskGraphExecuter;
+import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.StartParameter;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
@@ -99,8 +99,8 @@ public class GradleInternalServiceRegistryTest {
 
     @Test
     public void providesATaskExecuter() {
-        assertThat(registry.get(TaskExecuter.class), instanceOf(DefaultTaskExecuter.class));
-        assertThat(registry.get(TaskExecuter.class), sameInstance(registry.get(TaskExecuter.class)));
+        assertThat(registry.get(TaskGraphExecuter.class), instanceOf(DefaultTaskGraphExecuter.class));
+        assertThat(registry.get(TaskGraphExecuter.class), sameInstance(registry.get(TaskGraphExecuter.class)));
     }
 
     @Test

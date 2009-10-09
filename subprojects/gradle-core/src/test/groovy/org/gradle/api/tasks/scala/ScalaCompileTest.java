@@ -101,6 +101,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         compile.source(srcDir);
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
+        compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
         compile.setDependencyCacheDir(depCacheDir);

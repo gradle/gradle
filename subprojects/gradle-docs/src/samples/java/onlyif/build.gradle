@@ -8,9 +8,6 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.7'
 }
 
-compileJava.doLast { println "compile didWork = ${compileJava.didWork}" }
-compileTestJava.doLast { println "compileTest didWork = ${compileTestJava.didWork}" }
-
 test {
     options.systemProperties['property'] = 'value'
     onlyIf { task ->

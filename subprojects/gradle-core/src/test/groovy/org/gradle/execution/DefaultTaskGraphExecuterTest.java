@@ -44,10 +44,10 @@ import java.util.concurrent.Callable;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class DefaultTaskExecuterTest {
+public class DefaultTaskGraphExecuterTest {
     static File TEST_ROOT_DIR = new File("/path/root");
 
-    TaskExecuter taskExecuter;
+    TaskGraphExecuter taskExecuter;
     ProjectInternal root;
     JUnit4Mockery context = new JUnit4Mockery();
     List<Task> executedTasks = new ArrayList<Task>();
@@ -55,7 +55,7 @@ public class DefaultTaskExecuterTest {
     @Before
     public void setUp() {
         root = createRootProject(new File("root"));
-        taskExecuter = new DefaultTaskExecuter();
+        taskExecuter = new DefaultTaskGraphExecuter();
     }
 
     @Test

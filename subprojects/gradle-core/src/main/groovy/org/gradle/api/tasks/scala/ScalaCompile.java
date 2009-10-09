@@ -68,8 +68,8 @@ public class ScalaCompile extends Compile {
     @Override
     protected void compile() {
 
-        if (!GUtil.isTrue(getTargetCompatibility())) {
-            throw new InvalidUserDataException("The targetCompatibility must be set!");
+        if (!GUtil.isTrue(getSourceCompatibility()) || !GUtil.isTrue(getTargetCompatibility())) {
+            throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
         }
 
         FileTree source = getSource();

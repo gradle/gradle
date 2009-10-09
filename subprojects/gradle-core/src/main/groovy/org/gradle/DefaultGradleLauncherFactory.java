@@ -133,7 +133,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 configurationContainerFactory,
                 dependencyFactory, projectEvaluator,
                 classGenerator,
-                moduleDescriptorConverter);
+                moduleDescriptorConverter,
+                startParameter);
         InitScriptHandler initScriptHandler = new InitScriptHandler(
                 new UserHomeInitScriptFinder(
                         new DefaultInitScriptFinder()),

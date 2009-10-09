@@ -80,7 +80,7 @@ public class EclipseWtpTest extends AbstractTaskTest {
         configureEclipse();
         eclipseWtp.getWarResourceMappings().put("someDeployPath",
                 WrapUtil.<Object>toList(new File(getProject().getProjectDir() + "xxx", "conf3").getAbsolutePath()));
-        eclipseWtp.execute();
+        eclipseWtp.generateWtp();
     }
 
     private void checkWtpFile() throws IOException {

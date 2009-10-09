@@ -17,17 +17,15 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.TaskAction;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator;
 import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskState;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.StandardOutputCapture;
-import org.gradle.api.specs.Spec;
-import org.gradle.execution.OutputHandler;
 import org.gradle.test.util.Check;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
@@ -36,7 +34,6 @@ import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
-import org.jmock.Sequence;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -45,7 +42,6 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -94,6 +90,8 @@ public abstract class AbstractTaskTest {
         assertEquals(new HashMap(), getTask().getAdditionalProperties());
         assertNotNull(getTask().getInputs());
         assertNotNull(getTask().getOutputs());
+        assertNotNull(getTask().getOnlyIf());
+        assertTrue(getTask().getOnlyIf().isSatisfiedBy(getTask()));
     }
 
     protected DefaultStandardOutputCapture getExpectedStandardOutputCapture() {
@@ -178,180 +176,24 @@ public abstract class AbstractTaskTest {
         GroovyTaskTestHelper.checkAddActionsWithClosures(getTask());
     }
 
-
     @Test
-    public void testBasicExecute() {
-        final OutputHandler outputMockHandler = context.mock(OutputHandler.class);
-        getTask().setOutputHandler(outputMockHandler);
-        final Sequence captureOutput = context.sequence("captureOutput");
-        final StandardOutputCapture standardOutputCaptureMock = context.mock(StandardOutputCapture.class);
-        getTask().setStandardOutputCapture(standardOutputCaptureMock);
-        context.checking(new Expectations() {{
-            one(outputMockHandler).writeHistory(true);
-            one(standardOutputCaptureMock).start(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
-            one(standardOutputCaptureMock).stop(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
-        }});
-        getTask().setActions(new ArrayList());
-        assertFalse(getTask().isExecuted());
-        final List<Boolean> actionsCalled = WrapUtil.toList(false, false);
-        TaskAction action1 = new TaskAction() {
-            public void execute(Task task) {
-                actionsCalled.set(0, true);
-            }
-        };
-        TaskAction action2 = new TaskAction() {
-            public void execute(Task task) {
-                actionsCalled.set(1, true);
-            }
-        };
-        getTask().doLast(action1);
-        getTask().doLast(action2);
-        getTask().execute();
-        assertTrue(getTask().isExecuted());
-        assertTrue(actionsCalled.get(0));
-        assertTrue(actionsCalled.get(1));
-        context.assertIsSatisfied();
-    }
+    public void testExecuteDelegatesToTaskExecuter() {
+        final AbstractTask task = getTask();
 
-    @Test
-    public void testExecutionWithException() {
-        final OutputHandler outputMockHandler = context.mock(OutputHandler.class);
-        getTask().setOutputHandler(outputMockHandler);
-        final Sequence captureOutput = context.sequence("captureOutput");
-        final StandardOutputCapture standardOutputCaptureMock = context.mock(StandardOutputCapture.class);
-        getTask().setStandardOutputCapture(standardOutputCaptureMock);
-        context.checking(new Expectations() {{
-            one(outputMockHandler).writeHistory(false);
-            one(standardOutputCaptureMock).start(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
-            one(standardOutputCaptureMock).stop(); inSequence(captureOutput); will(returnValue(standardOutputCaptureMock));
+        final TaskExecuter executer = context.mock(TaskExecuter.class);
+        task.setExecuter(executer);
+
+        context.checking(new Expectations(){{
+            one(executer).execute(with(sameInstance(task)), with(notNullValue(TaskState.class)));
         }});
-        getTask().setActions(new ArrayList());
-        TaskAction action1 = new TaskAction() {
-            public void execute(Task task) {
-                throw new RuntimeException();
-            }
-        };
-        getTask().doLast(action1);
-        try {
-            getTask().execute();
-        } catch (Exception e) {
-            // ignore
-        }
-        context.assertIsSatisfied();
+
+        task.execute();
     }
 
     @Test
     public void testConfigure() {
         getTask().setActions(new ArrayList());
         GroovyTaskTestHelper.checkConfigure(getTask());
-    }
-
-    @Test
-    public void testActionWithThrowable() {
-        RuntimeException failure = new RuntimeException();
-        getTask().doFirst(createExceptionAction(failure));
-        checkException(failure);
-    }
-
-    @Test
-    public void testActionWithInvokerInvocationExceptionAndWrappedThrowable() {
-        RuntimeException failure = new RuntimeException("x");
-        getTask().doFirst(createExceptionAction(new InvokerInvocationException(failure)));
-        checkException(failure);
-    }
-
-    @Test
-    public void testActionWithInvokerInvocationExceptionAndNoWrappedThrowable() {
-        InvokerInvocationException failure = new InvokerInvocationException(new Throwable()) {
-            @Override
-            public Throwable getCause() {
-                return null;
-            }
-        };
-        getTask().doFirst(createExceptionAction(failure));
-        checkException(failure);
-    }
-
-    private void checkException(Throwable cause) {
-        try {
-            getTask().execute();
-            fail();
-        } catch (GradleScriptException e) {
-            assertThat(e.getOriginalMessage(), equalTo("Execution failed for task '" + getTask().getPath() + "'."));
-            assertThat(e.getScriptSource(), sameInstance(project.getBuildScriptSource()));
-            assertThat(e.getCause(), sameInstance(cause));
-        }
-    }
-
-    @Test
-    public void testStopExecution() {
-        checkStopExecution(new StopExecutionException());
-    }
-
-    @Test
-    public void testStopExecutionWrappedInInvokerInvocationException() {
-        checkStopExecution(new InvokerInvocationException(new StopExecutionException()));
-    }
-
-    private void checkStopExecution(RuntimeException actionException) {
-        final List<Boolean> actionsCalled = WrapUtil.toList(false, false);
-        TaskAction action2 = new TaskAction() {
-            public void execute(Task task) {
-                actionsCalled.set(1, true);
-            }
-        };
-        getTask().doFirst(action2);
-        getTask().doFirst(createExceptionAction(actionException));
-        getTask().execute();
-        assertFalse(actionsCalled.get(1));
-        assertTrue(getTask().isExecuted());
-    }
-
-    @Test
-    public void testStopAction() {
-        checkStopAction(new StopActionException());
-    }
-
-    @Test
-    public void testStopActionWrappedInInvokerInvocationException() {
-        checkStopAction(new InvokerInvocationException(new StopActionException()));
-    }
-
-    private void checkStopAction(RuntimeException actionException) {
-        getTask().setActions(new ArrayList());
-        final List<Boolean> actionsCalled = WrapUtil.toList(false, false);
-        TaskAction action2 = new TaskAction() {
-            public void execute(Task task) {
-                actionsCalled.set(1, true);
-            }
-        };
-        getTask().doFirst(action2);
-        getTask().doFirst(createExceptionAction(actionException));
-        getTask().execute();
-        assertTrue(actionsCalled.get(1));
-        assertTrue(getTask().isExecuted());
-    }
-
-    private TaskAction createExceptionAction(final RuntimeException e) {
-        return new TaskAction() {
-            public void execute(Task task) {
-                throw e;
-            }
-        };
-    }
-
-    @Test
-    public void testDisabled() {
-        getTask().setActions(new ArrayList());
-        TaskAction action1 = new TaskAction() {
-            public void execute(Task task) {
-                fail();
-            }
-        };
-        getTask().doFirst(action1);
-        getTask().setEnabled(false);
-        getTask().execute();
-        assert getTask().isExecuted();
     }
 
     public AbstractProject getProject() {
@@ -380,7 +222,7 @@ public abstract class AbstractTaskTest {
             public void execute(Task task) {
                 task.disableStandardOutputCapture();
             }
-        })).execute();
+        })).execute().rethrowFailure();
     }
 
     @Test(expected=GradleScriptException.class)
@@ -389,7 +231,7 @@ public abstract class AbstractTaskTest {
             public void execute(Task task) {
                 task.captureStandardOutput(LogLevel.DEBUG);
             }
-        })).execute();
+        })).execute().rethrowFailure();
     }
 
     @Test
@@ -400,76 +242,10 @@ public abstract class AbstractTaskTest {
     }
 
     @Test
-    public void testExecutionEnabledByOnlyIf() {
-        final AbstractTask task = getTask();
-        task.onlyIf(new Spec<Task>() {
-            public boolean isSatisfiedBy(Task task) {
-                assertEquals(getTask(), task);
-                return true;
-            }
-        });
-        assertExecutionEnabled();
-    }
-
-    @Test
-    public void testExecutionEnabledByOnlyIfWithClosure() {
-        getTask().onlyIf(HelperUtil.toClosure("{ task -> true }"));
-        assertExecutionEnabled();
-    }
-
-    @Test
-    public void testExecutionEnabledByDefault() {
+    public void testCanSpecifyOnlyIfPredicateUsingClosure() {
         AbstractTask task = getTask();
-        task.deleteAllActions();
-        final boolean[] worked = new boolean[]{false};
-        task.doLast(new TaskAction() {
-            public void execute(Task task) {
-                worked[0] = true;
-            }
-        });
-        // no onlyIf set
-        task.execute();
-        assertTrue(worked[0]);
-    }
-
-    private void assertExecutionEnabled() {
-        final AbstractTask task = getTask();
-        task.deleteAllActions();
-        final List<Boolean> worked = new ArrayList<Boolean>();
-
-        task.doLast(new TaskAction() {
-            public void execute(Task task) {
-                worked.add(Boolean.TRUE);
-            }
-        });
-
-        task.execute();
-        assertTrue(!worked.isEmpty());
-    }
-
-    @Test
-    public void testExecutionDisabledByOnlyIf() {
-        getTask().onlyIf(new Spec<Task>() {
-            public boolean isSatisfiedBy(Task task) { return false; }
-        });
-        assertExecutionDisabled();
-    }
-
-    @Test
-    public void testExecutionDisabledByOnlyIfWithClosure() {
-        getTask().onlyIf(HelperUtil.toClosure("{ task -> false }"));
-        assertExecutionDisabled();
-    }
-
-    private void assertExecutionDisabled() {
-        AbstractTask task = getTask();
-        task.deleteAllActions();
-        task.doLast(new TaskAction() {
-            public void execute(Task task) {
-                fail("Optimization failed");
-            }
-        });
-        task.execute();
+        task.onlyIf(HelperUtil.toClosure("{ task -> false }"));
+        assertFalse(task.getOnlyIf().isSatisfiedBy(task));
     }
 
     @Test

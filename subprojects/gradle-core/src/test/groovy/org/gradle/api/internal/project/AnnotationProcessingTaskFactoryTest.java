@@ -424,7 +424,7 @@ public class AnnotationProcessingTaskFactoryTest {
     
     private void assertValidationFails(TaskInternal task, String expectedErrorMessage) {
         try {
-            task.execute();
+            task.execute().rethrowFailure();
             fail();
         } catch (GradleException e) {
             assertThat(e.getCause(), instanceOf(InvalidUserDataException.class));

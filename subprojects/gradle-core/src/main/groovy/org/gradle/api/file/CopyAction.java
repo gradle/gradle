@@ -23,11 +23,6 @@ import org.gradle.api.tasks.WorkResult;
 public interface CopyAction extends CopySpec, WorkResult {
 
     /**
-     * Execute the copy
-     */
-    void execute();
-
-    /**
      * Set case sensitivity for comparisons.
      * @param caseSensitive
      */

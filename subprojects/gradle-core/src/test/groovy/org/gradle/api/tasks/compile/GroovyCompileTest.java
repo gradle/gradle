@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.GradleScriptException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
@@ -110,9 +109,8 @@ public class GroovyCompileTest extends AbstractCompileTest {
     public void testExecuteWithEmptyGroovyClasspath() {
         setUpMocksAndAttributes(testObj, Collections.emptyList());
         try {
-            testObj.execute();
-        } catch (GradleScriptException e) {
-            assertThat(e.getCause(), is(InvalidUserDataException.class));
+            testObj.compile();
+        } catch (InvalidUserDataException e) {
             return;
         }
         Assert.fail();

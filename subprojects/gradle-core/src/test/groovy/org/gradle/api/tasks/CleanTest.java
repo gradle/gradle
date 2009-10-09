@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.integtests.TestFile;
@@ -72,9 +72,9 @@ public class CleanTest extends AbstractConventionTaskTest {
         assertFalse(clean.getDir().exists());
     }
 
-    @Test(expected = GradleScriptException.class)
+    @Test(expected = InvalidUserDataException.class)
     public void testExecuteWithNullDir() {
-        clean.execute();
+        clean.clean();
     }
 
 }

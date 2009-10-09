@@ -18,12 +18,15 @@ package org.gradle.api.internal.project;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.DefaultTaskExecuter;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.configuration.ProjectEvaluator;
+import org.gradle.StartParameter;
 
 /**
  * Contains the singleton services which are shared by all builds.
@@ -32,7 +35,9 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
     public DefaultServiceRegistryFactory(RepositoryHandlerFactory repositoryHandlerFactory,
                                          ConfigurationContainerFactory configurationContainerFactory,
                                          DependencyFactory dependencyFactory, ProjectEvaluator projectEvaluator,
-                                         ClassGenerator classGenerator, ModuleDescriptorConverter moduleDescriptorConverter) {
+                                         ClassGenerator classGenerator,
+                                         ModuleDescriptorConverter moduleDescriptorConverter,
+                                         StartParameter startParameter) {
         add(RepositoryHandlerFactory.class, repositoryHandlerFactory);
         add(ConfigurationContainerFactory.class, configurationContainerFactory);
         add(DependencyFactory.class, dependencyFactory);
@@ -44,6 +49,7 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
                                 classGenerator))));
         add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
         add(ModuleDescriptorConverter.class, moduleDescriptorConverter);
+        add(TaskExecuter.class, new DefaultTaskExecuter(startParameter));
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

@@ -29,7 +29,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.execution.TaskExecuter;
+import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GradleVersion;
@@ -41,7 +41,7 @@ public class DefaultGradle implements GradleInternal {
 
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
-    private TaskExecuter taskGraph;
+    private TaskGraphExecuter taskGraph;
     private StartParameter startParameter;
     private ClassLoader buildScriptClassLoader;
     private StandardOutputRedirector standardOutputRedirector;
@@ -61,7 +61,7 @@ public class DefaultGradle implements GradleInternal {
         this.standardOutputRedirector = services.get(StandardOutputRedirector.class);
         projectRegistry = services.get(IProjectRegistry.class);
         pluginRegistry = services.get(PluginRegistry.class);
-        taskGraph = services.get(TaskExecuter.class);
+        taskGraph = services.get(TaskGraphExecuter.class);
         scriptHandler = services.get(ScriptHandler.class);
         scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
     }
@@ -98,11 +98,11 @@ public class DefaultGradle implements GradleInternal {
         this.defaultProject = defaultProject;
     }
 
-    public TaskExecuter getTaskGraph() {
+    public TaskGraphExecuter getTaskGraph() {
         return taskGraph;
     }
 
-    public void setTaskGraph(TaskExecuter taskGraph) {
+    public void setTaskGraph(TaskGraphExecuter taskGraph) {
         this.taskGraph = taskGraph;
     }
 

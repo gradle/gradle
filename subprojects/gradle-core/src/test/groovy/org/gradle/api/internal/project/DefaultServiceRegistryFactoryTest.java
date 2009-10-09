@@ -18,12 +18,15 @@ package org.gradle.api.internal.project;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.DefaultTaskExecuter;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.configuration.ProjectEvaluator;
+import org.gradle.StartParameter;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -42,7 +45,7 @@ public class DefaultServiceRegistryFactoryTest {
 
     private final DefaultServiceRegistryFactory factory = new DefaultServiceRegistryFactory(repositoryHandlerFactory,
             configurationContainerFactory, dependencyFactory, projectEvaluator, context.mock(ClassGenerator.class),
-            context.mock(ModuleDescriptorConverter.class));
+            context.mock(ModuleDescriptorConverter.class), new StartParameter());
 
     @Test
     public void throwsExceptionForUnknownService() {
@@ -82,5 +85,11 @@ public class DefaultServiceRegistryFactoryTest {
     public void providesAPublishArtifactFactory() {
         assertThat(factory.get(PublishArtifactFactory.class), instanceOf(DefaultPublishArtifactFactory.class));
         assertThat(factory.get(PublishArtifactFactory.class), sameInstance(factory.get(PublishArtifactFactory.class)));
+    }
+    
+    @Test
+    public void providesATaskExecuter() {
+        assertThat(factory.get(TaskExecuter.class), instanceOf(DefaultTaskExecuter.class));
+        assertThat(factory.get(TaskExecuter.class), sameInstance(factory.get(TaskExecuter.class)));
     }
 }

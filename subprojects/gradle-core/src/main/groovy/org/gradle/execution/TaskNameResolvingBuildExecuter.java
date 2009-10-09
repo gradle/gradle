@@ -32,7 +32,7 @@ import java.util.regex.Matcher;
 public class TaskNameResolvingBuildExecuter implements BuildExecuter {
     private final List<String> names;
     private String description;
-    private TaskExecuter executer;
+    private TaskGraphExecuter executer;
 
     public TaskNameResolvingBuildExecuter(Collection<String> names) {
         this.names = new ArrayList<String>(names);

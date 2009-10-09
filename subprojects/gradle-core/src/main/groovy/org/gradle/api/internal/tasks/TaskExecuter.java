@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks;
 
-package org.gradle.api.internal;
-
-import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionResult;
-import org.gradle.api.logging.StandardOutputCapture;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.TaskInternal;
 
-public interface TaskInternal extends Task {
-    Spec<? super TaskInternal> getOnlyIf();
-
+public interface TaskExecuter {
     /**
-     * Executes this task. If execution fails with an exception, the exception is packaged in the returned result.
+     * Executes the given task. If the task fails with an exception, the exception is packaged in the returned result.
      */
-    TaskExecutionResult execute();
-
-    StandardOutputCapture getStandardOutputCapture();
+    TaskExecutionResult execute(TaskInternal task, TaskState state);
 }
