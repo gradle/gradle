@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
+import org.gradle.api.logging.StandardOutputLogging;
 
 import java.io.*;
 import java.util.Formatter;
@@ -30,7 +31,7 @@ public class TextProjectReportRenderer implements ProjectReportRenderer {
     private Formatter formatter;
 
     public TextProjectReportRenderer() {
-        this(System.out);
+        this(StandardOutputLogging.OUT_LOGGING_STREAM.get());
     }
 
     public TextProjectReportRenderer(Appendable writer) {
@@ -57,7 +58,7 @@ public class TextProjectReportRenderer implements ProjectReportRenderer {
 
     public void complete() throws IOException {
         cleanupWriter();
-        setWriter(System.out, false);
+        setWriter(StandardOutputLogging.OUT_LOGGING_STREAM.get(), false);
     }
 
     private void setWriter(Appendable writer, boolean close) {
