@@ -31,8 +31,7 @@ import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
-import org.gradle.api.logging.StandardOutputLogging;
-import org.gradle.configuration.*;
+import org.gradle.configuration.*;    
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.invocation.DefaultGradle;
@@ -74,12 +73,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     public GradleLauncher newInstance(StartParameter startParameter) {
-        // Switching StandardOutputLogging off is important if the factory is used to
-        // run multiple Gradle builds (each one requiring a new instances of GradleLauncher).
-        // Switching it off shouldn't be strictly necessary as StandardOutput capturing should
-        // always be closed. But as we expose this functionality to the builds, we can't
-        // guarantee this.
-        StandardOutputLogging.off();
         ListenerManager listenerManager = new DefaultListenerManager();
         loggingConfigurer.initialize(listenerManager);
         loggingConfigurer.configure(startParameter.getLogLevel());

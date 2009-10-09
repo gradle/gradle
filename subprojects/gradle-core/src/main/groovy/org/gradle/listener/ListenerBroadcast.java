@@ -19,6 +19,9 @@ import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Script;
 
@@ -100,8 +103,16 @@ public class ListenerBroadcast<T> {
             if (method.getName().equals("toString")) {
                 return String.format("%s broadcast", type.getSimpleName());
             }
+            DefaultStandardOutputCapture standardOutputCapture = null;
+            if (getType() != StandardOutputListener.class) {
+                standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
+                standardOutputCapture.start();
+            }
             for (InvocationHandler handler : handlers.values()) {
                 handler.invoke(null, method, parameters);
+            }
+            if (standardOutputCapture != null) {
+                standardOutputCapture.stop();
             }
             return null;
         }

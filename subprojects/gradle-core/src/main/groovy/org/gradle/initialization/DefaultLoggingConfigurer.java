@@ -184,7 +184,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
             if (target.equals(SYSTEM_OUT)) {
                 setWriter(createWriter(StandardOutputLogging.DEFAULT_OUT));
             } else {
-                setWriter(createWriter(StandardOutputLogging.DEFAULT_OUT));
+                setWriter(createWriter(StandardOutputLogging.DEFAULT_ERR));
             }
         }
 
