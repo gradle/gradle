@@ -159,18 +159,10 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     private void executeTask(Task task) {
-        fireBeforeTask(task);
-        TaskExecutionResult result = ((TaskInternal) task).execute();
-        fireAfterTask(task, result.getFailure());
-        result.rethrowFailure();
-    }
-
-    private void fireBeforeTask(Task task) {
         taskListeners.getSource().beforeExecute(task);
-    }
-
-    private void fireAfterTask(Task task, Throwable failure) {
-        taskListeners.getSource().afterExecute(task, failure);
+        TaskExecutionResult result = ((TaskInternal) task).execute();
+        taskListeners.getSource().afterExecute(task, result);
+        result.rethrowFailure();
     }
 
     public boolean hasTask(Task task) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.gradle.execution;
 import org.gradle.api.*;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -45,6 +46,7 @@ import java.util.concurrent.Callable;
  */
 @RunWith(JMock.class)
 public class DefaultTaskGraphExecuterTest {
+
     static File TEST_ROOT_DIR = new File("/path/root");
 
     TaskGraphExecuter taskExecuter;
@@ -121,7 +123,7 @@ public class DefaultTaskGraphExecuterTest {
 
         assertThat(executedTasks, equalTo(toList(a, b, c, d, e)));
     }
-    
+
     @Test
     public void testAddTasksAddsDependencies() {
         Task a = createTask("a");
@@ -270,9 +272,9 @@ public class DefaultTaskGraphExecuterTest {
 
         context.checking(new Expectations() {{
             one(listener).beforeExecute(a);
-            one(listener).afterExecute(a, null);
+            one(listener).afterExecute(with(equalTo(a)), with(notNullValue(TaskExecutionResult.class)));
             one(listener).beforeExecute(b);
-            one(listener).afterExecute(b, null);
+            one(listener).afterExecute(with(equalTo(b)), with(notNullValue(TaskExecutionResult.class)));
         }});
 
         taskExecuter.execute();
@@ -294,7 +296,7 @@ public class DefaultTaskGraphExecuterTest {
 
         context.checking(new Expectations() {{
             one(listener).beforeExecute(a);
-            one(listener).afterExecute(with(sameInstance(a)), with(notNullValue(GradleScriptException.class)));
+            one(listener).afterExecute(with(sameInstance(a)), with(notNullValue(TaskExecutionResult.class)));
         }});
 
         try {
@@ -322,7 +324,7 @@ public class DefaultTaskGraphExecuterTest {
 
         taskExecuter.execute();
     }
-    
+
     @Test
     public void testNotifiesAfterTaskClosureAsTasksAreExecuted() {
         final TestClosure runnable = context.mock(TestClosure.class);
@@ -371,7 +373,7 @@ public class DefaultTaskGraphExecuterTest {
         taskExecuter.addTasks(toList(c));
         assertThat(taskExecuter.getAllTasks(), equalTo(toList(b, c)));
     }
-    
+
     private Task createTask(String name, final Task... dependsOn) {
         final TaskInternal task = AbstractTask.injectIntoNewInstance(root, name, new Callable<TaskInternal>() {
             public TaskInternal call() throws Exception {
@@ -386,5 +388,4 @@ public class DefaultTaskGraphExecuterTest {
         });
         return task;
     }
-
 }

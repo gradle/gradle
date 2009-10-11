@@ -4,12 +4,12 @@ task broken(dependsOn: ok) << {
     throw new RuntimeException('broken')
 }
 
-gradle.taskGraph.beforeTask { task ->
+gradle.taskGraph.beforeTask { Task task ->
     println "executing $task ..."
 }
 
-gradle.taskGraph.afterTask { task, exception ->
-    if (exception) {
+gradle.taskGraph.afterTask { Task task, TaskExecutionResult result ->
+    if (result.failure) {
         println "FAILED"
     }
     else {

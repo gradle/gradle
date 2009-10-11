@@ -32,11 +32,12 @@ public interface TaskExecutionListener {
     void beforeExecute(Task task);
 
     /**
-     * This method is call immediately after a task has been executed. It is called whether the task completed
-     * successfully, or failed with an exception.
+     * This method is call immediately after a task has been executed. It is always called, regardless of whether the
+     * task completed successfully, or failed with an exception.
      *
      * @param task The task which was executed. Never null.
-     * @param failure The exception which was thrown by the task, if any. Null if the task completed successfully.
+     * @param result The result of the task. If the task failed with an exception, the exception is available in this
+     * result.
      */
-    void afterExecute(Task task, Throwable failure);
+    void afterExecute(Task task, TaskExecutionResult result);
 }

@@ -79,7 +79,7 @@ public interface TaskExecutionGraph {
 
     /**
      * <p>Adds a closure to be called immediately after a task has executed. The task is passed to the closure as the
-     * first parameter. The task execution exception, if any, is passed as the second parameter. Both parameters are
+     * first parameter. A {@link TaskExecutionResult} is passed as the second parameter. Both parameters are
      * optional.</p>
      *
      * @param closure The closure to execute when a task has been executed

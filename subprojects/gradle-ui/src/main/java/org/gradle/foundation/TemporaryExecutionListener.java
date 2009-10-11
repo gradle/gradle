@@ -21,6 +21,7 @@ import org.gradle.ExecutionListener;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.StandardOutputListener;
@@ -146,7 +147,7 @@ public class TemporaryExecutionListener {
             executionListener.reportTaskStarted(task.getProject().getName() + ":" + task.getName(), percentComplete);
         }
 
-        public void afterExecute(Task task, Throwable throwable) {
+        public void afterExecute(Task task, TaskExecutionResult result) {
             totalTasksExecuted++;
             percentComplete = (totalTasksExecuted / totalTasksToExecute) * 100;
             executionListener.reportTaskComplete(task.getProject().getName() + ":" + task.getName(), percentComplete);
