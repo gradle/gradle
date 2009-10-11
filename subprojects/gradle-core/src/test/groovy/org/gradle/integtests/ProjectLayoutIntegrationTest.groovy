@@ -109,4 +109,36 @@ sourceSets.each {
         buildDir.file('docs/groovydoc/index.html').assertIsFile()
         buildDir.file('docs/scaladoc/index.html').assertIsFile()
     }
+
+    @Test
+    public void multipleProjectsCanShareTheSameSourceDirectory() {
+        dist.testFile('settings.gradle') << 'include "a", "b"'
+        dist.testFile('a/build.gradle') << '''
+usePlugin 'java'
+sourceSets.main.java {
+    srcDirs '../src'
+    include 'org/gradle/a/**'
+}
+'''
+        dist.testFile('b/build.gradle') << '''
+usePlugin 'java'
+dependencies { compile project(':a') }
+sourceSets.main.java {
+    srcDirs '../src'
+    include 'org/gradle/b/**'
+}
+'''
+
+        dist.testFile('src/org/gradle/a/ClassA.java') << 'package org.gradle.a; public class ClassA { }'
+        dist.testFile('src/org/gradle/b/ClassB.java') << 'package org.gradle.b; public class ClassB { private org.gradle.a.ClassA field; }'
+
+        executer.withTasks('clean', 'assemble').run()
+
+        dist.testFile('a/build/classes/main').assertHasDescendants(
+                'org/gradle/a/ClassA.class'
+        )
+        dist.testFile('b/build/classes/main').assertHasDescendants(
+                'org/gradle/b/ClassB.class'
+        )
+    }
 }

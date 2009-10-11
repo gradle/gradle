@@ -38,6 +38,7 @@ class AntJavac {
                 includeAntRuntime: false,
                 destdir: targetDir,
                 classpathref: CLASSPATH_ID,
+                sourcepath: '',
                 target: targetCompatibility,
                 source: sourceCompatibility
         ]
