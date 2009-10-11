@@ -29,30 +29,22 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
-import static java.util.Collections.*;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
-    static final String DEBUGINFO_KEY = "sourcefile";
 
-    private final CachePropertiesHandler cachePropertiesHandler;
-
-    public DefaultScriptCompilationHandler(CachePropertiesHandler cachePropertiesHandler) {
-        this.cachePropertiesHandler = cachePropertiesHandler;
-    }
-
-    public <T extends Script> T createScriptOnTheFly(ScriptSource source, ClassLoader classLoader,
+    public <T extends Script> T compileScript(ScriptSource source, ClassLoader classLoader,
                                                      Transformer transformer,
                                                      Class<T> scriptBaseClass) {
         Clock clock = new Clock();
@@ -64,7 +56,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         return script;
     }
 
-    public void writeToCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+    public void compileScriptToDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                              Transformer transformer, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(scriptCacheDir);
@@ -73,7 +65,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         configuration.setTargetDirectory(scriptCacheDir);
         compileScript(source, classLoader, configuration, transformer);
 
-        cachePropertiesHandler.writeProperties(source, scriptCacheDir, singletonMap(DEBUGINFO_KEY, source.getFileName()));
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(),
                 clock.getTime());
     }
@@ -140,12 +131,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         return configuration;
     }
 
-    public <T extends Script> T loadFromCache(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+    public <T extends Script> T loadScriptFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                                               Class<T> scriptBaseClass) {
-        CachePropertiesHandler.CacheState cacheState = cachePropertiesHandler.getCacheState(source, scriptCacheDir, singletonMap(DEBUGINFO_KEY, source.getFileName()));
-        if (cacheState == CachePropertiesHandler.CacheState.INVALID) {
-            return null;
-        }
         Clock clock = new Clock();
         Script script;
         try {
@@ -163,9 +150,5 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
         logger.debug("Timing: Loading script from cache took: {}", clock.getTime());
         return scriptBaseClass.cast(script);
-    }
-
-    public CachePropertiesHandler getCachePropertyHandler() {
-        return cachePropertiesHandler;
     }
 }

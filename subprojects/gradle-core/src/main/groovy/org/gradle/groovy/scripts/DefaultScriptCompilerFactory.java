@@ -16,8 +16,13 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.CacheUsage;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
+import org.gradle.util.HashUtil;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -25,14 +30,14 @@ import java.io.File;
 public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final CacheUsage cacheUsage;
-    private final File cacheDir;
+    private final CacheRepository cacheRepository;
     private final ScriptRunnerFactory scriptRunnerFactory;
 
     public DefaultScriptCompilerFactory(ScriptCompilationHandler scriptCompilationHandler, CacheUsage cacheUsage,
-                                        File userHomeDir, ScriptRunnerFactory scriptRunnerFactory) {
+                                        ScriptRunnerFactory scriptRunnerFactory, CacheRepository cacheRepository) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.cacheUsage = cacheUsage;
-        this.cacheDir = new File(userHomeDir, "scriptCache");
+        this.cacheRepository = cacheRepository;
         this.scriptRunnerFactory = scriptRunnerFactory;
     }
 
@@ -74,26 +79,28 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         }
 
         private <T extends Script> T loadWithoutCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
-            return scriptCompilationHandler.createScriptOnTheFly(source, classLoader, transformer, scriptBaseClass);
+            return scriptCompilationHandler.compileScript(source, classLoader, transformer, scriptBaseClass);
         }
 
         private <T extends Script> T loadViaCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
-            File scriptCacheDir = new File(cacheDir, source.getClassName());
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("source.filename", source.getFileName());
+            properties.put("source.hash", HashUtil.createHash(source.getText()));
+
+            PersistentCache cache = cacheRepository.getGlobalCache(String.format("scripts/%s", source.getClassName()),
+                    properties);
+            File classesDir;
             if (transformer != null) {
-                scriptCacheDir = new File(scriptCacheDir, transformer.getClass().getSimpleName());
+                classesDir = new File(cache.getBaseDir(), transformer.getClass().getSimpleName());
             } else {
-                scriptCacheDir = new File(scriptCacheDir, "NoTransformer");
+                classesDir = new File(cache.getBaseDir(), "NoTransformer");
             }
 
-            if (cacheUsage == CacheUsage.ON) {
-                T cachedScript = scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir,
-                        scriptBaseClass);
-                if (cachedScript != null) {
-                    return cachedScript;
-                }
+            if (!cache.isValid() || !classesDir.exists()) {
+                scriptCompilationHandler.compileScriptToDir(source, classLoader, classesDir, transformer, scriptBaseClass);
+                cache.update();
             }
-            scriptCompilationHandler.writeToCache(source, classLoader, scriptCacheDir, transformer, scriptBaseClass);
-            return scriptCompilationHandler.loadFromCache(source, classLoader, scriptCacheDir, scriptBaseClass);
+            return scriptCompilationHandler.loadScriptFromDir(source, classLoader, classesDir, scriptBaseClass);
         }
     }
 }

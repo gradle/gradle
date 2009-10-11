@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.List;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+    private boolean quiet;
+
     public GradleExecuter inDirectory(File directory) {
         throw new UnsupportedOperationException();
     }
@@ -45,8 +47,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         throw new UnsupportedOperationException();
     }
 
+    public boolean isQuiet() {
+        return quiet;
+    }
+
     public GradleExecuter withQuietLogging() {
-        throw new UnsupportedOperationException();
+        quiet = true;
+        return this;
     }
 
     public GradleExecuter withTaskList() {

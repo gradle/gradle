@@ -48,8 +48,8 @@ class CacheProjectIntegrationTest {
         userHomeDir = dist.getUserHomeDir()
         buildFile = projectDir.file('build.gradle')
         ScriptSource source = new FileScriptSource("build file", buildFile)
-        propertiesFile = userHomeDir.file("scriptCache/$source.className/BuildScriptTransformer/cache.properties")
-        classFile = userHomeDir.file("scriptCache/$source.className/BuildScriptTransformer/${source.className}.class")
+        propertiesFile = userHomeDir.file("caches/scripts/$source.className/cache.properties")
+        classFile = userHomeDir.file("caches/scripts/$source.className/BuildScriptTransformer/${source.className}.class")
     }
     
     @Test

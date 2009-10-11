@@ -22,6 +22,7 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
@@ -106,19 +107,15 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    public GradleExecuter withQuietLogging() {
-        parameter.setLogLevel(LogLevel.QUIET);
-        return this;
-    }
-
-    @Override
     public GradleExecuter withArguments(String... args) {
         new DefaultCommandLine2StartParameterConverter().convert(args, parameter);
         return this;
     }
 
     public ExecutionResult run() {
-        System.out.println("parameter = " + parameter);
+        if (isQuiet()) {
+            parameter.setLogLevel(LogLevel.QUIET);
+        }
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
         gradleLauncher.addListener(new BuildListenerImpl());
         gradleLauncher.addStandardOutputListener(outputListener);
@@ -169,7 +166,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             current = task;
         }
 
-        public void afterExecute(Task task, Throwable failure) {
+        public void afterExecute(Task task, TaskExecutionResult result) {
             assertThat(task, sameInstance(current));
             current = null;
             tasks.add(task.getPath());

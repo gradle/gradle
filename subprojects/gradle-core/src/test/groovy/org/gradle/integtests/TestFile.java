@@ -159,6 +159,10 @@ public class TestFile extends File {
         assertTrue(String.format("%s is not a file", this), isFile());
     }
 
+    public void assertIsDir() {
+        assertTrue(String.format("%s is not a directory", this), isDirectory());
+    }
+
     public void assertDoesNotExist() {
         assertFalse(String.format("%s should not exist", this), exists());
     }

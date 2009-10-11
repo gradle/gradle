@@ -37,7 +37,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final GradleDistribution distribution;
     private File workingDir;
-    private boolean quiet;
     private List<String> tasks;
     private List<String> args;
     private Map<String, String> environmentVars = new HashMap<String, String>();
@@ -74,11 +73,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
             environmentVars.put(entry.getKey(), entry.getValue().toString());
         }
-        return this;
-    }
-
-    public GradleExecuter withQuietLogging() {
-        quiet = true;
         return this;
     }
 
@@ -120,7 +114,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         args.add("--gradle-user-home");
         args.add(distribution.getUserHomeDir().getAbsolutePath());
 
-        if (quiet) {
+        if (isQuiet()) {
             args.add("--quiet");
         }
 

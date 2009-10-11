@@ -29,7 +29,6 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.api.InputStreamClassLoader;
 import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
 import org.gradle.util.TemporaryFolder;
-import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -44,7 +43,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -68,9 +66,6 @@ public class DefaultScriptCompilationHandlerTest {
     private InputStreamClassLoader classLoader;
 
     private Class<? extends Script> expectedScriptClass;
-    private Map<String, String> expectedProperties;
-
-    private CachePropertiesHandler cachePropertiesHandlerMock;
 
     private JUnit4Mockery context = new JUnit4Mockery();
     @Rule
@@ -78,12 +73,11 @@ public class DefaultScriptCompilationHandlerTest {
 
     @Before
     public void setUp() throws IOException, ClassNotFoundException {
-        cachePropertiesHandlerMock = context.mock(CachePropertiesHandler.class);
         File testProjectDir = tmpDir.dir("projectDir");
         classLoader = new InputStreamClassLoader();
         InputStream inputStream = this.getClass().getResourceAsStream("/org/gradle/api/ClasspathTester.dat");
         classLoader.loadClass("org.gradle.api.ClasspathTester", inputStream);
-        scriptCompilationHandler = new DefaultScriptCompilationHandler(cachePropertiesHandlerMock);
+        scriptCompilationHandler = new DefaultScriptCompilationHandler();
         scriptCacheDir = new File(testProjectDir, "cache");
         scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE
                 + "')";
@@ -93,7 +87,6 @@ public class DefaultScriptCompilationHandlerTest {
         scriptSource = scriptSource();
         cachedFile = new File(scriptCacheDir, scriptClassName + ".class");
         expectedScriptClass = TestBaseScript.class;
-        expectedProperties = WrapUtil.toMap(DefaultScriptCompilationHandler.DEBUGINFO_KEY, scriptFileName);
     }
 
     private ScriptSource scriptSource() {
@@ -121,69 +114,43 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test
-    public void init() {
-        assertSame(cachePropertiesHandlerMock, scriptCompilationHandler.getCachePropertyHandler());
-    }
-
-    @Test
-    public void testWriteToCache() {
-        context.checking(new Expectations() {{
-            one(cachePropertiesHandlerMock).writeProperties(scriptSource, scriptCacheDir, expectedProperties);
-            one(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
-            will(returnValue(CachePropertiesHandler.CacheState.VALID));
-        }});
-        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+    public void testCompileScriptToDir() {
+        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
-        Script script = scriptCompilationHandler.loadFromCache(scriptSource, classLoader, scriptCacheDir,
+        Script script = scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass);
         evaluateScript(script);
     }
 
     @Test
-    public void testWriteToCacheAndLoadFromCacheWithWhitespaceOnly() {
+    public void testCompileScriptToDirWithWhitespaceOnly() {
         final ScriptSource scriptSource = scriptSource("// ignore me\n");
-        expectedProperties.put(DefaultScriptCompilationHandler.DEBUGINFO_KEY, scriptSource.getFileName());
-
-        context.checking(new Expectations() {{
-            one(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
-            will(returnValue(CachePropertiesHandler.CacheState.VALID));
-            one(cachePropertiesHandlerMock).writeProperties(scriptSource, scriptCacheDir, expectedProperties);
-        }});
-
-        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
-        Script script = scriptCompilationHandler.loadFromCache(scriptSource, classLoader, scriptCacheDir,
+        Script script = scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass);
         assertThat(script, is(expectedScriptClass));
     }
 
     @Test
-    public void testWriteToCacheAndLoadFromCacheWithEmptyScript() {
+    public void testCompileScriptToDirWithEmptyScript() {
         final ScriptSource scriptSource = scriptSource("");
-        expectedProperties.put(DefaultScriptCompilationHandler.DEBUGINFO_KEY, scriptSource.getFileName());
-
-        context.checking(new Expectations() {{
-            one(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
-            will(returnValue(CachePropertiesHandler.CacheState.VALID));
-            one(cachePropertiesHandlerMock).writeProperties(scriptSource, scriptCacheDir, expectedProperties);
-        }});
-
-        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
-        Script script = scriptCompilationHandler.loadFromCache(scriptSource, classLoader, scriptCacheDir,
+        Script script = scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass);
         assertThat(script, is(expectedScriptClass));
     }
 
     @Test
     public void testCreateScriptOnTheFly() {
-        Script script = scriptCompilationHandler.createScriptOnTheFly(scriptSource, classLoader, null,
+        Script script = scriptCompilationHandler.compileScript(scriptSource, classLoader, null,
                 expectedScriptClass);
 
         checkScriptClassesNotInCache();
@@ -193,7 +160,7 @@ public class DefaultScriptCompilationHandlerTest {
 
     @Test
     public void testCreateScriptOnTheFlyWithWhitespaceOnlyScript() {
-        Script script = scriptCompilationHandler.createScriptOnTheFly(new StringScriptSource("script",
+        Script script = scriptCompilationHandler.compileScript(new StringScriptSource("script",
                 "// ignore me\n"), classLoader, null, expectedScriptClass);
 
         checkScriptClassesNotInCache();
@@ -203,7 +170,7 @@ public class DefaultScriptCompilationHandlerTest {
 
     @Test
     public void testCreateScriptOnTheFlyWithEmptyScript() {
-        Script script = scriptCompilationHandler.createScriptOnTheFly(new StringScriptSource("script", ""), classLoader,
+        Script script = scriptCompilationHandler.compileScript(new StringScriptSource("script", ""), classLoader,
                 null, expectedScriptClass);
 
         checkScriptClassesNotInCache();
@@ -212,32 +179,17 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test
-    public void testLoadFromCacheWithInvalidCache() {
-        context.checking(new Expectations() {{
-            allowing(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
-            will(returnValue(CachePropertiesHandler.CacheState.INVALID));
-        }});
-        assertNull(scriptCompilationHandler.loadFromCache(scriptSource, classLoader, scriptCacheDir,
+    public void testLoadFromDirWhenNotAssignableToBaseClass() {
+        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, Script.class);
+        assertNull(scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass));
     }
 
     @Test
-    public void testLoadFromCacheWhenNotAssignableToBaseClass() {
-        context.checking(new Expectations() {{
-            one(cachePropertiesHandlerMock).writeProperties(scriptSource, scriptCacheDir, expectedProperties);
-            allowing(cachePropertiesHandlerMock).getCacheState(scriptSource, scriptCacheDir, expectedProperties);
-            will(returnValue(CachePropertiesHandler.CacheState.VALID));
-        }});
-        scriptCompilationHandler.writeToCache(scriptSource, classLoader, scriptCacheDir, null, Script.class);
-        assertNull(scriptCompilationHandler.loadFromCache(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass));
-    }
-
-    @Test
-    public void testWriteToCacheWithException() {
+    public void testCompileToDirWithException() {
         ScriptSource source = new StringScriptSource("script", "\n\nnew HHHHJSJSJ jsj");
         try {
-            scriptCompilationHandler.writeToCache(source, classLoader, scriptCacheDir, null, expectedScriptClass);
+            scriptCompilationHandler.compileScriptToDir(source, classLoader, scriptCacheDir, null, expectedScriptClass);
             fail();
         } catch (GradleScriptException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
@@ -249,7 +201,7 @@ public class DefaultScriptCompilationHandlerTest {
     public void testCreateScriptWithException() {
         ScriptSource source = new StringScriptSource("script", "\n\nnew HHHHJSJSJ jsj");
         try {
-            scriptCompilationHandler.createScriptOnTheFly(source, classLoader, null, expectedScriptClass);
+            scriptCompilationHandler.compileScript(source, classLoader, null, expectedScriptClass);
             fail();
         } catch (GradleScriptException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
@@ -279,7 +231,7 @@ public class DefaultScriptCompilationHandlerTest {
             }
         };
 
-        Script script = scriptCompilationHandler.createScriptOnTheFly(scriptSource("transformMe()"),
+        Script script = scriptCompilationHandler.compileScript(scriptSource("transformMe()"),
                 classLoader, visitor, expectedScriptClass);
         evaluateScript(script);
     }

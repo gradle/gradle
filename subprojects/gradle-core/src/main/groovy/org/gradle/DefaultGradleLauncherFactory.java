@@ -38,6 +38,7 @@ import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.WrapUtil;
+import org.gradle.cache.DefaultCacheRepository;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -111,12 +112,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 new DefaultProjectDependencyFactory(startParameter.getProjectDependenciesBuildInstruction()));
         ResolverFactory resolverFactory = new DefaultResolverFactory();
         ScriptCompilerFactory scriptCompilerFactory = new DefaultScriptCompilerFactory(
-                new DefaultScriptCompilationHandler(
-                        new DefaultCachePropertiesHandler()),
+                new DefaultScriptCompilationHandler(),
                 startParameter.getCacheUsage(),
-                startParameter.getGradleUserHomeDir(),
                 new DefaultScriptRunnerFactory(
-                        new DefaultScriptMetaData()));
+                        new DefaultScriptMetaData()),
+                new DefaultCacheRepository(
+                        startParameter.getGradleUserHomeDir(),
+                        startParameter.getCacheUsage()));
         DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(
                 new BuildScriptProcessor(
                         importsReader, scriptCompilerFactory));
