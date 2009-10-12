@@ -1194,7 +1194,7 @@ public interface Project extends Comparable<Project> {
     RepositoryHandler createRepositoryHandler();
 
     /**
-     * Returns the dependencies of this project. The returned dependency handler instance can be used for adding new
+     * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding new
      * dependencies. For accessing already declared dependencies, the configurations can be used.
      *
      * @return the dependency handler. Never returns null.
