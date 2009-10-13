@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.util.GUtil;
 
 import java.lang.reflect.Constructor;
@@ -38,7 +39,7 @@ public class TaskFactory implements ITaskFactory {
         this.generator = generator;
     }
 
-    public Task createTask(ProjectInternal project, Map<String, ?> args) {
+    public TaskInternal createTask(ProjectInternal project, Map<String, ?> args) {
         Map<String, Object> actualArgs = new HashMap<String, Object>(args);
         checkTaskArgsAndCreateDefaultValues(actualArgs);
 
@@ -47,9 +48,9 @@ public class TaskFactory implements ITaskFactory {
             throw new InvalidUserDataException("The task name must be provided.");
         }
 
-        Class<? extends Task> type = (Class) actualArgs.get(Task.TASK_TYPE);
+        Class<? extends TaskInternal> type = (Class) actualArgs.get(Task.TASK_TYPE);
         Boolean generateSubclass = Boolean.valueOf(actualArgs.get(GENERATE_SUBCLASS).toString());
-        Task task = createTaskObject(project, type, name, generateSubclass);
+        TaskInternal task = createTaskObject(project, type, name, generateSubclass);
 
         Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
         if (dependsOnTasks != null) {
@@ -71,21 +72,21 @@ public class TaskFactory implements ITaskFactory {
         return task;
     }
 
-    private Task createTaskObject(ProjectInternal project, final Class<? extends Task> type, String name, boolean generateGetters) {
+    private TaskInternal createTaskObject(ProjectInternal project, final Class<? extends TaskInternal> type, String name, boolean generateGetters) {
         if (!Task.class.isAssignableFrom(type)) {
             throw new GradleException(String.format(
                     "Cannot create task of type '%s' as it does not implement the Task interface.",
                     type.getSimpleName()));
         }
 
-        Class<? extends Task> generatedType;
+        Class<? extends TaskInternal> generatedType;
         if (generateGetters) {
             generatedType = generator.generate(type);
         } else {
             generatedType = type;
         }
 
-        final Constructor<? extends Task> constructor;
+        final Constructor<? extends TaskInternal> constructor;
         final Object[] params;
         try {
             constructor = generatedType.getDeclaredConstructor();
@@ -97,8 +98,8 @@ public class TaskFactory implements ITaskFactory {
                     type.getSimpleName()));
         }
 
-        return AbstractTask.injectIntoNewInstance(project, name, new Callable<Task>() {
-            public Task call() throws Exception {
+        return AbstractTask.injectIntoNewInstance(project, name, new Callable<TaskInternal>() {
+            public TaskInternal call() throws Exception {
                 try {
                     return constructor.newInstance(params);
                 } catch (InvocationTargetException e) {

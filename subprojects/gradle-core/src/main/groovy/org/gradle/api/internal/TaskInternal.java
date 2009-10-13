@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.specs.Spec;
@@ -30,4 +31,8 @@ public interface TaskInternal extends Task {
     TaskExecutionResult execute();
 
     StandardOutputCapture getStandardOutputCapture();
+
+    TaskExecuter getExecuter();
+
+    void setExecuter(TaskExecuter executer);
 }

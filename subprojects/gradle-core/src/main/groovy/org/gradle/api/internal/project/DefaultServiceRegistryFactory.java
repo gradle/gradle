@@ -15,41 +15,131 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.StartParameter;
+import org.gradle.util.WrapUtil;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.DefaultTaskExecuter;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.*;
+import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
+import org.gradle.api.internal.changedetection.DefaultTaskArtifactStateRepository;
+import org.gradle.api.internal.tasks.DefaultTaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.DefaultCacheRepository;
 import org.gradle.configuration.ProjectEvaluator;
-import org.gradle.StartParameter;
+import org.gradle.configuration.DefaultProjectEvaluator;
+import org.gradle.configuration.BuildScriptProcessor;
+import org.gradle.groovy.scripts.*;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Contains the singleton services which are shared by all builds.
  */
 public class DefaultServiceRegistryFactory extends AbstractServiceRegistry implements ServiceRegistryFactory {
-    public DefaultServiceRegistryFactory(RepositoryHandlerFactory repositoryHandlerFactory,
-                                         ConfigurationContainerFactory configurationContainerFactory,
-                                         DependencyFactory dependencyFactory, ProjectEvaluator projectEvaluator,
-                                         ClassGenerator classGenerator,
-                                         ModuleDescriptorConverter moduleDescriptorConverter,
-                                         StartParameter startParameter) {
-        add(RepositoryHandlerFactory.class, repositoryHandlerFactory);
-        add(ConfigurationContainerFactory.class, configurationContainerFactory);
-        add(DependencyFactory.class, dependencyFactory);
-        add(ProjectEvaluator.class, projectEvaluator);
-        add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
-        add(ITaskFactory.class, new DependencyAutoWireTaskFactory(
-                new AnnotationProcessingTaskFactory(
-                        new TaskFactory(
-                                classGenerator))));
+    public DefaultServiceRegistryFactory(final StartParameter startParameter) {
+        final Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
+
+        add(ImportsReader.class, new ImportsReader(startParameter.getDefaultImportsFile()));
+        add(ClassGenerator.class, new AsmBackedClassGenerator());
         add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
-        add(ModuleDescriptorConverter.class, moduleDescriptorConverter);
         add(TaskExecuter.class, new DefaultTaskExecuter(startParameter));
+        add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
+
+        add(new Service(RepositoryHandlerFactory.class) {
+            protected Object create() {
+                return new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), get(ClassGenerator.class));
+            }
+        });
+
+        add(new Service(CacheRepository.class){
+            protected Object create() {
+                return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(),
+                        startParameter.getCacheUsage());
+            }
+        });
+
+        add(new Service(ConfigurationContainerFactory.class){
+            protected Object create() {
+                return new DefaultConfigurationContainerFactory(
+                        clientModuleRegistry,
+                        new DefaultSettingsConverter(),
+                        get(ModuleDescriptorConverter.class),
+                        new DefaultIvyFactory(),
+                        new SelfResolvingDependencyResolver(
+                                new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
+                        new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
+                                new DefaultPublishOptionsFactory()));
+            }
+        });
+
+        add(new Service(ModuleDescriptorConverter.class){
+            protected Object create() {
+                ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
+                return new DefaultModuleDescriptorConverter(
+                        new DefaultModuleDescriptorFactory(),
+                        new DefaultConfigurationsToModuleDescriptorConverter(),
+                        new DefaultDependenciesToModuleDescriptorConverter(
+                                new DefaultDependencyDescriptorFactory(
+                                        excludeRuleConverter,
+                                        new DefaultClientModuleDescriptorFactory(),
+                                        clientModuleRegistry),
+                                excludeRuleConverter),
+                        new DefaultArtifactsToModuleDescriptorConverter());
+            }
+        });
+
+        add(new Service(DependencyFactory.class){
+            protected Object create() {
+                return new DefaultDependencyFactory(
+                        WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),
+                                new SelfResolvingDependencyFactory()),
+                        new DefaultClientModuleFactory(),
+                        new DefaultProjectDependencyFactory(startParameter.getProjectDependenciesBuildInstruction()));
+            }
+        });
+        
+        add(new Service(ProjectEvaluator.class){
+            protected Object create() {
+                return new DefaultProjectEvaluator(
+                        new BuildScriptProcessor(
+                                get(ImportsReader.class),
+                                get(ScriptCompilerFactory.class)));
+            }
+        });
+
+        add(new Service(ITaskFactory.class) {
+            protected Object create() {
+                return new ExecutionShortCircuitTaskFactory(
+                        new DependencyAutoWireTaskFactory(
+                                new AnnotationProcessingTaskFactory(
+                                        new TaskFactory(get(ClassGenerator.class)))),
+                        new DefaultTaskArtifactStateRepository(get(CacheRepository.class)));
+            }
+        });
+
+        add(new Service(ScriptCompilerFactory.class) {
+            protected Object create() {
+                return new DefaultScriptCompilerFactory(
+                        new DefaultScriptCompilationHandler(),
+                        startParameter.getCacheUsage(),
+                        new DefaultScriptRunnerFactory(new DefaultScriptMetaData()),
+                        get(CacheRepository.class));
+            }
+        });
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

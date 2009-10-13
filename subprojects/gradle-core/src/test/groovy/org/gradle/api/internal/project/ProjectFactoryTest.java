@@ -20,16 +20,12 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.plugins.Convention;
-import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -68,11 +64,7 @@ public class ProjectFactoryTest {
             ConfigurationContainerFactory.class);
     private RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
-    private ProjectEvaluator projectEvaluator = context.mock(ProjectEvaluator.class);
-    private ClassGenerator classGenerator = context.mock(ClassGenerator.class);
-    private ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
-            repositoryHandlerFactory, configurationContainerFactory, context.mock(DependencyFactory.class),
-            projectEvaluator, classGenerator, context.mock(ModuleDescriptorConverter.class), new StartParameter());
+    private ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(new StartParameter());
     private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;

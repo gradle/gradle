@@ -148,7 +148,7 @@ class UserguideIntegrationTest {
             }
             else {
                 return runs.collect {sample ->
-                    new GradleRun(id: sample.id, subDir: sample.dir, execute: sample.args.split('\\s+'), outputFile: sample.outputFile, envs: sample.envs, expectFailure: sample.expectFailure)
+                    new GradleRun(id: sample.id, subDir: sample.dir, execute: sample.args.split('\\s+'), outputFile: sample.getOutputFile, envs: sample.envs, expectFailure: sample.expectFailure)
                 }
             }
         }.flatten()

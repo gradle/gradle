@@ -17,6 +17,7 @@ package org.gradle.api.internal.project;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.ReflectionUtil;
@@ -29,6 +30,10 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+/**
+ * A {@link ITaskFactory} which determines task actions, inputs and outputs based on annotation attached to the task
+ * properties. Also provides some validation based on these annotations.
+ */
 public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final ITaskFactory taskFactory;
     private final Map<Class, List<Action<Task>>> actionsForType = new HashMap<Class, List<Action<Task>>>();
@@ -49,8 +54,8 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         this.taskFactory = taskFactory;
     }
 
-    public Task createTask(ProjectInternal project, Map<String, ?> args) {
-        Task task = taskFactory.createTask(project, args);
+    public TaskInternal createTask(ProjectInternal project, Map<String, ?> args) {
+        TaskInternal task = taskFactory.createTask(project, args);
 
         Class<? extends Task> type = task.getClass();
         List<Action<Task>> actions = actionsForType.get(type);

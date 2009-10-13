@@ -195,7 +195,11 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             return result.get("error").toString();
         }
 
-        public void assertTasksExecuted(String... taskPaths) {
+        public ExecutionResult assertTasksExecuted(String... taskPaths) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ExecutionResult assertTasksSkipped(String... taskPaths) {
             throw new UnsupportedOperationException();
         }
     }

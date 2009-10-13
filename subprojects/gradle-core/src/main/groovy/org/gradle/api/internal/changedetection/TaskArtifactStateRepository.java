@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests;
+package org.gradle.api.internal.changedetection;
 
-public interface ExecutionResult {
-    String getOutput();
+import org.gradle.api.internal.TaskInternal;
 
-    String getError();
-
-    ExecutionResult assertTasksExecuted(String... taskPaths);
-
-    ExecutionResult assertTasksSkipped(String... taskPaths);
+public interface TaskArtifactStateRepository {
+    TaskArtifactState getStateFor(TaskInternal task);
 }

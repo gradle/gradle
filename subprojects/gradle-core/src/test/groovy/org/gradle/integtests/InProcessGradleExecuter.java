@@ -39,7 +39,8 @@ import java.util.List;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final StartParameter parameter;
-    private final List<String> tasks = new ArrayList<String>();
+    private final List<String> executedTasks = new ArrayList<String>();
+    private final List<String> skippedTasks = new ArrayList<String>();
     private final List<Task> planned = new ArrayList<Task>();
     private OutputListenerImpl outputListener = new OutputListenerImpl();
     private OutputListenerImpl errorListener = new OutputListenerImpl();
@@ -122,7 +123,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         gradleLauncher.addStandardErrorListener(errorListener);
         BuildResult result = gradleLauncher.run();
         result.rethrowFailure();
-        return new InProcessExecutionResult(tasks, outputListener.toString(), errorListener.toString());
+        return new InProcessExecutionResult(executedTasks, skippedTasks, outputListener.toString(), errorListener.toString());
     }
 
     public ExecutionFailure runWithFailure() {
@@ -130,7 +131,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             run();
             throw new AssertionFailedError("expected build to fail.");
         } catch (GradleException e) {
-            return new InProcessExecutionFailure(tasks, outputListener.writer.toString(),
+            return new InProcessExecutionFailure(executedTasks, skippedTasks, outputListener.writer.toString(),
                     errorListener.writer.toString(), e);
         }
     }
@@ -169,17 +170,22 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         public void afterExecute(Task task, TaskExecutionResult result) {
             assertThat(task, sameInstance(current));
             current = null;
-            tasks.add(task.getPath());
+            executedTasks.add(task.getPath());
+            if (result.getSkipMessage() != null) {
+                skippedTasks.add(task.getPath());
+            }
         }
     }
 
     public static class InProcessExecutionResult implements ExecutionResult {
         private final List<String> plannedTasks;
+        private final List<String> skippedTasks;
         private final String output;
         private final String error;
 
-        public InProcessExecutionResult(List<String> plannedTasks, String output, String error) {
+        public InProcessExecutionResult(List<String> plannedTasks, List<String> skippedTasks, String output, String error) {
             this.plannedTasks = plannedTasks;
+            this.skippedTasks = skippedTasks;
             this.output = output;
             this.error = error;
         }
@@ -192,17 +198,24 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return error;
         }
 
-        public void assertTasksExecuted(String... taskPaths) {
+        public ExecutionResult assertTasksExecuted(String... taskPaths) {
             List<String> expected = Arrays.asList(taskPaths);
             assertThat(plannedTasks, equalTo(expected));
+            return this;
+        }
+
+        public ExecutionResult assertTasksSkipped(String... taskPaths) {
+            List<String> expected = Arrays.asList(taskPaths);
+            assertThat(skippedTasks, equalTo(expected));
+            return this;
         }
     }
 
     private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
         private final GradleException failure;
 
-        public InProcessExecutionFailure(List<String> tasks, String output, String error, GradleException failure) {
-            super(tasks, output, error);
+        public InProcessExecutionFailure(List<String> tasks, List<String> skippedTasks, String output, String error, GradleException failure) {
+            super(tasks, skippedTasks, output, error);
             if (failure instanceof GradleScriptException) {
                 this.failure = ((GradleScriptException) failure).getReportableException();
             } else {

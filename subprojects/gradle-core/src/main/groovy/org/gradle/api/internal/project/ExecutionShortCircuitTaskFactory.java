@@ -16,28 +16,32 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A {@link ITaskFactory} which wires the dependencies of a task based on its input files.
+ * A {@link ITaskFactory} which short-circuits the execution of a task when its inputs have not changed since its
+ * outputs where generated.
  */
-public class DependencyAutoWireTaskFactory implements ITaskFactory {
-    public static String DEPENDENCY_AUTO_WIRE = "dependencyAutoWire";
+public class ExecutionShortCircuitTaskFactory implements ITaskFactory {
+    public static String EXECUTION_SHORT_CIRCUIT = "executionShortCircuit";
     private final ITaskFactory taskFactory;
+    private final TaskArtifactStateRepository repository;
 
-    public DependencyAutoWireTaskFactory(ITaskFactory taskFactory) {
+    public ExecutionShortCircuitTaskFactory(ITaskFactory taskFactory, TaskArtifactStateRepository repository) {
         this.taskFactory = taskFactory;
+        this.repository = repository;
     }
 
     public TaskInternal createTask(ProjectInternal project, Map<String, ?> args) {
         Map<String, Object> actualArgs = new HashMap<String, Object>(args);
-        boolean autoWire = remove(actualArgs, DEPENDENCY_AUTO_WIRE);
+        boolean shortCircuit = remove(actualArgs, EXECUTION_SHORT_CIRCUIT);
 
         TaskInternal task = taskFactory.createTask(project, actualArgs);
-        if (autoWire) {
-            task.dependsOn(task.getInputs().getInputFiles());
+        if (shortCircuit) {
+            task.setExecuter(new ExecutionShortCircuitTaskExecuter(task.getExecuter(), repository));
         }
         return task;
     }

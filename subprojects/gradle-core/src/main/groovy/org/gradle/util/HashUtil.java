@@ -15,9 +15,15 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.UncheckedIOException;
+
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.io.File;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  * @author Hans Dockter
@@ -31,6 +37,33 @@ public class HashUtil {
             throw new RuntimeException(e);
         }
         messageDigest.update(scriptText.getBytes());
+        return new BigInteger(1, messageDigest.digest()).toString(16);
+    }
+
+    public static String createHash(File file) {
+        MessageDigest messageDigest;
+        try {
+            messageDigest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            byte[] buffer = new byte[4096];
+            InputStream instr = new FileInputStream(file);
+            try {
+                while (true) {
+                    int nread = instr.read(buffer);
+                    if (nread < 0) {
+                        break;
+                    }
+                    messageDigest.update(buffer, 0, nread);
+                }
+            } finally {
+                instr.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         return new BigInteger(1, messageDigest.digest()).toString(16);
     }
 }

@@ -15,33 +15,19 @@
  */
 package org.gradle;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.*;
-import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
 import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
-import org.gradle.configuration.*;    
-import org.gradle.groovy.scripts.*;
+import org.gradle.configuration.BuildConfigurer;
+import org.gradle.configuration.DefaultInitScriptProcessor;
+import org.gradle.configuration.ProjectDependencies2TaskResolver;
+import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.initialization.*;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.WrapUtil;
-import org.gradle.cache.DefaultCacheRepository;
-
-import java.util.HashMap;
-import java.util.Map;
 
 
 
@@ -78,62 +64,17 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingConfigurer.initialize(listenerManager);
         loggingConfigurer.configure(startParameter.getLogLevel());
 
-        ImportsReader importsReader = new ImportsReader(startParameter.getDefaultImportsFile());
-
         ISettingsFinder settingsFinder = new EmbeddedScriptSettingsFinder(
                 new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
                         new MasterDirSettingsFinderStrategy(),
                         new ParentDirSettingsFinderStrategy()))
         );
-        Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
-        ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
-        ModuleDescriptorConverter moduleDescriptorConverter = new DefaultModuleDescriptorConverter(
-                new DefaultModuleDescriptorFactory(),
-                new DefaultConfigurationsToModuleDescriptorConverter(),
-                new DefaultDependenciesToModuleDescriptorConverter(
-                        new DefaultDependencyDescriptorFactory(
-                                excludeRuleConverter,
-                                new DefaultClientModuleDescriptorFactory(),
-                                clientModuleRegistry),
-                        excludeRuleConverter),
-                new DefaultArtifactsToModuleDescriptorConverter());
-        ConfigurationContainerFactory configurationContainerFactory = new DefaultConfigurationContainerFactory(
-                clientModuleRegistry,
-                new DefaultSettingsConverter(), moduleDescriptorConverter,
-                new DefaultIvyFactory(),
-                new SelfResolvingDependencyResolver(
-                        new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
-                new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
-                        new DefaultPublishOptionsFactory()));
-        DependencyFactory dependencyFactory = new DefaultDependencyFactory(
-                WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),
-                        new SelfResolvingDependencyFactory()),
-                new DefaultClientModuleFactory(),
-                new DefaultProjectDependencyFactory(startParameter.getProjectDependenciesBuildInstruction()));
-        ResolverFactory resolverFactory = new DefaultResolverFactory();
-        ScriptCompilerFactory scriptCompilerFactory = new DefaultScriptCompilerFactory(
-                new DefaultScriptCompilationHandler(),
-                startParameter.getCacheUsage(),
-                new DefaultScriptRunnerFactory(
-                        new DefaultScriptMetaData()),
-                new DefaultCacheRepository(
-                        startParameter.getGradleUserHomeDir(),
-                        startParameter.getCacheUsage()));
-        DefaultProjectEvaluator projectEvaluator = new DefaultProjectEvaluator(
-                new BuildScriptProcessor(
-                        importsReader, scriptCompilerFactory));
-        ClassGenerator classGenerator = new AsmBackedClassGenerator();
-        ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
-                new DefaultRepositoryHandlerFactory(resolverFactory, classGenerator),
-                configurationContainerFactory,
-                dependencyFactory, projectEvaluator,
-                classGenerator,
-                moduleDescriptorConverter,
-                startParameter);
+        ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter);
+        ScriptCompilerFactory scriptCompilerFactory = serviceRegistryFactory.get(ScriptCompilerFactory.class);
         InitScriptHandler initScriptHandler = new InitScriptHandler(
                 new UserHomeInitScriptFinder(
                         new DefaultInitScriptFinder()),
-                new DefaultInitScriptProcessor(scriptCompilerFactory, importsReader));
+                new DefaultInitScriptProcessor(scriptCompilerFactory, serviceRegistryFactory.get(ImportsReader.class)));
         DefaultGradle gradle = new DefaultGradle(
                 startParameter,
                 serviceRegistryFactory,
@@ -145,7 +86,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         settingsFinder,
                         new PropertiesLoadingSettingsProcessor(
                                 new ScriptEvaluatingSettingsProcessor(scriptCompilerFactory,
-                                        importsReader,
+                                        serviceRegistryFactory.get(ImportsReader.class),
                                         new SettingsFactory(new DefaultProjectDescriptorRegistry()))
                         ),
                         new BuildSourceBuilder(

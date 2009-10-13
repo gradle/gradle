@@ -33,19 +33,11 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator
-import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultClientModuleFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultProjectDependencyFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.SelfResolvingDependencyFactory
-import org.gradle.api.internal.artifacts.ivyservice.DefaultResolverFactory
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
-import org.gradle.configuration.DefaultProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
@@ -55,24 +47,6 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultGradle
 import org.gradle.api.internal.project.*
 import org.gradle.listener.DefaultListenerManager
-import org.gradle.api.internal.artifacts.ivyservice.DefaultSettingsConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultModuleDescriptorFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultConfigurationsToModuleDescriptorConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultArtifactsToModuleDescriptorConverter
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyFactory
-import org.gradle.api.internal.artifacts.ivyservice.SelfResolvingDependencyResolver
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyResolver
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyReportConverter
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher
-import org.gradle.api.internal.artifacts.ivyservice.DefaultModuleDescriptorForUploadConverter
-import org.gradle.api.internal.artifacts.ivyservice.DefaultPublishOptionsFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultExcludeRuleConverter
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
 
 /**
  * @author Hans Dockter
@@ -102,37 +76,7 @@ class HelperUtil {
     static DefaultProject createRootProject(File rootDir) {
         StartParameter startParameter = new StartParameter()
         startParameter.pluginPropertiesFile = new File('plugin.properties')
-        DefaultRepositoryHandlerFactory repositoryHandlerFactory = new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), new GroovySourceGenerationBackedClassGenerator())
-        DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(
-                [new SelfResolvingDependencyFactory()] as Set,
-                new DefaultClientModuleFactory(),
-                new DefaultProjectDependencyFactory(startParameter.projectDependenciesBuildInstruction))
-        Map clientModuleRegistry = new HashMap();
-        ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
-        ModuleDescriptorConverter moduleDescriptorConverter = new DefaultModuleDescriptorConverter(
-                new DefaultModuleDescriptorFactory(),
-                new DefaultConfigurationsToModuleDescriptorConverter(),
-                new DefaultDependenciesToModuleDescriptorConverter(
-                        new DefaultDependencyDescriptorFactory(excludeRuleConverter,
-                                new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
-                        excludeRuleConverter),
-                new DefaultArtifactsToModuleDescriptorConverter())
-        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(
-                repositoryHandlerFactory,
-                new DefaultConfigurationContainerFactory(clientModuleRegistry,
-                        new DefaultSettingsConverter(),
-                        moduleDescriptorConverter,
-                        new DefaultIvyFactory(),
-                        new SelfResolvingDependencyResolver(
-                                new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
-                        new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
-                                new DefaultPublishOptionsFactory())),
-                dependencyFactory,
-                new DefaultProjectEvaluator(),
-                new GroovySourceGenerationBackedClassGenerator(),
-                moduleDescriptorConverter,
-                startParameter
-        )
+        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter)
         IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
 
         DefaultGradle build = new DefaultGradle(startParameter, serviceRegistryFactory, new DefaultListenerManager())

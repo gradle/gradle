@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests;
+package org.gradle.api.internal.changedetection;
 
-public interface ExecutionResult {
-    String getOutput();
+/**
+ * Encapsulates the state of the task when its outputs were last generated.
+ */
+public interface TaskArtifactState {
+    /**
+     * Returns true if the task outputs were generated using the given task inputs.
+     */
+    boolean isUpToDate();
 
-    String getError();
+    /**
+     * Marks any state as invalid.
+     */
+    void invalidate();
 
-    ExecutionResult assertTasksExecuted(String... taskPaths);
-
-    ExecutionResult assertTasksSkipped(String... taskPaths);
+    /**
+     * Marks current state as valid.
+     */
+    void update();
 }

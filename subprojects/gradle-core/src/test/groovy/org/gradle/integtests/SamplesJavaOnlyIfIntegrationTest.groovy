@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.Ignore
 
 @RunWith (DistributionIntegrationTestRunner.class)
 public class SamplesJavaOnlyIfIntegrationTest {
@@ -38,6 +39,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
      * execute dists
      * check that it re-ran tests 
      */
+    @Ignore
     @Test public void testOptimizedBuild() {
         File javaprojectDir = new File(dist.samplesDir, 'java/onlyif')
         // Build and test projects
@@ -71,6 +73,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
         assertExists(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
     }
 
+    @Ignore
     @Test public void testNoOptCommandLine() {
         File javaprojectDir = new File(dist.samplesDir, 'java/onlyif')
         // Build and test projects
@@ -89,9 +92,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
         assertExists(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
-
     }
-
 
     private static void assertExists(File baseDir, String path) {
         new TestFile(baseDir).file(path).assertExists()

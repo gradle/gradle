@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskInputs;
 import static org.gradle.util.GUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -35,7 +35,7 @@ public class DependencyAutoWireTaskFactoryTest {
 
     @Test
     public void addsDependencyOnInputFiles() {
-        final Task task = context.mock(Task.class);
+        final TaskInternal task = context.mock(TaskInternal.class);
         final ProjectInternal project = context.mock(ProjectInternal.class);
         final TaskInputs taskInputs = context.mock(TaskInputs.class);
         final FileCollection inputFiles = context.mock(FileCollection.class);

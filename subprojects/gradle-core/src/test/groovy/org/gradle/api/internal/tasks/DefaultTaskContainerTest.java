@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.project.ITaskFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
@@ -258,8 +259,8 @@ public class DefaultTaskContainerTest {
         }});
     }
 
-    private Task task(final String name) {
-        final Task task = context.mock(Task.class, "[task" + ++taskCount + "]");
+    private TaskInternal task(final String name) {
+        final TaskInternal task = context.mock(TaskInternal.class, "[task" + ++taskCount + "]");
         context.checking(new Expectations(){{
             allowing(task).getName();
             will(returnValue(name));
