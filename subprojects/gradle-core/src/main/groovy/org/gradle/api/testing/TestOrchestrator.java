@@ -17,16 +17,10 @@ package org.gradle.api.testing;
 
 import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.detection.TestDetectionOrchestrator;
-import org.gradle.api.testing.execution.PipelineFactory;
 import org.gradle.api.testing.execution.PipelinesManager;
-import org.gradle.api.testing.execution.fork.ForkControl;
-import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.pipelinesplit.TestPipelineSplitOrchestrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 /**
  * Controls high level test execution.
@@ -35,43 +29,68 @@ import java.util.concurrent.BlockingQueue;
  */
 public class TestOrchestrator {
     private static final Logger logger = LoggerFactory.getLogger(TestOrchestrator.class);
-
+    /**
+     * The test task that has the configuration that needs to be used by this test orchestrator.
+     */
     private final NativeTest testTask;
+    private final TestOrchestratorFactory factory;
 
-    private final TestDetectionOrchestrator detectionOrchestrator;
-    private final TestPipelineSplitOrchestrator pipelineSplitOrchestrator;
-    private final ForkControl forkControl;
-    private final PipelineFactory pipelineFactory;
-    private final PipelinesManager pipelinesManager;
-
+    /**
+     * Initialize a test orchestrator with the test task that needs to be run and the default test orchestrator factory
+     * with a default test detection queue size of 1000.
+     *
+     * @param testTask The test task that needs to be run.
+     */
     public TestOrchestrator(final NativeTest testTask) {
+        this(testTask, new TestOrchestratorFactory(testTask, 1000));
+    }
+
+    /**
+     * Constructor used for test purposes to mock out the test orchestrator factory or initialize the default test
+     * orchestator factory with a different test detection queue size or with a custom test orchestator factory.
+     *
+     * @param testTask The test task that needs to be run.
+     * @param factory The test orchestator factory to use.
+     * @throws IllegalArgumentException when either testTask or factory are null.
+     */
+    public TestOrchestrator(final NativeTest testTask, TestOrchestratorFactory factory)
+    {
         if (testTask == null) throw new IllegalArgumentException("testTask == null!");
+        if (factory == null) throw new IllegalArgumentException("factory == null!");
+
         this.testTask = testTask;
-
-        final BlockingQueue<TestClassRunInfo> testDetectionQueue = new ArrayBlockingQueue<TestClassRunInfo>(1000);
-
-        detectionOrchestrator = new TestDetectionOrchestrator(testTask, testDetectionQueue);
-
-        forkControl = new ForkControl(testTask.getMaximumNumberOfForks());
-
-        pipelineFactory = new PipelineFactory(testTask);
-
-        pipelinesManager = new PipelinesManager(pipelineFactory, forkControl);
-        pipelineSplitOrchestrator = new TestPipelineSplitOrchestrator(testDetectionQueue);
+        this.factory = factory;
     }
 
-    public NativeTest getTestTask() {
-        return testTask;
-    }
-
+    /**
+     * Initialization:
+     *
+     * Use the TestOrchestatorFactory to create instances of a test detection orchestrator, test pipeline split
+     * orchestrator and a pipelines manager.
+     *
+     * Then initialize the pipelines manager, the test detection and pipeline splitting start.
+     *
+     * Execution:
+     * When test are detected they advance to pipeline splitting.
+     * When pipeline splitting decides on which pipeline to execute the test they advance to that pipeline.
+     * When a pipeline receives a test it executes it.
+     *
+     */
     public void execute() {
-        pipelinesManager.initialize(testTask); // initialize the pipelines
+        // initialization
+        final TestDetectionOrchestrator detectionOrchestrator = factory.createTestDetectionOrchestrator();
+        final TestPipelineSplitOrchestrator pipelineSplitOrchestrator = factory.createTestPipelineSplitOrchestrator();
+        final PipelinesManager pipelinesManager = factory.createPipelinesManager();
+
+        pipelinesManager.initialize(testTask);
+
+        // execution
+        detectionOrchestrator.startDetection(testTask);
+        logger.debug("test - detection - started");
 
         pipelineSplitOrchestrator.startPipelineSplitting(pipelinesManager);
         logger.debug("test - pipeline splitting - started");
 
-        detectionOrchestrator.startDetection();
-        logger.debug("test - detection - started");
         detectionOrchestrator.waitForDetectionEnd();
         logger.debug("test - detection - ended");
 
@@ -79,6 +98,8 @@ public class TestOrchestrator {
         logger.debug("test - pipeline splitting - ended");
 
         pipelinesManager.pipelineSplittingEnded();
+
         pipelinesManager.waitForExecutionEnd();
+        logger.debug("test - execution - ended");
     }
 }

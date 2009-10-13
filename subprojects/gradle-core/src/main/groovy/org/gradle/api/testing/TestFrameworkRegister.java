@@ -24,12 +24,19 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Keeps a map<TestFramework.id, TestFramework> of all the supported TestFrameworks.
+ *
+ * The default supported Test frameworks are:
+ * - JUnit (id = "junit")
+ * - TestNG (id = "testng")
+ *
  * @author Tom Eyckmans
  */
 public class TestFrameworkRegister {
     private static final Map<String, TestFramework> testFrameworks = new ConcurrentHashMap<String, TestFramework>();
 
     static {
+        // add the default supported test frameworks (JUnit, TestNG)
         final TestFramework junit = new JUnitTestFramework();
         final TestFramework testng = new TestNGTestFramework();
 
@@ -37,16 +44,26 @@ public class TestFrameworkRegister {
         registerTestFramework(testng);
     }
 
-    public static void registerTestFramework(final TestFramework testFramework) {
+    /**
+     * Register an additional test framework.
+     *
+     * In case the test framework id is already used the new test framework replaces the old registered one.
+     *
+     * @param testFramework The test framework to register.
+     * @throws IllegalArgumentException when the test framework is null or the id of the test framework is empty
+     * @return The previously registered test framework for the same test framework id.
+     */
+    public static TestFramework registerTestFramework(final TestFramework testFramework) {
         if (testFramework == null) throw new IllegalArgumentException("testFramework == null!");
 
         final String testFrameworkId = testFramework.getId();
 
-        if (testFrameworks.containsKey(testFrameworkId))
-            throw new IllegalArgumentException("testFramework (" + testFrameworkId + ") already registered!");
+        if (StringUtils.isEmpty(testFrameworkId)) throw new IllegalArgumentException("testFramework.id is empty!");
 
-        testFrameworks.put(testFrameworkId, testFramework);
+        return testFrameworks.put(testFrameworkId, testFramework);
     }
+
+    
 
     public static TestFramework getTestFramework(final String testFrameworkId) {
         if (StringUtils.isEmpty(testFrameworkId)) throw new IllegalArgumentException("testFrameworkId is empty!");

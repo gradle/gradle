@@ -25,18 +25,16 @@ import java.util.concurrent.BlockingQueue;
  * @author Tom Eyckmans
  */
 public class TestDetectionOrchestrator {
-    private final NativeTest testTask;
     private final BlockingQueue<TestClassRunInfo> testDetectionQueue;
 
     private TestDetectionRunner detectionRunner;
     private Thread detectionThread;
 
-    public TestDetectionOrchestrator(final NativeTest testTask, final BlockingQueue<TestClassRunInfo> testDetectionQueue) {
-        this.testTask = testTask;
+    public TestDetectionOrchestrator(final BlockingQueue<TestClassRunInfo> testDetectionQueue) {
         this.testDetectionQueue = testDetectionQueue;
     }
 
-    public void startDetection() {
+    public void startDetection(NativeTest testTask) {
         detectionRunner = new TestDetectionRunner(testTask, testDetectionQueue);
         detectionThread = new Thread(detectionRunner);
         detectionThread.start();

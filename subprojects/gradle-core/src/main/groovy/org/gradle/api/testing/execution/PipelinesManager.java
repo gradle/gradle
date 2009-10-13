@@ -34,6 +34,9 @@ import java.util.concurrent.locks.*;
  * @author Tom Eyckmans
  */
 public class PipelinesManager {
+    private final PipelineFactory pipelineFactory;
+    private final ForkControl forkControl;
+
     private final ReadWriteLock pipelinesLock;
     private final Map<Integer, Pipeline> pipelinesInfo;
     private final List<Pipeline> orderedPipelines;
@@ -42,22 +45,21 @@ public class PipelinesManager {
     private final Lock allStoppedLock;
     private final Condition allStoppedCondition;
 
-    private final PipelineFactory pipelineFactory;
-
     private final AtomicInteger pipelineIdSequence;
 
-    private final ForkControl forkControl;
-
     public PipelinesManager(PipelineFactory pipelineFactory, ForkControl forkControl) {
+        this.pipelineFactory = pipelineFactory;
+        this.forkControl = forkControl;
+
         pipelinesLock = new ReentrantReadWriteLock();
         pipelinesInfo = new HashMap<Integer, Pipeline>();
         orderedPipelines = new ArrayList<Pipeline>();
+
+        notStopped = new CopyOnWriteArrayList<Pipeline>();
         allStoppedLock = new ReentrantLock();
         allStoppedCondition = allStoppedLock.newCondition();
-        notStopped = new CopyOnWriteArrayList<Pipeline>();
-        this.pipelineFactory = pipelineFactory;
+
         pipelineIdSequence = new AtomicInteger(0);
-        this.forkControl = forkControl;
     }
 
     public void initialize(NativeTest testTask) {
