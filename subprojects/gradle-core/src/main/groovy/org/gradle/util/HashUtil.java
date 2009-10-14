@@ -40,7 +40,7 @@ public class HashUtil {
         return new BigInteger(1, messageDigest.digest()).toString(16);
     }
 
-    public static String createHash(File file) {
+    public static byte[] createHash(File file) {
         MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance("MD5");
@@ -64,6 +64,6 @@ public class HashUtil {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return new BigInteger(1, messageDigest.digest()).toString(16);
+        return messageDigest.digest();
     }
 }

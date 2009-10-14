@@ -33,6 +33,8 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
 import org.gradle.api.internal.changedetection.DefaultTaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.CachingHasher;
+import org.gradle.api.internal.changedetection.DefaultHasher;
 import org.gradle.api.internal.tasks.DefaultTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.cache.CacheRepository;
@@ -127,7 +129,11 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
                         new DependencyAutoWireTaskFactory(
                                 new AnnotationProcessingTaskFactory(
                                         new TaskFactory(get(ClassGenerator.class)))),
-                        new DefaultTaskArtifactStateRepository(get(CacheRepository.class)));
+                        new DefaultTaskArtifactStateRepository(
+                                get(CacheRepository.class),
+                                new CachingHasher(
+                                        new DefaultHasher(),
+                                        get(CacheRepository.class))));
             }
         });
 

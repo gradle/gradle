@@ -15,29 +15,29 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
-import org.gradle.util.HashUtil;
+import org.gradle.cache.PersistentIndexedCache;
 
-import java.io.*;
+import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private static Logger logger = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
     private final CacheRepository repository;
-    private Map<File, OutputGenerators> outputs;
-    private PersistentCache cache;
+    private final Hasher hasher;
+    private PersistentIndexedCache<File, OutputGenerators> cache;
 
-    public DefaultTaskArtifactStateRepository(CacheRepository repository) {
+    public DefaultTaskArtifactStateRepository(CacheRepository repository, Hasher hasher) {
         this.repository = repository;
+        this.hasher = hasher;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
-        if (outputs == null) {
+        if (cache == null) {
             loadTasks(task);
         }
 
@@ -65,28 +65,29 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
             public void invalidate() {
                 for (File file : thisExecution.outputFiles.keySet()) {
-                    OutputGenerators generators = outputs.get(file);
+                    OutputGenerators generators = cache.get(file);
                     generators.remove(key);
+                    cache.put(file, generators);
                 }
             }
 
             public void update() {
                 thisExecution.snapshotOutputFiles();
                 for (Map.Entry<File, OutputFileInfo> entry : thisExecution.outputFiles.entrySet()) {
-                    OutputGenerators generators = outputs.get(entry.getKey());
+                    OutputGenerators generators = cache.get(entry.getKey());
                     if (entry.getValue().isFile) {
                         generators.replace(key, thisExecution);
                     } else {
                         generators.add(key, thisExecution);
                     }
+                    cache.put(entry.getKey(), generators);
                 }
-                save();
             }
         };
     }
 
     private TaskInfo getThisExecution(TaskInternal task) {
-        return new TaskInfo(task);
+        return new TaskInfo(task, hasher);
     }
 
     private TaskExecution getLastExecution(TaskKey key, TaskInfo thisExecution) {
@@ -95,13 +96,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         for (File outputFile : thisExecution.outputFiles.keySet()) {
             if (!outputFile.exists()) {
                 // Discard previous state for this output file
-                outputs.put(outputFile, new OutputGenerators());
+                cache.put(outputFile, new OutputGenerators());
                 outOfDateMessages.add(String.format("%s does not exist.", outputFile));
                 continue;
             }
-            OutputGenerators generators = outputs.get(outputFile);
+            OutputGenerators generators = cache.get(outputFile);
             if (generators == null) {
-                outputs.put(outputFile, new OutputGenerators());
+                cache.put(outputFile, new OutputGenerators());
                 outOfDateMessages.add(String.format("No history is available for %s.", outputFile));
                 continue;
             }
@@ -110,56 +111,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 outOfDateMessages.add(String.format("Task did not produce %s.", outputFile));
                 continue;
             }
-//            if (taskInfo != null && taskInfo != lastExecution) {
-//                outOfDateMessages.add(String.format("Some other task produced %s.", outputFile));
-//                continue;
-//            }
             taskInfo = lastExecution;
         }
         return outOfDateMessages.isEmpty() ? taskInfo : new EmptyTaskInfo(outOfDateMessages);
     }
 
     private void loadTasks(TaskInternal task) {
-        cache = repository.getCacheFor(task.getProject().getGradle(), "taskArtifacts", Collections.EMPTY_MAP);
-        if (cache.isValid()) {
-            load();
-        } else {
-            outputs = new HashMap<File, OutputGenerators>();
-        }
-    }
-
-    private void save() {
-        try {
-            ObjectOutputStream outStr = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(
-                    getStateFile())));
-            try {
-                outStr.writeObject(outputs);
-            } finally {
-                outStr.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
-        cache.update();
-    }
-
-    private void load() {
-        try {
-            ObjectInputStream inStr = new ObjectInputStream(new BufferedInputStream(new FileInputStream(
-                    getStateFile())));
-            try {
-                outputs = (Map<File, OutputGenerators>) inStr.readObject();
-            } finally {
-                inStr.close();
-            }
-        } catch (Exception e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private File getStateFile() {
-        return new File(cache.getBaseDir(), "tasks.bin");
+        cache = repository.getIndexedCacheFor(task.getProject().getGradle(), "taskArtifacts", Collections.EMPTY_MAP);
     }
 
     private static class OutputGenerators implements Serializable {
@@ -226,9 +184,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private final Map<File, InputFileInfo> inputFiles = new HashMap<File, InputFileInfo>();
         private final Map<File, OutputFileInfo> outputFiles = new HashMap<File, OutputFileInfo>();
 
-        public TaskInfo(TaskInternal task) {
+        public TaskInfo(TaskInternal task, Hasher hasher) {
             for (File file : task.getInputs().getInputFiles()) {
-                inputFiles.put(file, new InputFileInfo(file));
+                inputFiles.put(file, new InputFileInfo(file, hasher));
             }
             for (File file : task.getOutputs().getOutputFiles()) {
                 outputFiles.put(file, null);
@@ -299,12 +257,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private static final byte DIR = 1;
         private static final byte MISSING = 2;
         private final short type;
-        private final String hash;
+        private final byte[] hash;
 
-        private InputFileInfo(File file) {
+        private InputFileInfo(File file, Hasher hasher) {
             if (file.isFile()) {
                 type = FILE;
-                hash = HashUtil.createHash(file);
+                hash = hasher.hash(file);
             } else if (file.isDirectory()) {
                 type = DIR;
                 hash = null;
@@ -318,7 +276,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (type != lastInputFile.type) {
                 return false;
             }
-            if (type == FILE && !hash.equals(lastInputFile.hash)) {
+            if (type == FILE && !Arrays.equals(hash, lastInputFile.hash)) {
                 return false;
             }
             return true;

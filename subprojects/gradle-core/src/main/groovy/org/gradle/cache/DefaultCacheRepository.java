@@ -51,9 +51,17 @@ public class DefaultCacheRepository implements CacheRepository {
         throw new IllegalArgumentException(String.format("Cannot create cache for domain object %s.", target));
     }
 
+    public <K, V> PersistentIndexedCache<K, V> getIndexedCacheFor(Object target, String key, Map<String, ?> properties) {
+        return new DefaultPersistentIndexedCache<K,V>(getCacheFor(target, key, properties));
+    }
+
     public PersistentCache getGlobalCache(String key, Map<String, ?> properties) {
         cleanCachesFromOldVersions();
         return new DefaultPersistentCache(new File(globalCacheDir, key), cacheUsage, addVersion(properties));
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> getIndexedGlobalCache(String key, Map<String, ?> properties) {
+        return new DefaultPersistentIndexedCache<K,V>(getGlobalCache(key, properties));
     }
 
     private Map<String, ?> addVersion(Map<String, ?> properties) {

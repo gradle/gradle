@@ -15,31 +15,32 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.DefaultPersistentIndexedCache;
 import org.gradle.cache.PersistentCache;
 import org.gradle.integtests.TestFile;
 import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
 import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Set;
-import java.util.Collections;
-import java.util.Collection;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 @RunWith(JMock.class)
 public class DefaultTaskArtifactStateRepositoryTest {
@@ -57,8 +58,10 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private final TestFile inputDir = tmpDir.dir("input-dir");
     private final Set<TestFile> inputFiles = toSet(inputFile, inputDir);
     private final Set<TestFile> outputFiles = toSet(outputFile, outputDir);
+    private final Hasher hasher = new DefaultHasher();
     private int counter;
-    private final DefaultTaskArtifactStateRepository repository = new DefaultTaskArtifactStateRepository(cacheRepository);
+    private final DefaultTaskArtifactStateRepository repository = new DefaultTaskArtifactStateRepository(cacheRepository,
+            hasher);
 
     @Before
     public void setup() {
@@ -248,21 +251,16 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     private void writeTaskState(TaskInternal... tasks) {
         expectEmptyCacheLocated();
-        context.checking(new Expectations() {{
-            atLeast(1).of(cache).update();
-        }});
         for (TaskInternal task : tasks) {
             repository.getStateFor(task).update();
         }
-        cacheDir.file("tasks.bin").assertIsFile();
     }
     
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations(){{
-            one(cacheRepository).getCacheFor(gradle, "taskArtifacts", Collections.EMPTY_MAP);
-            will(returnValue(cache));
-            one(cache).isValid();
-            will(returnValue(false));
+            one(cacheRepository).getIndexedCacheFor(gradle, "taskArtifacts", Collections.EMPTY_MAP);
+            will(returnValue(new DefaultPersistentIndexedCache(cache)));
+            allowing(cache).update();
             allowing(cache).getBaseDir();
             will(returnValue(cacheDir));
         }});
