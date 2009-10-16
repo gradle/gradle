@@ -15,19 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPom;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomFactory;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPom;
 
-import java.io.File;
-
 /**
  * @author Hans Dockter
  */
 public class DefaultArtifactPomFactory implements ArtifactPomFactory {
-    public ArtifactPom createArtifactPom(MavenPom pom, Artifact artifact, File artifactFile) {
-        return new DefaultArtifactPom(pom, artifact, artifactFile);
+    public ArtifactPom createArtifactPom(MavenPom pom) {
+        return new DefaultArtifactPom(pom);
     }
 }

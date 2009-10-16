@@ -32,4 +32,6 @@ public class CustomInstallTask extends InstallTask implements CustomInstallDeplo
         LoggingHelper.injectLogger(getContainer(), getProject());
         super.doExecute();
     }
+
+
 }

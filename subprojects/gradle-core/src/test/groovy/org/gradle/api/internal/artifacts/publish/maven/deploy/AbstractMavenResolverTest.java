@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
+import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainerException;
@@ -30,21 +31,22 @@ import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.WrapUtil;
+import org.gradle.util.AntUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -59,6 +61,7 @@ public abstract class AbstractMavenResolverTest {
     protected PomFilterContainer pomFilterContainerMock;
     protected ConfigurationContainer configurationContainerMock;
     private Set<Configuration> testConfigurations;
+
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {
         {
             setImposteriser(ClassImposteriser.INSTANCE);
@@ -85,47 +88,58 @@ public abstract class AbstractMavenResolverTest {
 
         context.checking(new Expectations() {
             {
-                allowing(configurationContainerMock).getAll(); will(returnValue(testConfigurations));
+                allowing(configurationContainerMock).getAll();
+                will(returnValue(testConfigurations));
             }
         });
     }
 
     @Test
     public void deployOrInstall() throws IOException, PlexusContainerException {
-        final HashMap<File, File> testDeployableUnits = new HashMap<File, File>() {
-            {
-                put(new File("pom1.xml"), new File("artifact1.jar"));
-                put(new File("pom2.xml"), new File("artifact2.jar"));
-            }
-        };
+        ClassifierArtifact classifierArtifact = new ClassifierArtifact("someClassifier",
+                "someType", new File("someClassifierFile"));
+        final Set<DeployableFilesInfo> testDeployableFilesInfos = WrapUtil.toSet(
+                new DeployableFilesInfo(new File("pom1.xml"), new File("artifact1.jar"), Collections.<ClassifierArtifact>emptySet()),
+                new DeployableFilesInfo(new File("pom2.xml"), new File("artifact2.jar"), WrapUtil.toSet(classifierArtifact))
+        );
+        final AttachedArtifact attachedArtifact = new AttachedArtifact();
         context.checking(new Expectations() {
             {
-                allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).getSettings(); will(returnValue(mavenSettingsMock));
+                allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).getSettings();
+                will(returnValue(mavenSettingsMock));
+                allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).getProject();
+                will(returnValue(AntUtil.createProject()));
+                allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).createAttach();
+                will(returnValue(attachedArtifact));
                 one(artifactPomContainerMock).addArtifact(TEST_ARTIFACT, TEST_JAR_FILE);
-                allowing(artifactPomContainerMock).createDeployableUnits(testConfigurations); will(returnValue(testDeployableUnits));
+                allowing(artifactPomContainerMock).createDeployableFilesInfos(testConfigurations);
+                will(returnValue(testDeployableFilesInfos));
             }
         });
         getMavenResolver().publish(TEST_IVY_ARTIFACT, TEST_IVY_FILE, true);
         getMavenResolver().publish(TEST_ARTIFACT, TEST_JAR_FILE, true);
-        checkTransaction(testDeployableUnits);
+        checkTransaction(testDeployableFilesInfos, attachedArtifact, classifierArtifact);
         assertSame(mavenSettingsMock, getMavenResolver().getSettings());
     }
 
-    protected void checkTransaction(final Map<File, File> deployableUnits) throws IOException, PlexusContainerException {
+    protected void checkTransaction(final Set<DeployableFilesInfo> deployableFilesInfos, final AttachedArtifact attachedArtifact, ClassifierArtifact classifierArtifact) throws IOException, PlexusContainerException {
         context.checking(new Expectations() {
             {
                 one(getInstallDeployTask()).setProject(with(any(Project.class)));
-                for (File pomFile : deployableUnits.keySet()) {
-                    one(getInstallDeployTask()).setFile(deployableUnits.get(pomFile));
-                    one(getInstallDeployTask()).addPom(with(pomMatcher(pomFile)));
+                for (DeployableFilesInfo deployableFilesInfo : deployableFilesInfos) {
+                    one(getInstallDeployTask()).setFile(deployableFilesInfo.getArtifactFile());
+                    one(getInstallDeployTask()).addPom(with(pomMatcher(deployableFilesInfo.getPomFile(), getInstallDeployTask().getProject())));
                     one(getInstallDeployTask()).execute();
                 }
             }
         });
         getMavenResolver().commitPublishTransaction();
+        assertThat(attachedArtifact.getFile(), equalTo(classifierArtifact.getFile()));
+        assertThat(attachedArtifact.getType(), equalTo(classifierArtifact.getType()));
+        assertThat(attachedArtifact.getClassifier(), equalTo(classifierArtifact.getClassifier()));
     }
 
-    private static Matcher<Pom> pomMatcher(final File expectedPomFile) {
+    private static Matcher<Pom> pomMatcher(final File expectedPomFile, final Project expectedAntProject) {
         return new BaseMatcher<Pom>() {
             public void describeTo(Description description) {
                 description.appendText("matching pom");
@@ -133,7 +147,7 @@ public abstract class AbstractMavenResolverTest {
 
             public boolean matches(Object actual) {
                 Pom actualPom = (Pom) actual;
-                return actualPom.getFile().equals(expectedPomFile);
+                return actualPom.getFile().equals(expectedPomFile) && actualPom.getProject().equals(expectedAntProject);
             }
         };
     }
@@ -151,7 +165,8 @@ public abstract class AbstractMavenResolverTest {
     public void getFilter() {
         final PublishFilter publishFilterMock = context.mock(PublishFilter.class);
         context.checking(new Expectations() {{
-            allowing(pomFilterContainerMock).getFilter(); will(returnValue(publishFilterMock));
+            allowing(pomFilterContainerMock).getFilter();
+            will(returnValue(publishFilterMock));
         }});
         assertSame(publishFilterMock, getMavenResolver().getFilter());
     }
@@ -167,7 +182,8 @@ public abstract class AbstractMavenResolverTest {
     @Test
     public void getPom() {
         context.checking(new Expectations() {{
-            allowing(pomFilterContainerMock).getPom(); will(returnValue(pomMock));
+            allowing(pomFilterContainerMock).getPom();
+            will(returnValue(pomMock));
         }});
         assertSame(pomMock, getMavenResolver().getPom());
     }
@@ -187,7 +203,8 @@ public abstract class AbstractMavenResolverTest {
         final String testName = "somename";
         final PublishFilter publishFilterMock = context.mock(PublishFilter.class);
         context.checking(new Expectations() {{
-            one(pomFilterContainerMock).filter(testName); will(returnValue(publishFilterMock));
+            one(pomFilterContainerMock).filter(testName);
+            will(returnValue(publishFilterMock));
         }});
         assertSame(publishFilterMock, getMavenResolver().filter(testName));
     }
@@ -196,7 +213,8 @@ public abstract class AbstractMavenResolverTest {
     public void pom() {
         final String testName = "somename";
         context.checking(new Expectations() {{
-            one(pomFilterContainerMock).pom(testName); will(returnValue(pomMock));
+            one(pomFilterContainerMock).pom(testName);
+            will(returnValue(pomMock));
         }});
         assertSame(pomMock, getMavenResolver().pom(testName));
     }

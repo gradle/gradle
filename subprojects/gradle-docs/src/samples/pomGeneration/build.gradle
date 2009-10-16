@@ -27,6 +27,21 @@ dependencies {
     testRuntime "group6:testRuntime:1.0"
 }
 
+task dummyJavadoc << {
+    String javadocDir = "$buildDir/javadoc"
+    ant.mkdir(dir: javadocDir)
+    new File(javadocDir, "index.html").write("some text")
+}
+
+task javadocZip(type: Zip, dependsOn: dummyJavadoc) {
+    classifier = 'javadoc'
+    fileSet(dir: "$buildDir/javadoc")
+}
+
+artifacts {
+    archives javadocZip
+}
+
 installer = install.repositories.mavenInstaller
 
 install.doLast {install ->

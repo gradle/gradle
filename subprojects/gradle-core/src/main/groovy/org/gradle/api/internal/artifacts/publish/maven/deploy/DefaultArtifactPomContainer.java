@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashSet;
 
 /**
  * @author Hans Dockter
@@ -51,28 +52,23 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
         }
         for (PomFilter activePomFilter : pomFilterContainer.getActivePomFilters()) {
             if (activePomFilter.getFilter().accept(artifact, src)) {
-                throwExceptionIfMultipleArtifactsPerPom(activePomFilter.getName(), artifact, src);
-                artifactPoms.put(activePomFilter.getName(), artifactPomFactory.createArtifactPom(activePomFilter.getPomTemplate(), artifact, src));
+                if (artifactPoms.get(activePomFilter.getName()) == null) {
+                    artifactPoms.put(activePomFilter.getName(), artifactPomFactory.createArtifactPom(activePomFilter.getPomTemplate()));
+                }
+                artifactPoms.get(activePomFilter.getName()).addArtifact(artifact, src); 
             }
         }
     }
 
-    private void throwExceptionIfMultipleArtifactsPerPom(String name, Artifact artifact, File src) {
-        if (artifactPoms.get(name) != null) {
-            throw new InvalidUserDataException(String.format("There can be only one artifact per pom. Artifact %s with file %s can't be assigned to pom %s",
-                    artifact.getName(), src.getAbsolutePath(), name));
-        }
-    }
-
-    public Map<File, File> createDeployableUnits(Set<Configuration> configurations) {
-        Map<File, File> deployableUnits = new HashMap<File, File>();
+    public Set<DeployableFilesInfo> createDeployableFilesInfos(Set<Configuration> configurations) {
+        Set<DeployableFilesInfo> deployableFilesInfos = new HashSet<DeployableFilesInfo>();
         for (String activeArtifactPomName : artifactPoms.keySet()) {
             ArtifactPom activeArtifactPom = artifactPoms.get(activeArtifactPomName);
             File pomFile = createPomFile(activeArtifactPomName);
             pomFileWriter.write(activeArtifactPom.getPom(), configurations, pomFile);
-            deployableUnits.put(pomFile, activeArtifactPom.getArtifactFile());
+            deployableFilesInfos.add(new DeployableFilesInfo(pomFile, activeArtifactPom.getArtifactFile(), activeArtifactPom.getClassifiers()));
         }
-        return deployableUnits;
+        return deployableFilesInfos;
     }
 
     private File createPomFile(String artifactPomName) {
@@ -90,4 +86,5 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
     public Map<String, ArtifactPom> getArtifactPoms() {
         return artifactPoms;
     }
+
 }

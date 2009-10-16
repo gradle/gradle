@@ -16,10 +16,14 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.maven.settings.Settings;
+import org.apache.maven.artifact.ant.AttachedArtifact;
+import org.apache.tools.ant.Project;
 
 /**
  * @author Hans Dockter
  */
 public interface CustomInstallDeployTaskSupport {
     Settings getSettings();
+    Project getProject();
+    AttachedArtifact createAttach();
 }

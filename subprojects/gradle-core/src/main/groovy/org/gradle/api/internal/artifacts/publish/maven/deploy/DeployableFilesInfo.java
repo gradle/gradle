@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,32 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.maven.MavenPom;
-
 import java.io.File;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
- */
-public interface ArtifactPom {
-    Artifact getArtifact();
+*/
+public class DeployableFilesInfo {
+    private File pomFile;
+    private File artifactFile;
+    private Set<ClassifierArtifact> classifierArtifacts;
 
-    File getArtifactFile();
+    public DeployableFilesInfo(File pomFile, File artifactFile, Set<ClassifierArtifact> classifierArtifacts) {
+        this.pomFile = pomFile;
+        this.artifactFile = artifactFile;
+        this.classifierArtifacts = classifierArtifacts;
+    }
 
-    MavenPom getPom();
+    public File getPomFile() {
+        return pomFile;
+    }
 
-    void addArtifact(Artifact artifact, File src);
+    public File getArtifactFile() {
+        return artifactFile;
+    }
 
-    Set<ClassifierArtifact> getClassifiers();
+    public Set<ClassifierArtifact> getClassifierArtifacts() {
+        return classifierArtifacts;
+    }
 }

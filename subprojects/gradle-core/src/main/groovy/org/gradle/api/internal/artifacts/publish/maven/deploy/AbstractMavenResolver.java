@@ -34,6 +34,7 @@ import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
+import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.gradle.api.artifacts.maven.MavenPom;
@@ -50,6 +51,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -172,10 +174,10 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
-        Map<File, File> deployableUnits = getArtifactPomContainer().createDeployableUnits(configurationContainer.getAll());
-        for (File pomFile : deployableUnits.keySet()) {
-            addPomAndArtifact(installDeployTaskSupport, pomFile, deployableUnits.get(pomFile));
-            execute(installDeployTaskSupport);
+        Set<DeployableFilesInfo> deployableFilesInfos = getArtifactPomContainer().createDeployableFilesInfos(configurationContainer.getAll());
+        for (DeployableFilesInfo deployableFilesInfo : deployableFilesInfos) {
+            addPomAndArtifact(installDeployTaskSupport, deployableFilesInfo);
+            execute(installDeployTaskSupport);   
         }
         settings = ((CustomInstallDeployTaskSupport) installDeployTaskSupport).getSettings();
     }
@@ -189,11 +191,18 @@ public abstract class AbstractMavenResolver implements MavenResolver {
         }
     }
 
-    private void addPomAndArtifact(InstallDeployTaskSupport deployTask, File pomFile, File artifactFile) {
+    private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, DeployableFilesInfo deployableFilesInfo) {
         Pom pom = new Pom();
-        pom.setFile(pomFile);
-        deployTask.addPom(pom);
-        deployTask.setFile(artifactFile);
+        pom.setProject(installOrDeployTask.getProject());
+        pom.setFile(deployableFilesInfo.getPomFile());
+        installOrDeployTask.addPom(pom);
+        installOrDeployTask.setFile(deployableFilesInfo.getArtifactFile());
+        for (ClassifierArtifact classifierArtifact : deployableFilesInfo.getClassifierArtifacts()) {
+            AttachedArtifact attachedArtifact = installOrDeployTask.createAttach();
+            attachedArtifact.setClassifier(classifierArtifact.getClassifier());
+            attachedArtifact.setFile(classifierArtifact.getFile());
+            attachedArtifact.setType(classifierArtifact.getType());
+        }
     }
 
     public void setSettings(ResolverSettings settings) {

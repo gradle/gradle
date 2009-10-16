@@ -64,6 +64,7 @@ class PomGenerationIntegrationTest {
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
         Assert.assertTrue(new File(repoDir, "$repoPath/mywar-${version}.war").exists())
+        Assert.assertTrue(new File(repoDir, "$repoPath/mywar-${version}-javadoc.zip").exists())
         checkInstall(start, pomProjectDir, version, groupId)
     }
 
@@ -78,8 +79,10 @@ class PomGenerationIntegrationTest {
     static void checkInstall(long start, File pomProjectDir, String version, String groupId) {
         File localMavenRepo = new File(pomProjectDir, "build/localRepoPath.txt").text as File
         File installedFile = new File(localMavenRepo, "$groupId/mywar/$version/mywar-${version}.war")
+        File installedJavadocFile = new File(localMavenRepo, "$groupId/mywar/$version/mywar-${version}-javadoc.zip")
         File installedPom = new File(localMavenRepo, "$groupId/mywar/$version/mywar-${version}.pom")
         Assert.assertTrue(start <= installedFile.lastModified());
+        Assert.assertTrue(start <= installedJavadocFile.lastModified());
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
 

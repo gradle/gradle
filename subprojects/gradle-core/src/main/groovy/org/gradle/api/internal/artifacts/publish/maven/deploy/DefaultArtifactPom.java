@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 import java.io.File;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -32,9 +33,10 @@ public class DefaultArtifactPom implements ArtifactPom {
 
     private File artifactFile;
 
-    public DefaultArtifactPom(MavenPom pom, Artifact artifact, File artifactFile) {
+    private Set<ClassifierArtifact> classifiers = new HashSet<ClassifierArtifact>();
+
+    public DefaultArtifactPom(MavenPom pom) {
         this.pom = pom;
-        addArtifact(artifact, artifactFile);
     }
 
     public MavenPom getPom() {
@@ -61,14 +63,42 @@ public class DefaultArtifactPom implements ArtifactPom {
         this.artifact = artifact;
     }
 
-    private void addArtifact(Artifact artifact, File src) {
+    public Set<ClassifierArtifact> getClassifiers() {
+        return Collections.unmodifiableSet(classifiers);
+    }
+
+    public void addArtifact(Artifact artifact, File src) {
         throwEceptionIfArtifactOrSrcIsNull(artifact, src);
+        if (hasClassifier(artifact)) {
+            addClassifierArtifact(artifact, src);
+            return;
+        }
         if (this.artifact != null) {
-            throw new InvalidUserDataException("A pom can't have multiple artifacts.");
+            throw new InvalidUserDataException("A pom can't have multiple main artifacts. " +
+                    "Already assigned artifact: " + this.artifact + " Artifact trying to assign: " + artifact);
         }
         this.artifact = artifact;
         this.artifactFile = src;
         assignArtifactValuesToPom(artifact, pom);
+    }
+
+    private void addClassifierArtifact(Artifact artifact, File artifactFile) {
+        String classifier = getClassifier(artifact);
+        ClassifierArtifact classifierArtifact = new ClassifierArtifact(classifier,
+                artifact.getType(), artifactFile);
+        if (classifiers.contains(classifierArtifact)) {
+            throw new InvalidUserDataException("A pom can't have multiple artifacts for the same classifier=" + classifier +
+                    " Artifact trying to assign: " + artifact); 
+        }
+        classifiers.add(classifierArtifact);
+    }
+
+    private boolean hasClassifier(Artifact artifact) {
+        return getClassifier(artifact) != null;
+    }
+
+    private String getClassifier(Artifact artifact) {
+        return artifact.getExtraAttribute(Dependency.CLASSIFIER);
     }
 
     private void assignArtifactValuesToPom(Artifact artifact, MavenPom pom) {
@@ -84,9 +114,6 @@ public class DefaultArtifactPom implements ArtifactPom {
         if (pom.getPackaging() == null) {
             pom.setPackaging(artifact.getType());
         }
-        if (pom.getClassifier() == null) {
-            pom.setClassifier(artifact.getExtraAttribute(Dependency.CLASSIFIER));
-        }
     }
 
     private void throwEceptionIfArtifactOrSrcIsNull(Artifact artifact, File src) {
@@ -97,4 +124,5 @@ public class DefaultArtifactPom implements ArtifactPom {
             throw new InvalidUserDataException("Src file must not be null.");
         }
     }
+
 }
