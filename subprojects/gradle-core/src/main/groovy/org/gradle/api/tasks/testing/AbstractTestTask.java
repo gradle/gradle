@@ -35,6 +35,7 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
 
 /**
  * A base task for executing tests.
@@ -46,13 +47,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
 
-    protected List<File> testSrcDirs = null;
+    protected List<File> testSrcDirs = new ArrayList<File>();
 
-    protected File testClassesDir = null;
+    protected File testClassesDir;
 
-    protected File testResultsDir = null;
+    protected File testResultsDir;
 
-    protected File testReportDir = null;
+    protected File testReportDir;
 
     protected PatternFilterable patternSet = new PatternSet();
 
@@ -60,7 +61,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     protected FileCollection classpath;
 
-    protected TestFrameworkInstance testFrameworkInstance = null;
+    protected TestFrameworkInstance testFrameworkInstance;
 
     protected boolean testReport = true;
 

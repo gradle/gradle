@@ -47,12 +47,12 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     /**
      * A list with all entities (e.g. filesets) which describe the files of this archive.
      */
-    private List resourceCollections = null
+    private List resourceCollections = []
 
     /**
      * Controls if an archive gets created if no files would go into it.  
      */
-    boolean createIfEmpty = false
+    boolean createIfEmpty
 
     /**
      * The dir where the created archive is placed.
@@ -213,8 +213,7 @@ public abstract class AbstractArchiveTask extends ConventionTask {
     }
 
     public AbstractArchiveTask resourceCollections(Object ... elements) {
-        resourceCollections = GUtil.chooseCollection(resourceCollections, getResourceCollections())
-        GUtil.flatten(Arrays.asList(elements), resourceCollections);
+        resourceCollections = getResourceCollections() + GUtil.flatten(Arrays.asList(elements))
         return this;
     }
 

@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.MetaBeanProperty;
+import groovy.lang.MetaMethod;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.util.ReflectionUtil;
@@ -405,11 +406,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void addGetter(MetaBeanProperty property) throws Exception {
-            // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>'); }
+            MetaMethod getter = property.getGetter();
 
-            Type returnType = Type.getType(property.getGetter().getReturnType());
+            // GENERATE private boolean <prop>Set;
+
+            String flagName = String.format("%sSet", property.getName());
+            visitor.visitField(Opcodes.ACC_PRIVATE, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
+
+            // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', <prop>Set); }
+
+            Type returnType = Type.getType(getter.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType, new Type[0]);
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, property.getGetter().getName(),
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, getter.getName(),
                     methodDescriptor, null, new String[0]);
             methodVisitor.visitCode();
 
@@ -419,20 +427,58 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
             methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(),
-                    property.getGetter().getName(), methodDescriptor);
+                    getter.getName(), methodDescriptor);
 
             methodVisitor.visitLdcInsn(property.getName());
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), flagName,
+                    Type.BOOLEAN_TYPE.getDescriptor());
 
             String getConventionValueDesc = Type.getMethodDescriptor(ConventionMapping.class.getMethod(
-                    "getConventionValue", Object.class, String.class));
+                    "getConventionValue", Object.class, String.class, Boolean.TYPE));
             methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, conventionMappingType.getInternalName(),
                     "getConventionValue", getConventionValueDesc);
 
             methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,
-                    property.getGetter().getReturnType().isArray() ? "[" + returnType.getElementType().getDescriptor()
+                    getter.getReturnType().isArray() ? "[" + returnType.getElementType().getDescriptor()
                             : returnType.getInternalName());
 
             methodVisitor.visitInsn(Opcodes.ARETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        public void addSetter(MetaBeanProperty property) throws Exception {
+            MetaMethod setter = property.getSetter();
+
+            // GENERATE public void <setter>(<type> v) { super.<setter>(v); <prop>Set = true; }
+
+            Type paramType = Type.getType(setter.getParameterTypes()[0].getTheClass());
+            String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{paramType});
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, setter.getName(),
+                    methodDescriptor, null, new String[0]);
+            methodVisitor.visitCode();
+
+            // GENERATE super.<setter>(v)
+
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(),
+                    setter.getName(), methodDescriptor);
+
+            // END
+
+            // GENERATE <prop>Set = true
+
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            methodVisitor.visitLdcInsn(true);
+            methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), String.format("%sSet",
+                    property.getName()), Type.BOOLEAN_TYPE.getDescriptor());
+
+            // END
+
+            methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }

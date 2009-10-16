@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.TaskAction;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator;
+import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.project.*;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
@@ -54,7 +54,7 @@ public abstract class AbstractTaskTest {
     private AbstractProject project;
 
     protected JUnit4Mockery context = new JUnit4Mockery();
-    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new GroovySourceGenerationBackedClassGenerator()));
+    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
 
     @Before
     public void setUp() {

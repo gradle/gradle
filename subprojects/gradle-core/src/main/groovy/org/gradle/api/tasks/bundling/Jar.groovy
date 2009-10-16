@@ -31,7 +31,7 @@ public class Jar extends Zip {
 
     GradleManifest manifest
 
-    List metaInfResourceCollections
+    List metaInfResourceCollections = []
 
     String fileSetManifest
 

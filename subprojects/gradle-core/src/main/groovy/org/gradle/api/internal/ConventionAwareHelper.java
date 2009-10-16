@@ -26,6 +26,7 @@ import org.gradle.util.ReflectionUtil;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collection;
 
 /**
  * @author Hans Dockter
@@ -98,7 +99,10 @@ public class ConventionAwareHelper implements ConventionMapping {
 
     public <T> T getConventionValue(T internalValue, String propertyName) {
         Object returnValue = internalValue;
-        if (internalValue == null && conventionMapping.keySet().contains(propertyName)) {
+        boolean useMapping = internalValue == null
+                || internalValue instanceof Collection && ((Collection) internalValue).isEmpty()
+                || internalValue instanceof Map && ((Map) internalValue).isEmpty();
+        if (useMapping && conventionMapping.keySet().contains(propertyName)) {
             if (!conventionMappingCache.keySet().contains(propertyName)) {
                 Object conventionValue = conventionMapping.get(propertyName).getValue(convention, source);
                 conventionMappingCache.put(propertyName, conventionValue);
@@ -106,6 +110,13 @@ public class ConventionAwareHelper implements ConventionMapping {
             returnValue = conventionMappingCache.get(propertyName);
         }
         return (T) returnValue;
+    }
+
+    public <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue) {
+        if (isExplicitValue) {
+            return actualValue;
+        }
+        return getConventionValue(actualValue, propertyName);
     }
 
     public Convention getConvention() {

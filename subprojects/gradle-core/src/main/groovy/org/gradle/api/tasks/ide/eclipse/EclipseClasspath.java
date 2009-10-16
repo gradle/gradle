@@ -44,17 +44,17 @@ import java.util.List;
 public class EclipseClasspath extends ConventionTask {
     public static final String CLASSPATH_FILE_NAME = ".classpath";
 
-    private List srcDirs;
+    private List<Object> srcDirs = new ArrayList<Object>();
 
-    private List testSrcDirs;
+    private List<Object> testSrcDirs = new ArrayList<Object>();
 
     private Object outputDirectory;
 
     private Object testOutputDirectory;
 
-    private List<Object> classpathLibs;
+    private List<Object> classpathLibs = new ArrayList<Object>();
 
-    private List<DefaultProjectDependency> projectDependencies;
+    private List<DefaultProjectDependency> projectDependencies = new ArrayList<DefaultProjectDependency>();
 
     private boolean failForMissingDependencies = true;
     private static final String SRC = "src";

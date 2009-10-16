@@ -26,4 +26,5 @@ class TestTask extends ConventionTask  {
     String customProp
     List list1
     List list2
+    Map map1
 }

@@ -164,7 +164,7 @@ class WarTest extends AbstractArchiveTaskTest {
     }
 
     @Test public void testLibConfigurations() {
-        war.libConfigurations = null
+        war.libConfigurations = []
         war.libConfigurations('a')
         assertEquals(['a'], war.libConfigurations)
         war.libConfigurations('b', 'c')
@@ -172,7 +172,7 @@ class WarTest extends AbstractArchiveTaskTest {
     }
 
     @Test public void testLibExcludeConfigurations() {
-        war.libExcludeConfigurations = null
+        war.libExcludeConfigurations = []
         war.libExcludeConfigurations('a')
         assertEquals(['a'], war.libExcludeConfigurations)
         war.libExcludeConfigurations('b', 'c')
@@ -192,7 +192,7 @@ class WarTest extends AbstractArchiveTaskTest {
     }
 
     private void checkAddFileSet(String methodName, String propertyName) {
-        war."$propertyName" = null
+        war."$propertyName" = []
         war."$methodName"(dir: 'x') {
             include 'a'
         }

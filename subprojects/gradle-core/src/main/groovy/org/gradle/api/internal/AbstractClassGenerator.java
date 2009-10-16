@@ -103,6 +103,16 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                         continue;
                     }
                     builder.addGetter(metaBeanProperty);
+
+                    MetaMethod setter = metaBeanProperty.getSetter();
+                    if (setter == null) {
+                        continue;
+                    }
+                    if (Modifier.isFinal(setter.getModifiers()) || Modifier.isPrivate(setter.getModifiers())) {
+                        continue;
+                    }
+
+                    builder.addSetter(metaBeanProperty);
                 }
             }
 
@@ -135,6 +145,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         void addDynamicMethods() throws Exception;
 
         void addGetter(MetaBeanProperty property) throws Exception;
+
+        void addSetter(MetaBeanProperty property) throws Exception;
 
         Class<? extends T> generate() throws Exception;
     }

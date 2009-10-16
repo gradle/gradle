@@ -48,7 +48,7 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     void checkConstructor() {
         assertFalse(archiveTask.createIfEmpty)
-        assertNull(archiveTask.resourceCollections)
+        assertEquals([], archiveTask.resourceCollections)
         assertEquals([], archiveTask.mergeFileSets)
         assertEquals([], archiveTask.mergeGroupFileSets)
         assertEquals('', archiveTask.classifier)

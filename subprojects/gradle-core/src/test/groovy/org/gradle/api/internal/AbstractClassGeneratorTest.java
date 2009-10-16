@@ -15,21 +15,22 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.GroovyRuntimeException;
 import groovy.lang.Closure;
+import groovy.lang.GroovyRuntimeException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractClassGeneratorTest {
     private ClassGenerator generator;
@@ -140,6 +141,36 @@ public abstract class AbstractClassGeneratorTest {
 
         bean.setProperty("value");
         assertThat(bean.getProperty(), equalTo("value"));
+
+        bean.setProperty(null);
+        assertThat(bean.getProperty(), nullValue());
+    }
+
+    @Test
+    public void appliesConventionMappingToCollectionGetter() throws Exception {
+        Class<? extends CollectionBean> generatedClass = generator.generate(CollectionBean.class);
+        CollectionBean bean = generatedClass.newInstance();
+        IConventionAware conventionAware = (IConventionAware) bean;
+        final List<String> conventionValue = toList("value");
+
+        assertThat(bean.getProperty(), isEmpty());
+
+        conventionAware.getConventionMapping().map("property", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return conventionValue;
+            }
+        });
+
+        assertThat(bean.getProperty(), sameInstance(conventionValue));
+
+        bean.setProperty(toList("other"));
+        assertThat(bean.getProperty(), equalTo(toList("other")));
+
+        bean.setProperty(Collections.EMPTY_LIST);
+        assertThat(bean.getProperty(), equalTo(Collections.EMPTY_LIST));
+
+        bean.setProperty(null);
+        assertThat(bean.getProperty(), nullValue());
     }
 
     @Test
@@ -266,6 +297,18 @@ public abstract class AbstractClassGeneratorTest {
         }
     }
 
+    public static class CollectionBean {
+        private List<String> property = new ArrayList<String>();
+
+        public List<String> getProperty() {
+            return property;
+        }
+
+        public void setProperty(List<String> property) {
+            this.property = property;
+        }
+    }
+
     public static class BeanWithConstructor extends Bean {
         public BeanWithConstructor() {
             this("default value");
@@ -305,6 +348,10 @@ public abstract class AbstractClassGeneratorTest {
             } else {
                 throw new UnsupportedOperationException();
             }
+        }
+
+        public <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue) {
+            return getConventionValue(actualValue, propertyName);
         }
 
         public ConventionMapping getConventionMapping() {

@@ -29,6 +29,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import static java.util.Collections.*;
 import java.util.List;
 
 /**
@@ -106,5 +107,34 @@ public class ConventionAwareHelperTest {
             }
         });
         assertSame(conventionAware.getConventionValue("list1"), conventionAware.getConventionValue("list1"));
+    }
+
+    @Test public void doesNotUseMappingWhenExplicitValueProvided() {
+        conventionAware.map("list1", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                throw new UnsupportedOperationException();
+            }
+        });
+
+        List<Object> value = toList();
+        assertThat(conventionAware.getConventionValue(value, "list1", true), sameInstance(value));
+    }
+    
+    @Test public void usesConventionValueForEmptyCollection() {
+        conventionAware.map("list1", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return toList("a");
+            }
+        });
+        assertThat(conventionAware.getConventionValue(toList(), "list1"), equalTo((Object) toList("a")));
+    }
+
+    @Test public void usesConventionValueForEmptyMap() {
+        conventionAware.map("map1", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return toMap("a", "b");
+            }
+        });
+        assertThat(conventionAware.getConventionValue(emptyMap(), "map1"), equalTo((Object) toMap("a", "b")));
     }
 }

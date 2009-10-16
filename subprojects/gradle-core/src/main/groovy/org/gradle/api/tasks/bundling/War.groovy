@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.util.GUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.Optional
@@ -35,15 +34,15 @@ class War extends Jar {
 
     AntWar antWar = new AntWar()
 
-    List classesFileSets = null
+    List classesFileSets = []
 
-    List libConfigurations = null
+    List libConfigurations = []
 
-    List libExcludeConfigurations = null
+    List libExcludeConfigurations = []
 
-    List additionalLibFileSets = null
+    List additionalLibFileSets = []
 
-    List webInfFileSets = null
+    List webInfFileSets = []
 
     File webXml
 
@@ -82,35 +81,31 @@ class War extends Jar {
      * @param configureClosure (optional) closure which is applied against the newly created fileset.
      */
     FileSet webInf(Map args, Closure configureClosure = null) {
-        webInfFileSets = GUtil.chooseCollection(webInfFileSets, getWebInfFileSets())
         FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
-        webInfFileSets << fileSet
+        webInfFileSets = getWebInfFileSets() + [fileSet]
         fileSet
     }
 
     FileSet classes(Map args, Closure configureClosure = null) {
-        classesFileSets = GUtil.chooseCollection(classesFileSets, getClassesFileSets())
         FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
-        classesFileSets << fileSet
+        classesFileSets = getClassesFileSets() + [fileSet]
         fileSet
     }
 
     FileSet additionalLibs(Map args, Closure configureClosure = null) {
-        additionalLibFileSets = GUtil.chooseCollection(additionalLibFileSets, getAdditionalLibFileSets())
         FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
-        additionalLibFileSets << fileSet
+        additionalLibFileSets = getAdditionalLibFileSets() + [fileSet]
         fileSet
     }
 
     War libConfigurations(String ... libConfigurations) {
-        this.libConfigurations = GUtil.chooseCollection(this.libConfigurations, getLibConfigurations())
-        this.libConfigurations.addAll(libConfigurations as List)
+        List list = Arrays.asList(libConfigurations)
+        this.libConfigurations = getLibConfigurations() + list
         this
     }
 
     War libExcludeConfigurations(String ... libExcludeConfigurations) {
-        this.libExcludeConfigurations = GUtil.chooseCollection(this.libExcludeConfigurations, getLibExcludeConfigurations())
-        this.libExcludeConfigurations.addAll(libExcludeConfigurations as List)
+        this.libExcludeConfigurations = getLibExcludeConfigurations() + Arrays.asList(libExcludeConfigurations)
         this
     }
 

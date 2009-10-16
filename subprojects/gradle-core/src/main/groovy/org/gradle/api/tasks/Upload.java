@@ -38,9 +38,9 @@ public class Upload extends ConventionTask {
 
     private Configuration configuration;
 
-    private boolean uploadDescriptor = false;
+    private boolean uploadDescriptor;
 
-    private File descriptorDestination = null;
+    private File descriptorDestination;
 
     /**
      * The resolvers to delegate the uploads to. Usually a resolver corresponds to a repository.

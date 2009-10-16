@@ -156,18 +156,6 @@ public class GUtil {
         }
     }
 
-    public static <T> List<T> chooseCollection(List<T> taskCollection, List<T> conventionCollection) {
-        if (taskCollection != null) {
-            return taskCollection;
-        }
-        if (conventionCollection != null) {
-            taskCollection = new ArrayList<T>(conventionCollection);
-        } else {
-            taskCollection = new ArrayList<T>();
-        }
-        return taskCollection;
-    }
-
     public static Map map(Object... objects) {
         Map map = new HashMap();
         assert objects.length % 2 == 0;
