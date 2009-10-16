@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.Task;
@@ -49,7 +50,8 @@ public class DefaultTaskExecuterTest {
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final StandardOutputCapture standardOutputCapture = context.mock(StandardOutputCapture.class);
     private final Sequence sequence = context.sequence("seq");
-    private final DefaultTaskExecuter executer = new DefaultTaskExecuter(new StartParameter());
+    private final TaskActionListener listener = context.mock(TaskActionListener.class);
+    private final DefaultTaskExecuter executer = new DefaultTaskExecuter(new StartParameter(), listener);
 
     @Before
     public void setUp() {
@@ -81,6 +83,12 @@ public class DefaultTaskExecuterTest {
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList()));
+
+            one(listener).beforeActions(task);
+            inSequence(sequence);
+
+            one(listener).afterActions(task);
+            inSequence(sequence);
         }});
 
         TaskExecutionResult result = executer.execute(task, state);
@@ -109,6 +117,9 @@ public class DefaultTaskExecuterTest {
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
 
+            one(listener).beforeActions(task);
+            inSequence(sequence);
+
             one(standardOutputCapture).start();
             inSequence(sequence);
 
@@ -125,6 +136,9 @@ public class DefaultTaskExecuterTest {
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
+            inSequence(sequence);
+
+            one(listener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -145,6 +159,9 @@ public class DefaultTaskExecuterTest {
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
 
+            one(listener).beforeActions(task);
+            inSequence(sequence);
+
             one(standardOutputCapture).start();
             inSequence(sequence);
 
@@ -153,6 +170,9 @@ public class DefaultTaskExecuterTest {
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
+            inSequence(sequence);
+            
+            one(listener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -179,6 +199,7 @@ public class DefaultTaskExecuterTest {
             will(returnValue(toList(action1, action2)));
 
             ignoring(standardOutputCapture);
+            ignoring(listener);
 
             one(action1).execute(task);
             will(throwException(failure));
@@ -202,6 +223,9 @@ public class DefaultTaskExecuterTest {
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
 
+            one(listener).beforeActions(task);
+            inSequence(sequence);
+
             one(standardOutputCapture).start();
             inSequence(sequence);
 
@@ -210,6 +234,9 @@ public class DefaultTaskExecuterTest {
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
+            inSequence(sequence);
+
+            one(listener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -229,6 +256,9 @@ public class DefaultTaskExecuterTest {
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
 
+            one(listener).beforeActions(task);
+            inSequence(sequence);
+
             one(standardOutputCapture).start();
             inSequence(sequence);
 
@@ -246,6 +276,9 @@ public class DefaultTaskExecuterTest {
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
+            inSequence(sequence);
+
+            one(listener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -272,6 +305,7 @@ public class DefaultTaskExecuterTest {
             will(returnValue(toList(action)));
 
             ignoring(standardOutputCapture);
+            ignoring(listener);
         }});
 
         executer.execute(task, state).rethrowFailure();
@@ -291,6 +325,7 @@ public class DefaultTaskExecuterTest {
             will(returnValue(toList(action)));
 
             ignoring(standardOutputCapture);
+            ignoring(listener);
         }});
 
         executer.execute(task, state).rethrowFailure();

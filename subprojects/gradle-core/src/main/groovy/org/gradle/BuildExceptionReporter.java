@@ -34,13 +34,10 @@ public class BuildExceptionReporter extends BuildAdapter {
     }
 
     private final Logger logger;
-    private StartParameter startParameter;
+    private final StartParameter startParameter;
 
-    public BuildExceptionReporter(Logger logger) {
+    public BuildExceptionReporter(Logger logger, StartParameter startParameter) {
         this.logger = logger;
-    }
-
-    public void setStartParameter(StartParameter startParameter) {
         this.startParameter = startParameter;
     }
 

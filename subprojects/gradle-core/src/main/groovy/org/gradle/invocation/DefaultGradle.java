@@ -53,11 +53,10 @@ public class DefaultGradle implements GradleInternal {
     private final DefaultIsolatedAntBuilder isolatedAntBuilder = new DefaultIsolatedAntBuilder();
     private final ServiceRegistryFactory services;
 
-    public DefaultGradle(StartParameter startParameter, ServiceRegistryFactory parentRegistry,
-                         ListenerManager listenerManager) {
+    public DefaultGradle(StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.startParameter = startParameter;
-        this.listenerManager = listenerManager;
         this.services = parentRegistry.createFor(this);
+        this.listenerManager = services.get(ListenerManager.class);
         this.standardOutputRedirector = services.get(StandardOutputRedirector.class);
         projectRegistry = services.get(IProjectRegistry.class);
         pluginRegistry = services.get(PluginRegistry.class);
@@ -145,6 +144,10 @@ public class DefaultGradle implements GradleInternal {
 
     public void removeListener(Object listener) {
         listenerManager.removeListener(listener);
+    }
+
+    public void useLogger(Object logger) {
+        listenerManager.useLogger(logger);
     }
 
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {

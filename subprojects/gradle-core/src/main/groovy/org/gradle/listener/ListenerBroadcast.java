@@ -43,11 +43,22 @@ public class ListenerBroadcast<T> {
     private final T source;
     private final Class<T> type;
     private final Map<Object, InvocationHandler> handlers = new LinkedHashMap<Object, InvocationHandler>();
+    private final DelegatingInvocationHandler noOpLogger = new DelegatingInvocationHandler() {
+        @Override
+        public T getDelegate() {
+            return null;
+        }
+
+        public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
+            return null;
+        }
+    };
+    private DelegatingInvocationHandler logger = noOpLogger;
 
     public ListenerBroadcast(Class<T> type) {
         this.type = type;
-        source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type },
-                                                  new BroadcastInvocationHandler()));
+        source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
+                new BroadcastInvocationHandler()));
     }
 
     /**
@@ -77,12 +88,36 @@ public class ListenerBroadcast<T> {
         handlers.put(listener, new ListenerInvocationHandler(listener));
     }
 
-    /** Adds a closure to be notified when the given method is called. */
+    /**
+     * Adds the given listener if it is an instance of the listener type.
+     *
+     * @param listener The listener
+     */
+    public void maybeAdd(Object listener) {
+        if (type.isInstance(listener)) {
+            add(type.cast(listener));
+        }
+    }
+
+    /**
+     * Adds a closure to be notified when the given method is called.
+     */
     public void add(String methodName, Closure closure) {
         handlers.put(closure, new ClosureInvocationHandler(methodName, closure));
     }
 
-    public void remove(T listener) {
+    /**
+     * Removes the given listener.
+     *
+     * @param listener The listener.
+     */
+    public void remove(Object listener) {
+        if (!type.isInstance(listener)) {
+            return;
+        }
+        if (listener.equals(logger.getDelegate())) {
+            logger = noOpLogger;
+        }
         handlers.remove(listener);
     }
 
@@ -91,11 +126,17 @@ public class ListenerBroadcast<T> {
         return String.format("Failed to notify %s.", typeDescription);
     }
 
+    public T setLogger(T logger) {
+        T oldLogger = this.logger.getDelegate();
+        this.logger = new ListenerInvocationHandler(logger);
+        return oldLogger;
+    }
+
     private class BroadcastInvocationHandler implements InvocationHandler {
         public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
             if (method.getName().equals("equals")) {
                 return parameters[0] != null && Proxy.isProxyClass(parameters[0].getClass())
-                      && Proxy.getInvocationHandler(parameters[0]) == this;
+                        && Proxy.getInvocationHandler(parameters[0]) == this;
             }
             if (method.getName().equals("hashCode")) {
                 return hashCode();
@@ -108,6 +149,7 @@ public class ListenerBroadcast<T> {
                 standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
                 standardOutputCapture.start();
             }
+            logger.invoke(null, method, parameters);
             for (InvocationHandler handler : handlers.values()) {
                 handler.invoke(null, method, parameters);
             }
@@ -118,11 +160,20 @@ public class ListenerBroadcast<T> {
         }
     }
 
-    private class ListenerInvocationHandler implements InvocationHandler {
-        private final Object listener;
+    private abstract class DelegatingInvocationHandler implements InvocationHandler {
+        abstract T getDelegate();
+    }
 
-        public ListenerInvocationHandler(Object listener) {
+    private class ListenerInvocationHandler extends DelegatingInvocationHandler {
+        private final T listener;
+
+        public ListenerInvocationHandler(T listener) {
             this.listener = listener;
+        }
+
+        @Override
+        T getDelegate() {
+            return listener;
         }
 
         public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
@@ -147,8 +198,7 @@ public class ListenerBroadcast<T> {
         public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
             if (method.getName().equals(methodName)) {
                 if (closure.getMaximumNumberOfParameters() < parameters.length) {
-                    parameters = Arrays.asList(parameters).subList(0, closure.getMaximumNumberOfParameters())
-                          .toArray();
+                    parameters = Arrays.asList(parameters).subList(0, closure.getMaximumNumberOfParameters()).toArray();
                 }
                 try {
                     closure.call(parameters);

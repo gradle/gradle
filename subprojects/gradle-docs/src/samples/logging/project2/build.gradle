@@ -5,3 +5,7 @@ buildscript {
     println('quietProject2ScriptClassPathOut')
     logger.info('infoProject2ScriptClassPathOut')
 }
+
+gradle.taskGraph.whenReady {
+    println 'quietProject2CallbackOut'
+}

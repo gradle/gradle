@@ -76,8 +76,10 @@ public class DefaultGradleTest {
             will(returnValue(pluginRegistry));
             allowing(gradleServiceRegistryMock).get(TaskGraphExecuter.class);
             will(returnValue(taskExecuter));
+            allowing(gradleServiceRegistryMock).get(ListenerManager.class);
+            will(returnValue(listenerManager));
         }});
-        gradle = new DefaultGradle(parameter, serviceRegistryFactoryMock, listenerManager);
+        gradle = new DefaultGradle(parameter, serviceRegistryFactoryMock);
     }
 
     @Test
@@ -136,6 +138,15 @@ public class DefaultGradleTest {
         }});
 
         gradle.afterProject(closure);
+    }
+
+    @Test
+    public void usesSpecifiedLogger() {
+        final Object logger = new Object();
+        context.checking(new Expectations(){{
+            one(listenerManager).useLogger(logger);
+        }});
+        gradle.useLogger(logger);
     }
 
     @Test

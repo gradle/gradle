@@ -76,10 +76,11 @@ class HelperUtil {
     static DefaultProject createRootProject(File rootDir) {
         StartParameter startParameter = new StartParameter()
         startParameter.pluginPropertiesFile = new File('plugin.properties')
-        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter)
+        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter,
+                new DefaultListenerManager())
         IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
 
-        DefaultGradle build = new DefaultGradle(startParameter, serviceRegistryFactory, new DefaultListenerManager())
+        DefaultGradle build = new DefaultGradle(startParameter, serviceRegistryFactory)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)

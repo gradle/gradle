@@ -38,6 +38,7 @@ import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.execution.DefaultTaskGraphExecuter;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.listener.ListenerManager;
 
 import java.io.File;
 
@@ -72,7 +73,7 @@ public class GradleInternalServiceRegistry extends AbstractServiceRegistry imple
         add(new Service(TaskGraphExecuter.class) {
             @Override
             protected Object create() {
-                return new DefaultTaskGraphExecuter();
+                return new DefaultTaskGraphExecuter(get(ListenerManager.class));
             }
         });
 

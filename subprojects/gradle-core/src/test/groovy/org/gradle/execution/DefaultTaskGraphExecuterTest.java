@@ -20,10 +20,12 @@ import org.gradle.api.*;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.TaskExecutionResult;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.listener.ListenerManager;
+import org.gradle.listener.ListenerBroadcast;
 import static org.gradle.util.HelperUtil.*;
 import org.gradle.util.TestClosure;
 import static org.gradle.util.WrapUtil.*;
@@ -49,15 +51,22 @@ public class DefaultTaskGraphExecuterTest {
 
     static File TEST_ROOT_DIR = new File("/path/root");
 
+    JUnit4Mockery context = new JUnit4Mockery();
+    private final ListenerManager listenerManager = context.mock(ListenerManager.class);
     TaskGraphExecuter taskExecuter;
     ProjectInternal root;
-    JUnit4Mockery context = new JUnit4Mockery();
     List<Task> executedTasks = new ArrayList<Task>();
 
     @Before
     public void setUp() {
         root = createRootProject(new File("root"));
-        taskExecuter = new DefaultTaskGraphExecuter();
+        context.checking(new Expectations(){{
+            one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
+            will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
+            one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
+            will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
+        }});
+        taskExecuter = new DefaultTaskGraphExecuter(listenerManager);
     }
 
     @Test

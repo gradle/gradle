@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.Task;
@@ -31,9 +32,11 @@ import org.gradle.StartParameter;
 public class DefaultTaskExecuter implements TaskExecuter {
     private static Logger logger = Logging.getLogger(DefaultTaskExecuter.class);
     private final StartParameter startParameter;
+    private final TaskActionListener listener;
 
-    public DefaultTaskExecuter(StartParameter startParameter) {
+    public DefaultTaskExecuter(StartParameter startParameter, TaskActionListener listener) {
         this.startParameter = startParameter;
+        this.listener = listener;
     }
 
     public TaskExecutionResult execute(TaskInternal task, TaskState state) {
@@ -49,9 +52,7 @@ public class DefaultTaskExecuter implements TaskExecuter {
     private TaskExecutionResult doExecute(TaskInternal task, TaskState state) {
         if (!task.getEnabled()) {
             logger.info("Skipping execution as task is disabled.");
-            String skipMessage = "SKIPPED";
-            logger.lifecycle("{} {}", task.getPath(), skipMessage);
-            return new TaskExecutionResultImpl(task, null, skipMessage);
+            return new TaskExecutionResultImpl(task, null, "SKIPPED");
         }
 
         if (!startParameter.isNoOpt()) {
@@ -65,19 +66,19 @@ public class DefaultTaskExecuter implements TaskExecuter {
             }
 
             if (skip) {
-                String skipMessage = "SKIPPED as onlyIf is false";
-                logger.lifecycle("{} {}", task.getPath(), skipMessage);
-                return new TaskExecutionResultImpl(task, null, skipMessage);
+                logger.info("Skipping execution as task onlyIf is false.");
+                return new TaskExecutionResultImpl(task, null, "SKIPPED as onlyIf is false");
             }
         }
 
-        logger.lifecycle(task.getPath());
+        listener.beforeActions(task);
         state.setExecuting(true);
         try {
             GradleException failure = executeActions(task, state);
             return new TaskExecutionResultImpl(task, failure, null);
         } finally {
             state.setExecuting(false);
+            listener.afterActions(task);
         }
     }
 

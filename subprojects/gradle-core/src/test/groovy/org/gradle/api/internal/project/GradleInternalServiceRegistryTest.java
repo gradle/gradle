@@ -31,9 +31,13 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.execution.DefaultTaskGraphExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.StartParameter;
+import org.gradle.listener.ListenerManager;
+import org.gradle.listener.ListenerBroadcast;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -57,6 +61,7 @@ public class GradleInternalServiceRegistryTest {
     private final GradleInternalServiceRegistry registry = new GradleInternalServiceRegistry(parent, gradle);
     private final StartParameter startParameter = new StartParameter();
     private final ModuleDescriptorConverter moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
+    private final ListenerManager listenerManager = context.mock(ListenerManager.class);
 
     @Before
     public void setUp() {
@@ -70,6 +75,8 @@ public class GradleInternalServiceRegistryTest {
             will(returnValue(dependencyFactory));
             allowing(parent).get(ModuleDescriptorConverter.class);
             will(returnValue(moduleDescriptorConverter));
+            allowing(parent).get(ListenerManager.class);
+            will(returnValue(listenerManager));
             allowing(gradle).getBuildScriptClassLoader();
             will(returnValue(new ClassLoader() {
             }));
@@ -98,7 +105,13 @@ public class GradleInternalServiceRegistryTest {
     }
 
     @Test
-    public void providesATaskExecuter() {
+    public void providesATaskGraphExecuter() {
+        context.checking(new Expectations(){{
+            one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
+            will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
+            one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);
+            will(returnValue(new ListenerBroadcast<TaskExecutionListener>(TaskExecutionListener.class)));
+        }});
         assertThat(registry.get(TaskGraphExecuter.class), instanceOf(DefaultTaskGraphExecuter.class));
         assertThat(registry.get(TaskGraphExecuter.class), sameInstance(registry.get(TaskGraphExecuter.class)));
     }

@@ -35,6 +35,8 @@ import org.gradle.logging.MarkerFilter;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import java.util.logging.LogManager;
+
 /**
  * @author Hans Dockter
  */
@@ -60,8 +62,9 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         ch.qos.logback.classic.Logger rootLogger;
         if (!applied) {
-            SLF4JBridgeHandler.install();
             lc.reset();
+            LogManager.getLogManager().reset();
+            SLF4JBridgeHandler.install();
             stderrConsoleAppender.setContext(lc);
             stderrConsoleAppender.setTarget("System.err");
             stdoutConsoleAppender.setContext(lc);

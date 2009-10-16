@@ -19,6 +19,7 @@ import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.api.logging.Logging;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
@@ -64,12 +65,14 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingConfigurer.initialize(listenerManager);
         loggingConfigurer.configure(startParameter.getLogLevel());
 
+        listenerManager.useLogger(new TaskExecutionLogger(Logging.getLogger(TaskExecutionLogger.class)));
+
+        ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter, listenerManager);
         ISettingsFinder settingsFinder = new EmbeddedScriptSettingsFinder(
                 new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
                         new MasterDirSettingsFinderStrategy(),
                         new ParentDirSettingsFinderStrategy()))
         );
-        ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter);
         ScriptCompilerFactory scriptCompilerFactory = serviceRegistryFactory.get(ScriptCompilerFactory.class);
         InitScriptHandler initScriptHandler = new InitScriptHandler(
                 new UserHomeInitScriptFinder(
@@ -77,8 +80,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 new DefaultInitScriptProcessor(scriptCompilerFactory, serviceRegistryFactory.get(ImportsReader.class)));
         DefaultGradle gradle = new DefaultGradle(
                 startParameter,
-                serviceRegistryFactory,
-                listenerManager);
+                serviceRegistryFactory);
         return new GradleLauncher(
                 gradle,
                 initScriptHandler,

@@ -15,17 +15,14 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.execution.TaskExecutionResult;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
 public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
-    private static Logger logger = Logging.getLogger(ExecutionShortCircuitTaskExecuter.class);
     private final TaskExecuter executer;
     private final TaskArtifactStateRepository repository;
     private static final TaskExecutionResult upToDateResult = new TaskExecutionResult() {
@@ -49,7 +46,6 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
     public TaskExecutionResult execute(TaskInternal task, TaskState state) {
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
         if (taskArtifactState.isUpToDate()) {
-            logger.lifecycle("{} {}", task.getPath(), upToDateResult.getSkipMessage());
             return upToDateResult;
         }
         taskArtifactState.invalidate();

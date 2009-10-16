@@ -15,8 +15,6 @@
  */
 package org.gradle;
 
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
@@ -54,6 +52,7 @@ import org.slf4j.LoggerFactory;
  * @author Hans Dockter
  */
 public class GradleLauncher {
+
     private enum Stage {
         Configure, PopulateTaskGraph, Build
     }
@@ -158,7 +157,6 @@ public class GradleLauncher {
         }
 
         // Populate task graph
-        attachTaskGraphListener();
         BuildExecuter executer = gradle.getStartParameter().getBuildExecuter();
         executer.select(gradle);
 
@@ -171,16 +169,6 @@ public class GradleLauncher {
         executer.execute();
 
         assert upTo == Stage.Build;
-    }
-
-    private void attachTaskGraphListener() {
-        final GradleInternal theGradle = gradle;
-        theGradle.getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
-            public void graphPopulated(TaskExecutionGraph graph) {
-                assert theGradle.getTaskGraph() == graph;
-                theGradle.getBuildListenerBroadcaster().taskGraphPopulated(graph);
-            }
-        });
     }
 
     /**
@@ -220,8 +208,9 @@ public class GradleLauncher {
     }
 
     /**
-     * <p>Adds a {@link BuildListener} to this build instance. The listener is notified of events which occur during the
-     * execution of the build.</p>
+     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the
+     * execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener
+     * types.</p>
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -229,6 +218,15 @@ public class GradleLauncher {
         gradle.addListener(listener);
     }
 
+    /**
+     * Use the given listener. See {@link org.gradle.api.invocation.Gradle#useLogger(Object)} for details.
+     *
+     * @param logger The logger to use.
+     */
+    public void useLogger(Object logger) {
+        gradle.useLogger(logger);
+    }
+    
     /**
      * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
      * standard output by Gradle's logging system

@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
@@ -136,10 +137,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private class BuildListenerImpl extends BuildAdapter {
+    private class BuildListenerImpl implements TaskExecutionGraphListener {
         private TaskListenerImpl listener = new TaskListenerImpl();
 
-        public void taskGraphPopulated(TaskExecutionGraph graph) {
+        public void graphPopulated(TaskExecutionGraph graph) {
             planned.clear();
             planned.addAll(graph.getAllTasks());
             graph.addTaskExecutionListener(listener);

@@ -23,11 +23,17 @@ import java.util.*;
 @SuppressWarnings({"unchecked"})
 public class DefaultListenerManager implements ListenerManager {
     private final Set<Object> allListeners = new LinkedHashSet<Object>();
+    private final Set<Object> loggers = new LinkedHashSet<Object>();
     private final Map<Class<?>, ListenerBroadcast> broadcasterCache = new HashMap<Class<?>, ListenerBroadcast>();
+    private final Object lock = new Object();
 
     public void addListener(Object listener) {
-        if (allListeners.add(listener)) {
-            addToBroadcasters(listener);
+        synchronized (lock) {
+            if (allListeners.add(listener)) {
+                for (ListenerBroadcast broadcaster : broadcasterCache.values()) {
+                    addToBroadcasterIfTypeMatches(broadcaster, listener);
+                }
+            }
         }
     }
 
@@ -36,8 +42,22 @@ public class DefaultListenerManager implements ListenerManager {
     }
 
     public void removeListener(Object listener) {
-        if (allListeners.remove(listener)) {
-            removeFromBroadcasters(listener);
+        synchronized (lock) {
+            if (allListeners.remove(listener)) {
+                for (ListenerBroadcast broadcaster : broadcasterCache.values()) {
+                    broadcaster.remove(listener);
+                }
+            }
+        }
+    }
+
+    public void useLogger(Object logger) {
+        synchronized (lock) {
+            if (loggers.add(logger)) {
+                for (ListenerBroadcast broadcaster : broadcasterCache.values()) {
+                    addLoggerToBroadcasterIfTypeMatchers(broadcaster, logger);
+                }
+            }
         }
     }
 
@@ -52,7 +72,7 @@ public class DefaultListenerManager implements ListenerManager {
     }
 
     private <T> ListenerBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
-        synchronized (broadcasterCache) {
+        synchronized (lock) {
             ListenerBroadcast<T> broadcaster = broadcasterCache.get(listenerClass);
             if (broadcaster == null) {
                 broadcaster = createBroadcaster(listenerClass);
@@ -68,23 +88,25 @@ public class DefaultListenerManager implements ListenerManager {
         for (Object listener : allListeners) {
             addToBroadcasterIfTypeMatches(broadcaster, listener);
         }
+        for (Object logger : loggers) {
+            addLoggerToBroadcasterIfTypeMatchers(broadcaster, logger);
+        }
 
         return broadcaster;
     }
 
-    private void addToBroadcasters(Object listener) {
-        synchronized (broadcasterCache) {
-            for (ListenerBroadcast broadcaster : broadcasterCache.values()) {
-                addToBroadcasterIfTypeMatches(broadcaster, listener);
+    private void addLoggerToBroadcasterIfTypeMatchers(ListenerBroadcast broadcaster, Object listener) {
+        if (broadcaster.getType().isAssignableFrom(listener.getClass())) {
+            Object oldLogger = broadcaster.setLogger(listener);
+            if (loggers.remove(oldLogger)) {
+                removeLogger(oldLogger);
             }
         }
     }
 
-    private void removeFromBroadcasters(Object listener) {
-        synchronized (broadcasterCache) {
-            for (ListenerBroadcast broadcaster : broadcasterCache.values()) {
-                removeFromBroadcasterIfTypeMatches(broadcaster, listener);
-            }
+    private void removeLogger(Object oldLogger) {
+        for (ListenerBroadcast listenerBroadcast : broadcasterCache.values()) {
+            listenerBroadcast.remove(oldLogger);
         }
     }
 
@@ -94,14 +116,8 @@ public class DefaultListenerManager implements ListenerManager {
             if (broadcaster.getType().isAssignableFrom(closureListener.listenerType)) {
                 broadcaster.add(closureListener.method, closureListener.closure);
             }
-        } else if (broadcaster.getType().isAssignableFrom(listener.getClass())) {
-            broadcaster.add(listener);
-        }
-    }
-
-    private void removeFromBroadcasterIfTypeMatches(ListenerBroadcast broadcaster, Object listener) {
-        if (broadcaster.getType().isAssignableFrom(listener.getClass())) {
-            broadcaster.remove(listener);
+        } else {
+            broadcaster.maybeAdd(listener);
         }
     }
 

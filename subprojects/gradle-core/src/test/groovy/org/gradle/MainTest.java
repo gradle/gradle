@@ -43,7 +43,7 @@ public class MainTest {
         GradleLauncher.injectCustomFactory(gradleLauncherFactoryMock);
         context.checking(new Expectations() {{
             one(gradleLauncherFactoryMock).newInstance(startParameter); will(returnValue(gradleMockLauncher));
-            allowing(gradleMockLauncher).addListener(with(any(BuildListener.class)));
+            one(gradleMockLauncher).useLogger(with(any(BuildLogger.class)));
             one(gradleMockLauncher).run(); will(returnValue(buildResult));
         }});
     }

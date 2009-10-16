@@ -15,58 +15,19 @@
  */
 package org.gradle;
 
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.util.Clock;
 
 /**
  * A {@link BuildListener} which logs the final result of the build.
  */
-public class BuildResultLogger implements BuildListener {
+public class BuildResultLogger extends BuildAdapter {
     private final Logger logger;
     private final Clock buildTimeClock;
 
-    public BuildResultLogger(Logger logger) {
+    public BuildResultLogger(Logger logger, Clock buildTimeClock) {
         this.logger = logger;
-        buildTimeClock = new Clock();
-    }
-
-    public void buildStarted(Gradle gradle) {
-        StartParameter startParameter = gradle.getStartParameter();
-        logger.info("Starting Build");
-        logger.debug("Gradle home: " + startParameter.getGradleHomeDir());
-        logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
-        logger.debug("Current dir: " + startParameter.getCurrentDir());
-        logger.debug("Settings file: " + startParameter.getSettingsScriptSource());
-        logger.debug("Build file: " + startParameter.getBuildFile());
-        logger.debug("Select default project: " + startParameter.getDefaultProjectSelector().getDisplayName());
-        logger.debug("Plugin properties: " + startParameter.getPluginPropertiesFile());
-        logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
-    }
-
-    public void settingsEvaluated(Settings settings) {
-        SettingsInternal settingsInternal = (SettingsInternal) settings;
-        logger.info(String.format("Settings evaluated using %s.",
-                settingsInternal.getSettingsScript().getDisplayName()));
-    }
-
-    public void projectsLoaded(Gradle gradle) {
-        ProjectInternal projectInternal = (ProjectInternal) gradle.getRootProject();
-        logger.info(String.format("Projects loaded. Root project using %s.",
-                projectInternal.getBuildScriptSource().getDisplayName()));
-        logger.info(String.format("Included projects: %s", projectInternal.getAllprojects()));
-    }
-
-    public void projectsEvaluated(Gradle gradle) {
-        logger.info("All projects evaluated.");
-    }
-
-    public void taskGraphPopulated(TaskExecutionGraph graph) {
-        logger.info(String.format("Tasks to be executed: %s", graph.getAllTasks()));
+        this.buildTimeClock = buildTimeClock;
     }
 
     public void buildFinished(BuildResult result) {

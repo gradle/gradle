@@ -17,7 +17,6 @@
 package org.gradle;
 
 import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -300,7 +299,6 @@ public class GradleLauncherTest {
             {
                 one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
                 one(buildConfigurerMock).process(expectedRootProject);
-                one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(taskExecuterMock).addTasks(expectedTasks.get(0));
                 one(taskExecuterMock).addTasks(expectedTasks.get(1));
             }
@@ -336,7 +334,6 @@ public class GradleLauncherTest {
                 one(buildBroadcaster).projectsEvaluated(gradleMock);
                 one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
                 one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
-                one(taskExecuterMock).addTaskExecutionGraphListener(with(notNullValue(TaskExecutionGraphListener.class)));
                 one(buildConfigurerMock).process(expectedRootProject);
             }
         });

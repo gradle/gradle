@@ -19,30 +19,24 @@ import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
 import org.hamcrest.Matcher;
+import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
-import org.junit.Before;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 
 @RunWith(JMock.class)
 public class BuildExceptionReporterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private Logger logger = context.mock(Logger.class);
-    private BuildExceptionReporter reporter = new BuildExceptionReporter(logger);
     private StartParameter startParameter = new StartParameter();
-
-    @Before
-    public void setup() {
-        reporter.setStartParameter(startParameter);
-    }
+    private BuildExceptionReporter reporter = new BuildExceptionReporter(logger, startParameter);
 
     @Test
     public void reportsBuildFailure() {
@@ -156,7 +150,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(errorMessage));
         }});
 
-        reporter = new BuildExceptionReporter(logger);
+        reporter = new BuildExceptionReporter(logger, startParameter);
         reporter.buildFinished(HelperUtil.createBuildResult(exception));
     }
 
@@ -179,7 +173,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(containsString("Build aborted because of an internal error.")), with(sameInstance(failure)));
         }});
 
-        reporter = new BuildExceptionReporter(logger);
+        reporter = new BuildExceptionReporter(logger, startParameter);
         reporter.buildFinished(HelperUtil.createBuildResult(failure));
     }
 

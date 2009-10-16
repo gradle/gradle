@@ -16,6 +16,7 @@
 package org.gradle;
 
 import org.gradle.util.GradleVersion;
+import org.gradle.util.Clock;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.Logger;
 import java.lang.reflect.Method;
@@ -52,6 +53,8 @@ public class Main {
     }
 
     public void execute() throws Exception {
+        Clock buildTimeClock = new Clock();
+
         StartParameter startParameter = null;
 
         try {
@@ -88,21 +91,18 @@ public class Main {
             buildCompleter.exit(null);
         }
 
-        BuildResultLogger resultLogger = new BuildResultLogger(logger);
-        BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(logger);
+        BuildListener resultLogger = new BuildLogger(logger, buildTimeClock, startParameter);
         try {
-            exceptionReporter.setStartParameter(startParameter);
             GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
 
-            gradleLauncher.addListener(exceptionReporter);
-            gradleLauncher.addListener(resultLogger);
+            gradleLauncher.useLogger(resultLogger);
 
             BuildResult buildResult = gradleLauncher.run();
             if (buildResult.getFailure() != null) {
                 buildCompleter.exit(buildResult.getFailure());
             }
         } catch (Throwable e) {
-            exceptionReporter.buildFinished(new BuildResult(null, e));
+            resultLogger.buildFinished(new BuildResult(null, e));
             buildCompleter.exit(e);
         }
         buildCompleter.exit(null);

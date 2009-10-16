@@ -13,30 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.api.execution;
 
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.api.Task;
 
 /**
- * An abstract adapter class for receiving build events. The methods in this class are empty.
- * This class exists as convenience for creating listener objects.
+ * <p>A {@code TaskWorkListener} is notified of the actions that a task performs.</p>
  */
-public class BuildAdapter implements BuildListener
-{
-    public void buildStarted(Gradle gradle) {
-    }
+public interface TaskActionListener {
+    /**
+     * This method is called immediately before the task starts performing its actions.
+     *
+     * @param task The task which is to perform some actions.
+     */
+    void beforeActions(Task task);
 
-    public void settingsEvaluated(Settings settings) {
-    }
-
-    public void projectsLoaded(Gradle gradle) {
-    }
-
-    public void projectsEvaluated(Gradle gradle) {
-    }
-
-    public void buildFinished(BuildResult result) {
-    }
+    /**
+     * This method is called immediately after the task has completed performing its actions.
+     *
+     * @param task The task which has performed some actions.
+     */
+    void afterActions(Task task);
 }
-

@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.project;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.StartParameter;
-import org.gradle.util.WrapUtil;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ClassGenerator;
@@ -29,37 +29,51 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
-import org.gradle.api.internal.changedetection.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.CachingHasher;
 import org.gradle.api.internal.changedetection.DefaultHasher;
+import org.gradle.api.internal.changedetection.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.DefaultTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.execution.TaskActionListener;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
-import org.gradle.configuration.ProjectEvaluator;
-import org.gradle.configuration.DefaultProjectEvaluator;
 import org.gradle.configuration.BuildScriptProcessor;
+import org.gradle.configuration.DefaultProjectEvaluator;
+import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.*;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.listener.ListenerManager;
+import org.gradle.listener.DefaultListenerManager;
+import org.gradle.util.WrapUtil;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Contains the singleton services which are shared by all builds.
  */
 public class DefaultServiceRegistryFactory extends AbstractServiceRegistry implements ServiceRegistryFactory {
-    public DefaultServiceRegistryFactory(final StartParameter startParameter) {
+    public DefaultServiceRegistryFactory(StartParameter startParameter) {
+        this(startParameter, new DefaultListenerManager());
+    }
+
+    public DefaultServiceRegistryFactory(final StartParameter startParameter, ListenerManager listenerManager) {
         final Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
 
+        add(ListenerManager.class, listenerManager);
         add(ImportsReader.class, new ImportsReader(startParameter.getDefaultImportsFile()));
         add(ClassGenerator.class, new AsmBackedClassGenerator());
         add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
-        add(TaskExecuter.class, new DefaultTaskExecuter(startParameter));
         add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
+
+        add(new Service(TaskExecuter.class){
+            protected Object create() {
+                return new DefaultTaskExecuter(startParameter,
+                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class));
+            }
+        });
 
         add(new Service(RepositoryHandlerFactory.class) {
             protected Object create() {
@@ -67,82 +81,63 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
             }
         });
 
-        add(new Service(CacheRepository.class){
+        add(new Service(CacheRepository.class) {
             protected Object create() {
                 return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(),
                         startParameter.getCacheUsage());
             }
         });
 
-        add(new Service(ConfigurationContainerFactory.class){
+        add(new Service(ConfigurationContainerFactory.class) {
             protected Object create() {
-                return new DefaultConfigurationContainerFactory(
-                        clientModuleRegistry,
-                        new DefaultSettingsConverter(),
-                        get(ModuleDescriptorConverter.class),
-                        new DefaultIvyFactory(),
-                        new SelfResolvingDependencyResolver(
-                                new DefaultIvyDependencyResolver(new DefaultIvyReportConverter())),
-                        new DefaultIvyDependencyPublisher(new DefaultModuleDescriptorForUploadConverter(),
-                                new DefaultPublishOptionsFactory()));
+                return new DefaultConfigurationContainerFactory(clientModuleRegistry, new DefaultSettingsConverter(),
+                        get(ModuleDescriptorConverter.class), new DefaultIvyFactory(),
+                        new SelfResolvingDependencyResolver(new DefaultIvyDependencyResolver(
+                                new DefaultIvyReportConverter())), new DefaultIvyDependencyPublisher(
+                                new DefaultModuleDescriptorForUploadConverter(), new DefaultPublishOptionsFactory()));
             }
         });
 
-        add(new Service(ModuleDescriptorConverter.class){
+        add(new Service(ModuleDescriptorConverter.class) {
             protected Object create() {
                 ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
-                return new DefaultModuleDescriptorConverter(
-                        new DefaultModuleDescriptorFactory(),
+                return new DefaultModuleDescriptorConverter(new DefaultModuleDescriptorFactory(),
                         new DefaultConfigurationsToModuleDescriptorConverter(),
-                        new DefaultDependenciesToModuleDescriptorConverter(
-                                new DefaultDependencyDescriptorFactory(
-                                        excludeRuleConverter,
-                                        new DefaultClientModuleDescriptorFactory(),
-                                        clientModuleRegistry),
-                                excludeRuleConverter),
-                        new DefaultArtifactsToModuleDescriptorConverter());
+                        new DefaultDependenciesToModuleDescriptorConverter(new DefaultDependencyDescriptorFactory(
+                                excludeRuleConverter, new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
+                                excludeRuleConverter), new DefaultArtifactsToModuleDescriptorConverter());
             }
         });
 
-        add(new Service(DependencyFactory.class){
+        add(new Service(DependencyFactory.class) {
             protected Object create() {
-                return new DefaultDependencyFactory(
-                        WrapUtil.<IDependencyImplementationFactory>toSet(new ModuleDependencyFactory(),
-                                new SelfResolvingDependencyFactory()),
-                        new DefaultClientModuleFactory(),
-                        new DefaultProjectDependencyFactory(startParameter.getProjectDependenciesBuildInstruction()));
+                return new DefaultDependencyFactory(WrapUtil.<IDependencyImplementationFactory>toSet(
+                        new ModuleDependencyFactory(), new SelfResolvingDependencyFactory()),
+                        new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory(
+                                startParameter.getProjectDependenciesBuildInstruction()));
             }
         });
-        
-        add(new Service(ProjectEvaluator.class){
+
+        add(new Service(ProjectEvaluator.class) {
             protected Object create() {
-                return new DefaultProjectEvaluator(
-                        new BuildScriptProcessor(
-                                get(ImportsReader.class),
-                                get(ScriptCompilerFactory.class)));
+                return new DefaultProjectEvaluator(new BuildScriptProcessor(get(ImportsReader.class), get(
+                        ScriptCompilerFactory.class)));
             }
         });
 
         add(new Service(ITaskFactory.class) {
             protected Object create() {
-                return new ExecutionShortCircuitTaskFactory(
-                        new DependencyAutoWireTaskFactory(
-                                new AnnotationProcessingTaskFactory(
-                                        new TaskFactory(get(ClassGenerator.class)))),
-                        new DefaultTaskArtifactStateRepository(
-                                get(CacheRepository.class),
-                                new CachingHasher(
-                                        new DefaultHasher(),
-                                        get(CacheRepository.class))));
+                return new ExecutionShortCircuitTaskFactory(new DependencyAutoWireTaskFactory(
+                        new AnnotationProcessingTaskFactory(new TaskFactory(get(ClassGenerator.class)))),
+                        new DefaultTaskArtifactStateRepository(get(CacheRepository.class), new CachingHasher(
+                                new DefaultHasher(), get(CacheRepository.class))));
             }
         });
 
         add(new Service(ScriptCompilerFactory.class) {
             protected Object create() {
-                return new DefaultScriptCompilerFactory(
-                        new DefaultScriptCompilationHandler(),
-                        startParameter.getCacheUsage(),
-                        new DefaultScriptRunnerFactory(new DefaultScriptMetaData()),
+                return new DefaultScriptCompilerFactory(new DefaultScriptCompilationHandler(),
+                        startParameter.getCacheUsage(), new DefaultScriptRunnerFactory(new DefaultScriptMetaData()),
                         get(CacheRepository.class));
             }
         });

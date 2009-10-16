@@ -26,6 +26,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.ListenerManager;
 import org.gradle.util.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,13 +39,16 @@ import java.util.*;
 public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private static Logger logger = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
 
-    private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners
-            = new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class);
-    private final ListenerBroadcast<TaskExecutionListener> taskListeners = new ListenerBroadcast<TaskExecutionListener>(
-            TaskExecutionListener.class);
+    private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
+    private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final Set<Task> executionPlan = new LinkedHashSet<Task>();
     private boolean populated;
     private Spec<? super Task> filter = Specs.satisfyAll();
+
+    public DefaultTaskGraphExecuter(ListenerManager listenerManager) {
+        graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
+        taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
+    }
 
     public void useFilter(Spec<? super Task> filter) {
         this.filter = filter;

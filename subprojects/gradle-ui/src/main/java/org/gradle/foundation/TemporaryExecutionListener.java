@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.StandardOutputListener;
@@ -48,7 +49,8 @@ public class TemporaryExecutionListener {
        for the ExecutionListener isn't readily available, this automatically sets up
        several other listeners.
     */
-    private static class DelegatingBuildListener implements BuildListener, StandardOutputListener {
+    private static class DelegatingBuildListener implements BuildListener, StandardOutputListener,
+            TaskExecutionGraphListener {
         private DelegatingTaskExecutionListener taskProgressListener;
         private TaskExecutionGraph taskExecutionGraph;
         private ExecutionListener executionListener;
@@ -100,10 +102,8 @@ public class TemporaryExecutionListener {
          * to use to execute the tasks which make up the build.</p>
          * <p>Here we add a TaskExecutionListener to the task graph that just delegates the task messages to
          * the ExecutionListener</p>
-         *
-         * @param taskExecutionGraph The task graph. Never null.
          */
-        public void taskGraphPopulated(TaskExecutionGraph taskExecutionGraph) {
+        public void graphPopulated(TaskExecutionGraph taskExecutionGraph) {
             this.taskExecutionGraph = taskExecutionGraph;
             int totalTasksToExecute = taskExecutionGraph.getAllTasks().size();
 

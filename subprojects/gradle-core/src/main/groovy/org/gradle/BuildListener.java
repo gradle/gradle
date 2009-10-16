@@ -17,7 +17,6 @@ package org.gradle;
 
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.execution.TaskExecutionGraph;
 
 /**
  * <p>A {@code BuildListener} is notified of the major lifecycle events as a {@link GradleLauncher} instance executes a
@@ -57,14 +56,6 @@ public interface BuildListener {
      * @param gradle The build which has been evaluated. Never null.
      */
     void projectsEvaluated(Gradle gradle);
-
-    /**
-     * <p>Called when the task graph for the build has been populated. The task graph is fully configured and is ready
-     * to use to execute the tasks which make up the build.</p>
-     *
-     * @param graph The task graph. Never null.
-     */
-    void taskGraphPopulated(TaskExecutionGraph graph);
 
     /**
      * <p>Called when the build is completed. All selected tasks have been executed.</p>

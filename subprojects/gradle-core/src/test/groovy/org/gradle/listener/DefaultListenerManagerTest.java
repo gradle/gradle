@@ -15,14 +15,13 @@
  */
 package org.gradle.listener;
 
-import org.junit.runner.RunWith;
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
-import static org.hamcrest.Matchers.equalTo;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
 public class DefaultListenerManagerTest {
@@ -34,6 +33,54 @@ public class DefaultListenerManagerTest {
     private final TestFooListener fooListener3 = context.mock(TestFooListener.class, "foo listener 3");
     private final TestFooListener fooListener4 = context.mock(TestFooListener.class, "foo listener 4");
     private final TestBarListener barListener1 = context.mock(TestBarListener.class, "bar listener 1");
+
+    @Test
+    public void canAddListenerBeforeObtainingBroadcaster() {
+        manager.addListener(fooListener1);
+
+        context.checking(new Expectations() {{
+            one(fooListener1).foo("param");
+        }});
+
+        manager.getBroadcaster(TestFooListener.class).foo("param");
+    }
+
+    @Test
+    public void canAddListenerAfterObtainingBroadcaster() {
+        TestFooListener broadcaster = manager.getBroadcaster(TestFooListener.class);
+
+        manager.addListener(fooListener1);
+
+        context.checking(new Expectations() {{
+            one(fooListener1).foo("param");
+        }});
+
+        broadcaster.foo("param");
+    }
+
+    @Test
+    public void canAddLoggerBeforeObtainingBroadcaster() {
+        manager.useLogger(fooListener1);
+
+        context.checking(new Expectations() {{
+            one(fooListener1).foo("param");
+        }});
+
+        manager.getBroadcaster(TestFooListener.class).foo("param");
+    }
+
+    @Test
+    public void canAddLoggerAfterObtainingBroadcaster() {
+        TestFooListener broadcaster = manager.getBroadcaster(TestFooListener.class);
+
+        manager.useLogger(fooListener1);
+
+        context.checking(new Expectations() {{
+            one(fooListener1).foo("param");
+        }});
+
+        broadcaster.foo("param");
+    }
 
     @Test
     public void addedListenersGetMessagesInOrderAdded() {
@@ -56,28 +103,54 @@ public class DefaultListenerManagerTest {
 
         manager.addListener(fooListener4);
 
-        assertThat(manager.getBroadcaster(TestFooListener.class), equalTo(broadcaster));
         broadcaster.foo("param");
     }
 
     @Test
+    public void cachesBroadcasters() {
+        assertSame(manager.getBroadcaster(TestFooListener.class), manager.getBroadcaster(TestFooListener.class));
+    }
+
+    @Test
     public void removedListenersDontGetMessages() {
+        manager.addListener(fooListener1);
+        manager.addListener(fooListener2);
+
+        manager.removeListener(fooListener2);
+
+        TestFooListener testFooListener = manager.getBroadcaster(TestFooListener.class);
+
+        manager.removeListener(fooListener1);
+
+        testFooListener.foo("param");
+    }
+
+    @Test
+    public void replacedLoggersDontGetMessages() {
+        context.checking(new Expectations() {{
+            one(fooListener4).foo("param");
+        }});
+
+        manager.useLogger(fooListener1);
+        manager.useLogger(fooListener2);
+
+        TestFooListener testFooListener = manager.getBroadcaster(TestFooListener.class);
+
+        manager.useLogger(fooListener3);
+        manager.useLogger(fooListener4);
+
+        testFooListener.foo("param");
+    }
+
+    @Test
+    public void listenerReceivesEventsFromAnonymousBroadcasters() {
+        manager.addListener(fooListener1);
+
         context.checking(new Expectations() {{
             one(fooListener1).foo("param");
         }});
 
-        manager.addListener(fooListener1);
-        manager.addListener(fooListener2);
-        manager.addListener(barListener1);
-
-        // get the broadcaster and then add more listeners (because broadcasters
-        // are cached and so must be maintained correctly after getting defined
-        TestFooListener broadcaster = manager.getBroadcaster(TestFooListener.class);
-
-        manager.removeListener(fooListener2);
-
-        assertThat(manager.getBroadcaster(TestFooListener.class), equalTo(broadcaster));
-        broadcaster.foo("param");
+        manager.createAnonymousBroadcaster(TestFooListener.class).getSource().foo("param");
     }
 
     private interface TestFooListener {

@@ -15,19 +15,19 @@
  */
 package org.gradle.listener;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.Expectations;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import static org.gradle.util.HelperUtil.*;
-import org.gradle.util.*;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
+import static org.gradle.util.HelperUtil.*;
+import org.gradle.util.TestClosure;
+import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
 public class ListenerBroadcastTest {
@@ -72,7 +72,7 @@ public class ListenerBroadcastTest {
     }
 
     @Test
-    public void listenerIsNotUsedWhenRemoved() {
+    public void listenerIsNotUsedAfterItIsRemoved() {
         TestListener listener = context.mock(TestListener.class);
 
         broadcast.add(listener);
@@ -94,7 +94,7 @@ public class ListenerBroadcastTest {
     }
 
     @Test
-    public void ignoresClosureForOtherEventMethods() {
+    public void doesNotNotifyClosureForOtherEventMethods() {
         final TestClosure testClosure = context.mock(TestClosure.class);
 
         broadcast.add("event1", toClosure(testClosure));
@@ -109,7 +109,57 @@ public class ListenerBroadcastTest {
     }
 
     @Test
-    public void wrapsListenerException() {
+    public void canAttachALogger() {
+        final TestListener logger = context.mock(TestListener.class);
+        broadcast.setLogger(logger);
+
+        context.checking(new Expectations() {{
+            one(logger).event1("param");
+        }});
+
+        broadcast.getSource().event1("param");
+    }
+
+    @Test
+    public void canRemoveALogger() {
+        final TestListener logger = context.mock(TestListener.class);
+        broadcast.setLogger(logger);
+        broadcast.remove(logger);
+
+        broadcast.getSource().event1("param");
+    }
+
+    @Test
+    public void discardsPreviousLoggerWhenLoggerAttached() {
+        final TestListener oldLogger = context.mock(TestListener.class, "old");
+        final TestListener logger = context.mock(TestListener.class, "new");
+        assertThat(broadcast.setLogger(oldLogger), nullValue());
+        assertThat(broadcast.setLogger(logger), sameInstance(oldLogger));
+
+        context.checking(new Expectations() {{
+            one(logger).event1("param");
+        }});
+
+        broadcast.getSource().event1("param");
+    }
+
+    @Test
+    public void loggerIsNotifiedBeforeAnyListeners() {
+        final TestListener listener = context.mock(TestListener.class, "listener");
+        final TestListener logger = context.mock(TestListener.class, "logger");
+        broadcast.add(listener);
+        broadcast.setLogger(logger);
+
+        context.checking(new Expectations() {{
+            one(logger).event1("param");
+            one(listener).event1("param");
+        }});
+
+        broadcast.getSource().event1("param");
+    }
+
+    @Test
+    public void wrapsExceptionThrownByListener() {
         final TestListener listener = context.mock(TestListener.class);
         final RuntimeException failure = new RuntimeException();
 
@@ -130,7 +180,7 @@ public class ListenerBroadcastTest {
     }
 
     @Test
-    public void wrapsClosureException() {
+    public void wrapsExceptionThrownByClosure() {
         final TestClosure testClosure = context.mock(TestClosure.class);
         final RuntimeException failure = new RuntimeException();
 

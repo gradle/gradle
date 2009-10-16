@@ -118,7 +118,16 @@ public interface Gradle {
     void addBuildListener(BuildListener buildListener);
 
     /**
-     * Adds the given listener to this build.
+     * Adds the given listener to this build. The listener may implement any of the given listener interfaces:
+     *
+     * <ul>
+     * <li>{@link org.gradle.BuildListener}
+     * <li>{@link org.gradle.api.execution.TaskExecutionGraphListener}
+     * <li>{@link org.gradle.api.ProjectEvaluationListener}
+     * <li>{@link org.gradle.api.execution.TaskExecutionListener}
+     * <li>{@link org.gradle.api.execution.TaskActionListener}
+     * <li>{@link org.gradle.api.logging.StandardOutputListener}
+     * </ul>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
      */
@@ -130,6 +139,17 @@ public interface Gradle {
      * @param listener The listener to remove. Does nothing if this listener has not been added.
      */
     public void removeListener(Object listener);
+
+    /**
+     * Uses the given object as a logger. The logger object may implement any of the listener interfaces supported by
+     * {@link #addListener(Object)}. Each listener interface has exactly one associated logger. When you call this
+     * method with a logger of a given listener type, the new logger will replace whichever logger is currently
+     * associated with the listener type. This allows you to selectively replace the standard logging which Gradle
+     * provides with your own implementation, for certain types of events.
+     *
+     * @param logger The logger to use.
+     */
+    public void useLogger(Object logger);
 
     /**
      * Returns this {@code Gradle} instance.
