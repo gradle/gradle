@@ -1,4 +1,4 @@
-package org.gradle.test.performance;
+package ${packageName};
 
 public class ${productionClassName} {
     private final String property;

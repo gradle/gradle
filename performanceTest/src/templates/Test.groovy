@@ -1,4 +1,4 @@
-package org.gradle.test.performance;
+package ${packageName};
 
 import static org.junit.Assert.*;
 
