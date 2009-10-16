@@ -80,7 +80,7 @@ public class DefaultPersistentIndexedCacheTest {
 
         cache.put("key_1", 2);
 
-        TestFile testFile = tmpDir.getDir().file("ke/key_/key_1.bin");
+        TestFile testFile = tmpDir.getDir().file("ke/key_/key_1_.bin");
         testFile.assertIsFile();
         testFile.write("some junk");
 
@@ -93,15 +93,17 @@ public class DefaultPersistentIndexedCacheTest {
 
         cache.put("a/b/c/d/e", 2);
         cache.put("a\\b\\c\\d\\e", 3);
-        cache.put(".", 4);
-        cache.put("/abcd", 5);
-        cache.put("q:\\abcd", 6);
+        cache.put("a_b_c_d_e", 4);
+        cache.put(".", 5);
+        cache.put("/abcd", 6);
+        cache.put("q:\\abcd", 7);
 
         assertThat(cache.get("a/b/c/d/e"), equalTo(2));
         assertThat(cache.get("a\\b\\c\\d\\e"), equalTo(3));
-        assertThat(cache.get("."), equalTo(4));
-        assertThat(cache.get("/abcd"), equalTo(5));
-        assertThat(cache.get("q:\\abcd"), equalTo(6));
+        assertThat(cache.get("a_b_c_d_e"), equalTo(4));
+        assertThat(cache.get("."), equalTo(5));
+        assertThat(cache.get("/abcd"), equalTo(6));
+        assertThat(cache.get("q:\\abcd"), equalTo(7));
     }
 
     @Test

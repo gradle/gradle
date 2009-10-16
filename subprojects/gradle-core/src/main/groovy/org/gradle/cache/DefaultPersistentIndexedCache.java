@@ -72,19 +72,38 @@ public class DefaultPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private File getStateFile(K key) {
         String fileName;
         if (key instanceof File) {
-            File keyFile = (File) key;
-            fileName = String.format("%s_%s", keyFile.getName(), HashUtil.createHash(keyFile.getAbsolutePath()));
-        } else if (key instanceof CharSequence) {
-            fileName = key.toString().replace(File.separatorChar, '_').replace('/', '_');
+            fileName = getStateFileName((File) key);
+        } else if (key instanceof String) {
+            fileName = getStateFileName((String) key);
         } else if (key == null) {
             fileName = "null";
         } else {
             throw new UnsupportedOperationException("Not implemented yet");
         }
         if (fileName.length() < 5) {
-            return new File(backingCache.getBaseDir(), String.format("%s.bin", fileName));
+            return new File(backingCache.getBaseDir(), String.format("none/%s.bin", fileName));
         }
         return new File(backingCache.getBaseDir(), String.format("%s/%s/%s.bin", fileName.substring(0, 2),
                 fileName.subSequence(0, 4), fileName));
+    }
+
+    private String getStateFileName(String key) {
+        StringBuilder name = new StringBuilder(key);
+        boolean encode = false;
+        for (int i = 0; i < name.length(); i++) {
+            char ch = name.charAt(i);
+            if (!Character.isLetterOrDigit(ch) && ch != '_') {
+                name.setCharAt(i, '_');
+                encode = true;
+            }
+        }
+        if (!encode) {
+            return String.format("%s_", key);
+        }
+        return String.format("%s_%s", name, HashUtil.createHash(key));
+    }
+
+    private String getStateFileName(File keyFile) {
+        return String.format("%s_%s", keyFile.getName(), HashUtil.createHash(keyFile.getAbsolutePath()));
     }
 }
