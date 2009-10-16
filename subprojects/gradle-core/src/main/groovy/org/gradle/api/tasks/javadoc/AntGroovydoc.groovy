@@ -26,7 +26,7 @@ import org.gradle.util.GradleUtil
  * @author Hans Dockter
  */
 class AntGroovydoc {
-    void execute(FileCollection source, List packageNames, File destDir, boolean use, String windowTitle,
+    void execute(FileCollection source, File destDir, boolean use, String windowTitle,
         String docTitle, String header, String footer, String overview, boolean includePrivate, Set links, IsolatedAntBuilder ant,
         List groovyClasspath, Project project) {
 
@@ -47,9 +47,6 @@ class AntGroovydoc {
         addToMapIfNotNull(args, 'header', header)
         addToMapIfNotNull(args, 'footer', footer)
         addToMapIfNotNull(args, 'overview', overview)
-        if (packageNames) {
-            args.packagenames = packageNames.join(',')
-        }
 
         ant.execute(BootstrapUtil.antJarFiles + groovyClasspath) {
             taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')

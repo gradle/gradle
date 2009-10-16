@@ -52,8 +52,6 @@ public class Groovydoc extends SourceTask {
 
     private String overview;
 
-    private List<String> packageNames = new ArrayList<String>();
-
     private Set<Link> links = new HashSet<Link>();
 
     boolean includePrivate;
@@ -67,7 +65,7 @@ public class Groovydoc extends SourceTask {
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         ProjectInternal project = (ProjectInternal) getProject();
-        antGroovydoc.execute(getSource(), getPackageNames(), getDestinationDir(), isUse(), getWindowTitle(),
+        antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(),
                 getDocTitle(), getHeader(), getFooter(), getOverview(), isIncludePrivate(), getLinks(),
                 project.getGradle().getIsolatedAntBuilder(), taskClasspath, project);
     }
@@ -230,22 +228,6 @@ public class Groovydoc extends SourceTask {
      */
     public void setIncludePrivate(boolean includePrivate) {
         this.includePrivate = includePrivate;
-    }
-
-    /**
-     * Returns the list of package names.
-     */
-    public List<String> getPackageNames() {
-        return packageNames;
-    }
-
-    /**
-     * Set's a list of package names (with terminating wildcard).
-     *
-     * @param packageNames The list of package names
-     */
-    public void setPackageNames(List<String> packageNames) {
-        this.packageNames = packageNames;
     }
 
     /**
