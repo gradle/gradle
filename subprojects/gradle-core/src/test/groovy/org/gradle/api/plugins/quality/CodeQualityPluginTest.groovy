@@ -31,12 +31,14 @@ class CodeQualityPluginTest {
         plugin.use(project, project.plugins)
 
         project.usePlugin(JavaPlugin)
+        project.checkstyleProperties.someProp = 'someValue'
 
         def task = project.tasks[CodeQualityPlugin.CHECKSTYLE_MAIN_TASK]
         assertThat(task, instanceOf(Checkstyle))
         assertThat(task.defaultSource, equalTo(project.sourceSets.main.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/main.xml")))
+        assertThat(task.properties, equalTo(project.checkstyleProperties))
         assertThat(task, dependsOn())
 
         task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TEST_TASK]
@@ -44,6 +46,7 @@ class CodeQualityPluginTest {
         assertThat(task.defaultSource, equalTo(project.sourceSets.test.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/test.xml")))
+        assertThat(task.properties, equalTo(project.checkstyleProperties))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
 
         project.sourceSets.add('custom')
@@ -52,6 +55,7 @@ class CodeQualityPluginTest {
         assertThat(task.defaultSource, equalTo(project.sourceSets.custom.allJava))
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/custom.xml")))
+        assertThat(task.properties, equalTo(project.checkstyleProperties))
         assertThat(task, dependsOn())
 
         task = project.tasks[JavaPlugin.CHECK_TASK_NAME]

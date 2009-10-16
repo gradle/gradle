@@ -221,6 +221,20 @@
                     The directory to generate Checkstyle results into.
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <literal>checkstyleProperties</literal>
+                </td>
+                <td>
+                    <classname>Map</classname>
+                </td>
+                <td>
+                    <literal>[:]</literal>
+                </td>
+                <td>
+                    The properties to use when loading the Checkstyle configuration.
+                </td>
+            </tr>
         </table>
 
         <para>These convention properties are provided by a convention object of type

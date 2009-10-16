@@ -5,6 +5,7 @@ import org.gradle.api.Project
 class JavaCodeQualityPluginConvention {
     String checkstyleConfigFileName
     String checkstyleResultsDirName
+    Map<String, Object> checkstyleProperties = [:]
     private Project project
 
     def JavaCodeQualityPluginConvention(Project project) {

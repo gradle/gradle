@@ -40,6 +40,7 @@ public class CodeQualityPlugin implements Plugin {
     private void configureCheckstyleDefaults(Project project, JavaCodeQualityPluginConvention pluginConvention) {
         project.tasks.withType(Checkstyle.class).allTasks {Checkstyle checkstyle ->
             checkstyle.conventionMapping.configFile = { pluginConvention.checkstyleConfigFile }
+            checkstyle.conventionMapping.map('properties') { pluginConvention.checkstyleProperties }
         }
     }
 
