@@ -64,14 +64,15 @@ public class ProjectFactoryTest {
             ConfigurationContainerFactory.class);
     private RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
-    private ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(new StartParameter());
+    private StartParameter startParameterStub = new StartParameter();
+    private ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameterStub);
     private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;
-    private StartParameter startParameterStub = new StartParameter();
 
     @Before
     public void setUp() throws Exception {
+        startParameterStub.setGradleUserHomeDir(testDir.dir("home"));
         startParameterStub.setPluginPropertiesFile(new File("plugins"));
         context.checking(new Expectations() {{
             allowing(repositoryHandlerFactory).createRepositoryHandler(with(any(Convention.class)));

@@ -76,6 +76,7 @@ class HelperUtil {
     static DefaultProject createRootProject(File rootDir) {
         StartParameter startParameter = new StartParameter()
         startParameter.pluginPropertiesFile = new File('plugin.properties')
+        startParameter.gradleUserHomeDir = new File(rootDir, 'home')
         DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter,
                 new DefaultListenerManager())
         IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
