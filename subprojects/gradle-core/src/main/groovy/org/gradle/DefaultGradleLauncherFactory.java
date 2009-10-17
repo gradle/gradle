@@ -62,7 +62,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
     public GradleLauncher newInstance(StartParameter startParameter) {
         ListenerManager listenerManager = new DefaultListenerManager();
-        loggingConfigurer.initialize(listenerManager);
         loggingConfigurer.configure(startParameter.getLogLevel());
 
         listenerManager.useLogger(new TaskExecutionLogger(Logging.getLogger(TaskExecutionLogger.class)));
@@ -102,7 +101,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         new ProjectFactory(
                                 startParameter.getBuildScriptSource())),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()),
-                loggingConfigurer,
-                listenerManager);
+                loggingConfigurer);
     }
 }

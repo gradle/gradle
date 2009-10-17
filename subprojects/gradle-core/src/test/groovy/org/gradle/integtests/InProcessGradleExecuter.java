@@ -40,11 +40,6 @@ import java.util.List;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final StartParameter parameter;
-    private final List<String> executedTasks = new ArrayList<String>();
-    private final List<String> skippedTasks = new ArrayList<String>();
-    private final List<Task> planned = new ArrayList<Task>();
-    private OutputListenerImpl outputListener = new OutputListenerImpl();
-    private OutputListenerImpl errorListener = new OutputListenerImpl();
 
     public InProcessGradleExecuter(StartParameter parameter) {
         this.parameter = parameter;
@@ -115,42 +110,55 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     public ExecutionResult run() {
+        OutputListenerImpl outputListener = new OutputListenerImpl();
+        OutputListenerImpl errorListener = new OutputListenerImpl();
+        BuildListenerImpl buildListener = new BuildListenerImpl();
+        BuildResult result = doRun(outputListener, errorListener, buildListener);
+        result.rethrowFailure();
+        return new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
+                outputListener.toString(), errorListener.toString());
+    }
+
+    public ExecutionFailure runWithFailure() {
+        OutputListenerImpl outputListener = new OutputListenerImpl();
+        OutputListenerImpl errorListener = new OutputListenerImpl();
+        BuildListenerImpl buildListener = new BuildListenerImpl();
+        try {
+            doRun(outputListener, errorListener, buildListener).rethrowFailure();
+            throw new AssertionFailedError("expected build to fail.");
+        } catch (GradleException e) {
+            return new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
+                    outputListener.writer.toString(), errorListener.writer.toString(), e);
+        }
+    }
+
+    private BuildResult doRun(OutputListenerImpl outputListener, OutputListenerImpl errorListener,
+                              BuildListenerImpl listener) {
         if (isQuiet()) {
             parameter.setLogLevel(LogLevel.QUIET);
         }
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
-        gradleLauncher.addListener(new BuildListenerImpl());
+        gradleLauncher.addListener(listener);
         gradleLauncher.addStandardOutputListener(outputListener);
         gradleLauncher.addStandardErrorListener(errorListener);
-        BuildResult result = gradleLauncher.run();
-        result.rethrowFailure();
-        return new InProcessExecutionResult(executedTasks, skippedTasks, outputListener.toString(), errorListener.toString());
-    }
-
-    public ExecutionFailure runWithFailure() {
-        try {
-            run();
-            throw new AssertionFailedError("expected build to fail.");
-        } catch (GradleException e) {
-            return new InProcessExecutionFailure(executedTasks, skippedTasks, outputListener.writer.toString(),
-                    errorListener.writer.toString(), e);
-        }
+        return gradleLauncher.run();
     }
 
     private class BuildListenerImpl implements TaskExecutionGraphListener {
-        private TaskListenerImpl listener = new TaskListenerImpl();
+        private final List<String> executedTasks = new ArrayList<String>();
+        private final List<String> skippedTasks = new ArrayList<String>();
 
         public void graphPopulated(TaskExecutionGraph graph) {
-            planned.clear();
-            planned.addAll(graph.getAllTasks());
-            graph.addTaskExecutionListener(listener);
+            List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
+            graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
         }
     }
 
     private class OutputListenerImpl implements StandardOutputListener {
         private StringWriter writer = new StringWriter();
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             return writer.toString();
         }
 
@@ -160,7 +168,16 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     private class TaskListenerImpl implements TaskExecutionListener {
+        private final List<Task> planned;
+        private final List<String> executedTasks;
+        private final List<String> skippedTasks;
         private Task current;
+
+        public TaskListenerImpl(List<Task> planned, List<String> executedTasks, List<String> skippedTasks) {
+            this.planned = planned;
+            this.executedTasks = executedTasks;
+            this.skippedTasks = skippedTasks;
+        }
 
         public void beforeExecute(Task task) {
             assertThat(current, nullValue());
@@ -184,7 +201,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final String output;
         private final String error;
 
-        public InProcessExecutionResult(List<String> plannedTasks, List<String> skippedTasks, String output, String error) {
+        public InProcessExecutionResult(List<String> plannedTasks, List<String> skippedTasks, String output,
+                                        String error) {
             this.plannedTasks = plannedTasks;
             this.skippedTasks = skippedTasks;
             this.output = output;
@@ -215,7 +233,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
         private final GradleException failure;
 
-        public InProcessExecutionFailure(List<String> tasks, List<String> skippedTasks, String output, String error, GradleException failure) {
+        public InProcessExecutionFailure(List<String> tasks, List<String> skippedTasks, String output, String error,
+                                         GradleException failure) {
             super(tasks, skippedTasks, output, error);
             if (failure instanceof GradleScriptException) {
                 this.failure = ((GradleScriptException) failure).getReportableException();

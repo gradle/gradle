@@ -29,7 +29,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.listener.ListenerBroadcast;
-import org.gradle.listener.ListenerManager;
 import org.gradle.logging.IvyLoggingAdaper;
 import org.gradle.logging.MarkerFilter;
 import org.slf4j.LoggerFactory;
@@ -49,13 +48,16 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         stderrConsoleAppender.addListener(listener);
     }
 
+    public void removeStandardErrorListener(StandardOutputListener listener) {
+        stderrConsoleAppender.removeListener(listener);
+    }
+
     public void addStandardOutputListener(StandardOutputListener listener) {
         stdoutConsoleAppender.addListener(listener);
     }
 
-    public void initialize(ListenerManager listenerManager) {
-        stdoutConsoleAppender.setListeners(listenerManager.createAnonymousBroadcaster(StandardOutputListener.class));
-        stderrConsoleAppender.setListeners(listenerManager.createAnonymousBroadcaster(StandardOutputListener.class));
+    public void removeStandardOutputListener(StandardOutputListener listener) {
+        stdoutConsoleAppender.removeListener(listener);
     }
 
     public void configure(LogLevel logLevel) {
@@ -155,30 +157,20 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
     }
 
     private static class Appender extends ConsoleAppender<ILoggingEvent> {
-        private ListenerBroadcast<StandardOutputListener> listeners;
+        private final ListenerBroadcast<StandardOutputListener> listeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
 
-        public void setListeners(ListenerBroadcast<StandardOutputListener> listeners) {
-            // Register the old listeners as a listener on the new broadcast.  This chains together
-            // all listeners ever registered with this Appender.
-            if (this.listeners != null) {
-                listeners.add(this.listeners.getSource());
-            }
-            this.listeners = listeners;
+        public void removeListener(StandardOutputListener listener) {
+            listeners.remove(listener);
         }
 
         public void addListener(StandardOutputListener listener) {
-            if (listeners == null) {
-                throw new IllegalStateException("Cannot add listener before initialize() has been called.");
-            }
             listeners.add(listener);
         }
 
         @Override
         protected void append(ILoggingEvent event) {
             super.append(event);
-            if (listeners != null) {
-                listeners.getSource().onOutput(layout.doLayout(event));
-            }
+            listeners.getSource().onOutput(layout.doLayout(event));
         }
 
         @Override
@@ -190,7 +182,5 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
                 setWriter(createWriter(StandardOutputLogging.DEFAULT_ERR));
             }
         }
-
-
     }
 }

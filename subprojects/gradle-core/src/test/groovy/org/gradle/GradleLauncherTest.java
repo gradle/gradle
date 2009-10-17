@@ -25,7 +25,6 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.*;
-import org.gradle.listener.DefaultListenerManager;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
@@ -112,7 +111,7 @@ public class GradleLauncherTest {
         expectedStartParams.setGradleUserHomeDir(tmpDir.dir("gradleUserHome"));
 
         gradleLauncher = new GradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
-                gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock, new DefaultListenerManager());
+                gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock);
         
         context.checking(new Expectations() {
             {

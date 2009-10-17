@@ -336,9 +336,9 @@ integTest.doFirst { task ->
     def forkArgs = [:]
     if (noForkIntegTests()) {
         task.options.systemProperties['org.gradle.integtest.nofork'] = "true"
-        forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx1512m', '-XX:MaxPermSize=256m']]
+        forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError']]
     } else {
-        forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m']]
+        forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError']]
     }
     task.options.fork(forkArgs)
 }

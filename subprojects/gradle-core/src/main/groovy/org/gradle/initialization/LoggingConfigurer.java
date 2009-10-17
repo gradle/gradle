@@ -17,17 +17,18 @@ package org.gradle.initialization;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.listener.ListenerManager;
 
 /**
  * @author Hans Dockter
  */
 public interface LoggingConfigurer {
-    void initialize(ListenerManager listenerManager);
-
     void configure(LogLevel logLevel);
 
     void addStandardOutputListener(StandardOutputListener listener);
 
+    void removeStandardOutputListener(StandardOutputListener listener);
+
     void addStandardErrorListener(StandardOutputListener listener);
+
+    void removeStandardErrorListener(StandardOutputListener listener);
 }

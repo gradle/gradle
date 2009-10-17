@@ -22,9 +22,11 @@ import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.initialization.*;
-import org.gradle.listener.ListenerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * <p>{@code GradleLauncher} is the main entry point for embedding Gradle. You use this class to manage a Gradle build,
@@ -67,14 +69,16 @@ public class GradleLauncher {
     private final BuildConfigurer buildConfigurer;
     private final LoggingConfigurer loggingConfigurer;
     private final InitScriptHandler initScriptHandler;
+    private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
+    private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
 
     /**
      * Creates a new instance.  Don't call this directly, use {@link #newInstance(StartParameter)} or {@link
      * #newInstance(String[])} instead.  Note that this method is package-protected to discourage it's direct use.
      */
-    public GradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
-                          IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
-                          BuildConfigurer buildConfigurer, LoggingConfigurer loggingConfigurer, ListenerManager listenerManager) {
+    GradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
+                   IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
+                   BuildConfigurer buildConfigurer, LoggingConfigurer loggingConfigurer) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -116,6 +120,7 @@ public class GradleLauncher {
     }
 
     private BuildResult doBuild(Stage upTo) {
+        addOutputListeners();
         gradle.getBuildListenerBroadcaster().buildStarted(gradle);
 
         Throwable failure = null;
@@ -132,7 +137,26 @@ public class GradleLauncher {
         // always be closed. But as we expose this functionality to the builds, we can't
         // guarantee this.
         StandardOutputLogging.off();
+        removeOutputListeners();
         return buildResult;
+    }
+
+    private void removeOutputListeners() {
+        for (StandardOutputListener stdoutListener : stdoutListeners) {
+            loggingConfigurer.removeStandardOutputListener(stdoutListener);
+        }
+        for (StandardOutputListener stderrListener : stderrListeners) {
+            loggingConfigurer.removeStandardErrorListener(stderrListener);
+        }
+    }
+
+    private void addOutputListeners() {
+        for (StandardOutputListener stdoutListener : stdoutListeners) {
+            loggingConfigurer.addStandardOutputListener(stdoutListener);
+        }
+        for (StandardOutputListener stderrListener : stderrListeners) {
+            loggingConfigurer.addStandardErrorListener(stderrListener);
+        }
     }
 
     private void doBuildStages(Stage upTo) {
@@ -234,7 +258,7 @@ public class GradleLauncher {
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
     public void addStandardOutputListener(StandardOutputListener listener) {
-        loggingConfigurer.addStandardOutputListener(listener);
+        stdoutListeners.add(listener);
     }
 
     /**
@@ -244,6 +268,6 @@ public class GradleLauncher {
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
     public void addStandardErrorListener(StandardOutputListener listener) {
-        loggingConfigurer.addStandardErrorListener(listener);
+        stderrListeners.add(listener);
     }
 }

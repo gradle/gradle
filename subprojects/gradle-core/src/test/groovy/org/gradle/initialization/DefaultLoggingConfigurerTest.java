@@ -17,15 +17,13 @@ package org.gradle.initialization;
 
 import ch.qos.logback.classic.LoggerContext;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.Logging;
-import org.gradle.listener.ListenerManager;
-import org.gradle.listener.DefaultListenerManager;
+import org.gradle.api.logging.StandardOutputListener;
 import static org.hamcrest.Matchers.*;
 import org.junit.After;
 import static org.junit.Assert.*;
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +37,6 @@ public class DefaultLoggingConfigurerTest {
 
     @Before
     public void setUp() {
-        ListenerManager listenerManager = new DefaultListenerManager();
-        configurer.initialize(listenerManager);
         configurer.addStandardOutputListener(outputListener);
         configurer.addStandardErrorListener(errorListener);
     }
