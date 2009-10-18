@@ -57,6 +57,20 @@ class BasePluginTest {
         assertThat(task, instanceOf(DefaultTask))
     }
 
+    @Test public void addsRulesWhenAConfigurationIsAdded() {
+        plugin.use(project, project.getPlugins())
+
+        assertThat(project.tasks.rules, isEmpty())
+
+        project.configurations.add('config')
+
+        assertThat(project.tasks.rules.size(), equalTo(2))
+
+        project.configurations.add('other-config')
+
+        assertThat(project.tasks.rules.size(), equalTo(2))
+    }
+    
     @Test public void addsImplicitTasksForConfiguration() {
         plugin.use(project, project.getPlugins())
 

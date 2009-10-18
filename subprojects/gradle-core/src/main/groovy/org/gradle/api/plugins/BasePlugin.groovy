@@ -68,7 +68,12 @@ class BasePlugin implements Plugin {
                     }
                 }
         ] as Rule
-        project.tasks.addRule(rule)
+
+        project.configurations.allObjects {
+            if (!project.tasks.rules.contains(rule)) {
+                project.tasks.addRule(rule)
+            }
+        }
     }
 
     private void configureUploadRules(final Project project) {
@@ -85,7 +90,12 @@ class BasePlugin implements Plugin {
                     }
                 }
         ] as Rule
-        project.tasks.addRule(rule)
+
+        project.configurations.allObjects {
+            if (!project.tasks.rules.contains(rule)) {
+                project.tasks.addRule(rule)
+            }
+        }
     }
 
     private Upload createUploadTask(String name, final Configuration configuration, Project project) {
@@ -93,7 +103,6 @@ class BasePlugin implements Plugin {
         upload.configuration = configuration
         upload.uploadDescriptor = true
         upload.descriptorDestination = new File(project.getBuildDir(), "ivy.xml")
-        upload.dependsOn(configuration.getBuildArtifacts())
         upload.description = String.format("Uploads all artifacts belonging to %s.", configuration)
         return upload
     }

@@ -308,6 +308,14 @@ public interface Configuration extends FileCollection {
     Set<PublishArtifact> getAllArtifacts();
 
     /**
+     * Returns the artifacts of this configuration as a {@link FileCollection}, including artifacts of extended
+     * configurations.
+     *
+     * @return the artifact files.
+     */
+    FileCollection getAllArtifactFiles();
+
+    /**
      * Returns the exclude rules applied for resolving any dependency of this configuration.
      *
      * @see #exclude(java.util.Map)

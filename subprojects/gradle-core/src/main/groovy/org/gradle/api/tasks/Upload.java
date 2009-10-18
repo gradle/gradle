@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.file.FileCollection;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,5 +94,16 @@ public class Upload extends ConventionTask {
 
     public RepositoryHandler repositories(Closure configureClosure) {
         return (RepositoryHandler) ConfigureUtil.configure(configureClosure, repositories);
+    }
+
+    /**
+     * Returns the artifacts which will be uploaded.
+     * 
+     * @return the artifacts.
+     */
+    @InputFiles
+    public FileCollection getArtifacts() {
+        Configuration configuration = getConfiguration();
+        return configuration == null ? null : configuration.getAllArtifactFiles();
     }
 }

@@ -266,14 +266,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildArtifacts() {
-        return new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-                addBuildArtifactsFromExtendedConfigurations(taskDependency);
-                addTasksForBuildingArtifacts(taskDependency);
-                return taskDependency.getDependencies(task);
-            }
-        };
+        return getAllArtifactFiles().getBuildDependencies();
     }
 
     private void addTasksForBuildingArtifacts(DefaultTaskDependency taskDependency) {
@@ -337,6 +330,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public Set<PublishArtifact> getAllArtifacts() {
         return Configurations.getArtifacts(this.getHierarchy(), Specs.SATISFIES_ALL);
+    }
+
+    public FileCollection getAllArtifactFiles() {
+        return new ArtifactsFileCollection();
     }
 
     public Set<ExcludeRule> getExcludeRules() {
@@ -455,6 +452,32 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    class ArtifactsFileCollection extends AbstractFileCollection {
+        public String getDisplayName() {
+            return String.format("%s artifacts", DefaultConfiguration.this);
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return new TaskDependency() {
+                public Set<? extends Task> getDependencies(Task task) {
+                    DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+                    addBuildArtifactsFromExtendedConfigurations(taskDependency);
+                    addTasksForBuildingArtifacts(taskDependency);
+                    return taskDependency.getDependencies(task);
+                }
+            };
+        }
+
+        public Set<File> getFiles() {
+            Set<File> files = new LinkedHashSet<File>();
+            for (PublishArtifact artifact : getAllArtifacts()) {
+                files.add(artifact.getFile());
+            }
+            return files;
+        }
+    }
+
     class ConfigurationFileCollection extends AbstractFileCollection {
         private Spec<Dependency> dependencySpec;
 
@@ -479,7 +502,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public String getDisplayName() {
-            return "ConfigurationFileCollection for " + getName();
+            return String.format("%s dependencies", DefaultConfiguration.this);
         }
 
         public Set<File> getFiles() {

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.file.FileCollection;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -78,7 +79,7 @@ public class UploadTest extends AbstractTaskTest {
         context.checking(new Expectations() {{
             one(configurationMock).publish(toList(repositoryDummy), publishInstruction);
         }});
-        upload.execute();
+        upload.upload();
     }
 
     @Test public void testUploadingWithUploadDescriptorFalseAndDestinationSet() {
@@ -89,7 +90,7 @@ public class UploadTest extends AbstractTaskTest {
         context.checking(new Expectations() {{
             one(configurationMock).publish(toList(repositoryDummy), new PublishInstruction(false, null));
         }});
-        upload.execute();
+        upload.upload();
     }
 
     @Test public void testRepositories() {
@@ -100,5 +101,19 @@ public class UploadTest extends AbstractTaskTest {
         }});
 
         upload.repositories(HelperUtil.toClosure("{ mavenCentral() }"));
+    }
+
+    @Test public void testDeclaresConfigurationArtifactsAsInputFiles() {
+        assertThat(upload.getArtifacts(), nullValue());
+
+        upload.setConfiguration(configurationMock);
+
+        final FileCollection files = context.mock(FileCollection.class);
+        context.checking(new Expectations(){{
+            one(configurationMock).getAllArtifactFiles();
+            will(returnValue(files));
+        }});
+
+        assertThat(upload.getArtifacts(), sameInstance(files));
     }
 }

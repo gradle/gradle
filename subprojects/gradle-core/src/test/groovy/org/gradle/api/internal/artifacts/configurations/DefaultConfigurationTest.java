@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
@@ -382,6 +383,55 @@ public class DefaultConfigurationTest {
     }
 
     @Test
+    public void getAllArtifactFiles() {
+        final Task otherConfTaskMock = context.mock(Task.class, "otherConfTask");
+        final Task artifactTaskMock = context.mock(Task.class, "artifactTask");
+        final Configuration otherConfiguration = context.mock(Configuration.class);
+        final TaskDependency otherConfTaskDependencyMock = context.mock(TaskDependency.class, "otherConfTaskDep");
+        final TaskDependency artifactTaskDependencyMock = context.mock(TaskDependency.class, "artifactTaskDep");
+        final File artifactFile1 = new File("artifact1");
+        final File artifactFile2 = new File("artifact2");
+        final PublishArtifact artifact = context.mock(PublishArtifact.class, "artifact");
+        final PublishArtifact otherArtifact = context.mock(PublishArtifact.class, "otherArtifact");
+
+        context.checking(new Expectations() {{
+            allowing(otherConfiguration).getHierarchy();
+            will(returnValue(toList()));
+
+            allowing(otherConfiguration).getExtendsFrom();
+            will(returnValue(toSet()));
+
+            allowing(otherConfiguration).getArtifacts();
+            will(returnValue(toSet(otherArtifact)));
+
+            allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
+            will(returnValue(toSet(otherConfTaskMock)));
+
+            allowing(artifactTaskDependencyMock).getDependencies(with(any(Task.class)));
+            will(returnValue(toSet(artifactTaskMock)));
+
+            allowing(artifact).getFile();
+            will(returnValue(artifactFile1));
+
+            allowing(otherArtifact).getFile();
+            will(returnValue(artifactFile2));
+
+            allowing(artifact).getBuildDependencies();
+            will(returnValue(artifactTaskDependencyMock));
+
+            allowing(otherConfiguration).getBuildArtifacts();
+            will(returnValue(otherConfTaskDependencyMock));
+        }});
+
+        configuration.addArtifact(artifact);
+        configuration.setExtendsFrom(toSet(otherConfiguration));
+
+        FileCollection files = configuration.getAllArtifactFiles();
+        assertThat(files.getFiles(), equalTo(toSet(artifactFile1, artifactFile2)));
+        assertThat(files.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(otherConfTaskMock, artifactTaskMock)));
+    }
+
+    @Test
     public void buildDependenciesDelegatesToAllSelfResolvingDependencies() {
         final Task target = context.mock(Task.class, "target");
         final Task projectDepTaskDummy = context.mock(Task.class, "projectDepTask");
@@ -409,8 +459,8 @@ public class DefaultConfigurationTest {
         configuration.addDependency(projectDependencyStub);
         configuration.addDependency(fileCollectionDependencyStub);
 
-        assertThat(configuration.getBuildDependencies().getDependencies(target),
-                equalTo((Set) toSet(fileDepTaskDummy, projectDepTaskDummy)));
+        assertThat(configuration.getBuildDependencies().getDependencies(target), equalTo((Set) toSet(fileDepTaskDummy,
+                projectDepTaskDummy)));
     }
 
     @Test
