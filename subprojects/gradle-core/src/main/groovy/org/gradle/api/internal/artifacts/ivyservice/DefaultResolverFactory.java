@@ -140,12 +140,14 @@ public class DefaultResolverFactory implements ResolverFactory {
         return dualResolver;
     }
 
-    public GroovyMavenDeployer createMavenDeployer(String name, File pomDir, ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping) {
+    public GroovyMavenDeployer createMavenDeployer(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
+                                                   ConfigurationContainer configurationContainer,
+                                                   Conf2ScopeMappingContainer scopeMapping) {
         DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
                 new DefaultMavenPomFactory(scopeMapping));
         return new DefaultGroovyMavenDeployer(name,
                 pomFilterContainer,
-                new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
+                new DefaultArtifactPomContainer(pomMetaInfoProvider, pomFilterContainer,
                         new DefaultPomFileWriter(
                                 new DefaultPomWriter(
                                         new DefaultPomHeaderWriter(),
@@ -161,12 +163,14 @@ public class DefaultResolverFactory implements ResolverFactory {
         );
     }
 
-    public MavenResolver createMavenInstaller(String name, File pomDir, ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping) {
+    public MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
+                                              ConfigurationContainer configurationContainer,
+                                              Conf2ScopeMappingContainer scopeMapping) {
         DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
                 new DefaultMavenPomFactory(scopeMapping));
         return new BaseMavenInstaller(name,
                 pomFilterContainer,
-                new DefaultArtifactPomContainer(pomDir, pomFilterContainer,
+                new DefaultArtifactPomContainer(pomMetaInfoProvider, pomFilterContainer,
                         new DefaultPomFileWriter(
                                 new DefaultPomWriter(
                                         new DefaultPomHeaderWriter(),

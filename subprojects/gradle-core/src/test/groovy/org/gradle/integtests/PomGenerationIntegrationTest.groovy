@@ -16,7 +16,6 @@
 package org.gradle.integtests
 
 import groovy.text.SimpleTemplateEngine
-import org.apache.commons.io.FileUtils
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
@@ -24,6 +23,8 @@ import org.hamcrest.Matchers
 import org.junit.Assert
 import org.junit.runner.RunWith
 import org.junit.Test
+import org.junit.Before
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -31,56 +32,85 @@ import org.junit.Test
 @RunWith(DistributionIntegrationTestRunner.class)
 class PomGenerationIntegrationTest {
     // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    private GradleDistribution dist
+    private GradleExecuter executer
+    
+    private TestFile pomProjectDir
+    private TestFile repoDir
+    private TestFile snapshotRepoDir
 
-    @Test
-    public void pomSamples() {
-        File pomProjectDir = new File(dist.samplesDir, 'pomGeneration')
-        File repoDir = new File(pomProjectDir, "pomRepo");
-        FileUtils.deleteQuietly(repoDir)
-        checkWithNoCustomVersion(pomProjectDir, repoDir);
-        checkWithCustomVersion(pomProjectDir, repoDir);
+    @Before
+    public void setUp() {
+        pomProjectDir = dist.samplesDir.file('pomGeneration')
+        repoDir = pomProjectDir.file('pomRepo');
+        snapshotRepoDir = pomProjectDir.file('snapshotRepo');
     }
-
-    private def checkWithNoCustomVersion(File pomProjectDir, File repoDir) {
+    
+    @Test
+    public void checkWithNoCustomVersion() {
         String version = '1.0'
         String groupId = "gradle"
         long start = System.currentTimeMillis();
-        executer.inDirectory(pomProjectDir).withTasks('clean', 'uploadArchives').run()
+        executer.inDirectory(pomProjectDir).withTasks('clean', 'uploadArchives', 'install').run()
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
-        Assert.assertTrue(new File(repoDir, "$repoPath/mywar-${version}.war").exists())
+        repoDir.file("$repoPath/mywar-${version}.war").assertIsFile()
+        pomProjectDir.file('build').assertDoesNotExist()
+        pomProjectDir.file('target').assertIsDir()
         checkInstall(start, pomProjectDir, version, groupId)
     }
 
-    private def checkWithCustomVersion(File pomProjectDir, File repoDir) {
+    @Test
+    public void checkWithCustomVersion() {
         long start = System.currentTimeMillis();
         String version = "1.0MVN"
         String groupId = "deployGroup"
-        executer.inDirectory(pomProjectDir).withArguments("-PcustomVersion=${version}").withTasks('clean', 'uploadArchives').run()
+        executer.inDirectory(pomProjectDir).withArguments("-PcustomVersion=${version}").withTasks('clean', 'uploadArchives', 'install').run()
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
-        Assert.assertTrue(new File(repoDir, "$repoPath/mywar-${version}.war").exists())
-        Assert.assertTrue(new File(repoDir, "$repoPath/mywar-${version}-javadoc.zip").exists())
-        checkInstall(start, pomProjectDir, version, groupId)
+        repoDir.file("$repoPath/mywar-${version}.war").assertIsFile()
+        repoDir.file("$repoPath/mywar-${version}-javadoc.zip").assertIsFile()
+        pomProjectDir.file('build').assertDoesNotExist()
+        pomProjectDir.file('target').assertIsDir()
+        checkInstall(start, pomProjectDir, version, 'installGroup')
     }
 
+    @Test
+    public void checkWithSnapshotVersion() {
+        String version = '1.0-SNAPSHOT'
+        String groupId = "deployGroup"
+        long start = System.currentTimeMillis();
+        executer.inDirectory(pomProjectDir).withArguments("-PcustomVersion=${version}").withTasks('clean', 'uploadArchives', 'install').run()
+        String repoPath = repoPath(groupId, version)
+        File pomFile = pomFile(snapshotRepoDir, repoPath, version)
+        compareXmlWithIgnoringOrder(expectedPom(version, groupId), pomFile.text)
+        new TestFile(new File(pomFile.absolutePath.replace(".pom", ".war"))).assertIsFile()
+        pomProjectDir.file('build').assertDoesNotExist()
+        pomProjectDir.file('target').assertIsDir()
+        checkInstall(start, pomProjectDir, version, 'installGroup')
+    }
+    
     static String repoPath(String group, String version) {
         "$group/mywar/$version"
     }
 
-    static File pomFile(File repoDir, String repoPath, String version) {
-        new File(repoDir, "$repoPath/mywar-${version}.pom")
+    static File pomFile(TestFile repoDir, String repoPath, String version) {
+        TestFile versionDir = repoDir.file(repoPath)
+        List matches = versionDir.listFiles().findAll { it.name.endsWith('.pom') }
+        assertEquals(1, matches.size())
+        matches[0]
     }
 
-    static void checkInstall(long start, File pomProjectDir, String version, String groupId) {
-        File localMavenRepo = new File(pomProjectDir, "build/localRepoPath.txt").text as File
-        File installedFile = new File(localMavenRepo, "$groupId/mywar/$version/mywar-${version}.war")
-        File installedJavadocFile = new File(localMavenRepo, "$groupId/mywar/$version/mywar-${version}-javadoc.zip")
-        File installedPom = new File(localMavenRepo, "$groupId/mywar/$version/mywar-${version}.pom")
+    static void checkInstall(long start, TestFile pomProjectDir, String version, String groupId) {
+        TestFile localMavenRepo = new TestFile(pomProjectDir.file("target/localRepoPath.txt").text as File)
+        TestFile installedFile = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}.war")
+        TestFile installedJavadocFile = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}-javadoc.zip")
+        TestFile installedPom = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}.pom")
+        installedFile.assertIsFile()
+        installedJavadocFile.assertIsFile()
+        installedPom.assertIsFile()
         Assert.assertTrue(start <= installedFile.lastModified());
         Assert.assertTrue(start <= installedJavadocFile.lastModified());
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)

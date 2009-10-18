@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.artifacts.publish.maven.PomFileWriter;
+import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 
 import java.io.File;
 import java.util.HashMap;
@@ -31,16 +32,15 @@ import java.util.HashSet;
  * @author Hans Dockter
  */
 public class DefaultArtifactPomContainer implements ArtifactPomContainer {
-    private File pomDir;
-
     private Map<String, ArtifactPom> artifactPoms = new HashMap<String, ArtifactPom>();
+    private final MavenPomMetaInfoProvider pomMetaInfoProvider;
     private PomFilterContainer pomFilterContainer;
     private PomFileWriter pomFileWriter;
     private ArtifactPomFactory artifactPomFactory;
 
-    public DefaultArtifactPomContainer(File pomDir, PomFilterContainer pomFilterContainer, 
+    public DefaultArtifactPomContainer(MavenPomMetaInfoProvider pomMetaInfoProvider, PomFilterContainer pomFilterContainer,
                                        PomFileWriter pomFileWriter, ArtifactPomFactory artifactPomFactory) {
-        this.pomDir = pomDir;
+        this.pomMetaInfoProvider = pomMetaInfoProvider;
         this.pomFilterContainer = pomFilterContainer;
         this.pomFileWriter = pomFileWriter;
         this.artifactPomFactory = artifactPomFactory;
@@ -72,15 +72,7 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
     }
 
     private File createPomFile(String artifactPomName) {
-        return new File(pomDir, "pom-" + artifactPomName + ".xml");
-    }
-
-    public File getPomDir() {
-        return pomDir;
-    }
-
-    public void setPomDir(File pomDir) {
-        this.pomDir = pomDir;
+        return new File(pomMetaInfoProvider.getMavenPomDir(), "pom-" + artifactPomName + ".xml");
     }
 
     public Map<String, ArtifactPom> getArtifactPoms() {

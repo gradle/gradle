@@ -201,7 +201,7 @@ class DefaultResolverContainerTest {
             allowing(expectedResolver).getName(); will(returnValue(DefaultResolverContainerTest.TEST_REPO_NAME))
             allowing(resolverFactoryMock)."$createMethod"(
                     withParam(any(String)),
-                    withParam(equal(testPomDir)),
+                    withParam(same(resolverContainer)),
                     withParam(same(configurationContainer)),
                     withParam(same(conf2ScopeMappingContainer)));
             will(returnValue(expectedResolver))

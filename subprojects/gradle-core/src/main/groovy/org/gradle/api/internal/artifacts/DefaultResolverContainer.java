@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
+import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -39,7 +40,7 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class DefaultResolverContainer extends DefaultDomainObjectContainer<DependencyResolver>
-        implements ResolverContainer {
+        implements ResolverContainer, MavenPomMetaInfoProvider {
     private ResolverFactory resolverFactory;
 
     private List<String> resolverNames = new ArrayList<String>();
@@ -193,11 +194,11 @@ public class DefaultResolverContainer extends DefaultDomainObjectContainer<Depen
     }
 
     public GroovyMavenDeployer createMavenDeployer(String name) {
-        return resolverFactory.createMavenDeployer(name, getMavenPomDir(), getConfigurationContainer(), getMavenScopeMappings());
+        return resolverFactory.createMavenDeployer(name, this, getConfigurationContainer(), getMavenScopeMappings());
     }
 
     public MavenResolver createMavenInstaller(String name) {
-        return resolverFactory.createMavenInstaller(name, getMavenPomDir(), getConfigurationContainer(), getMavenScopeMappings());
+        return resolverFactory.createMavenInstaller(name, this, getConfigurationContainer(), getMavenScopeMappings());
     }
 
     public Conf2ScopeMappingContainer getMavenScopeMappings() {

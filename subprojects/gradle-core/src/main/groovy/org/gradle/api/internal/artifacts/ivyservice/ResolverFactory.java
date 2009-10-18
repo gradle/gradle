@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 
 import java.io.File;
 
@@ -35,7 +36,7 @@ public interface ResolverFactory {
 
     AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls);
 
-    GroovyMavenDeployer createMavenDeployer(String name, File pomDir, ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping);
+    GroovyMavenDeployer createMavenDeployer(String name, MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping);
 
-    MavenResolver createMavenInstaller(String name, File pomDir, ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping);
+    MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider, ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping);
 }

@@ -6,6 +6,7 @@ usePlugin('maven')
 group = 'gradle'
 version = '1.0'
 archivesBaseName = 'mywar'
+buildDirName = 'target'
 
 repositories {
     flatDir(dirs: "$rootDir/lib")
@@ -27,22 +28,42 @@ dependencies {
     testRuntime "group6:testRuntime:1.0"
 }
 
-task dummyJavadoc << {
-    String javadocDir = "$buildDir/javadoc"
-    ant.mkdir(dir: javadocDir)
-    new File(javadocDir, "index.html").write("some text")
-}
 
-task javadocZip(type: Zip, dependsOn: dummyJavadoc) {
+// Include a javadoc zip
+
+task javadocZip(type: Zip, dependsOn: javadoc) {
     classifier = 'javadoc'
-    fileSet(dir: "$buildDir/javadoc")
+    fileSet(dir: javadoc.destinationDir)
 }
 
 artifacts {
     archives javadocZip
 }
 
+// Configure the repository and snapshot repository
+
+def deployer = null
+uploadArchives {
+    repositories {
+        deployer = mavenDeployer {
+            repository(url: "file://localhost/$projectDir/pomRepo/")
+            snapshotRepository(url: "file://localhost/$projectDir/snapshotRepo/")
+        }
+    }
+}
+
+// Customize the contents of the pom
+
 installer = install.repositories.mavenInstaller
+
+[installer, deployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
+if (hasProperty('customVersion')) {
+    [installer, deployer]*.pom*.version = customVersion
+    installer.pom.groupId = 'installGroup'
+    deployer.pom.groupId = 'deployGroup'
+}
+
+// For our integration tests
 
 install.doLast {install ->
     Settings settings = installer.settings
@@ -50,20 +71,7 @@ install.doLast {install ->
 
 }
 
-uploadArchives.dependsOn install
-
-def deployer = null
-uploadArchives {
-    repositories {
-      deployer = mavenDeployer {
-        repository(url: "file://localhost/$projectDir/pomRepo/")
-      }
-    }
-}
-
-[installer, deployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
-if (hasProperty('customVersion')) {
-    [installer, deployer]*.pom*.version = customVersion
-    installer.pom.groupId = 'installGroup'
-    deployer.pom.groupId = 'deployGroup'
+clean.doFirst {
+    ant.delete(dir: 'pomRepo')
+    ant.delete(dir: 'snapshotRepo')
 }

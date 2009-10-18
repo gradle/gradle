@@ -23,13 +23,13 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
+import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.artifacts.publish.maven.PomFileWriter;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +47,7 @@ public class DefaultArtifactPomContainerTest {
 
     private DefaultArtifactPomContainer artifactPomContainer;
 
+    private MavenPomMetaInfoProvider metaInfoProviderMock;
     private PomFilterContainer pomFilterContainerMock;
     private PomFilter pomFilterMock;
     private PublishFilter publishFilterMock;
@@ -78,13 +79,10 @@ public class DefaultArtifactPomContainerTest {
         publishFilterMock = context.mock(PublishFilter.class);
         mavenPomMock = context.mock(MavenPom.class);
         mavenTemplatePomMock = context.mock(MavenPom.class, "templatePom");
-        artifactPomContainer = new DefaultArtifactPomContainer(TEST_POM_DIR, pomFilterContainerMock,
-                pomFileWriterMock, artifactPomFactoryMock);
-    }
+        metaInfoProviderMock = context.mock(MavenPomMetaInfoProvider.class);
 
-    @Test
-    public void init() {
-        assertEquals(TEST_POM_DIR, artifactPomContainer.getPomDir());
+        artifactPomContainer = new DefaultArtifactPomContainer(metaInfoProviderMock, pomFilterContainerMock,
+                pomFileWriterMock, artifactPomFactoryMock);
     }
 
     @Test
@@ -100,6 +98,7 @@ public class DefaultArtifactPomContainerTest {
             allowing(artifactPomMock).getPom(); will(returnValue(mavenPomMock));
             allowing(artifactPomMock).getArtifactFile(); will(returnValue(expectedFile));
             allowing(artifactPomMock).getClassifiers(); will(returnValue(new HashSet<ClassifierArtifact>()));
+            allowing(metaInfoProviderMock).getMavenPomDir(); will(returnValue(TEST_POM_DIR));
             one(pomFileWriterMock).write(with(same(mavenPomMock)), with(same(testConfigurations)), with(equal(expectedPomFile)));
         }});
         artifactPomContainer.addArtifact(expectedArtifact, expectedFile);
