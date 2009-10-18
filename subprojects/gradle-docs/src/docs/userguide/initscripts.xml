@@ -25,7 +25,7 @@
             <itemizedlist>
                 <listitem>
                     <para>Set up properties based on the current environment (such as a developer's machine vs. a
-                        continuous integration server.
+                        continuous integration server).
                     </para>
                 </listitem>
                 <listitem>
@@ -42,6 +42,10 @@
                         this useful.
                     </para>
                 </listitem>
+                <listitem>
+                    <para>Register build loggers.  You might wish to customise how Gradle logs the events that it generates.
+                    </para>
+                </listitem>
             </itemizedlist>
             One main limitation of init scripts is that they cannot access classes in the buildSrc special module (see
             <xref linkend='sec:build_sources'/> for details of this feature).
@@ -54,6 +58,7 @@
             executed. This allows for a tool to specify an init script and the user to put home in their home directory
             for defining the environment and both scripts will run when gradle is executed.
         </para>
+        <para>You can find an example init script in <xref linkend="sec:changing_what_gradle_logs"/></para>
     </section>
     <section id='sec:custom_classpath'>
         <title>External dependencies for the init script</title>

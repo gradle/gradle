@@ -1,0 +1,12 @@
+[compile]
+compiling source
+
+[testCompile]
+compiling test source
+
+[test]
+running unit tests
+
+[build]
+
+build completed

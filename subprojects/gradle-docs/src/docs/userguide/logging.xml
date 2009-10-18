@@ -181,4 +181,30 @@
             Gradle's logging system.
         </para>
     </section>
+
+    <section id="sec:changing_what_gradle_logs">
+        <title>Changing what Gradle logs</title>
+        <para>You can replace much of Gradle's logging UI with your own. You might do this, for example, if you want to
+            customize the UI in some way - to log more or less information, or to change the formatting. You replace
+            the logging using the <apilink class="org.gradle.api.invocation.Gradle" method="useLogger"/> method. This
+            is accessable from a build script, or an init script, or via the embedding API. Below is an example
+            init script which changes how task execution and build completion is logged.
+        </para>
+        <sample id="custom_logging_ui" dir="userguide/initScripts/customLogger" title="Customizing what Gradle logs">
+            <sourcefile file="init.gradle"/>
+            <output args="-I init.gradle build"/>
+        </sample>
+        <para>Your logger can implement any of the listener interfaces listed below.
+            When you register a logger, only the logging for the interfaces that it implements is replaced. Logging
+            for the other interfaces is left untouched.
+            You can find out more about the listener interfaces in <xref linkend="build_lifecycle_events"/>.
+            <itemizedlist>
+                <listitem><para><apilink class="org.gradle.BuildListener"/></para></listitem>
+                <listitem><para><apilink class="org.gradle.api.ProjectEvaluationListener"/></para></listitem>
+                <listitem><para><apilink class="org.gradle.api.execution.TaskExecutionGraphListener"/></para></listitem>
+                <listitem><para><apilink class="org.gradle.api.execution.TaskExecutionListener"/></para></listitem>
+                <listitem><para><apilink class="org.gradle.api.execution.TaskActionListener"/></para></listitem>
+            </itemizedlist>
+        </para>
+    </section>
 </chapter>
