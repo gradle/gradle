@@ -59,7 +59,7 @@ public class DefaultPersistentCache implements PersistentCache {
 
         Properties currentProperties = GUtil.loadProperties(propertiesFile);
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            if (!currentProperties.getProperty(entry.getKey()).equals(entry.getValue().toString())) {
+            if (!entry.getValue().toString().equals(currentProperties.getProperty(entry.getKey()))) {
                 return;
             }
         }
