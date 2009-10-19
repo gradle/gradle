@@ -27,6 +27,9 @@ import java.util.*;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
     private static Logger logger = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
+    private static final byte FILE = 0;
+    private static final byte DIR = 1;
+    private static final byte MISSING = 3;
     private final CacheRepository repository;
     private final Hasher hasher;
     private PersistentIndexedCache<File, OutputGenerators> cache;
@@ -75,11 +78,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 thisExecution.snapshotOutputFiles();
                 for (Map.Entry<File, OutputFileInfo> entry : thisExecution.outputFiles.entrySet()) {
                     OutputGenerators generators = cache.get(entry.getKey());
-                    if (entry.getValue().isFile) {
-                        generators.replace(key, thisExecution);
-                    } else {
-                        generators.add(key, thisExecution);
-                    }
+                    generators.update(entry.getValue(), key, thisExecution);
                     cache.put(entry.getKey(), generators);
                 }
             }
@@ -94,17 +93,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         TaskExecution taskInfo = new EmptyTaskInfo();
         List<String> outOfDateMessages = new ArrayList<String>();
         for (File outputFile : thisExecution.outputFiles.keySet()) {
-            if (!outputFile.exists()) {
-                // Discard previous state for this output file
-                cache.put(outputFile, new OutputGenerators());
-                outOfDateMessages.add(String.format("%s does not exist.", outputFile));
-                continue;
-            }
             OutputGenerators generators = cache.get(outputFile);
             if (generators == null) {
                 cache.put(outputFile, new OutputGenerators());
                 outOfDateMessages.add(String.format("No history is available for %s.", outputFile));
                 continue;
+            }
+            if (generators.invalidate(outputFile)) {
+                cache.put(outputFile, generators);
             }
             TaskInfo lastExecution = generators.get(key);
             if (lastExecution == null) {
@@ -120,8 +116,19 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         cache = repository.getIndexedCacheFor(task.getProject().getGradle(), "taskArtifacts", Collections.EMPTY_MAP);
     }
 
+    private static byte type(File file) {
+        if (file.isFile()) {
+            return FILE;
+        } else if (file.isDirectory()) {
+            return DIR;
+        } else {
+            return MISSING;
+        }
+    }
+
     private static class OutputGenerators implements Serializable {
         private final Map<TaskKey, TaskInfo> generators = new HashMap<TaskKey, TaskInfo>();
+        private OutputFileInfo fileInfo;
 
         public TaskInfo remove(TaskKey task) {
             return generators.remove(task);
@@ -138,6 +145,24 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         public TaskInfo get(TaskKey key) {
             return generators.get(key);
+        }
+
+        public boolean invalidate(File outputFile) {
+            if (!fileInfo.isUpToDate(outputFile)) {
+                generators.clear();
+                return true;
+            }
+            return false;
+        }
+
+        public void update(OutputFileInfo outputFile, TaskKey key, TaskInfo thisExecution) {
+            fileInfo = outputFile;
+            if (fileInfo.type == FILE) {
+                replace(key, thisExecution);
+            }
+            else {
+                add(key, thisExecution);
+            }
         }
     }
 
@@ -183,8 +208,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private static class TaskInfo implements Serializable, TaskExecution {
         private final Map<File, InputFileInfo> inputFiles = new HashMap<File, InputFileInfo>();
         private final Map<File, OutputFileInfo> outputFiles = new HashMap<File, OutputFileInfo>();
+        private boolean acceptInputs;
 
         public TaskInfo(TaskInternal task, Hasher hasher) {
+            acceptInputs = task.getInputs().getHasInputFiles();
             for (File file : task.getInputs().getInputFiles()) {
                 inputFiles.put(file, new InputFileInfo(file, hasher));
             }
@@ -205,7 +232,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return emptyTaskInfo.outOfDateMessages;
             }
             
-            if (inputFiles.isEmpty()) {
+            if (!acceptInputs) {
                 return Arrays.asList("Task does not accept any input files.");
             }
 
@@ -241,33 +268,50 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private static class OutputFileInfo implements Serializable {
-        private final boolean isFile;
+        private final byte type;
+        private final boolean empty;
 
         private OutputFileInfo(File file) {
-            isFile = file.isFile();
+            type = type(file);
+            empty = type == DIR && file.list().length == 0;
         }
 
         public boolean isUpToDate(File file) {
-            return file.exists() && file.isFile() == isFile;
+            if (type == MISSING) {
+                // Was missing, don't care whether it exists or not
+                return true;
+            }
+
+            byte newType = type(file);
+            if (type == FILE) {
+                // Was a file, must still be a file
+                return newType == FILE;
+            }
+            if (newType != DIR) {
+                // Was a dir, must stull be a dir
+                return false;
+            }
+
+            if (empty) {
+                // Was empty, don't care if it is now not empty
+                return true;
+            }
+
+            // Was not empty, must still be not empty
+            return file.list().length != 0;
         }
     }
 
     private static class InputFileInfo implements Serializable {
-        private static final byte FILE = 0;
-        private static final byte DIR = 1;
-        private static final byte MISSING = 2;
-        private final short type;
+        private final byte type;
         private final byte[] hash;
 
         private InputFileInfo(File file, Hasher hasher) {
-            if (file.isFile()) {
-                type = FILE;
+            type = type(file);
+            if (type == FILE) {
                 hash = hasher.hash(file);
-            } else if (file.isDirectory()) {
-                type = DIR;
-                hash = null;
-            } else {
-                type = MISSING;
+            }
+            else {
                 hash = null;
             }
         }

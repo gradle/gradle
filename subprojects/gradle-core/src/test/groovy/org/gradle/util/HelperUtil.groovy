@@ -46,7 +46,9 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultGradle
 import org.gradle.api.internal.project.*
-import org.gradle.listener.DefaultListenerManager
+import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.DefaultTaskExecuter
+import org.gradle.api.execution.TaskActionListener
 
 /**
  * @author Hans Dockter
@@ -77,15 +79,16 @@ class HelperUtil {
         StartParameter startParameter = new StartParameter()
         startParameter.pluginPropertiesFile = new File('plugin.properties')
         startParameter.gradleUserHomeDir = new File(rootDir, 'home')
-        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter,
-                new DefaultListenerManager())
+        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter)
+        serviceRegistryFactory.add(TaskExecuter, new DefaultTaskExecuter({} as TaskActionListener))
         IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
 
         DefaultGradle build = new DefaultGradle(startParameter, serviceRegistryFactory)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)
-        project.setScript(new EmptyScript())
+        project.script = new EmptyScript()
+        build.rootProject = project
         return project;
     }
 

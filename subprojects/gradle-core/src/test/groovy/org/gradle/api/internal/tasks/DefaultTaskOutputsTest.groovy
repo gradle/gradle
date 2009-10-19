@@ -12,11 +12,24 @@ class DefaultTaskOutputsTest {
     @Test
     public void defaultValues() {
         assertThat(outputs.outputFiles.files, isEmpty())
+        assertFalse(outputs.hasOutputFiles)
     }
 
     @Test
     public void canRegisterOutputFiles() {
         outputs.outputFiles('a')
         assertThat(outputs.outputFiles.files, equalTo([new File('a')] as Set))
+    }
+
+    @Test
+    public void hasInputFilesWhenEmptyInputFilesRegistered() {
+        outputs.outputFiles([])
+        assertTrue(outputs.hasOutputFiles)
+    }
+    
+    @Test
+    public void hasInputFilesWhenNonEmptyInputFilesRegistered() {
+        outputs.outputFiles('a')
+        assertTrue(outputs.hasOutputFiles)
     }
 }

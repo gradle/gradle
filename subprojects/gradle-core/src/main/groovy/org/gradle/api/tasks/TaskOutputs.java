@@ -22,6 +22,14 @@ import org.gradle.api.file.FileCollection;
  */
 public interface TaskOutputs {
     /**
+     * Returns true if this task produces output files. Note that a task may produce output files and still have an
+     * empty set of output files.
+     *
+     * @return true if this task produces output files, otherwise false.
+     */
+    boolean getHasOutputFiles();
+
+    /**
      * Returns the output files of this task.
      *
      * @return The output files. Returns an empty collection if this task has no output files.

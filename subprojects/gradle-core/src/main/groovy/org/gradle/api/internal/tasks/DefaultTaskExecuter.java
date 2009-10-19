@@ -15,67 +15,33 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.execution.TaskExecutionResult;
-import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.Task;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.Task;
+import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
-import org.gradle.StartParameter;
 
 public class DefaultTaskExecuter implements TaskExecuter {
     private static Logger logger = Logging.getLogger(DefaultTaskExecuter.class);
-    private final StartParameter startParameter;
     private final TaskActionListener listener;
 
-    public DefaultTaskExecuter(StartParameter startParameter, TaskActionListener listener) {
-        this.startParameter = startParameter;
+    public DefaultTaskExecuter(TaskActionListener listener) {
         this.listener = listener;
     }
 
     public TaskExecutionResult execute(TaskInternal task, TaskState state) {
-        logger.debug("Starting to execute {}", task);
-        try {
-            return doExecute(task, state);
-        } finally {
-            state.setExecuted(true);
-            logger.debug("Finished executing {}", task);
-        }
-    }
-
-    private TaskExecutionResult doExecute(TaskInternal task, TaskState state) {
-        if (!task.getEnabled()) {
-            logger.info("Skipping execution as task is disabled.");
-            return new TaskExecutionResultImpl(task, null, "SKIPPED");
-        }
-
-        if (!startParameter.isNoOpt()) {
-            boolean skip;
-            try {
-                skip = !task.getOnlyIf().isSatisfiedBy(task);
-            } catch (Throwable t) {
-                Throwable failure = new GradleScriptException(String.format("Could not evaluate onlyIf predicate for %s.", task), t,
-                        ((ProjectInternal) task.getProject()).getBuildScriptSource());
-                return new TaskExecutionResultImpl(task, failure, null);
-            }
-
-            if (skip) {
-                logger.info("Skipping execution as task onlyIf is false.");
-                return new TaskExecutionResultImpl(task, null, "SKIPPED as onlyIf is false");
-            }
-        }
-
         listener.beforeActions(task);
         state.setExecuting(true);
         try {
             GradleException failure = executeActions(task, state);
-            return new TaskExecutionResultImpl(task, failure, null);
+            return new DefaultTaskExecutionResult(task, failure, null);
         } finally {
             state.setExecuting(false);
             listener.afterActions(task);
@@ -103,35 +69,5 @@ public class DefaultTaskExecuter implements TaskExecuter {
             }
         }
         return null;
-    }
-
-    private static class TaskExecutionResultImpl implements TaskExecutionResult {
-        private final Task task;
-        private final Throwable failure;
-        private final String skipMessage;
-
-        public TaskExecutionResultImpl(Task task, Throwable failure, String skipMessage) {
-            this.task = task;
-            this.failure = failure;
-            this.skipMessage = skipMessage;
-        }
-
-        public Throwable getFailure() {
-            return failure;
-        }
-
-        public void rethrowFailure() {
-            if (failure == null) {
-                return;
-            }
-            if (failure instanceof RuntimeException) {
-                throw (RuntimeException) failure;
-            }
-            throw new GradleException(String.format("Task %s failed with an exception.", task), failure);
-        }
-
-        public String getSkipMessage() {
-            return skipMessage;
-        }
     }
 }

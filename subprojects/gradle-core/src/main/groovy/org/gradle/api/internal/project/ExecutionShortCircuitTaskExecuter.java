@@ -21,10 +21,12 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
+import org.gradle.StartParameter;
 
 public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
     private final TaskExecuter executer;
     private final TaskArtifactStateRepository repository;
+    private final StartParameter startParameter;
     private static final TaskExecutionResult upToDateResult = new TaskExecutionResult() {
         public Throwable getFailure() {
             return null;
@@ -38,14 +40,16 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
         }
     };
 
-    public ExecutionShortCircuitTaskExecuter(TaskExecuter executer, TaskArtifactStateRepository repository) {
+    public ExecutionShortCircuitTaskExecuter(TaskExecuter executer, TaskArtifactStateRepository repository,
+                                             StartParameter startParameter) {
         this.executer = executer;
         this.repository = repository;
+        this.startParameter = startParameter;
     }
 
     public TaskExecutionResult execute(TaskInternal task, TaskState state) {
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
-        if (taskArtifactState.isUpToDate()) {
+        if (!startParameter.isNoOpt() && taskArtifactState.isUpToDate()) {
             return upToDateResult;
         }
         taskArtifactState.invalidate();

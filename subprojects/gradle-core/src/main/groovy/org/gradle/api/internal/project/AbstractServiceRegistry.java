@@ -31,11 +31,11 @@ public class AbstractServiceRegistry implements ServiceRegistry {
     }
 
     protected void add(Service service) {
-        services.add(service);
+        services.add(0, service);
     }
 
     protected <T> void add(Class<T> serviceType, final T serviceInstance) {
-        services.add(new Service(serviceType) {
+        add(new Service(serviceType) {
             @Override
             protected Object create() {
                 return serviceInstance;

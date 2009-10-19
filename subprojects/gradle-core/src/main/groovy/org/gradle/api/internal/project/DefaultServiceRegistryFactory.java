@@ -35,8 +35,10 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.changedetection.CachingHasher;
 import org.gradle.api.internal.changedetection.DefaultHasher;
 import org.gradle.api.internal.changedetection.DefaultTaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.DefaultTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.SkipTaskExecuter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
@@ -70,8 +72,12 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
 
         add(new Service(TaskExecuter.class){
             protected Object create() {
-                return new DefaultTaskExecuter(startParameter,
-                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class));
+                return new SkipTaskExecuter(
+                        new ExecutionShortCircuitTaskExecuter(
+                                new DefaultTaskExecuter(
+                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class)),
+                                get(TaskArtifactStateRepository.class),
+                                startParameter));
             }
         });
 
@@ -127,10 +133,20 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
 
         add(new Service(ITaskFactory.class) {
             protected Object create() {
-                return new ExecutionShortCircuitTaskFactory(new DependencyAutoWireTaskFactory(
-                        new AnnotationProcessingTaskFactory(new TaskFactory(get(ClassGenerator.class)))),
-                        new DefaultTaskArtifactStateRepository(get(CacheRepository.class), new CachingHasher(
-                                new DefaultHasher(), get(CacheRepository.class))));
+                return new DependencyAutoWireTaskFactory(
+                        new AnnotationProcessingTaskFactory(
+                                new TaskFactory(
+                                        get(ClassGenerator.class))));
+            }
+        });
+
+        add(new Service(TaskArtifactStateRepository.class) {
+            protected Object create() {
+                return new DefaultTaskArtifactStateRepository(
+                        get(CacheRepository.class),
+                        new CachingHasher(
+                                new DefaultHasher(),
+                                get(CacheRepository.class)));
             }
         });
 

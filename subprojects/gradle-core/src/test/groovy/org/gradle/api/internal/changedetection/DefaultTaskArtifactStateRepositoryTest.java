@@ -39,8 +39,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
+import static java.util.Collections.*;
 
 @RunWith(JMock.class)
 public class DefaultTaskArtifactStateRepositoryTest {
@@ -54,10 +54,13 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private final TestFile cacheDir = tmpDir.dir("cache");
     private final TestFile outputFile = tmpDir.file("output-file");
     private final TestFile outputDir = tmpDir.dir("output-dir");
+    private final TestFile emptyOutputDir = tmpDir.dir("empty-output-dir");
+    private final TestFile missingOutputFile = tmpDir.getDir().file("missing-output-file");
     private final TestFile inputFile = tmpDir.file("input-file");
     private final TestFile inputDir = tmpDir.dir("input-dir");
-    private final Set<TestFile> inputFiles = toSet(inputFile, inputDir);
-    private final Set<TestFile> outputFiles = toSet(outputFile, outputDir);
+    private final TestFile missingInputFile = tmpDir.getDir().file("missing-input-file");
+    private final Set<TestFile> inputFiles = toSet(inputFile, inputDir, missingInputFile);
+    private final Set<TestFile> outputFiles = toSet(outputFile, outputDir, emptyOutputDir, missingOutputFile);
     private final Hasher hasher = new DefaultHasher();
     private int counter;
     private final DefaultTaskArtifactStateRepository repository = new DefaultTaskArtifactStateRepository(cacheRepository,
@@ -65,6 +68,8 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     @Before
     public void setup() {
+        outputDir.file("some-file").touch();
+
         context.checking(new Expectations() {{
             allowing(project).getGradle();
             will(returnValue(gradle));
@@ -85,6 +90,16 @@ public class DefaultTaskArtifactStateRepositoryTest {
         writeTaskState();
 
         outputFile.delete();
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreNotUpToDateWhenAnyNonEmptyOutputDirIsNowEmpty() {
+        writeTaskState();
+
+        outputDir.deleteDir().createDir();
 
         TaskArtifactState state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());
@@ -160,7 +175,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void artifactsAreNotUpToDateWhenAnyInputFileHasDifferentHash() {
+    public void artifactsAreNotUpToDateWhenAnyInputFileHasChangedHash() {
         writeTaskState();
 
         inputFile.write("some new content");
@@ -215,6 +230,26 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
+    public void artifactsAreUpToDateWhenOutputFileWhichDidNotExistNowExists() {
+        writeTaskState();
+
+        missingOutputFile.touch();
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertTrue(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreUpToDateWhenOutputFileWhichWasEmptyIsNoLongerEmpty() {
+        writeTaskState();
+
+        emptyOutputDir.file("some-file").touch();
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertTrue(state.isUpToDate());
+    }
+
+    @Test
     public void multipleTasksCanProduceTheSameOutputDirectory() {
         TaskInternal task1 = task();
         TaskInternal task2 = builder().withPath("other").withOutputFiles(outputDir).task();
@@ -228,12 +263,42 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void artifactsAreNotUpToDateWhenTaskHasNoInputs() {
-        TaskInternal task = builder().withInputFiles().task();
+    public void artifactsAreNotUpToDateWhenOutputDirHasBeenDeletedAndRecreatedBySomeOtherTask() {
+        TaskInternal task1 = task();
+        TaskInternal task2 = builder().withPath("other").withOutputFiles(outputDir).task();
+        writeTaskState(task1, task2);
+
+        outputDir.deleteDir();
+
+        TaskArtifactState state = repository.getStateFor(task2);
+        assertFalse(state.isUpToDate());
+
+        outputDir.createDir().file("some-file").touch();
+        state.update();
+        
+        state = repository.getStateFor(task2);
+        assertTrue(state.isUpToDate());
+
+        state = repository.getStateFor(task1);
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreNotUpToDateWhenTaskDoesNotAcceptAnyInputs() {
+        TaskInternal task = builder().doesNotAcceptInput().task();
         writeTaskState(task);
 
         TaskArtifactState state = repository.getStateFor(task);
         assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreUpToDateWhenTaskHasNoInputFiles() {
+        TaskInternal task = builder().withInputFiles().task();
+        writeTaskState(task);
+
+        TaskArtifactState state = repository.getStateFor(task);
+        assertTrue(state.isUpToDate());
     }
 
     @Test
@@ -258,7 +323,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations(){{
-            one(cacheRepository).getIndexedCacheFor(gradle, "taskArtifacts", Collections.EMPTY_MAP);
+            one(cacheRepository).getIndexedCacheFor(gradle, "taskArtifacts", EMPTY_MAP);
             will(returnValue(new DefaultPersistentIndexedCache(cache)));
             allowing(cache).update();
             allowing(cache).getBaseDir();
@@ -300,6 +365,11 @@ public class DefaultTaskArtifactStateRepositoryTest {
             return this;
         }
 
+        TaskBuilder doesNotAcceptInput() {
+            inputs = null;
+            return this;
+        }
+
         TaskInternal task() {
             final TaskInternal task = context.mock(type, String.format("task%d", counter++));
             context.checking(new Expectations(){{
@@ -315,10 +385,12 @@ public class DefaultTaskArtifactStateRepositoryTest {
                 will(returnValue(path));
                 allowing(task).getInputs();
                 will(returnValue(taskInputs));
+                allowing(taskInputs).getHasInputFiles();
+                will(returnValue(inputs != null));
                 allowing(taskInputs).getInputFiles();
                 will(returnValue(inputFileCollection));
                 allowing(inputFileCollection).iterator();
-                will(returnIterator(inputs));
+                will(returnIterator(inputs == null ? emptySet() : inputs));
                 allowing(task).getOutputs();
                 will(returnValue(taskOutputs));
                 allowing(taskOutputs).getOutputFiles();

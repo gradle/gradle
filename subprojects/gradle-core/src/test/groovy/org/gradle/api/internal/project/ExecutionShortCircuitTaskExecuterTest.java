@@ -21,6 +21,7 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
+import org.gradle.StartParameter;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -38,7 +39,8 @@ public class ExecutionShortCircuitTaskExecuterTest {
     private final TaskExecutionResult result = context.mock(TaskExecutionResult.class);
     private final TaskArtifactStateRepository repository = context.mock(TaskArtifactStateRepository.class);
     private final TaskArtifactState taskArtifactState = context.mock(TaskArtifactState.class);
-    private final ExecutionShortCircuitTaskExecuter executer = new ExecutionShortCircuitTaskExecuter(delegate, repository);
+    private final StartParameter startParameter = new StartParameter();
+    private final ExecutionShortCircuitTaskExecuter executer = new ExecutionShortCircuitTaskExecuter(delegate, repository, startParameter);
 
     @Test
     public void skipsTaskWhenOutputsAreUpToDate() {
@@ -99,6 +101,27 @@ public class ExecutionShortCircuitTaskExecuterTest {
             will(returnValue(new RuntimeException()));
         }});
 
+        assertThat(executer.execute(task, taskState), sameInstance(result));
+    }
+
+    @Test
+    public void executesTaskWhenNoOptFlagIsSet() {
+        context.checking(new Expectations() {{
+            one(repository).getStateFor(task);
+            will(returnValue(taskArtifactState));
+
+            one(taskArtifactState).invalidate();
+
+            one(delegate).execute(task, taskState);
+            will(returnValue(result));
+
+            allowing(result).getFailure();
+            will(returnValue(null));
+
+            one(taskArtifactState).update();
+        }});
+
+        startParameter.setNoOpt(true);
         assertThat(executer.execute(task, taskState), sameInstance(result));
     }
 }

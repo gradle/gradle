@@ -27,6 +27,10 @@ public class DefaultTaskOutputs implements TaskOutputs {
         outputFiles = new PathResolvingFileCollection(resolver, null);
     }
 
+    public boolean getHasOutputFiles() {
+        return !outputFiles.getSources().isEmpty();
+    }
+
     public FileCollection getOutputFiles() {
         return outputFiles;
     }

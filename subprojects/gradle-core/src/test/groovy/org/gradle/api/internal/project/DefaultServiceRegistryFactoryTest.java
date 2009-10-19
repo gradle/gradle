@@ -16,13 +16,14 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
+import org.gradle.util.TemporaryFolder;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.tasks.DefaultTaskExecuter;
+import org.gradle.api.internal.tasks.SkipTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
@@ -34,15 +35,25 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.junit.Rule;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
 public class DefaultServiceRegistryFactoryTest {
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private ListenerManager listenerManager = context.mock(ListenerManager.class);
-    private final DefaultServiceRegistryFactory factory = new DefaultServiceRegistryFactory(new StartParameter(),
+    private final ListenerManager listenerManager = context.mock(ListenerManager.class);
+    private final StartParameter startParameter = new StartParameter();
+    private final DefaultServiceRegistryFactory factory = new DefaultServiceRegistryFactory(startParameter,
             listenerManager);
 
+    @Before
+    public void setUp() {
+        startParameter.setGradleUserHomeDir(tmpDir.getDir());
+    }
+    
     @Test
     public void throwsExceptionForUnknownService() {
         try {
@@ -74,7 +85,7 @@ public class DefaultServiceRegistryFactoryTest {
     public void providesAListenerManager() {
         assertThat(factory.get(ListenerManager.class), sameInstance(listenerManager));
     }
-    
+
     @Test
     public void providesAStandardOutputRedirector() {
         assertThat(factory.get(StandardOutputRedirector.class), instanceOf(DefaultStandardOutputRedirector.class));
@@ -87,24 +98,25 @@ public class DefaultServiceRegistryFactoryTest {
         assertThat(factory.get(PublishArtifactFactory.class), instanceOf(DefaultPublishArtifactFactory.class));
         assertThat(factory.get(PublishArtifactFactory.class), sameInstance(factory.get(PublishArtifactFactory.class)));
     }
-    
+
     @Test
     public void providesATaskExecuter() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(listenerManager).createAnonymousBroadcaster(TaskActionListener.class);
             will(returnValue(new ListenerBroadcast<TaskActionListener>(TaskActionListener.class)));
             allowing(listenerManager).getBroadcaster(TaskActionListener.class);
             will(returnValue(context.mock(TaskActionListener.class)));
         }});
 
-        assertThat(factory.get(TaskExecuter.class), instanceOf(DefaultTaskExecuter.class));
+        assertThat(factory.get(TaskExecuter.class), instanceOf(SkipTaskExecuter.class));
         assertThat(factory.get(TaskExecuter.class), sameInstance(factory.get(TaskExecuter.class)));
     }
 
     @Test
     public void providesARepositoryHandlerFactory() {
         assertThat(factory.get(RepositoryHandlerFactory.class), instanceOf(DefaultRepositoryHandlerFactory.class));
-        assertThat(factory.get(RepositoryHandlerFactory.class), sameInstance(factory.get(RepositoryHandlerFactory.class)));
+        assertThat(factory.get(RepositoryHandlerFactory.class), sameInstance(factory.get(
+                RepositoryHandlerFactory.class)));
     }
 
     @Test

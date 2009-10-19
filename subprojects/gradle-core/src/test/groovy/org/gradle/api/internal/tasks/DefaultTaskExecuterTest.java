@@ -15,28 +15,26 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.execution.TaskExecutionResult;
-import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.Task;
 import org.gradle.api.Action;
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.Task;
+import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.StandardOutputCapture;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.StopActionException;
-import static org.gradle.util.WrapUtil.*;
+import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.StartParameter;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
@@ -45,30 +43,23 @@ public class DefaultTaskExecuterTest {
     private final TaskInternal task = context.mock(TaskInternal.class, "<task>");
     private final Action<Task> action1 = context.mock(Action.class, "action1");
     private final Action<Task> action2 = context.mock(Action.class, "action2");
-    private final Spec<Task> spec = context.mock(Spec.class);
     private final TaskState state = new TaskState();
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final StandardOutputCapture standardOutputCapture = context.mock(StandardOutputCapture.class);
     private final Sequence sequence = context.sequence("seq");
     private final TaskActionListener listener = context.mock(TaskActionListener.class);
-    private final DefaultTaskExecuter executer = new DefaultTaskExecuter(new StartParameter(), listener);
+    private final DefaultTaskExecuter executer = new DefaultTaskExecuter(listener);
 
     @Before
     public void setUp() {
         context.checking(new Expectations(){{
             ProjectInternal project = context.mock(ProjectInternal.class);
 
-            allowing(task).getPath();
-            will(returnValue(":task"));
-
             allowing(task).getProject();
             will(returnValue(project));
 
             allowing(project).getBuildScriptSource();
             will(returnValue(scriptSource));
-
-            allowing(task).getOnlyIf();
-            will(returnValue(spec));
 
             allowing(task).getStandardOutputCapture();
             will(returnValue(standardOutputCapture));
@@ -79,7 +70,6 @@ public class DefaultTaskExecuterTest {
 
     @Test
     public void doesNothingWhenTaskHasNoActions() {
-        expectTaskEnabled();
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList()));
@@ -95,24 +85,12 @@ public class DefaultTaskExecuterTest {
 
         assertThat(result.getFailure(), nullValue());
         assertThat(result.getSkipMessage(), nullValue());
-        assertTrue(state.isExecuted());
         assertFalse(state.isExecuting());
         assertFalse(state.isDidWork());
     }
 
-    private void expectTaskEnabled() {
-        context.checking(new Expectations(){{
-            allowing(task).getEnabled();
-            will(returnValue(true));
-
-            allowing(spec).isSatisfiedBy(task);
-            will(returnValue(true));
-        }});
-    }
-
     @Test
     public void executesEachActionInOrder() {
-        expectTaskEnabled();
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
@@ -146,7 +124,6 @@ public class DefaultTaskExecuterTest {
 
         assertThat(result.getFailure(), nullValue());
         assertThat(result.getSkipMessage(), nullValue());
-        assertTrue(state.isExecuted());
         assertFalse(state.isExecuting());
         assertTrue(state.isDidWork());
     }
@@ -154,7 +131,6 @@ public class DefaultTaskExecuterTest {
     @Test
     public void stopsAtFirstActionWhichThrowsException() {
         final Throwable failure = new RuntimeException("failure");
-        expectTaskEnabled();
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
@@ -185,7 +161,6 @@ public class DefaultTaskExecuterTest {
         assertThat(exception.getScriptSource(), sameInstance(scriptSource));
 
         assertThat(result.getSkipMessage(), nullValue());
-        assertTrue(state.isExecuted());
         assertFalse(state.isExecuting());
         assertTrue(state.isDidWork());
     }
@@ -193,7 +168,6 @@ public class DefaultTaskExecuterTest {
     @Test
     public void rethrowsWrappedException() {
         final Throwable failure = new RuntimeException("failure");
-        expectTaskEnabled();
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
@@ -218,7 +192,6 @@ public class DefaultTaskExecuterTest {
 
     @Test
     public void stopsAtFirstActionWhichThrowsStopExecutionException() {
-        expectTaskEnabled();
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
@@ -244,14 +217,12 @@ public class DefaultTaskExecuterTest {
 
         assertThat(result.getFailure(), nullValue());
         assertThat(result.getSkipMessage(), nullValue());
-        assertTrue(state.isExecuted());
         assertFalse(state.isExecuting());
         assertTrue(state.isDidWork());
     }
 
     @Test
     public void skipsActionWhichThrowsStopActionException() {
-        expectTaskEnabled();
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
@@ -286,7 +257,6 @@ public class DefaultTaskExecuterTest {
 
         assertThat(result.getFailure(), nullValue());
         assertThat(result.getSkipMessage(), nullValue());
-        assertTrue(state.isExecuted());
         assertFalse(state.isExecuting());
         assertTrue(state.isDidWork());
     }
@@ -299,7 +269,6 @@ public class DefaultTaskExecuterTest {
             }
         };
 
-        expectTaskEnabled();
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList(action)));
@@ -319,7 +288,6 @@ public class DefaultTaskExecuterTest {
             }
         };
 
-        expectTaskEnabled();
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList(action)));
@@ -329,62 +297,5 @@ public class DefaultTaskExecuterTest {
         }});
 
         executer.execute(task, state).rethrowFailure();
-    }
-
-    @Test
-    public void skipsDisabledTask() {
-        context.checking(new Expectations() {{
-            allowing(task).getEnabled();
-            will(returnValue(false));
-        }});
-
-        TaskExecutionResult result = executer.execute(task, state);
-
-        assertThat(result.getFailure(), nullValue());
-        assertThat(result.getSkipMessage(), equalTo("SKIPPED"));
-        assertTrue(state.isExecuted());
-        assertFalse(state.isExecuting());
-        assertFalse(state.isDidWork());
-    }
-
-    @Test
-    public void skipsTaskWhoseOnlyIfPredicateIsFalse() {
-        context.checking(new Expectations() {{
-            allowing(task).getEnabled();
-            will(returnValue(true));
-            one(spec).isSatisfiedBy(task);
-            will(returnValue(false));
-        }});
-
-        TaskExecutionResult result = executer.execute(task, state);
-
-        assertThat(result.getFailure(), nullValue());
-        assertThat(result.getSkipMessage(), equalTo("SKIPPED as onlyIf is false"));
-        assertTrue(state.isExecuted());
-        assertFalse(state.isExecuting());
-        assertFalse(state.isDidWork());
-    }
-
-    @Test
-    public void wrapsOnlyIfPredicateFailure() {
-        final Throwable failure = new RuntimeException();
-        context.checking(new Expectations() {{
-            allowing(task).getEnabled();
-            will(returnValue(true));
-            one(spec).isSatisfiedBy(task);
-            will(throwException(failure));
-        }});
-
-        TaskExecutionResult result = executer.execute(task, state);
-
-        GradleScriptException exception = (GradleScriptException) result.getFailure();
-        assertThat(exception.getOriginalMessage(), equalTo("Could not evaluate onlyIf predicate for <task>."));
-        assertThat(exception.getCause(), sameInstance(failure));
-        assertThat(exception.getScriptSource(), sameInstance(scriptSource));
-
-        assertThat(result.getSkipMessage(), nullValue());
-        assertTrue(state.isExecuted());
-        assertFalse(state.isExecuting());
-        assertFalse(state.isDidWork());
     }
 }

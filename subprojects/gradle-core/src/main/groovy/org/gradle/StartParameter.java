@@ -73,11 +73,11 @@ public class StartParameter {
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private File buildFile;
     private List<File> initScripts = new ArrayList<File>();
-    private boolean showHelp = false;
-    private boolean showVersion = false;
-    private boolean launchGUI = false;
-    private boolean dryRun = false;
-    private boolean noOpt = false;
+    private boolean showHelp;
+    private boolean showVersion;
+    private boolean launchGUI;
+    private boolean dryRun;
+    private boolean noOpt;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -508,7 +508,6 @@ public class StartParameter {
             defaultProjectSelector = new ProjectDirectoryProjectSpec(canonicalFile);
         }
     }
-
 
     /**
        Determines whether or not the GUI was requested to be launched.

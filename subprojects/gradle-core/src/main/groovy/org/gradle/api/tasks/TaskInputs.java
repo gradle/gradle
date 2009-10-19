@@ -22,6 +22,14 @@ import org.gradle.api.file.FileCollection;
  */
 public interface TaskInputs {
     /**
+     * Returns true if this task consumes input files. Note that a task may consumes input files and still have an empty
+     * set of input files.
+     *
+     * @return true if this task consumes input files, otherwise false.
+     */
+    boolean getHasInputFiles();
+
+    /**
      * Returns the inputs files of this task.
      *
      * @return The input files. Returns an empty collection if this task has no input files.
