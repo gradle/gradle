@@ -88,7 +88,16 @@ processResources.doLast {
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 test {
-    options.fork(jvmArgs: ["-ea", '-Xms128m', '-Xmx1100m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'])
+    xmsSize = '128m'
+    xmxSize = '1100m'
+    maxPermSize = '128m'
+
+    // there must be a nicer way of doing this...
+    try { xmsSize = customXmsSize; logger.debug('Using custom Xms size: ' + xmsSize + ' for :core:test') } catch ( MissingPropertyException e ) { }
+    try { xmxSize = customXmxSize; logger.debug('Using custom Xmx size: ' + xmxSize + ' for :core:test') } catch ( MissingPropertyException e ) { }
+    try { maxPermSize = customMaxPermSize; logger.debug('Using custom MaxPermSize: ' + maxPermSize + ' for :core:test') } catch ( MissingPropertyException e ) { }
+
+    options.fork(jvmArgs: ["-ea", "-Xms${xmsSize}", "-Xmx${xmxSize}", "-XX:MaxPermSize=${maxPermSize}", '-XX:+HeapDumpOnOutOfMemoryError'])
 
     exclude 'org/gradle/integtests/**/*IntegrationTest.*'
 }
