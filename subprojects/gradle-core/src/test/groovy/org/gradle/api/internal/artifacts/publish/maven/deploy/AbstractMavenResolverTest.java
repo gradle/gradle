@@ -23,6 +23,7 @@ import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
+import org.apache.commons.io.FileUtils;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -38,6 +39,8 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.api.Action;
+import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -123,9 +126,12 @@ public abstract class AbstractMavenResolverTest {
     }
 
     protected void checkTransaction(final Set<DeployableFilesInfo> deployableFilesInfos, final AttachedArtifact attachedArtifact, ClassifierArtifact classifierArtifact) throws IOException, PlexusContainerException {
+        final GrabSettingsFileAction grabSettingsFileAction = new GrabSettingsFileAction();
         context.checking(new Expectations() {
             {
                 one(getInstallDeployTask()).setProject(with(any(Project.class)));
+                one(getInstallDeployTask()).setSettingsFile(with(any(File.class)));
+                will(grabSettingsFileAction);
                 for (DeployableFilesInfo deployableFilesInfo : deployableFilesInfos) {
                     one(getInstallDeployTask()).setFile(deployableFilesInfo.getArtifactFile());
                     one(getInstallDeployTask()).addPom(with(pomMatcher(deployableFilesInfo.getPomFile(), getInstallDeployTask().getProject())));
@@ -137,6 +143,8 @@ public abstract class AbstractMavenResolverTest {
         assertThat(attachedArtifact.getFile(), equalTo(classifierArtifact.getFile()));
         assertThat(attachedArtifact.getType(), equalTo(classifierArtifact.getType()));
         assertThat(attachedArtifact.getClassifier(), equalTo(classifierArtifact.getClassifier()));
+        assertThat(grabSettingsFileAction.getSettingsFile().exists(), equalTo(false));
+        assertThat(grabSettingsFileAction.getSettingsFileContent(), equalTo(AbstractMavenResolver.SETTINGS_XML));
     }
 
     private static Matcher<Pom> pomMatcher(final File expectedPomFile, final Project expectedAntProject) {
@@ -217,5 +225,27 @@ public abstract class AbstractMavenResolverTest {
             will(returnValue(pomMock));
         }});
         assertSame(pomMock, getMavenResolver().pom(testName));
+    }
+
+    private static class GrabSettingsFileAction implements Action {
+        private File settingsFile;
+        private String settingsFileContent;
+
+        public void describeTo(Description description) {
+        }
+
+        public Object invoke(Invocation invocation) throws Throwable {
+            settingsFile = (File) invocation.getParameter(0);
+            settingsFileContent = FileUtils.readFileToString(settingsFile);
+            return null;
+        }
+
+        public File getSettingsFile() {
+            return settingsFile;
+        }
+
+        public String getSettingsFileContent() {
+            return settingsFileContent;
+        }
     }
 }

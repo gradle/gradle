@@ -37,6 +37,7 @@ import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
@@ -45,6 +46,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.AntUtil;
 
 import java.io.File;
@@ -57,6 +59,8 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public abstract class AbstractMavenResolver implements MavenResolver {
+    protected final static String SETTINGS_XML = "<settings/>"; 
+
     private String name;
     
     private ArtifactPomContainer artifactPomContainer;
@@ -175,10 +179,13 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
         Set<DeployableFilesInfo> deployableFilesInfos = getArtifactPomContainer().createDeployableFilesInfos(configurationContainer.getAll());
+        File emptySettingsXml = createEmptyMavenSettingsXml();
+        installDeployTaskSupport.setSettingsFile(emptySettingsXml);
         for (DeployableFilesInfo deployableFilesInfo : deployableFilesInfos) {
             addPomAndArtifact(installDeployTaskSupport, deployableFilesInfo);
-            execute(installDeployTaskSupport);   
+            execute(installDeployTaskSupport);
         }
+        emptySettingsXml.delete();
         settings = ((CustomInstallDeployTaskSupport) installDeployTaskSupport).getSettings();
     }
 
@@ -202,6 +209,16 @@ public abstract class AbstractMavenResolver implements MavenResolver {
             attachedArtifact.setClassifier(classifierArtifact.getClassifier());
             attachedArtifact.setFile(classifierArtifact.getFile());
             attachedArtifact.setType(classifierArtifact.getType());
+        }
+    }
+
+    private File createEmptyMavenSettingsXml() {
+        try {
+            File settingsXml = File.createTempFile("gradle_empty_settings", ".xml");
+            FileUtils.writeStringToFile(settingsXml, SETTINGS_XML);
+            return settingsXml;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
