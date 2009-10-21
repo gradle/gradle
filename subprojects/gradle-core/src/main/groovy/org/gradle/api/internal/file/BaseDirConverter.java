@@ -39,7 +39,7 @@ public class BaseDirConverter extends AbstractFileResolver {
 
         File file = convertObjectToFile(path);
         if (!file.isAbsolute()) {
-            file = new File(baseDir, path.toString());
+            file = new File(baseDir, file.getPath());
         }
 
         return file;

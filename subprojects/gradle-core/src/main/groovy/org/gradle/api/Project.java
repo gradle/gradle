@@ -730,11 +730,24 @@ public interface Project extends Comparable<Project> {
     File getProjectDir();
 
     /**
-     * <p>Resolves a file path relative to the project directory of this project.</p> <p>path.toString will be used to
-     * get a string path.  If this string can be interpreted as a relative path, the project directory will be used as a
-     * base directory.</p>
+     * <p>Resolves a file path relative to the project directory of this project. This method converts the supplied path
+     * based on its type:</p>
      *
-     * @param path An object who's toString method value is interpreted as a path to a file.
+     * <ul>
+     *
+     * <li>{@link File}. If the file is an absolute file, return it as is. Otherwise, interpret the file's path relative
+     * to the project directory.</li>
+     *
+     * <li>{@link Closure}. The closure's return value is resolved recursively.</li>
+     *
+     * <li>{@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
+     *
+     * <li>{@link Object}. The object's {@code toString()} value is interpreted as a path. If the path is a relative
+     * path, the project directory will be used as a base directory.</li>
+     *
+     * </ul>
+     *
+     * @param path The object to resolve as a File.
      * @return The resolved file. Never returns null.
      */
     File file(Object path);
@@ -917,9 +930,8 @@ public interface Project extends Comparable<Project> {
 
     /**
      * Configures the dependency configurations for this project. Executes the given closure against the {@link
-     * org.gradle.api.artifacts.ConfigurationContainer} for this project.
-     * The {@link org.gradle.api.artifacts.ConfigurationContainer} is passed to the closure as the
-     * closure's delegate.
+     * org.gradle.api.artifacts.ConfigurationContainer} for this project. The {@link
+     * org.gradle.api.artifacts.ConfigurationContainer} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the dependency configurations.
      */
@@ -1194,8 +1206,8 @@ public interface Project extends Comparable<Project> {
     RepositoryHandler createRepositoryHandler();
 
     /**
-     * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding new
-     * dependencies. For accessing already declared dependencies, the configurations can be used.
+     * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding
+     * new dependencies. For accessing already declared dependencies, the configurations can be used.
      *
      * @return the dependency handler. Never returns null.
      * @see #getConfigurations()

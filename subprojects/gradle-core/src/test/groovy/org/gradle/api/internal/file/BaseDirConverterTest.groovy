@@ -25,6 +25,7 @@ import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import java.util.concurrent.Callable
 
 /**
  * @author Hans Dockter
@@ -129,24 +130,38 @@ class BaseDirConverterTest {
         }
     }
 
-    @Test public void testWithAbsolutePath() {
+    @Test public void testResolveAbsolutePath() {
         File absoluteFile = new File('nonRelative').absoluteFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.path))
     }
 
-    @Test public void testWithRelativePath() {
+    @Test public void testResolveRelativePath() {
         String relativeFileName = "relative"
         assertEquals(new File(baseDir, relativeFileName), baseDirConverter.resolve(relativeFileName))
     }
 
-    @Test public void testWithAbsoluteFile() {
+    @Test public void testResolveAbsoluteFile() {
         File absoluteFile = new File('nonRelative').absoluteFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile))
     }
 
-    @Test public void testWithRelativeFile() {
+    @Test public void testResolveRelativeFile() {
         File relativeFile = new File('relative')
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
+    }
+
+    @Test public void testResolveClosure() {
+        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({'relative'}))
+    }
+
+    @Test public void testResolveCallable() {
+        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({'relative'} as Callable))
+    }
+
+    @Test public void testResolveNestedClosuresAndCallables() {
+        Callable callable = {'relative'} as Callable
+        Closure closure = {callable}
+        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(closure))
     }
     
     @Test public void testFiles() {
