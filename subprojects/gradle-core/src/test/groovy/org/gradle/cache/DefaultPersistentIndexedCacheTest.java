@@ -34,7 +34,7 @@ public class DefaultPersistentIndexedCacheTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final PersistentCache backingCache = context.mock(PersistentCache.class);
     private final DefaultPersistentIndexedCache<String, Integer> cache
-            = new DefaultPersistentIndexedCache<String, Integer>(backingCache);
+            = new DefaultPersistentIndexedCache<String, Integer>(backingCache, new DefaultSerializer<Integer>());
 
     @Before
     public void setup() {

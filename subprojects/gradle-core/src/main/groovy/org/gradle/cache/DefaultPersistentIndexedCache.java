@@ -22,25 +22,24 @@ import java.io.*;
 
 public class DefaultPersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private final PersistentCache backingCache;
+    private final Serializer<V> serializer;
 
-    public DefaultPersistentIndexedCache(PersistentCache backingCache) {
+    public DefaultPersistentIndexedCache(PersistentCache backingCache, Serializer<V> serializer) {
         this.backingCache = backingCache;
+        this.serializer = serializer;
     }
 
     public V get(K key) {
         File stateFile = getStateFile(key);
-        if (!stateFile.exists()) {
-            return null;
-        }
         try {
-            ObjectInputStream inStr = new ObjectInputStream(new BufferedInputStream(new FileInputStream(stateFile)));
+            InputStream inStr = new BufferedInputStream(new FileInputStream(stateFile));
             try {
-                return (V) inStr.readObject();
+                return serializer.read(inStr);
             } finally {
                 inStr.close();
             }
-        } catch (StreamCorruptedException e) {
-            // Ignore badly formed files
+        } catch (FileNotFoundException e) {
+            // Ok
             return null;
         } catch (Exception e) {
             throw new UncheckedIOException(e);
@@ -48,19 +47,20 @@ public class DefaultPersistentIndexedCache<K, V> implements PersistentIndexedCac
     }
 
     public void put(K key, V value) {
+        File stateFile = getStateFile(key);
+        stateFile.getParentFile().mkdirs();
+
         try {
-            File stateFile = getStateFile(key);
-            stateFile.getParentFile().mkdirs();
-            ObjectOutputStream outStr = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(
-                    stateFile)));
+            OutputStream outStr = new BufferedOutputStream(new FileOutputStream(stateFile));
             try {
-                outStr.writeObject(value);
+                serializer.write(outStr, value);
             } finally {
                 outStr.close();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new UncheckedIOException(e);
         }
+
         backingCache.update();
     }
 
@@ -97,13 +97,19 @@ public class DefaultPersistentIndexedCache<K, V> implements PersistentIndexedCac
                 encode = true;
             }
         }
+        name.append('_');
         if (!encode) {
-            return String.format("%s_", key);
+            return name.toString();
         }
-        return String.format("%s_%s", name, HashUtil.createHash(key));
+        name.append(HashUtil.createHash(key));
+        return name.toString();
     }
 
     private String getStateFileName(File keyFile) {
-        return String.format("%s_%s", keyFile.getName(), HashUtil.createHash(keyFile.getAbsolutePath()));
+        StringBuilder name = new StringBuilder();
+        name.append(keyFile.getName());
+        name.append('_');
+        name.append(HashUtil.createHash(keyFile.getAbsolutePath()));
+        return name.toString();
     }
 }

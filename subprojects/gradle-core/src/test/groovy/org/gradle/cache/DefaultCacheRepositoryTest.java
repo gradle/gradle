@@ -44,7 +44,6 @@ public class DefaultCacheRepositoryTest {
     private final TestFile sharedCacheDir = homeDir.file("caches");
     private final String version = new GradleVersion().getVersion();
     private final Map properties = GUtil.map("a", "value", "b", "value2");
-    private final Map expectedPropreties = GUtil.addMaps(properties, GUtil.map("version", version));
     private final DefaultCacheRepository repository = new DefaultCacheRepository(homeDir, CacheUsage.ON);
 
     @Test
@@ -53,8 +52,8 @@ public class DefaultCacheRepositoryTest {
         assertThat(cache, instanceOf(DefaultPersistentCache.class));
 
         DefaultPersistentCache dCache = (DefaultPersistentCache) cache;
-        assertThat(dCache.getBaseDir(), equalTo((File) sharedCacheDir.file("a/b/c")));
-        assertThat(dCache.getProperties(), equalTo(expectedPropreties));
+        assertThat(dCache.getBaseDir(), equalTo((File) sharedCacheDir.file(version + "/a/b/c")));
+        assertThat(dCache.getProperties(), equalTo(properties));
     }
 
     @Test
@@ -72,16 +71,7 @@ public class DefaultCacheRepositoryTest {
         assertThat(cache, instanceOf(DefaultPersistentCache.class));
 
         DefaultPersistentCache dCache = (DefaultPersistentCache) cache;
-        assertThat(dCache.getBaseDir(), equalTo((File) buildRootDir.file(".gradle/a/b/c")));
-        assertThat(dCache.getProperties(), equalTo(expectedPropreties));
-    }
-
-    @Test
-    public void removesGradle0_8ScriptCache() {
-        homeDir.file("scriptCache/subdir/some.file").touch();
-
-        repository.getGlobalCache("a/b/c", properties);
-
-        homeDir.file("scriptCache").assertDoesNotExist();
+        assertThat(dCache.getBaseDir(), equalTo((File) buildRootDir.file(".gradle/" + version + "/a/b/c")));
+        assertThat(dCache.getProperties(), equalTo(properties));
     }
 }

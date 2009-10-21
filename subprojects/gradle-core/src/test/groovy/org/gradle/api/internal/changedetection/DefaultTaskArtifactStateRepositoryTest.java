@@ -24,6 +24,7 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultPersistentIndexedCache;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.DefaultSerializer;
 import org.gradle.integtests.TestFile;
 import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
@@ -219,6 +220,15 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
+    public void artifactsAreNotUpToDateWhenStateWasNotUpdated() {
+        expectEmptyCacheLocated();
+        repository.getStateFor(task());
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
     public void artifactsAreUpToDateWhenNothingHasChangedSinceOutputFilesWereGenerated() {
         writeTaskState();
 
@@ -324,7 +334,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations(){{
             one(cacheRepository).getIndexedCacheFor(gradle, "taskArtifacts", EMPTY_MAP);
-            will(returnValue(new DefaultPersistentIndexedCache(cache)));
+            will(returnValue(new DefaultPersistentIndexedCache(cache, new DefaultSerializer<File>())));
             allowing(cache).update();
             allowing(cache).getBaseDir();
             will(returnValue(cacheDir));
@@ -387,13 +397,13 @@ public class DefaultTaskArtifactStateRepositoryTest {
                 will(returnValue(taskInputs));
                 allowing(taskInputs).getHasInputFiles();
                 will(returnValue(inputs != null));
-                allowing(taskInputs).getInputFiles();
+                allowing(taskInputs).getFiles();
                 will(returnValue(inputFileCollection));
                 allowing(inputFileCollection).iterator();
                 will(returnIterator(inputs == null ? emptySet() : inputs));
                 allowing(task).getOutputs();
                 will(returnValue(taskOutputs));
-                allowing(taskOutputs).getOutputFiles();
+                allowing(taskOutputs).getFiles();
                 will(returnValue(outputFileCollection));
                 allowing(outputFileCollection).iterator();
                 will(returnIterator(outputs));

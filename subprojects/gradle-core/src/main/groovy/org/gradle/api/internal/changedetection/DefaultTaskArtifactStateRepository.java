@@ -76,10 +76,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
             public void update() {
                 thisExecution.snapshotOutputFiles();
+                TaskExecution taskInfo = thisExecution;
                 for (Map.Entry<File, OutputFileInfo> entry : thisExecution.outputFiles.entrySet()) {
                     OutputGenerators generators = cache.get(entry.getKey());
-                    generators.update(entry.getValue(), key, thisExecution);
+                    generators.update(entry.getValue(), key, taskInfo);
                     cache.put(entry.getKey(), generators);
+                    taskInfo = new TaskInfoToken();
                 }
             }
         };
@@ -90,7 +92,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private TaskExecution getLastExecution(TaskKey key, TaskInfo thisExecution) {
-        TaskExecution taskInfo = new EmptyTaskInfo();
+        TaskExecution taskInfo = null;
         List<String> outOfDateMessages = new ArrayList<String>();
         for (File outputFile : thisExecution.outputFiles.keySet()) {
             OutputGenerators generators = cache.get(outputFile);
@@ -102,14 +104,22 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (generators.invalidate(outputFile)) {
                 cache.put(outputFile, generators);
             }
-            TaskInfo lastExecution = generators.get(key);
+            TaskExecution lastExecution = generators.get(key);
             if (lastExecution == null) {
                 outOfDateMessages.add(String.format("Task did not produce %s.", outputFile));
                 continue;
             }
-            taskInfo = lastExecution;
+            if (lastExecution instanceof TaskInfo) {
+                taskInfo = lastExecution;
+            }
         }
-        return outOfDateMessages.isEmpty() ? taskInfo : new EmptyTaskInfo(outOfDateMessages);
+        if (!outOfDateMessages.isEmpty()) {
+            return new EmptyTaskInfo(outOfDateMessages);
+        }
+        if (taskInfo == null) {
+            return new EmptyTaskInfo();
+        }
+        return taskInfo;
     }
 
     private void loadTasks(TaskInternal task) {
@@ -127,35 +137,35 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private static class OutputGenerators implements Serializable {
-        private final Map<TaskKey, TaskInfo> generators = new HashMap<TaskKey, TaskInfo>();
+        private final Map<TaskKey, TaskExecution> generators = new HashMap<TaskKey, TaskExecution>();
         private OutputFileInfo fileInfo;
 
-        public TaskInfo remove(TaskKey task) {
+        public TaskExecution remove(TaskKey task) {
             return generators.remove(task);
         }
 
-        public void add(TaskKey key, TaskInfo info) {
+        public void add(TaskKey key, TaskExecution info) {
             generators.put(key, info);
         }
 
-        public void replace(TaskKey key, TaskInfo info) {
+        public void replace(TaskKey key, TaskExecution info) {
             generators.clear();
             generators.put(key, info);
         }
 
-        public TaskInfo get(TaskKey key) {
+        public TaskExecution get(TaskKey key) {
             return generators.get(key);
         }
 
         public boolean invalidate(File outputFile) {
-            if (!fileInfo.isUpToDate(outputFile)) {
+            if (fileInfo != null && !fileInfo.isUpToDate(outputFile)) {
                 generators.clear();
                 return true;
             }
             return false;
         }
 
-        public void update(OutputFileInfo outputFile, TaskKey key, TaskInfo thisExecution) {
+        public void update(OutputFileInfo outputFile, TaskKey key, TaskExecution thisExecution) {
             fileInfo = outputFile;
             if (fileInfo.type == FILE) {
                 replace(key, thisExecution);
@@ -205,17 +215,20 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
     }
 
+    private static class TaskInfoToken implements Serializable, TaskExecution {
+    }
+
     private static class TaskInfo implements Serializable, TaskExecution {
-        private final Map<File, InputFileInfo> inputFiles = new HashMap<File, InputFileInfo>();
+        private final Map<String, InputFileInfo> inputFiles = new HashMap<String, InputFileInfo>();
         private final Map<File, OutputFileInfo> outputFiles = new HashMap<File, OutputFileInfo>();
         private boolean acceptInputs;
 
         public TaskInfo(TaskInternal task, Hasher hasher) {
             acceptInputs = task.getInputs().getHasInputFiles();
-            for (File file : task.getInputs().getInputFiles()) {
-                inputFiles.put(file, new InputFileInfo(file, hasher));
+            for (File file : task.getInputs().getFiles()) {
+                inputFiles.put(file.getAbsolutePath(), new InputFileInfo(file, hasher));
             }
-            for (File file : task.getOutputs().getOutputFiles()) {
+            for (File file : task.getOutputs().getFiles()) {
                 outputFiles.put(file, null);
             }
         }
@@ -254,8 +267,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return Arrays.asList("The set of input files has changed");
             }
 
-            for (Map.Entry<File, InputFileInfo> entry : inputFiles.entrySet()) {
-                File file = entry.getKey();
+            for (Map.Entry<String, InputFileInfo> entry : inputFiles.entrySet()) {
+                String file = entry.getKey();
                 InputFileInfo inputFile = entry.getValue();
                 InputFileInfo lastInputFile = lastExecution.inputFiles.get(file);
                 if (!inputFile.isUpToDate(lastInputFile)) {

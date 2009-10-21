@@ -17,9 +17,9 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.Serializer;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 import java.util.Collections;
 
 public class CachingHasher implements Hasher {
@@ -29,7 +29,7 @@ public class CachingHasher implements Hasher {
 
     public CachingHasher(Hasher hasher, CacheRepository cacheRepository) {
         this.hasher = hasher;
-        cache = cacheRepository.getIndexedGlobalCache("fileHashes", Collections.EMPTY_MAP);
+        cache = cacheRepository.getIndexedGlobalCache("fileHashes", Collections.EMPTY_MAP, new FileInfoSerializer());
     }
 
     public byte[] hash(File file) {
@@ -55,6 +55,27 @@ public class CachingHasher implements Hasher {
             this.hash = hash;
             this.length = length;
             this.timestamp = timestamp;
+        }
+    }
+
+    private static class FileInfoSerializer implements Serializer<FileInfo> {
+        public FileInfo read(InputStream instr) throws Exception {
+            DataInputStream input = new DataInputStream(instr);
+            int hashLength = input.readInt();
+            byte[] hash = new byte[hashLength];
+            input.readFully(hash);
+            long timestamp = input.readLong();
+            long length = input.readLong();
+            return new FileInfo(hash, length, timestamp);
+        }
+
+        public void write(OutputStream outstr, FileInfo value) throws Exception {
+            DataOutputStream output = new DataOutputStream(outstr);
+            output.writeInt(value.hash.length);
+            output.write(value.hash);
+            output.writeLong(value.timestamp);
+            output.writeLong(value.length);
+            output.flush();
         }
     }
 }

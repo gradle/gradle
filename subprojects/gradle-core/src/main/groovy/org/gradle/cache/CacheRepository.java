@@ -39,6 +39,16 @@ public interface CacheRepository {
     <K, V> PersistentIndexedCache<K, V> getIndexedGlobalCache(String key, Map<String, ?> properties);
 
     /**
+     * Returns the indexed cache with the given key shared by all builds.
+     *
+     * @param key the cache key. Uniquely identifies the cache
+     * @param properties additional properties for the cache. The cache is treated as invalid if any of the properties
+     * do not match the properties used to create the cache.
+     * @return The cache.
+     */
+    <K, V> PersistentIndexedCache<K, V> getIndexedGlobalCache(String key, Map<String, ?> properties, Serializer<V> serializer);
+
+    /**
      * Returns the cache with the given key private to the current build.
      *
      * @param target The target domain object which the cache is for. This might be a task, project, or similar.

@@ -23,6 +23,7 @@ import org.junit.Test
 import org.junit.Before
 import org.gradle.groovy.scripts.FileScriptSource
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.util.GradleVersion
 
 /**
  * @author Hans Dockter
@@ -43,13 +44,14 @@ class CacheProjectIntegrationTest {
 
     @Before
     public void setUp() {
+        String version = new GradleVersion().version
         projectDir = dist.getTestDir().file("project")
         projectDir.mkdirs()
         userHomeDir = dist.getUserHomeDir()
         buildFile = projectDir.file('build.gradle')
         ScriptSource source = new FileScriptSource("build file", buildFile)
-        propertiesFile = userHomeDir.file("caches/scripts/$source.className/cache.properties")
-        classFile = userHomeDir.file("caches/scripts/$source.className/BuildScriptTransformer/${source.className}.class")
+        propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/cache.properties")
+        classFile = userHomeDir.file("caches/$version/scripts/$source.className/BuildScriptTransformer/${source.className}.class")
     }
     
     @Test
@@ -61,25 +63,9 @@ class CacheProjectIntegrationTest {
         testBuild("hello2", "Hello 2")
         assertThat(classFile.lastModified(), equalTo(modTime))
 
-        changeCacheVersionProperty()
-        testBuild("hello2", "Hello 2")
-        assertThat(classFile.lastModified(), not(equalTo(modTime)))
-        modTime = classFile.lastModified()
-
         modifyLargeBuildScript()
         testBuild("newTask", "I am new")
         assertThat(classFile.lastModified(), not(equalTo(modTime)))
-    }
-
-    private def changeCacheVersionProperty() {
-        Properties properties = new Properties()
-        FileInputStream propertiesInputStream = new FileInputStream(propertiesFile)
-        properties.load(propertiesInputStream)
-        propertiesInputStream.close()
-        properties.put("version", "0.5.1")
-        FileOutputStream propertiesOutputStream = new FileOutputStream(propertiesFile)
-        properties.store(propertiesOutputStream, null)
-        propertiesOutputStream.close()
     }
 
     private def testBuild(String taskName, String expected) {

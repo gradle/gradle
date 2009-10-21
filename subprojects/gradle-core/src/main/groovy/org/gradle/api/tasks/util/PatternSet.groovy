@@ -219,15 +219,3 @@ class IntersectionPatternSet extends PatternSet {
         }
     }
 }
-
-class RelativePathSpec implements Spec<FileTreeElement> {
-    private final Spec<? super RelativePath> pathSpec
-
-    def RelativePathSpec(Spec<? super RelativePath> pathSpec) {
-        this.pathSpec = pathSpec
-    }
-
-    public boolean isSatisfiedBy(FileTreeElement element) {
-        pathSpec.isSatisfiedBy(element.relativePath)
-    }
-}

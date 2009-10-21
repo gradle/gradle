@@ -17,6 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.Serializer;
 import static org.gradle.util.Matchers.*;
 import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
@@ -48,7 +49,8 @@ public class CachingHasherTest {
     @Before
     public void setup() {
         context.checking(new Expectations(){{
-            one(cacheRepository).getIndexedGlobalCache("fileHashes", Collections.EMPTY_MAP);
+            one(cacheRepository).getIndexedGlobalCache(with(equalTo("fileHashes")), with(equalTo(Collections.EMPTY_MAP)), with(notNullValue(
+                    Serializer.class)));
             will(returnValue(cache));
         }});
         hasher = new CachingHasher(delegate, cacheRepository);
