@@ -31,11 +31,11 @@ public class DefaultTaskOutputs implements TaskOutputs {
         return !outputFiles.getSources().isEmpty();
     }
 
-    public FileCollection getOutputFiles() {
+    public FileCollection getFiles() {
         return outputFiles;
     }
 
-    public TaskOutputs outputFiles(Object... paths) {
+    public TaskOutputs files(Object... paths) {
         outputFiles.from(paths);
         return this;
     }

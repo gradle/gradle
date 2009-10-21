@@ -15,13 +15,15 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskOutputs;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.io.File;
+import java.util.concurrent.Callable;
 
 public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     private final ValidationAction ouputFileValidation = new ValidationAction() {
@@ -48,16 +50,11 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
             return null;
         }
 
-        public Transformer<Object> getInputFiles() {
-            return null;
+        public void attachInputs(TaskInputs inputs, Callable<Object> futureValue) {
         }
 
-        public Transformer<Object> getOutputFiles() {
-            return new Transformer<Object>() {
-                public Object transform(Object original) {
-                    return original;
-                }
-            };
+        public void attachOutputs(TaskOutputs outputs, Callable<Object> futureValue) {
+            outputs.files(futureValue);
         }
     };
 

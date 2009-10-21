@@ -22,26 +22,34 @@ import org.gradle.api.file.FileCollection;
  */
 public interface TaskInputs {
     /**
-     * Returns true if this task consumes input files. Note that a task may consumes input files and still have an empty
-     * set of input files.
+     * Returns true if this task can consume input files. Note that a task may be able to consume input files and still
+     * have an empty set of input files.
      *
      * @return true if this task consumes input files, otherwise false.
      */
     boolean getHasInputFiles();
 
     /**
-     * Returns the inputs files of this task.
+     * Returns the input files of this task.
      *
      * @return The input files. Returns an empty collection if this task has no input files.
      */
-    FileCollection getInputFiles();
+    FileCollection getFiles();
 
     /**
-     * Registers some input files for this task. The given paths are evaluated as for {@link
-     * org.gradle.api.Project#files(Object[])}.
+     * Registers some input files for this task.
      *
-     * @param paths The input files.
+     * @param paths The input files. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object[])}.
      * @return this
      */
-    TaskInputs inputFiles(Object... paths);
+    TaskInputs files(Object... paths);
+
+    /**
+     * Registers an input directory heirarchy. All files found under the given directory are treated as input files for
+     * this task.
+     *
+     * @param dirPath The directory. The path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @return this
+     */
+    TaskInputs dir(Object dirPath);
 }

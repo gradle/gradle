@@ -56,7 +56,7 @@ public class AnnotationProcessingTaskFactoryTest {
     private final TestFile testDir = tmpDir.getDir();
     private final File existingFile = testDir.file("file.txt").touch();
     private final File missingFile = testDir.file("missing.txt");
-    private final File existingDir = testDir.file("dir").createDir();
+    private final TestFile existingDir = testDir.file("dir").createDir();
     private final File missingDir = testDir.file("missing-dir");
     private final AnnotationProcessingTaskFactory factory = new AnnotationProcessingTaskFactory(delegate);
 
@@ -213,13 +213,13 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void registersSpecifiedInputFile() {
         TaskWithInputFile task = expectTaskCreated(TaskWithInputFile.class, existingFile);
-        assertThat(task.getInputs().getInputFiles().getFiles(), equalTo(toSet(existingFile)));
+        assertThat(task.getInputs().getFiles().getFiles(), equalTo(toSet(existingFile)));
     }
 
     @Test
     public void doesNotRegistersInputFileWhenNoneSpecified() {
         TaskWithInputFile task = expectTaskCreated(TaskWithInputFile.class, new Object[]{null});
-        assertThat(task.getInputs().getInputFiles().getFiles(), isEmpty());
+        assertThat(task.getInputs().getFiles().getFiles(), isEmpty());
     }
     
     @Test
@@ -264,13 +264,13 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void registersSpecifiedOutputFile() {
         TaskWithOutputFile task = expectTaskCreated(TaskWithOutputFile.class, existingFile);
-        assertThat(task.getOutputs().getOutputFiles().getFiles(), equalTo(toSet(existingFile)));
+        assertThat(task.getOutputs().getFiles().getFiles(), equalTo(toSet(existingFile)));
     }
 
     @Test
     public void doesNotRegisterOutputFileWhenNoneSpecified() {
         TaskWithOutputFile task = expectTaskCreated(TaskWithOutputFile.class, new Object[]{null});
-        assertThat(task.getOutputs().getOutputFiles().getFiles(), isEmpty());
+        assertThat(task.getOutputs().getFiles().getFiles(), isEmpty());
     }
 
     @Test
@@ -288,13 +288,13 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void registersSpecifiedInputFiles() {
         TaskWithInputFiles task = expectTaskCreated(TaskWithInputFiles.class, toList(testDir, missingFile));
-        assertThat(task.getInputs().getInputFiles().getFiles(), equalTo(toSet(testDir, missingFile)));
+        assertThat(task.getInputs().getFiles().getFiles(), equalTo(toSet(testDir, missingFile)));
     }
 
     @Test
     public void doesNotRegisterInputFilesWhenNoneSpecified() {
         TaskWithInputFiles task = expectTaskCreated(TaskWithInputFiles.class, new Object[]{null});
-        assertThat(task.getInputs().getInputFiles().getFiles(), isEmpty());
+        assertThat(task.getInputs().getFiles().getFiles(), isEmpty());
     }
 
     @Test
@@ -349,13 +349,13 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void registersSpecifiedOutputDirectory() {
         TaskWithOutputDir task = expectTaskCreated(TaskWithOutputDir.class, missingDir);
-        assertThat(task.getOutputs().getOutputFiles().getFiles(), equalTo(toSet(missingDir)));
+        assertThat(task.getOutputs().getFiles().getFiles(), equalTo(toSet(missingDir)));
     }
 
     @Test
     public void doesNotRegisterOutputDirectoryWhenNoneSpecified() {
         TaskWithOutputDir task = expectTaskCreated(TaskWithOutputDir.class, new Object[]{null});
-        assertThat(task.getOutputs().getOutputFiles().getFiles(), isEmpty());
+        assertThat(task.getOutputs().getFiles().getFiles(), isEmpty());
     }
 
     @Test
@@ -389,13 +389,14 @@ public class AnnotationProcessingTaskFactoryTest {
     @Test
     public void registersSpecifiedInputDirectory() {
         TaskWithInputDir task = expectTaskCreated(TaskWithInputDir.class, existingDir);
-        assertThat(task.getInputs().getInputFiles().getFiles(), equalTo(toSet(existingDir)));
+        File file = existingDir.file("some-file").createFile();
+        assertThat(task.getInputs().getFiles().getFiles(), equalTo(toSet(file)));
     }
 
     @Test
     public void doesNotRegisterInputDirectoryWhenNoneSpecified() {
         TaskWithInputDir task = expectTaskCreated(TaskWithInputDir.class, new Object[]{null});
-        assertThat(task.getInputs().getInputFiles().getFiles(), isEmpty());
+        assertThat(task.getInputs().getFiles().getFiles(), isEmpty());
     }
 
     @Test

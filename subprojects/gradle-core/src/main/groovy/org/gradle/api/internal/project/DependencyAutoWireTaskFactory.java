@@ -37,7 +37,7 @@ public class DependencyAutoWireTaskFactory implements ITaskFactory {
 
         TaskInternal task = taskFactory.createTask(project, actualArgs);
         if (autoWire) {
-            task.dependsOn(task.getInputs().getInputFiles());
+            task.dependsOn(task.getInputs().getFiles());
         }
         return task;
     }

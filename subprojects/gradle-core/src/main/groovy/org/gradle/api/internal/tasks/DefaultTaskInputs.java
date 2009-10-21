@@ -22,8 +22,10 @@ import org.gradle.api.tasks.TaskInputs;
 
 public class DefaultTaskInputs implements TaskInputs {
     private final PathResolvingFileCollection inputFiles;
+    private final FileResolver resolver;
 
     public DefaultTaskInputs(FileResolver resolver) {
+        this.resolver = resolver;
         inputFiles = new PathResolvingFileCollection(resolver, null);
     }
 
@@ -31,12 +33,17 @@ public class DefaultTaskInputs implements TaskInputs {
         return !inputFiles.getSources().isEmpty();
     }
 
-    public FileCollection getInputFiles() {
+    public FileCollection getFiles() {
         return inputFiles;
     }
 
-    public TaskInputs inputFiles(Object... paths) {
+    public TaskInputs files(Object... paths) {
         inputFiles.from(paths);
+        return this;
+    }
+
+    public TaskInputs dir(Object dirPath) {
+        inputFiles.from(resolver.resolveFilesAsTree(dirPath));
         return this;
     }
 }

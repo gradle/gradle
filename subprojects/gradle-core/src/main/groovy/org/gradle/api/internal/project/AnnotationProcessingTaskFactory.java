@@ -16,7 +16,10 @@
 package org.gradle.api.internal.project;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
@@ -176,30 +179,14 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
         public void addInputsAndOutputs(final Task task) {
             for (final PropertyInfo property : properties) {
-                final Transformer<Object> inputFilesTransformer = property.actions.getInputFiles();
-                if (inputFilesTransformer != null) {
-                    task.getInputs().inputFiles(new Callable() {
-                        public Object call() throws Exception {
-                            Object value = ReflectionUtil.invoke(task, property.method.getName(), new Object[0]);
-                            if (value != null) {
-                                value = inputFilesTransformer.transform(value);
-                            }
-                            return value;
-                        }
-                    });
-                }
-                final Transformer<Object> outputFilesTransformer = property.actions.getOutputFiles();
-                if (outputFilesTransformer != null) {
-                    task.getOutputs().outputFiles(new Callable() {
-                        public Object call() throws Exception {
-                            Object value = ReflectionUtil.invoke(task, property.method.getName(), new Object[0]);
-                            if (value != null) {
-                                value = outputFilesTransformer.transform(value);
-                            }
-                            return value;
-                        }
-                    });
-                }
+                Callable<Object> futureValue = new Callable<Object>() {
+                    public Object call() throws Exception {
+                        return ReflectionUtil.invoke(task, property.method.getName(), new Object[0]);
+                    }
+                };
+
+                property.actions.attachInputs(task.getInputs(), futureValue);
+                property.actions.attachOutputs(task.getOutputs(), futureValue);
             }
         }
 

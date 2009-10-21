@@ -15,14 +15,16 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskOutputs;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.util.concurrent.Callable;
 
 public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHandler {
     private final ValidationAction skipEmptyFileCollection = new ValidationAction() {
@@ -52,16 +54,11 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
                 return finalSkipAction;
             }
 
-            public Transformer<Object> getInputFiles() {
-                return new Transformer<Object>() {
-                    public Object transform(Object original) {
-                        return original;
-                    }
-                };
+            public void attachInputs(TaskInputs inputs, Callable<Object> futureValue) {
+                inputs.files(futureValue);
             }
 
-            public Transformer<Object> getOutputFiles() {
-                return null;
+            public void attachOutputs(TaskOutputs outputs, Callable<Object> futureValue) {
             }
         };
     }

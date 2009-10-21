@@ -45,7 +45,7 @@ public class DependencyAutoWireTaskFactoryTest {
             will(returnValue(task));
             allowing(task).getInputs();
             will(returnValue(taskInputs));
-            allowing(taskInputs).getInputFiles();
+            allowing(taskInputs).getFiles();
             will(returnValue(inputFiles));
             one(task).dependsOn(inputFiles);
         }});

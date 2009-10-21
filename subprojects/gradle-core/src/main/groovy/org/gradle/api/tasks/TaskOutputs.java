@@ -22,8 +22,8 @@ import org.gradle.api.file.FileCollection;
  */
 public interface TaskOutputs {
     /**
-     * Returns true if this task produces output files. Note that a task may produce output files and still have an
-     * empty set of output files.
+     * Returns true if this task can produce output files. Note that a task may be able to produce output files and
+     * still have an empty set of output files.
      *
      * @return true if this task produces output files, otherwise false.
      */
@@ -34,14 +34,13 @@ public interface TaskOutputs {
      *
      * @return The output files. Returns an empty collection if this task has no output files.
      */
-    FileCollection getOutputFiles();
+    FileCollection getFiles();
 
     /**
-     * Adds some output files for this task. The given paths are evaluated as for {@link
-     * org.gradle.api.Project#files(Object[])}.
+     * Registers some output files/directories for this task.
      *
-     * @param paths The output files
+     * @param paths The output files. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object[])}.
      * @return this
      */
-    TaskOutputs outputFiles(Object... paths);
+    TaskOutputs files(Object... paths);
 }

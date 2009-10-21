@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.*
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void skipsTaskWhenInputsHaveNotChanged() {
+    public void skipsTaskWhenInputFilesHaveNotChanged() {
         testFile('build.gradle') << '''
 task a(type: org.gradle.integtests.TransformerTask) {
     inputFile = file('src.txt')
@@ -92,5 +92,66 @@ b.outputFile = file('new-output.txt')
 '''
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a')
+    }
+
+    @Test
+    public void skipsTaskWhenInputDirContentsHaveNotChanged() {
+        testFile('build.gradle') << '''
+task a(type: org.gradle.integtests.DirTransformerTask) {
+    inputDir = file('src')
+    outputDir = file('build/a')
+}
+task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
+    inputDir = a.outputDir
+    outputDir = file('build/b')
+}
+'''
+
+        testFile('src').createDir()
+        testFile('src/file1.txt').write('content')
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+
+        TestFile outputAFile = testFile('build/a/file1.txt')
+        TestFile outputBFile = testFile('build/b/file1.txt')
+        long outputAModTime = outputAFile.lastModified()
+        long outputBModTime = outputBFile.lastModified()
+
+        outputAFile.assertContents(equalTo('[content]'))
+        outputBFile.assertContents(equalTo('[[content]]'))
+
+        // No changes
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
+
+        assertEquals(outputAModTime, outputAFile.lastModified())
+        assertEquals(outputBModTime, outputBFile.lastModified())
+
+        outputAFile.assertContents(equalTo('[content]'))
+        outputBFile.assertContents(equalTo('[[content]]'))
+
+        // Change content
+
+        testFile('src/file1.txt').write('new content')
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+        
+        outputAFile.assertContents(equalTo('[new content]'))
+        outputBFile.assertContents(equalTo('[[new content]]'))
+
+        // Add file
+
+        testFile('src/file2.txt').write('content2')
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+
+        testFile('build/a/file2.txt').assertContents(equalTo('[content2]'))
+        testFile('build/B/file2.txt').assertContents(equalTo('[[content2]]')) 
+
+        // Remove file
+
+        testFile('src/file1.txt').delete()
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':b')
     }
 }

@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Transformer;
+import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskOutputs;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.util.concurrent.Callable;
 
 /**
  * Handles validation, dependency handling, and skipping for a property marked with a given annotation.
@@ -57,12 +59,12 @@ public interface PropertyAnnotationHandler {
          * Returns the transformer used to determine the input files of the task based on the value of this property.
          * May return null. The transformer is passed the value of this property.
          */
-        Transformer<Object> getInputFiles();
+        void attachInputs(TaskInputs inputs, Callable<Object> futureValue);
 
         /**
          * Returns the transformer used to determine the output files of the task based on the value of this property.
          * May return null. The transformer is passed the value of this property.
          */
-        Transformer<Object> getOutputFiles();
+        void attachOutputs(TaskOutputs outputs, Callable<Object> futureValue);
     }
 }
