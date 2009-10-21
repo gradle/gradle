@@ -208,4 +208,13 @@ public class TestFile extends File {
         GradleUtil.deleteDir(this);
         return this;
     }
+
+    public TestFile createFile() {
+        try {
+            assertTrue(isFile() || createNewFile());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return this;
+    }
 }

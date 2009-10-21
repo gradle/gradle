@@ -81,11 +81,19 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
 
     @Override
     public FileTree getAsFileTree() {
-        UnionFileTree tree = new UnionFileTree(getDisplayName());
-        for (FileCollection collection : getSourceCollections()) {
-            tree.add(collection.getAsFileTree());
-        }
-        return tree;
+        return new CompositeFileTree() {
+            @Override
+            protected void addSourceCollections(Collection<FileCollection> sources) {
+                for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
+                    sources.add(collection.getAsFileTree());
+                }
+            }
+
+            @Override
+            public String getDisplayName() {
+                return CompositeFileCollection.this.getDisplayName();
+            }
+        };
     }
 
     @Override

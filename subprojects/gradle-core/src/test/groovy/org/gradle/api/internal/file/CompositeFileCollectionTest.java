@@ -180,8 +180,40 @@ public class CompositeFileCollectionTest {
         }});
 
         FileTree fileTree = collection.getAsFileTree();
-        assertThat(fileTree, instanceOf(UnionFileTree.class));
-        assertThat(((UnionFileTree) fileTree).getSourceCollections(), equalTo((Iterable) toList(tree1, tree2)));
+        assertThat(fileTree, instanceOf(CompositeFileTree.class));
+        assertThat(((CompositeFileTree) fileTree).getSourceCollections(), equalTo((Iterable) toList(tree1, tree2)));
+    }
+
+    @Test
+    public void fileTreeIsLive() {
+        final FileTree tree1 = context.mock(FileTree.class, "tree1");
+        final FileTree tree2 = context.mock(FileTree.class, "tree2");
+        final FileCollection source3 = context.mock(FileCollection.class);
+        final FileTree tree3 = context.mock(FileTree.class);
+
+        context.checking(new Expectations() {{
+            one(source1).getAsFileTree();
+            will(returnValue(tree1));
+            one(source2).getAsFileTree();
+            will(returnValue(tree2));
+        }});
+
+        FileTree fileTree = collection.getAsFileTree();
+        assertThat(fileTree, instanceOf(CompositeFileTree.class));
+        assertThat(((CompositeFileTree) fileTree).getSourceCollections(), equalTo((Iterable) toList(tree1, tree2)));
+
+        collection.sourceCollections.add(source3);
+
+        context.checking(new Expectations() {{
+            one(source1).getAsFileTree();
+            will(returnValue(tree1));
+            one(source2).getAsFileTree();
+            will(returnValue(tree2));
+            one(source3).getAsFileTree();
+            will(returnValue(tree3));
+        }});
+
+        assertThat(((CompositeFileTree) fileTree).getSourceCollections(), equalTo((Iterable) toList(tree1, tree2, tree3)));
     }
 
     @Test
