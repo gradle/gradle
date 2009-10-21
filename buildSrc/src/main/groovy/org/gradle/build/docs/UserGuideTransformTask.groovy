@@ -12,6 +12,10 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.lang.*
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFile
 
 /**
  * Transforms userguide source into docbook, replacing custom xml elements.
@@ -20,10 +24,14 @@ public class UserGuideTransformTask extends DefaultTask {
     String version
     String javadocUrl
     String groovydocUrl
+    @InputFile
     File sourceFile
+    @OutputFile
     File destFile
+    @InputDirectory
     File snippetsDir
     boolean standalone
+    @InputFiles
     FileCollection classpath;
     SampleElementValidator validator;
 

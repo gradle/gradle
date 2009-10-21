@@ -1,7 +1,6 @@
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.SampleElementValidator
-import org.gradle.build.samples.WrapperProjectCreator
 
 usePlugin('base')
 
@@ -41,18 +40,17 @@ groovydocDir = new File(docsDir, 'groovydoc')
 task userguide(dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'], description: 'Generates the userguide')
 
 task samples(type: ExtractSnippetsTask) {
-    sourceFiles = ant.fileset(dir: samplesSrcDir) {
-        exclude(name: 'userguideOutput/**')
-        exclude(name: 'userguide/tutorial/antChecksumFiles/**')
-    }
+    source samplesSrcDir
+    exclude 'userguideOutput/**'
+    exclude 'userguide/tutorial/antChecksumFiles/**'
     destDir = samplesDir
     snippetsDir = project.snippetsDir
-}
-samples << {
-    copy {
-        from samplesSrcDir
-        into samplesDir
-        include 'userguide/tutorial/antChecksumFiles/**'
+    doLast {
+        copy {
+            from samplesSrcDir
+            into samplesDir
+            include 'userguide/tutorial/antChecksumFiles/**'
+        }
     }
 }
 
@@ -62,42 +60,54 @@ task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
     snippetsDir = project.snippetsDir
     classpath = configurations.userGuideTask
     validator = new SampleElementValidator()
-}
-userguideSrc.doFirst {
-    userguideSrc.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-    userguideSrc.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
-}
-
-task userguideStyleSheets << {
-    ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
-        globmapper(from: 'docbook-xsl-1.75.2/*', to: '*')
-    }
-    copy {
-        from new File(srcDocsDir, 'stylesheets')
-        into docbookDir
-        include '*.xsl'
+    doFirst {
+        userguideSrc.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
+        userguideSrc.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
     }
 }
 
-task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
-        arg(value: '-in')
-        arg(value: new File(docbookSrc, 'userguide.xml'))
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'userGuideHtml.xsl'))
-        arg(line: "-param base.dir ${userguideDir}/")
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
+task userguideStyleSheets {
+    stylesheetsDir = new File(srcDocsDir, 'stylesheets')
+    inputs.inputFiles configurations.userGuideStyleSheets
+    inputs.inputFiles stylesheetsDir
+    outputs.outputFiles docbookDir
+    doFirst {
+        ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
+            globmapper(from: 'docbook-xsl-1.75.2/*', to: '*')
+        }
+        copy {
+            from stylesheetsDir
+            into docbookDir
+            include '*.xsl'
         }
     }
-    copy {
-        from userguideSrcDir
-        into userguideDir
-        include 'style.css'
-        include 'images/*.png'
+}
+
+task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) {
+    inputs.inputFiles new File(docbookSrc, 'userguide.xml')
+    inputs.inputFiles docbookDir
+    inputs.inputFiles userguideSrcDir
+    outputs.outputFiles userguideDir
+    doFirst {
+        ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+            jvmarg(value: '-Xmx128m')
+            sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
+            arg(value: '-in')
+            arg(value: new File(docbookSrc, 'userguide.xml'))
+            arg(value: '-xsl')
+            arg(value: new File(docbookDir, 'userGuideHtml.xsl'))
+            arg(line: "-param base.dir ${userguideDir}/")
+            classpath {
+                path(path: configurations.userGuideTask.asPath)
+                path(location: new File(docbookDir, 'extensions/xalan27.jar'))
+            }
+        }
+        copy {
+            from userguideSrcDir
+            into userguideDir
+            include 'style.css'
+            include 'images/*.png'
+        }
     }
 }
 
@@ -232,7 +242,7 @@ task uploadDocs(dependsOn: docs) << {
     }
 }
 
-task distDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) {
+task distDocs(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
     standalone = true
     sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
     destFile = new File(docbookSrc, 'gettingStarted.xml')
