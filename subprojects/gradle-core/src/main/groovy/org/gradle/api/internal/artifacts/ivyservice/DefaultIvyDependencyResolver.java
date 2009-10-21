@@ -103,10 +103,6 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             return files;
         }
 
-        private boolean doesSpecContainAllModuleDependencies(Spec<Dependency> dependencySpec) {
-            return configuration.getAllDependencies(ModuleDependency.class).equals(Specs.filterIterable(configuration.getAllDependencies(ModuleDependency.class), dependencySpec));
-        }
-
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
             buildResolvedDependencies();
             Set<ResolvedDependency> resolvedDependencies = new LinkedHashSet<ResolvedDependency>();

@@ -19,25 +19,22 @@ import groovy.lang.Closure;
 
 /**
  * Specifies sources for a file copy
+ *
  * @author Steve Appling
  */
 public interface CopySourceSpec {
     /**
-     * Specifies source files or directories for a copy.
-     * The toString() method of each sourcePath is used to get a path.
-     * The paths are evaluated like {@link org.gradle.api.Project#file(Object) Project.file() }.
-     * Relative paths will be evaluated relative to the project directory.
-     * @param sourcePaths Paths to source directories for the copy
+     * Specifies source files or directories for a copy. The given paths are evaluated as for {@link
+     * org.gradle.api.Project#files(Object[])}.
+     *
+     * @param sourcePaths Paths to source files for the copy
      */
     CopySourceSpec from(Object... sourcePaths);
 
     /**
-     * Specifies the source for a copy and creates a child CopySourceSpec.
-     * SourcePath.toString is used as the path.
-     * The source is set on the child CopySourceSpec, not on this one.
-     * This may be a path to a single file to copy or to a directory.  If the path is to a directory,
-     * then the contents of the directory will be copied.
-     * The paths are evaluated like {@link org.gradle.api.Project#file(Object) Project.file() }.
+     * Specifies the source files or directories for a copy and creates a child {@code CopySourceSpec}. The given source
+     * path is evaluated as for {@link org.gradle.api.Project#files(Object[])} .
+     *
      * @param sourcePath Path to source for the copy
      * @param c closure for configuring the child CopySourceSpec
      */

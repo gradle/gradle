@@ -22,36 +22,36 @@ import java.io.FilterReader;
 
 public interface CopyProcessingSpec {
     /**
-     * Specifies the destination directory for a copy.
-     * The path is evaluated relative to the project directory.
+     * Specifies the destination directory for a copy. The destination is evaluated as for {@link
+     * org.gradle.api.Project#file(Object)}.
+     *
      * @param destPath Path to the destination directory for a Copy
      * @return this
      */
     CopyProcessingSpec into(Object destPath);
 
     /**
-     * Maps a source file to a different relative location under the target directory.
-     * The closure will be called with a single parameter, the File object
-     * for the default location of the copy.  This File will have the same relative path
-     * from the destination directory that the source file has from its source
-     * directory.  The closure should return a File object with a new target destination.
+     * Maps a source file to a different relative location under the target directory. The closure will be called with a
+     * single parameter, the File object for the default location of the copy.  This File will have the same relative
+     * path from the destination directory that the source file has from its source directory.  The closure should
+     * return a File object with a new target destination.
+     *
      * @param closure remap closure
      * @return this
      */
     CopyProcessingSpec remapTarget(Closure closure);
 
     /**
-     * Renames files based on a regular expression.  Uses java.util.regex type of
-     * regular expressions.  Note that the replace string should use the '$1' syntax
-     * to refer to capture groups in the source regular expression.  Files that
-     * do not match the source regular expression will be copied with the original name.
+     * Renames files based on a regular expression.  Uses java.util.regex type of regular expressions.  Note that the
+     * replace string should use the '$1' syntax to refer to capture groups in the source regular expression.  Files
+     * that do not match the source regular expression will be copied with the original name.
      *
-     * <p>
-     * Example:
+     * <p> Example:
      * <pre>
      * rename '(.*)_OEM_BLUE_(.*)', '$1$2'
      * </pre>
      * would map the file 'style_OEM_BLUE_.css' to 'style.css'
+     *
      * @param sourceRegEx Source regular expression
      * @param replaceWith Replacement string (use $ syntax for capture groups)
      * @return this
@@ -59,18 +59,14 @@ public interface CopyProcessingSpec {
     CopyProcessingSpec rename(String sourceRegEx, String replaceWith);
 
     /**
-     * Adds a content filter to be used during the copy.  Multiple calls to
-     * filter, add additional filters to the filter chain.  Each filter should implement
-     * java.io.FilterReader. Include org.apache.tools.ant.filters.* for access to
-     * all the standard ANT filters.
-     * <p>
-     * Filter parameters may be specified using groovy map syntax.
-     * <p>
-     * Examples:
+     * Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the filter
+     * chain.  Each filter should implement java.io.FilterReader. Include org.apache.tools.ant.filters.* for access to
+     * all the standard ANT filters. <p> Filter parameters may be specified using groovy map syntax. <p> Examples:
      * <pre>
      *    filter(HeadFilter, lines:25, skip:2)
      *    filter(ReplaceTokens, tokens:[copyright:'2009', version:'2.3.1'])
      * </pre>
+     *
      * @param map map of filter parameters
      * @param filterType Class of filter to add
      * @return this
@@ -78,26 +74,25 @@ public interface CopyProcessingSpec {
     CopyProcessingSpec filter(Map<String, Object> map, Class<FilterReader> filterType);
 
     /**
-     * Adds a content filter to be used during the copy.  Multiple calls to
-     * filter, add additional filters to the filter chain.  Each filter should implement
-     * java.io.FilterReader. Include org.apache.tools.ant.filters.* for access to
-     * all the standard ANT filters.
-     * <p>
-     * Examples:
+     * Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the filter
+     * chain.  Each filter should implement java.io.FilterReader. Include org.apache.tools.ant.filters.* for access to
+     * all the standard ANT filters. <p> Examples:
      * <pre>
      *    filter(StripJavaComments)
      *    filter(com.mycompany.project.CustomFilter)
      * </pre>
+     *
      * @param filterType Class of filter to add
      * @return this
      */
     CopyProcessingSpec filter(Class<FilterReader> filterType);
 
     /**
-     * Adds a content filter based on the provided closure.  The Closure will be called with each line
-     * (stripped of line endings) and should return a String to replace the line. 
+     * Adds a content filter based on the provided closure.  The Closure will be called with each line (stripped of line
+     * endings) and should return a String to replace the line.
+     *
      * @param closure to implement line based filtering
      * @return this
      */
-    CopyProcessingSpec filter(Closure closure); 
+    CopyProcessingSpec filter(Closure closure);
 }
