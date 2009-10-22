@@ -23,15 +23,14 @@ import org.gradle.api.tasks.testing.JunitForkOptions;
 import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
-import org.gradle.api.testing.detection.TestClassReceiver;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
 import org.gradle.util.exec.ExecHandleBuilder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
  * @author Tom Eyckmans
@@ -56,10 +55,8 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
         options.setFork(true);
         forkOptions.setForkMode(ForkMode.ONCE);
         forkOptions.setDir(project.getProjectDir());
-    }
 
-    public void prepare(Project project, AbstractTestTask testTask, TestClassReceiver testClassReceiver) {
-        detector = new JUnitDetector(testTask.getTestClassesDir(), new ArrayList<File>(testTask.getClasspath().getFiles()), testClassReceiver);
+        detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
     public void execute(Project project, AbstractTestTask testTask, Collection<String> includes, Collection<String> excludes) {
@@ -94,12 +91,8 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
         this.antJUnitReport = antJUnitReport;
     }
 
-    public boolean processPossibleTestClass(File testClassFile) {
-        return detector.processPossibleTestClass(testClassFile);
-    }
-
-    public void manualTestClass(String testClassName) {
-        detector.manualTestClass(testClassName);
+    public JUnitDetector getDetector() {
+        return detector;
     }
 
     public void applyForkArguments(ExecHandleBuilder forkHandleBuilder) {

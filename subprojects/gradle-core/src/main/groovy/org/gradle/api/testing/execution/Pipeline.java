@@ -61,6 +61,7 @@ public class Pipeline {
     }
 
     public void addTestClassRunInfo(final TestClassRunInfo testClassRunInfo) {
+        // TODO save to disk when full
         runInfoQueueProducer.produce(testClassRunInfo);
     }
 

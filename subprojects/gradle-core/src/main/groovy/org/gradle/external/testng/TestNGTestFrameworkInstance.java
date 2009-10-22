@@ -21,15 +21,12 @@ import org.gradle.api.Project;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.api.testing.detection.TestClassReceiver;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
 import org.gradle.util.exec.ExecHandleBuilder;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 /**
  * @author Tom Eyckmans
@@ -49,10 +46,8 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
         options = new TestNGOptions(testFramework, project.getProjectDir());
 
         options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(project.property("sourceCompatibility")));
-    }
 
-    public void prepare(Project project, AbstractTestTask testTask, TestClassReceiver testClassReceiver) {
-        detector = new TestNGDetector(testTask.getTestClassesDir(), new ArrayList<File>(testTask.getClasspath().getFiles()), testClassReceiver);
+        detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
     public void execute(Project project, AbstractTestTask testTask, Collection<String> includes, Collection<String> excludes) {
@@ -90,12 +85,8 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
         this.antTestNGExecute = antTestNGExecute;
     }
 
-    public boolean processPossibleTestClass(File testClassFile) {
-        return detector.processPossibleTestClass(testClassFile);
-    }
-
-    public void manualTestClass(String testClassName) {
-        detector.manualTestClass(testClassName);
+    public TestNGDetector getDetector() {
+        return detector;
     }
 
     public void applyForkArguments(ExecHandleBuilder forkHandleBuilder) {

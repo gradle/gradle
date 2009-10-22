@@ -15,16 +15,15 @@
  */
 package org.gradle.external.testng;
 
-import org.gradle.api.AntBuilder;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.AntTest;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.jmock.Expectations;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 
 import java.io.File;
@@ -39,9 +38,8 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
 
     private AntTestNGExecute antTestNGExecuteMock;
     private TestNGOptions testngOptionsMock;
-    private AntBuilder antBuilderMock;
     private AbstractTestTask testTask;
-    private FileCollection classpathMock;
+
 
     @Before
     public void setUp() throws Exception {
@@ -50,9 +48,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
         testNgTestFrameworkMock = context.mock(TestNGTestFramework.class);
         antTestNGExecuteMock = context.mock(AntTestNGExecute.class);
         testngOptionsMock = context.mock(TestNGOptions.class);
-        antBuilderMock = context.mock(AntBuilder.class);
         testTask = context.mock(AntTest.class, "TestNGTestFrameworkInstanceTest");
-        classpathMock = context.mock(FileCollection.class);
 
         testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testTask, testNgTestFrameworkMock);
     }
@@ -66,6 +62,10 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
             one(projectMock).getProjectDir(); will(returnValue(new File("projectDir")));
             one(projectMock).property("sourceCompatibility"); will(returnValue(sourceCompatibility));
             one(testngOptionsMock).setAnnotationsOnSourceCompatibility(sourceCompatibility);
+            one(testMock).getTestClassesDir();will(returnValue(testClassesDir));
+            one(testMock).getClasspath();will(returnValue(classpathMock));
+            one(classpathMock).getAsFileTree();will(returnValue(classpathAsFileTreeMock));
+            one(classpathAsFileTreeMock).visit(with(aNonNull(FileVisitor.class)));
         }});
 
         testNGTestFrameworkInstance.initialize(projectMock, testMock);

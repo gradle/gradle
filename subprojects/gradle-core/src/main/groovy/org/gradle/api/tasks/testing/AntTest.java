@@ -16,17 +16,17 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.*;
-import org.gradle.api.testing.detection.SetBuildingTestClassReceiver;
+import org.gradle.api.GradleException;
+import org.gradle.api.testing.detection.DefaultTestClassScannerFactory;
+import org.gradle.api.testing.detection.SetBuildingTestClassProcessor;
 import org.gradle.api.testing.detection.TestClassScanner;
-import org.gradle.api.testing.detection.TestClassReceiver;
+import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
@@ -39,33 +39,30 @@ import java.util.Set;
 public class AntTest extends AbstractTestTask {
     private static final Logger logger = LoggerFactory.getLogger(AntTest.class);
 
-    private TestClassReceiver testClassReceiver;
+    private TestClassScannerFactory testClassScannerFactory;
+    private SetBuildingTestClassProcessor testClassProcessor;
 
     public AntTest() {
         super();
-        testClassReceiver = new SetBuildingTestClassReceiver();
+        testClassScannerFactory = new DefaultTestClassScannerFactory();
+        testClassProcessor = new SetBuildingTestClassProcessor();
     }
 
     public void executeTests() {
-        final File testClassesDir = getTestClassesDir();
-
-        final TestFrameworkInstance testInstance = getTestFramework();
-
-        testInstance.prepare(getProject(), this, testClassReceiver);
+        final TestFrameworkInstance testFrameworkInstance = getTestFramework();
 
         final Set<String> includes = getIncludes();
         final Set<String> excludes = getExcludes();
 
-        final TestClassScanner testClassScanner = new TestClassScanner(
-                testClassesDir,
-                includes, excludes,
-                testFrameworkInstance,
-                scanForTestClasses
+        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(
+            this,
+            testFrameworkInstance.getDetector(),
+            testClassProcessor
         );
 
-        testClassScanner.getTestClassNames();
+        testClassScanner.executeScan();
 
-        final Set<String> testClassNames = ((SetBuildingTestClassReceiver)testClassReceiver).getTestClassNames();
+        final Set<String> testClassNames = testClassProcessor.getTestClassNames();
 
         Collection<String> toUseIncludes = null;
         Collection<String> toUseExcludes = null;
@@ -80,14 +77,14 @@ public class AntTest extends AbstractTestTask {
         GFileUtils.createDirectoriesWhenNotExistent(getTestResultsDir());// needed for JUnit reporting
 
         if (!(toUseIncludes.isEmpty() && toUseExcludes.isEmpty()))
-            testInstance.execute(getProject(), this, toUseIncludes, toUseExcludes);
+            testFrameworkInstance.execute(getProject(), this, toUseIncludes, toUseExcludes);
         else // when there are no includes/excludes -> don't execute test framework
             logger.debug("skipping test execution, because no tests were found");
         // TestNG execution fails when there are no tests
         // JUnit execution doesn't fail when there are no tests
 
         if (testReport) {
-            testInstance.report(getProject(), this);
+            testFrameworkInstance.report(getProject(), this);
         }
 
         if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
@@ -97,10 +94,19 @@ public class AntTest extends AbstractTestTask {
 
     /**
      * only for test purposes
-     *
-     * @param testClassReceiver
+     * 
+     * @param testClassScannerFactory
      */
-    public void setTestClassReceiver(TestClassReceiver testClassReceiver) {
-        this.testClassReceiver = testClassReceiver;
+    void setTestClassScannerFactory(TestClassScannerFactory testClassScannerFactory) {
+        this.testClassScannerFactory = testClassScannerFactory;
+    }
+
+    /**
+     * only for test purposes
+     *
+     * @param testClassProcessor
+     */
+    void setTestClassProcessor(SetBuildingTestClassProcessor testClassProcessor) {
+        this.testClassProcessor = testClassProcessor;
     }
 }

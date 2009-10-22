@@ -21,13 +21,16 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.tasks.util.ExistingDirsFilter;
-import org.gradle.api.testing.detection.SetBuildingTestClassReceiver;
+import org.gradle.api.testing.detection.SetBuildingTestClassProcessor;
+import org.gradle.api.testing.detection.TestClassScanner;
+import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.fabric.TestFramework;
+import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.startsWith;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -64,7 +67,10 @@ public class AntTestTest extends AbstractConventionTaskTest {
 
     TestFramework testFrameworkMock = context.mock(TestFramework.class);
     TestFrameworkInstance testFrameworkInstanceMock = context.mock(TestFrameworkInstance.class);
-    SetBuildingTestClassReceiver testClassReceiverMock = context.mock(SetBuildingTestClassReceiver.class);
+    TestFrameworkDetector testFrameworkDetectorMock = context.mock(TestFrameworkDetector.class);
+    TestClassScannerFactory testClassScannerFactoryMock = context.mock(TestClassScannerFactory.class);
+    TestClassScanner testClassScannerMock = context.mock(TestClassScanner.class);
+    SetBuildingTestClassProcessor testClassProcessorMock = context.mock(SetBuildingTestClassProcessor.class);
 
     private FileCollection classpathMock = context.mock(FileCollection.class);
     private ExistingDirsFilter existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
@@ -82,6 +88,8 @@ public class AntTestTest extends AbstractConventionTaskTest {
         }});
         test.useTestFramework(testFrameworkMock);
         test.setScanForTestClasses(false);
+        test.setTestClassScannerFactory(testClassScannerFactoryMock);
+        test.setTestClassProcessor(testClassProcessorMock);
 
         File rootDir = getProject().getProjectDir();
         classesDir = new File(rootDir, "testClassesDir");
@@ -111,9 +119,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     public void testExecute() {
         setUpMocks(test);
         context.checking(new Expectations() {{
-            one(testFrameworkInstanceMock).prepare(getProject(), test, testClassReceiverMock);
-            one(testClassReceiverMock).getTestClassNames(); will(returnValue(okTestClassNames));
-            one(testFrameworkInstanceMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
             one(testFrameworkInstanceMock).report(getProject(), test);
         }});
 
@@ -124,28 +129,22 @@ public class AntTestTest extends AbstractConventionTaskTest {
     public void testExecuteWithoutReporting() {
         setUpMocks(test);
         test.setTestReport(false);
-        context.checking(new Expectations() {{
-            one(testFrameworkInstanceMock).prepare(getProject(), test, testClassReceiverMock);
-            one(testClassReceiverMock).getTestClassNames(); will(returnValue(okTestClassNames));
-            one(testFrameworkInstanceMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
-        }});
 
         test.execute();
     }
 
+    @org.junit.Test
     public void testExecuteWithTestFailuresAndStopAtFailures() {
         setUpMocks(test);
         context.checking(new Expectations() {{
-            one(testFrameworkInstanceMock).prepare(getProject(), test, testClassReceiverMock);
-            one(testClassReceiverMock).getTestClassNames(); will(returnValue(okTestClassNames));
-            one(testFrameworkInstanceMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
+            one(testFrameworkInstanceMock).report(getProject(), test);
         }});
         getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
         try {
             test.executeTests();
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), equalTo("??"));
+            assertThat(e.getMessage(), startsWith("There were failing tests. See the report at"));
         }
     }
 
@@ -153,9 +152,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
         setUpMocks(test);
         test.setStopAtFailuresOrErrors(false);
         context.checking(new Expectations() {{
-            one(testFrameworkInstanceMock).prepare(getProject(), test, testClassReceiverMock);
-            one(testClassReceiverMock).getTestClassNames(); will(returnValue(okTestClassNames));
-            one(testFrameworkInstanceMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
             one(testFrameworkInstanceMock).report(getProject(), test);
         }});
         getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
@@ -167,11 +163,15 @@ public class AntTestTest extends AbstractConventionTaskTest {
         test.setTestResultsDir(resultsDir);
         test.setTestReportDir(reportDir);
         test.setClasspath(classpathMock);
-        test.setTestClassReceiver(testClassReceiverMock);
+        test.setTestClassProcessor(testClassProcessorMock);
         test.setTestSrcDirs(Collections.<File>emptyList());
 
-        context.checking(new Expectations(){{
-            allowing(testFrameworkInstanceMock).manualTestClass(with(aNonNull(String.class)));
+        context.checking(new Expectations() {{
+            one(testFrameworkInstanceMock).getDetector();will(returnValue(testFrameworkDetectorMock));
+            one(testClassScannerFactoryMock).createTestClassScanner(test, testFrameworkDetectorMock, testClassProcessorMock);will(returnValue(testClassScannerMock));
+            one(testClassScannerMock).executeScan();
+            one(testClassProcessorMock).getTestClassNames(); will(returnValue(okTestClassNames));
+            one(testFrameworkInstanceMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
         }});
     }
 

@@ -16,8 +16,8 @@
 
 package org.gradle.api.testing.detection;
 
-import org.objectweb.asm.commons.EmptyVisitor;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
+import org.objectweb.asm.commons.EmptyVisitor;
 
 /**
  * @author Tom Eyckmans
@@ -27,6 +27,7 @@ public abstract class TestClassVisitor extends EmptyVisitor {
     protected final TestFrameworkDetector detector;
 
     protected TestClassVisitor(TestFrameworkDetector detector) {
+        if ( detector == null ) throw new IllegalArgumentException("detector == null!");
         this.detector = detector;
     }
 

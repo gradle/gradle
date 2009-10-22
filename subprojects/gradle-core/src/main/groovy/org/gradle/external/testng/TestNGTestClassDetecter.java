@@ -112,7 +112,7 @@ class TestNGTestClassDetecter extends TestClassVisitor {
         if (outerName != null && innerName != null && isStatic && isPublic) {
             final File innerTestClassFile = new File(detector.getTestClassesDirectory(), className + "$" + innerName + ".class");
             if (innerTestClassFile.exists()) {
-                if (detector.processPossibleTestClass(innerTestClassFile))
+                if (detector.processTestClass(innerTestClassFile))
                     LOG.debug("test-class-scan : [inner test class] : " + className + " : [name: " + name + ", outerName: " + outerName + ", innerName: " + innerName + "]");
             }
         }

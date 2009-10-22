@@ -15,16 +15,18 @@
  */
 package org.gradle.api.testing;
 
-import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.api.testing.detection.TestDetectionOrchestrator;
-import org.gradle.api.testing.execution.fork.ForkControl;
-import org.gradle.api.testing.execution.PipelinesManager;
-import org.gradle.api.testing.execution.PipelineFactory;
-import org.gradle.api.testing.pipelinesplit.TestPipelineSplitOrchestrator;
 import org.gradle.api.tasks.testing.NativeTest;
+import org.gradle.api.testing.detection.DefaultTestDetectionOrchestrator;
+import org.gradle.api.testing.detection.DefaultTestDetectionOrchestratorFactory;
+import org.gradle.api.testing.detection.TestDetectionOrchestrator;
+import org.gradle.api.testing.execution.PipelineFactory;
+import org.gradle.api.testing.execution.PipelinesManager;
+import org.gradle.api.testing.execution.fork.ForkControl;
+import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.api.testing.pipelinesplit.TestPipelineSplitOrchestrator;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Creates the objects needed by the TestOrchestrator.
@@ -32,6 +34,7 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @author Tom Eyckmans
  */
 public class TestOrchestratorFactory {
+    private final NativeTest testTask;
     private final BlockingQueue<TestClassRunInfo> testDetectionQueue;
     private final ForkControl forkControl;
     private final PipelineFactory pipelineFactory;
@@ -46,9 +49,26 @@ public class TestOrchestratorFactory {
         if ( testTask == null ) throw new IllegalArgumentException("testTask is null!");
         if ( testDetectionQueueSize < 1 ) throw new IllegalArgumentException("testDetectionQueueSize < 1!");
 
+        this.testTask = testTask;
         testDetectionQueue = new ArrayBlockingQueue<TestClassRunInfo>(testDetectionQueueSize);
         forkControl = new ForkControl(testTask.getMaximumNumberOfForks());
         pipelineFactory = new PipelineFactory(testTask);
+    }
+
+    public NativeTest getTestTask() {
+        return testTask;
+    }
+
+    public BlockingQueue<TestClassRunInfo> getTestDetectionQueue() {
+        return testDetectionQueue;
+    }
+
+    public ForkControl getForkControl() {
+        return forkControl;
+    }
+
+    public PipelineFactory getPipelineFactory() {
+        return pipelineFactory;
     }
 
     /**
@@ -58,7 +78,7 @@ public class TestOrchestratorFactory {
      */
     public TestDetectionOrchestrator createTestDetectionOrchestrator()
     {
-        return new TestDetectionOrchestrator(testDetectionQueue);
+        return new DefaultTestDetectionOrchestrator(new DefaultTestDetectionOrchestratorFactory(this));
     }
 
     /**
@@ -79,6 +99,15 @@ public class TestOrchestratorFactory {
     public TestPipelineSplitOrchestrator createTestPipelineSplitOrchestrator()
     {
         return new TestPipelineSplitOrchestrator(testDetectionQueue);
+    }
+
+    public TestOrchestratorContext createContext(final TestOrchestrator testOrchestrator)
+    {
+        final TestDetectionOrchestrator detectionOrchestrator = createTestDetectionOrchestrator();
+        final TestPipelineSplitOrchestrator pipelineSplitOrchestrator = createTestPipelineSplitOrchestrator();
+        final PipelinesManager pipelinesManager = createPipelinesManager();
+
+        return new TestOrchestratorContext(testOrchestrator, detectionOrchestrator, pipelineSplitOrchestrator, pipelinesManager);
     }
 
 }

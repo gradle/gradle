@@ -15,14 +15,13 @@
  */
 package org.gradle.external.junit;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.testing.detection.AbstractTestFrameworkDetector;
-import org.gradle.api.testing.detection.TestClassReceiver;
 import org.gradle.api.testing.detection.TestClassVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * @author Tom Eyckmans
@@ -33,15 +32,15 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
     protected static final String TEST_CASE = "junit/framework/TestCase";
     protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
 
-    JUnitDetector(File testClassesDirectory, List<File> testClasspath, TestClassReceiver testClassReceiver) {
-        super(testClassesDirectory, testClasspath, testClassReceiver);
+    JUnitDetector(File testClassesDirectory, FileCollection testClasspath) {
+        super(testClassesDirectory, testClasspath);
     }
 
     protected JUnitTestClassDetecter createClassVisitor() {
         return new JUnitTestClassDetecter(this);
     }
 
-    protected boolean processPossibleTestClass(File testClassFile, boolean superClass) {
+    protected boolean processTestClass(final File testClassFile, boolean superClass) {
         final TestClassVisitor classVisitor = classVisitor(testClassFile);
 
         boolean isTest = classVisitor.isTest();

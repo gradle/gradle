@@ -15,9 +15,30 @@
  */
 package org.gradle.api.testing.detection;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
+ * The Set building test class processor is used when running tests with Ant.
+ *
+ * All detected test classes are added to a set.
+ *
  * @author Tom Eyckmans
  */
-public interface TestClassReceiver {
-    void receiveTestClass(final String testClassName);
+public class SetBuildingTestClassProcessor implements TestClassProcessor {
+
+    private final Set<String> testClassNames;
+
+    public SetBuildingTestClassProcessor() {
+        this.testClassNames = new HashSet<String>();
+    }
+
+    public void processTestClass(final String testClassName) {
+        testClassNames.add(testClassName);
+    }
+
+    public Set<String> getTestClassNames() {
+        return Collections.unmodifiableSet(testClassNames);
+    }
 }

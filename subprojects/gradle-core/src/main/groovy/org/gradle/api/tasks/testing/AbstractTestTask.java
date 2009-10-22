@@ -33,9 +33,9 @@ import org.gradle.external.testng.TestNGTestFramework;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.ArrayList;
 
 /**
  * A base task for executing tests.
@@ -61,7 +61,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     protected FileCollection classpath;
 
-    protected TestFrameworkInstance testFrameworkInstance;
+    private TestFrameworkInstance testFrameworkInstance;
 
     protected boolean testReport = true;
 
