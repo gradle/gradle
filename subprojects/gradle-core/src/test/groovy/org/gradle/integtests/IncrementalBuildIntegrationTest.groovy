@@ -146,7 +146,7 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
         testFile('build/a/file2.txt').assertContents(equalTo('[content2]'))
-        testFile('build/B/file2.txt').assertContents(equalTo('[[content2]]')) 
+        testFile('build/b/file2.txt').assertContents(equalTo('[[content2]]')) 
 
         // Remove file
 
