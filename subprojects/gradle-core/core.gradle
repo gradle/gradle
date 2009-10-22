@@ -76,7 +76,7 @@ processResources.doLast {
         Properties versionProperties = new Properties()
         versionProperties.putAll([
                 (GradleVersion.VERSION): version.toString(),
-                (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime)
+                (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(version.buildTime)
         ])
         file.parentFile.mkdirs()
         file.withOutputStream {
