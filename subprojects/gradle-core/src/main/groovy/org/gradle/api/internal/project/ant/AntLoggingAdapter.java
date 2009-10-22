@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.project.ant;
 
-import org.apache.tools.ant.BuildLogger;
 import org.apache.tools.ant.BuildEvent;
-import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.Logger;
+import org.apache.tools.ant.BuildLogger;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.io.PrintStream;
 
@@ -70,12 +70,19 @@ public class AntLoggingAdapter implements BuildLogger {
     }
 
     public void messageLogged(BuildEvent event) {
-        StringBuffer message = new StringBuffer();
+        String taskName = null;
+        final StringBuffer message = new StringBuffer();
         if (event.getTask() != null) {
-            message.append("[ant:").append(event.getTask().getTaskName()).append("] ");
+            taskName = event.getTask().getTaskName();
+            message.append("[ant:").append(taskName).append("] ");
         }
-        message.append(event.getMessage());
+        final String messageText = event.getMessage();
+        message.append(messageText);
+
         LogLevel level = Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority());
+        if (taskName != null && level != LogLevel.WARN && "junit".equals(taskName) && messageText.startsWith("TEST") && messageText.endsWith("FAILED"))
+            level = LogLevel.WARN;
+
         if (event.getException() != null) {
             logger.log(level, message.toString(), event.getException());
         } else {
