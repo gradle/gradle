@@ -4,11 +4,10 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.artifacts.repositories.WebdavResolver
 import org.gradle.api.tasks.testing.ForkMode
 import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.build.release.Svn
-import org.gradle.build.release.Version
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.apache.ivy.plugins.resolver.*
+import org.gradle.api.tasks.Optional
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -22,16 +21,13 @@ import org.apache.ivy.plugins.resolver.*
  * a JDK 1.4).
  */
 
+version = new Version("0.9", gradle.taskGraph)
+
 defaultTasks "clean", "dists"
 
 usePlugin BasePlugin
 
-svn = new Svn(project)
-
 type = 'jar'
-
-buildTime = new Date()
-versionModifier = null
 
 startScriptsDir = new File("$buildDir/startScripts")
 distLibsDir = new File("$buildDir/distLibs")
@@ -76,12 +72,12 @@ allprojects {
         }
     }
 
-    version = new Version(svn, project, false)
+    version = this.version
 }
 
 def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.5.1@jar']
-configure(groovyProjects()) {
 
+configure(groovyProjects()) {
     usePlugin 'groovy'
     usePlugin 'code-quality'
 
@@ -145,24 +141,7 @@ clean.dependsOn subprojects.collect { "$it.path:clean" }
 task check(overwrite: true, dependsOn: groovyProjects()*.check)
 task test(overwrite: true, dependsOn: groovyProjects()*.test)
 
-distributionUploadUrl = null
-docsRemoteDir = ''
-javadocRemoteDir = ''
-groovydocRemoteDir = ''
 gradle.taskGraph.whenReady {graph ->
-    String prefix = ''
-    if (graph.hasTask(':release')) {
-        versionModifier = ''
-        distributionUploadUrl = 'https://dav.codehaus.org/dist/gradle'
-        prefix = version as String
-    } else {
-        versionModifier = new SimpleDateFormat('yyyyMMddHHmmssZ').format(buildTime)
-        distributionUploadUrl = 'https://dav.codehaus.org/snapshots.dist/gradle'
-        prefix = 'latest'
-    }
-    docsRemoteDir = prefix + '/docs'
-    javadocRemoteDir = docsRemoteDir + '/javadoc'
-    groovydocRemoteDir = docsRemoteDir + '/groovydoc'
     configure(groovyProjects()) {
       jar.manifest.mainAttributes([
               (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
@@ -232,56 +211,26 @@ task srcZip(type: Zip) {
     }
 }
 
-distsRetroLibsFolder = new File(distsDir, 'retroLibs')
-
-task retroTranslateLibs(dependsOn: distLibs) << {
-    distsRetroLibsFolder.mkdirs()
-    ant {
-        taskdef(name: "retrotranslator", classname: "net.sf.retrotranslator.transformer.RetrotranslatorTask",
-                classpath: configurations.retrotranslatorAntTask.asPath)
-        List libFiles = distLibsDir.listFiles()
-        File logbackCore = libFiles.find { it.name.startsWith('logback-core') }
-        File logbackClassic = libFiles.find { it.name.startsWith('logback-classic') }
-        File gradle = libFiles.find { it.name.startsWith('gradle-') && !it.name.startsWith('gradle-wrapper') }
-        File gradleWrapper = libFiles.find { it.name.startsWith('gradle-wrapper')}
-        List retroFiles = [logbackCore, logbackClassic, gradle, gradleWrapper]
-        String libExcludes = retroFiles.join(',')
-        retroFiles.each {File file ->
-            retroExe(file) {
-                fileset(dir: distsRetroLibsFolder)
-                fileset(dir: distLibsDir, excludes: libExcludes)
-                fileset(dir: gradle_retroLibsDir)
-            }
-        }
+task translateLibsTo14(type: TranslateLibsTo14) {
+    if (project.hasProperty('gradle_retroLibsDir')) {
+        toolClasspath = file(project.gradle_retroLibsDir)
+    } else {
+        onlyIf { false }
     }
-}
-retroTranslateLibs.enabled = project.hasProperty('gradle_retroLibsDir')
+    translatedLibsDir = new File(distsDir, 'retroLibs')
+    libsDir = distLibsDir
+    libsToTranslate = ['logback-core', 'logback-classic', 'gradle-', 'gradle-wrapper']
 
-void retroExe(File file, Closure fileSet) {
-    ant {
-        retrotranslator(target: "1.4", destjar: new File(distsRetroLibsFolder, file.name), smart: true, verify: false, failonwarning: false) {
-            jarfileset(dir: distLibsDir, includes: file.name)
-            classpath() {
-                fileset(dir: gradle_retroLibsDir)
-                fileSet.delegate = delegate
-                fileSet()
-            }
-        }
-    }
 }
 
-task jdk14AllZip(type: Zip, dependsOn: [retroTranslateLibs, startScripts]) {
+task jdk14AllZip(type: Zip, dependsOn: [translateLibsTo14, startScripts]) {
+    onlyIf { project.hasProperty('gradle_retroLibsDir') }
     classifier = 'all-jdk14'
     zipFileSet(dir: distLibsDir, prefix: "$zipRootFolder/lib") {
         exclude 'gradle*.jar'
         exclude 'logback*.jar'
     }
-    zipFileSet(dir: distsRetroLibsFolder, prefix: "$zipRootFolder/lib")
-    configurations.retrotranslatorAntTask.each {File file ->
-        zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
-            include file.name
-        }
-    }
+    zipFileSet(dir: translateLibsTo14.translatedLibsDir, prefix: "$zipRootFolder/lib")
     zipFileSet(dir: startScriptsDir, prefix: "$zipRootFolder/bin", fileMode: '775')
     zipFileSet(dir: 'src/toplevel', prefix: zipRootFolder)
     groovyProjects().each { project ->
@@ -292,8 +241,14 @@ task jdk14AllZip(type: Zip, dependsOn: [retroTranslateLibs, startScripts]) {
     zipFileSet(dir: project(':docs').distDocsDir, prefix: zipRootFolder)
     zipFileSet(dir: project(':docs').docsDir, prefix: "$zipRootFolder/docs")
     zipFileSet(dir: project(':docs').samplesDir, prefix: "$zipRootFolder/samples")
+    doFirst {task ->
+        configurations.retrotranslatorAntTask.each {File file ->
+            task.zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
+                include file.name
+            }
+        }
+    }
 }
-jdk14AllZip.enabled = project.hasProperty('gradle_retroLibsDir')
 
 artifacts {
     tasks.withType(Zip).each {
@@ -307,7 +262,7 @@ integTestGradleHome = null
 
 task intTestImage(dependsOn: [allZip, binZip, srcZip]) << {
     integTestGradleHome = new File(integTestDistDir, "gradle-" + version.toString())
-    ant {
+    project.ant {
         delete(dir: integTestDistDir)
         unzip(dest: integTestDistDir, src: allZip.archivePath)
         chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
@@ -354,46 +309,9 @@ task testedDists(dependsOn: [assemble, check, integTest])
 
 task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 
-task install(dependsOn: binZip, description: 'Installs the distribution into directory $gradle_installPath') << {
-    ant.delete(dir: installDir)
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        windowsInstall()
-    } else {
-        asternixInstall()
-    }
-    ant.move(file: "${installDir.parentFile}/$zipRootFolder", tofile: installDir)
-}
-
-gradle.taskGraph.whenReady { graph ->
-    if (graph.hasTask(install)) {
-        // Do this early to ensure that the properties we need have been set, and fail early
-        installDir = file("$gradle_installPath")
-        if (installDir.file) {
-            throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
-        }
-        if (installDir.directory) {
-            File libDir = new File(installDir, "lib")
-            if (!libDir.directory || !libDir.list().findAll { it.matches('gradle.*\\.jar')}) {
-                throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
-            }
-        }
-    }
-}
-
-void windowsInstall() {
-    ant.unzip(src: binZip.archivePath, dest: installDir.parentFile)
-}
-
-/**
- * We can't use the Ant unzip task, as this task does not preserve the *nix file system permissions of the Gradle zip.
- */
-void asternixInstall() {
-    ant.exec(executable: "unzip") {
-        arg(value: '-q')
-        arg(value: '-d')
-        arg(value: installDir.parentFile)
-        arg(value: "${binZip.archivePath}")
-    }
+task install(type: Install, dependsOn: binZip, description: 'Installs the distribution into directory $gradle_installPath') {
+    distribution = binZip
+    installDirProperyName = 'gradle_installPath'
 }
 
 uploadDists {
@@ -406,6 +324,7 @@ uploadDists {
         addArtifactPattern("$distributionUploadUrl/[artifact]-[revision](-[classifier]).[ext]" as String)
     }
 }
+
 gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(uploadDists)) {
         // check properties defined and fail early
@@ -435,3 +354,143 @@ task rebuildWrapper(dependsOn: [clean, wrapper])
 def groovyProjects() {
     subprojects.findAll { project -> project.name != 'docs' }
 }
+
+class Version {
+    String versionNumber
+    Date buildTime
+    Boolean release = null
+
+    def Version(versionNumber, taskGraph) {
+        this.versionNumber = versionNumber
+        buildTime = new Date()
+        taskGraph.whenReady { graph ->
+            if (!graph.hasTask(':release')) {
+                this.versionNumber += "-" + getTimestamp()
+                release = false
+            } else {
+                release = true
+            }
+        }
+    }
+
+    String toString() {
+        versionNumber
+    }
+
+    String getTimestamp() {
+        new SimpleDateFormat('yyyyMMddHHmmssZ').format(buildTime)
+    }
+
+    boolean isRelease() {
+        if (release == null) {
+            throw new GradleException("Can't determine whether this is a release build before the task graph is populated")
+        }
+        return release
+    }
+}
+
+class TranslateLibsTo14 extends DefaultTask {
+    File translatedLibsDir
+
+    File libsDir
+
+    File toolClasspath
+
+    List libsToTranslate = []
+
+    @org.gradle.api.tasks.TaskAction
+    void retroTranslate() {
+        translatedLibsDir.mkdirs()
+        project.ant {
+            taskdef(name: "retrotranslator", classname: "net.sf.retrotranslator.transformer.RetrotranslatorTask",
+                    classpath: this.project.configurations.retrotranslatorAntTask.asPath)
+            List libFiles = libsDir.listFiles()
+            List retroFiles = libsToTranslate.collect { String fileName ->
+                libFiles.find { it.name.startsWith(fileName) }
+            }
+            String libExcludes = retroFiles.join(',')
+            retroFiles.each {File file ->
+                retroExe(file) {
+                    fileset(dir: translatedLibsDir)
+                    fileset(dir: libsDir, excludes: libExcludes)
+                    fileset(dir: toolClasspath)
+                }
+            }
+        }
+    }
+
+    void retroExe(File file, Closure fileSet) {
+        project.ant {
+            retrotranslator(target: "1.4", destjar: new File(translatedLibsDir, file.name), smart: true, verify: false, failonwarning: false) {
+                jarfileset(dir: libsDir, includes: file.name)
+                classpath() {
+                    fileset(dir: toolClasspath)
+                    fileSet.delegate = delegate
+                    fileSet()
+                }
+            }
+        }
+    }
+}
+
+class Install extends DefaultTask {
+    // This is a private property set by the graph listener. But due to some groovy bug the property has to be public.
+    File installDir
+
+    Zip distribution
+
+    String installDirProperyName
+
+    def Install() {
+        addPropertyCheck()
+    }
+
+    @org.gradle.api.tasks.TaskAction
+    void install() {
+        project.ant.delete(dir: installDir)
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            windowsInstall()
+        } else {
+            asternixInstall()
+        }
+        project.ant.move(file: "${installDir.parentFile}/$project.zipRootFolder", tofile: installDir)
+    }
+
+    private void addPropertyCheck() {
+        project.gradle.taskGraph.whenReady {graph ->
+            if (graph.hasTask(path)) {
+                // Do this early to ensure that the properties we need have been set, and fail early
+                if (!project.hasProperty(installDirProperyName)) {
+                    throw new RuntimeException("You can't install without setting the $installDirProperyName property.")
+                }
+                this.installDir = project.file(this.project."$installDirProperyName")
+                if (installDir.file) {
+                    throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
+                }
+                if (installDir.directory) {
+                    File libDir = new File(installDir, "lib")
+                    if (!libDir.directory || !libDir.list().findAll { it.matches('gradle.*\\.jar')}) {
+                        throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
+                    }
+                }
+            }
+        }
+    }
+
+    void windowsInstall() {
+        project.ant.unzip(src: distribution.archivePath, dest: installDir.parentFile)
+    }
+
+    /**
+     * We can't use the Ant unzip task, as this task does not preserve the *nix file system permissions of the Gradle zip.
+     */
+    void asternixInstall() {
+        project.ant.exec(executable: "unzip") {
+            arg(value: '-q')
+            arg(value: '-d')
+            arg(value: installDir.parentFile)
+            arg(value: "${distribution.archivePath}")
+        }
+    }
+}
+

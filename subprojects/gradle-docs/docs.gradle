@@ -26,6 +26,8 @@ dependencies {
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
 }
 
+RemoteLocations remoteLocations = new RemoteLocations(version: version)
+
 srcDocsDir = file('src/docs')
 userguideSrcDir = new File(srcDocsDir, 'userguide')
 
@@ -61,8 +63,8 @@ task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
     classpath = configurations.userGuideTask
     validator = new SampleElementValidator()
     doFirst {
-        userguideSrc.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-        userguideSrc.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
+        userguideSrc.javadocUrl = remoteLocations.javadocUrl
+        userguideSrc.groovydocUrl = remoteLocations.groovydocUrl
     }
 }
 
@@ -231,13 +233,13 @@ task groovydoc(type: Groovydoc) {
 task docs(dependsOn: [javadoc, groovydoc, 'userguide', 'distDocs'])
 
 task uploadDocs(dependsOn: docs) << {
-    ftp(action: 'mkdir', remotedir: docsRemoteDir)
-    ftp(action: 'delete', remotedir: docsRemoteDir) {
+    ftp(action: 'mkdir', remotedir: remoteLocations.docsRemoteDir)
+    ftp(action: 'delete', remotedir: remoteLocations.docsRemoteDir) {
         fileset() {
             include(name: '**/*')
         }
     }
-    ftp(action: 'send', remotedir: docsRemoteDir) {
+    ftp(action: 'send', remotedir: remoteLocations.docsRemoteDir) {
         fileset(dir: docsDir)
     }
 }
@@ -250,8 +252,8 @@ task distDocs(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, sa
     classpath = configurations.userGuideTask
 }
 distDocs.doFirst {
-    distDocs.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-    distDocs.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
+    distDocs.javadocUrl = remoteLocations.javadocUrl
+    distDocs.groovydocUrl = remoteLocations.groovydocUrl
 }
 distDocs << {
     distDocsDir.mkdirs()
@@ -286,8 +288,8 @@ task websiteDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) 
     classpath = configurations.userGuideTask
 }
 websiteDocs.doFirst {
-    websiteDocs.javadocUrl = "http://www.gradle.org/${javadocRemoteDir}"
-    websiteDocs.groovydocUrl = "http://www.gradle.org/${groovydocRemoteDir}"
+    websiteDocs.javadocUrl = remoteLocations.getJavadocRemoteDir()
+    websiteDocs.groovydocUrl = remoteLocations.getGroovydocRemoteDir()
 }
 websiteDocs << {
     File websiteDocs = new File(buildDir, 'docs')
@@ -322,6 +324,28 @@ void ftp(Map args, Closure antFileset = {}) {
             antFileset.delegate = delegate
             antFileset()
         }
+    }
+}
+
+class RemoteLocations {
+    def version
+
+    static final GRADLE_ORG_URL = "http://www.gradle.org"
+
+    String getDistributionUploadUrl() {
+        version.isRelease() ? 'https://dav.codehaus.org/dist/gradle' : 'https://dav.codehaus.org/snapshots.dist/gradle'
+    }
+
+    String getDocsRemoteDir() {
+        version.isRelease() ? version.toString() : 'latest'
+    }
+
+    String getJavadocUrl() {
+        "$GRADLE_ORG_URL/${getDocsRemoteDir()}/javadoc"
+    }
+
+    String getGroovydocUrl() {
+        "$GRADLE_ORG_URL/${getDocsRemoteDir()}/groovydoc"
     }
 }
 
