@@ -107,7 +107,7 @@ project(':docs') {
 }
 
 allprojects {
-    task ide << {task ->
+    task ide << { task ->
         def config = task.project.configurations.findByName('testRuntime')
         if (!config) {
             return
@@ -256,23 +256,23 @@ artifacts {
     }
 }
 
-integTestDistDir = file("$buildDir/integ test")
-integTestUserDir = file('intTestHomeDir')
-integTestGradleHome = null
-
-task intTestImage(dependsOn: [allZip, binZip, srcZip]) << {
-    integTestGradleHome = new File(integTestDistDir, "gradle-" + version.toString())
-    project.ant {
-        delete(dir: integTestDistDir)
-        unzip(dest: integTestDistDir, src: allZip.archivePath)
-        chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
+task intTestImage(dependsOn: [allZip, binZip, srcZip]) {
+    integTestDistDir = file("$buildDir/integ test")
+    doFirst { task ->
+        task.integTestGradleHome = new File(integTestDistDir, "gradle-" + version.toString())
+        project.ant {
+            delete(dir: integTestDistDir)
+            unzip(dest: integTestDistDir, src: allZip.archivePath)
+            chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
+        }
+        WrapperProjectCreator.createProject(new File(integTestGradleHome, 'samples'), binZip.archivePath.parentFile, version.toString())
     }
-    WrapperProjectCreator.createProject(new File(integTestGradleHome, 'samples'), binZip.archivePath.parentFile, version.toString())
 }
 
 // The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
 // the userguide source
 task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideSrc']) {
+    integTestUserDir = file('intTestHomeDir')
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
     options.systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
     options.systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
@@ -284,18 +284,17 @@ task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, 
     testResultsDir = file('build/test-results')
     testReportDir = file('build/reports/tests')
     testSrcDirs = []
-}
-
-integTest.doFirst { task ->
-    task.options.systemProperties['integTest.gradleHomeDir'] = integTestGradleHome.absolutePath
-    def forkArgs = [:]
-    if (noForkIntegTests()) {
-        task.options.systemProperties['org.gradle.integtest.nofork'] = "true"
-        forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError']]
-    } else {
-        forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError']]
+    doFirst {task ->
+        task.options.systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
+        def forkArgs = [:]
+        if (noForkIntegTests()) {
+            task.options.systemProperties['org.gradle.integtest.nofork'] = "true"
+            forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError']]
+        } else {
+            forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError']]
+        }
+        task.options.fork(forkArgs)
     }
-    task.options.fork(forkArgs)
 }
 
 boolean noForkIntegTests() {
@@ -316,12 +315,13 @@ task install(type: Install, dependsOn: binZip, description: 'Installs the distri
 
 uploadDists {
     dependsOn testedDists
-}.doFirst {
-    it.repositories.add(new WebdavResolver()) {
-        name = 'gradleReleases'
-        user = codehausUserName
-        userPassword = codehausUserPassword
-        addArtifactPattern("$distributionUploadUrl/[artifact]-[revision](-[classifier]).[ext]" as String)
+    doFirst {
+        it.repositories.add(new WebdavResolver()) {
+            name = 'gradleReleases'
+            user = codehausUserName
+            userPassword = codehausUserPassword
+            addArtifactPattern("$distributionUploadUrl/[artifact]-[revision](-[classifier]).[ext]" as String)
+        }
     }
 }
 
@@ -493,4 +493,3 @@ class Install extends DefaultTask {
         }
     }
 }
-
