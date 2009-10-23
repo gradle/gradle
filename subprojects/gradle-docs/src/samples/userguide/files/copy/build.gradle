@@ -17,6 +17,10 @@ task anotherCopyTask(type: Copy) {
 }
 // END SNIPPET copy-task-2
 
+def getDestDir() {
+    file('some-dir')
+}
+
 // START SNIPPET copy-method
 task copyMethod << {
     copy {
