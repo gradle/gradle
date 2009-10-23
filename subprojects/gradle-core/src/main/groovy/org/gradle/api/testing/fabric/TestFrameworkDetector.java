@@ -15,6 +15,8 @@
  */
 package org.gradle.api.testing.fabric;
 
+import org.gradle.api.testing.detection.TestClassProcessor;
+
 import java.io.File;
 
 /**
@@ -22,7 +24,9 @@ import java.io.File;
  */
 public interface TestFrameworkDetector {
 
-    boolean processPossibleTestClass(File testClassFile);
+    void setTestClassProcessor(TestClassProcessor testClassProcessor);
+
+    boolean processTestClass(File testClassFile);
 
     File getTestClassesDirectory();
 }

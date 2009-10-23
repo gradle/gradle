@@ -22,6 +22,12 @@ import org.gradle.api.testing.pipelinesplit.TestPipelineSplitOrchestrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Controls high level test execution.
  *
@@ -34,6 +40,10 @@ public class TestOrchestrator {
      */
     private final NativeTest testTask;
     private final TestOrchestratorFactory factory;
+
+    private final Lock initLock;
+    private TestOrchestratorContext context;
+
 
     /**
      * Initialize a test orchestrator with the test task that needs to be run and the default test orchestrator factory
@@ -60,6 +70,26 @@ public class TestOrchestrator {
 
         this.testTask = testTask;
         this.factory = factory;
+        this.initLock = new ReentrantLock();
+    }
+
+    public NativeTest getTestTask() {
+        return testTask;
+    }
+
+    public TestOrchestratorFactory getFactory() {
+        return factory;
+    }
+
+    public void stop()
+    {
+        initLock.lock();
+        try {
+            context.getKeepRunning().set(false);
+        }
+        finally {
+            initLock.unlock();
+        }
     }
 
     /**
@@ -78,28 +108,81 @@ public class TestOrchestrator {
      */
     public void execute() {
         // initialization
-        final TestDetectionOrchestrator detectionOrchestrator = factory.createTestDetectionOrchestrator();
-        final TestPipelineSplitOrchestrator pipelineSplitOrchestrator = factory.createTestPipelineSplitOrchestrator();
-        final PipelinesManager pipelinesManager = factory.createPipelinesManager();
+        initLock.lock();
+        try {
+            this.context = factory.createContext(this);
+        }
+        finally {
+            initLock.unlock();
+        }
 
-        pipelinesManager.initialize(testTask);
+        final List<TestOrchestratorAction> actions = new ArrayList<TestOrchestratorAction>();
 
-        // execution
-        detectionOrchestrator.startDetection(testTask);
-        logger.debug("test - detection - started");
+        actions.add(new TestOrchestratorAction() {
+            public void execute(TestOrchestratorContext context) {
+                final PipelinesManager pipelinesManager = context.getPipelinesManager();
+                final TestOrchestrator testOrchestrator = context.getTestOrchestrator();
+                final NativeTest testTask = testOrchestrator.getTestTask();
 
-        pipelineSplitOrchestrator.startPipelineSplitting(pipelinesManager);
-        logger.debug("test - pipeline splitting - started");
+                pipelinesManager.initialize(testTask);
+            }
+        });
 
-        detectionOrchestrator.waitForDetectionEnd();
-        logger.debug("test - detection - ended");
+        actions.add(new TestOrchestratorAction(){
+            public void execute(TestOrchestratorContext context) {
+                final TestDetectionOrchestrator testDetectionOrchestrator = context.getTestDetectionOrchestrator();
 
-        pipelineSplitOrchestrator.waitForPipelineSplittingEnded();
-        logger.debug("test - pipeline splitting - ended");
+                testDetectionOrchestrator.startDetection();
+                logger.debug("test - detection - started");
+            }
+        });
 
-        pipelinesManager.pipelineSplittingEnded();
+        actions.add(new TestOrchestratorAction() {
+            public void execute(TestOrchestratorContext context) {
+                final TestPipelineSplitOrchestrator pipelineSplitOrchestrator = context.getPipelineSplitOrchestrator();
+                final PipelinesManager pipelinesManager = context.getPipelinesManager();
 
-        pipelinesManager.waitForExecutionEnd();
+                pipelineSplitOrchestrator.startPipelineSplitting(pipelinesManager);
+                logger.debug("test - pipeline splitting - started");
+            }
+        });
+
+        actions.add(new TestOrchestratorAction() {
+            public void execute(TestOrchestratorContext context) {
+                final TestDetectionOrchestrator testDetectionOrchestrator = context.getTestDetectionOrchestrator();
+
+                testDetectionOrchestrator.waitForDetectionEnd();
+                logger.debug("test - detection - ended");
+            }
+        });
+
+        actions.add(new TestOrchestratorAction() {
+            public void execute(TestOrchestratorContext context) {
+                final TestPipelineSplitOrchestrator pipelineSplitOrchestrator = context.getPipelineSplitOrchestrator();
+                final PipelinesManager pipelinesManager = context.getPipelinesManager();
+
+                pipelineSplitOrchestrator.waitForPipelineSplittingEnded();
+                pipelinesManager.pipelineSplittingEnded();
+                logger.debug("test - pipeline splitting - ended");
+            }
+        });
+
+        actions.add(new TestOrchestratorAction() {
+            public void execute(TestOrchestratorContext context) {
+                final PipelinesManager pipelinesManager = context.getPipelinesManager();
+
+                pipelinesManager.waitForExecutionEnd();
+            }
+        });
+
+        final Iterator<TestOrchestratorAction> actionsIterator = actions.iterator();
+
+        while ( context.getKeepRunning().get() && actionsIterator.hasNext() ) {
+            final TestOrchestratorAction currentAction = actionsIterator.next();
+
+            currentAction.execute(context);
+        }
+
         logger.debug("test - execution - ended");
     }
 }

@@ -16,8 +16,7 @@
 package org.gradle.external.junit;
 
 import static junit.framework.Assert.assertNotNull;
-import org.gradle.api.AntBuilder;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.testing.*;
@@ -29,10 +28,10 @@ import org.jmock.Expectations;
 import org.junit.Before;
 
 import java.io.File;
-import java.util.TreeSet;
-import java.util.Set;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author Tom Eyckmans
@@ -47,9 +46,8 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
     private JUnitOptions jUnitOptionsMock;
     private JunitForkOptions jUnitForkOptionsMock;
     private AbstractTestTask testTask;
-    private FileCollection classpathMock;
 
-    private AntBuilder antBuilderMock;
+
 
     private ProjectPluginsContainer projectPluginsHandlerMock;
 
@@ -62,10 +60,8 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         antJUnitReportMock = context.mock(AntJUnitReport.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
         jUnitForkOptionsMock = context.mock(JunitForkOptions.class);
-        antBuilderMock = context.mock(AntBuilder.class);
         projectPluginsHandlerMock = context.mock(ProjectPluginsContainer.class);
         testTask = context.mock(AntTest.class, "JUnitTestFrameworkInstanceTest");
-        classpathMock = context.mock(FileCollection.class);
 
         jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testTask, jUnitTestFrameworkMock);
     }
@@ -83,6 +79,10 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(jUnitForkOptionsMock).setForkMode(ForkMode.PER_TEST);
             one(projectMock).getProjectDir(); will(returnValue(projectDir));
             one(jUnitForkOptionsMock).setDir(projectDir);
+            one(testMock).getTestClassesDir();will(returnValue(testClassesDir));
+            one(testMock).getClasspath();will(returnValue(classpathMock));
+            one(classpathMock).getAsFileTree();will(returnValue(classpathAsFileTreeMock));
+            one(classpathAsFileTreeMock).visit(with(aNonNull(FileVisitor.class)));
         }});
 
         jUnitTestFrameworkInstance.initialize(projectMock, testMock);

@@ -15,7 +15,10 @@
  */
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -39,12 +42,18 @@ public abstract class AbstractTestFrameworkInstanceTest {
     protected final List<File> testSrcDirs = Arrays.asList(new File("testSrcDirs"));
     protected final File testResultsDir = new File("testResultsDir");
     protected final File testReportDir = new File("testReportDir");
+    protected AntBuilder antBuilderMock;
+    protected FileCollection classpathMock;
+    protected FileTree classpathAsFileTreeMock;
 
     protected void setUp() throws Exception {
         context.setImposteriser(ClassImposteriser.INSTANCE);
 
         projectMock = context.mock(Project.class);
         testMock = context.mock(AntTest.class);
+        antBuilderMock = context.mock(AntBuilder.class);
+        classpathMock = context.mock(FileCollection.class);
+        classpathAsFileTreeMock = context.mock(FileTree.class);
     }
 
     protected void expectHandleEmptyIncludesExcludes() {
