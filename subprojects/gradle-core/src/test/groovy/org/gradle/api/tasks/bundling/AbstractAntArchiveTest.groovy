@@ -19,8 +19,6 @@ package org.gradle.api.tasks.bundling
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
-import org.gradle.api.tasks.util.TarFileSet
-import org.gradle.api.tasks.util.ZipFileSet
 import org.gradle.util.TemporaryFolder
 import org.junit.Before
 import org.junit.Rule
@@ -42,19 +40,7 @@ abstract class AbstractAntArchiveTest {
     File unzipDir
     String archiveName
     FileSet fileSet
-    FileSet mergeGroupFileSet
-    List mergeGroupFileSets
-    FileSet mergeZipFileSet
-    FileSet mergeTarFileSet
-    List mergeFileSets
     List resourceCollections
-
-    File mergeZipFile
-    File mergeGroupFile
-    File mergeTarFile
-    File zipGroupContentFile
-    File zipContentFile
-    File tarContentFile
 
     GradleManifest manifest
     File manifestFile
@@ -68,20 +54,9 @@ abstract class AbstractAntArchiveTest {
     Map fileSetDuosFiles = [:]
 
     @Before public void setUp()  {
-        mergeGroupFile = new File(testDir, 'test_mergegroup.zip')
-        mergeZipFile = new File(testDir, 'test_merge_zip.zip')
-        mergeTarFile = new File(testDir, 'test_merge_tar.tar')
 
         (unzipDir = new File(testDir, 'unzipDir')).mkdir()
         archiveName = 'test.jar'
-
-        mergeGroupFileSet = new FileSet(testDir, resolver)
-        mergeGroupFileSet.include("$mergeGroupFile.name")
-        mergeGroupFileSets = [mergeGroupFileSet]
-
-        mergeZipFileSet = new ZipFileSet(mergeZipFile, resolver)
-        mergeTarFileSet = new TarFileSet(mergeTarFile, resolver)
-        mergeFileSets = [mergeZipFileSet, mergeTarFileSet]
 
         fileSet = new FileSet(testDir, resolver)
         fileSet.include('**/*.txt', '**/*.jpg')
@@ -110,9 +85,6 @@ abstract class AbstractAntArchiveTest {
     void checkResourceFiles() {
         assertTrue(new File(unzipDir, txtFile.name).exists())
         assertTrue(new File(unzipDir, groovyFile.name).exists())
-        assertTrue(new File(unzipDir, zipContentFile.name).exists())
-        assertTrue(new File(unzipDir, zipGroupContentFile.name).exists())
-        assertTrue(new File(unzipDir, tarContentFile.name).exists())
         assertFalse(new File(unzipDir, xmlFile.name).exists())
         assertFalse(new File(unzipDir, jpgFile.name).exists())
     }
@@ -149,16 +121,6 @@ abstract class AbstractAntArchiveTest {
     }
 
     protected void createArchiveFiles() {
-        (zipContentFile = new File(testDir, 'zipcontent.txt')).createNewFile()
-        (zipGroupContentFile = new File(testDir, 'zipgroupcontent.txt')).createNewFile()
-        (tarContentFile = new File(testDir, 'tarcontent.txt')).createNewFile()
-        AntBuilder ant = new AntBuilder()
-        ant.zip(destfile: mergeGroupFile, basedir: testDir, includes: "$zipGroupContentFile.name")
-        ant.zip(destfile: mergeZipFile, basedir: testDir, includes: "$zipContentFile.name")
-        ant.tar(destfile: mergeTarFile, basedir: testDir, includes: "$tarContentFile.name")
-        zipContentFile.delete()
-        zipGroupContentFile.delete()
-        tarContentFile.delete()
     }
 
     List createFileSetDuo(String key) {

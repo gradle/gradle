@@ -107,7 +107,7 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
         for (int i = 0; !stopFlag.get() && i < dirs.size(); i++) {
             FileVisitDetailsImpl dir = dirs.get(i);
             visitor.visitDir(dir);
-            walkDir(dir.file, dir.relativePath, stopFlag);
+            walkDir(dir.getFile(), dir.getRelativePath(), stopFlag);
         }
     }
 
@@ -115,23 +115,12 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
         return spec.isSatisfiedBy(element);
     }
 
-    private static class FileVisitDetailsImpl implements FileVisitDetails {
-        private final File file;
-        private final RelativePath relativePath;
+    private static class FileVisitDetailsImpl extends DefaultFileTreeElement implements FileVisitDetails {
         private final AtomicBoolean stop;
 
         private FileVisitDetailsImpl(File file, RelativePath relativePath, AtomicBoolean stop) {
-            this.file = file;
-            this.relativePath = relativePath;
+            super(file, relativePath);
             this.stop = stop;
-        }
-
-        public File getFile() {
-            return file;
-        }
-
-        public RelativePath getRelativePath() {
-            return relativePath;
         }
 
         public void stopVisiting() {

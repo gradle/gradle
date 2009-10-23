@@ -96,6 +96,17 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertVisits(fileSet, ['subDir/included1', 'subDir2/included2'], ['subDir', 'subDir2'])
     }
 
+    @Test public void testCanStopVisitingFiles() {
+        File included1 = new File(testDir, 'subDir/included1')
+        File included2 = new File(testDir, 'subDir/otherDir/included2')
+        [included1, included2].each {File file ->
+            file.parentFile.mkdirs()
+            file.text = 'some text'
+        }
+
+        assertCanStopVisiting(fileSet)
+    }
+
     @Test public void testContainsFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')

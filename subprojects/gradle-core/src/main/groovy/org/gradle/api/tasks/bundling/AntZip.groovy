@@ -28,8 +28,6 @@ class AntZip extends AbstractAntArchive {
         args.whenempty = parameter.emptyPolicy()
         parameter.ant.zip(args) {
             addResourceCollections(parameter.resourceCollections, delegate)
-            addMergeGroupFileSets(parameter.mergeGroupFileSets, delegate)
-            addMergeFileSets(parameter.mergeFileSets, delegate)
         }
     }
 }

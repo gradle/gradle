@@ -23,7 +23,9 @@ import org.gradle.api.tasks.util.PatternFilterable;
  * manipulation methods. You typically use a {@code FileTree} to represent files to copy or the contents of an
  * archive.</p>
  *
- * <p>You can obtain a {@code FileTree} instance using {@link org.gradle.api.Project#fileTree(java.util.Map)}.</p>
+ * <p>You can obtain a {@code FileTree} instance using {@link org.gradle.api.Project#fileTree(java.util.Map)},
+ * {@link org.gradle.api.Project#zipTree(Object)} or {@link org.gradle.api.Project#tarTree(Object)}.
+ * </p>
  */
 public interface FileTree extends FileCollection {
     /**

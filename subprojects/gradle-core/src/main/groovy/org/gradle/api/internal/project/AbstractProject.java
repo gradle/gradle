@@ -27,13 +27,11 @@ import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopyAction;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.internal.file.BaseDirConverter;
-import org.gradle.api.internal.file.CopyActionImpl;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.PathResolvingFileCollection;
+import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -729,6 +727,18 @@ public abstract class AbstractProject implements ProjectInternal {
         FileSet result = new FileSet(Collections.emptyMap(), fileResolver);
         ConfigureUtil.configure(closure, result);
         return result;
+    }
+
+    public FileTree zipTree(Object zipPath) {
+        return new ZipFileTree(file(zipPath), getExpandDir());
+    }
+
+    public FileTree tarTree(Object tarPath) {
+        return new TarFileTree(file(tarPath), getExpandDir());
+    }
+
+    private File getExpandDir() {
+        return new File(getBuildDir(), "tmp/expandedArchives");
     }
 
     public File relativePath(Object path) {

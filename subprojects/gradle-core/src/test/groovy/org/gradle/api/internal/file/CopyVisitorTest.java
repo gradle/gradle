@@ -28,10 +28,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -86,21 +83,6 @@ public class CopyVisitorTest {
         assertTrue(targetAnotherFile.exists());
     }
 
-    @Test public void testNeedsCopy() throws IOException {
-        File sourceFile = getResource("testfiles/rootfile.txt");
-        File destFile = new File(testDir, sourceFile.getName());
-
-        visitor = new CopyVisitor(testDir, null, null, new FilterChain());
-        visitor.copyFile(sourceFile,  destFile);
-
-        assertEquals(sourceFile.lastModified(), destFile.lastModified());
-
-        assertFalse(visitor.needsCopy(sourceFile, destFile));
-
-        destFile.setLastModified(sourceFile.lastModified() - 1000);
-        assertTrue(visitor.needsCopy(sourceFile, destFile));
-    }
-
     @Test public void testFilter() throws IOException {
         FilterChain filters = new FilterChain();
         ReplaceTokens filter = new ReplaceTokens(filters.getLastFilter());
@@ -112,8 +94,9 @@ public class CopyVisitorTest {
 
         visitor = new CopyVisitor(testDir, null, null, filters);
 
-        File sourceFile = getResource("testfiles/rootfile.txt");
-        File destFile = new File(testDir, sourceFile.getName());
+        FileVisitDetails sourceFile = file(getResource("testfiles/rootfile.txt"), new RelativePath(true,
+                "rootfile.txt"));
+        File destFile = new File(testDir, "rootfile.txt");
 
         visitor.copyFile(sourceFile, destFile);
 
@@ -124,7 +107,6 @@ public class CopyVisitorTest {
 
     @Test public void testGetTargetPlain() {
         visitor = new CopyVisitor(testDir, null, null, new FilterChain());
-        visitor.visitDir(file(sourceDir, new RelativePath(false)));
 
         File target = visitor.getTarget(new RelativePath(true, "one"));
         assertEquals(new File(testDir, "one"), target);
@@ -139,7 +121,6 @@ public class CopyVisitorTest {
         mappers.add(renamer);
 
         visitor = new CopyVisitor(testDir, null, mappers, new FilterChain());
-        visitor.visitDir(file(sourceDir, new RelativePath(false)));
 
         File target = visitor.getTarget(new RelativePath(true, "Fred.java"));
         assertEquals(new File(testDir, "FredTest.java"), target);
@@ -151,27 +132,15 @@ public class CopyVisitorTest {
         mappers.add(new FlatMapper(this, testDir));
 
         visitor = new CopyVisitor(testDir, mappers, null, new FilterChain());
-        visitor.visitDir(file(sourceDir, new RelativePath(false, "sub")));
 
         File target = visitor.getTarget(new RelativePath(true, "Fred.java"));
         assertEquals(new File(testDir, "Fred.java"), target);
     }
 
     private FileVisitDetails file(final File sourceDir, final RelativePath relativePath) {
-        return new FileVisitDetails() {
-            public File getFile() {
-                return sourceDir;
-            }
-
-            public RelativePath getRelativePath() {
-                return relativePath;
-            }
-
-            public void stopVisiting() {
-                throw new UnsupportedOperationException();
-            }
-        };
+        return new TestFileVisitDetails(sourceDir, relativePath);
     }
+
 
     public class FlatMapper extends Closure {
         private File dir;
@@ -184,6 +153,16 @@ public class CopyVisitorTest {
         public Object call(Object[] args) {
             File target = (File) args[0];
             return new File(dir, target.getName());
+        }
+    }
+
+    private class TestFileVisitDetails extends DefaultFileTreeElement implements FileVisitDetails {
+        public TestFileVisitDetails(File sourceDir, RelativePath relativePath) {
+            super(sourceDir, relativePath);
+        }
+
+        public void stopVisiting() {
+            throw new UnsupportedOperationException();
         }
     }
 }

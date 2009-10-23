@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.InputStream;
 
-public class DefaultFileTreeElement implements FileTreeElement {
+public class DefaultFileTreeElement extends AbstractFileTreeElement {
     private final File file;
     private final RelativePath relativePath;
 
@@ -31,6 +32,22 @@ public class DefaultFileTreeElement implements FileTreeElement {
 
     public File getFile() {
         return file;
+    }
+
+    public String getDisplayName() {
+        return String.format("file '%s'", file);
+    }
+
+    public long getLastModified() {
+        return file.lastModified();
+    }
+
+    public boolean isDirectory() {
+        return file.isDirectory();
+    }
+
+    public InputStream open() {
+        return GFileUtils.openInputStream(file);
     }
 
     public RelativePath getRelativePath() {

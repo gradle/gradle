@@ -40,8 +40,9 @@ public class Jar extends Zip {
     }   
 
     Closure createAntArchiveTask() {
-        {-> antJar.execute(new AntMetaArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(), getFileSetManifest(),
-                getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant))}
+        {-> antJar.execute(new AntMetaArchiveParameter(getResourceCollections(), getFileSetManifest(),
+                getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(),
+                getMetaInfResourceCollections(), project.ant))}
     }
 
     public AntJar getAntJar() {

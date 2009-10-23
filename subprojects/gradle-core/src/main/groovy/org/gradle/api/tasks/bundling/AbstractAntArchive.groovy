@@ -33,23 +33,9 @@ class AbstractAntArchive {
         }
     }
 
-    void addMergeGroupFileSets(List mergeGroups, delegate) {
-        mergeGroups.each { FileSet mergeGroupFileSet ->
-            mergeGroupFileSet.addToAntBuilder(delegate, 'zipgroupfileset')
-        }
-    }
-
-    void addMergeFileSets(List mergeFileSets, delegate) {
-        mergeFileSets.each { FileSet mergeFileSet ->
-            mergeFileSet.addToAntBuilder(delegate, null)
-        }
-    }
-
     void addMetaArchiveParameter(AntMetaArchiveParameter parameter, delegate) {
         addResourceCollections(parameter.resourceCollections, delegate)
         parameter.gradleManifest?.addToAntBuilder(delegate)
         addResourceCollections(parameter.metaInfFileSets, delegate, 'metainf')
-        addMergeGroupFileSets(parameter.mergeGroupFileSets, delegate)
-        addMergeFileSets(parameter.mergeFileSets, delegate)
     }
 }

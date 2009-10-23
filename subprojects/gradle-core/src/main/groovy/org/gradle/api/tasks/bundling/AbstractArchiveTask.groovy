@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.ConventionTask
@@ -26,7 +25,6 @@ import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
-import org.gradle.util.GradleUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.InputFiles
@@ -89,18 +87,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * The classifier part of the archive name. Default to an empty string. Could be 'src'. 
      */
     private String classifier = ''
-
-    /**
-     *
-     */
-    private List mergeFileSets = []
-
-    /**
-     *
-     */
-    private List mergeGroupFileSets = []
-
-    protected ArchiveDetector archiveDetector = new ArchiveDetector()
 
     @TaskAction
     public void generateArchive() {
@@ -177,39 +163,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         ConfigurableFileCollection files = project.files(srcPaths)
         resourceCollections(files)
         files
-    }
-
-    /**
-     *
-     */
-    public AbstractArchiveTask merge(Object[] archiveFiles) {
-        List flattenedArchiveFiles
-        Closure configureClosure = ConfigureUtil.extractClosure(archiveFiles)
-        if (configureClosure) {
-            flattenedArchiveFiles = archiveFiles[0..archiveFiles.length - 2]
-        } else {
-            flattenedArchiveFiles = archiveFiles
-        }
-        flattenedArchiveFiles = flattenedArchiveFiles.flatten()
-        GradleUtil.fileList(flattenedArchiveFiles).collect { project.file(it) }.each {
-            Class fileSetType = archiveDetector.archiveFileSetType(it)
-            if (!fileSetType) { throw new InvalidUserDataException("File $it is not a valid archive or has no valid extension.") }
-            def fileSet = fileSetType.newInstance(it, project.fileResolver)
-            ConfigureUtil.configure(configureClosure, fileSet)
-            mergeFileSets.add(fileSet)
-        }
-        this
-    }
-
-    /**
-     * Defines a fileset of zip-like archives
-     */
-    public AbstractArchiveTask mergeGroup(def dir, Closure configureClosure = null) {
-        if (!dir) { throw new InvalidUserDataException('Dir argument must not be null!') }
-        FileTree fileSet = project.fileTree(dir)
-        ConfigureUtil.configure(configureClosure, fileSet)
-        mergeGroupFileSets.add(fileSet)
-        this
     }
 
     public AbstractArchiveTask resourceCollections(Object ... elements) {
@@ -302,21 +255,5 @@ public abstract class AbstractArchiveTask extends ConventionTask {
 
     public void setClassifier(String classifier) {
         this.classifier = classifier;
-    }
-
-    public List getMergeFileSets() {
-        return mergeFileSets;
-    }
-
-    public void setMergeFileSets(List mergeFileSets) {
-        this.mergeFileSets = mergeFileSets;
-    }
-
-    public List getMergeGroupFileSets() {
-        return mergeGroupFileSets;
-    }
-
-    public void setMergeGroupFileSets(List mergeGroupFileSets) {
-        this.mergeGroupFileSets = mergeGroupFileSets;
     }
 }
