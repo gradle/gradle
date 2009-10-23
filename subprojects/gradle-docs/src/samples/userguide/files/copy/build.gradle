@@ -8,6 +8,15 @@ task copyTask(type: Copy) {
 }
 // END SNIPPET copy-task
 
+// START SNIPPET copy-task-2
+task anotherCopyTask(type: Copy) {
+    from 'src/main/webapp', zipTree('src/main/assets.zip')
+    into { getDestDir() }
+    include '**/*.html'
+    include '**/*.jsp'
+}
+// END SNIPPET copy-task-2
+
 // START SNIPPET copy-method
 task copyMethod << {
     copy {

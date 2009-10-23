@@ -20,7 +20,7 @@
     </note>
 
     <para>
-        Most builds work with files. Gradle adds some concepts and APIs to help you do this.
+        Most builds do lots of work with files. Gradle adds some concepts and APIs to help you achieve this.
     </para>
 
     <section id="sec:locating_files">
@@ -40,7 +40,7 @@
         <para>Using this method is a useful way to convert some user provided value into an absolute <classname>File</classname>.
             It is preferable to using <literal>new File(somePath)</literal>, as <literal>file()</literal> always evaluates
             the supplied path relative to the project directory, which is fixed, rather than the current working
-            directory, which may not always be the same.
+            directory, which may change depending on how the user runs Gradle.
         </para>
     </section>
 
@@ -49,8 +49,8 @@
 
         <para>
             A <firstterm>file collection</firstterm> is simply a set of files. It is represented by the
-            <apilink class="org.gradle.api.file.FileCollection"/> interface. Many objects in Gradle implement this
-            interface. For example, <link linkend="sub:configurations">dependency configurations</link> implement
+            <apilink class="org.gradle.api.file.FileCollection"/> interface. Many objects in the Gradle API implement
+            this interface. For example, <link linkend="sub:configurations">dependency configurations</link> implement
             <literal>FileCollection</literal>.
         </para>
 
@@ -85,7 +85,9 @@
             <output args="-q list"/>
         </sample>
 
-        <para>The <literal>files()</literal> method also accepts <classname>FileCollection</classname> instances.</para>
+        <para>The <literal>files()</literal> method also accepts <classname>FileCollection</classname> instances.
+            These are flattened and the contents included in the file collection.
+        </para>
     </section>
 
     <section id="sec:file_trees">
@@ -115,6 +117,20 @@
         </para>
         <sample id="fileTrees" dir="userguide/files/fileTrees" title="Using a file tree">
             <sourcefile file="build.gradle" snippet="use"/>
+        </sample>
+    </section>
+
+    <section id="sec:archive_contents">
+        <title>Using the contents of an archive as a file tree</title>
+
+        <para>You can use the contents of an archive, such as a ZIP or TAR file, as a file tree. You do this using
+            the <apilink class="org.gradle.api.Project" method="zipTree"/> and
+            <apilink class="org.gradle.api.Project" method="tarTree"/> methods. These methods return a <literal>FileTree</literal>
+            instance which you can use like any other file tree or file collection. For example, you can use it to expand
+            the archive by copying the contents, or to merge some archives into another.
+        </para>
+        <sample id="fileTrees" dir="userguide/files/fileTrees" title="Using an archive as a file tree">
+            <sourcefile file="build.gradle" snippet="archive-trees"/>
         </sample>
     </section>
 
@@ -149,7 +165,17 @@
             <sourcefile file="build.gradle" snippet="copy-task"/>
             <test args="copyTask copyMethod"/>
         </sample>
-        <para>You can also use the <apilink class="org.gradle.api.Project" method="copy"/> method.</para>
+        <para>The <literal>from()</literal> method accepts any of the arguments that the
+            <link linkend="sec:file_collections">files()</link> method does. The <literal>into()</literal> accepts
+            any of the arguments that the <link linkend="sec:locating_files">file()</link> method does. Here is another
+            example:
+        </para>
+        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy task">
+            <sourcefile file="build.gradle" snippet="copy-task-2"/>
+            <test args="copyTask anotherCopyTask copyMethod"/>
+        </sample>
+        <para>You can also use the <apilink class="org.gradle.api.Project" method="copy"/> method to copy files. It works the
+            same way as the task.</para>
         <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method">
             <sourcefile file="build.gradle" snippet="copy-method"/>
         </sample>
