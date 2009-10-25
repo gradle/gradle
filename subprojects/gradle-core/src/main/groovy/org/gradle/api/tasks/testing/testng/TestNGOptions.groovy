@@ -245,10 +245,8 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     List excludedFieldsFromOptionMap() {
         List excludedFieldsFromOptionMap = [   'testResources', 'projectDir', 
             'systemProperties', 'jvmArgs', 'environment',
-            'suiteXmlFiles','suiteXmlWriter','suiteXmlBuilder', 'listeners']
+            'suiteXmlFiles','suiteXmlWriter','suiteXmlBuilder', 'listeners', 'includeGroups', 'excludeGroups']
 
-        if ( includeGroups.empty ) excludedFieldsFromOptionMap << 'includeGroups'
-        if ( excludeGroups.empty ) excludedFieldsFromOptionMap << 'excludeGroups'
         if ( jvm == null ) excludedFieldsFromOptionMap << 'jvm'
         if ( skippedProperty == null ) excludedFieldsFromOptionMap << 'skippedProperty'
         if ( suiteRunnerClass == null ) excludedFieldsFromOptionMap << 'suiteRunnerClass'
@@ -266,8 +264,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     Map fieldName2AntMap() {
         [
             outputDir: 'outputdir',
-            includeGroups : 'groups',
-            excludeGroups : 'excludedGroups',
             suiteName : 'suitename',
             testName : 'testname'
         ]
@@ -278,6 +274,12 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
 
         if (!listeners.empty)
             optionMap.put('listeners', listeners.join(', '));
+
+        if (!includeGroups.empty)
+            optionMap.put('groups', includeGroups.join(', '));
+
+        if (!excludeGroups.empty)
+            optionMap.put('excludedGroups', excludeGroups.join(', '));
 
         return optionMap;
     }
