@@ -38,8 +38,8 @@ public class Tar extends Zip {
 
     Closure createAntArchiveTask() {
         {->
-            antTar.execute(new AntArchiveParameter(getResourceCollections(), getMergeFileSets(), getMergeGroupFileSets(),
-                    getCreateIfEmpty(), getDestinationDir(), getArchiveName(), project.ant), getCompression(), getLongFile())
+            antTar.execute(new AntArchiveParameter(getResourceCollections(), getCreateIfEmpty(), getDestinationDir(), 
+                    getArchiveName(), project.ant), getCompression(), getLongFile())
         }
     }
 

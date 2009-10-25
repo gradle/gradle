@@ -58,19 +58,17 @@ class SingletonFileTree extends AbstractFileTree {
             new FileSet(file, null).visit(visitor);
         }
         else if (file.isFile()) {
-            visitor.visitFile(new FileVisitDetails() {
-                public File getFile() {
-                    return file;
-                }
-
-                public RelativePath getRelativePath() {
-                    return new RelativePath(true, file.getName());
-                }
-
-                public void stopVisiting() {
-                }
-            });
+            visitor.visitFile(new FileVisitDetailsImpl());
         }
         return this;
+    }
+
+    private class FileVisitDetailsImpl extends DefaultFileTreeElement implements FileVisitDetails {
+        private FileVisitDetailsImpl() {
+            super(file, new RelativePath(true, file.getName()));
+        }
+
+        public void stopVisiting() {
+        }
     }
 }

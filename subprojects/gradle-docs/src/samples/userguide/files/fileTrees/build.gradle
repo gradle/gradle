@@ -38,3 +38,11 @@ tree.visit {node ->
     println "$node.relativePath => $node.file"
 }
 // END SNIPPET use
+
+// START SNIPPET archive-trees
+// Create a ZIP file tree using path
+FileTree zip = zipTree('someFile.zip')
+
+// Create a TAR file tree using path
+FileTree tar = tarTree('someFile.tar')
+// END SNIPPET archive-trees

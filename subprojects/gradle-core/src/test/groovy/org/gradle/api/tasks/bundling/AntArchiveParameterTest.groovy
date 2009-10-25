@@ -21,7 +21,7 @@ package org.gradle.api.tasks.bundling
  */
 class AntArchiveParameterTest extends AbstractArchiveParameterTest {
     public createAntArchiveParameter() {
-        new AntArchiveParameter(expectedResourceCollections, expectedMergeFileSets, expectedMergeGroupFileSets, expectedCreateIfEmpty,
-                expectedDestinationDir, expectedArchiveName, expectedAnt)
+        new AntArchiveParameter(expectedResourceCollections, expectedCreateIfEmpty, expectedDestinationDir,
+                expectedArchiveName, expectedAnt)
     }
 }

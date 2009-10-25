@@ -25,8 +25,6 @@ import org.junit.Test;
  */
 abstract class AbstractArchiveParameterTest {
     List expectedResourceCollections
-    List expectedMergeFileSets
-    List expectedMergeGroupFileSets
     boolean expectedCreateIfEmpty
     File expectedDestinationDir
     String expectedArchiveName
@@ -37,8 +35,6 @@ abstract class AbstractArchiveParameterTest {
 
     @Before public void setUp()  {
         expectedResourceCollections = []
-        expectedMergeFileSets = []
-        expectedMergeGroupFileSets = []
         expectedCreateIfEmpty = false
         expectedDestinationDir = 'somefile' as File
         expectedArchiveName = 'archivename'
@@ -61,8 +57,6 @@ abstract class AbstractArchiveParameterTest {
 
     @Test public void testAntArchiveParameter() {
         assert archiveParameter.resourceCollections.is(expectedResourceCollections)
-        assert archiveParameter.mergeFileSets.is(expectedMergeFileSets)
-        assert archiveParameter.mergeGroupFileSets.is(expectedMergeGroupFileSets)
         assert archiveParameter.createIfEmpty == expectedCreateIfEmpty
         assert archiveParameter.destinationDir.is(expectedDestinationDir)
         assert archiveParameter.archiveName == expectedArchiveName

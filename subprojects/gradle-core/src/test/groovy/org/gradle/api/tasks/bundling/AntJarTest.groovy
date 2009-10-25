@@ -33,7 +33,7 @@ class AntJarTest extends AbstractAntSkippableArchiveTest {
     }
 
     @Test public void testExecute() {
-        antJar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
+        antJar.execute(new AntMetaArchiveParameter(resourceCollections, '', true, testDir,
                 archiveName, manifest, createFileSetDuo(AbstractAntArchiveTest.METAINFS_KEY), new AntBuilder()))
         unzipArchive()
         checkResourceFiles()
@@ -41,21 +41,19 @@ class AntJarTest extends AbstractAntSkippableArchiveTest {
     }
 
     @Test public void testExecuteWithNullManifestAndNullMetaInf() {
-        antJar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
-                archiveName, null, null, new AntBuilder()))
+        antJar.execute(new AntMetaArchiveParameter(resourceCollections, '', true, testDir, archiveName, null, null, new AntBuilder()))
         unzipArchive()
         checkResourceFiles()
     }
 
     @Test public void testExecuteWithManifestNullFile() {
-        antJar.execute(new AntMetaArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, '', true, testDir,
-                archiveName, new GradleManifest(), null, new AntBuilder()))
+        antJar.execute(new AntMetaArchiveParameter(resourceCollections, '', true, testDir, archiveName, new GradleManifest(), null, new AntBuilder()))
         unzipArchive()
         checkResourceFiles()
     }
 
     void executeWithEmptyFileList(boolean createIfEmpty) {
-        antJar.execute(new AntMetaArchiveParameter([new FileSet(emptyDir, resolver)], [], [], '', createIfEmpty, testDir, archiveName, null, null, new AntBuilder()))
+        antJar.execute(new AntMetaArchiveParameter([new FileSet(emptyDir, resolver)], '', createIfEmpty, testDir, archiveName, null, null, new AntBuilder()))
     }
 
 }

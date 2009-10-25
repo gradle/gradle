@@ -18,6 +18,10 @@ compile {
 }
 
 compile {
+    source = zipTree('src/main.zip') + zipTree('src/test.zip')
+}
+
+compile {
     source = {
         fileTree(dir: 'src/main/java') + fileTree(dir: '../shared/java')
     }

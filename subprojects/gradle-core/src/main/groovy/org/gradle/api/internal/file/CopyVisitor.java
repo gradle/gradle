@@ -16,12 +16,11 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
-import org.apache.commons.io.IOUtils;
-import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.tasks.WorkResult;
 
 import java.io.*;
@@ -31,11 +30,17 @@ import java.util.List;
  * @author Steve Appling
  */
 public class CopyVisitor implements FileVisitor, WorkResult {
-    private File baseDestDir;
-    private List<Closure> remapClosures;
-    private List<Transformer<String>> nameMappers;
-    private FilterChain filterChain;
-    private boolean didWork = false;
+    private final File baseDestDir;
+    private final List<Closure> remapClosures;
+    private final List<Transformer<String>> nameMappers;
+    private final FilterChain filterChain;
+    private boolean didWork;
+    private final Transformer<Reader> filterReaderTransformer = new Transformer<Reader>() {
+        public Reader transform(Reader original) {
+            filterChain.findFirstFilterChain().setInputSource(original);
+            return filterChain;
+        }
+    };
 
     public CopyVisitor(File baseDestDir, List<Closure> remapClosures, List<Transformer<String>> nameMappers, FilterChain filterChain) {
         this.baseDestDir = baseDestDir;
@@ -47,21 +52,13 @@ public class CopyVisitor implements FileVisitor, WorkResult {
     public void visitDir(FileVisitDetails dirDetails) {
     }
 
-    public void visitFile(FileVisitDetails fileDetails) {
-        File source = fileDetails.getFile();
-        File target = getTarget(fileDetails.getRelativePath());
+    public void visitFile(FileVisitDetails source) {
+        File target = getTarget(source.getRelativePath());
         if (target == null) {
             // not allowed, skip
             return;
         }
-        target.getParentFile().mkdirs();
-        if (needsCopy(source, target)) {
-            try {
-                copyFile(source, target);
-            } catch (IOException e) {
-                throw new GradleException("Error copying file:" + source + " to:" + target, e);
-            }
-        }
+        copyFile(source, target);
     }
 
     public boolean getDidWork() {
@@ -99,49 +96,15 @@ public class CopyVisitor implements FileVisitor, WorkResult {
         return result;
     }
 
-    void copyFile(File srcFile, File destFile) throws IOException {
-        didWork = true;
+    void copyFile(FileTreeElement srcFile, File destFile) {
+        boolean copied;
         if (filterChain.hasFilters()) {
-            copyFileFiltered(srcFile, destFile);
+            copied = srcFile.copyTo(destFile, filterReaderTransformer);
         } else {
-            copyFileStreams(srcFile,  destFile);
+            copied = srcFile.copyTo(destFile);
         }
-        destFile.setLastModified(srcFile.lastModified());
-    }
-
-
-    private void copyFileFiltered(File srcFile, File destFile) throws IOException {
-        FileReader inReader = new FileReader(srcFile);
-        filterChain.findFirstFilterChain().setInputSource(inReader);
-        FileWriter fWriter = new FileWriter(destFile);
-        try {
-            IOUtils.copyLarge(filterChain, fWriter);
-            fWriter.flush();
-        } finally {
-            IOUtils.closeQuietly(inReader);
-            IOUtils.closeQuietly(fWriter);
+        if (copied) {
+            didWork = true;
         }
-    }
-
-    private void copyFileStreams(File srcFile, File destFile) throws IOException {
-        FileInputStream input = new FileInputStream(srcFile);
-        FileOutputStream output = new FileOutputStream(destFile);
-        try {
-            IOUtils.copyLarge(input, output);
-        } finally {
-            IOUtils.closeQuietly(input);
-            IOUtils.closeQuietly(output);
-        }
-    }
-
-    boolean needsCopy(File source, File dest) {
-        boolean result = true;
-        if (dest.exists()) {
-            if (source.lastModified() <= dest.lastModified()) {
-                result = false;
-            }
-            // possibly add option to check file size too
-        }
-        return result;
     }
 }

@@ -39,8 +39,7 @@ class AntMetaArchiveParameterTest extends AbstractArchiveParameterTest {
     }
 
     public createAntArchiveParameter() {
-        new AntMetaArchiveParameter(expectedResourceCollections, expectedMergeFileSets, expectedMergeGroupFileSets, expectedFileSetManifest,
-                expectedCreateIfEmpty,
+        new AntMetaArchiveParameter(expectedResourceCollections, expectedFileSetManifest, expectedCreateIfEmpty,
                 expectedDestinationDir, expectedArchiveName, expectedGradleManifest, expectedMetaInfFileSets, expectedAnt)
     }
 

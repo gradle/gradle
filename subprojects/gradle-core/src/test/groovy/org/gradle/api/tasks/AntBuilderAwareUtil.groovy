@@ -45,6 +45,10 @@ class AntBuilderAwareUtil {
         assertSetContains(set, filenames as Set, FileCollection.AntType.values() as List)
     }
 
+    static def assertSetContainsForAllTypes(FileCollection set, Iterable<String> filenames) {
+        assertSetContains(set, filenames as Set, FileCollection.AntType.values() as List)
+    }
+
     static def assertSetContainsForFileSet(FileCollection set, String ... filenames) {
         assertSetContains(set, filenames as Set, [FileCollection.AntType.FileSet], false)
     }

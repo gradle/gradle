@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.artifacts.dsl.*;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
@@ -881,6 +882,34 @@ public interface Project extends Comparable<Project> {
      * @return the configured file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Closure closure);
+
+    /**
+     * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
+     * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * method to unzip a ZIP file.</p>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param zipPath The ZIP file. Evaluated as for {@link #file(Object)}.
+     * @return the file tree. Never returns null.
+     */
+    FileTree zipTree(Object zipPath);
+
+    /**
+     * <p>Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path is
+     * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * method to untar a TAR file.</p>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param tarPath The TAR file. Evaluated as for {@link #file(Object)}.
+     * @return the file tree. Never returns null.
+     */
+    FileTree tarTree(Object tarPath);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>

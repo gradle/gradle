@@ -4,6 +4,23 @@ import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 
 class FileVisitorUtil {
+    static def assertCanStopVisiting(FileTree tree) {
+        boolean found = false
+        FileVisitor visitor = [
+                visitFile: {FileVisitDetails details ->
+                    assertFalse(found)
+                    found = true
+                    details.stopVisiting()
+                },
+                visitDir: {FileVisitDetails details ->
+                    assertFalse(found)
+                }
+        ] as FileVisitor
+
+        tree.visit(visitor)
+        assertTrue(found)
+    }
+    
     static def assertVisits(FileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
         Set files = [] as Set
         Set dirs = [] as Set
@@ -13,12 +30,17 @@ class FileVisitorUtil {
                         assertThat(dirs, hasItem(details.relativePath.parent.pathString))
                     }
                     assertTrue(files.add(details.relativePath.pathString))
+                    assertEquals(details.file.lastModified(), details.lastModified)
+                    assertTrue(details.file.file)
+                    assertEquals(details.file.text, details.open().text)
                 },
                 visitDir: {FileVisitDetails details ->
                     if (details.relativePath.parent.parent) {
                         assertThat(dirs, hasItem(details.relativePath.parent.pathString))
                     }
                     assertTrue(dirs.add(details.relativePath.pathString))
+                    assertEquals(details.file.lastModified(), details.lastModified)
+                    assertTrue(details.file.directory)
                 }
         ] as FileVisitor
 

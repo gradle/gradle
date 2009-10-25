@@ -16,10 +16,13 @@
 package org.gradle.integtests;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.tools.ant.taskdefs.Zip;
+import org.apache.tools.ant.taskdefs.Tar;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.CompressUtil;
 import org.gradle.util.GradleUtil;
+import org.gradle.util.AntUtil;
 import static org.junit.Assert.*;
 import org.hamcrest.Matcher;
 
@@ -215,6 +218,22 @@ public class TestFile extends File {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        return this;
+    }
+
+    public TestFile zipTo(TestFile zipFile) {
+        Zip zip = new Zip();
+        zip.setBasedir(this);
+        zip.setDestFile(zipFile);
+        AntUtil.execute(zip);
+        return this;
+    }
+    
+    public TestFile tarTo(TestFile zipFile) {
+        Tar tar = new Tar();
+        tar.setBasedir(this);
+        tar.setDestFile(zipFile);
+        AntUtil.execute(tar);
         return this;
     }
 }

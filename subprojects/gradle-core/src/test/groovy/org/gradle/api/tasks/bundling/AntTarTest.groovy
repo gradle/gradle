@@ -35,8 +35,7 @@ class AntTarTest extends AbstractAntArchiveTest {
 
     @Test public void testExecute() {
         archiveName = 'test.tar'
-        antTar.execute(new AntArchiveParameter(resourceCollections, mergeFileSets, mergeGroupFileSets, true, testDir,
-                archiveName, new AntBuilder()), Compression.BZIP2, LongFile.WARN)
+        antTar.execute(new AntArchiveParameter(resourceCollections, true, testDir, archiveName, new AntBuilder()), Compression.BZIP2, LongFile.WARN)
         unzipArchive('untar', Compression.BZIP2)
         checkResourceFiles()
     }
@@ -46,7 +45,7 @@ class AntTarTest extends AbstractAntArchiveTest {
         FileSet fileSet = new FileSet(testDir)
         fileSet.include(veryLongFile.name)
         veryLongFile.createNewFile()
-        antTar.execute(new AntArchiveParameter(resourceCollections << fileSet, [], [], true, testDir, archiveName,
+        antTar.execute(new AntArchiveParameter(resourceCollections << fileSet, true, testDir, archiveName,
                 new AntBuilder()), Compression.BZIP2, LongFile.FAIL)
     }
 

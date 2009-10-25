@@ -24,10 +24,10 @@ class AntMetaArchiveParameter extends AntArchiveParameter {
     List metaInfFileSets
     String fileSetManifest
 
-    AntMetaArchiveParameter(List resourceCollections, List mergeFileSets, List mergeGroupFileSets, String fileSetManifest,
+    AntMetaArchiveParameter(List resourceCollections, String fileSetManifest,
                             boolean createIfEmpty, File destinationDir, String archiveName,
                             GradleManifest gradleManifest, List metaInfFileSets, AntBuilder ant) {
-        super(resourceCollections, mergeFileSets, mergeGroupFileSets, createIfEmpty, destinationDir, archiveName, ant)
+        super(resourceCollections, createIfEmpty, destinationDir, archiveName, ant)
         this.gradleManifest = gradleManifest
         this.metaInfFileSets = metaInfFileSets
         this.fileSetManifest = fileSetManifest
