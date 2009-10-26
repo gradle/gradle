@@ -28,6 +28,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -247,11 +248,21 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
     private DefaultResolvedDependency createResolvedDependency(IvyNode ivyNode, ResolveReport resolveReport, String configuration) {
         ModuleRevisionId moduleRevisionId = ivyNode.getId();
         Set<String> configurations = getConfigurationHierarchy(ivyNode, configuration);
-        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(
-                moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision(),
-                configuration,
-                configurations,
-                getArtifacts(ivyNode));
+        DefaultResolvedDependency resolvedDependency;
+        if (moduleRevisionId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY) != null) {
+            resolvedDependency = new DefaultResolvedDependency(
+                    moduleRevisionId.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY),
+                    moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision(),
+                    configuration,
+                    configurations,
+                    getArtifacts(ivyNode));
+        } else {
+            resolvedDependency = new DefaultResolvedDependency(
+                    moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision(),
+                    configuration,
+                    configurations,
+                    getArtifacts(ivyNode));
+        }
         for (ResolvedArtifact resolvedArtifact : resolvedDependency.getModuleArtifacts()) {
             ((DefaultResolvedArtifact) resolvedArtifact).setResolvedDependency(resolvedDependency);
         }

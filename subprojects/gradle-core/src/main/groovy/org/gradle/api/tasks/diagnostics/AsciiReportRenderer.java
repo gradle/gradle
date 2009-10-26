@@ -77,7 +77,7 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
     private void render(ResolvedDependency resolvedDependency, int depth) throws IOException
     {
         getFormatter().format(getIndent(depth));
-		getFormatter().format("%s:%s:%s:%s%n", resolvedDependency.getGroup(), resolvedDependency.getName(), resolvedDependency.getVersion(),
+		getFormatter().format("%s:%s%n", resolvedDependency.getName(),
                 resolvedDependency.getConfiguration());
 
         Collection<ResolvedDependency> mergedChildren = mergeChildren(resolvedDependency.getChildren());
@@ -135,12 +135,16 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
             return mergedResolvedDependencies.iterator().next().getName();
         }
 
-        public String getGroup() {
-            return mergedResolvedDependencies.iterator().next().getGroup();
+        public String getModuleName() {
+            return mergedResolvedDependencies.iterator().next().getModuleName();
         }
 
-        public String getVersion() {
-            return mergedResolvedDependencies.iterator().next().getVersion();
+        public String getModuleGroup() {
+            return mergedResolvedDependencies.iterator().next().getModuleGroup();
+        }
+
+        public String getModuleVersion() {
+            return mergedResolvedDependencies.iterator().next().getModuleVersion();
         }
 
         public String getConfiguration() {

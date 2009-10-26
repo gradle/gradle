@@ -68,9 +68,9 @@ public class DefaultResolvedArtifactTest {
         final String someDependencyName = "someDependencyName";
         final ResolvedDependency resolvedDependencyStub = context.mock(ResolvedDependency.class);
         context.checking(new Expectations() {{
-            allowing(resolvedDependencyStub).getVersion();
+            allowing(resolvedDependencyStub).getModuleVersion();
             will(returnValue(someVersion));
-            allowing(resolvedDependencyStub).getName();
+            allowing(resolvedDependencyStub).getModuleName();
             will(returnValue(someDependencyName));
         }});
         DefaultResolvedArtifact resolvedArtifact = createResolvedArtifact(context, "someName", "someType", "someExtension", new File("someFile"));

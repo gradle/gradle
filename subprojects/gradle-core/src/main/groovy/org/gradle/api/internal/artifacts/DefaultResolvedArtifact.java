@@ -58,11 +58,11 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     public String getVersion() {
-        return getResolvedDependency() == null ? null : getResolvedDependency().getVersion();
+        return getResolvedDependency() == null ? null : getResolvedDependency().getModuleVersion();
     }
 
     public String getDependencyName() {
-        return getResolvedDependency() == null ? null : getResolvedDependency().getName();
+        return getResolvedDependency() == null ? null : getResolvedDependency().getModuleName();
     }
 
     public File getFile() {

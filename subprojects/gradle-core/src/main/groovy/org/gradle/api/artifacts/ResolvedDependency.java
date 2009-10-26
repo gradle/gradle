@@ -22,19 +22,24 @@ import java.util.Set;
  */
 public interface ResolvedDependency {
     /**
-     * Returns the group of the resolved dependency
-     */
-    String getGroup();
-
-    /**
-     * Returns the name of the resolved dependency.
+     * Returns the name of the resolved dependency
      */
     String getName();
 
     /**
-     * Returns the version of the resolved dependency.
+     * Returns the module group of the resolved dependency
      */
-    String getVersion();
+    String getModuleGroup();
+
+    /**
+     * Returns the module name of the resolved dependency.
+     */
+    String getModuleName();
+
+    /**
+     * Returns the module version of the resolved dependency.
+     */
+    String getModuleVersion();
 
     /**
      * Returns the configuration under which this instance was resolved.

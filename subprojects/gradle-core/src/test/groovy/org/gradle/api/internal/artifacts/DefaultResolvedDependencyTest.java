@@ -46,11 +46,12 @@ public class DefaultResolvedDependencyTest {
         String someName = "someName";
         String someVersion = "someVersion";
         String someConfiguration = "someConfiguration";
-        Set<ResolvedArtifact> someArtifacts = WrapUtil.<ResolvedArtifact>toSet(createArtifact("someName"));
+        Set<ResolvedArtifact> someArtifacts = WrapUtil.toSet(createArtifact("someName"));
         DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(someGroup, someName, someVersion, someConfiguration, SOME_CONFIGURATION_HIERARCHY, someArtifacts);
-        assertThat(resolvedDependency.getGroup(), equalTo(someGroup));
-        assertThat(resolvedDependency.getName(), equalTo(someName));
-        assertThat(resolvedDependency.getVersion(), equalTo(someVersion));
+        assertThat(resolvedDependency.getName(), equalTo(someGroup + ":" + someName + ":" + someVersion));
+        assertThat(resolvedDependency.getModuleGroup(), equalTo(someGroup));
+        assertThat(resolvedDependency.getModuleName(), equalTo(someName));
+        assertThat(resolvedDependency.getModuleVersion(), equalTo(someVersion));
         assertThat(resolvedDependency.getConfiguration(), equalTo(someConfiguration));
         assertThat(resolvedDependency.getModuleArtifacts(), equalTo(someArtifacts));
         assertThat(resolvedDependency.getConfigurationHierarchy(), equalTo(SOME_CONFIGURATION_HIERARCHY));
