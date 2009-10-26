@@ -34,10 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTree {
     public Set<File> getFiles() {
         final Set<File> files = new LinkedHashSet<File>();
-        visit(new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {
-            }
-
+        visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 files.add(fileDetails.getFile());
             }
@@ -47,10 +44,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     public FileCollection stopExecutionIfEmpty() {
         final AtomicBoolean found = new AtomicBoolean();
-        visit(new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {
-            }
-
+        visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 found.set(true);
                 fileDetails.stopVisiting();
@@ -76,10 +70,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     public Map<String, File> getAsMap() {
         final Map<String, File> map = new LinkedHashMap<String, File>();
-        visit(new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {
-            }
-
+        visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 map.put(fileDetails.getRelativePath().getPathString(), fileDetails.getFile());
             }

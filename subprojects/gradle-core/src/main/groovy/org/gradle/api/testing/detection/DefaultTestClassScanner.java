@@ -17,7 +17,7 @@
 package org.gradle.api.testing.detection;
 
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
@@ -66,10 +66,7 @@ public class DefaultTestClassScanner implements TestClassScanner {
         testClassFileSet.include(includePatterns);
         testClassFileSet.exclude(excludePatterns);
 
-        testClassFileSet.visit(new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {
-            }
-
+        testClassFileSet.visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
                 final File file = fileDetails.getFile();
                 
