@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -46,15 +47,16 @@ public class DefaultModuleDescriptorForUploadConverter implements ModuleDescript
                         artifact.getName(),
                         artifact.getType(),
                         artifact.getExt(),
-                        createMapWithoutFilePathAttribute(artifact.getExtraAttributes()));
+                        createMapWithoutFileAndProjectPathAttribute(artifact.getExtraAttributes()));
                 uploadModuleDescriptor.addArtifact(configuration.getName(), artifactWithoutFilepath);
             }
         }
     }
 
-    private Map createMapWithoutFilePathAttribute(Map extraAttributes) {
+    private Map createMapWithoutFileAndProjectPathAttribute(Map extraAttributes) {
         Map extraAttributesWithoutFilePath = new HashMap(extraAttributes);
         extraAttributesWithoutFilePath.remove(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+        extraAttributesWithoutFilePath.remove(DependencyDescriptorFactory.PROJECT_PATH_KEY);
         return extraAttributesWithoutFilePath;
     }
 

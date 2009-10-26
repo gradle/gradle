@@ -30,6 +30,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collections;
 
 /**
  * @author Hans Dockter
@@ -93,8 +94,12 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
     }
 
     private ModuleRevisionId createModuleRevisionIdFromDependency(Dependency dependency) {
+        return createModuleRevisionIdFromDependency(dependency, Collections.<String, String>emptyMap());
+    }
+
+    private ModuleRevisionId createModuleRevisionIdFromDependency(Dependency dependency, Map<String, String> extraAttributes) {
         return ModuleRevisionId.newInstance(emptyStringIfNull(dependency.getGroup()), dependency.getName(),
-                emptyStringIfNull(dependency.getVersion()));
+                emptyStringIfNull(dependency.getVersion()), extraAttributes);
     }
 
     private String emptyStringIfNull(String value) {
@@ -230,7 +235,8 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         }
 
         public ModuleRevisionId createModuleRevisionId() {
-            return createModuleRevisionIdFromDependency(projectDependency);
+            return createModuleRevisionIdFromDependency(projectDependency, WrapUtil.toMap(PROJECT_PATH_KEY,
+                    projectDependency.getDependencyProject().getPath()));
         }
 
         public DependencyDescriptor createDependencyDescriptor(ModuleRevisionId moduleRevisionId) {

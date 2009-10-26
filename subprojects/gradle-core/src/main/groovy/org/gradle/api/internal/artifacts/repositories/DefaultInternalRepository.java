@@ -20,7 +20,6 @@ import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
@@ -34,12 +33,12 @@ import org.apache.ivy.plugins.repository.file.FileResource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.invocation.Gradle;
 
 import java.io.File;
@@ -48,7 +47,6 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -84,20 +82,15 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
     }
 
     private ModuleDescriptor findProject(DependencyDescriptor descriptor) {
-        for (Project project : gradle.getRootProject().getAllprojects()) {
-            Set<Configuration> configurations = project.getConfigurations().getAll();
-            if (configurations.isEmpty()) {
-                continue;
-            }
-            DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getName(),
-                    project.getVersion().toString(), project.getStatus().toString());
-            ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(module.getGroup(), module.getName(), module.getVersion());
-            if (moduleRevisionId.equals(descriptor.getDependencyRevisionId())) {
-                return moduleDescriptorConverter.convertForPublish(configurations, false, module,
-                        IvyContext.getContext().getIvy().getSettings());
-            }
+        String projectPathValue = descriptor.getAttribute(DependencyDescriptorFactory.PROJECT_PATH_KEY);
+        if (projectPathValue == null) {
+            return null;
         }
-        return null;
+        Project project = gradle.getRootProject().project(projectPathValue);
+        DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getName(),
+                project.getVersion().toString(), project.getStatus().toString());
+        return moduleDescriptorConverter.convertForPublish(project.getConfigurations().getAll(), false, module,
+                IvyContext.getContext().getIvy().getSettings());
     }
 
     @Override

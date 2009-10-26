@@ -82,9 +82,10 @@ public class DefaultDependencyDescriptorFactoryTest {
     @Test
     public void testCreateFromProjectDependency() {
         String dependencyProjectName = "depProject";
-        final ModuleRevisionId testModuleRevisionId = ModuleRevisionId.newInstance(
-                Project.DEFAULT_GROUP, dependencyProjectName, Project.DEFAULT_VERSION, new HashMap());
         final AbstractProject dependencyProject = HelperUtil.createRootProject(new File(dependencyProjectName));
+        final ModuleRevisionId testModuleRevisionId = ModuleRevisionId.newInstance(
+                Project.DEFAULT_GROUP, dependencyProjectName, Project.DEFAULT_VERSION,
+                WrapUtil.toMap(DependencyDescriptorFactory.PROJECT_PATH_KEY, dependencyProject.getPath()));
         DefaultProjectDependency projectDependency = (DefaultProjectDependency) setUpDependency(new DefaultProjectDependency(dependencyProject, TEST_DEP_CONF, null));
 
         dependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, projectDependency);

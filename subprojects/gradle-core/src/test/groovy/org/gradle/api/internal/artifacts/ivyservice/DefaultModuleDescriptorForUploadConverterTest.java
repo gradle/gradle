@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -40,15 +41,16 @@ public class DefaultModuleDescriptorForUploadConverterTest {
         ));
         String confName = "someConf";
         sourceModuleDescriptor.addConfiguration(new Configuration(confName));
-        Map noFilePathExtraAttributes = WrapUtil.toMap("someKey", "someValue");
+        Map noFileAndProjectPathExtraAttributes = WrapUtil.toMap("someKey", "someValue");
         sourceModuleDescriptor.addArtifact(confName, new DefaultArtifact(
                 sourceModuleDescriptor.getModuleRevisionId(),
                 new Date(),
                 "someName",
                 "someType",
                 "someExt",
-                GUtil.addMaps(noFilePathExtraAttributes,
-                        WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, "somePath"))));
+                GUtil.addMaps(noFileAndProjectPathExtraAttributes,
+                        GUtil.map(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, "someFilePath",
+                                DependencyDescriptorFactory.PROJECT_PATH_KEY, "someProjectPath"))));
 
         ModuleDescriptor convertedModuleDescriptor = new DefaultModuleDescriptorForUploadConverter().createModuleDescriptor(sourceModuleDescriptor);
 
@@ -58,7 +60,7 @@ public class DefaultModuleDescriptorForUploadConverterTest {
         assertThat(convertedModuleDescriptor.getConfigurations(), equalTo(sourceModuleDescriptor.getConfigurations()));
         assertThat(convertedModuleDescriptor.getDependencies(), equalTo(sourceModuleDescriptor.getDependencies()));
         assertThatArtifactsAreEqualExceptFilePathAttribute(sourceModuleDescriptor.getArtifacts(confName)[0],
-                convertedModuleDescriptor.getArtifacts(confName)[0], noFilePathExtraAttributes);
+                convertedModuleDescriptor.getArtifacts(confName)[0], noFileAndProjectPathExtraAttributes);
     }
 
     private void assertThatArtifactsAreEqualExceptFilePathAttribute(Artifact sourceArtifact, Artifact convertedArtifact, Map noFilePathExtraAttributes) {

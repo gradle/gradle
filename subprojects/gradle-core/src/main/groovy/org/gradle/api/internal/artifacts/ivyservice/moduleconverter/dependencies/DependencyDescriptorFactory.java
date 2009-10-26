@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.ModuleDependency;
  * @author Hans Dockter
  */
 public interface DependencyDescriptorFactory {
+    String PROJECT_PATH_KEY = "org.gradle.projectPath";
+
     void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor,
                                  ModuleDependency dependency);
 }
