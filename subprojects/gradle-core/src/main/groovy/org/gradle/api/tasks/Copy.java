@@ -167,6 +167,13 @@ public class Copy extends ConventionTask implements CopyAction {
     /**
      * {@inheritDoc}
      */
+    public CopySpec into(Object destPath, Closure configureClosure) {
+        return copyAction.into(destPath, configureClosure);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public CopySpec include(String... includes) {
         return copyAction.include(includes);
     }
@@ -251,8 +258,8 @@ public class Copy extends ConventionTask implements CopyAction {
     /**
      * {@inheritDoc}
      */
-    public CopySpec remapTarget(Closure closure) {
-        return copyAction.remapTarget(closure);
+    public CopySpec rename(Closure closure) {
+        return copyAction.rename(closure);
     }
 
     /**

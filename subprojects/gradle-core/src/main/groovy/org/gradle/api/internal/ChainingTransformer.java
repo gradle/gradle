@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import groovy.lang.GString;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -48,7 +49,13 @@ public class ChainingTransformer<T> implements Transformer<T> {
                 transformer.setDelegate(original);
                 transformer.setResolveStrategy(Closure.DELEGATE_FIRST);
                 Object value = transformer.call(original);
-                return value == null || !type.isInstance(value) ? original : type.cast(value);
+                if (type.isInstance(value)) {
+                    return type.cast(value);
+                }
+                if (type == String.class && value instanceof GString) {
+                    return type.cast(value.toString());
+                }
+                return original;
             }
         });
     }

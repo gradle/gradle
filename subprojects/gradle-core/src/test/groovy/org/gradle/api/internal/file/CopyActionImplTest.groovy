@@ -12,6 +12,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyActionImplTest  {
@@ -60,7 +61,8 @@ public class CopyActionImplTest  {
     }
 
     @Test public void multipleSourceDirs() {
-        context.checking({
+        context.checking {
+            one(visitor).visitSpec(withParam(notNullValue()))
             one(resolver).resolveFilesAsTree(['src1', 'src2'] as Set)
             will(returnValue(sourceFileTree))
             one(sourceFileTree).matching(new PatternSet())
@@ -68,7 +70,7 @@ public class CopyActionImplTest  {
             one(sourceFileTree).visit(visitor)
             allowing(visitor).getDidWork()
             will(returnValue(true))
-        })
+        }
         executeWith {
             from 'src1'
             from 'src2'
@@ -78,6 +80,7 @@ public class CopyActionImplTest  {
 
     @Test public void includeExclude() {
         context.checking({
+            one(visitor).visitSpec(withParam(notNullValue()))
             one(resolver).resolveFilesAsTree(['src1'] as Set)
             will(returnValue(sourceFileTree))
             one(sourceFileTree).matching(new PatternSet(includes: ['a.b', 'c.d', 'e.f'], excludes: ['g.h']))
@@ -96,42 +99,16 @@ public class CopyActionImplTest  {
         }
     }
 
-
-    @Test void testDidWorkTrue() {
-        context.checking( {
-            one(resolver).resolveFilesAsTree(['src1'] as Set)
-            will(returnValue(sourceFileTree))
-            one(sourceFileTree).matching(new PatternSet())
-            will(returnValue(sourceFileTree))
-            one(sourceFileTree).visit(visitor)
-            allowing(visitor).getDidWork()
+    @Test void testDidWorkDelegatesToVisitor() {
+        context.checking({
+            one(visitor).getDidWork()
+            will(returnValue(false))
+            one(visitor).getDidWork()
             will(returnValue(true))
         })
 
-        executeWith {
-            from 'src1'
-            into 'dest'
-        }
-        assertTrue(copyAction.didWork)
-    }
-
-
-    @Test void testDidWorkFalse() {
-        context.checking({
-            one(resolver).resolveFilesAsTree(['src1'] as Set)
-            will(returnValue(sourceFileTree))
-            one(sourceFileTree).matching(new PatternSet())
-            will(returnValue(sourceFileTree))
-            one(sourceFileTree).visit(visitor)
-            allowing(visitor).getDidWork()
-            will(returnValue(false))
-        })
-
-        executeWith {
-            from 'src1'
-            into 'dest'
-        }
         assertFalse(copyAction.didWork)
+        assertTrue(copyAction.didWork)
     }
 
     // from with closure sets from on child spec, not on root

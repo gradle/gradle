@@ -26,20 +26,21 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
     }
 
     @Test
-    public void testMultipleSourceWithSingleExcludeMultiInclude() {
-        TestFile buildFile = testFile("build.gradle").writelns(
-                "task (copy, type:Copy) {",
-                "   from('src/one'){ ",
-                "      into 'dest/one'",
-                "      include '**/*.a'",
-                "   }",
-                "   from('src/two'){ ",
-                "      into 'dest/two'",
-                "      include '**/*.b'",
-                "   }",
-                "   exclude '**/ignore/**'",
-                "}"
-        )
+    public void testMultipleSourceWithInheritedPatterns() {
+        TestFile buildFile = testFile("build.gradle") << '''
+            task (copy, type:Copy) {
+               into 'dest'
+               from('src/one') {
+                  into 'one'
+                  include '**/*.a'
+               }
+               from('src/two') {
+                  into 'two'
+                  include '**/*.b'
+               }
+               exclude '**/ignore/**'
+            }
+'''
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
                 'one/one.a',
@@ -47,21 +48,48 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
         )
     }
 
-    @Test void testRename() {
-        TestFile buildFile = testFile("build.gradle").writelns(
-                "task (copy, type:Copy) {",
-                "   from 'src'",
-                "   into 'dest'",
-                "   exclude '**/ignore/**'",
-                "   rename '(.*).a', '\$1.renamed'",
-                "}"
+    @Test
+    public void testMultipleSourcesWithInheritedDestination() {
+        TestFile buildFile = testFile("build.gradle") << '''
+            task (copy, type:Copy) {
+               into 'dest'
+               into('common') {
+                  from('src/one') {
+                     into 'a/one'
+                     include '**/*.a'
+                  }
+                  into('b') {
+                     from('src/two') {
+                        into 'two'
+                        include '**/*.b'
+                     }
+                  }
+               }
+            }
+'''
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'common/a/one/one.a',
+                'common/b/two/two.b',
         )
+    }
+
+    @Test void testRename() {
+        TestFile buildFile = testFile("build.gradle") << '''
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               exclude '**/ignore/**'
+               rename '(.*).a', '\$1.renamed'
+               rename { it.startsWith('one.') ? "renamed_$it" : it }
+            }
+'''
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
                 'root.renamed',
                 'root.b',
-                'one/one.renamed',
-                'one/one.b',
+                'one/renamed_one.renamed',
+                'one/renamed_one.b',
                 'two/two.renamed',
                 'two/two.b'
         )
@@ -112,10 +140,10 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
     @Test public void copyMultipleFilterTest() {
         TestFile buildFile = testFile('build.gradle').writelns(
                 """task (copy, type:Copy) {
+                   into 'dest'
                    filter { (Integer.parseInt(it) * 10) as String }
                    filter { (Integer.parseInt(it) + 2) as String }
                    from('src/two/two.a') {
-                     into 'dest'
                      filter { (Integer.parseInt(it) / 2) as String }
                    }
                 }
@@ -132,7 +160,7 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
                    copy {
-                        from fileTree(dir: 'src', excludes:['**/ignore/**'])
+                        from fileTree(dir: 'src', excludes: ['**/ignore/**'])
                         into 'dest'
                     }
                 }"""

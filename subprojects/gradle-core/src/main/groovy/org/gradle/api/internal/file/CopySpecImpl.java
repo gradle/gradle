@@ -17,7 +17,6 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
@@ -25,6 +24,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ReflectionUtil;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.FilterReader;
@@ -38,27 +38,24 @@ import java.util.*;
 public class CopySpecImpl implements CopySpec {
     private FileResolver resolver;
     private Set<Object> sourcePaths;
-    private File destDir;
-    private PatternSet patternSet;
-    private List<Closure> remapClosureList;
-    private List<CopySpecImpl> childSpecs;
-    private CopySpecImpl parentSpec;
-    private List<Transformer<String>> renameMappers;
-    private FilterChain filterChain;
+    private Object destDir;
+    private final PatternSet patternSet;
+    private final List<CopySpecImpl> childSpecs;
+    private final CopySpecImpl parentSpec;
+    private final FilterChain filterChain;
+    private final DefaultCopyDestinationMapper destinationMapper = new DefaultCopyDestinationMapper();
 
     public CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
-        this(resolver);
         this.parentSpec = parentSpec;
+        this.resolver = resolver;
+        sourcePaths = new LinkedHashSet<Object>();
+        childSpecs = new ArrayList<CopySpecImpl>();
+        patternSet = new PatternSet();
+        filterChain = new FilterChain();
     }
 
     public CopySpecImpl(FileResolver resolver) {
-        this.resolver = resolver;
-        sourcePaths = new LinkedHashSet<Object>();
-        remapClosureList = new ArrayList<Closure>();
-        childSpecs = new ArrayList<CopySpecImpl>();
-        patternSet = new PatternSet();
-        renameMappers  = new ArrayList<Transformer<String>>();
-        filterChain = new FilterChain();
+        this(resolver, null);
     }
 
     public CopySpec from(Object... sourcePaths) {
@@ -117,16 +114,64 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpec into(Object destDir) {
-        this.destDir = resolver.resolve(destDir);
+        this.destDir = destDir;
         return this;
     }
 
-    public File getDestDir() {
-        File result = destDir;
-        if (result == null && parentSpec != null) {
-            result = parentSpec.getDestDir();
+    public CopySpec into(Object destPath, Closure configureClosure) {
+        CopySpec result = this;
+        if (configureClosure == null) {
+            into(destPath);
+        } else {
+            CopySpecImpl child = new CopySpecImpl(resolver, this);
+            child.into(destPath);
+            childSpecs.add(child);
+            ConfigureUtil.configure(configureClosure, child);
+            result = child;
         }
         return result;
+    }
+
+    public String getDestPath() {
+        if (parentSpec == null) {
+            return "/";
+        }
+        String parentPath = parentSpec.getDestPath();
+        if (destDir == null) {
+            return parentPath;
+        }
+
+        String path = destDir.toString();
+        if (path.startsWith("/") || path.startsWith(File.separator)) {
+            return path;
+        }
+        if (parentPath.equals("/")) {
+            return "/" + path;
+        }
+        return parentPath + '/' + path;
+    }
+
+    private File getRootDir() {
+        if (parentSpec == null) {
+            return destDir == null ? null : resolver.resolve(destDir);
+        }
+        return parentSpec.getRootDir();
+    }
+
+    public File getDestDir() {
+        if (parentSpec == null) {
+            return getRootDir();
+        }
+        
+        File rootDir = parentSpec.getRootDir();
+        if (rootDir == null) {
+            return null;
+        }
+        String destPath = getDestPath();
+        if (destPath.equals("/") || destPath.equals(File.separator)) {
+            return rootDir;
+        }
+        return GFileUtils.canonicalise(new File(rootDir, destPath));
     }
 
     public CopySpec include(String ... includes) {
@@ -197,7 +242,7 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpec rename(String sourceRegEx, String replaceWith) {
-        renameMappers.add(new RegExpNameMapper(sourceRegEx,  replaceWith));
+        destinationMapper.add(new RegExpNameMapper(sourceRegEx, replaceWith));
         return this;
     }
 
@@ -234,19 +279,15 @@ public class CopySpecImpl implements CopySpec {
         return this;
     }
 
-    public List<Transformer<String>> getRenameMappers() {
-        return renameMappers;
-    }
-
-    public CopySpec remapTarget(Closure closure) {
-        remapClosureList.add(closure);
+    public CopySpec rename(Closure closure) {
+        destinationMapper.add(closure);
         return this;
     }
 
-    public List<Closure> getRemapClosures() {
-        return remapClosureList;
+    public CopyDestinationMapper getDestinationMapper() {
+        return destinationMapper;
     }
-
+    
     public List<String> getAllExcludes() {
         List<String> result = new ArrayList<String>();
         if (parentSpec != null) {

@@ -90,4 +90,13 @@ public class ChainingTransformerTest {
 
         assertThat(transformer.transform("original"), equalTo("ri"));
     }
+    
+    @Test
+    public void closureCanTransformAStringIntoAGString() {
+        Closure closure = HelperUtil.toClosure("{ \"[$it]\" }");
+
+        transformer.add(closure);
+
+        assertThat(transformer.transform("original"), equalTo("[original]"));
+    }
 }

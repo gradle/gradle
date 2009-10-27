@@ -15,25 +15,21 @@
  */
 package org.gradle.api.internal.file;
 
-import groovy.lang.Closure;
 import org.gradle.api.Transformer;
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.tasks.WorkResult;
 
-import java.io.*;
-import java.util.List;
+import java.io.File;
+import java.io.Reader;
 
 /**
  * @author Steve Appling
  */
-public class CopyVisitor implements FileVisitor, WorkResult {
-    private final File baseDestDir;
-    private final List<Closure> remapClosures;
-    private final List<Transformer<String>> nameMappers;
-    private final FilterChain filterChain;
+public class CopyVisitor implements CopySpecVisitor, WorkResult {
+    private File baseDestDir;
+    private CopyDestinationMapper destinationMapper;
+    private FilterChain filterChain;
     private boolean didWork;
     private final Transformer<Reader> filterReaderTransformer = new Transformer<Reader>() {
         public Reader transform(Reader original) {
@@ -42,22 +38,17 @@ public class CopyVisitor implements FileVisitor, WorkResult {
         }
     };
 
-    public CopyVisitor(File baseDestDir, List<Closure> remapClosures, List<Transformer<String>> nameMappers, FilterChain filterChain) {
-        this.baseDestDir = baseDestDir;
-        this.remapClosures = remapClosures;
-        this.nameMappers = nameMappers;
-        this.filterChain = filterChain;
+    public void visitSpec(CopySpecImpl spec) {
+        baseDestDir = spec.getDestDir();
+        destinationMapper = spec.getDestinationMapper();
+        filterChain = spec.getFilterChain();
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
     }
 
     public void visitFile(FileVisitDetails source) {
-        File target = getTarget(source.getRelativePath());
-        if (target == null) {
-            // not allowed, skip
-            return;
-        }
+        File target = getTarget(source);
         copyFile(source, target);
     }
 
@@ -65,35 +56,8 @@ public class CopyVisitor implements FileVisitor, WorkResult {
         return didWork;
     }
 
-    File getTarget(RelativePath path) {
-        File result = null;
-        String targetName = path.getLastName();
-        if (nameMappers != null && nameMappers.size() != 0) {
-            String resultName = null;
-            for (Transformer<String> nameMapper : nameMappers) {
-                resultName = nameMapper.transform(targetName);
-                if (resultName != null) {
-                    break;
-                }
-            }
-            targetName = resultName;
-        }
-
-        if (targetName != null) {
-            File target = new File(path.getParent().getFile(baseDestDir), targetName);
-            if (remapClosures == null || remapClosures.size() == 0) {
-                result = target;
-            } else {
-                for (Closure nextClosure : remapClosures) {
-                    Object targetObj = nextClosure.call(target);
-                    if (targetObj instanceof File) {
-                        result = (File) targetObj;
-                        break;
-                    }
-                }
-            }
-        }
-        return result;
+    File getTarget(FileTreeElement source) {
+        return destinationMapper.getPath(source).getFile(baseDestDir);
     }
 
     void copyFile(FileTreeElement srcFile, File destFile) {

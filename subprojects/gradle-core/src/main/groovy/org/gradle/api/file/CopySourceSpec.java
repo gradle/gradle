@@ -36,7 +36,7 @@ public interface CopySourceSpec {
      * path is evaluated as for {@link org.gradle.api.Project#files(Object[])} .
      *
      * @param sourcePath Path to source for the copy
-     * @param c closure for configuring the child CopySourceSpec
+     * @param configureClosure closure for configuring the child CopySourceSpec
      */
-    CopySourceSpec from(Object sourcePath, Closure c);
+    CopySourceSpec from(Object sourcePath, Closure configureClosure);
 }

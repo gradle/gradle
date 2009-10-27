@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import groovy.lang.Closure;
 import org.apache.tools.ant.filters.ReplaceTokens;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.util.TemporaryFolder;
@@ -28,21 +26,22 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-
 
 public class CopyVisitorTest {
     private File testDir;
     private File sourceDir;
-    private CopyVisitor visitor;
+    private final CopyVisitor visitor = new CopyVisitor();
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
-
-    @Before public void setUp() throws IOException {
+    @Before
+    public void setUp() throws IOException {
         testDir = tmpDir.getDir();
         sourceDir = getResource("testfiles");
         assertTrue(sourceDir.isDirectory());
@@ -61,8 +60,9 @@ public class CopyVisitorTest {
         return result;
     }
 
-    @Test public void plainCopy() {
-        visitor = new CopyVisitor(testDir, null, null, new FilterChain());
+    @Test
+    public void plainCopy() {
+        visitor.visitSpec(spec(testDir, plainMapper(), new FilterChain()));
 
         visitor.visitDir(file(sourceDir, new RelativePath(false)));
 
@@ -79,11 +79,12 @@ public class CopyVisitorTest {
         File targetRootFile = new File(testDir, rootFile.getName());
         assertTrue(targetRootFile.exists());
 
-        File targetAnotherFile = new File(testDir, "subdir/"+anotherFile.getName());
+        File targetAnotherFile = new File(testDir, "subdir/" + anotherFile.getName());
         assertTrue(targetAnotherFile.exists());
     }
 
-    @Test public void testFilter() throws IOException {
+    @Test
+    public void testFilter() throws IOException {
         FilterChain filters = new FilterChain();
         ReplaceTokens filter = new ReplaceTokens(filters.getLastFilter());
         filters.addFilter(filter);
@@ -92,7 +93,7 @@ public class CopyVisitorTest {
         token.setValue("42");
         filter.addConfiguredToken(token);
 
-        visitor = new CopyVisitor(testDir, null, null, filters);
+        visitor.visitSpec(spec(testDir, plainMapper(), filters));
 
         FileVisitDetails sourceFile = file(getResource("testfiles/rootfile.txt"), new RelativePath(true,
                 "rootfile.txt"));
@@ -105,55 +106,41 @@ public class CopyVisitorTest {
         assertTrue(reader.readLine().startsWith("The magic number is 42"));
     }
 
-    @Test public void testGetTargetPlain() {
-        visitor = new CopyVisitor(testDir, null, null, new FilterChain());
+    @Test
+    public void testGetTargetPlain() {
+        visitor.visitSpec(spec(testDir, plainMapper(), new FilterChain()));
 
-        File target = visitor.getTarget(new RelativePath(true, "one"));
+        File target = visitor.getTarget(file(null, new RelativePath(true, "one")));
         assertEquals(new File(testDir, "one"), target);
 
-        target = visitor.getTarget(new RelativePath(true, "sub", "two"));
+        target = visitor.getTarget(file(null, new RelativePath(true, "sub", "two")));
         assertEquals(new File(testDir, "sub/two"), target);
     }
 
-    @Test public void testGetTargetRenamed() {
-        RegExpNameMapper renamer = new RegExpNameMapper("(.+)\\.java", "$1Test.java");
-        ArrayList<Transformer<String>> mappers = new ArrayList<Transformer<String>>(1);
-        mappers.add(renamer);
+    @Test
+    public void testGetTargetRenamed() {
+        visitor.visitSpec(spec(testDir, renameMapper("(.+)\\.java", "$1Test.java"), new FilterChain()));
 
-        visitor = new CopyVisitor(testDir, null, mappers, new FilterChain());
-
-        File target = visitor.getTarget(new RelativePath(true, "Fred.java"));
+        File target = visitor.getTarget(file(null, new RelativePath(true, "Fred.java")));
         assertEquals(new File(testDir, "FredTest.java"), target);
     }
 
-    @Test public void testGetTargetRenmapped() {
-
-        ArrayList<Closure> mappers = new ArrayList<Closure>(1);
-        mappers.add(new FlatMapper(this, testDir));
-
-        visitor = new CopyVisitor(testDir, mappers, null, new FilterChain());
-
-        File target = visitor.getTarget(new RelativePath(true, "Fred.java"));
-        assertEquals(new File(testDir, "Fred.java"), target);
+    private CopySpecImpl spec(final File destDir, final CopyDestinationMapper destinationMapper, final FilterChain filterChain) {
+        return new TestCopySpecImpl(destDir, destinationMapper, filterChain);
     }
 
     private FileVisitDetails file(final File sourceDir, final RelativePath relativePath) {
         return new TestFileVisitDetails(sourceDir, relativePath);
     }
 
+    private CopyDestinationMapper plainMapper() {
+        return new DefaultCopyDestinationMapper();
+    }
 
-    public class FlatMapper extends Closure {
-        private File dir;
-
-        public FlatMapper(Object owner, File dir) {
-            super(owner);
-            this.dir = dir;
-        }
-
-        public Object call(Object[] args) {
-            File target = (File) args[0];
-            return new File(dir, target.getName());
-        }
+    private CopyDestinationMapper renameMapper(String regexp, String replacement) {
+        DefaultCopyDestinationMapper mapper = new DefaultCopyDestinationMapper();
+        mapper.add(new RegExpNameMapper(regexp, replacement));
+        return mapper;
     }
 
     private class TestFileVisitDetails extends DefaultFileTreeElement implements FileVisitDetails {
@@ -163,6 +150,34 @@ public class CopyVisitorTest {
 
         public void stopVisiting() {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class TestCopySpecImpl extends CopySpecImpl {
+        private final File destDir;
+        private final CopyDestinationMapper destinationMapper;
+        private final FilterChain filterChain;
+
+        public TestCopySpecImpl(File destDir, CopyDestinationMapper destinationMapper, FilterChain filterChain) {
+            super(null);
+            this.destDir = destDir;
+            this.destinationMapper = destinationMapper;
+            this.filterChain = filterChain;
+        }
+
+        @Override
+            public File getDestDir() {
+            return destDir;
+        }
+
+        @Override
+            public CopyDestinationMapper getDestinationMapper() {
+            return destinationMapper;
+        }
+
+        @Override
+            public FilterChain getFilterChain() {
+            return filterChain;
         }
     }
 }

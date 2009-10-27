@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api.tasks.util
+package org.gradle.api.internal.file;
 
-import org.gradle.api.tasks.AntBuilderAware
+import org.gradle.api.file.FileVisitor;
 
-/**
- * @author Hans Dockter
- */
-class AntDirective implements AntBuilderAware {
-    Closure directive
-
-    AntDirective() {}
-
-    AntDirective(Closure directive) {
-        this.directive = directive
-    }
-
-    def addToAntBuilder(node, String childNodeName) {
-        directive.delegate = node
-        directive.call()
-    }
-
+public interface CopySpecVisitor extends FileVisitor {
+    /**
+     * Visits a spec. Called before any of the files or directories of the spec are
+     * visited.
+     */
+    void visitSpec(CopySpecImpl spec);
 }

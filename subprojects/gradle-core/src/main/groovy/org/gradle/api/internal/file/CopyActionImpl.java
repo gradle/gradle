@@ -32,9 +32,7 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
 
     private boolean caseSensitive = true;
 
-    private boolean didWork;
-
-    private CopyVisitor visitor;
+    private CopyVisitor visitor = new CopyVisitor();
 
     public CopyActionImpl(FileResolver resolver) {
         super(resolver);
@@ -45,12 +43,11 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
     }
 
     public void execute() {
-        didWork = false;
         copyAllSpecs();
     }
 
     public boolean getDidWork() {
-        return didWork;
+        return visitor.getDidWork();
     }
 
     private void copyAllSpecs() {
@@ -67,13 +64,7 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
             throw new InvalidUserDataException("Error - no destination for Copy task, use 'into' to specify a target directory.");
         }
 
-        CopyVisitor visitor = this.visitor;
-        if (visitor == null) {
-            visitor = new CopyVisitor(spec.getDestDir(),
-                    spec.getRemapClosures(),
-                    spec.getRenameMappers(),
-                    spec.getFilterChain() );
-        }
+        visitor.visitSpec(spec);
 
         PatternSet patterns = new PatternSet();
         patterns.setCaseSensitive(caseSensitive);
@@ -81,8 +72,6 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
         patterns.exclude(spec.getAllExcludes());
 
         spec.getSource().matching(patterns).visit(visitor);
-
-        didWork = visitor.getDidWork();
     }
 
     public void setCaseSensitive(boolean caseSensitive) {

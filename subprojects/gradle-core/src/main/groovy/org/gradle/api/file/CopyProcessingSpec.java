@@ -31,15 +31,14 @@ public interface CopyProcessingSpec {
     CopyProcessingSpec into(Object destPath);
 
     /**
-     * Maps a source file to a different relative location under the target directory. The closure will be called with a
-     * single parameter, the File object for the default location of the copy.  This File will have the same relative
-     * path from the destination directory that the source file has from its source directory.  The closure should
-     * return a File object with a new target destination.
+     * Renames a source file to a different relative location under the target directory. The closure will be called
+     * with a single parameter, the name of the file.  The closure should return a String object with a new target
+     * name. The closure may return null, in which case the original name will be used.
      *
-     * @param closure remap closure
+     * @param closure rename closure
      * @return this
      */
-    CopyProcessingSpec remapTarget(Closure closure);
+    CopyProcessingSpec rename(Closure closure);
 
     /**
      * Renames files based on a regular expression.  Uses java.util.regex type of regular expressions.  Note that the
