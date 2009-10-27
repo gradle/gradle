@@ -64,7 +64,7 @@ public class ForkControl {
         }
     }
 
-    public int getNextForkId() {
+    private int getNextForkId() {
         return forkIdSeq.incrementAndGet();
     }
 
@@ -73,7 +73,18 @@ public class ForkControl {
 
         final ForkInfo forkInfo = new ForkInfo(forkId, pipeline);
 
+        forkInfo.setPolicyInfo(forkPolicyInstance.createForkPolicyForkInfo());
+
         forkPolicyInstance.initializeFork(forkInfo);
+
+        return forkInfo;
+    }
+
+    public ForkInfo requestForkStart(Pipeline pipeline)
+    {
+        final ForkInfo forkInfo = createForkInfo(getNextForkId(), pipeline);
+
+        requestForkStart(forkInfo);
 
         return forkInfo;
     }

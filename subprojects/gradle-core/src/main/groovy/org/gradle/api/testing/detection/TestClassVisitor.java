@@ -20,6 +20,8 @@ import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.objectweb.asm.commons.EmptyVisitor;
 
 /**
+ * Base class for ASM test class scanners.
+ *
  * @author Tom Eyckmans
  */
 public abstract class TestClassVisitor extends EmptyVisitor {

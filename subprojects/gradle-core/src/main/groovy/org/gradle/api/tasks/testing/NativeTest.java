@@ -35,7 +35,7 @@ public class NativeTest extends AbstractTestTask {
 
     private List<PipelineConfig> pipelineConfigs;
 
-    private int maximumNumberOfForks = 1;
+    private int maximumNumberOfForks = 10;
 
     public NativeTest() {
         super();

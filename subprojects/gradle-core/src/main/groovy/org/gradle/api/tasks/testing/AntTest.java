@@ -54,11 +54,7 @@ public class AntTest extends AbstractTestTask {
         final Set<String> includes = getIncludes();
         final Set<String> excludes = getExcludes();
 
-        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(
-            this,
-            testFrameworkInstance.getDetector(),
-            testClassProcessor
-        );
+        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, testClassProcessor);
 
         testClassScanner.executeScan();
 

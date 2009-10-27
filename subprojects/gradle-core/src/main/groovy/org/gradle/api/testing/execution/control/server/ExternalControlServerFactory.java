@@ -40,12 +40,8 @@ public class ExternalControlServerFactory implements ControlServerFactory {
         messageHandlerFactories.add(new NextActionRequestMessageHandlerFactory());
     }
 
-    public TestControlServer createTestControlServer(Pipeline pipeline) {
+    public TestControlServer createTestControlServer(Pipeline pipeline, PipelineDispatcher pipelineDispatcher) {
         final IoAcceptorFactory ioAcceptorFactory = new ExternalIoAcceptorFactory();
-
-        final PipelineDispatcher pipelineDispatcher = new PipelineDispatcher(pipeline);
-
-        pipeline.setDispatcher(pipelineDispatcher);
 
         for (TestControlMessageHandlerFactory messageHandlerFactory : messageHandlerFactories) {
             TestControlMessageHandler messageHandler = messageHandlerFactory.createTestControlMessageHandler(pipelineDispatcher);

@@ -16,6 +16,7 @@
 package org.gradle.api.testing.execution.control.server;
 
 import org.gradle.api.testing.execution.Pipeline;
+import org.gradle.api.testing.execution.PipelineDispatcher;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,12 +53,12 @@ public class TestServersManager {
         }
     }
 
-    public void addServer(Pipeline pipeline) {
+    public void addServer(Pipeline pipeline, PipelineDispatcher pipelineDispatcher) {
         if (pipeline == null) throw new IllegalArgumentException("pipeline == null!");
 
         serversLock.writeLock().lock();
         try {
-            final TestControlServer controlServer = controlServerFactory.createTestControlServer(pipeline);
+            final TestControlServer controlServer = controlServerFactory.createTestControlServer(pipeline, pipelineDispatcher);
             pipelineServers.put(pipeline, controlServer);
         }
         finally {
@@ -75,8 +76,8 @@ public class TestServersManager {
         return controlServer.start();
     }
 
-    public int addAndStartServer(Pipeline pipeline) {
-        addServer(pipeline);
+    public int addAndStartServer(Pipeline pipeline, PipelineDispatcher pipelineDispatcher) {
+        addServer(pipeline, pipelineDispatcher);
 
         return startServer(pipeline);
     }

@@ -16,10 +16,11 @@
 package org.gradle.api.testing.execution.control.server;
 
 import org.gradle.api.testing.execution.Pipeline;
+import org.gradle.api.testing.execution.PipelineDispatcher;
 
 /**
  * @author Tom Eyckmans
  */
 public interface ControlServerFactory {
-    TestControlServer createTestControlServer(Pipeline pipeline);
+    TestControlServer createTestControlServer(Pipeline pipeline, PipelineDispatcher pipelineDispatcher);
 }

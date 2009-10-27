@@ -23,8 +23,7 @@ import org.gradle.api.testing.execution.control.messages.server.WaitActionMesssa
 import org.gradle.api.testing.execution.control.refork.ReforkController;
 import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
-import org.gradle.api.testing.execution.fork.ForkControl;
-import org.gradle.api.testing.execution.fork.ForkInfo;
+import org.gradle.api.testing.execution.control.server.TestServerClientHandleFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.util.ConditionWaitHandle;
 import org.gradle.util.ThreadUtils;
@@ -59,12 +58,14 @@ public class PipelineDispatcher {
     private final Lock doneLock;
     private final AtomicBoolean stopping;
 
+    private final TestServerClientHandleFactory clientHandleFactory;
     private final List<TestServerClientHandle> runningClients;
     private final Lock runningClientsLock;
     private final Condition allClientsStopped;
 
-    public PipelineDispatcher(Pipeline pipeline) {
+    public PipelineDispatcher(Pipeline pipeline, TestServerClientHandleFactory clientHandleFactory) {
         this.pipeline = pipeline;
+        this.clientHandleFactory = clientHandleFactory;
         this.messageClassHandlers = new HashMap<Class<?>, TestControlMessageHandler>();
         this.testsToDispatch = pipeline.getRunInfoQueue();
         this.clientHandles = new ConcurrentHashMap<Integer, TestServerClientHandle>();
@@ -77,12 +78,12 @@ public class PipelineDispatcher {
         allClientsStopped = runningClientsLock.newCondition();
     }
 
-    public void initialize(ForkControl forkControl) {
-        for (ForkInfo forkInfo : forkControl.getForkInfos(pipeline.getId())) {
-            clientHandles.put(forkInfo.getId(), new TestServerClientHandle(pipeline, forkInfo.getId(), forkControl));
-            forkInfo.addListener(new PipelineDispatcherForkInfoListener(this));
-        }
-    }
+//    public void initialize(ForkControl forkControl) {
+//        for (ForkInfo forkInfo : forkControl.getForkInfos(pipeline.getId())) {
+//
+//            forkInfo.addListener(new PipelineDispatcherForkInfoListener(this));
+//        }
+//    }
 
     /**
      * Handle messages received from the fork.
@@ -181,6 +182,8 @@ public class PipelineDispatcher {
     }
 
     public void initializeFork(int forkId, IoSession ioSession) {
+        clientStarted(forkId);
+
         final InitializeActionMessage initializeForkMessage = new InitializeActionMessage(pipeline.getId());
         final NativeTest testTask = pipeline.getTestTask();
 
@@ -227,12 +230,14 @@ public class PipelineDispatcher {
     public void clientStarted(int forkId) {
         runningClientsLock.lock();
         try {
-            final TestServerClientHandle client = clientHandles.get(forkId);
-            if (client != null) {
-                runningClients.add(client);
-            } else {
-                logger.error("clientStarted called for forkId(" + forkId + ") that is unrelated to test server off pipeline (" + pipeline.getId() + ")");
+            TestServerClientHandle client = clientHandles.get(forkId);
+            if ( client == null ) { // first interaction with client -> create handle.
+                client = clientHandleFactory.createTestServerClientHandle(pipeline, forkId);
+                
+                clientHandles.put(forkId, client);
             }
+
+            runningClients.add(client);
         }
         finally {
             runningClientsLock.unlock();

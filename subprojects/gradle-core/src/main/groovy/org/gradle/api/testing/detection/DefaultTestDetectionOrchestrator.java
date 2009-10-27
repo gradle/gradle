@@ -21,7 +21,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Creates a thread that executes the test class detection.
+ * Uses a single thread to execute the test class detection.
  *
  * @author Tom Eyckmans
  */

@@ -22,6 +22,8 @@ import org.gradle.api.testing.pipelinesplit.TestPipelineSplitOrchestrator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * Used to pass around the items needed by the test orchestrator actions.
+ *
  * @author Tom Eyckmans
  */
 public class TestOrchestratorContext {

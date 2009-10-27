@@ -18,7 +18,6 @@ package org.gradle.api.testing.detection;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
 
@@ -28,6 +27,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * The default test class scanner depending on the availability of a test framework detecter a detection or filename scan is performed
+ * to find test classes.
+ *  
  * @author Tom Eyckmans
  */
 public class DefaultTestClassScanner implements TestClassScanner {
@@ -36,44 +38,73 @@ public class DefaultTestClassScanner implements TestClassScanner {
     private final List<String> excludePatterns;
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
-    private final boolean scanForTestClasses;
 
-    public DefaultTestClassScanner(AbstractTestTask testTask, TestFrameworkDetector testFrameworkDetector, TestClassProcessor testClassProcessor) {
-        this.testClassDirectory = testTask.getTestClassesDir();
-        final Set<String> includePatterns = testTask.getIncludes();
-        final Set<String> excludePatterns = testTask.getExcludes();
+    public DefaultTestClassScanner(File testClassDirectory, Set<String> includePatterns, Set<String> excludePatterns, TestFrameworkDetector testFrameworkDetector, TestClassProcessor testClassProcessor) {
+        if ( testClassDirectory == null ) throw new IllegalArgumentException("testClassDirectory is null!");
+        if ( testClassProcessor == null ) throw new IllegalArgumentException("testClassProcessor is null!");
+
+        this.testClassDirectory = testClassDirectory;
         this.includePatterns = includePatterns == null ? new ArrayList<String>() : new ArrayList<String>(includePatterns);
         this.excludePatterns = excludePatterns == null ? new ArrayList<String>() : new ArrayList<String>(excludePatterns);
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
-        this.scanForTestClasses = testTask.isScanForTestClasses();
     }
 
     public void executeScan() {
-        testFrameworkDetector.setTestClassProcessor(testClassProcessor);
-
         final FileSet testClassFileSet = new FileSet(testClassDirectory, null);
 
-        if (!scanForTestClasses) {
-            if (includePatterns.isEmpty()) {
-                includePatterns.add("**/*Tests.class");
-                includePatterns.add("**/*Test.class");
+        if ( testFrameworkDetector == null ) {
+            filenameScan(testClassFileSet);
+        }
+        else {
+            detectionScan(testClassFileSet);
+        }
+    }
+
+    private void detectionScan(final FileSet testClassFileSet)
+    {
+        testClassFileSet.include(includePatterns);
+        testClassFileSet.exclude(excludePatterns);
+
+        testFrameworkDetector.setTestClassProcessor(testClassProcessor);
+
+        testClassFileSet.visit(new ClassFileVisitor() {
+            public void visitClassFile(FileVisitDetails fileDetails) {
+                testFrameworkDetector.processTestClass(fileDetails.getFile());
             }
-            if (excludePatterns.isEmpty()) {
-                excludePatterns.add("**/Abstract*.class");
-            }
+        });
+    }
+
+    private void filenameScan(final FileSet testClassFileSet)
+    {
+        if (includePatterns.isEmpty()) {
+            includePatterns.add("**/*Tests.class");
+            includePatterns.add("**/*Test.class");
+        }
+        if (excludePatterns.isEmpty()) {
+            excludePatterns.add("**/Abstract*.class");
         }
         testClassFileSet.include(includePatterns);
         testClassFileSet.exclude(excludePatterns);
 
-        testClassFileSet.visit(new EmptyFileVisitor() {
-            public void visitFile(FileVisitDetails fileDetails) {
-                final File file = fileDetails.getFile();
-                
-                if (file.getAbsolutePath().endsWith(".class")) {
-                    testFrameworkDetector.processTestClass(file);
-                }
+        testClassFileSet.visit(new ClassFileVisitor() {
+            public void visitClassFile(FileVisitDetails fileDetails) {
+                testClassProcessor.processTestClass(fileDetails.getRelativePath().getPathString().replaceAll("\\.class",""));
             }
         });
+    }
+
+    private abstract class ClassFileVisitor extends EmptyFileVisitor
+    {
+        public void visitFile(FileVisitDetails fileDetails)
+        {
+            final File file = fileDetails.getFile();
+
+            if (file.getAbsolutePath().endsWith(".class")) {
+                visitClassFile(fileDetails);
+            }
+        }
+
+        public abstract void visitClassFile(FileVisitDetails fileDetails);
     }
 }

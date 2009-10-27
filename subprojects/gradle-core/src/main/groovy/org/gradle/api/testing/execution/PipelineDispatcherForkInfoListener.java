@@ -28,7 +28,6 @@ public class PipelineDispatcherForkInfoListener implements ForkInfoListener {
     }
 
     public void started(int forkId) {
-        pipelineDispatcher.clientStarted(forkId);
     }
 
     public void stopped(int forkId, Throwable cause) {

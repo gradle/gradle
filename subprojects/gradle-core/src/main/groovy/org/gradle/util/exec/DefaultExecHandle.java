@@ -114,10 +114,14 @@ public class DefaultExecHandle implements ExecHandle {
     private final ExecHandleNotifierFactory notifierFactory;
     private final List<ExecHandleListener> listeners = new CopyOnWriteArrayList<ExecHandleListener>();
 
-    DefaultExecHandle(File directory, String command, List<String> arguments, int normalTerminationExitCode, Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle, ExecOutputHandle errorOutputHandle, ExecHandleNotifierFactory notifierFactory, List<ExecHandleListener> listeners) {
+    DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode, Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle, ExecOutputHandle errorOutputHandle, ExecHandleNotifierFactory notifierFactory, List<ExecHandleListener> listeners) {
         this.directory = directory;
         this.command = command;
-        this.arguments = arguments;
+        this.arguments = new ArrayList<String>();
+        for ( Object objectArgument : arguments ) { // to handle GStrings! otherwise ClassCassExceptions may occur.
+            if ( objectArgument != null )
+                this.arguments.add(objectArgument.toString());
+        }
         this.normalTerminationExitCode = normalTerminationExitCode;
         this.environment = environment;
         this.keepWaitingTimeout = keepWaitingTimeout;

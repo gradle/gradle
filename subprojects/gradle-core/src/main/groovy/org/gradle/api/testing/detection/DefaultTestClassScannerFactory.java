@@ -18,11 +18,27 @@ package org.gradle.api.testing.detection;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
 
+import java.util.Set;
+import java.io.File;
+
 /**
+ * The default test class scanner factory.
+ *
  * @author Tom Eyckmans
  */
 public class DefaultTestClassScannerFactory implements TestClassScannerFactory {
-    public TestClassScanner createTestClassScanner(AbstractTestTask testTask, TestFrameworkDetector testFrameworkDetector, TestClassProcessor testClassProcessor) {
-        return new DefaultTestClassScanner(testTask, testFrameworkDetector, testClassProcessor);
+    public TestClassScanner createTestClassScanner(AbstractTestTask testTask, TestClassProcessor testClassProcessor) {
+        final File testClassDirectory = testTask.getTestClassesDir();
+        final Set<String> includePatterns = testTask.getIncludes();
+        final Set<String> excludePatterns = testTask.getExcludes();
+
+        if ( testTask.isScanForTestClasses() ) {
+            final TestFrameworkDetector testFrameworkDetector = testTask.getTestFramework().getDetector();
+
+            return new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns, testFrameworkDetector, testClassProcessor);
+        }
+        else {
+            return new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns, null, testClassProcessor);
+        }
     }
 }

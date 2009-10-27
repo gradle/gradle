@@ -18,7 +18,10 @@ package org.gradle.api.testing.execution.fork.policies.local.single;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.execution.Pipeline;
+import org.gradle.api.testing.execution.PipelineDispatcherForkInfoListener;
+import org.gradle.api.testing.execution.PipelineDispatcher;
 import org.gradle.api.testing.execution.control.server.TestServersManager;
+import org.gradle.api.testing.execution.control.server.TestServerClientHandleFactory;
 import org.gradle.api.testing.execution.fork.ForkConfigWriter;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.ForkControlListener;
@@ -62,12 +65,21 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
     public void initialize() {
 
         final int pipelineId = pipeline.getId();
+        final int amountToStart = ((LocalSimpleForkPolicyConfig)pipeline.getConfig().getForkPolicyConfig()).getAmountToStart();
 
         logger.warn("Setting up test server & fork for pipeline {}", pipelineId);
 
-        // startup the test server
-        controlServerPort = testServersManager.addAndStartServer(pipeline);
+        final PipelineDispatcher pipelineDispatcher = new PipelineDispatcher(pipeline, new TestServerClientHandleFactory(forkControl));
+        pipeline.setDispatcher(pipelineDispatcher);
 
+        // startup the test server
+        controlServerPort = testServersManager.addAndStartServer(pipeline, pipelineDispatcher);
+        
+        // TODO [teyck] I think it would be better to start the forks for a pipeline when a certain amount of tests are found.
+        for (int i=0;i<amountToStart;i++){
+            final ForkInfo forkInfo = forkControl.requestForkStart(pipeline);
+            forkInfo.addListener(new PipelineDispatcherForkInfoListener(pipeline.getDispatcher()));
+        }
     }
 
     public void startFork(ForkInfo forkInfo) {
@@ -94,8 +106,7 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
         final int pipelineId = pipeline.getId();
         final Project project = testTask.getProject();
         final TestFrameworkInstance testFramework = testTask.getTestFramework();
-        final int forkId = forkControl.getNextForkId();
-        final ForkConfigWriter forkConfigWriter = new ForkConfigWriter(testTask, pipelineId, forkId, controlServerPort);
+        final ForkConfigWriter forkConfigWriter = new ForkConfigWriter(testTask, pipelineId, forkInfo.getId(), controlServerPort);
         final File forkConfigFile = forkConfigWriter.writeConfigFile();
 
         final ExecHandleBuilder forkHandleBuilder = new ExecHandleBuilder(false) // TODO we probably want loggers for each fork

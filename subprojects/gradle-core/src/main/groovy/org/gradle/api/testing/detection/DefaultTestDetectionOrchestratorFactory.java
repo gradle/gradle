@@ -24,11 +24,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Creates the objects needed by the TestDetectionOrchestrator.
+ *
  * @author Tom Eyckmans
  */
 public class DefaultTestDetectionOrchestratorFactory implements TestDetectionOrchestratorFactory {
     private final TestOrchestratorFactory testOrchestratorFactory;
     private final TestClassRunInfoFactory testClassRunInfoFactory;
+    private final TestClassScannerFactory testClassScannerFactory;
     private final BlockingQueueItemProducer<TestClassRunInfo> testDetectionQueueProducer;
 
     public DefaultTestDetectionOrchestratorFactory(final TestOrchestratorFactory testOrchestratorFactory) {
@@ -37,6 +40,7 @@ public class DefaultTestDetectionOrchestratorFactory implements TestDetectionOrc
         this.testOrchestratorFactory = testOrchestratorFactory;
 
         testClassRunInfoFactory = new DefaultTestClassRunInfoFactory();
+        testClassScannerFactory = new DefaultTestClassScannerFactory();
         final BlockingQueue<TestClassRunInfo> testDetectionQueue = testOrchestratorFactory.getTestDetectionQueue();
         testDetectionQueueProducer = new BlockingQueueItemProducer<TestClassRunInfo>(testDetectionQueue, 100L, TimeUnit.MILLISECONDS);
     }
@@ -47,13 +51,9 @@ public class DefaultTestDetectionOrchestratorFactory implements TestDetectionOrc
      */
     public TestDetectionRunner createDetectionRunner() {
         final NativeTest testTask = testOrchestratorFactory.getTestTask();
-        final TestFrameworkInstance testFrameworkInstance = testTask.getTestFramework();
-
         final TestClassProcessor testClassProcessor = new QueueItemProducingTestClassProcessor(testDetectionQueueProducer, testClassRunInfoFactory);
 
-        final TestFrameworkDetector detector = testFrameworkInstance.getDetector();
-
-        final TestClassScanner testClassScanner = new DefaultTestClassScanner(testTask, detector, testClassProcessor);
+        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(testTask, testClassProcessor);
 
         return new TestDetectionRunner(testClassScanner);
     }

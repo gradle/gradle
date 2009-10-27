@@ -22,6 +22,8 @@ import org.gradle.api.testing.execution.fork.ForkInfo;
  */
 public interface ForkPolicyInstance {
 
+    ForkPolicyForkInfo createForkPolicyForkInfo();
+
     void initialize();
 
     void initializeFork(ForkInfo forkInfo);

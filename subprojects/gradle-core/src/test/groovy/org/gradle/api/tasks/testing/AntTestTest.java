@@ -167,8 +167,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
         test.setTestSrcDirs(Collections.<File>emptyList());
 
         context.checking(new Expectations() {{
-            one(testFrameworkInstanceMock).getDetector();will(returnValue(testFrameworkDetectorMock));
-            one(testClassScannerFactoryMock).createTestClassScanner(test, testFrameworkDetectorMock, testClassProcessorMock);will(returnValue(testClassScannerMock));
+            one(testClassScannerFactoryMock).createTestClassScanner(test, testClassProcessorMock);will(returnValue(testClassScannerMock));
             one(testClassScannerMock).executeScan();
             one(testClassProcessorMock).getTestClassNames(); will(returnValue(okTestClassNames));
             one(testFrameworkInstanceMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());

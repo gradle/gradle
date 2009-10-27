@@ -16,6 +16,8 @@
 package org.gradle.api.testing.detection;
 
 /**
+ * Runabble around the test class scanner executeScan call.
+ *
  * @author Tom Eyckmans
  */
 public class TestDetectionRunner implements Runnable {
