@@ -21,7 +21,6 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
@@ -115,12 +114,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      */
     public File getArchivePath() {
         new File(getDestinationDir(), getArchiveName())
-    }
-
-    public AntDirective antDirective(Closure directive) {
-        AntDirective antDirective = new AntDirective(directive)
-        resourceCollections(antDirective)
-        antDirective
     }
 
     /**

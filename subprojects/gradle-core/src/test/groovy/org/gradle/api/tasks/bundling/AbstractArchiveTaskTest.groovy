@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.junit.Test
 import static org.hamcrest.Matchers.*
@@ -134,14 +133,6 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     @Test public void testIncludeFileCollection() {
         FileCollection fileCollection = archiveTask.from([:] as FileCollection)
         assertThat(archiveTask.resourceCollections, hasItem(fileCollection))
-    }
-
-    @Test public void testAntDirective() {
-        Closure expectedDirective = {}
-        AntDirective antDirective = archiveTask.antDirective(expectedDirective)
-        assertTrue(archiveTask.resourceCollections.contains(antDirective))
-        assert antDirective.directive.is(expectedDirective)
-
     }
 
     private void applyToFileSetMethods(Closure cl) {

@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.util.AntDirective
 import org.gradle.api.tasks.util.FileSet
 import org.gradle.util.TemporaryFolder
 import org.junit.Before
@@ -36,7 +35,6 @@ abstract class AbstractAntArchiveTest {
     File txtFile
     File jpgFile
     File xmlFile
-    File groovyFile
     File unzipDir
     String archiveName
     FileSet fileSet
@@ -63,13 +61,7 @@ abstract class AbstractAntArchiveTest {
         fileSet.exclude('**/*.jpg')
         createTestFiles()
         createMetaData()
-        AntDirective antDirective = new AntDirective()
-        antDirective.directive = {
-            file(file: groovyFile.absolutePath) {
-
-            }
-        }
-        resourceCollections = [fileSet, antDirective]
+        resourceCollections = [fileSet]
     }
     
     private void createMetaData() {
@@ -84,7 +76,6 @@ abstract class AbstractAntArchiveTest {
 
     void checkResourceFiles() {
         assertTrue(new File(unzipDir, txtFile.name).exists())
-        assertTrue(new File(unzipDir, groovyFile.name).exists())
         assertFalse(new File(unzipDir, xmlFile.name).exists())
         assertFalse(new File(unzipDir, jpgFile.name).exists())
     }
@@ -115,7 +106,6 @@ abstract class AbstractAntArchiveTest {
         (txtFile = new File(testDir, 'test.txt')).createNewFile()
         (jpgFile = new File(testDir, 'test.jpg')).createNewFile()
         (xmlFile = new File(testDir, 'test.xml')).createNewFile()
-        (groovyFile = new File(testDir, 'test.groovy')).createNewFile()
         (manifestFile = new File(testDir, 'MANIFEST.MF')).write("$manifestFileKey: $manifestFileValue")
         createArchiveFiles()
     }

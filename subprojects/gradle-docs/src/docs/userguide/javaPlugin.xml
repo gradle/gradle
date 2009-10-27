@@ -1225,13 +1225,6 @@
                     for more details.
                 </td>
             </tr>
-            <tr>
-                <td>
-                    <apilink class="org.gradle.api.tasks.util.AntDirective" lang="groovy"/>
-                </td>
-                <td>An arbitrary Ant resource declaration.</td>
-            </tr>
-
         </table>
         <para>To learn about all the details have a look at the javadoc of the archive task class or the file container
             class itself.
