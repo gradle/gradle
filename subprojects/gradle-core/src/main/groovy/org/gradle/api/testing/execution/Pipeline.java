@@ -20,12 +20,15 @@ import org.gradle.api.testing.execution.control.refork.ReforkController;
 import org.gradle.api.testing.execution.control.refork.ReforkControllerImpl;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.api.testing.reporting.Report;
 import org.gradle.util.queues.BlockingQueueItemProducer;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Tom Eyckmans
@@ -41,6 +44,8 @@ public class Pipeline {
     private PipelineDispatcher dispatcher;
     private final ReforkController reforkController;
     private final AtomicBoolean pipelineSplittingEnded = new AtomicBoolean(Boolean.FALSE);
+    private List<Report> reports;
+    private List<PipelineListener> listeners;
 
     public Pipeline(PipelinesManager manager, int id, NativeTest testTask, PipelineConfig config) {
         this.manager = manager;
@@ -50,6 +55,8 @@ public class Pipeline {
         this.runInfoQueue = new ArrayBlockingQueue<TestClassRunInfo>(1000);
         this.runInfoQueueProducer = new BlockingQueueItemProducer<TestClassRunInfo>(runInfoQueue, 100L, TimeUnit.MILLISECONDS);
         this.reforkController = new ReforkControllerImpl();
+        this.reports = new ArrayList<Report>();
+        this.listeners = new ArrayList<PipelineListener>();
     }
 
     public int getId() {
@@ -104,5 +111,22 @@ public class Pipeline {
     public void stopped() {
         forkPolicyInstance.stop();
         manager.stopped(this);
+    }
+
+    public List<Report> getReports() {
+        return reports;
+    }
+
+    public void addReport(Report report) {
+        this.reports.add(report);
+        report.addPipeline(this);
+    }
+
+    public List<PipelineListener> getListeners() {
+        return listeners;
+    }
+
+    public void addListener(PipelineListener listener) {
+        listeners.add(listener);
     }
 }

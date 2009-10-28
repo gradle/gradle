@@ -31,6 +31,7 @@ import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.util.exec.DummyExecOutputHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +112,9 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
 
         final ExecHandleBuilder forkHandleBuilder = new ExecHandleBuilder(false) // TODO we probably want loggers for each fork
                 .execDirectory(project.getRootDir())
-                .execCommand("java");
+                .execCommand("java")
+                .errorOutputHandle(new DummyExecOutputHandle())
+                .standardOutputHandle(new DummyExecOutputHandle());
 
         testFramework.applyForkJvmArguments(forkHandleBuilder);
 

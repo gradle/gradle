@@ -28,7 +28,7 @@ public class LocalSimpleForkPolicyConfig extends ForkPolicyConfig {
     public LocalSimpleForkPolicyConfig(ForkPolicyName policyName) {
         super(policyName);
 
-        this.amountToStart = 10;
+        this.amountToStart = 1;
     }
 
     public int getAmountToStart() {

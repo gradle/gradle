@@ -64,13 +64,13 @@ public class PipelinesManager {
 
     public void initialize(NativeTest testTask) {
 
-        final List<PipelineConfig> pipelineConfigs = testTask.getPipelineConfigs();
+        final Map<String, PipelineConfig> pipelineConfigs = testTask.getPipelineConfigs();
         if (pipelineConfigs.isEmpty()) {
-            final PipelineConfig defaultPipelineConfig = new PipelineConfig();
-            pipelineConfigs.add(defaultPipelineConfig);
+            final PipelineConfig defaultPipelineConfig = new PipelineConfig("default");
+            pipelineConfigs.put(defaultPipelineConfig.getName(), defaultPipelineConfig);
         }
 
-        for (PipelineConfig pipelineConfig : pipelineConfigs) {
+        for (final PipelineConfig pipelineConfig : pipelineConfigs.values()) {
             final Pipeline pipeline = addPipeline(pipelineConfig);
 
             // initialize fork policy
@@ -146,6 +146,10 @@ public class PipelinesManager {
     public void stopped(Pipeline pipeline) {
         allStoppedLock.lock();
         try {
+            for ( final PipelineListener listener : pipeline.getListeners() ) {
+                listener.pipelineStopped(pipeline);
+            }
+
             notStopped.remove(pipeline);
             if (notStopped.isEmpty())
                 allStoppedCondition.signal();

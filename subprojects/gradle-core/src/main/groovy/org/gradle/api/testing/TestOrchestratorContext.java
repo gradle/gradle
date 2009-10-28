@@ -18,6 +18,7 @@ package org.gradle.api.testing;
 import org.gradle.api.testing.detection.TestDetectionOrchestrator;
 import org.gradle.api.testing.execution.PipelinesManager;
 import org.gradle.api.testing.pipelinesplit.TestPipelineSplitOrchestrator;
+import org.gradle.api.testing.reporting.ReportsManager;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -32,17 +33,20 @@ public class TestOrchestratorContext {
     private final TestDetectionOrchestrator testDetectionOrchestrator;
     private final TestPipelineSplitOrchestrator pipelineSplitOrchestrator;
     private final PipelinesManager pipelinesManager;
+    private final ReportsManager reportsManager;
 
-    public TestOrchestratorContext(TestOrchestrator testOrchestrator, TestDetectionOrchestrator testDetectionOrchestrator, TestPipelineSplitOrchestrator pipelineSplitOrchestrator, PipelinesManager pipelinesManager) {
+    public TestOrchestratorContext(TestOrchestrator testOrchestrator, TestDetectionOrchestrator testDetectionOrchestrator, TestPipelineSplitOrchestrator pipelineSplitOrchestrator, PipelinesManager pipelinesManager, ReportsManager reportsManager) {
         if ( testOrchestrator == null ) throw new IllegalArgumentException("testOrchestrator == null!");
         if ( testDetectionOrchestrator == null ) throw new IllegalArgumentException("testDetectionOrchestrator == null!");
         if ( pipelineSplitOrchestrator == null ) throw new IllegalArgumentException("pipelineSplitOrchestrator == null!");
         if ( pipelinesManager == null ) throw new IllegalArgumentException("pipelinesManager == null!");
+        if ( reportsManager == null ) throw new IllegalArgumentException("reportOrchestrator == null!");
 
         this.testOrchestrator = testOrchestrator;
         this.testDetectionOrchestrator = testDetectionOrchestrator;
         this.pipelineSplitOrchestrator = pipelineSplitOrchestrator;
         this.pipelinesManager = pipelinesManager;
+        this.reportsManager = reportsManager;
     }
 
     public AtomicBoolean getKeepRunning() {
@@ -63,5 +67,9 @@ public class TestOrchestratorContext {
 
     public PipelinesManager getPipelinesManager() {
         return pipelinesManager;
+    }
+
+    public ReportsManager getReportsManager() {
+        return reportsManager;
     }
 }

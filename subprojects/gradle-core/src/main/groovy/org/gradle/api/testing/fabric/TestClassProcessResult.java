@@ -43,16 +43,22 @@ public class TestClassProcessResult implements Serializable {
         methodResults.add(methodResult);
     }
 
+    public List<TestMethodProcessResult> getMethodResults() {
+        return methodResults;
+    }
+
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeObject(testClassRunInfo);
         out.writeObject(executionErrorReason);
         out.writeObject(processorErrorReason);
+        out.writeObject(methodResults);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         testClassRunInfo = (TestClassRunInfo) in.readObject();
         executionErrorReason = (Throwable) in.readObject();
         processorErrorReason = (Throwable) in.readObject();
+        methodResults = (List<TestMethodProcessResult>) in.readObject();
     }
 
     public TestClassRunInfo getTestClassRunInfo() {

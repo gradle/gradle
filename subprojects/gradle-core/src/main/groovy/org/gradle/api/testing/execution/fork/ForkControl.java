@@ -133,7 +133,7 @@ public class ForkControl {
     boolean startAllowed() {
         forkControlLock.lock();
         try {
-            return startedForks.get() <= maximumNumberOfForks.get();
+            return startedForks.get() < maximumNumberOfForks.get();
         }
         finally {
             forkControlLock.unlock();

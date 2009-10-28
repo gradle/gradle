@@ -24,6 +24,8 @@ import org.gradle.api.testing.execution.PipelinesManager;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.pipelinesplit.TestPipelineSplitOrchestrator;
+import org.gradle.api.testing.reporting.ReportsManager;
+import org.gradle.api.testing.reporting.DefaultReportsManager;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -101,13 +103,24 @@ public class TestOrchestratorFactory {
         return new TestPipelineSplitOrchestrator(testDetectionQueue);
     }
 
+    /**
+     * Creates the test report orchestrator.
+     * 
+     * @return The test report orchestrator.
+     */
+    public ReportsManager createTestReportOrchestrator()
+    {
+        return new DefaultReportsManager();
+    }
+
     public TestOrchestratorContext createContext(final TestOrchestrator testOrchestrator)
     {
         final TestDetectionOrchestrator detectionOrchestrator = createTestDetectionOrchestrator();
         final TestPipelineSplitOrchestrator pipelineSplitOrchestrator = createTestPipelineSplitOrchestrator();
         final PipelinesManager pipelinesManager = createPipelinesManager();
+        final ReportsManager reportOrchestrator = createTestReportOrchestrator();
 
-        return new TestOrchestratorContext(testOrchestrator, detectionOrchestrator, pipelineSplitOrchestrator, pipelinesManager);
+        return new TestOrchestratorContext(testOrchestrator, detectionOrchestrator, pipelineSplitOrchestrator, pipelinesManager, reportOrchestrator);
     }
 
 }

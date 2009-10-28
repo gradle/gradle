@@ -19,6 +19,7 @@ import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.detection.TestDetectionOrchestrator;
 import org.gradle.api.testing.execution.PipelinesManager;
 import org.gradle.api.testing.pipelinesplit.TestPipelineSplitOrchestrator;
+import org.gradle.api.testing.reporting.ReportsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,19 +122,23 @@ public class TestOrchestrator {
         actions.add(new TestOrchestratorAction() {
             public void execute(TestOrchestratorContext context) {
                 final PipelinesManager pipelinesManager = context.getPipelinesManager();
+                final ReportsManager reportsManager = context.getReportsManager();
                 final TestOrchestrator testOrchestrator = context.getTestOrchestrator();
                 final NativeTest testTask = testOrchestrator.getTestTask();
 
                 pipelinesManager.initialize(testTask);
+                reportsManager.initialize(testTask, pipelinesManager);
             }
         });
 
         actions.add(new TestOrchestratorAction(){
             public void execute(TestOrchestratorContext context) {
                 final TestDetectionOrchestrator testDetectionOrchestrator = context.getTestDetectionOrchestrator();
+                final ReportsManager reportsManager = context.getReportsManager();
 
                 testDetectionOrchestrator.startDetection();
-                logger.debug("test - detection - started");
+                reportsManager.startReporting();
+                logger.debug("test - detection & reporting - started");
             }
         });
 
@@ -172,6 +177,14 @@ public class TestOrchestrator {
                 final PipelinesManager pipelinesManager = context.getPipelinesManager();
 
                 pipelinesManager.waitForExecutionEnd();
+            }
+        });
+
+        actions.add(new TestOrchestratorAction() {
+            public void execute(TestOrchestratorContext context) {
+                final ReportsManager reportsManager = context.getReportsManager();
+
+                reportsManager.waitForReportEnd();
             }
         });
 

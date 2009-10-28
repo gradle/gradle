@@ -17,6 +17,9 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.testing.TestOrchestrator;
+import org.gradle.api.testing.reporting.ReportConfig;
+import org.gradle.api.testing.reporting.policies.ReportPolicyRegister;
+import org.gradle.api.testing.reporting.policies.ReportPolicyNames;
 import org.gradle.api.testing.execution.PipelineConfig;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -24,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * @author Tom Eyckmans
@@ -33,14 +38,31 @@ public class NativeTest extends AbstractTestTask {
 
     private long reforkEvery = Long.MAX_VALUE;
 
-    private List<PipelineConfig> pipelineConfigs;
+    private PipelineConfig defaultPipelineConfig;
+    private Map<String, PipelineConfig> pipelineConfigs;
+    private ReportConfig errorsToConsoleReport;
+    private Map<String, ReportConfig> reportConfigs;
 
-    private int maximumNumberOfForks = 10;
+    private int maximumNumberOfForks = 4;
 
     public NativeTest() {
         super();
-        pipelineConfigs = new ArrayList<PipelineConfig>();
-        pipelineConfigs.add(new PipelineConfig()); // add default pipeline.
+        pipelineConfigs = new HashMap<String, PipelineConfig>();
+
+        // default pipeline
+        defaultPipelineConfig = new PipelineConfig("default");
+
+        pipelineConfigs.put(defaultPipelineConfig.getName(), defaultPipelineConfig);
+
+        reportConfigs = new HashMap<String, ReportConfig>();
+
+        // by default we report errors and failures to the console
+        errorsToConsoleReport = new ReportConfig("errorsToConsole");
+        errorsToConsoleReport.setPolicyConfig(ReportPolicyRegister.getReportPolicy(ReportPolicyNames.ERRORS_TO_CONSOLE).createReportPolicyConfigInstance());
+
+        reportConfigs.put(errorsToConsoleReport.getName(), errorsToConsoleReport);
+
+        defaultPipelineConfig.getReports().add(errorsToConsoleReport);
     }
 
     public void executeTests() {
@@ -75,20 +97,26 @@ public class NativeTest extends AbstractTestTask {
         this.reforkEvery = reforkEvery;
     }
 
-    public List<PipelineConfig> getPipelineConfigs() {
+    public Map<String, PipelineConfig> getPipelineConfigs() {
         return pipelineConfigs;
-    }
-
-    public void setPipelineConfig(PipelineConfig pipelineConfig) {
-        if (pipelineConfig == null) throw new IllegalArgumentException("pipelineConfig can't be null!");
-
-        pipelineConfigs.set(0, pipelineConfig);
     }
 
     public void addPipelineConfig(PipelineConfig pipelineConfig) {
         if (pipelineConfig == null) throw new IllegalArgumentException("pipelineConfig can't be null!");
 
-        pipelineConfigs.add(pipelineConfig);
+        pipelineConfigs.put(pipelineConfig.getName(), pipelineConfig);
+    }
+
+    public Map<String, ReportConfig> getReportConfigs() {
+        return reportConfigs;
+    }
+
+    public ReportConfig getReportConfig(String name) {
+        return reportConfigs.get(name);
+    }
+
+    public void addReportConfing(ReportConfig reportConfig) {
+
     }
 
     public int getMaximumNumberOfForks() {

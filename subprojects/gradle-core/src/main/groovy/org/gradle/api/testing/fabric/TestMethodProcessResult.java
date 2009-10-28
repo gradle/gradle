@@ -26,16 +26,30 @@ import java.io.Serializable;
 public class TestMethodProcessResult implements Serializable {
 
     private String methodName;
+    private TestMethodProcessResultState state;
     private Throwable thrownException;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeUTF(methodName);
+        out.writeObject(state);
         out.writeObject(thrownException);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         methodName = in.readUTF();
+        state = (TestMethodProcessResultState) in.readObject();
         thrownException = (Throwable) in.readObject();
     }
 
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public TestMethodProcessResultState getState() {
+        return state;
+    }
+
+    public Throwable getThrownException() {
+        return thrownException;
+    }
 }

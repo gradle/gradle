@@ -23,29 +23,40 @@ import org.gradle.api.testing.execution.fork.policies.ForkPolicyRegister;
 import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyConfig;
 import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyNames;
 import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyRegister;
+import org.gradle.api.testing.reporting.ReportConfig;
+
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Tom Eyckmans
  */
 public class PipelineConfig {
+    private String name;
     private SplitPolicyConfig splitPolicyConfig;
     private ForkPolicyConfig forkPolicyConfig;
     private ReforkItemConfigs reforkItemConfigs;
+    private List<ReportConfig> reports;
 
-    public PipelineConfig() {
-        this(
-                SplitPolicyRegister.getSplitPolicy(SplitPolicyNames.SINGLE).getSplitPolicyConfigInstance(),
+    public PipelineConfig(String name) {
+        this(   name, SplitPolicyRegister.getSplitPolicy(SplitPolicyNames.SINGLE).getSplitPolicyConfigInstance(),
                 ForkPolicyRegister.getForkPolicy(ForkPolicyNames.LOCAL_SIMPLE).getForkPolicyConfigInstance());
     }
 
-    public PipelineConfig(SplitPolicyConfig splitPolicyConfig, ForkPolicyConfig forkPolicyConfig) {
+    public PipelineConfig(String name, SplitPolicyConfig splitPolicyConfig, ForkPolicyConfig forkPolicyConfig) {
         if (splitPolicyConfig == null) throw new IllegalArgumentException("splitPolicyConfig == null!");
         if (forkPolicyConfig == null) throw new IllegalArgumentException("forkPolicyConfig == null!");
 
+        this.name = name;
         this.splitPolicyConfig = splitPolicyConfig;
         this.forkPolicyConfig = forkPolicyConfig;
         this.reforkItemConfigs = new ReforkItemConfigs();
         reforkItemConfigs.addItemConfig(DecisionContextItemKeys.AMOUNT_OF_TEST_EXECUTED_BY_FORK, null);
+        this.reports = new ArrayList<ReportConfig>();
+    }
+
+    public String getName() {
+        return name;
     }
 
     public SplitPolicyConfig getSplitPolicyConfig() {
@@ -74,5 +85,13 @@ public class PipelineConfig {
 
     public void setReforkItemConfigs(ReforkItemConfigs reforkItemConfigs) {
         this.reforkItemConfigs = reforkItemConfigs;
+    }
+
+    public List<ReportConfig> getReports() {
+        return reports;
+    }
+
+    public void setReports(List<ReportConfig> reports) {
+        this.reports = reports;
     }
 }
