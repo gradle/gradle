@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.publish.PublishEngine;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.PublishInstruction;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -28,8 +28,7 @@ import java.util.Set;
  */
 public interface IvyDependencyPublisher {
     void publish(Set<String> configurations,
-                 PublishInstruction publishInstruction,
                  List<DependencyResolver> publishResolvers,
                  ModuleDescriptor moduleDescriptor,
-                 PublishEngine publishEngine);
+                 File descriptorDestination, PublishEngine publishEngine);
 }

@@ -19,7 +19,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -42,6 +42,7 @@ import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
+import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.Before;
@@ -51,7 +52,10 @@ import java.io.File;
 
 @RunWith(JMock.class)
 public class GradleInternalServiceRegistryTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4Mockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);    
+    }};
+    
     private final ConfigurationContainerFactory configurationContainerFactory = context.mock(
             ConfigurationContainerFactory.class);
     private final RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
@@ -60,7 +64,8 @@ public class GradleInternalServiceRegistryTest {
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final GradleInternalServiceRegistry registry = new GradleInternalServiceRegistry(parent, gradle);
     private final StartParameter startParameter = new StartParameter();
-    private final ModuleDescriptorConverter moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
+    private final PublishModuleDescriptorConverter publishModuleDescriptorConverter =
+            context.mock(PublishModuleDescriptorConverter.class);
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
 
     @Before
@@ -73,13 +78,13 @@ public class GradleInternalServiceRegistryTest {
             will(returnValue(configurationContainerFactory));
             allowing(parent).get(DependencyFactory.class);
             will(returnValue(dependencyFactory));
-            allowing(parent).get(ModuleDescriptorConverter.class);
-            will(returnValue(moduleDescriptorConverter));
+            allowing(parent).get(PublishModuleDescriptorConverter.class);
+            will(returnValue(publishModuleDescriptorConverter));
             allowing(parent).get(ListenerManager.class);
             will(returnValue(listenerManager));
             allowing(gradle).getBuildScriptClassLoader();
             will(returnValue(new ClassLoader() {
-            }));
+                }));
             allowing(gradle).getStartParameter();
             will(returnValue(startParameter));
         }});

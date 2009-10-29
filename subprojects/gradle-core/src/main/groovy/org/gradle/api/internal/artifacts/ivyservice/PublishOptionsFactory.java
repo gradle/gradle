@@ -16,13 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.publish.PublishOptions;
-import org.gradle.api.artifacts.PublishInstruction;
 
+import java.io.File;
 import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public interface PublishOptionsFactory {
-    PublishOptions createPublishOptions(Set<String> configurations, PublishInstruction publishInstruction);
+    PublishOptions createPublishOptions(Set<String> configurations, File descriptorDestination);
 }

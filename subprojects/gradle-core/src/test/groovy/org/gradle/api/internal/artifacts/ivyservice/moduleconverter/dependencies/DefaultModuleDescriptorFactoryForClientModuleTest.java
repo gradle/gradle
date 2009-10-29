@@ -30,22 +30,22 @@ import org.junit.Test;
 /**
  * @author Hans Dockter
  */
-public class DefaultClientModuleDescriptorFactoryTest {
+public class DefaultModuleDescriptorFactoryForClientModuleTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Test
     public void testCreateModuleDescriptor() {
-        DefaultClientModuleDescriptorFactory clientModuleDescriptorFactory =
-                new DefaultClientModuleDescriptorFactory();
-        ModuleDependency dependencyMock = context.mock(ModuleDependency.class);
         DependencyDescriptor dependencyDescriptorDummy = context.mock(DependencyDescriptor.class);
-        final ModuleRevisionId TEST_MODULE_REVISION_ID = ModuleRevisionId.newInstance("org", "name", "version");
         DependencyDescriptorFactorySpy dependencyDescriptorFactorySpy = new DependencyDescriptorFactorySpy(dependencyDescriptorDummy);
+        DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory =
+                new DefaultModuleDescriptorFactoryForClientModule();
+        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactorySpy);
+        ModuleDependency dependencyMock = context.mock(ModuleDependency.class);
+        final ModuleRevisionId TEST_MODULE_REVISION_ID = ModuleRevisionId.newInstance("org", "name", "version");
 
         ModuleDescriptor moduleDescriptor = clientModuleDescriptorFactory.createModuleDescriptor(
                 TEST_MODULE_REVISION_ID,
-                WrapUtil.toSet(dependencyMock),
-                dependencyDescriptorFactorySpy);
+                WrapUtil.toSet(dependencyMock));
 
         assertThat(moduleDescriptor.getModuleRevisionId(), equalTo(TEST_MODULE_REVISION_ID));
         assertThatDescriptorHasOnlyDefaultConfiguration(moduleDescriptor);
@@ -82,6 +82,11 @@ public class DefaultClientModuleDescriptorFactoryTest {
             this.configuration = configuration;
             this.parent = moduleDescriptor;
             this.dependency = dependency;
+        }
+
+        public ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
+            // do nothing
+            return null;
         }
     }
 }

@@ -30,20 +30,26 @@ import java.util.Map;
 public class DefaultConfigurationContainerFactory implements ConfigurationContainerFactory {
     private Map clientModuleRegistry;
     private SettingsConverter settingsConverter;
-    private ModuleDescriptorConverter moduleDescriptorConverter;
+    private ModuleDescriptorConverter resolveModuleDescriptorConverter;
+    private ModuleDescriptorConverter publishModuleDescriptorConverter;
+    private IvyFileConverter ivyFileConverter;
     private IvyFactory ivyFactory;
     private IvyDependencyResolver dependencyResolver;
     private IvyDependencyPublisher dependencyPublisher;
 
     public DefaultConfigurationContainerFactory(Map clientModuleRegistry, SettingsConverter settingsConverter,
-                                                ModuleDescriptorConverter moduleDescriptorConverter, IvyFactory ivyFactory,
+                                                ModuleDescriptorConverter resolveModuleDescriptorConverter,
+                                                ModuleDescriptorConverter publishModuleDescriptorConverter,
+                                                IvyFileConverter ivyFileConverter, IvyFactory ivyFactory,
                                                 IvyDependencyResolver dependencyResolver, IvyDependencyPublisher dependencyPublisher) {
         this.clientModuleRegistry = clientModuleRegistry;
         this.settingsConverter = settingsConverter;
-        this.dependencyPublisher = dependencyPublisher;
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
+        this.resolveModuleDescriptorConverter = resolveModuleDescriptorConverter;
+        this.publishModuleDescriptorConverter = publishModuleDescriptorConverter;
+        this.ivyFileConverter = ivyFileConverter;
         this.ivyFactory = ivyFactory;
         this.dependencyResolver = dependencyResolver;
+        this.dependencyPublisher = dependencyPublisher;
     }
 
     public ConfigurationContainer createConfigurationContainer(ResolverProvider resolverProvider,
@@ -54,7 +60,9 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
                                 dependencyMetaDataProvider,
                                 resolverProvider,
                                 settingsConverter,
-                                moduleDescriptorConverter,
+                                resolveModuleDescriptorConverter,
+                                publishModuleDescriptorConverter,
+                                ivyFileConverter, 
                                 ivyFactory,
                                 dependencyResolver,
                                 dependencyPublisher,

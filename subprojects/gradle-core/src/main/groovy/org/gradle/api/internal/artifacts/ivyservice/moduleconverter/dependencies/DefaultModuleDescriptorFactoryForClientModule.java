@@ -28,9 +28,11 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public class DefaultClientModuleDescriptorFactory implements ClientModuleDescriptorFactory {
-    public ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies,
-                                                   DependencyDescriptorFactory dependencyDescriptorFactory) {
+public class DefaultModuleDescriptorFactoryForClientModule implements ModuleDescriptorFactoryForClientModule {
+    // Because of bi directioal dependencies we need setter injection
+    private DependencyDescriptorFactory dependencyDescriptorFactory;
+
+    public ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies) {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId,
                 "release", null);
         moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION));
@@ -46,5 +48,13 @@ public class DefaultClientModuleDescriptorFactory implements ClientModuleDescrip
             dependencyDescriptorFactory.addDependencyDescriptor(Dependency.DEFAULT_CONFIGURATION, moduleDescriptor,
                     dependency);
         }
+    }
+
+    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
+        return dependencyDescriptorFactory;
+    }
+
+    public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {
+        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
     }
 }

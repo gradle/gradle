@@ -18,12 +18,11 @@ package org.gradle.api.tasks;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -71,13 +70,13 @@ public class UploadTest extends AbstractTaskTest {
     }
 
     @Test public void testUploading() {
-        final PublishInstruction publishInstruction = new PublishInstruction(true, new File("somePath"));
-        upload.setUploadDescriptor(publishInstruction.isUploadDescriptor());
-        upload.setDescriptorDestination(publishInstruction.getDescriptorDestination());
+        final File descriptorDestination = new File("somePath");
+        upload.setUploadDescriptor(true);
+        upload.setDescriptorDestination(descriptorDestination);
         upload.setConfiguration(configurationMock);
         upload.setRepositories(repositoriesMock);
         context.checking(new Expectations() {{
-            one(configurationMock).publish(toList(repositoryDummy), publishInstruction);
+            one(configurationMock).publish(toList(repositoryDummy), descriptorDestination);
         }});
         upload.upload();
     }
@@ -88,7 +87,7 @@ public class UploadTest extends AbstractTaskTest {
         upload.setConfiguration(configurationMock);
         upload.setRepositories(repositoriesMock);
         context.checking(new Expectations() {{
-            one(configurationMock).publish(toList(repositoryDummy), new PublishInstruction(false, null));
+            one(configurationMock).publish(toList(repositoryDummy), null);
         }});
         upload.upload();
     }

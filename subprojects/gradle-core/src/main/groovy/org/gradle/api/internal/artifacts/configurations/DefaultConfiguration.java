@@ -126,13 +126,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
-    public List<Configuration> getHierarchy() {
-        List<Configuration> result = WrapUtil.<Configuration>toList(this);
+    public Set<Configuration> getHierarchy() {
+        Set<Configuration> result = WrapUtil.<Configuration>toLinkedSet(this);
         collectSuperConfigs(this, result);
         return result;
     }
 
-    private void collectSuperConfigs(Configuration configuration, List<Configuration> result) {
+    private void collectSuperConfigs(Configuration configuration, Set<Configuration> result) {
         for (Configuration superConfig : configuration.getExtendsFrom()) {
             if (result.contains(superConfig)) {
                 result.remove(superConfig);
@@ -190,8 +190,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return cachedResolvedConfiguration;
     }
 
-    public void publish(List<DependencyResolver> publishResolvers, PublishInstruction publishInstruction) {
-        ivyService.publish(new HashSet<Configuration>(getHierarchy()), publishInstruction, publishResolvers);
+    public void publish(List<DependencyResolver> publishResolvers, File descriptorDestination) {
+        ivyService.publish(getHierarchy(), descriptorDestination, publishResolvers);
     }
 
     public TaskDependency getBuildDependencies() {

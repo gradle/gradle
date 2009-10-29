@@ -122,7 +122,7 @@ public class DefaultConfigurationContainerTest {
         Configuration detachedConf = configurationContainer.detachedConfiguration(dependency1, dependency2);
 
         assertThat(detachedConf.getAll(), equalTo(WrapUtil.toSet(detachedConf)));
-        assertThat(detachedConf.getHierarchy(), equalTo(WrapUtil.<Configuration>toList(detachedConf)));
+        assertThat(detachedConf.getHierarchy(), equalTo(WrapUtil.<Configuration>toSet(detachedConf)));
         assertThat(detachedConf.getDependencies(), equalTo(WrapUtil.toSet(dependency1, dependency2)));
         assertNotSameInstances(detachedConf.getDependencies(), WrapUtil.toSet(dependency1, dependency2));
     }

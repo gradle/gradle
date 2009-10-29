@@ -18,10 +18,9 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ConventionTask;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +54,7 @@ public class Upload extends ConventionTask {
     @TaskAction
     protected void upload() {
         logger.info("Publishing configurations: " + configuration);
-        configuration.publish(repositories.getResolvers(),
-                new PublishInstruction(isUploadDescriptor(),
-                        isUploadDescriptor() ? getDescriptorDestination() : null));
+        configuration.publish(repositories.getResolvers(), isUploadDescriptor() ? getDescriptorDestination() : null);
     }
 
     public boolean isUploadDescriptor() {

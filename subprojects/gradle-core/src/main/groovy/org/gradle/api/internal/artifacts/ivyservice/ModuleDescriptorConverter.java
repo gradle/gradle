@@ -15,12 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.settings.IvySettings;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.IvyObjectBuilder;
 import org.gradle.api.artifacts.Module;
 
 import java.util.Set;
@@ -28,10 +25,6 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public interface ModuleDescriptorConverter extends IvyObjectBuilder<DefaultModuleDescriptor> {
-    void addIvyTransformer(Transformer<DefaultModuleDescriptor> defaultModuleDescriptorTransformer);
-
-    ModuleDescriptor convertForPublish(Set<Configuration> configurations, boolean publishDescriptor, Module module, IvySettings settings);
-
-    ModuleDescriptor convertForResolve(Configuration configuration, Module module, IvySettings settings);
+public interface ModuleDescriptorConverter {
+    ModuleDescriptor convert(Set<Configuration> configurations, Module module, IvySettings settings);
 }

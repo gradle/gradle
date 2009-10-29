@@ -40,18 +40,17 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class DefaultIvyService_ResolveFromRepoTest {
+public class DefaultIvyService_ResolveTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
 
-    // Dummies
-    private Configuration configurationDummy = context.mock(Configuration.class);
     private Module moduleDummy = context.mock(Module.class);
     private File cacheParentDirDummy = new File("cacheParentDirDummy");
     private Map<String, ModuleDescriptor> clientModuleRegistryDummy = WrapUtil.toMap("a", context.mock(ModuleDescriptor.class));
@@ -67,7 +66,9 @@ public class DefaultIvyService_ResolveFromRepoTest {
     @Before
     public void setUp() {
         SettingsConverter settingsConverterMock = context.mock(SettingsConverter.class);
-        ModuleDescriptorConverter moduleDescriptorConverterMock = context.mock(ModuleDescriptorConverter.class);
+        ModuleDescriptorConverter resolveModuleDescriptorConverterStub = context.mock(ModuleDescriptorConverter.class, "resolve");
+        ModuleDescriptorConverter publishModuleDescriptorConverterDummy = context.mock(ModuleDescriptorConverter.class, "publish");
+        IvyFileConverter ivyFileConverterDummy = context.mock(IvyFileConverter.class);
         IvyDependencyResolver ivyDependencyResolverMock = context.mock(IvyDependencyResolver.class);
 
         context.checking(new Expectations() {{
@@ -85,12 +86,15 @@ public class DefaultIvyService_ResolveFromRepoTest {
         }});
 
         ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
-                settingsConverterMock, moduleDescriptorConverterMock, new DefaultIvyFactory(), ivyDependencyResolverMock, 
+                settingsConverterMock, resolveModuleDescriptorConverterStub, publishModuleDescriptorConverterDummy, ivyFileConverterDummy,
+                new DefaultIvyFactory(), ivyDependencyResolverMock, 
                 context.mock(IvyDependencyPublisher.class), clientModuleRegistryDummy);
     }
 
     @Test
     public void testResolve() {
+        final Configuration configurationDummy = context.mock(Configuration.class);
+        final Set<Configuration> configurations = WrapUtil.toSet(configurationDummy);
         final ResolvedConfiguration resolvedConfiguration = context.mock(ResolvedConfiguration.class);
         final ModuleDescriptor moduleDescriptorDummy = HelperUtil.createModuleDescriptor(WrapUtil.toSet("someConf"));
         final IvyFactory ivyFactoryStub = context.mock(IvyFactory.class);
@@ -101,13 +105,16 @@ public class DefaultIvyService_ResolveFromRepoTest {
             allowing(ivyFactoryStub).createIvy(ivySettingsDummy);
             will(returnValue(ivyStub));
 
+            allowing(configurationDummy).getHierarchy();
+            will(returnValue(configurations));
+
             allowing(ivyStub).getSettings();
             will(returnValue(ivySettingsDummy));
 
             allowing(ivyService.getDependencyResolver()).resolve(configurationDummy, ivyStub, moduleDescriptorDummy);
             will(returnValue(resolvedConfiguration));
 
-            allowing(ivyService.getModuleDescriptorConverter()).convertForResolve(configurationDummy, moduleDummy,
+            allowing(ivyService.getResolveModuleDescriptorConverter()).convert(WrapUtil.toSet(configurationDummy), moduleDummy,
                     ivySettingsDummy);
             will(returnValue(moduleDescriptorDummy));
 

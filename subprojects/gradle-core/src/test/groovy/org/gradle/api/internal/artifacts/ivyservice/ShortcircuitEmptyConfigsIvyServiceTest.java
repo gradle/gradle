@@ -18,20 +18,22 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Specs;
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -78,13 +80,13 @@ public class ShortcircuitEmptyConfigsIvyServiceTest {
     @Test
     public void publishDelegatesToBackingService() {
         final Set<Configuration> configurations = toSet(configuration);
-        final PublishInstruction instructionDummy = new PublishInstruction();
+        final File someDescriptorDestination = new File("somePth");
         final List<DependencyResolver> resolvers = toList(context.mock(DependencyResolver.class));
 
         context.checking(new Expectations(){{
-            one(delegate).publish(configurations, instructionDummy, resolvers);
+            one(delegate).publish(configurations, someDescriptorDestination, resolvers);
         }});
 
-        ivyService.publish(configurations, instructionDummy, resolvers);
+        ivyService.publish(configurations, someDescriptorDestination, resolvers);
     }
 }

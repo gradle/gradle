@@ -36,10 +36,10 @@ public class ErrorHandlingIvyService implements IvyService {
         return ivyService;
     }
 
-    public void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,
+    public void publish(Set<Configuration> configurationsToPublish, File descriptorDestination,
                         List<DependencyResolver> publishResolvers) {
         try {
-            ivyService.publish(configurationsToPublish, publishInstruction, publishResolvers);
+            ivyService.publish(configurationsToPublish, descriptorDestination, publishResolvers);
         } catch (Throwable e) {
             throw new GradleException(String.format("Could not publish configurations %s.", configurationsToPublish),
                     e);

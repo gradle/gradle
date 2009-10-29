@@ -63,7 +63,7 @@ public class Configurations {
         return configurationName.substring(0, 1).toUpperCase() + configurationName.substring(1);
     }
 
-    public static Set<Dependency> getDependencies(List<Configuration> configurations, Spec<Dependency> dependencySpec) {
+    public static Set<Dependency> getDependencies(Set<Configuration> configurations, Spec<Dependency> dependencySpec) {
         Set<Dependency> dependencies = new LinkedHashSet<Dependency>();
         for (Configuration configuration : configurations) {
             for (Dependency dependency : configuration.getDependencies()) {
@@ -75,7 +75,7 @@ public class Configurations {
         return dependencies;
     }
 
-    public static Set<PublishArtifact> getArtifacts(List<Configuration> configurations, Spec<PublishArtifact> artifactSpec) {
+    public static Set<PublishArtifact> getArtifacts(Set<Configuration> configurations, Spec<PublishArtifact> artifactSpec) {
         Set<PublishArtifact> artifacts = new HashSet<PublishArtifact>();
         for (Configuration configuration : configurations) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {

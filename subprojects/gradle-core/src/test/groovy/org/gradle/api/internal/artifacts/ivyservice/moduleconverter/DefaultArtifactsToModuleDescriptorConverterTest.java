@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -47,29 +48,57 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
 
     @Test
     public void testAddArtifacts() {
-        DefaultArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter =
-                new DefaultArtifactsToModuleDescriptorConverter();
-        Configuration configurationStub1 = createConfigurationStub("conf1");
-        Configuration configurationStub2 = createConfigurationStub("conf2");
+        final PublishArtifact publishArtifactConf1 = createNamedPublishArtifact("conf1");
+        Configuration configurationStub1 = createConfigurationStub(publishArtifactConf1);
+        final PublishArtifact publishArtifactConf2 = createNamedPublishArtifact("conf2");
+        Configuration configurationStub2 = createConfigurationStub(publishArtifactConf2);
+        final ArtifactsExtraAttributesStrategy artifactsExtraAttributesStrategyMock = context.mock(ArtifactsExtraAttributesStrategy.class);
+        final Map<String, String> extraAttributesArtifact1 = WrapUtil.toMap("name", publishArtifactConf1.getName());
+        final Map<String, String> extraAttributesArtifact2 = WrapUtil.toMap("name", publishArtifactConf2.getName());
+        context.checking(new Expectations() {{
+            one(artifactsExtraAttributesStrategyMock).createExtraAttributes(publishArtifactConf1);
+            will(returnValue(extraAttributesArtifact1));
+            one(artifactsExtraAttributesStrategyMock).createExtraAttributes(publishArtifactConf2);
+            will(returnValue(extraAttributesArtifact2));
+        }});
         DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(WrapUtil.toSet(configurationStub1.getName(),
                 configurationStub2.getName()));
 
+        DefaultArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter =
+                new DefaultArtifactsToModuleDescriptorConverter(artifactsExtraAttributesStrategyMock);
+
         artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor, WrapUtil.toSet(configurationStub1, configurationStub2));
 
-        assertArtifactIsAdded(configurationStub1, moduleDescriptor);
-        assertArtifactIsAdded(configurationStub2, moduleDescriptor);
+        assertArtifactIsAdded(configurationStub1, moduleDescriptor, extraAttributesArtifact1);
+        assertArtifactIsAdded(configurationStub2, moduleDescriptor, extraAttributesArtifact2);
         assertThat(moduleDescriptor.getAllArtifacts().length, equalTo(2));
     }
 
-    private void assertArtifactIsAdded(Configuration configurationStub1, DefaultModuleDescriptor moduleDescriptor) {
-        assertThat(moduleDescriptor.getArtifacts(configurationStub1.getName()),
-                equalTo(WrapUtil.toArray(expectedIvyArtifact(configurationStub1, moduleDescriptor))));
+    @Test
+    public void testIvyFileStrategy() {
+        assertThat(
+                DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY.createExtraAttributes(context.mock(PublishArtifact.class)),
+                equalTo((Map) new HashMap<String, String>()));
     }
 
-    private Artifact expectedIvyArtifact(Configuration configuration, ModuleDescriptor moduleDescriptor) {
+    @Test
+    public void testResolveStrategy() {
+        PublishArtifact publishArtifact = createNamedPublishArtifact("someName");
+        Map<String, String> expectedExtraAttributes = WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, publishArtifact.getFile().getAbsolutePath());
+        assertThat(
+                DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY.createExtraAttributes(publishArtifact),
+                equalTo(expectedExtraAttributes));
+    }
+
+    private void assertArtifactIsAdded(Configuration configuration, DefaultModuleDescriptor moduleDescriptor, Map<String, String> extraAttributes) {
+        assertThat(moduleDescriptor.getArtifacts(configuration.getName()),
+                equalTo(WrapUtil.toArray(expectedIvyArtifact(configuration, moduleDescriptor, extraAttributes))));
+    }
+
+    private Artifact expectedIvyArtifact(Configuration configuration, ModuleDescriptor moduleDescriptor, Map<String, String> additionalExtraAttributes) {
         PublishArtifact publishArtifact = configuration.getArtifacts().iterator().next();
         Map<String,String> extraAttributes = WrapUtil.toMap(Dependency.CLASSIFIER, publishArtifact.getClassifier());
-        extraAttributes.put(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, publishArtifact.getFile().getAbsolutePath());
+        extraAttributes.putAll(additionalExtraAttributes);
         return new DefaultArtifact(moduleDescriptor.getModuleRevisionId(),
                 publishArtifact.getDate(),
                 publishArtifact.getName(),
@@ -78,11 +107,11 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
                 extraAttributes);
     }
 
-    private Configuration createConfigurationStub(final String name) {
-        final Configuration configurationStub = IvyConverterTestUtil.createNamedConfigurationStub(name, context);
+    private Configuration createConfigurationStub(final PublishArtifact publishArtifact) {
+        final Configuration configurationStub = IvyConverterTestUtil.createNamedConfigurationStub(publishArtifact.getName(), context);
         context.checking(new Expectations() {{
             allowing(configurationStub).getArtifacts();
-            will(returnValue(WrapUtil.toSet(createNamedPublishArtifact(name))));
+            will(returnValue(WrapUtil.toSet(publishArtifact)));
         }});
         return configurationStub;
     }

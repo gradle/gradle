@@ -19,6 +19,10 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
+import org.gradle.util.GUtil;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -30,6 +34,15 @@ public class IvyUtil {
     }
 
     public static ModuleRevisionId createModuleRevisionId(Dependency dependency) {
-        return new ModuleRevisionId(new ModuleId(dependency.getGroup(), dependency.getName()), dependency.getVersion());
+        return createModuleRevisionId(dependency, new HashMap<String, String>());
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(Dependency dependency, Map<String, String> extraAttributes) {
+        return ModuleRevisionId.newInstance(emptyStringIfNull(dependency.getGroup()), dependency.getName(),
+                emptyStringIfNull(dependency.getVersion()), extraAttributes);
+    }
+
+    private static String emptyStringIfNull(String value) {
+        return GUtil.elvis(value, "");
     }
 }

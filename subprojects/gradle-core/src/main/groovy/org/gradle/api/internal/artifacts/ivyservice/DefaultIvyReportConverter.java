@@ -29,8 +29,8 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptorFactory;
 import org.gradle.util.Clock;
-import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +43,12 @@ import java.util.*;
  */
 public class DefaultIvyReportConverter implements IvyReportConverter {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyReportConverter.class);
+
+    private DependencyDescriptorFactory dependencyDescriptorFactory;
+
+    public DefaultIvyReportConverter(DependencyDescriptorFactory dependencyDescriptorFactory) {
+        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    }
 
     public Set<File> getClasspath(String configuration, ResolveReport resolveReport) {
         Clock clock = new Clock();
@@ -282,10 +288,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
         Map<ModuleRevisionId, Map<String, ModuleDependency>> firstLevelDependenciesModuleRevisionIds =
                 new LinkedHashMap<ModuleRevisionId, Map<String, ModuleDependency>>();
         for (ModuleDependency firstLevelDependency : firstLevelDependencies) {
-            ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(
-                    GUtil.elvis(firstLevelDependency.getGroup(), ""),
-                    firstLevelDependency.getName(),
-                    GUtil.elvis(firstLevelDependency.getVersion(), ""));
+            ModuleRevisionId moduleRevisionId = normalize(dependencyDescriptorFactory.createModuleRevisionId(firstLevelDependency));
             if (firstLevelDependenciesModuleRevisionIds.get(moduleRevisionId) == null) {
                 firstLevelDependenciesModuleRevisionIds.put(moduleRevisionId, new LinkedHashMap<String, ModuleDependency>());
             }

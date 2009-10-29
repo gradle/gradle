@@ -17,9 +17,9 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 import java.util.List;
@@ -125,11 +125,11 @@ public interface Configuration extends FileCollection {
     Configuration setDescription(String description);
 
     /**
-     * Gets a list including this configuration and all superconfigurations
+     * Gets a ordered set including this configuration and all superconfigurations
      * recursively.
      * @return the list of all configurations
      */
-    List<Configuration> getHierarchy();
+    Set<Configuration> getHierarchy();
 
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
@@ -249,12 +249,12 @@ public interface Configuration extends FileCollection {
      * upload the artifacts.
      *
      * @param publishRepositories The repositories to publish the artifacts to.
-     * @param publishInstruction Instructions for details of the upload.
+     * @param descriptorDestination The destination dir for the descriptor file (if null no descriptor file is written).
      *
      * @see org.gradle.api.tasks.Upload
      * @see #getUploadTaskName()
      */
-    void publish(List<DependencyResolver> publishRepositories, PublishInstruction publishInstruction);
+    void publish(List<DependencyResolver> publishRepositories, File descriptorDestination);
 
     /**
      * Gets the set of dependencies directly contained in this configuration

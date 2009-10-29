@@ -28,11 +28,30 @@ import org.gradle.util.WrapUtil;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToModuleDescriptorConverter {
+    public final static ArtifactsExtraAttributesStrategy IVY_FILE_STRATEGY = new ArtifactsExtraAttributesStrategy() {
+        public Map<String, String> createExtraAttributes(PublishArtifact publishArtifact) {
+            return new HashMap<String, String>();
+        }
+    };
+
+    public final static ArtifactsExtraAttributesStrategy RESOLVE_STRATEGY = new ArtifactsExtraAttributesStrategy() {
+        public Map<String, String> createExtraAttributes(PublishArtifact publishArtifact) {
+            return WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, publishArtifact.getFile().getAbsolutePath());
+        }
+    };
+
+    private ArtifactsExtraAttributesStrategy artifactsExtraAttributesStrategy;
+
+    public DefaultArtifactsToModuleDescriptorConverter(ArtifactsExtraAttributesStrategy artifactsExtraAttributesStrategy) {
+        this.artifactsExtraAttributesStrategy = artifactsExtraAttributesStrategy;
+    }
+
     public void addArtifacts(DefaultModuleDescriptor moduleDescriptor, Set<Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (PublishArtifact publishArtifact : configuration.getArtifacts()) {
@@ -43,7 +62,7 @@ public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToM
     }
 
     public Artifact createIvyArtifact(PublishArtifact publishArtifact, ModuleRevisionId moduleRevisionId) {
-        Map extraAttributes = WrapUtil.toMap(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, publishArtifact.getFile().getAbsolutePath());
+        Map extraAttributes = artifactsExtraAttributesStrategy.createExtraAttributes(publishArtifact);
         if (GUtil.isTrue(publishArtifact.getClassifier())) {
             extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
         }

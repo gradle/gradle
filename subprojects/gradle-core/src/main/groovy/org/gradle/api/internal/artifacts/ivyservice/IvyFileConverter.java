@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-
-import java.io.File;
-import java.util.List;
-import java.util.Set;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.IvyObjectBuilder;
 
 /**
  * @author Hans Dockter
  */
-public interface IvyService {
-    ResolvedConfiguration resolve(Configuration configuration) throws ResolveException;
-
-    void publish(Set<Configuration> configurationsToPublish, File descriptorDestination,
-                 List<DependencyResolver> publishResolvers);
+public interface IvyFileConverter extends ModuleDescriptorConverter, IvyObjectBuilder<DefaultModuleDescriptor> {
+    void addIvyTransformer(Transformer<DefaultModuleDescriptor> defaultModuleDescriptorTransformer);
 }

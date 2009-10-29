@@ -56,9 +56,9 @@ public class ShortcircuitEmptyConfigsIvyService implements IvyService {
         return ivyService;
     }
 
-    public void publish(Set<Configuration> configurationsToPublish, PublishInstruction publishInstruction,
+    public void publish(Set<Configuration> configurationsToPublish, File descriptorDestination,
                         List<DependencyResolver> publishResolvers) {
-        ivyService.publish(configurationsToPublish, publishInstruction, publishResolvers);
+        ivyService.publish(configurationsToPublish, descriptorDestination, publishResolvers);
     }
 
     public ResolvedConfiguration resolve(Configuration configuration) {

@@ -19,101 +19,47 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.publish.PublishEngine;
 import org.apache.ivy.core.publish.PublishOptions;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.PublishInstruction;
-import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultIvyDependencyPublisherTest {
-    private static final String TEST_DEFAULT_PATTERN = "defaultPattern";
-    private static final String TEST_MAVEN_PACKAGING = "somePackging";
-
-    private DefaultIvyDependencyPublisher ivyDependencyPublisher;
-    private PublishEngine publishEngineMock;
-    private String expectedConf;
-    private PublishOptionsFactory publishOptionsFactoryMock;
-    private PublishOptions expectedPublishOptions;
-
-    private File expectedIvyFile;
-    JUnit4Mockery context = new JUnit4Mockery() {
-        {
+    JUnit4Mockery context = new JUnit4Mockery() {{
             setImposteriser(ClassImposteriser.INSTANCE);
-        }
-    };
-    private ModuleDescriptor moduleDescriptorMock;
-    private List<DependencyResolver> expectedResolverList;
-    @Rule public TemporaryFolder testDir = new TemporaryFolder();
-
-    @Before
-    public void setUp() {
-        publishOptionsFactoryMock = context.mock(PublishOptionsFactory.class);
-        expectedPublishOptions = new PublishOptions();
-        publishEngineMock = context.mock(PublishEngine.class);
-        ivyDependencyPublisher = new DefaultIvyDependencyPublisher(context.mock(ModuleDescriptorForUploadConverter.class, "dummy"),
-                publishOptionsFactoryMock);
-        expectedConf = "conf1";
-        moduleDescriptorMock = context.mock(ModuleDescriptor.class);
-        expectedIvyFile = testDir.file("ivy.xml");
-        expectedResolverList = WrapUtil.toList(context.mock(DependencyResolver.class));
-    }
-
-    @Test
-    public void testPublishWithUploadModuleDescriptorTrueAndIvyFile() throws IOException, ParseException {
-        final PublishInstruction publishInstruction = new PublishInstruction(true, expectedIvyFile);
-        final ModuleDescriptorForUploadConverter converterStub = context.mock(ModuleDescriptorForUploadConverter.class);
-        ivyDependencyPublisher.setModuleDescriptorForUploadConverter(converterStub);
-        final ModuleDescriptor convertedModuleDescriptorMock = context.mock(ModuleDescriptor.class, "convertedDescriptor");
-        
-        context.checking(new Expectations() {
-            {
-                allowing(converterStub).createModuleDescriptor(moduleDescriptorMock);
-                will(returnValue(convertedModuleDescriptorMock));
-
-                allowing(publishOptionsFactoryMock).createPublishOptions(WrapUtil.toSet(expectedConf), publishInstruction);
-                will(returnValue(expectedPublishOptions));
-
-                one(publishEngineMock).publish(moduleDescriptorMock,
-                        DefaultIvyDependencyPublisher.ARTIFACT_PATTERN,
-                        expectedResolverList.get(0),
-                        expectedPublishOptions);
-                one(convertedModuleDescriptorMock).toIvyFile(expectedIvyFile);
-            }
-        });
-
-        ivyDependencyPublisher.publish(WrapUtil.toSet(expectedConf), publishInstruction, expectedResolverList, moduleDescriptorMock, publishEngineMock);
-    }
+    }};
+    
+    private ModuleDescriptor moduleDescriptorDummy = context.mock(ModuleDescriptor.class);
+    private PublishOptionsFactory publishOptionsFactoryStub = context.mock(PublishOptionsFactory.class);
+    private PublishEngine publishEngineMock = context.mock(PublishEngine.class);
+    private List<DependencyResolver> expectedResolverList = WrapUtil.toList(context.mock(DependencyResolver.class));
+    private DefaultIvyDependencyPublisher ivyDependencyPublisher = new DefaultIvyDependencyPublisher(publishOptionsFactoryStub);
+    private String expectedConf = "conf1";
+    private PublishOptions expectedPublishOptions = new PublishOptions();
+    private File someDescriptorDestination = new File("somePath");
 
     @Test
     public void testPublishWithUploadModuleDescriptorFalse() throws IOException {
-        final PublishInstruction publishInstruction = new PublishInstruction();
-        context.checking(new Expectations() {
-            {
-                allowing(publishOptionsFactoryMock).createPublishOptions(WrapUtil.toSet(expectedConf), publishInstruction);
+        context.checking(new Expectations() {{
+                allowing(publishOptionsFactoryStub).createPublishOptions(WrapUtil.toSet(expectedConf), someDescriptorDestination);
                 will(returnValue(expectedPublishOptions));
 
                 one(publishEngineMock).publish(
-                        moduleDescriptorMock,
+                        moduleDescriptorDummy,
                         DefaultIvyDependencyPublisher.ARTIFACT_PATTERN,
                         expectedResolverList.get(0),
                         expectedPublishOptions);
-            }
-        });
+        }});
 
-
-        ivyDependencyPublisher.publish(WrapUtil.toSet(expectedConf), publishInstruction, expectedResolverList, moduleDescriptorMock, publishEngineMock);
+        ivyDependencyPublisher.publish(WrapUtil.toSet(expectedConf), expectedResolverList, moduleDescriptorDummy, someDescriptorDestination, publishEngineMock);
     }
 
 }

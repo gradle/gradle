@@ -22,12 +22,10 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -37,10 +35,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Arrays;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.HashMap;
 
 /**
  * @author Hans Dockter
@@ -51,39 +50,46 @@ public class DefaultIvyService_PublishTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
 
-    private ModuleDescriptor moduleDescriptorDummy = HelperUtil.createModuleDescriptor(WrapUtil.toSet("someConf"));
+    private ModuleDescriptor moduleDescriptorMock = context.mock(ModuleDescriptor.class);
     private PublishEngine publishEngineDummy = context.mock(PublishEngine.class);
     private InternalRepository internalRepositoryDummy = context.mock(InternalRepository.class);
     private DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider.class);
 
     @Test
-    public void testPublish() {
+    public void testPublish() throws IOException, ParseException {
+        final IvySettings ivySettingsDummy = new IvySettings();
         final Set<Configuration> configurations = createConfigurations();
-        final PublishInstruction publishInstructionDummy = new PublishInstruction();
+        final File someDescriptorDestination = new File("somePath");
         final List<DependencyResolver> publishResolversDummy = createPublishResolversDummy();
-        Module moduleDummy = context.mock(Module.class);
+        final Module moduleDummy = context.mock(Module.class);
         File cacheParentDirDummy = createCacheParentDirDummy();
         final DefaultIvyService ivyService = createIvyService();
 
-        setUpForPublish(configurations, publishInstructionDummy, publishResolversDummy, moduleDummy, cacheParentDirDummy, ivyService);
+        setUpForPublish(configurations, publishResolversDummy, moduleDummy, cacheParentDirDummy, ivyService, ivySettingsDummy);
 
         final Set<String> expectedConfigurations = Configurations.getNames(configurations, true);
         context.checking(new Expectations() {{
+            one(ivyService.getIvyFileConverter()).convert(configurations, moduleDummy, ivySettingsDummy);
+            will(returnValue(moduleDescriptorMock));
+            one(moduleDescriptorMock).toIvyFile(someDescriptorDestination);
             one(ivyService.getDependencyPublisher()).publish(expectedConfigurations,
-                    publishInstructionDummy, publishResolversDummy, moduleDescriptorDummy, publishEngineDummy);
+                    publishResolversDummy, moduleDescriptorMock, someDescriptorDestination, publishEngineDummy);
         }});
 
-        ivyService.publish(configurations, publishInstructionDummy, publishResolversDummy);
+        ivyService.publish(configurations, someDescriptorDestination, publishResolversDummy);
     }
 
     private DefaultIvyService createIvyService() {
         SettingsConverter settingsConverterStub = context.mock(SettingsConverter.class);
-        ModuleDescriptorConverter moduleDescriptorConverterStub = context.mock(ModuleDescriptorConverter.class);
+        ModuleDescriptorConverter resolveModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "resolve");
+        ModuleDescriptorConverter publishModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "publishConverter");
+        IvyFileConverter ivyFileConverter = context.mock(IvyFileConverter.class);
         IvyDependencyPublisher ivyDependencyPublisherMock = context.mock(IvyDependencyPublisher.class);
         ResolverProvider resolverProvider = context.mock(ResolverProvider.class);
 
         DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
-                settingsConverterStub, moduleDescriptorConverterStub, new DefaultIvyFactory(), context.mock(IvyDependencyResolver.class),
+                settingsConverterStub, resolveModuleDescriptorConverter, publishModuleDescriptorConverter, ivyFileConverter,
+                new DefaultIvyFactory(), context.mock(IvyDependencyResolver.class),
                 ivyDependencyPublisherMock, new HashMap());
 
         return ivyService;
@@ -105,21 +111,20 @@ public class DefaultIvyService_PublishTest {
             will(returnValue("conf1"));
 
             allowing(configurationStub1).getHierarchy();
-            will(returnValue(Arrays.asList(configurationStub1)));
+            will(returnValue(WrapUtil.toLinkedSet(configurationStub1)));
 
             allowing(configurationStub2).getName();
             will(returnValue("conf2"));
 
             allowing(configurationStub2).getHierarchy();
-            will(returnValue(Arrays.asList(configurationStub2)));
+            will(returnValue(WrapUtil.toLinkedSet(configurationStub2)));
         }});
         return WrapUtil.toSet(configurationStub1, configurationStub2);
     }
 
-    private void setUpForPublish(final Set<Configuration> configurations, final PublishInstruction publishInstruction,
+    private void setUpForPublish(final Set<Configuration> configurations,
                                  final List<DependencyResolver> publishResolversDummy, final Module moduleDummy,
-                                 final File cacheParentDirDummy, final DefaultIvyService ivyService) {
-        final IvySettings ivySettingsDummy = new IvySettings();
+                                 final File cacheParentDirDummy, final DefaultIvyService ivyService, final IvySettings ivySettingsDummy) {
         context.checking(new Expectations() {{
             allowing(dependencyMetaDataProviderMock).getInternalRepository();
             will(returnValue(internalRepositoryDummy));
@@ -137,9 +142,9 @@ public class DefaultIvyService_PublishTest {
             allowing(setUpIvyFactory(ivySettingsDummy, ivyService)).getPublishEngine();
             will(returnValue(publishEngineDummy));
 
-            allowing(ivyService.getModuleDescriptorConverter()).convertForPublish(configurations,
-                    publishInstruction.isUploadDescriptor(), moduleDummy, ivySettingsDummy);
-            will(returnValue(moduleDescriptorDummy));
+            allowing(ivyService.getPublishModuleDescriptorConverter()).convert(configurations,
+                    moduleDummy, ivySettingsDummy);
+            will(returnValue(moduleDescriptorMock));
         }});
     }
 

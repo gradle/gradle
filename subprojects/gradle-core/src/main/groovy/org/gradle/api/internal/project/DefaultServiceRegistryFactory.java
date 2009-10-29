@@ -29,9 +29,8 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultClientModuleDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependenciesToModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ResolveModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 import org.gradle.api.internal.changedetection.CachingHasher;
 import org.gradle.api.internal.changedetection.DefaultHasher;
 import org.gradle.api.internal.changedetection.DefaultTaskArtifactStateRepository;
@@ -94,24 +93,102 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
             }
         });
 
-        add(new Service(ConfigurationContainerFactory.class) {
+        add(new Service(ModuleDescriptorFactory.class) {
             protected Object create() {
-                return new DefaultConfigurationContainerFactory(clientModuleRegistry, new DefaultSettingsConverter(),
-                        get(ModuleDescriptorConverter.class), new DefaultIvyFactory(),
-                        new SelfResolvingDependencyResolver(new DefaultIvyDependencyResolver(
-                                new DefaultIvyReportConverter())), new DefaultIvyDependencyPublisher(
-                                new DefaultModuleDescriptorForUploadConverter(), new DefaultPublishOptionsFactory()));
+                return new DefaultModuleDescriptorFactory();
             }
         });
 
-        add(new Service(ModuleDescriptorConverter.class) {
+        add(new Service(ExcludeRuleConverter.class) {
             protected Object create() {
-                ExcludeRuleConverter excludeRuleConverter = new DefaultExcludeRuleConverter();
-                return new DefaultModuleDescriptorConverter(new DefaultModuleDescriptorFactory(),
-                        new DefaultConfigurationsToModuleDescriptorConverter(),
-                        new DefaultDependenciesToModuleDescriptorConverter(new DefaultDependencyDescriptorFactory(
-                                excludeRuleConverter, new DefaultClientModuleDescriptorFactory(), clientModuleRegistry),
-                                excludeRuleConverter), new DefaultArtifactsToModuleDescriptorConverter());
+                return new DefaultExcludeRuleConverter();
+            }
+        });
+
+        add(new Service(ExternalModuleDependencyDescriptorFactory.class) {
+            protected Object create() {
+                return new ExternalModuleDependencyDescriptorFactory(get(ExcludeRuleConverter.class));
+            }
+        });
+
+        add(new Service(ConfigurationsToModuleDescriptorConverter.class) {
+            protected Object create() {
+                return new DefaultConfigurationsToModuleDescriptorConverter();
+            }
+        });
+
+
+        add(new Service(IvyFileConverter.class) {
+            protected Object create() {
+                DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
+                DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
+                        new ClientModuleDependencyDescriptorFactory(
+                                get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
+                        new ProjectDependencyDescriptorFactory(
+                                get(ExcludeRuleConverter.class),
+                                ProjectDependencyDescriptorFactory.IVY_FILE_MODULE_REVISION_ID_STRATEGY),
+                        get(ExternalModuleDependencyDescriptorFactory.class));
+                clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
+                return new DefaultIvyFileConverter(
+                        get(ModuleDescriptorFactory.class),
+                        get(ConfigurationsToModuleDescriptorConverter.class),
+                        new DefaultDependenciesToModuleDescriptorConverter(
+                                dependencyDescriptorFactoryDelegate,
+                                get(ExcludeRuleConverter.class)),
+                        new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
+            }
+        });
+
+        add(new Service(ResolveModuleDescriptorConverter.class) {
+            protected Object create() {
+                DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
+                DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
+                        new ClientModuleDependencyDescriptorFactory(
+                                get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
+                        new ProjectDependencyDescriptorFactory(
+                                get(ExcludeRuleConverter.class),
+                                ProjectDependencyDescriptorFactory.RESOLVE_MODULE_REVISION_ID_STRATEGY),
+                        get(ExternalModuleDependencyDescriptorFactory.class));
+                clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
+                return new ResolveModuleDescriptorConverter(
+                        get(ModuleDescriptorFactory.class),
+                        get(ConfigurationsToModuleDescriptorConverter.class),
+                        new DefaultDependenciesToModuleDescriptorConverter(
+                                dependencyDescriptorFactoryDelegate,
+                                get(ExcludeRuleConverter.class)));
+            }
+        });
+
+        add(new Service(PublishModuleDescriptorConverter.class) {
+            protected Object create() {
+                return new PublishModuleDescriptorConverter(
+                        get(ResolveModuleDescriptorConverter.class),
+                        new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY));
+            }
+        });
+
+        add(new Service(ConfigurationContainerFactory.class) {
+            protected Object create() {
+                // todo this creation is duplicate. When we improve our service registry to allow multiple instances for same type
+                // we should consolidate.
+                DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
+                DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
+                        new ClientModuleDependencyDescriptorFactory(
+                                get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
+                        new ProjectDependencyDescriptorFactory(
+                                get(ExcludeRuleConverter.class),
+                                ProjectDependencyDescriptorFactory.RESOLVE_MODULE_REVISION_ID_STRATEGY),
+                        get(ExternalModuleDependencyDescriptorFactory.class));
+                clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
+
+                return new DefaultConfigurationContainerFactory(clientModuleRegistry,
+                        new DefaultSettingsConverter(),
+                        get(ResolveModuleDescriptorConverter.class),
+                        get(PublishModuleDescriptorConverter.class),
+                        get(IvyFileConverter.class),
+                        new DefaultIvyFactory(),
+                        new SelfResolvingDependencyResolver(new DefaultIvyDependencyResolver(
+                                new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))), new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()));
             }
         });
 

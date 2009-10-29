@@ -166,17 +166,26 @@ public class DefaultConfigurationTest {
         Configuration middle2 = configurationContainer.add("middle2").extendsFrom(root1, root2);
         configurationContainer.add("root3");
         Configuration leaf = configurationContainer.add("leaf1").extendsFrom(middle1, middle2);
-        List<Configuration> hierarchy = leaf.getHierarchy();
+        Set<Configuration> hierarchy = leaf.getHierarchy();
         assertThat(hierarchy.size(), equalTo(5));
-        assertThat(hierarchy.get(0), equalTo(leaf));
+        assertThat(hierarchy.iterator().next(), equalTo(leaf));
         assertBothExistsAndOneIsBeforeOther(hierarchy, middle1, root1);
         assertBothExistsAndOneIsBeforeOther(hierarchy, middle2, root2);
     }
 
-    private void assertBothExistsAndOneIsBeforeOther(List<Configuration> hierarchy, Configuration beforeConf, Configuration afterConf) {
+    private void assertBothExistsAndOneIsBeforeOther(Set<Configuration> hierarchy, Configuration beforeConf, Configuration afterConf) {
         assertThat(hierarchy, hasItem(beforeConf));
         assertThat(hierarchy, hasItem(afterConf));
-        assertThat(hierarchy.indexOf(beforeConf), lessThan(hierarchy.indexOf(afterConf)));
+
+        boolean foundBeforeConf = false;
+        for (Configuration configuration : hierarchy) {
+            if (configuration.equals(beforeConf)) {
+                foundBeforeConf = true;
+            }
+            if (configuration.equals(afterConf)) {
+                assertThat(foundBeforeConf, equalTo(true));
+            }
+        }
     }
 
     @Test
@@ -322,21 +331,17 @@ public class DefaultConfigurationTest {
     @Test
     public void publish() {
         final Configuration otherConfiguration = configurationContainer.add("testConf").extendsFrom(configuration);
-        final PublishInstruction publishInstruction = createAnonymousPublishInstruction();
+        final File someDescriptorDestination = new File("somePath");
         final List<DependencyResolver> dependencyResolvers = toList(context.mock(DependencyResolver.class, "publish"));
         context.checking(new Expectations() {{
-            allowing(ivyServiceStub).publish(new LinkedHashSet<Configuration>(otherConfiguration.getHierarchy()), publishInstruction, dependencyResolvers);
+            allowing(ivyServiceStub).publish(new LinkedHashSet<Configuration>(otherConfiguration.getHierarchy()), someDescriptorDestination, dependencyResolvers);
         }});
-        otherConfiguration.publish(dependencyResolvers, publishInstruction);
+        otherConfiguration.publish(dependencyResolvers, someDescriptorDestination);
     }
 
     @Test
     public void uploadTaskName() {
         assertThat(configuration.getUploadTaskName(), equalTo("uploadConfName"));
-    }
-
-    private PublishInstruction createAnonymousPublishInstruction() {
-        return new PublishInstruction();
     }
 
     @Test
@@ -369,7 +374,7 @@ public class DefaultConfigurationTest {
             will(returnValue(otherConfTaskDependencyMock));
 
             allowing(otherConfiguration).getHierarchy();
-            will(returnValue(toList()));
+            will(returnValue(toSet()));
 
             allowing(otherConfTaskDependencyMock).getDependencies(with(any(Task.class)));
             will(returnValue(toSet(otherConfTaskMock)));
@@ -396,7 +401,7 @@ public class DefaultConfigurationTest {
 
         context.checking(new Expectations() {{
             allowing(otherConfiguration).getHierarchy();
-            will(returnValue(toList()));
+            will(returnValue(toSet()));
 
             allowing(otherConfiguration).getExtendsFrom();
             will(returnValue(toSet()));
@@ -475,7 +480,7 @@ public class DefaultConfigurationTest {
             will(returnValue(otherConfTaskDependencyMock));
 
             allowing(otherConfiguration).getHierarchy();
-            will(returnValue(toList()));
+            will(returnValue(toSet()));
 
             allowing(otherConfTaskDependencyMock).getDependencies(target);
             will(returnValue(toSet(otherConfTaskMock)));

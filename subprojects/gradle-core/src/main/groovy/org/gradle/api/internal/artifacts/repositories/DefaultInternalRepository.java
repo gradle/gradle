@@ -87,16 +87,16 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
             return null;
         }
         Project project = gradle.getRootProject().project(projectPathValue);
-        DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getName(),
+        DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getPath(),
                 project.getVersion().toString(), project.getStatus().toString());
-        return moduleDescriptorConverter.convertForPublish(project.getConfigurations().getAll(), false, module,
+        return moduleDescriptorConverter.convert(project.getConfigurations().getAll(), module,
                 IvyContext.getContext().getIvy().getSettings());
     }
 
     @Override
     protected ResolvedResource findArtifactRef(Artifact artifact, Date date) {
         String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
-        if (path == null) {
+        if (path == null) {            
             return null;
         }
         File file = new File(path);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2007-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.artifacts.ModuleDependency;
 
 /**
  * @author Hans Dockter
  */
-public interface ModuleDescriptorForUploadConverter {
-    ModuleDescriptor createModuleDescriptor(ModuleDescriptor moduleDescriptor);
+public interface DependencyDescriptorFactoryInternal extends DependencyDescriptorFactory {
+    boolean canConvert(ModuleDependency dependency);
 }

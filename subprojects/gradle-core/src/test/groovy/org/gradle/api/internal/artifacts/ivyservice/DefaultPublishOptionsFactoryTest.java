@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.publish.PublishOptions;
-import org.gradle.api.artifacts.PublishInstruction;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -39,17 +38,15 @@ public class DefaultPublishOptionsFactoryTest {
 
     @Test
     public void testCreatePublishOptionsWithUploadModuleDescriptorTrue() {
-        File testIvyFile = new File("testFile");
-        PublishInstruction publishInstruction = new PublishInstruction(true, testIvyFile);
-        PublishOptions publishOptions = publishOptionsFactory.createPublishOptions(WrapUtil.toSet(TEST_CONF), publishInstruction);
-        assertThat(publishOptions.getSrcIvyPattern(), equalTo(testIvyFile.getAbsolutePath()));
+        File someDescriptorDestination = new File("somePath");
+        PublishOptions publishOptions = publishOptionsFactory.createPublishOptions(WrapUtil.toSet(TEST_CONF), someDescriptorDestination);
+        assertThat(publishOptions.getSrcIvyPattern(), equalTo(someDescriptorDestination.getAbsolutePath()));
         checkCommonValues(publishOptions);
     }
 
     @Test
     public void testCreatePublishOptionsWithUploadModuleDescriptorFalse() {
-        PublishInstruction publishInstruction = new PublishInstruction();
-        PublishOptions publishOptions = publishOptionsFactory.createPublishOptions(WrapUtil.toSet(TEST_CONF), publishInstruction);
+        PublishOptions publishOptions = publishOptionsFactory.createPublishOptions(WrapUtil.toSet(TEST_CONF), null);
         assertThat(publishOptions.getSrcIvyPattern(), equalTo(null));
         checkCommonValues(publishOptions);
     }

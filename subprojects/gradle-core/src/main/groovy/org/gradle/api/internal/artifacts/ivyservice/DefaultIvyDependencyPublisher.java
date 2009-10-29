@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.publish.PublishEngine;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.PublishInstruction;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.List;
 import java.util.Set;
 
@@ -39,39 +39,23 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
 
     private PublishOptionsFactory publishOptionsFactory;
 
-    private ModuleDescriptorForUploadConverter moduleDescriptorForUploadConverter;
-
-    public DefaultIvyDependencyPublisher(ModuleDescriptorForUploadConverter moduleDescriptorForUploadConverter, PublishOptionsFactory publishOptionsFactory) {
-        this.moduleDescriptorForUploadConverter = moduleDescriptorForUploadConverter;
+    public DefaultIvyDependencyPublisher(PublishOptionsFactory publishOptionsFactory) {
         this.publishOptionsFactory = publishOptionsFactory;
     }
 
     public void publish(Set<String> configurations,
-                        PublishInstruction publishInstruction,
                         List<DependencyResolver> publishResolvers,
                         ModuleDescriptor moduleDescriptor,
+                        File descriptorDestination,
                         PublishEngine publishEngine) {
         try {
-            if (publishInstruction.isUploadDescriptor()) {
-                moduleDescriptorForUploadConverter.createModuleDescriptor(moduleDescriptor).toIvyFile(publishInstruction.getDescriptorDestination());
-            }
             for (DependencyResolver resolver : publishResolvers) {
                 logger.info("Publishing to Resolver {}", resolver);
                 publishEngine.publish(moduleDescriptor, ARTIFACT_PATTERN, resolver,
-                        publishOptionsFactory.createPublishOptions(configurations, publishInstruction));
+                        publishOptionsFactory.createPublishOptions(configurations, descriptorDestination));
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public ModuleDescriptorForUploadConverter getModuleDescriptorForUploadConverter() {
-        return moduleDescriptorForUploadConverter;
-    }
-
-    public void setModuleDescriptorForUploadConverter(ModuleDescriptorForUploadConverter moduleDescriptorForUploadConverter) {
-        this.moduleDescriptorForUploadConverter = moduleDescriptorForUploadConverter;
+            throw new UncheckedIOException(e);
+        } 
     }
 }

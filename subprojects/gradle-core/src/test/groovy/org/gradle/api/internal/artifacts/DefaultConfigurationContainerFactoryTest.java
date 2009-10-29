@@ -44,13 +44,16 @@ public class DefaultConfigurationContainerFactoryTest {
 
         HashMap clientModuleRegistry = new HashMap();
         SettingsConverter settingsConverter = context.mock(SettingsConverter.class);
-        ModuleDescriptorConverter moduleDescriptorConverter = context.mock(ModuleDescriptorConverter.class);
+        ModuleDescriptorConverter resolveModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "resolve");
+        ModuleDescriptorConverter publishModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "publish");
+        IvyFileConverter ivyFileConverter = context.mock(IvyFileConverter.class);
         IvyFactory ivyFactory = context.mock(IvyFactory.class);
         IvyDependencyResolver ivyDependencyResolver = context.mock(IvyDependencyResolver.class);
         IvyDependencyPublisher ivyDependencyPublisher = context.mock(IvyDependencyPublisher.class);
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
                 new DefaultConfigurationContainerFactory(clientModuleRegistry, settingsConverter,
-                        moduleDescriptorConverter, ivyFactory,
+                        resolveModuleDescriptorConverter, publishModuleDescriptorConverter,
+                        ivyFileConverter, ivyFactory,
                         ivyDependencyResolver, ivyDependencyPublisher).createConfigurationContainer(resolverProviderDummy,
                         dependencyMetaDataProviderStub);
 
@@ -66,7 +69,9 @@ public class DefaultConfigurationContainerFactoryTest {
         assertThat(defaultIvyService.getResolverProvider(), sameInstance(resolverProviderDummy));
         assertThat((HashMap) defaultIvyService.getClientModuleRegistry(), sameInstance(clientModuleRegistry));
         assertThat(defaultIvyService.getSettingsConverter(), sameInstance(settingsConverter));
-        assertThat(defaultIvyService.getModuleDescriptorConverter(), sameInstance(moduleDescriptorConverter));
+        assertThat(defaultIvyService.getResolveModuleDescriptorConverter(), sameInstance(resolveModuleDescriptorConverter));
+        assertThat(defaultIvyService.getPublishModuleDescriptorConverter(), sameInstance(publishModuleDescriptorConverter));
+        assertThat(defaultIvyService.getIvyFileConverter(), sameInstance(ivyFileConverter));
         assertThat(defaultIvyService.getIvyFactory(), sameInstance(ivyFactory));
         assertThat(defaultIvyService.getDependencyResolver(), sameInstance(ivyDependencyResolver));
         assertThat(defaultIvyService.getDependencyPublisher(), sameInstance(ivyDependencyPublisher));
