@@ -17,7 +17,6 @@ package org.gradle.api.testing.execution.control.server.messagehandlers;
 
 import org.apache.mina.core.session.IoSession;
 import org.gradle.api.testing.execution.PipelineDispatcher;
-import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.control.messages.client.NextActionRequestMessage;
 import org.gradle.api.testing.execution.control.messages.server.ExecuteTestActionMessage;
 import org.gradle.api.testing.execution.control.messages.server.StopForkActionMessage;
@@ -27,7 +26,6 @@ import org.gradle.api.testing.execution.fork.ForkStatus;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.reporting.Report;
-import org.gradle.api.testing.reporting.ReportInfo;
 import org.gradle.api.testing.reporting.TestClassProcessResultReportInfo;
 
 import java.util.List;

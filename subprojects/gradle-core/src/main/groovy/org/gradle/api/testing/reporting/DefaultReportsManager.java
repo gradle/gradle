@@ -16,22 +16,23 @@
 package org.gradle.api.testing.reporting;
 
 import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.api.testing.reporting.policies.*;
-import org.gradle.api.testing.execution.PipelinesManager;
-import org.gradle.api.testing.execution.PipelineConfig;
 import org.gradle.api.testing.execution.Pipeline;
-import org.gradle.api.testing.execution.PipelineListener;
-import org.gradle.util.ThreadUtils;
+import org.gradle.api.testing.execution.PipelinesManager;
+import org.gradle.api.testing.reporting.policies.ReportPolicy;
+import org.gradle.api.testing.reporting.policies.ReportPolicyConfig;
+import org.gradle.api.testing.reporting.policies.ReportPolicyInstance;
+import org.gradle.api.testing.reporting.policies.ReportPolicyRegister;
 import org.gradle.util.ConditionWaitHandle;
+import org.gradle.util.ThreadUtils;
 
-import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Tom Eyckmans

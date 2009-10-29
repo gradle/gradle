@@ -17,18 +17,16 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.testing.TestOrchestrator;
-import org.gradle.api.testing.reporting.ReportConfig;
-import org.gradle.api.testing.reporting.policies.ReportPolicyRegister;
-import org.gradle.api.testing.reporting.policies.ReportPolicyNames;
 import org.gradle.api.testing.execution.PipelineConfig;
+import org.gradle.api.testing.reporting.ReportConfig;
+import org.gradle.api.testing.reporting.policies.ReportPolicyNames;
+import org.gradle.api.testing.reporting.policies.ReportPolicyRegister;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Tom Eyckmans

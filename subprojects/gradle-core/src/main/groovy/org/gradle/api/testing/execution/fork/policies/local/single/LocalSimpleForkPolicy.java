@@ -18,7 +18,6 @@ package org.gradle.api.testing.execution.fork.policies.local.single;
 import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.control.server.ExternalControlServerFactory;
 import org.gradle.api.testing.execution.control.server.TestServersManager;
-import org.gradle.api.testing.execution.control.server.TestServerClientHandleFactory;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.policies.*;
 

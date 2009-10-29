@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptorFactory;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
