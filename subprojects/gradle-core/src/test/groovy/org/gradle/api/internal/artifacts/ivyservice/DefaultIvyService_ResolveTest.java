@@ -78,7 +78,7 @@ public class DefaultIvyService_ResolveTest {
             allowing(dependencyMetaDataProviderMock).getGradleUserHomeDir();
             will(returnValue(cacheParentDirDummy));
 
-            allowing(dependencyMetaDataProviderMock).getModule();
+            allowing(dependencyMetaDataProviderMock).getModuleForResolve();
             will(returnValue(moduleDummy));
 
             allowing(resolverProvider).getResolvers();

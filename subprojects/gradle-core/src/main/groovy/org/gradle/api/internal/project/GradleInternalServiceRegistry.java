@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -128,24 +129,12 @@ public class GradleInternalServiceRegistry extends AbstractServiceRegistry imple
             return gradle.getGradleUserHomeDir();
         }
 
-        public Module getModule() {
-            return new Module() {
-                public String getGroup() {
-                    return Project.DEFAULT_GROUP;
-                }
+        public Module getModuleForPublicDescriptor() {
+            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
+        }
 
-                public String getName() {
-                    return "unspecified";
-                }
-
-                public String getVersion() {
-                    return Project.DEFAULT_VERSION;
-                }
-
-                public String getStatus() {
-                    return Project.DEFAULT_STATUS;
-                }
-            };
+        public Module getModuleForResolve() {
+            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
     }
 }

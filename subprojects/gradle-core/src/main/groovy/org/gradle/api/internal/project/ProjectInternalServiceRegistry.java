@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
@@ -95,7 +96,7 @@ public class ProjectInternalServiceRegistry extends AbstractServiceRegistry impl
             @Override
             protected Object create() {
                 return get(ConfigurationContainerFactory.class).createConfigurationContainer(get(ResolverProvider.class),
-                        new DependencyMetaDataProviderImpl());
+                        get(DependencyMetaDataProvider.class));
             }
         });
 
@@ -131,7 +132,7 @@ public class ProjectInternalServiceRegistry extends AbstractServiceRegistry impl
                 RepositoryHandler repositoryHandler = get(RepositoryHandlerFactory.class).createRepositoryHandler(
                         new DefaultConvention());
                 ConfigurationContainer configurationContainer = get(ConfigurationContainerFactory.class)
-                        .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
+                        .createConfigurationContainer(repositoryHandler, get(DependencyMetaDataProvider.class));
                 DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
                         get(DependencyFactory.class), get(ProjectFinder.class));
                 ClassLoader parentClassLoader;
@@ -151,6 +152,29 @@ public class ProjectInternalServiceRegistry extends AbstractServiceRegistry impl
                 return get(ScriptHandler.class);
             }
         });
+
+        add(new Service(DependencyMetaDataProvider.class) {
+            @Override
+            protected Object create() {
+                return new DependencyMetaDataProvider() {
+                    public InternalRepository getInternalRepository() {
+                        return get(InternalRepository.class);
+                    }
+
+                    public File getGradleUserHomeDir() {
+                        return project.getGradle().getGradleUserHomeDir();
+                    }
+
+                    public Module getModuleForPublicDescriptor() {
+                        return new DefaultModule(project.getGroup().toString(), project.getName(), project.getVersion().toString(), project.getStatus().toString());
+                    }
+
+                    public Module getModuleForResolve() {
+                        return new DefaultModule(project.getGroup().toString(), project.getPath().replace(":", "_"), project.getVersion().toString(), project.getStatus().toString());
+                    }
+                };
+            }
+        });
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {
@@ -158,35 +182,5 @@ public class ProjectInternalServiceRegistry extends AbstractServiceRegistry impl
             return new TaskInternalServiceRegistry(this, project);
         }
         throw new UnsupportedOperationException();
-    }
-
-    private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        public InternalRepository getInternalRepository() {
-            return get(InternalRepository.class);
-        }
-
-        public File getGradleUserHomeDir() {
-            return project.getGradle().getGradleUserHomeDir();
-        }
-
-        public Module getModule() {
-            return new Module() {
-                public String getGroup() {
-                    return project.getGroup().toString();
-                }
-
-                public String getName() {
-                    return project.getName();
-                }
-
-                public String getVersion() {
-                    return project.getVersion().toString();
-                }
-
-                public String getStatus() {
-                    return project.getStatus().toString();
-                }
-            };
-        }
     }
 }

@@ -66,6 +66,8 @@ import org.gradle.api.*
 import org.gradle.api.internal.project.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.artifacts.Module
 
 /**
  * @author Hans Dockter
@@ -112,6 +114,7 @@ class DefaultProjectTest {
     ProjectPluginsContainer projectPluginsHandlerMock = context.mock(ProjectPluginsContainer)
     PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory)
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
+    DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
     Gradle build;
     Convention convention = new DefaultConvention();
 
@@ -177,6 +180,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
             allowing(serviceRegistryMock).get(StandardOutputRedirector); will(returnValue(outputRedirectorMock))
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
+            allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
         }
 
         build = context.mock(GradleInternal)
@@ -807,6 +811,10 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testProperties() {
+        context.checking {
+            allowing(dependencyMetaDataProviderMock).getModuleForResolve(); will(returnValue([:] as Module))
+            allowing(dependencyMetaDataProviderMock).getModuleForPublicDescriptor(); will(returnValue([:] as Module))
+        }
         project.additional = 'additional'
 
         Map properties = project.properties
@@ -1064,6 +1072,17 @@ def scriptMethod(Closure closure) {
 
     @Test(expected = ReadOnlyPropertyException) void setName() {
         project.name = "someNewName" 
+    }
+
+    @Test void testGetModule() {
+        Module moduleDummyResolve = [:] as Module
+        Module moduleDummyPublicDescriptor = [:] as Module
+        context.checking {
+            allowing(dependencyMetaDataProviderMock).getModuleForResolve(); will(returnValue(moduleDummyResolve))
+            allowing(dependencyMetaDataProviderMock).getModuleForPublicDescriptor(); will(returnValue(moduleDummyPublicDescriptor))
+        }
+        assertThat(project.getModuleForResolve(), equalTo(moduleDummyResolve))
+        assertThat(project.getModuleForPublicDescriptor(), equalTo(moduleDummyPublicDescriptor))
     }
 }
 

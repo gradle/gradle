@@ -18,11 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.project.AbstractProject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.equalTo;
@@ -98,27 +100,27 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     }
 
     @Test
-    public void ivyFileModuleRevisionId_shouldBeDeterminedByGroupNameVersionWithoutExtraAttributes() {
+    public void ivyFileModuleRevisionId_shouldBeDeterminedByModuleForPublicDescriptorWithoutExtraAttributes() {
         ProjectDependency projectDependency = createProjectDependency(TEST_CONF);
+        Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModuleForPublicDescriptor();
         ModuleRevisionId moduleRevisionId =
                 ProjectDependencyDescriptorFactory.IVY_FILE_MODULE_REVISION_ID_STRATEGY.createModuleRevisionId(projectDependency);
-        assertThat(moduleRevisionId.getOrganisation(), equalTo(projectDependency.getGroup()));
-        assertThat(moduleRevisionId.getName(), equalTo(projectDependency.getName()));
-        assertThat(moduleRevisionId.getRevision(), equalTo(projectDependency.getVersion()));
+        assertThat(moduleRevisionId.getOrganisation(), equalTo(module.getGroup()));
+        assertThat(moduleRevisionId.getName(), equalTo(module.getName()));
+        assertThat(moduleRevisionId.getRevision(), equalTo(module.getVersion()));
         assertThat(moduleRevisionId.getExtraAttributes(), equalTo((Map) new HashMap()));
     }
 
     @Test
-    public void resolveModuleRevisionId_shouldBeDeterminedByGroupPathVersionPlusExtraAttributes() {
+    public void resolveModuleRevisionId_shouldBeDeterminedByModuleForResolvePlusExtraAttributes() {
         ProjectDependency projectDependency = createProjectDependency(TEST_CONF);
+        Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModuleForResolve();
         ModuleRevisionId moduleRevisionId =
                 ProjectDependencyDescriptorFactory.RESOLVE_MODULE_REVISION_ID_STRATEGY.createModuleRevisionId(projectDependency);
-        assertThat(moduleRevisionId.getOrganisation(), equalTo(projectDependency.getGroup()));
-        assertThat(moduleRevisionId.getName(), equalTo(projectDependency.getDependencyProject().getPath()));
-        assertThat(moduleRevisionId.getRevision(), equalTo(projectDependency.getVersion()));
+        assertThat(moduleRevisionId.getOrganisation(), equalTo(module.getGroup()));
+        assertThat(moduleRevisionId.getName(), equalTo(module.getName()));
+        assertThat(moduleRevisionId.getRevision(), equalTo(module.getVersion()));
         assertThat(moduleRevisionId.getExtraAttributes(),
                 equalTo((Map) WrapUtil.toMap(DependencyDescriptorFactory.PROJECT_PATH_KEY, projectDependency.getDependencyProject().getPath())));
     }
-
-
 }

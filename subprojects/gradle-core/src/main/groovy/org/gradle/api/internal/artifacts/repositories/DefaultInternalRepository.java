@@ -35,10 +35,11 @@ import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.internal.artifacts.DefaultModule;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 
 import java.io.File;
@@ -87,9 +88,8 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
             return null;
         }
         Project project = gradle.getRootProject().project(projectPathValue);
-        DefaultModule module = new DefaultModule(project.getGroup().toString(), project.getPath(),
-                project.getVersion().toString(), project.getStatus().toString());
-        return moduleDescriptorConverter.convert(project.getConfigurations().getAll(), module,
+        DependencyMetaDataProvider dependencyMetaDataProvider = ((ProjectInternal) project).getServiceRegistryFactory().get(DependencyMetaDataProvider.class);
+        return moduleDescriptorConverter.convert(project.getConfigurations().getAll(), dependencyMetaDataProvider.getModuleForResolve(),
                 IvyContext.getContext().getIvy().getSettings());
     }
 

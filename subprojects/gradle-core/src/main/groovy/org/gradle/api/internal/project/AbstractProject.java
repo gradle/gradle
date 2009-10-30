@@ -20,6 +20,7 @@ import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -31,6 +32,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
@@ -862,5 +864,13 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public ServiceRegistryFactory getServiceRegistryFactory() {
         return services;
+    }
+
+    public Module getModuleForResolve() {
+        return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModuleForResolve();
+    }
+
+    public Module getModuleForPublicDescriptor() {
+        return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModuleForPublicDescriptor();
     }
 }

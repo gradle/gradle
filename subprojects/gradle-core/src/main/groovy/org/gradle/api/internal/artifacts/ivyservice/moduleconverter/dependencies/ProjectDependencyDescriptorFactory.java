@@ -19,10 +19,12 @@ import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.WrapUtil;
 
 /**
@@ -32,22 +34,17 @@ public class ProjectDependencyDescriptorFactory extends AbstractDependencyDescri
     public final static ProjectDependencyModuleRevisionIdStrategy IVY_FILE_MODULE_REVISION_ID_STRATEGY =
             new ProjectDependencyModuleRevisionIdStrategy() {
                 public ModuleRevisionId createModuleRevisionId(ProjectDependency dependency) {
-                    return IvyUtil.createModuleRevisionId(dependency);
+                    Module module = ((ProjectInternal) dependency.getDependencyProject()).getModuleForPublicDescriptor();
+                    return IvyUtil.createModuleRevisionId(module);
                 }
             };
 
     public final static ProjectDependencyModuleRevisionIdStrategy RESOLVE_MODULE_REVISION_ID_STRATEGY =
             new ProjectDependencyModuleRevisionIdStrategy() {
-                public ModuleRevisionId createModuleRevisionId(ProjectDependency projectDependency) {
-                    // We store the path information at two different places.
-                    // One is to have a unique name for the module revision id.
-                    // The other is to have an extra attribute that signals that this is a project dependency
-                    String path = projectDependency.getDependencyProject().getPath();
-                    return ModuleRevisionId.newInstance(projectDependency.getGroup(),
-                            path,
-                            projectDependency.getVersion(),
-                            WrapUtil.toMap(DependencyDescriptorFactory.PROJECT_PATH_KEY,
-                                    path));
+                public ModuleRevisionId createModuleRevisionId(ProjectDependency dependency) {
+                    Module module = ((ProjectInternal) dependency.getDependencyProject()).getModuleForResolve();
+                    return IvyUtil.createModuleRevisionId(module, WrapUtil.toMap(DependencyDescriptorFactory.PROJECT_PATH_KEY,
+                            dependency.getDependencyProject().getPath()));
                 }
             };
 

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
@@ -30,7 +29,11 @@ import java.util.Map;
 public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {
-        return new ModuleRevisionId(new ModuleId(module.getGroup(), module.getName()), module.getVersion());
+        return createModuleRevisionId(module, new HashMap());
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(Module module, Map<String, String> extraAttributes) {
+        return createModuleRevisionId(module.getGroup(), module.getName(), module.getVersion(), extraAttributes);
     }
 
     public static ModuleRevisionId createModuleRevisionId(Dependency dependency) {
@@ -38,8 +41,11 @@ public class IvyUtil {
     }
 
     public static ModuleRevisionId createModuleRevisionId(Dependency dependency, Map<String, String> extraAttributes) {
-        return ModuleRevisionId.newInstance(emptyStringIfNull(dependency.getGroup()), dependency.getName(),
-                emptyStringIfNull(dependency.getVersion()), extraAttributes);
+        return createModuleRevisionId(dependency.getGroup(), dependency.getName(), dependency.getVersion(), extraAttributes);
+    }
+
+    public static ModuleRevisionId createModuleRevisionId(String group, String name, String version, Map<String, String> extraAttributes) {
+        return ModuleRevisionId.newInstance(emptyStringIfNull(group), name, emptyStringIfNull(version), extraAttributes);
     }
 
     private static String emptyStringIfNull(String value) {
