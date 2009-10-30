@@ -285,6 +285,9 @@ task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, 
     testReportDir = file('build/reports/tests')
     testSrcDirs = []
     doFirst {task ->
+        if (isDevBuild()) {
+            task.exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
+        }
         task.options.systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
         def forkArgs = [:]
         if (noForkIntegTests()) {
@@ -301,7 +304,11 @@ boolean noForkIntegTests() {
     if (project.hasProperty('forkIntegTests')) {
         return !Boolean.valueOf(forkIntegTests)
     }
-    return gradle.taskGraph.hasTask(':developerBuild')
+    return isDevBuild()
+}
+
+private def isDevBuild() {
+    gradle.taskGraph.hasTask(':developerBuild')
 }
 
 task testedDists(dependsOn: [assemble, check, integTest])
