@@ -5,37 +5,55 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class LineFilterTest {
-    @Test public void testCRLF() {
+    @Test public void testEmptyInput() {
+        Reader input = new StringReader("");
+        int lineCount = 1;
+        LineFilter filter = new LineFilter(input) { "${lineCount++} - $it" as String }
+
+        assertThat(filter.text, equalTo(""))
+    }
+
+    @Test public void testEmptyLinesWithTrailingEOL() {
+        Reader input = new StringReader("\n\n");
+        int lineCount = 1;
+        LineFilter filter = new LineFilter(input) { "${lineCount++} - $it" as String }
+
+        assertThat(filter.text, equalTo(lines("1 - ", "2 - ", "")))
+    }
+    
+    @Test public void testSingleLine() {
+        Reader input = new StringReader("one");
+        int lineCount = 1;
+        LineFilter filter = new LineFilter(input) { "${lineCount++} - $it" as String }
+
+        assertThat(filter.text, equalTo("1 - one"))
+    }
+    
+    @Test public void testCRLFWithTrailingEOL() {
         Reader input = new StringReader("one\r\ntwo\r\nthree\r\n");
         int lineCount = 1;
         LineFilter filter = new LineFilter(input) { "${lineCount++} - $it" as String }
 
-        Iterator<String> lines = getResults(filter).readLines().iterator()
-        assertThat(lines.next(), startsWith("1 - one"))
-        assertThat(lines.next(), startsWith("2 - two"))
-        assertThat(lines.next(), startsWith("3 - three"))
+        assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three", "")))
     }
 
-    @Test public void testLf() {
+    @Test public void testLfWithNoTrailingEOL() {
         Reader input = new StringReader("one\ntwo\nthree");
         int lineCount = 1;
         LineFilter filter = new LineFilter(input) { "${lineCount++} - $it" as String }
 
-        Iterator<String> lines = getResults(filter).readLines().iterator()
-        assertThat(lines.next(), startsWith("1 - one"))
-        assertThat(lines.next(), startsWith("2 - two"))
-        assertThat(lines.next(), startsWith("3 - three"))
+        assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
+    }
+    
+    @Test public void testCRWithNoTrailingEOL() {
+        Reader input = new StringReader("one\rtwo\rthree");
+        int lineCount = 1;
+        LineFilter filter = new LineFilter(input) { "${lineCount++} - $it" as String }
+
+        assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
     }
 
-    private String getResults(Reader filter) {
-        StringBuilder result = new StringBuilder()
-        int nextChar = 0;
-        while (nextChar != -1){
-            nextChar = filter.read();
-            if (nextChar != -1) {
-                result.append((char)nextChar)
-            }
-        }
-        return result.toString()
+    private String lines(String ... lines) {
+        return (lines as List).join(System.getProperty('line.separator'))
     }
 }

@@ -17,15 +17,17 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 
 public class LineFilter extends Reader{
-    private Closure closure;
+    private final Closure closure;
     private String transformedLine;
     private int transformedIndex = 0;
-    private BufferedReader bufferedIn;
-    private String lineTerminator;
-
+    private final BufferedReader bufferedIn;
+    private final String lineTerminator;
+    private final Reader in;
 
     /**
      * Creates a new filtered reader.
@@ -35,19 +37,41 @@ public class LineFilter extends Reader{
      */
     public LineFilter(Reader in, Closure closure) {
         super();
+        this.in = in;
         this.bufferedIn = new BufferedReader(in);
         this.closure = closure;
         lineTerminator = System.getProperty("line.separator");
     }
 
     private String getTransformedLine() throws IOException {
-        String originalLine = bufferedIn.readLine();
-        if (originalLine != null) {
-            StringBuilder result = new StringBuilder((String) closure.call(originalLine));
-            result.append(lineTerminator);
-            return result.toString();
+        StringBuilder line = new StringBuilder();
+        boolean eol = false;
+        int ch;
+        while (!eol && (ch = bufferedIn.read()) >= 0) {
+            if (ch == '\n') {
+                eol = true;
+            }
+            else if (ch == '\r') {
+                eol = true;
+                bufferedIn.mark(1);
+                if (bufferedIn.read() != '\n') {
+                    bufferedIn.reset();
+                }
+            }
+            else {
+                line.append((char) ch);
+            }
         }
-        return null;
+        if (line.length() == 0 && !eol) {
+            return null;
+        }
+
+        StringBuilder result = new StringBuilder();
+        result.append(closure.call(line.toString()).toString());
+        if (eol) {
+            result.append(lineTerminator);
+        }
+        return result.toString();
     }
 
     private void ensureData() throws IOException {
@@ -84,6 +108,6 @@ public class LineFilter extends Reader{
     }
 
     public void close() throws IOException {
-        bufferedIn.close();
+        in.close();
     }
 }
