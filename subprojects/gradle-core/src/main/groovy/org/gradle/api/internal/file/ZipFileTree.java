@@ -123,6 +123,10 @@ public class ZipFileTree extends AbstractFileTree {
             return entry.isDirectory();
         }
 
+        public long getSize() {
+            return entry.getSize();
+        }
+
         public InputStream open()  {
             try {
                 return zip.getInputStream(entry);

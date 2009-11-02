@@ -32,7 +32,7 @@ class BasePlugin implements Plugin {
     private Task addAssemble(Project project) {
         Task assembleTask = project.tasks.add(ASSEMBLE_TASK_NAME);
         assembleTask.description = "Builds all Jar, War, Zip, and Tar archives.";
-        assembleTask.dependsOn { project.tasks.withType(Zip.class).all }
+        assembleTask.dependsOn { project.tasks.withType(AbstractArchiveTask.class).all }
     }
 
     private void configureArchiveDefaults(Project project, BasePluginConvention pluginConvention) {

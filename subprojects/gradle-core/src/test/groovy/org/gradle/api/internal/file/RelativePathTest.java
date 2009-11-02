@@ -21,13 +21,13 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.io.File;
 
 public class RelativePathTest {
 
     private void assertPathContains(RelativePath path, boolean isFile, String... expectedSegments) {
         String[] actualPaths = path.getSegments();
-        assertTrue(Arrays.equals(expectedSegments, actualPaths));
+        assertArrayEquals(expectedSegments, actualPaths);
         assertEquals(isFile, path.isFile());
     }
 
@@ -42,6 +42,35 @@ public class RelativePathTest {
 
         childPath = new RelativePath(true, path, "three");
         assertPathContains(childPath, true, "one", "two", "three");
+    }
+
+    @Test
+    public void canParsePathIntoRelativePath() {
+        RelativePath path;
+
+        path = RelativePath.parse(true, "one");
+        assertPathContains(path, true, "one");
+
+        path = RelativePath.parse(true, "one/two");
+        assertPathContains(path, true, "one", "two");
+
+        path = RelativePath.parse(true, "one/two/");
+        assertPathContains(path, true, "one", "two");
+
+        path = RelativePath.parse(true, String.format("one%stwo%s", File.separator, File.separator));
+        assertPathContains(path, true, "one", "two");
+
+        path = RelativePath.parse(false, "");
+        assertPathContains(path, false);
+
+        path = RelativePath.parse(false, "/");
+        assertPathContains(path, false);
+
+        path = RelativePath.parse(true, "/one");
+        assertPathContains(path, true, "one");
+
+        path = RelativePath.parse(true, "/one/two");
+        assertPathContains(path, true, "one", "two");
     }
 
     @Test

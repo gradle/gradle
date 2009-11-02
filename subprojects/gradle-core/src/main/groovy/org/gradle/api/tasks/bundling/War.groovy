@@ -16,13 +16,12 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.specs.Specs
-import org.gradle.api.tasks.util.FileSet
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.gradle.api.tasks.Optional
+import org.gradle.api.file.CopySpec
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Hans Dockter
@@ -30,133 +29,60 @@ import org.gradle.api.artifacts.ProjectDependency
 class War extends Jar {
     public static final String WAR_EXTENSION = 'war'
 
-    private static Logger logger = LoggerFactory.getLogger(Jar)
+    private File webXml
 
-    AntWar antWar = new AntWar()
+    private CopySpec webInf
 
-    List classesFileSets = []
-
-    List libConfigurations = []
-
-    List libExcludeConfigurations = []
-
-    List additionalLibFileSets = []
-
-    List webInfFileSets = []
-
-    File webXml
+    private FileCollection classpath
 
     War() {
         extension = WAR_EXTENSION
-    }
-
-    Closure createAntArchiveTask() {
-        {->
-            List files = dependencies(true, true)
-            AntMetaArchiveParameter param = new AntMetaArchiveParameter(getResourceCollections(), getFileSetManifest(),
-                    getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(), getMetaInfResourceCollections(), project.ant)
-            antWar.execute(param, getClassesFileSets(), files, getAdditionalLibFileSets(), getWebInfFileSets(), getWebXml(), project.fileResolver)
+        // Add these as separate specs, so they are not affected by the changes to the root spec
+        webInf = getCopyAction().addNoInheritChild().into('WEB-INF')
+        CopySpec otherWebInf = getCopyAction().addNoInheritChild().into('WEB-INF')
+        otherWebInf.into('classes') {
+            from {
+                getClasspath().findAll {File file -> file.isDirectory()}
+            }
+        }
+        otherWebInf.into('lib') {
+            from {
+                getClasspath().findAll {File file -> file.isFile()}
+            }
+        }
+        otherWebInf.into('') {
+            from {
+                getWebXml()
+            }
+            rename {
+                'web.xml'
+            }
         }
     }
 
-    public List dependencies(boolean failForMissingDependencies, boolean includeProjectDependencies) {
-        List files = []
-        def filteredDependencies = {String configurationName ->
-            project.configurations.getByName(configurationName).files(
-                    includeProjectDependencies ? Specs.SATISFIES_ALL : { dependency -> !(dependency instanceof ProjectDependency) })  as List
-        }
-
-        getLibConfigurations().each {String configurationName ->
-            files.addAll(filteredDependencies(configurationName))
-        }
-        getLibExcludeConfigurations().each {String configurationName ->
-            files.removeAll(filteredDependencies(configurationName))
-        }
-        files
+    CopySpec getWebInf() {
+        return webInf
     }
 
-    /**
-     * Adds a fileset to the list of webinf fileset's.
-     * @param args key-value pairs for setting field values of the created fileset.
-     * @param configureClosure (optional) closure which is applied against the newly created fileset.
-     */
-    FileSet webInf(Map args, Closure configureClosure = null) {
-        FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
-        webInfFileSets = getWebInfFileSets() + [fileSet]
-        fileSet
+    CopySpec webInf(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, webInf)
+        return webInf
     }
 
-    FileSet classes(Map args, Closure configureClosure = null) {
-        FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
-        classesFileSets = getClassesFileSets() + [fileSet]
-        fileSet
+    @InputFiles @Optional
+    FileCollection getClasspath() {
+        return classpath
     }
 
-    FileSet additionalLibs(Map args, Closure configureClosure = null) {
-        FileSet fileSet = createFileSetInternal(args, FileSet, configureClosure)
-        additionalLibFileSets = getAdditionalLibFileSets() + [fileSet]
-        fileSet
+    void setClasspath(Object classpath) {
+        this.classpath = project.files(classpath)
     }
 
-    War libConfigurations(String ... libConfigurations) {
-        List list = Arrays.asList(libConfigurations)
-        this.libConfigurations = getLibConfigurations() + list
-        this
+    void classpath(Object... classpath) {
+        FileCollection oldClasspath = getClasspath()
+        this.classpath = project.files(oldClasspath ?: [], classpath)
     }
-
-    War libExcludeConfigurations(String ... libExcludeConfigurations) {
-        this.libExcludeConfigurations = getLibExcludeConfigurations() + Arrays.asList(libExcludeConfigurations)
-        this
-    }
-
-    public AntWar getAntWar() {
-        return antWar;
-    }
-
-    public void setAntWar(AntWar antWar) {
-        this.antWar = antWar;
-    }
-
-    public List getClassesFileSets() {
-        return classesFileSets;
-    }
-
-    public void setClassesFileSets(List classesFileSets) {
-        this.classesFileSets = classesFileSets;
-    }
-
-    public List getLibConfigurations() {
-        return libConfigurations;
-    }
-
-    public void setLibExcludeConfigurations(List libExcludeConfigurations) {
-        this.libExcludeConfigurations = libExcludeConfigurations;
-    }
-
-    public List getLibExcludeConfigurations() {
-        return libExcludeConfigurations;
-    }
-
-    public void setLibConfigurations(List libConfigurations) {
-        this.libConfigurations = libConfigurations;
-    }
-
-    public List getAdditionalLibFileSets() {
-        return additionalLibFileSets;
-    }
-
-    public void setAdditionalLibFileSets(List additionalLibFileSets) {
-        this.additionalLibFileSets = additionalLibFileSets;
-    }
-
-    public List getWebInfFileSets() {
-        return webInfFileSets;
-    }
-
-    public void setWebInfFileSets(List webInfFileSets) {
-        this.webInfFileSets = webInfFileSets;
-    }
-
+    
     @InputFile @Optional
     public File getWebXml() {
         return webXml;

@@ -1,0 +1,164 @@
+/*
+ * Copyright 2009 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.internal.file;
+
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.GradleException;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
+import org.gradle.integtests.TestFile;
+import org.gradle.util.TemporaryFolder;
+import org.hamcrest.Description;
+import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
+import org.jmock.api.Action;
+import org.jmock.api.Invocation;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import static org.junit.Assert.*;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.io.OutputStream;
+
+@RunWith(JMock.class)
+public class TarCopyVisitorTest {
+    @Rule
+    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
+    private final TarCopyVisitor visitor = new TarCopyVisitor();
+
+    @Test
+    public void createsTarFile() {
+        final TestFile tarFile = tmpDir.getDir().file("test.tar");
+
+        context.checking(new Expectations(){{
+            allowing(copyAction).getArchivePath();
+            will(returnValue(tarFile));
+        }});
+
+        visitor.startVisit(copyAction);
+
+        visitor.visitFile(file("dir/file1"));
+        visitor.visitFile(file("file2"));
+
+        visitor.endVisit();
+
+        TestFile expandDir = tmpDir.getDir().file("expanded");
+        tarFile.untarTo(expandDir);
+        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
+        expandDir.file("file2").assertContents(equalTo("contents of file2"));
+    }
+
+    @Test
+    public void wrapsFailureToOpenOutputFile() {
+        final TestFile tarFile = tmpDir.dir("test.tar");
+
+        context.checking(new Expectations(){{
+            allowing(copyAction).getArchivePath();
+            will(returnValue(tarFile));
+        }});
+
+        try {
+            visitor.startVisit(copyAction);
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), equalTo(String.format("Could not create TAR '%s'.", tarFile)));
+        }
+    }
+
+    @Test
+    public void wrapsFailureToAddElement() {
+        final TestFile tarFile = tmpDir.getDir().file("test.tar");
+
+        context.checking(new Expectations(){{
+            allowing(copyAction).getArchivePath();
+            will(returnValue(tarFile));
+        }});
+
+        visitor.startVisit(copyAction);
+
+        Throwable failure = new RuntimeException("broken");
+        try {
+            visitor.visitFile(brokenFile("dir/file1", failure));
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), equalTo(String.format("Could not add [dir/file1] to TAR '%s'.", tarFile)));
+            assertThat(e.getCause(), sameInstance(failure));
+        }
+    }
+
+    private FileVisitDetails file(final String path) {
+        final FileVisitDetails details = context.mock(FileVisitDetails.class, path);
+        final String content = String.format("contents of %s", path);
+
+        context.checking(new Expectations() {{
+            allowing(details).getRelativePath();
+            will(returnValue(RelativePath.parse(true, path)));
+
+            allowing(details).getLastModified();
+            will(returnValue(1000L));
+
+            allowing(details).getSize();
+            will(returnValue((long)content.getBytes().length));
+
+            allowing(details).copyTo(with(notNullValue(OutputStream.class)));
+            will(new Action() {
+                public void describeTo(Description description) {
+                    description.appendText("write content");
+                }
+
+                public Object invoke(Invocation invocation) throws Throwable {
+                    IOUtils.write(content, (OutputStream) invocation.getParameter(0));
+                    return null;
+                }
+            });
+        }});
+
+        return details;
+    }
+
+    private FileVisitDetails brokenFile(final String path, final Throwable failure) {
+        final FileVisitDetails details = context.mock(FileVisitDetails.class, String.format("[%s]", path));
+
+        context.checking(new Expectations() {{
+            allowing(details).getRelativePath();
+            will(returnValue(RelativePath.parse(true, path)));
+
+            allowing(details).getLastModified();
+            will(returnValue(1000L));
+
+            allowing(details).getSize();
+            will(returnValue(1000L));
+
+            allowing(details).copyTo(with(notNullValue(OutputStream.class)));
+            will(new Action() {
+                public void describeTo(Description description) {
+                    description.appendText("write content");
+                }
+
+                public Object invoke(Invocation invocation) throws Throwable {
+                    failure.fillInStackTrace();
+                    throw failure;
+                }
+            });
+        }});
+
+        return details;
+    }
+}

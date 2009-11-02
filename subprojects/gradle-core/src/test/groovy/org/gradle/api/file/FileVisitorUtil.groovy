@@ -32,7 +32,9 @@ class FileVisitorUtil {
                     assertTrue(files.add(details.relativePath.pathString))
                     assertEquals(details.file.lastModified(), details.lastModified)
                     assertTrue(details.file.file)
-                    assertEquals(details.file.text, details.open().text)
+                    ByteArrayOutputStream outstr = new ByteArrayOutputStream()
+                    details.copyTo(outstr)
+                    assertEquals(details.file.text, outstr.toString())
                 },
                 visitDir: {FileVisitDetails details ->
                     if (details.relativePath.parent.parent) {

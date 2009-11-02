@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
@@ -34,6 +34,7 @@ import org.gradle.api.tasks.ide.eclipse.*;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -167,11 +168,17 @@ public class EclipsePlugin implements Plugin {
                 },
                 "warLibs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        List warLibs = war.dependencies(eclipseWtp.isFailForMissingDependencies(), false);
-                        if (war.getAdditionalLibFileSets() != null) {
-                            warLibs.addAll(war.getAdditionalLibFileSets());
-                        }
-                        return warLibs;
+                        // This isn't quite true
+                        Spec<Dependency> spec = new Spec<Dependency>() {
+                            public boolean isSatisfiedBy(Dependency element) {
+                                return !(element instanceof ProjectDependency);
+                            }
+                        };
+                        Set<File> provided = project.getConfigurations().getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME).getFiles();
+                        Set<File> runtime = project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).copyRecursive(
+                                spec).getFiles();
+                        runtime.removeAll(provided);
+                        return new ArrayList<Object>(runtime);
                     }
                 },
                 "projectDependencies", new ConventionValue() {

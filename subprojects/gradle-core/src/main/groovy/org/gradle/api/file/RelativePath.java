@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import org.gradle.util.GUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.util.ListIterator;
@@ -124,5 +125,14 @@ public class RelativePath {
         String[] parentSegments = new String[segments.length - 1];
         System.arraycopy(segments, 0, parentSegments, 0, parentSegments.length);
         return new RelativePath(false, parentSegments);
+    }
+
+    public static RelativePath parse(boolean isFile, String path) {
+        return parse(isFile, null, path);
+    }
+
+    public static RelativePath parse(boolean isFile, RelativePath parent, String path) {
+        String[] names = StringUtils.split(path, "/" + File.separator);
+        return new RelativePath(isFile, parent, names);
     }
 }

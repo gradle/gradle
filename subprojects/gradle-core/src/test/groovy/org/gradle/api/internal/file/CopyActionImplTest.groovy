@@ -1,6 +1,5 @@
 package org.gradle.api.internal.file
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.project.ProjectInternal
@@ -11,8 +10,8 @@ import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyActionImplTest  {
@@ -32,7 +31,7 @@ public class CopyActionImplTest  {
         resolver = context.mock(FileResolver.class)
         sourceFileTree = context.mock(FileTree.class)
 
-        copyAction = new CopyActionImpl(resolver)
+        copyAction = new CopyActionImpl(resolver, visitor)
         copyAction.visitor = visitor
 
         context.checking {
@@ -46,28 +45,16 @@ public class CopyActionImplTest  {
         copyAction.execute()
     }
 
-    // Assert that InvalidUserDataException is thrown with no destination set
-    @Test public void noDest() {
-        project.configure(copyAction) {
-            from 'src'
-        }
-        try {
-            copyAction.execute()
-        } catch (RuntimeException ex) {
-            assertTrue(ex instanceof InvalidUserDataException)
-            return;
-        }
-        fail("Exception not thrown with no destination")
-    }
-
     @Test public void multipleSourceDirs() {
         context.checking {
-            one(visitor).visitSpec(withParam(notNullValue()))
+            one(visitor).startVisit(copyAction)
+            one(visitor).visitSpec(copyAction)
             one(resolver).resolveFilesAsTree(['src1', 'src2'] as Set)
             will(returnValue(sourceFileTree))
             one(sourceFileTree).matching(new PatternSet())
             will(returnValue(sourceFileTree))
             one(sourceFileTree).visit(visitor)
+            one(visitor).endVisit()
             allowing(visitor).getDidWork()
             will(returnValue(true))
         }
@@ -80,12 +67,14 @@ public class CopyActionImplTest  {
 
     @Test public void includeExclude() {
         context.checking({
-            one(visitor).visitSpec(withParam(notNullValue()))
+            one(visitor).startVisit(copyAction)
+            one(visitor).visitSpec(copyAction)
             one(resolver).resolveFilesAsTree(['src1'] as Set)
             will(returnValue(sourceFileTree))
             one(sourceFileTree).matching(new PatternSet(includes: ['a.b', 'c.d', 'e.f'], excludes: ['g.h']))
             will(returnValue(sourceFileTree))
             one(sourceFileTree).visit(visitor)
+            one(visitor).endVisit()
             allowing(visitor).getDidWork()
             will(returnValue(true))
         })
@@ -112,54 +101,84 @@ public class CopyActionImplTest  {
     }
 
     // from with closure sets from on child spec, not on root
-    @Test public void fromWithClosure() {
-        project.configure(copyAction) {
-            from('parentdir') {
-                from 'childdir'
-            }
-            into 'dest'
-        }
-        List specs = copyAction.getLeafSyncSpecs()
-        assertEquals(1, specs.size())
+    @Test public void copiesEachSpec() {
+        FileTree source1 = context.mock(FileTree, 'source1')
+        FileTree source2 = context.mock(FileTree, 'source2')
+        FileTree source3 = context.mock(FileTree, 'source3')
+        FileTree filtered1 = context.mock(FileTree, 'filtered1')
+        FileTree filtered2 = context.mock(FileTree, 'filtered2')
+        FileTree filtered3 = context.mock(FileTree, 'filtered3')
 
         context.checking {
-            one(resolver).resolveFilesAsTree(['parentdir', 'childdir'] as Set)
-            will(returnValue(sourceFileTree))
+            one(visitor).startVisit(copyAction)
+
+            one(visitor).visitSpec(copyAction)
+
+            one(resolver).resolveFilesAsTree(['src'] as Set)
+            will(returnValue(source1))
+            one(source1).matching(withParam(notNullValue()))
+            will(returnValue(filtered1))
+            one(filtered1).visit(visitor)
+
+            one(visitor).visitSpec(withParam(notNullValue()))
+
+            one(resolver).resolveFilesAsTree(['src2'] as Set)
+            will(returnValue(source2))
+            one(source2).matching(withParam(notNullValue()))
+            will(returnValue(filtered2))
+            one(filtered2).visit(visitor)
+
+            one(visitor).visitSpec(withParam(notNullValue()))
+
+            one(resolver).resolveFilesAsTree(['src3'] as Set)
+            will(returnValue(source3))
+            one(source3).matching(withParam(notNullValue()))
+            will(returnValue(filtered3))
+            one(filtered3).visit(visitor)
+
+            one(visitor).endVisit()
         }
-        assertSame(sourceFileTree, specs[0].getSource())
+
+        executeWith {
+            from('src')
+            from('src2') { }
+            from('src3') { }
+        }
     }
 
-    @Test public void inheritFromRoot() {
+    @Test public void allSourceIncludesSourceFromAllSpecs() {
+        FileTree source1 = context.mock(FileTree, 'source1')
+        FileTree source2 = context.mock(FileTree, 'source2')
+        FileTree source3 = context.mock(FileTree, 'source3')
+        FileTree filtered1 = context.mock(FileTree, 'filtered1')
+        FileTree filtered2 = context.mock(FileTree, 'filtered2')
+        FileTree filtered3 = context.mock(FileTree, 'filtered3')
+
         project.configure(copyAction) {
-            include '*.a'
             from('src')
-            from('src1') {
-                include '*.b'
-            }
-            from('src2') {
-                include '*.c'
-            }
-            into 'dest'
+            from('src2') { }
+            from('src3') { }
         }
-        List specs = copyAction.getLeafSyncSpecs()
-        assertEquals(2, specs.size())
 
         context.checking {
-            one(resolver).resolveFilesAsTree(['src', 'src1'] as Set)
+            one(resolver).resolveFilesAsTree(['src'] as Set)
+            will(returnValue(source1))
+            one(source1).matching(withParam(notNullValue()))
+            will(returnValue(filtered1))
+
+            one(resolver).resolveFilesAsTree(['src2'] as Set)
+            will(returnValue(source2))
+            one(source2).matching(withParam(notNullValue()))
+            will(returnValue(filtered2))
+            one(resolver).resolveFilesAsTree(['src3'] as Set)
+            will(returnValue(source3))
+            one(source3).matching(withParam(notNullValue()))
+            will(returnValue(filtered3))
+
+            one(resolver).resolveFilesAsTree([filtered1, filtered2, filtered3])
             will(returnValue(sourceFileTree))
         }
 
-        assertSame(sourceFileTree, specs[0].getSource())
-        assertEquals(['*.a', '*.b'], specs[0].getAllIncludes())
-        assertEquals(project.file('dest'), specs[0].getDestDir())
-
-        context.checking {
-            one(resolver).resolveFilesAsTree(['src', 'src2'] as Set)
-            will(returnValue(sourceFileTree))
-        }
-
-        assertSame(sourceFileTree, specs[1].getSource())
-        assertEquals(['*.a', '*.c'], specs[1].getAllIncludes())
-        assertEquals(project.file('dest'), specs[1].getDestDir())
+        assertSame(sourceFileTree, copyAction.allSource)
     }
 }

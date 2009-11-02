@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.file;
 
-import org.apache.tools.ant.filters.ReplaceTokens;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -26,9 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -62,7 +60,7 @@ public class CopyVisitorTest {
 
     @Test
     public void plainCopy() {
-        visitor.visitSpec(spec(testDir, plainMapper(), new FilterChain()));
+        visitor.visitSpec(spec(testDir));
 
         visitor.visitDir(file(sourceDir, new RelativePath(false)));
 
@@ -84,63 +82,21 @@ public class CopyVisitorTest {
     }
 
     @Test
-    public void testFilter() throws IOException {
-        FilterChain filters = new FilterChain();
-        ReplaceTokens filter = new ReplaceTokens(filters.getLastFilter());
-        filters.addFilter(filter);
-        ReplaceTokens.Token token = new ReplaceTokens.Token();
-        token.setKey("MAGIC");
-        token.setValue("42");
-        filter.addConfiguredToken(token);
-
-        visitor.visitSpec(spec(testDir, plainMapper(), filters));
-
-        FileVisitDetails sourceFile = file(getResource("testfiles/rootfile.txt"), new RelativePath(true,
-                "rootfile.txt"));
-        File destFile = new File(testDir, "rootfile.txt");
-
-        visitor.copyFile(sourceFile, destFile);
-
-        assertTrue(destFile.exists());
-        BufferedReader reader = new BufferedReader(new FileReader(destFile));
-        assertTrue(reader.readLine().startsWith("The magic number is 42"));
+    public void testThrowsExceptionWhenNoDestinationSet() {
+        try {
+            visitor.visitSpec(spec(null));
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), equalTo("No copy destination directory has been specified, use 'into' to specify a target directory."));
+        }
     }
 
-    @Test
-    public void testGetTargetPlain() {
-        visitor.visitSpec(spec(testDir, plainMapper(), new FilterChain()));
-
-        File target = visitor.getTarget(file(null, new RelativePath(true, "one")));
-        assertEquals(new File(testDir, "one"), target);
-
-        target = visitor.getTarget(file(null, new RelativePath(true, "sub", "two")));
-        assertEquals(new File(testDir, "sub/two"), target);
-    }
-
-    @Test
-    public void testGetTargetRenamed() {
-        visitor.visitSpec(spec(testDir, renameMapper("(.+)\\.java", "$1Test.java"), new FilterChain()));
-
-        File target = visitor.getTarget(file(null, new RelativePath(true, "Fred.java")));
-        assertEquals(new File(testDir, "FredTest.java"), target);
-    }
-
-    private CopySpecImpl spec(final File destDir, final CopyDestinationMapper destinationMapper, final FilterChain filterChain) {
-        return new TestCopySpecImpl(destDir, destinationMapper, filterChain);
+    private CopySpecImpl spec(final File destDir) {
+        return new TestCopySpecImpl(destDir);
     }
 
     private FileVisitDetails file(final File sourceDir, final RelativePath relativePath) {
         return new TestFileVisitDetails(sourceDir, relativePath);
-    }
-
-    private CopyDestinationMapper plainMapper() {
-        return new DefaultCopyDestinationMapper();
-    }
-
-    private CopyDestinationMapper renameMapper(String regexp, String replacement) {
-        DefaultCopyDestinationMapper mapper = new DefaultCopyDestinationMapper();
-        mapper.add(new RegExpNameMapper(regexp, replacement));
-        return mapper;
     }
 
     private class TestFileVisitDetails extends DefaultFileTreeElement implements FileVisitDetails {
@@ -155,29 +111,15 @@ public class CopyVisitorTest {
 
     private static class TestCopySpecImpl extends CopySpecImpl {
         private final File destDir;
-        private final CopyDestinationMapper destinationMapper;
-        private final FilterChain filterChain;
 
-        public TestCopySpecImpl(File destDir, CopyDestinationMapper destinationMapper, FilterChain filterChain) {
+        public TestCopySpecImpl(File destDir) {
             super(null);
             this.destDir = destDir;
-            this.destinationMapper = destinationMapper;
-            this.filterChain = filterChain;
         }
 
         @Override
-            public File getDestDir() {
+        public File getDestDir() {
             return destDir;
-        }
-
-        @Override
-            public CopyDestinationMapper getDestinationMapper() {
-            return destinationMapper;
-        }
-
-        @Override
-            public FilterChain getFilterChain() {
-            return filterChain;
         }
     }
 }

@@ -19,6 +19,8 @@ import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.hamcrest.*;
 import static org.hamcrest.Matchers.*;
+import org.jmock.api.Action;
+import org.jmock.api.Invocation;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -251,5 +253,26 @@ public class Matchers {
                 description.appendText("built by ").appendDescriptionOf(matcher);
             }
         };
+    }
+
+    public static <T> Collector<T> collectParam() {
+        return new Collector<T>();
+    }
+
+    public static class Collector<T> implements Action {
+        private T value;
+
+        public T get() {
+            return value;
+        }
+
+        public Object invoke(Invocation invocation) throws Throwable {
+            value = (T) invocation.getParameter(0);
+            return null;
+        }
+
+        public void describeTo(Description description) {
+            description.appendText("collect parameter");
+        }
     }
 }

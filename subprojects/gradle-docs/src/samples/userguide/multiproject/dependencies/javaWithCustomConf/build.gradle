@@ -13,10 +13,12 @@ project(':api') {
     }
     task spiJar(type: Jar) {
         baseName = 'api-spi'
-        confs = ['spi']
-        fileSet() {
-            include('org/gradle/sample/api/**')
-        }
+        dependsOn classes
+        from sourceSets.main.classes
+        include('org/gradle/sample/api/**')
+    }
+    artifacts {
+        spi spiJar
     }
 }
 
@@ -27,4 +29,3 @@ project(':services:personService') {
         testCompile "junit:junit:3.8.2", project(':api')
     }
 }
-

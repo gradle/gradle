@@ -16,30 +16,16 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.util.FileSet
-import org.gradle.util.ConfigureUtil
-import org.gradle.util.GUtil
+import org.gradle.api.tasks.AbstractCopyTask
+import org.gradle.api.tasks.OutputFile
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.file.ConfigurableFileCollection
 
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractArchiveTask extends ConventionTask {
+public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private static Logger logger = LoggerFactory.getLogger(AbstractArchiveTask.class);
-
-    /**
-     * If you create a fileset and don't assign a directory to this fileset, the baseDir value is assigned to the dir
-     * property of the fileset.
-     */
-    private File baseDir
 
     /**
      * A list with all entities (e.g. filesets) which describe the files of this archive.
@@ -87,14 +73,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      */
     private String classifier = ''
 
-    @TaskAction
-    public void generateArchive() {
-        logger.debug("Creating archive: {}", name)
-        createAntArchiveTask().call()
-    }
-
-    protected abstract Closure createAntArchiveTask()
-
     /**
      * Returns the archive name. If the customName is not set, the pattern for the name is:
      * [baseName]-[version].[extension]
@@ -112,70 +90,11 @@ public abstract class AbstractArchiveTask extends ConventionTask {
      * The path where the archive is constructed. The path is simply the destinationDir plus the archiveName.
      * @return a File object with the path to the archive
      */
+    @OutputFile
     public File getArchivePath() {
         new File(getDestinationDir(), getArchiveName())
     }
 
-    /**
-     * Adds a fileset.
-     * @param configureClosure configuration instructions
-     * @return the added fileset
-     */
-    public FileSet fileSet(Closure configureClosure) {
-        fileSet([:], configureClosure)
-    }
-
-    /**
-     * Add a fileset
-     * @param args constructor arguments for the FileSet to construct
-     * @param configureClosure configuration instructions
-     * @return the added fileset
-     */
-    public FileSet fileSet(Map args = [:], Closure configureClosure = null) {
-        addFileSetInternal(args, FileSet, configureClosure)
-    }
-
-    protected def addFileSetInternal(Map args, Class type, Closure configureClosure) {
-        def fileSet = createFileSetInternal(args, type, configureClosure)
-        resourceCollections(fileSet)
-        fileSet
-    }
-
-    protected def createFileSetInternal(Map args, Class type, Closure configureClosure) {
-        args.dir = args.dir ?: getBaseDir()
-        def fileSet = type.newInstance(args, project.fileResolver)
-        ConfigureUtil.configure(configureClosure, fileSet)
-        fileSet
-    }
-
-    /**
-     * Adds an arbitrary collection of files to the archive. In contrast to a fileset they don't need to have a common
-     * basedir. The paths are evaluated as for {@link org.gradle.api.Project#files()}.
-     */
-    public FileCollection from(Object... srcPaths) {
-        ConfigurableFileCollection files = project.files(srcPaths)
-        resourceCollections(files)
-        files
-    }
-
-    public AbstractArchiveTask resourceCollections(Object ... elements) {
-        resourceCollections = getResourceCollections() + GUtil.flatten(Arrays.asList(elements))
-        return this;
-    }
-
-    public File getBaseDir() {
-        return baseDir;
-    }
-
-    public void setBaseDir(File baseDir) {
-        this.baseDir = baseDir;
-    }
-
-    @InputFiles
-    public FileTree getAllSource() {
-        project.files({ getResourceCollections() }).asFileTree
-    }
-    
     public List getResourceCollections() {
         return resourceCollections;
     }
@@ -193,7 +112,6 @@ public abstract class AbstractArchiveTask extends ConventionTask {
         this.createIfEmpty = createIfEmpty;
     }
 
-    @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
     }

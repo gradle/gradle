@@ -15,40 +15,38 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.Transformer;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
-import java.io.Reader;
 
 /**
  * @author Steve Appling
  */
-public class CopyVisitor implements CopySpecVisitor, WorkResult {
+public class CopyVisitor implements CopySpecVisitor {
     private File baseDestDir;
-    private CopyDestinationMapper destinationMapper;
-    private FilterChain filterChain;
     private boolean didWork;
-    private final Transformer<Reader> filterReaderTransformer = new Transformer<Reader>() {
-        public Reader transform(Reader original) {
-            filterChain.findFirstFilterChain().setInputSource(original);
-            return filterChain;
-        }
-    };
+
+    public void startVisit(CopyAction action) {
+    }
+
+    public void endVisit() {
+    }
 
     public void visitSpec(CopySpecImpl spec) {
         baseDestDir = spec.getDestDir();
-        destinationMapper = spec.getDestinationMapper();
-        filterChain = spec.getFilterChain();
+        if (baseDestDir == null) {
+            throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
+        }
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
     }
 
     public void visitFile(FileVisitDetails source) {
-        File target = getTarget(source);
+        File target = source.getRelativePath().getFile(baseDestDir);
         copyFile(source, target);
     }
 
@@ -56,17 +54,8 @@ public class CopyVisitor implements CopySpecVisitor, WorkResult {
         return didWork;
     }
 
-    File getTarget(FileTreeElement source) {
-        return destinationMapper.getPath(source).getFile(baseDestDir);
-    }
-
     void copyFile(FileTreeElement srcFile, File destFile) {
-        boolean copied;
-        if (filterChain.hasFilters()) {
-            copied = srcFile.copyTo(destFile, filterReaderTransformer);
-        } else {
-            copied = srcFile.copyTo(destFile);
-        }
+        boolean copied = srcFile.copyTo(destFile);
         if (copied) {
             didWork = true;
         }

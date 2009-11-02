@@ -42,6 +42,10 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
         return file.lastModified();
     }
 
+    public long getSize() {
+        return file.length();
+    }
+
     public boolean isDirectory() {
         return file.isDirectory();
     }

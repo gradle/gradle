@@ -80,7 +80,6 @@ class WarPluginTest {
         assertThat(task, instanceOf(War))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.libsDir))
-        assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
 
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
         assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME))
@@ -101,13 +100,29 @@ class WarPluginTest {
         assertThat(task.taskDependencies.getDependencies(task)*.path as Set, hasItem(':child:jar'))
     }
 
+    @Test public void usesRuntimeClasspathExcludingProvidedAsClasspath() {
+        File compileJar = project.file('compile.jar')
+        File runtimeJar = project.file('runtime.jar')
+        File providedJar = project.file('provided.jar')
+
+        warPlugin.use(project, project.getPlugins())
+
+        project.dependencies {
+            providedCompile project.files(providedJar)
+            compile project.files(compileJar)
+            runtime project.files(runtimeJar)
+        }
+
+        def task = project.tasks[WarPlugin.WAR_TASK_NAME]
+        assertThat(task.classpath.files as List, equalTo([project.sourceSets.main.classesDir, runtimeJar, compileJar]))
+    }
+
     @Test public void appliesMappingsToArchiveTasks() {
         warPlugin.use(project, project.getPlugins())
 
         def task = project.createTask('customWar', type: War)
         assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
         assertThat(task.destinationDir, equalTo(project.libsDir))
-        assertThat(task.libExcludeConfigurations, equalTo([WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME]))
 
         assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn(JavaPlugin.JAR_TASK_NAME, WarPlugin.WAR_TASK_NAME, 'customWar'))
     }

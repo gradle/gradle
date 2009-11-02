@@ -15,11 +15,9 @@
  */
 package org.gradle.api.file;
 
-import org.gradle.api.Transformer;
-
 import java.io.File;
 import java.io.InputStream;
-import java.io.Reader;
+import java.io.OutputStream;
 
 /**
  * Information about a file in a {@link FileTree}.
@@ -48,6 +46,14 @@ public interface FileTreeElement {
     long getLastModified();
 
     /**
+     * Returns the size of this file. Generally, calling this method is more performant than calling {@code
+     * getFile().length()}.
+     *
+     * @return The size, in bytes.
+     */
+    long getSize();
+
+    /**
      * Opens this file as an input stream. Generally, calling this method is more performant than calling {@code new
      * FileInputStream(getFile())}.
      *
@@ -56,22 +62,20 @@ public interface FileTreeElement {
     InputStream open();
 
     /**
+     * Copies the content of this file to an output stream. Generally, calling this method is more performant than calling {@code new
+     * FileInputStream(getFile())}.
+     *
+     * @param outstr The output stream to write to. The caller is responsible for closing this stream.
+     */
+    void copyTo(OutputStream outstr);
+
+    /**
      * Copies this file to the given target file. Does not copy the file if the target is already a copy of this file.
      *
      * @param target the target file.
      * @return true if this file was copied, false if it was up-to-date
      */
     boolean copyTo(File target);
-
-    /**
-     * Copies this file to the given target file, transforming the content as it is copied. Does not copy the file it
-     * the target is already a copy of this file.
-     *
-     * @param target the target file.
-     * @param readerFactory creates the transforming reader from the content reader.
-     * @return true if this file was copied, false it is was up-to-date
-     */
-    boolean copyTo(File target, Transformer<Reader> readerFactory);
 
     /**
      * Returns the path of the file being visited, relative to the root of the containing file tree.

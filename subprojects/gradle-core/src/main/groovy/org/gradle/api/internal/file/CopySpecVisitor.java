@@ -16,11 +16,22 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.CopyAction;
+import org.gradle.api.tasks.WorkResult;
 
-public interface CopySpecVisitor extends FileVisitor {
+public interface CopySpecVisitor extends FileVisitor, WorkResult {
     /**
-     * Visits a spec. Called before any of the files or directories of the spec are
-     * visited.
+     * Called at the start of the visit.
+     */
+    void startVisit(CopyAction action);
+
+    /**
+     * Called at the end of the visit.
+     */
+    void endVisit();
+
+    /**
+     * Visits a spec. Called before any of the files or directories of the spec are visited.
      */
     void visitSpec(CopySpecImpl spec);
 }

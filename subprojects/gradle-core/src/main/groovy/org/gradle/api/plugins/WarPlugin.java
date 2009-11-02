@@ -19,15 +19,18 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.War;
-import org.gradle.api.tasks.SourceSet;
+
+import java.io.File;
+import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add tasks which assemble a web application into a WAR
@@ -40,16 +43,34 @@ public class WarPlugin implements Plugin {
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
 
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
+    public void use(final Project project, ProjectPluginsContainer projectPluginsHandler) {
         projectPluginsHandler.usePlugin(JavaPlugin.class, project);
-        project.getConvention().getPlugins().put("war", new WarPluginConvention(project));
+        final WarPluginConvention pluginConvention = new WarPluginConvention(project);
+        project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).allTasks(new Action<War>() {
             public void execute(War task) {
-                task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.WAR);
-                Buildable runtimeClasspath = task.getProject().getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
-                        SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
-                task.dependsOn(runtimeClasspath);
+                task.from(new Callable() {
+                    public Object call() throws Exception {
+                        return pluginConvention.getWebAppDir();
+                    }
+                });
+                task.dependsOn(new Callable() {
+                    public Object call() throws Exception {
+                        return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
+                                SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+                    }
+                });
+                task.classpath(new Object[] {new Callable() {
+                    public Object call() throws Exception {
+                        Set<File> classpath = project.getConvention().getPlugin(JavaPluginConvention.class)
+                                .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath().getFiles();
+                        Set<File> provided = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME)
+                                .getFiles();
+                        classpath.removeAll(provided);
+                        return classpath;
+                    }
+                }});
             }
         });
         

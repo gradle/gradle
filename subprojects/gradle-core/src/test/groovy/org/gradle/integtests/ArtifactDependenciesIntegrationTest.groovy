@@ -85,7 +85,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
             version = 'early'
             configurations { compile }
             task bJar(type: Jar) { }
-            bJar.doFirst { project.version = 'late' }
+            gradle.taskGraph.whenReady { project.version = 'late' }
             artifacts { compile bJar }
 '''
         testFile('build.gradle') << '''

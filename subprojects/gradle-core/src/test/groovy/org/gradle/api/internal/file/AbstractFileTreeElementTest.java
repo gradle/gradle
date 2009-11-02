@@ -71,6 +71,10 @@ public class AbstractFileTreeElementTest {
             return file.isDirectory();
         }
 
+        public long getSize() {
+            return file.length();
+        }
+
         public RelativePath getRelativePath() {
             throw new UnsupportedOperationException();
         }

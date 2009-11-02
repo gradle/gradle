@@ -15,63 +15,64 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopyAction;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.util.PatternSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Steve Appling
  */
 public class CopyActionImpl extends CopySpecImpl implements CopyAction {
-    private static Logger logger = LoggerFactory.getLogger(CopyActionImpl.class);
-
     private boolean caseSensitive = true;
+    private CopySpecVisitor visitor;
 
-    private CopyVisitor visitor = new CopyVisitor();
-
-    public CopyActionImpl(FileResolver resolver) {
+    public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor) {
         super(resolver);
+        this.visitor = new MappingCopySpecVisitor(visitor);
     }
 
-    public void setVisitor(CopyVisitor visitor) {
+    public void setVisitor(CopySpecVisitor visitor) {
         this.visitor = visitor;
     }
 
     public void execute() {
-        copyAllSpecs();
+        visitor.startVisit(this);
+        for (CopySpecImpl spec : getAllSpecs()) {
+            copySingleSpec(spec);
+        }
+        visitor.endVisit();
     }
 
     public boolean getDidWork() {
         return visitor.getDidWork();
     }
 
-    private void copyAllSpecs() {
-        List<CopySpecImpl> specList = getLeafSyncSpecs();
-        for (CopySpecImpl spec : specList) {
-            copySingleSpec(spec);
+    public FileTree getAllSource() {
+        List<FileTree> sources = new ArrayList<FileTree>();
+        for (CopySpecImpl spec : getAllSpecs()) {
+            FileTree source = getSource(spec);
+            sources.add(source);
         }
+        return getResolver().resolveFilesAsTree(sources);
     }
 
     private void copySingleSpec(CopySpecImpl spec) {
-        File destDir = spec.getDestDir();
-        if (destDir == null) {
-            logger.error("No destination dir for Copy task");
-            throw new InvalidUserDataException("Error - no destination for Copy task, use 'into' to specify a target directory.");
-        }
-
         visitor.visitSpec(spec);
 
+        FileTree source = getSource(spec);
+        source.visit(visitor);
+    }
+
+    private FileTree getSource(CopySpecImpl spec) {
         PatternSet patterns = new PatternSet();
         patterns.setCaseSensitive(caseSensitive);
         patterns.include(spec.getAllIncludes());
         patterns.exclude(spec.getAllExcludes());
 
-        spec.getSource().matching(patterns).visit(visitor);
+        return spec.getSource().matching(patterns);
     }
 
     public void setCaseSensitive(boolean caseSensitive) {

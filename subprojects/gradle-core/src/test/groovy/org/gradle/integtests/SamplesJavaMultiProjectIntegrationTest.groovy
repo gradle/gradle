@@ -144,10 +144,10 @@ class SamplesJavaMultiProjectIntegrationTest {
         javaprojectDir.file(API_NAME, "build/distributions/$API_NAME-1.0.zip").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'README.txt',
-                "$API_NAME-spi-1.0.jar".toString(),
-                "$SHARED_NAME-1.0.jar".toString(),
-                'commons-io-1.2.jar',
-                'commons-lang-2.4.jar'
+                "libs/$API_NAME-spi-1.0.jar".toString(),
+                "libs/$SHARED_NAME-1.0.jar".toString(),
+                'libs/commons-io-1.2.jar',
+                'libs/commons-lang-2.4.jar'
         )
     }
 

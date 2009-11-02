@@ -33,7 +33,7 @@ dependencies {
 
 task javadocZip(type: Zip, dependsOn: javadoc) {
     classifier = 'javadoc'
-    fileSet(dir: javadoc.destinationDir)
+    from javadoc.destinationDir
 }
 
 artifacts {

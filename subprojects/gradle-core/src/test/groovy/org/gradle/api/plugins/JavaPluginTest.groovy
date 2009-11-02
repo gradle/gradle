@@ -125,7 +125,7 @@ class JavaPluginTest {
         assertThat(task, instanceOf(Copy))
         assertThat(task, dependsOn())
         assertThat(task.destinationDir, equalTo(project.sourceSets.custom.classesDir))
-        assertThat(task.srcDirs, equalTo(project.sourceSets.custom.resources))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.resources))
 
         task = project.tasks['compileCustomJava']
         assertThat(task.description, equalTo('Compiles the custom Java source.'))
@@ -147,7 +147,7 @@ class JavaPluginTest {
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertThat(task, dependsOn())
-        assertThat(task.srcDirs, equalTo(project.sourceSets.main.resources))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.main.resources))
         assertThat(task.destinationDir, equalTo(project.sourceSets.main.classesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
@@ -164,7 +164,7 @@ class JavaPluginTest {
         task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
         assertThat(task, dependsOn())
-        assertThat(task.srcDirs, equalTo(project.sourceSets.test.resources))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.test.resources))
         assertThat(task.destinationDir, equalTo(project.sourceSets.test.classesDir))
 
         task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]
@@ -188,7 +188,8 @@ class JavaPluginTest {
         assertThat(task, instanceOf(Jar))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.libsDir))
-        assertThat(task.baseDir, equalTo(project.sourceSets.main.classesDir))
+        assertThat(task.defaultSource, equalTo(project.sourceSets.main.classes))
+        assertThat(task.manifest, notNullValue())
 
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
         assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
@@ -252,7 +253,7 @@ class JavaPluginTest {
         def task = project.createTask('customJar', type: Jar)
         assertThat(task, dependsOn())
         assertThat(task.destinationDir, equalTo(project.libsDir))
-        assertThat(task.baseDir, equalTo(project.sourceSets.main.classesDir))
+        assertThat(task.manifest, notNullValue())
     }
 
     @Test public void buildOtherProjects() {

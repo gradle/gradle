@@ -34,9 +34,12 @@ class GradleManifest implements AntBuilderAware {
 
     Manifest manifest = new Manifest()
 
-    GradleManifest() {}
+    GradleManifest() {
+        manifest.mainAttributes.putValue('Manifest-Version', '1.0')
+    }
 
     GradleManifest(Manifest baseManifest) {
+        this()
         assert baseManifest
         this.baseManifest = baseManifest
     }

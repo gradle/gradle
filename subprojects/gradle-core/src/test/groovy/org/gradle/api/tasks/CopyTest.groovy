@@ -8,6 +8,7 @@ import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.file.FileCollection
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyTest extends AbstractTaskTest {
@@ -49,6 +50,8 @@ public class CopyTest extends AbstractTaskTest {
 
         context.checking {
             one(action).from('src')
+            one(action).getDestDir()
+            will(returnValue(null))
             one(action).into(new File('dest'))
             one(action).execute()
             one(action).getDidWork()
@@ -58,12 +61,13 @@ public class CopyTest extends AbstractTaskTest {
         copyTask.copy()
     }
 
-    @Test public void usesConventionValuesForSrcDirsWhenNotSpecified() {
-        copyTask.conventionMapping.srcDirs = { ['src'] as Set }
+    @Test public void usesConventionValuesForSourceWhenNotSpecified() {
+        FileCollection source = project.files('src')
+        copyTask.conventionMapping.defaultSource = { source }
 
         context.checking {
             one(action).into('dest')
-            one(action).from(['src'] as Set)
+            one(action).from(source)
             one(action).execute()
             one(action).getDidWork()
         }

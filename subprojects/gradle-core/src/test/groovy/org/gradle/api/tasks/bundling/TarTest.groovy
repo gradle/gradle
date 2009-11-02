@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import groovy.mock.interceptor.MockFor
 import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test;
@@ -27,13 +26,10 @@ import org.junit.Test;
 class TarTest extends AbstractArchiveTaskTest {
     Tar tar
 
-    MockFor antTarMocker
-
     @Before public void setUp()  {
         super.setUp()
         tar = createTask(Tar)
         configure(tar)
-        antTarMocker = new MockFor(AntTar)
     }
 
     AbstractArchiveTask getArchiveTask() {
@@ -46,24 +42,4 @@ class TarTest extends AbstractArchiveTaskTest {
         tar.compression = Compression.BZIP2
         assertEquals(Tar.TAR_EXTENSION, tar.extension)
     }
-
-    MockFor getAntMocker(boolean toBeCalled) {
-        antTarMocker.demand.execute(toBeCalled ? 1..1 : 0..0) {AntArchiveParameter archiveParameter, Compression compression, LongFile longFile ->
-            if (toBeCalled) {
-                checkArchiveParameterEqualsArchive(archiveParameter, tar)
-                assertEquals(tar.compression, compression)
-                assertEquals(tar.longFile, longFile)
-            }
-        }
-        antTarMocker
-    }
-
-    def getAnt() {
-        tar.antTar
-    }
-
-    List getFileSetMethods() {
-        super.getFileSetMethods() + ['tarFileSet']
-    }
-
 }

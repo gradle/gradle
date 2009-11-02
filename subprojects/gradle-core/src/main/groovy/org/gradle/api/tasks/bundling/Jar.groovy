@@ -18,6 +18,9 @@ package org.gradle.api.tasks.bundling
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.file.CopySpec
+import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.file.MapFileTree
 
 /**
 * @author Hans Dockter
@@ -27,31 +30,23 @@ public class Jar extends Zip {
 
     private static Logger logger = LoggerFactory.getLogger(Jar)
 
-    AntJar antJar = new AntJar()
+    private GradleManifest manifest
 
-    GradleManifest manifest
-
-    List metaInfResourceCollections = []
-
-    String fileSetManifest
+    private final CopySpec metaInf
 
     Jar() {
         extension = DEFAULT_EXTENSION
+        // Add these as separate specs, so they are not affected by the changes to the root spec
+        metaInf = getCopyAction().addNoInheritChild().into('META-INF')
+        getCopyAction().addNoInheritChild().into('META-INF').from {
+            MapFileTree manifestSource = new MapFileTree(new File(project.buildDir, "tmp/$name"))
+            manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
+                GradleManifest manifest = getManifest() ?: new GradleManifest()
+                manifest.createManifest().write(outstr)
+            }
+            manifestSource
+        }
     }   
-
-    Closure createAntArchiveTask() {
-        {-> antJar.execute(new AntMetaArchiveParameter(getResourceCollections(), getFileSetManifest(),
-                getCreateIfEmpty(), getDestinationDir(), getArchiveName(), getManifest(),
-                getMetaInfResourceCollections(), project.ant))}
-    }
-
-    public AntJar getAntJar() {
-        return antJar;
-    }
-
-    public void setAntJar(AntJar antJar) {
-        this.antJar = antJar;
-    }
 
     public GradleManifest getManifest() {
         return manifest;
@@ -61,19 +56,11 @@ public class Jar extends Zip {
         this.manifest = manifest;
     }
 
-    public List getMetaInfResourceCollections() {
-        return metaInfResourceCollections;
+    public CopySpec getMetaInf() {
+        return metaInf
     }
 
-    public void setMetaInfResourceCollections(List metaInfResourceCollections) {
-        this.metaInfResourceCollections = metaInfResourceCollections;
-    }
-
-    public String getFileSetManifest() {
-        return fileSetManifest;
-    }
-
-    public void setFileSetManifest(String fileSetManifest) {
-        this.fileSetManifest = fileSetManifest;
+    public CopySpec metaInf(Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, metaInf)
     }
 }

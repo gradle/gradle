@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.api.tasks.bundling
+package org.gradle.api.internal.file;
 
-/**
- * @author Hans Dockter
- */
-class AntZip extends AbstractAntArchive {
-    void execute(AntArchiveParameter parameter) {
-        assert parameter
-        
-        Map args = [:]
-        args.destfile = "${parameter.destinationDir.absolutePath}/$parameter.archiveName"
-        args.whenempty = parameter.emptyPolicy()
-        parameter.ant.zip(args) {
-            addResourceCollections(parameter.resourceCollections, delegate)
-        }
+import groovy.lang.Closure;
+
+import java.io.File;
+
+public class DefaultArchiveCopyAction extends CopyActionImpl implements ArchiveCopyAction {
+    private final Closure archivePathSource;
+
+    public DefaultArchiveCopyAction(FileResolver resolver, CopySpecVisitor visitor, Closure archivePathSource) {
+        super(resolver, visitor);
+        this.archivePathSource = archivePathSource;
+    }
+
+    public File getArchivePath() {
+        return (File) archivePathSource.call();
     }
 }

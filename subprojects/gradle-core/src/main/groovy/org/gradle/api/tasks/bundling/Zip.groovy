@@ -16,6 +16,9 @@
  
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.internal.file.CopyActionImpl
+import org.gradle.api.internal.file.DefaultArchiveCopyAction
+import org.gradle.api.internal.file.ZipCopyVisitor
 import org.gradle.api.tasks.util.ZipFileSet
 
 /**
@@ -23,16 +26,15 @@ import org.gradle.api.tasks.util.ZipFileSet
  */
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = 'zip'
-
-    AntZip antZip = new AntZip()
+    private final CopyActionImpl action
 
     Zip() {
         extension = ZIP_EXTENSION
+        action = new DefaultArchiveCopyAction(project.fileResolver, new ZipCopyVisitor()) { getArchivePath() }
     }
 
-    Closure createAntArchiveTask() {
-        { -> antZip.execute(new AntArchiveParameter(getResourceCollections(), getCreateIfEmpty(),
-                getDestinationDir(), getArchiveName(), project.ant)) }
+    public CopyActionImpl getCopyAction() {
+        return action
     }
 
     ZipFileSet zipFileSet(Closure configureClosure) {
@@ -41,13 +43,5 @@ public class Zip extends AbstractArchiveTask {
 
     ZipFileSet zipFileSet(Map args = [:], Closure configureClosure = null) {
         addFileSetInternal(args, ZipFileSet, configureClosure)
-    }
-
-    public AntZip getAntZip() {
-        return antZip;
-    }
-
-    public void setAntZip(AntZip antZip) {
-        this.antZip = antZip;
     }
 }

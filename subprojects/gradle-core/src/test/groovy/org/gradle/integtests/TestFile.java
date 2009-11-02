@@ -18,9 +18,10 @@ package org.gradle.integtests;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.apache.tools.ant.taskdefs.Tar;
+import org.apache.tools.ant.taskdefs.Expand;
+import org.apache.tools.ant.taskdefs.Untar;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.CompressUtil;
 import org.gradle.util.GradleUtil;
 import org.gradle.util.AntUtil;
 import static org.junit.Assert.*;
@@ -104,7 +105,22 @@ public class TestFile extends File {
 
     public void unzipTo(File target) {
         assertIsFile();
-        CompressUtil.unzip(this, target);
+        
+        Expand unzip = new Expand();
+        unzip.setSrc(this);
+        unzip.setDest(target);
+
+        AntUtil.execute(unzip);
+    }
+
+    public void untarTo(File target) {
+        assertIsFile();
+
+        Expand untar = new Untar();
+        untar.setSrc(this);
+        untar.setDest(target);
+
+        AntUtil.execute(untar);
     }
 
     public void copyTo(File target) {

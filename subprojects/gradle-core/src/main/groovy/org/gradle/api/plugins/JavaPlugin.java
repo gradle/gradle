@@ -20,20 +20,20 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.bundling.GradleManifest;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.AntTest;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -75,7 +75,7 @@ public class JavaPlugin implements Plugin {
 
         configureJavaDoc(project);
         configureTest(project);
-        configureArchives(project);
+        configureArchives(project, javaConvention);
         configureBuild(project);
         configureBuildNeeded(project);
         configureBuildDependents(project);
@@ -128,7 +128,7 @@ public class JavaPlugin implements Plugin {
                 Copy processResources = project.getTasks().add(sourceSet.getProcessResourcesTaskName(), Copy.class);
                 processResources.setDescription(String.format("Processes the %s.", sourceSet.getResources()));
                 conventionMapping = processResources.getConventionMapping();
-                conventionMapping.map("srcDirs", new ConventionValue() {
+                conventionMapping.map("defaultSource", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return sourceSet.getResources();
                     }
@@ -238,10 +238,19 @@ public class JavaPlugin implements Plugin {
         project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class).setDescription("Generates the javadoc for the source code.");
     }
 
-    private void configureArchives(final Project project) {
+    private void configureArchives(final Project project, final JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Jar.class).allTasks(new Action<Jar>() {
             public void execute(Jar task) {
-                task.getConventionMapping().map(DefaultConventionsToPropertiesMapping.JAR);
+                task.getConventionMapping().map("manifest", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return new GradleManifest(pluginConvention.getManifest().getManifest());
+                    }
+                });
+                task.getMetaInf().from(new Callable() {
+                    public Object call() throws Exception {
+                        return pluginConvention.getMetaInf();
+                    }
+                });
             }
         });
 
@@ -251,11 +260,10 @@ public class JavaPlugin implements Plugin {
 
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.setDescription("Generates a jar archive with all the compiled classes.");
-        jar.conventionMapping("resourceCollections", new ConventionValue() {
+        jar.conventionMapping("defaultSource", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                FileCollection classes = convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
+                return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
                         SourceSet.MAIN_SOURCE_SET_NAME).getClasses();
-                return Arrays.asList(classes.getAsFileTree());
             }
         });
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
@@ -326,9 +334,5 @@ public class JavaPlugin implements Plugin {
         Project project = task.getProject();
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
-    }
-
-    protected JavaPluginConvention java(Convention convention) {
-        return convention.getPlugin(JavaPluginConvention.class);
     }
 }

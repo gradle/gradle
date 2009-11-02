@@ -14,7 +14,9 @@ class TestDirHelper {
     }
 
     def file(String name) {
-        baseDir.file(name).write('some content')
+        TestFile file = baseDir.file(name)
+        file.write('some content')
+        file
     }
 
     def methodMissing(String name, Object args) {

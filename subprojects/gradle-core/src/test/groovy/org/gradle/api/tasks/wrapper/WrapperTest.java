@@ -21,6 +21,7 @@ import org.apache.tools.ant.taskdefs.Jar;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.*;
+import org.gradle.integtests.TestFile;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -49,7 +50,7 @@ public class WrapperTest extends AbstractTaskTest {
     private String distributionPath;
     private String targetWrapperJarPath;
     private Mockery context = new Mockery();
-    private File expectedTargetWrapperJar;
+    private TestFile expectedTargetWrapperJar;
     private File expectedTargetWrapperProperties;
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -69,7 +70,7 @@ public class WrapperTest extends AbstractTaskTest {
         createSourceWrapperJar(testGradleHomeLib);
         getProject().getGradle().getStartParameter().setGradleHomeDir(testGradleHome);
         targetWrapperJarPath = "jarPath";
-        expectedTargetWrapperJar = new File(getProject().getProjectDir(),
+        expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
                 targetWrapperJarPath + "/" + Wrapper.WRAPPER_JAR);
         expectedTargetWrapperProperties = new File(getProject().getProjectDir(),
                 targetWrapperJarPath + "/" + Wrapper.WRAPPER_PROPERTIES);
@@ -140,7 +141,7 @@ public class WrapperTest extends AbstractTaskTest {
         });
         wrapper.execute();
         File unjarDir = tmpDir.dir("unjar");
-        CompressUtil.unzip(expectedTargetWrapperJar, unjarDir);
+        expectedTargetWrapperJar.unzipTo(unjarDir);
         assertEquals(TEST_TEXT, FileUtils.readFileToString(new File(unjarDir, TEST_FILE_NAME)));
         Properties properties = GUtil.loadProperties(expectedTargetWrapperProperties);
         assertEquals(properties.getProperty(Wrapper.URL_ROOT_PROPERTY), wrapper.getUrlRoot());

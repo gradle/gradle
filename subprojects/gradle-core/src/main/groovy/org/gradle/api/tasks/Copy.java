@@ -16,21 +16,13 @@
 
 package org.gradle.api.tasks;
 
-import groovy.lang.Closure;
-import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.CopyVisitor;
 import org.gradle.api.internal.file.CopyActionImpl;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.specs.Spec;
 
 import java.io.File;
-import java.io.FilterReader;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Task for copying files.  This task can also rename and filter files as it copies.
@@ -63,31 +55,17 @@ import java.util.Set;
  * </pre>
  * @author Steve Appling
  */
-public class Copy extends ConventionTask implements CopyAction {
-    private CopyActionImpl copyAction;
-    private boolean hasSrcBeenSet;
+public class Copy extends AbstractCopyTask {
     private boolean hasDestBeenSet;
+    private CopyActionImpl copyAction;
 
     public Copy() {
         FileResolver fileResolver = ((ProjectInternal) getProject()).getFileResolver();
-        copyAction = new CopyActionImpl(fileResolver);
+        setCopyAction(new CopyActionImpl(fileResolver, new CopyVisitor()));
     }
 
-    @TaskAction
-    void copy() {
-        configureRootSpec();
-        copyAction.execute();
-        setDidWork(copyAction.getDidWork());
-    }
-
-    void configureRootSpec() {
-        if (!hasSrcBeenSet) {
-            Object srcDirs = getSrcDirs();
-            if (srcDirs != null) {
-                from(srcDirs);
-            }
-        }
-
+    protected void configureRootSpec() {
+        super.configureRootSpec();
         if (!hasDestBeenSet) {
             File destDir = getDestinationDir();
             if (destDir != null) {
@@ -104,36 +82,13 @@ public class Copy extends ConventionTask implements CopyAction {
         this.copyAction = copyAction;
     }
 
-    // Following 4 methods are used only to get convention src and dest
-    public Object getSrcDirs() {
-        return hasSrcBeenSet ? copyAction.getSourcePaths() : null;
-    }
-
-    public void setSrcDirs(Object srcDirs) {
-        copyAction.from(srcDirs);
-    }
-
+    @OutputDirectory
     public File getDestinationDir() {
-        return hasDestBeenSet ? copyAction.getDestDir() : null;
+        return getCopyAction().getDestDir();
     }
 
     public void setDestinationDir(File destinationDir) {
         into(destinationDir);
-    }
-
-    // -------------------------------------------------
-    // --- Delegate CopyAction methods to copyAction ---
-    // -------------------------------------------------
-
-    /**
-     * {@inheritDoc}
-     */
-    public void setCaseSensitive(boolean caseSensitive) {
-        copyAction.setCaseSensitive(caseSensitive);
-    }
-
-    public List<? extends CopySpec> getLeafSyncSpecs() {
-        return copyAction.getLeafSyncSpecs();
     }
 
     // -------------------------------------------------
@@ -143,150 +98,8 @@ public class Copy extends ConventionTask implements CopyAction {
     /**
      * {@inheritDoc}
      */
-    public CopySpec from(Object... sourcePaths) {
-        hasSrcBeenSet = true;
-        return copyAction.from(sourcePaths);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec from(Object sourcePath, Closure c) {
-        hasSrcBeenSet = true;
-        return copyAction.from(sourcePath, c);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public CopySpec into(Object destDir) {
         hasDestBeenSet = true;
-        return copyAction.into(destDir);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec into(Object destPath, Closure configureClosure) {
-        return copyAction.into(destPath, configureClosure);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec include(String... includes) {
-        return copyAction.include(includes);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec include(Iterable<String> includes) {
-        return copyAction.include(includes);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec include(Spec<FileTreeElement> includeSpec) {
-        return copyAction.include(includeSpec);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec include(Closure includeSpec) {
-        return copyAction.include(includeSpec);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec exclude(String... excludes) {
-        return copyAction.exclude(excludes);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec exclude(Iterable<String> excludes) {
-        return copyAction.exclude(excludes);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec exclude(Spec<FileTreeElement> excludeSpec) {
-        return copyAction.exclude(excludeSpec);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec exclude(Closure excludeSpec) {
-        return copyAction.exclude(excludeSpec);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec setIncludes(Iterable<String> includes) {
-        return copyAction.setIncludes(includes);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getIncludes() {
-        return copyAction.getIncludes();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec setExcludes(Iterable<String> excludes) {
-        return copyAction.setExcludes(excludes);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Set<String> getExcludes() {
-        return copyAction.getExcludes();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec rename(Closure closure) {
-        return copyAction.rename(closure);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec rename(String sourceRegEx, String replaceWith) {
-        return copyAction.rename(sourceRegEx, replaceWith);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType) {
-        return copyAction.filter(map, filterType);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec filter(Class<FilterReader> filterType) {
-        return copyAction.filter(filterType);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec filter(Closure closure) {
-        return copyAction.filter(closure);
+        return super.into(destDir);
     }
 }

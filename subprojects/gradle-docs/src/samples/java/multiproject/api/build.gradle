@@ -32,9 +32,8 @@ compileJava.options.compilerArgs = ['-Xlint:unchecked']
 task spiJar(type: Jar) {
     appendix = 'spi'
     dependsOn classes
-    fileSet() {
-        include('org/gradle/api/')
-    }
+    from sourceSets.main.classes
+    include 'org/gradle/api/'
 }
 
 artifacts {
@@ -44,9 +43,11 @@ artifacts {
 // START SNIPPET dists
 task dist(type: Zip) {
     dependsOn spiJar
-    from configurations.runtime
-    from spiJar.archivePath
-    fileSet dir: 'src/dist'
+    from 'src/dist'
+    into('libs') {
+        from spiJar.archivePath
+        from configurations.runtime
+    }
 }
 // END SNIPPET dists
 

@@ -2,20 +2,26 @@ package org.gradle.api.internal.file
 
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
+import org.gradle.api.file.RelativePath
+import org.gradle.integtests.TestFile
+import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
+import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
+import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
-import org.gradle.integtests.TestFile
+import static org.junit.Assert.*
 
+@RunWith(JMock)
 public class CopySpecImplTest {
 
     private CopySpecImpl spec;
     @Rule public TemporaryFolder testDir = new TemporaryFolder();
     private TestFile baseFile = testDir.dir
-    private final FileResolver fileResolver = new BaseDirConverter(baseFile);
+    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
+    private final FileResolver fileResolver = context.mock(FileResolver);
 
     @Before
     public void setUp() {
@@ -33,107 +39,94 @@ public class CopySpecImplTest {
     @Test public void testAbsoluteFromList() {
         List<File> sources = getAbsoluteTestSources();
         spec.from(sources);
-        assertEquals([sources], spec.getAllSourcePaths() as List);
+        assertEquals([sources], spec.sourcePaths as List);
     }
 
     @Test public void testFromArray() {
         List<File> sources = getAbsoluteTestSources();
         spec.from(sources as File[]);
-        assertEquals(sources, spec.getAllSourcePaths() as List);
-    }
-
-    @Test public void testHierarchical() {
-        List<File> sources = getAbsoluteTestSources();
-        spec.from(sources);
-
-        CopySpecImpl childSpec = new CopySpecImpl(fileResolver, spec);
-        childSpec.from('childFile');
-
-        assertEquals([sources, 'childFile'], childSpec.getAllSourcePaths() as List);
+        assertEquals(sources, spec.sourcePaths as List);
     }
 
     @Test public void testSourceWithClosure() {
-        File sourceFile = getAbsoluteTestSources().get(0);
-
-        spec.from(sourceFile) {
-            into 'target'
+        CopySpecImpl child = spec.from('source') {
         }
 
-        List specs = spec.getLeafSyncSpecs()
-        assertEquals(1, specs.size())
-        CopySpecImpl theSpec = specs.get(0)
-        assertEquals([sourceFile], theSpec.getAllSourcePaths() as List);
-
-        assertThat(theSpec.destPath, equalTo('/target'))
+        assertEquals(['source'], child.sourcePaths as List);
     }
 
     @Test public void testMultipleSourcesWithClosure() {
-        List sources = getAbsoluteTestSources()
-
-        spec.from(sources) {
-            into 'target'
+        CopySpecImpl child = spec.from(['source1', 'source2']) {
         }
 
-        List specs = spec.getLeafSyncSpecs()
-        assertEquals(1, specs.size())
-        CopySpecImpl theSpec = specs.get(0)
-        assertEquals([sources], theSpec.getAllSourcePaths() as List)
-
-        assertThat(theSpec.destPath, equalTo('/target'))
+        assertEquals(['source1', 'source2'], child.sourcePaths.flatten() as List);
     }
 
     @Test public void testDestinationWithClosure() {
-        File sourceFile = getAbsoluteTestSources().get(0);
-
-        spec.into('target') {
-            from sourceFile
+        CopySpecImpl child = spec.into('target') {
         }
 
-        List specs = spec.getLeafSyncSpecs()
-        assertEquals(1, specs.size())
-        CopySpecImpl theSpec = specs.get(0)
-        assertEquals([sourceFile], theSpec.getAllSourcePaths() as List);
-
-        assertThat(theSpec.destPath, equalTo('/target'))
+        assertThat(child.destPath, equalTo(new RelativePath(false, 'target')))
     }
 
-    @Test public void testRootSpecResolvesIntoArgAsDestinationDir() {
+    @Test public void testGetAllSpecsReturnsBreadthwiseTraverseOfSpecs() {
+        CopySpecImpl child = spec.into('somedir') { }
+        CopySpecImpl grandchild = child.into('somedir') { }
+        CopySpecImpl child2 = spec.into('somedir') { }
+
+        assertThat(spec.allSpecs, equalTo([spec, child, grandchild, child2]))
+    }
+    
+    @Test public void testRootSpecResolvesItsIntoArgAsDestinationDir() {
         spec.into 'somedir'
-        assertThat(spec.destPath, equalTo('/'))
-        assertThat(spec.destDir, equalTo(baseFile.file('somedir')))
+        assertThat(spec.destPath, equalTo(new RelativePath(false)))
+
+        context.checking {
+            allowing(fileResolver).resolve('somedir')
+            will(returnValue(baseFile))
+        }
+
+        assertThat(spec.destDir, equalTo(baseFile))
     }
 
     @Test public void testRootSpecHasNoDefaultDestinationDir() {
-        assertThat(spec.destPath, equalTo('/'))
+        assertThat(spec.destPath, equalTo(new RelativePath(false)))
         assertThat(spec.destDir, nullValue())
     }
 
     @Test public void testChildSpecResolvesIntoArgRelativeToParentDestinationDir() {
         spec.into 'dest'
+
+        context.checking {
+            allowing(fileResolver).resolve('dest')
+            will(returnValue(baseFile))
+        }
+
         CopySpecImpl child = spec.from('somedir') { into 'child' }
-        assertThat(child.destPath, equalTo('/child'))
-        assertThat(child.destDir, equalTo(baseFile.file('dest/child')))
+        assertThat(child.destPath, equalTo(new RelativePath(false, 'child')))
 
         CopySpecImpl grandchild = child.from('somedir') { into 'grandchild'}
-        assertThat(grandchild.destPath, equalTo('/child/grandchild'))
-        assertThat(grandchild.destDir, equalTo(baseFile.file('dest/child/grandchild')))
+        assertThat(grandchild.destPath, equalTo(new RelativePath(false, 'child', 'grandchild')))
 
         grandchild.into '/grandchild'
-        assertThat(grandchild.destPath, equalTo('/grandchild'))
-        assertThat(grandchild.destDir, equalTo(baseFile.file('dest/grandchild')))
+        assertThat(grandchild.destPath, equalTo(new RelativePath(false, 'grandchild')))
     }
 
     @Test public void testChildSpecUsesParentDestinationDirAsDefault() {
         spec.into 'dest'
+
+        context.checking {
+            allowing(fileResolver).resolve('dest')
+            will(returnValue(baseFile))
+        }
+
         CopySpecImpl child = spec.from('somedir') { }
-        assertThat(child.destPath, equalTo('/'))
-        assertThat(child.destDir, equalTo(baseFile.file('dest')))
+        assertThat(child.destPath, equalTo(new RelativePath(false)))
 
         child.into 'child'
 
         CopySpecImpl grandchild = child.from('somedir') { }
-        assertThat(grandchild.destPath, equalTo('/child'))
-        assertThat(grandchild.destDir, equalTo(baseFile.file('dest/child')))
+        assertThat(grandchild.destPath, equalTo(new RelativePath(false, 'child')))
     }
 
     @Test public void testNoArgFilter() {

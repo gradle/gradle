@@ -41,6 +41,7 @@ class GradleManifestTest {
     @Test public void testGradleManifest() {
         assertNull(gradleManifest.file)
         assertNotNull(gradleManifest.manifest)
+        assertEquals('1.0', gradleManifest.createManifest().mainAttributes.getValue('Manifest-Version'))
     }
 
     @Test public void testAddMainAttributes() {
@@ -50,7 +51,7 @@ class GradleManifestTest {
         gradleManifest.mainAttributes(attributes2)
 
         Manifest manifest = gradleManifest.manifest
-        assertEquals(3, manifest.mainAttributes.size())
+        assertEquals(4, manifest.mainAttributes.size())
         (attributes + attributes2).each {String key, String value ->
             assertEquals(value, manifest.mainAttributes.getValue(key))
         }
@@ -95,13 +96,12 @@ class GradleManifestTest {
         gradleManifest.sections(testSectionAttributes, testSection)
 
         Manifest expectedManifest = new Manifest(testManifest)
+        expectedManifest.getMainAttributes().putValue('Manifest-Version', '1.0')
         testMainAttributes.each {key, value -> expectedManifest.getMainAttributes().putValue(key, value) }
         expectedManifest.getEntries().put(testSection, new Attributes(testManifest.entries[testSection]))
         testSectionAttributes.each {key, value -> expectedManifest.entries[testSection].putValue(key, value) }
 
         assertEquals(expectedManifest, gradleManifest.createManifest());
-
-
     }
 
     @Test public void testAddToAntBuilder() {

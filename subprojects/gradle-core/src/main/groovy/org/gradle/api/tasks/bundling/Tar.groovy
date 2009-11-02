@@ -17,30 +17,30 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.util.TarFileSet
+import org.gradle.api.internal.file.TarCopyVisitor
+import org.gradle.api.internal.file.CopyActionImpl
+import org.gradle.api.internal.file.DefaultArchiveCopyAction
 
 /**
  * @author Hans Dockter
  */
-public class Tar extends Zip {
+public class Tar extends AbstractArchiveTask {
     public static final String TAR_EXTENSION = 'tar'
+    private final CopyActionImpl action
 
     Compression compression
 
     LongFile longFile
 
-    AntTar antTar = new AntTar()
-
     Tar() {
         extension = TAR_EXTENSION
         compression = Compression.NONE
         longFile = LongFile.WARN
+        action = new DefaultArchiveCopyAction(project.fileResolver, new TarCopyVisitor()) { getArchivePath() }
     }
 
-    Closure createAntArchiveTask() {
-        {->
-            antTar.execute(new AntArchiveParameter(getResourceCollections(), getCreateIfEmpty(), getDestinationDir(), 
-                    getArchiveName(), project.ant), getCompression(), getLongFile())
-        }
+    public CopyActionImpl getCopyAction() {
+        return action
     }
 
     TarFileSet tarFileSet(Closure configureClosure) {
@@ -48,7 +48,6 @@ public class Tar extends Zip {
     }
 
     TarFileSet tarFileSet(Map args = [:], Closure configureClosure = null) {
-        addFileSetInternal(args, TarFileSet, configureClosure)
     }
 
     public Compression getCompression() {
@@ -65,13 +64,5 @@ public class Tar extends Zip {
 
     public void setLongFile(LongFile longFile) {
         this.longFile = longFile;
-    }
-
-    public AntTar getAntTar() {
-        return antTar;
-    }
-
-    public void setAntTar(AntTar antTar) {
-        this.antTar = antTar;
     }
 }

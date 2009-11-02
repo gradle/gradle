@@ -21,9 +21,9 @@ import java.io.Reader;
 import java.io.StringReader;
 
 /**
- * A FilterReader who's input source may be change after construction.
+ * A FilterReader whose input source may be change after construction.
  */
-public class ChainableFilterReader extends FilterReader{
+public class ChainableFilterReader extends FilterReader {
 
     protected ChainableFilterReader() {
         super(new StringReader(""));

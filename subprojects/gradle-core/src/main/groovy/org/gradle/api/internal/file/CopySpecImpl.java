@@ -21,10 +21,10 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ReflectionUtil;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.FilterReader;
@@ -36,8 +36,9 @@ import java.util.*;
  * @author Steve Appling
  */
 public class CopySpecImpl implements CopySpec {
-    private FileResolver resolver;
-    private Set<Object> sourcePaths;
+    private final FileResolver resolver;
+    private final boolean root;
+    private final Set<Object> sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
     private final List<CopySpecImpl> childSpecs;
@@ -45,9 +46,10 @@ public class CopySpecImpl implements CopySpec {
     private final FilterChain filterChain;
     private final DefaultCopyDestinationMapper destinationMapper = new DefaultCopyDestinationMapper();
 
-    public CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
+    private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec, boolean root) {
         this.parentSpec = parentSpec;
         this.resolver = resolver;
+        this.root = root;
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<CopySpecImpl>();
         patternSet = new PatternSet();
@@ -55,7 +57,11 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpecImpl(FileResolver resolver) {
-        this(resolver, null);
+        this(resolver, null, true);
+    }
+
+    protected FileResolver getResolver() {
+        return resolver;
     }
 
     public CopySpec from(Object... sourcePaths) {
@@ -66,49 +72,42 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpec from(Object sourcePath, Closure c) {
-        CopySpec result = this;
         if (c==null) {
             from(sourcePath);
+            return this;
         } else {
-            CopySpecImpl child = new CopySpecImpl(resolver, this);
+            CopySpecImpl child = addChild();
             child.from(sourcePath);
-            childSpecs.add(child);
             ConfigureUtil.configure(c, child);
-            result = child;
+            return child;
         }
-        return result;
+    }
+
+    private CopySpecImpl addChild() {
+        CopySpecImpl child = new CopySpecImpl(resolver, this, false);
+        childSpecs.add(child);
+        return child;
+    }
+
+    public CopySpecImpl addNoInheritChild() {
+        CopySpecImpl child = new CopySpecImpl(resolver, null, false);
+        childSpecs.add(child);
+        return child;
     }
 
     public Set<Object> getSourcePaths() {
         return sourcePaths;
     }
 
-    private void addSourcePaths(Collection<Object> dest) {
-        if (parentSpec != null) {
-            parentSpec.addSourcePaths(dest);
-        }
-        dest.addAll(sourcePaths);
-    }
-
     public FileTree getSource() {
-        Set<Object> allPaths = getAllSourcePaths();
-        return resolver.resolveFilesAsTree(allPaths);
+        return resolver.resolveFilesAsTree(sourcePaths);
     }
 
-    public Set<Object> getAllSourcePaths() {
-        Set<Object> allPaths = new LinkedHashSet<Object>();
-        addSourcePaths(allPaths);
-        return allPaths;
-    }
-
-    public List<CopySpecImpl> getLeafSyncSpecs() {
+    public List<CopySpecImpl> getAllSpecs() {
         List<CopySpecImpl> result = new ArrayList<CopySpecImpl>();
-        if (childSpecs.size() == 0) {
-            result.add(this);
-        } else {
-            for (CopySpecImpl childSpec : childSpecs) {
-                result.addAll(childSpec.getLeafSyncSpecs());
-            }
+        result.add(this);
+        for (CopySpecImpl childSpec : childSpecs) {
+            result.addAll(childSpec.getAllSpecs());
         }
         return result;
     }
@@ -119,59 +118,44 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpec into(Object destPath, Closure configureClosure) {
-        CopySpec result = this;
         if (configureClosure == null) {
             into(destPath);
+            return this;
         } else {
-            CopySpecImpl child = new CopySpecImpl(resolver, this);
+            CopySpecImpl child = addChild();
             child.into(destPath);
-            childSpecs.add(child);
             ConfigureUtil.configure(configureClosure, child);
-            result = child;
+            return child;
         }
-        return result;
     }
 
-    public String getDestPath() {
-        if (parentSpec == null) {
-            return "/";
+    public RelativePath getDestPath() {
+        if (root) {
+            return new RelativePath(false);
         }
-        String parentPath = parentSpec.getDestPath();
+        RelativePath parentPath;
+        if (parentSpec == null) {
+            parentPath = new RelativePath(false);
+        } else {
+            parentPath = parentSpec.getDestPath();
+        }
         if (destDir == null) {
             return parentPath;
         }
 
         String path = destDir.toString();
         if (path.startsWith("/") || path.startsWith(File.separator)) {
-            return path;
+            return RelativePath.parse(false, path);
         }
-        if (parentPath.equals("/")) {
-            return "/" + path;
-        }
-        return parentPath + '/' + path;
-    }
 
-    private File getRootDir() {
-        if (parentSpec == null) {
-            return destDir == null ? null : resolver.resolve(destDir);
-        }
-        return parentSpec.getRootDir();
+        return RelativePath.parse(false, parentPath, path);
     }
 
     public File getDestDir() {
         if (parentSpec == null) {
-            return getRootDir();
+            return destDir == null ? null : resolver.resolve(destDir);
         }
-        
-        File rootDir = parentSpec.getRootDir();
-        if (rootDir == null) {
-            return null;
-        }
-        String destPath = getDestPath();
-        if (destPath.equals("/") || destPath.equals(File.separator)) {
-            return rootDir;
-        }
-        return GFileUtils.canonicalise(new File(rootDir, destPath));
+        return parentSpec.getDestDir();
     }
 
     public CopySpec include(String ... includes) {

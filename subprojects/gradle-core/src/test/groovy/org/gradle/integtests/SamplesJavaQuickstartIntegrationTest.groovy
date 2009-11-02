@@ -18,6 +18,9 @@ package org.gradle.integtests
 
 import org.junit.runner.RunWith
 import org.junit.Test
+import java.util.jar.Manifest
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -52,5 +55,13 @@ class SamplesJavaQuickstartIntegrationTest {
                 'META-INF/MANIFEST.MF',
                 'org/gradle/Person.class'
         )
+
+        // Check contents of manifest
+        Manifest manifest = new Manifest()
+        jarContents.file('META-INF/MANIFEST.MF').withInputStream { manifest.read(it) }
+        assertThat(manifest.mainAttributes.size(), equalTo(3))
+        assertThat(manifest.mainAttributes.getValue('Manifest-Version'), equalTo('1.0'))
+        assertThat(manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle Quickstart'))
+        assertThat(manifest.mainAttributes.getValue('Implementation-Version'), equalTo('1.0'))
     }
 }
