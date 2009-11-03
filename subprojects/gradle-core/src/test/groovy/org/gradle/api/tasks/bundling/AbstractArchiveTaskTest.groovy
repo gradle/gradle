@@ -19,7 +19,6 @@ package org.gradle.api.tasks.bundling
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.api.tasks.util.FileSet
 import org.junit.Test
 import static org.junit.Assert.*
 
@@ -37,8 +36,6 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
     }
 
     void checkConstructor() {
-        assertFalse(archiveTask.createIfEmpty)
-        assertEquals([], archiveTask.resourceCollections)
         assertEquals('', archiveTask.classifier)
     }
 
@@ -48,26 +45,32 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.version = '1.0'
         archiveTask.classifier = 'src'
         archiveTask.destinationDir = new File(tmpDir.dir, 'destinationDir')
-        archiveTask.resourceCollections = [new FileSet(tmpDir.dir, resolver)]
     }
 
     @Test public void testExecute() {
-        checkExecute {archiveTask ->}
-    }
-
-    @Test public void testExecuteWithEmptyClassifier() {
-        checkExecute {archiveTask -> archiveTask.classifier = null}
-    }
-
-    @Test public void testExecuteWithEmptyAppendix() {
-        checkExecute {archiveTask -> archiveTask.appendix = null}
-    }
-
-    private checkExecute(Closure archiveTaskModifier) {
-        archiveTaskModifier.call(archiveTask)
         archiveTask.execute()
         assertTrue(archiveTask.destinationDir.isDirectory())
         assertTrue(archiveTask.archivePath.isFile())
+    }
+
+    @Test public void testArchiveNameWithEmptyClassifier() {
+        archiveTask.classifier = null
+        assertEquals("testbasename-testappendix-1.0.${archiveTask.extension}".toString(), archiveTask.archiveName)
+    }
+
+    @Test public void testArchiveNameWithEmptyAppendix() {
+        archiveTask.appendix = null
+        assertEquals("testbasename-1.0-src.${archiveTask.extension}".toString(), archiveTask.archiveName)
+    }
+
+    @Test public void testArchiveNameWithEmptyVersion() {
+        archiveTask.version = null
+        assertEquals("testbasename-testappendix-src.${archiveTask.extension}".toString(), archiveTask.archiveName)
+    }
+
+    @Test public void testUsesCustomArchiveNameWhenSet() {
+        archiveTask.archiveName = 'somefile.out'
+        assertEquals('somefile.out', archiveTask.archiveName)
     }
 
     @Test public void testArchivePath() {

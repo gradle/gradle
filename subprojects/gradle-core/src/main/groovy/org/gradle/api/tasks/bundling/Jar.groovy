@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.gradle.api.file.CopySpec
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.file.MapFileTree
@@ -27,8 +25,6 @@ import org.gradle.api.internal.file.MapFileTree
 */
 public class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = 'jar'
-
-    private static Logger logger = LoggerFactory.getLogger(Jar)
 
     private GradleManifest manifest
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.tasks.util.TarFileSet
 import org.gradle.api.internal.file.TarCopyVisitor
 import org.gradle.api.internal.file.CopyActionImpl
 import org.gradle.api.internal.file.DefaultArchiveCopyAction
@@ -41,13 +40,6 @@ public class Tar extends AbstractArchiveTask {
 
     public CopyActionImpl getCopyAction() {
         return action
-    }
-
-    TarFileSet tarFileSet(Closure configureClosure) {
-        tarFileSet([:], configureClosure)
-    }
-
-    TarFileSet tarFileSet(Map args = [:], Closure configureClosure = null) {
     }
 
     public Compression getCompression() {

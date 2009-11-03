@@ -60,7 +60,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
         return hasSrcBeenSet ? getCopyAction().getAllSource() : getDefaultSource();
     }
     
-    public abstract CopyActionImpl getCopyAction();
+    protected abstract CopyActionImpl getCopyAction();
 
     // -------------------------------------------------
     // --- Delegate CopyAction methods to copyAction ---
@@ -73,7 +73,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
         getCopyAction().setCaseSensitive(caseSensitive);
     }
 
-    private CopySpecImpl getRootSpec() {
+    protected CopySpecImpl getRootSpec() {
         return getCopyAction();
     }
 

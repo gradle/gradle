@@ -19,7 +19,6 @@ package org.gradle.api.tasks.bundling
 import org.gradle.api.internal.file.CopyActionImpl
 import org.gradle.api.internal.file.DefaultArchiveCopyAction
 import org.gradle.api.internal.file.ZipCopyVisitor
-import org.gradle.api.tasks.util.ZipFileSet
 
 /**
  * @author Hans Dockter
@@ -35,13 +34,5 @@ public class Zip extends AbstractArchiveTask {
 
     public CopyActionImpl getCopyAction() {
         return action
-    }
-
-    ZipFileSet zipFileSet(Closure configureClosure) {
-        zipFileSet([:], configureClosure)
-    }
-
-    ZipFileSet zipFileSet(Map args = [:], Closure configureClosure = null) {
-        addFileSetInternal(args, ZipFileSet, configureClosure)
     }
 }

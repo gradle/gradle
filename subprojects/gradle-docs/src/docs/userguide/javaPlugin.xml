@@ -1240,10 +1240,9 @@
                     </para>
                 </footnote>
                 The assembled name is accessible via the <literal>archiveName</literal> property. The
-                <literal>name</literal> property denotes the name of the task, not the generated archive. An archive
-                task has also a <literal>customName</literal> property. If this property is set, the
-                <literal>archiveName</literal> property returns its value instead of assembling a name out of the
-                properties mentioned above.
+                <literal>name</literal> property denotes the name of the task, not the generated archive. You can
+                set the <literal>archiveName</literal> property directly, in which case, the explicitly set value
+                is used instead of the assembled value above.
             </para>
             <para>Archives have a <literal>destinationDir</literal> property to specify where the generated archive
                 should be placed. It has also an <literal>archivePath</literal> property, which returns a File object

@@ -27,7 +27,7 @@ task zipWithZipFileSet(type: Zip) {
 
 // START SNIPPET tar-file-set
 task tarWithFileSet(type: Tar) {
-    tarFileSet(dir: 'contentDir') {
+    from('contentDir') {
         include('**/*.txt')
         exclude('**/*.gif')
         uid = 'myuid'

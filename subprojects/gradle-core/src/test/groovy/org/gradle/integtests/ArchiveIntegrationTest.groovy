@@ -57,7 +57,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             task zip(type: Zip) {
                 from 'test'
                 destinationDir = buildDir
-                customName = 'test.zip'
+                archiveName = 'test.zip'
 }
 '''
 
@@ -71,7 +71,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             task jar(type: Jar) {
                 from 'test'
                 destinationDir = buildDir
-                customName = 'test.jar'
+                archiveName = 'test.jar'
 }
 '''
 
@@ -89,7 +89,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             task tar(type: Tar) {
                 from 'test'
                 destinationDir = buildDir
-                customName = 'test.tar'
+                archiveName = 'test.tar'
 }
 '''
 
@@ -119,7 +119,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                     filter { "[$it]" }
                 }
                 destinationDir = buildDir
-                customName = 'test.zip'
+                archiveName = 'test.zip'
             }
 '''
 
@@ -148,7 +148,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 from 'test'
                 include '**/*.txt'
                 destinationDir = buildDir
-                customName = 'test.tar'
+                archiveName = 'test.tar'
             }
 '''
 
@@ -179,7 +179,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                     from 'meta-inf'
                 }
                 destinationDir = buildDir
-                customName = 'test.jar'
+                archiveName = 'test.jar'
             }
 '''
 
@@ -215,7 +215,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                     include '**/*.xml'
                 }
                 destinationDir = buildDir
-                customName = 'test.jar'
+                archiveName = 'test.jar'
             }
 '''
 
@@ -266,7 +266,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 classpath 'classes'
                 classpath 'lib.jar'
                 destinationDir = buildDir
-                customName = 'test.war'
+                archiveName = 'test.war'
             }
 '''
 
@@ -302,7 +302,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 }
                 webXml = file('some.xml')
                 destinationDir = buildDir
-                customName = 'test.war'
+                archiveName = 'test.war'
             }
 '''
 
@@ -348,7 +348,7 @@ task zip(type: Zip) {
     from tarTree('test.tar')
     from fileTree('test')
     destinationDir = buildDir
-    customName = 'test.zip'
+    archiveName = 'test.zip'
 }
 '''
 
