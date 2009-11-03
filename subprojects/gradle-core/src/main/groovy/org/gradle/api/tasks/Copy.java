@@ -36,7 +36,6 @@ import java.io.File;
  *    into 'build/target/doc'
  * }
  *
- *
  * task(initconfig, type:Copy) {
  *    from('src/main/config') {
  *       include '**&#47;*.properties'

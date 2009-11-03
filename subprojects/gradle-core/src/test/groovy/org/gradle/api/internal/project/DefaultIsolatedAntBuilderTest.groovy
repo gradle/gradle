@@ -157,7 +157,7 @@ class DefaultIsolatedAntBuilderTest {
     }
 }
 
-private class TestAppender<LoggingEvent> extends AppenderBase<LoggingEvent> {
+class TestAppender<LoggingEvent> extends AppenderBase<LoggingEvent> {
     StringWriter writer = new StringWriter()
 
     synchronized void doAppend(LoggingEvent e) {

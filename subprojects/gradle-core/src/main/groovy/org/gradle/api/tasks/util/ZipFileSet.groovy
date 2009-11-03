@@ -31,7 +31,7 @@ class ZipFileSet extends FileSet {
         super(dir, resolver)
     }
 
-    ZipFileSet(Map args, FileResolver resolver) {
+    ZipFileSet(Map<String, ?> args, FileResolver resolver) {
         super(args, resolver)
     }
 

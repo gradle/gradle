@@ -70,7 +70,6 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
             if (root.isFile()) {
                 processSingleFile(root, stopFlag);
             } else {
-               // need to get appropriate start dirs from the includes
                walkDir(root, new RelativePath(false), stopFlag);
             }
         } else {

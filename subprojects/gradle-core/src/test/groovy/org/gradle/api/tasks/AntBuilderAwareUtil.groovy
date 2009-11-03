@@ -66,7 +66,7 @@ class AntBuilderAwareUtil {
     }
 }
 
-public static class FileListTask extends MatchingTask {
+public class FileListTask extends MatchingTask {
     final Set<String> filenames = new HashSet<String>()
     Path src
 

@@ -84,7 +84,7 @@ public class ExtractSnippetsTask extends SourceTask {
     }
 }
 
-private class SnippetWriter {
+class SnippetWriter {
 
     private final File dest
     private final String displayName
