@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Test;
 
@@ -36,10 +37,24 @@ class TarTest extends AbstractArchiveTaskTest {
         tar
     }
 
-    @Test public void testTar() {
-        assert tar.compression.is(Compression.NONE)
-        assert tar.longFile.is(LongFile.WARN)
+    @Test public void testDefaultValues() {
+        assertThat(tar.compression, equalTo(Compression.NONE))
+        assertThat(tar.extension, equalTo('tar'))
+    }
+    
+    @Test public void testCompressionDeterminesDefaultExtension() {
+        tar.compression = Compression.GZIP
+        assertThat(tar.extension, equalTo('tgz'))
+
         tar.compression = Compression.BZIP2
-        assertEquals(Tar.TAR_EXTENSION, tar.extension)
+        assertThat(tar.extension, equalTo('tbz2'))
+
+        tar.compression = Compression.NONE
+        assertThat(tar.extension, equalTo('tar'))
+
+        tar.extension = 'bin'
+
+        tar.compression = Compression.GZIP
+        assertThat(tar.extension, equalTo('bin'))
     }
 }

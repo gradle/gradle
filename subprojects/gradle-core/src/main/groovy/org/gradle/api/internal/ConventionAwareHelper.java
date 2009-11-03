@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ReflectionUtil;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Collection;
+import java.util.concurrent.Callable;
 
 /**
  * @author Hans Dockter
@@ -37,19 +39,19 @@ public class ConventionAwareHelper implements ConventionMapping {
     private IConventionAware source;
 
     private Map<String, ConventionValue> conventionMapping = new HashMap<String, ConventionValue>();
-    private Map<String, Object> conventionMappingCache = new HashMap<String, Object>();
 
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this.source = source;
         this.convention = convention;
     }
 
-    public ConventionMapping map(String propertyName, ConventionValue value) {
-        map(Collections.singletonMap(propertyName, value));
-        return this;
+    public MappedProperty map(String propertyName, ConventionValue value) {
+        MappedPropertyImpl property = new MappedPropertyImpl(value);
+        map(Collections.singletonMap(propertyName, property));
+        return property;
     }
 
-    public ConventionMapping map(String propertyName, final Closure value) {
+    public MappedProperty map(String propertyName, final Closure value) {
         return map(propertyName, new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 switch (value.getMaximumNumberOfParameters()) {
@@ -64,8 +66,20 @@ public class ConventionAwareHelper implements ConventionMapping {
         });
     }
 
-    public ConventionMapping map(Map<String, ConventionValue> mapping) {
-        for (Map.Entry<String, ConventionValue> entry : mapping.entrySet()) {
+    public MappedProperty map(String propertyName, final Callable<?> value) {
+        return map(propertyName, new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                try {
+                    return value.call();
+                } catch (Exception e) {
+                    throw new GradleException(e);
+                }
+            }
+        });
+    }
+
+    public ConventionMapping map(Map<String, ? extends ConventionValue> mapping) {
+        for (Map.Entry<String, ? extends ConventionValue> entry : mapping.entrySet()) {
             String propertyName = entry.getKey();
             if (!ReflectionUtil.hasProperty(source, propertyName)) {
                 throw new InvalidUserDataException(
@@ -76,22 +90,19 @@ public class ConventionAwareHelper implements ConventionMapping {
             }
         }
         this.conventionMapping.putAll(mapping);
-        conventionMappingCache.keySet().removeAll(mapping.keySet());
         return this;
     }
 
     public void propertyMissing(String name, Object value) {
         if (value instanceof Closure) {
             map(name, (Closure) value);
-        }
-        else if (value instanceof ConventionValue) {
+        } else if (value instanceof ConventionValue) {
             map(name, (ConventionValue) value);
-        }
-        else {
+        } else {
             throw new MissingPropertyException(name, getClass());
         }
     }
-    
+
     public Object getConventionValue(String propertyName) {
         Object value = ReflectionUtil.getProperty(source, propertyName);
         return getConventionValue(value, propertyName);
@@ -103,11 +114,7 @@ public class ConventionAwareHelper implements ConventionMapping {
                 || internalValue instanceof Collection && ((Collection) internalValue).isEmpty()
                 || internalValue instanceof Map && ((Map) internalValue).isEmpty();
         if (useMapping && conventionMapping.keySet().contains(propertyName)) {
-            if (!conventionMappingCache.keySet().contains(propertyName)) {
-                Object conventionValue = conventionMapping.get(propertyName).getValue(convention, source);
-                conventionMappingCache.put(propertyName, conventionValue);
-            }
-            returnValue = conventionMappingCache.get(propertyName);
+            returnValue = conventionMapping.get(propertyName).getValue(convention, source);
         }
         return (T) returnValue;
     }
@@ -143,11 +150,30 @@ public class ConventionAwareHelper implements ConventionMapping {
         this.conventionMapping = conventionMapping;
     }
 
-    public Map getConventionMappingCache() {
-        return conventionMappingCache;
-    }
+    private static class MappedPropertyImpl implements MappedProperty, ConventionValue {
+        private final ConventionValue value;
+        private boolean haveValue;
+        private boolean nocache;
+        private Object cachedValue;
 
-    public void setConventionMappingCache(Map conventionMappingCache) {
-        this.conventionMappingCache = conventionMappingCache;
+        private MappedPropertyImpl(ConventionValue value) {
+            this.value = value;
+        }
+
+        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+            if (nocache) {
+                return value.getValue(convention, conventionAwareObject);
+            }
+            if (!haveValue) {
+                cachedValue = value.getValue(convention, conventionAwareObject);
+                haveValue = true;
+            }
+            return cachedValue;
+        }
+
+        public void noCache() {
+            nocache = true;
+            cachedValue = null;
+        }
     }
 }

@@ -19,6 +19,7 @@ import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.plugins.Convention;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import groovy.lang.Closure;
 
@@ -32,13 +33,19 @@ public interface ConventionMapping {
 
     void setConvention(Convention convention);
 
-    ConventionMapping map(String propertyName, ConventionValue value);
+    MappedProperty map(String propertyName, ConventionValue value);
 
-    ConventionMapping map(String propertyName, Closure value);
+    MappedProperty map(String propertyName, Closure value);
 
-    ConventionMapping map(Map<String, ConventionValue> properties);
+    MappedProperty map(String propertyName, Callable<?> value);
+
+    ConventionMapping map(Map<String, ? extends ConventionValue> properties);
 
     <T> T getConventionValue(T actualValue, String propertyName);
 
     <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue);
+
+    interface MappedProperty {
+        void noCache();
+    }
 }

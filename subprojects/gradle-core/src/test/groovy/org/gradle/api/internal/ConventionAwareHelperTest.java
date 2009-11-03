@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import static java.util.Collections.*;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * @author Hans Dockter
@@ -48,14 +49,14 @@ public class ConventionAwareHelperTest {
     @Test public void canMapPropertiesUsingConventionValue() {
         final List expectedList1 = toList("a");
         final List expectedList2 = toList("b");
-        assertSame(conventionAware, conventionAware.map("list1", new ConventionValue() {
+        assertNotNull(conventionAware.map("list1", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 assertSame(conventionAware.getConvention(), convention);
                 assertSame(testTask, conventionAwareObject);
                 return expectedList1;
             }
         }));
-        assertSame(conventionAware, conventionAware.map("list2", new ConventionValue() {
+        assertNotNull(conventionAware.map("list2", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return expectedList2;
             }
@@ -77,6 +78,18 @@ public class ConventionAwareHelperTest {
         assertThat(conventionAware.getConventionValue("list1"), equalTo((Object) toList(conventionAware.getConvention(), testTask)));
     }
 
+    @Test
+    public void canMapPropertiesUsingCallable() {
+        Callable callable = new Callable() {
+            public Object call() throws Exception {
+                return toList("a");
+            }
+        };
+
+        conventionAware.map("list1", callable);
+        assertThat(conventionAware.getConventionValue("list1"), equalTo((Object) toList("a")));
+    }
+    
     @Test
     public void canSetMappingUsingDynamicProperty() {
         HelperUtil.call("{ it.list1 = { ['a'] } }", conventionAware);
@@ -107,6 +120,20 @@ public class ConventionAwareHelperTest {
             }
         });
         assertSame(conventionAware.getConventionValue("list1"), conventionAware.getConventionValue("list1"));
+    }
+
+    @Test public void canDisableCachingOfPropertyValue() {
+        ConventionMapping.MappedProperty property = conventionAware.map("list1", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return toList("a");
+            }
+        });
+        property.noCache();
+
+        Object value1 = conventionAware.getConventionValue("list1");
+        Object value2 = conventionAware.getConventionValue("list1");
+        assertEquals(value1, value2);
+        assertNotSame(value1, value2);
     }
 
     @Test public void doesNotUseMappingWhenExplicitValueProvided() {

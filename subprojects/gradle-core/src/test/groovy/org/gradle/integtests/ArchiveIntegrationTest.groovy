@@ -159,6 +159,64 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt')
     }
 
+    @Test public void canCreateATgzArchive() {
+        createDir('test') {
+            dir1 {
+                file 'file1.txt'
+            }
+            file 'file1.txt'
+            dir2 {
+                file 'file2.txt'
+                file 'ignored.xml'
+            }
+        }
+
+        testFile('build.gradle') << '''
+            task tar(type: Tar) {
+                compression = Compression.GZIP
+                from 'test'
+                include '**/*.txt'
+                destinationDir = buildDir
+                archiveName = 'test.tgz'
+            }
+'''
+
+        inTestDirectory().withTasks('tar').run()
+
+        TestFile expandDir = testFile('expanded')
+        testFile('build/test.tgz').untarTo(expandDir)
+        expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt')
+    }
+
+    @Test public void canCreateATbzArchive() {
+        createDir('test') {
+            dir1 {
+                file 'file1.txt'
+            }
+            file 'file1.txt'
+            dir2 {
+                file 'file2.txt'
+                file 'ignored.xml'
+            }
+        }
+
+        testFile('build.gradle') << '''
+            task tar(type: Tar) {
+                compression = Compression.BZIP2
+                from 'test'
+                include '**/*.txt'
+                destinationDir = buildDir
+                archiveName = 'test.tbz2'
+            }
+'''
+
+        inTestDirectory().withTasks('tar').run()
+
+        TestFile expandDir = testFile('expanded')
+        testFile('build/test.tbz2').untarTo(expandDir)
+        expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt')
+    }
+
     @Test public void canCreateAJarArchiveWithDefaultManifest() {
         createDir('test') {
             dir1 {

@@ -15,19 +15,8 @@
  */
 package org.gradle.api.internal.file;
 
-import groovy.lang.Closure;
+import org.gradle.api.tasks.bundling.Compression;
 
-import java.io.File;
-
-public class DefaultArchiveCopyAction extends CopyActionImpl implements ArchiveCopyAction {
-    private final Closure archivePathSource;
-
-    public DefaultArchiveCopyAction(FileResolver resolver, CopySpecVisitor visitor, Closure archivePathSource) {
-        super(resolver, visitor);
-        this.archivePathSource = archivePathSource;
-    }
-
-    public File getArchivePath() {
-        return (File) archivePathSource.call();
-    }
+public interface TarCopyAction extends ArchiveCopyAction {
+    Compression getCompression();
 }

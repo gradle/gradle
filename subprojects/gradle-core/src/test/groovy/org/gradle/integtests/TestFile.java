@@ -116,9 +116,20 @@ public class TestFile extends File {
     public void untarTo(File target) {
         assertIsFile();
 
-        Expand untar = new Untar();
+        Untar untar = new Untar();
         untar.setSrc(this);
         untar.setDest(target);
+
+        if (getName().endsWith(".tgz")) {
+            Untar.UntarCompressionMethod method = new Untar.UntarCompressionMethod();
+            method.setValue("gzip");
+            untar.setCompression(method);
+        }
+        else if (getName().endsWith(".tbz2")) {
+            Untar.UntarCompressionMethod method = new Untar.UntarCompressionMethod();
+            method.setValue("bzip2");
+            untar.setCompression(method);
+        }
 
         AntUtil.execute(untar);
     }

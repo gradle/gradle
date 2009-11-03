@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.tasks.bundling.Compression;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.integtests.TestFile;
@@ -40,7 +41,7 @@ public class TarCopyVisitorTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
+    private final TarCopyAction copyAction = context.mock(TarCopyAction.class);
     private final TarCopyVisitor visitor = new TarCopyVisitor();
 
     @Test
@@ -50,6 +51,56 @@ public class TarCopyVisitorTest {
         context.checking(new Expectations(){{
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
+            allowing(copyAction).getCompression();
+            will(returnValue(Compression.NONE));
+        }});
+
+        visitor.startVisit(copyAction);
+
+        visitor.visitFile(file("dir/file1"));
+        visitor.visitFile(file("file2"));
+
+        visitor.endVisit();
+
+        TestFile expandDir = tmpDir.getDir().file("expanded");
+        tarFile.untarTo(expandDir);
+        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
+        expandDir.file("file2").assertContents(equalTo("contents of file2"));
+    }
+
+    @Test
+    public void createsGzipCompressedTarFile() {
+        final TestFile tarFile = tmpDir.getDir().file("test.tgz");
+
+        context.checking(new Expectations(){{
+            allowing(copyAction).getArchivePath();
+            will(returnValue(tarFile));
+            allowing(copyAction).getCompression();
+            will(returnValue(Compression.GZIP));
+        }});
+
+        visitor.startVisit(copyAction);
+
+        visitor.visitFile(file("dir/file1"));
+        visitor.visitFile(file("file2"));
+
+        visitor.endVisit();
+
+        TestFile expandDir = tmpDir.getDir().file("expanded");
+        tarFile.untarTo(expandDir);
+        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
+        expandDir.file("file2").assertContents(equalTo("contents of file2"));
+    }
+
+    @Test
+    public void createsBzip2CompressedTarFile() {
+        final TestFile tarFile = tmpDir.getDir().file("test.tbz2");
+
+        context.checking(new Expectations(){{
+            allowing(copyAction).getArchivePath();
+            will(returnValue(tarFile));
+            allowing(copyAction).getCompression();
+            will(returnValue(Compression.BZIP2));
         }});
 
         visitor.startVisit(copyAction);
@@ -89,6 +140,9 @@ public class TarCopyVisitorTest {
         context.checking(new Expectations(){{
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
+
+            allowing(copyAction).getCompression();
+            will(returnValue(Compression.NONE));
         }});
 
         visitor.startVisit(copyAction);

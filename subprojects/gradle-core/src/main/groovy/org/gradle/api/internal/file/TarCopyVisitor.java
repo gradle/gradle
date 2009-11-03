@@ -21,20 +21,34 @@ import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.tar.TarEntry;
+import org.apache.tools.bzip2.CBZip2OutputStream;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class TarCopyVisitor implements CopySpecVisitor {
     private TarOutputStream tarOutStr;
     private File tarFile;
 
     public void startVisit(CopyAction action) {
-        ArchiveCopyAction archiveAction = (ArchiveCopyAction) action;
+        TarCopyAction archiveAction = (TarCopyAction) action;
         try {
             tarFile = archiveAction.getArchivePath();
-            tarOutStr = new TarOutputStream(new FileOutputStream(tarFile));
+            OutputStream outStr = new FileOutputStream(tarFile);
+            switch (archiveAction.getCompression()) {
+                case GZIP:
+                    outStr = new GZIPOutputStream(outStr);
+                    break;
+                case BZIP2:
+                    outStr.write('B');
+                    outStr.write('Z');
+                    outStr = new CBZip2OutputStream(outStr);
+                    break;
+            }
+            tarOutStr = new TarOutputStream(outStr);
             tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);

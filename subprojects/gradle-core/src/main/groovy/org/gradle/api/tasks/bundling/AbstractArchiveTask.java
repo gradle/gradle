@@ -21,6 +21,11 @@ import org.gradle.util.GUtil;
 
 import java.io.File;
 
+/**
+ * {@code AbstractArchiveTask} is the base class for all archive tasks.
+ *
+ * @author Hans Dockter
+ */
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private File destinationDir;
     private String customName;
@@ -40,7 +45,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         if (customName != null) {
             return customName;
         }
-        return getBaseName() + maybeAdd(getAppendix()) + maybeAdd(getVersion()) + maybeAdd(getClassifier()) + "."
+        return getBaseName() + maybe(getAppendix()) + maybe(getVersion()) + maybe(getClassifier()) + "."
                 + getExtension();
     }
 
@@ -53,7 +58,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         customName = name;
     }
 
-    private String maybeAdd(String value) {
+    private String maybe(String value) {
         if (GUtil.isTrue(value)) {
             return String.format("-%s", value);
         }
@@ -62,6 +67,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * The path where the archive is constructed. The path is simply the destinationDir plus the archiveName.
+     *
      * @return a File object with the path to the archive
      */
     @OutputFile
@@ -71,6 +77,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Returns the directory where the archive is generated into.
+     *
      * @return the directory
      */
     public File getDestinationDir() {

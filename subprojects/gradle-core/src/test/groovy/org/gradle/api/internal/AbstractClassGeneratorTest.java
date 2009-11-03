@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public abstract class AbstractClassGeneratorTest {
     private ClassGenerator generator;
@@ -330,15 +331,19 @@ public abstract class AbstractClassGeneratorTest {
             throw new UnsupportedOperationException();
         }
 
-        public ConventionMapping map(Map<String, ConventionValue> properties) {
+        public ConventionMapping map(Map<String, ? extends ConventionValue> properties) {
             throw new UnsupportedOperationException();
         }
 
-        public ConventionMapping map(String propertyName, Closure value) {
+        public MappedProperty map(String propertyName, Closure value) {
             throw new UnsupportedOperationException();
         }
 
-        public ConventionMapping map(String propertyName, ConventionValue value) {
+        public MappedProperty map(String propertyName, ConventionValue value) {
+            throw new UnsupportedOperationException();
+        }
+
+        public MappedProperty map(String propertyName, Callable<?> value) {
             throw new UnsupportedOperationException();
         }
 

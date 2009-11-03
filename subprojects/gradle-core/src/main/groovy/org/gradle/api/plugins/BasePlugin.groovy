@@ -9,7 +9,6 @@ import org.gradle.api.tasks.Clean
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.Zip
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
