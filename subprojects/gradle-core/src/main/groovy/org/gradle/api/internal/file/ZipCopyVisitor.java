@@ -15,25 +15,25 @@
  */
 package org.gradle.api.internal.file;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
+import org.apache.tools.zip.ZipOutputStream;
+import org.apache.tools.zip.ZipEntry;
 
 import java.io.IOException;
 import java.io.File;
 
 public class ZipCopyVisitor implements CopySpecVisitor {
-    private ZipArchiveOutputStream zipOutStr;
+    private ZipOutputStream zipOutStr;
     private File zipFile;
 
     public void startVisit(CopyAction action) {
         ArchiveCopyAction archiveAction = (ArchiveCopyAction) action;
         zipFile = archiveAction.getArchivePath();
         try {
-            zipOutStr = new ZipArchiveOutputStream(zipFile);
+            zipOutStr = new ZipOutputStream(zipFile);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create ZIP '%s'.", zipFile), e);
         }
@@ -52,12 +52,12 @@ public class ZipCopyVisitor implements CopySpecVisitor {
 
     public void visitFile(FileVisitDetails fileDetails) {
         try {
-            ZipArchiveEntry archiveEntry = new ZipArchiveEntry(fileDetails.getRelativePath().getPathString());
-            archiveEntry.setMethod(ZipArchiveEntry.DEFLATED);
+            ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
+            archiveEntry.setMethod(ZipEntry.DEFLATED);
             archiveEntry.setTime(fileDetails.getLastModified());
-            zipOutStr.putArchiveEntry(archiveEntry);
+            zipOutStr.putNextEntry(archiveEntry);
             fileDetails.copyTo(zipOutStr);
-            zipOutStr.closeArchiveEntry();
+            zipOutStr.closeEntry();
         } catch (Exception e) {
             throw new GradleException(String.format("Could not add %s to ZIP '%s'.", fileDetails, zipFile), e);
         }

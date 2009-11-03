@@ -24,8 +24,8 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.tools.tar.TarEntry;
+import org.apache.tools.tar.TarInputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -68,8 +68,8 @@ public class TarFileTree extends AbstractFileTree {
             FileInputStream inputStream = new FileInputStream(tarFile);
             try {
                 NoCloseTarInputStream tar = new NoCloseTarInputStream(inputStream);
-                TarArchiveEntry entry;
-                while (!stopFlag.get() && (entry = tar.getNextTarEntry()) != null) {
+                TarEntry entry;
+                while (!stopFlag.get() && (entry = tar.getNextEntry()) != null) {
                     if (entry.isDirectory()) {
                         visitor.visitDir(new DetailsImpl(entry, tar, stopFlag));
                     } else {
@@ -88,13 +88,13 @@ public class TarFileTree extends AbstractFileTree {
     }
 
     private class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
-        private final TarArchiveEntry entry;
+        private final TarEntry entry;
         private final NoCloseTarInputStream tar;
         private final AtomicBoolean stopFlag;
         private File file;
         private boolean read;
 
-        public DetailsImpl(TarArchiveEntry entry, NoCloseTarInputStream tar, AtomicBoolean stopFlag) {
+        public DetailsImpl(TarEntry entry, NoCloseTarInputStream tar, AtomicBoolean stopFlag) {
             this.entry = entry;
             this.tar = tar;
             this.stopFlag = stopFlag;
@@ -144,7 +144,7 @@ public class TarFileTree extends AbstractFileTree {
         }
     }
 
-    private static class NoCloseTarInputStream extends TarArchiveInputStream {
+    private static class NoCloseTarInputStream extends TarInputStream {
         public NoCloseTarInputStream(InputStream is) {
             super(is);
         }
@@ -153,8 +153,8 @@ public class TarFileTree extends AbstractFileTree {
         public void close() throws IOException {
         }
 
-        public TarArchiveEntry getCurrent() {
-            return getCurrentEntry();
+        public TarEntry getCurrent() {
+            return currEntry;
         }
     }
 }
