@@ -22,8 +22,11 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
 import org.gradle.StartParameter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
+    private static final Logger logger = LoggerFactory.getLogger(ExecutionShortCircuitTaskExecuter.class);
     private final TaskExecuter executer;
     private final TaskArtifactStateRepository repository;
     private final StartParameter startParameter;
@@ -48,10 +51,14 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
     }
 
     public TaskExecutionResult execute(TaskInternal task, TaskState state) {
+        logger.debug("Determining if {} is up-to-date", task);
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
         if (!startParameter.isNoOpt() && taskArtifactState.isUpToDate()) {
+            logger.debug("{} is up-to-date", task);
             return upToDateResult;
         }
+        logger.debug("{} is not up-to-date", task);
+
         taskArtifactState.invalidate();
         TaskExecutionResult executionResult = executer.execute(task, state);
         if (executionResult.getFailure() == null) {

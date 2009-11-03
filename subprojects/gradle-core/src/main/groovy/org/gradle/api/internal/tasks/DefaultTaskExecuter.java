@@ -49,6 +49,7 @@ public class DefaultTaskExecuter implements TaskExecuter {
     }
 
     private GradleException executeActions(TaskInternal task, TaskState state) {
+        logger.debug("Executing actions for {}.", task);
         for (Action<? super Task> action : task.getActions()) {
             state.setDidWork(true);
             task.getStandardOutputCapture().start();
@@ -63,8 +64,7 @@ public class DefaultTaskExecuter implements TaskExecuter {
             } catch (Throwable t) {
                 return new GradleScriptException(String.format("Execution failed for %s.", task), t,
                         ((ProjectInternal) task.getProject()).getBuildScriptSource());
-            }
-            finally {
+            } finally {
                 task.getStandardOutputCapture().stop();
             }
         }
