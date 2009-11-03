@@ -15,16 +15,14 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.*;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.FileSet;
 
 import java.io.File;
+import java.util.Collection;
 
-class SingletonFileTree extends AbstractFileTree {
+class SingletonFileTree extends CompositeFileTree {
     private final File file;
     private final TaskDependency builtBy;
 
@@ -43,24 +41,13 @@ class SingletonFileTree extends AbstractFileTree {
         return builtBy;
     }
 
-    @Override
-    public void addToAntBuilder(Object builder, String childNodeName, AntType type) {
+    protected void addSourceCollections(Collection<FileCollection> sources) {
         if (file.isDirectory()) {
-            new FileSet(file, null).addToAntBuilder(builder, childNodeName, type);
+            sources.add(new FileSet(file, null));
         }
         else if (file.isFile()) {
-            super.addToAntBuilder(builder, childNodeName, type);
+            sources.add(new FileFileTree());
         }
-    }
-
-    public FileTree visit(FileVisitor visitor) {
-        if (file.isDirectory()) {
-            new FileSet(file, null).visit(visitor);
-        }
-        else if (file.isFile()) {
-            visitor.visitFile(new FileVisitDetailsImpl());
-        }
-        return this;
     }
 
     private class FileVisitDetailsImpl extends DefaultFileTreeElement implements FileVisitDetails {
@@ -69,6 +56,17 @@ class SingletonFileTree extends AbstractFileTree {
         }
 
         public void stopVisiting() {
+        }
+    }
+
+    private class FileFileTree extends AbstractFileTree {
+        public String getDisplayName() {
+            return SingletonFileTree.this.getDisplayName();
+        }
+
+        public FileTree visit(FileVisitor visitor) {
+            visitor.visitFile(new FileVisitDetailsImpl());
+            return this;
         }
     }
 }
