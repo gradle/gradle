@@ -40,9 +40,10 @@ class SamplesWebProjectIntegrationTest {
         tmpDir.assertHasDescendants(
                 'root.txt',
                 'META-INF/MANIFEST.MF',
-                'WEB-INF/classes/org/HelloServlet.class',
-                'WEB-INF/classes/org/MyClass.class',
+                'WEB-INF/classes/org/gradle/HelloServlet.class',
+                'WEB-INF/classes/org/gradle/MyClass.class',
                 'WEB-INF/lib/compile-1.0.jar',
+                'WEB-INF/lib/compile-transitive-1.0.jar',
                 'WEB-INF/lib/runtime-1.0.jar',
                 'WEB-INF/lib/additional-1.0.jar',
                 'WEB-INF/lib/otherLib-1.0.jar',

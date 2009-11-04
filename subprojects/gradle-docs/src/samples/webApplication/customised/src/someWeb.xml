@@ -5,7 +5,7 @@ http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
          version="2.4">
     <servlet>
         <servlet-name>Hello</servlet-name>
-        <servlet-class>org.HelloServlet</servlet-class>
+        <servlet-class>org.gradle.HelloServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>Hello</servlet-name>

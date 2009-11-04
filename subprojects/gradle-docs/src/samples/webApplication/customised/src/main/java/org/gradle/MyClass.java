@@ -1,4 +1,4 @@
-package org;
+package org.gradle;
 
 public class MyClass {
     org.CompileClass compile;

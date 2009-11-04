@@ -1,4 +1,4 @@
-package org;
+package org.gradle;
 
 import java.io.*;
 
