@@ -187,7 +187,9 @@ public class TestFile extends File {
     }
 
     public void assertPermissions(Matcher<String> matcher) {
-        assertThat(getPermissions(), matcher);
+        if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+            assertThat(getPermissions(), matcher);
+        }
     }
 
     private String getPermissions() {
