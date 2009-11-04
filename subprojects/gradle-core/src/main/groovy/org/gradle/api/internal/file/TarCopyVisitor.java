@@ -22,6 +22,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.bzip2.CBZip2OutputStream;
+import org.apache.tools.zip.UnixStat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,6 +33,7 @@ import java.util.zip.GZIPOutputStream;
 public class TarCopyVisitor implements CopySpecVisitor {
     private TarOutputStream tarOutStr;
     private File tarFile;
+    private CopySpecImpl spec;
 
     public void startVisit(CopyAction action) {
         TarCopyAction archiveAction = (TarCopyAction) action;
@@ -60,10 +62,14 @@ public class TarCopyVisitor implements CopySpecVisitor {
             tarOutStr.close();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            tarOutStr = null;
+            spec = null;
         }
     }
 
     public void visitSpec(CopySpecImpl spec) {
+        this.spec = spec;
     }
 
     public void visitFile(FileVisitDetails fileDetails) {
@@ -71,6 +77,7 @@ public class TarCopyVisitor implements CopySpecVisitor {
             TarEntry archiveEntry = new TarEntry(fileDetails.getRelativePath().getPathString());
             archiveEntry.setModTime(fileDetails.getLastModified());
             archiveEntry.setSize(fileDetails.getSize());
+            archiveEntry.setMode(UnixStat.FILE_FLAG | spec.getFileMode());
             tarOutStr.putNextEntry(archiveEntry);
             fileDetails.copyTo(tarOutStr);
             tarOutStr.closeEntry();
@@ -80,6 +87,16 @@ public class TarCopyVisitor implements CopySpecVisitor {
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
+        try {
+            // Trailing slash on name indicates entry is a directory
+            TarEntry archiveEntry = new TarEntry(dirDetails.getRelativePath().getPathString() + '/');
+            archiveEntry.setModTime(dirDetails.getLastModified());
+            archiveEntry.setMode(UnixStat.DIR_FLAG | spec.getDirMode());
+            tarOutStr.putNextEntry(archiveEntry);
+            tarOutStr.closeEntry();
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not add %s to TAR '%s'.", dirDetails, tarFile), e);
+        }
     }
 
     public boolean getDidWork() {

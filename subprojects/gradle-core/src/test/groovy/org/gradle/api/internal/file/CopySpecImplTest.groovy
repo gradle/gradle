@@ -13,6 +13,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.apache.tools.zip.UnixStat
 
 @RunWith(JMock)
 public class CopySpecImplTest {
@@ -162,5 +163,19 @@ public class CopySpecImplTest {
         spec.rename {}
 
         assertThat(spec.destinationMapper.nameTransformer.transformers.size(), equalTo(1))
+    }
+
+    @Test public void testDefaultValues() {
+        assertEquals(UnixStat.DEFAULT_FILE_PERM, spec.fileMode)
+        assertEquals(UnixStat.DEFAULT_DIR_PERM, spec.dirMode)
+    }
+
+    @Test public void testInheritsPermissionsFromParent() {
+        spec.fileMode = 0x1
+        spec.dirMode = 0x2
+
+        CopySpecImpl child = spec.from('src') { }
+        assertEquals(0x1, child.fileMode)
+        assertEquals(0x2, child.dirMode)
     }
 }

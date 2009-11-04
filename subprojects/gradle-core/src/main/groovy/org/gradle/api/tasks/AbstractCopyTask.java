@@ -16,10 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.file.CopyAction;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.CopyActionImpl;
 import org.gradle.api.internal.file.CopySpecImpl;
@@ -228,5 +225,33 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
      */
     public CopySpec filter(Closure closure) {
         return getRootSpec().filter(closure);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getDirMode() {
+        return getRootSpec().getDirMode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public int getFileMode() {
+        return getRootSpec().getFileMode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CopyProcessingSpec setDirMode(int mode) {
+        return getRootSpec().setDirMode(mode);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CopyProcessingSpec setFileMode(int mode) {
+        return getRootSpec().setFileMode(mode);
     }
 }

@@ -32,8 +32,8 @@ public interface CopyProcessingSpec {
 
     /**
      * Renames a source file to a different relative location under the target directory. The closure will be called
-     * with a single parameter, the name of the file.  The closure should return a String object with a new target
-     * name. The closure may return null, in which case the original name will be used.
+     * with a single parameter, the name of the file.  The closure should return a String object with a new target name.
+     * The closure may return null, in which case the original name will be used.
      *
      * @param closure rename closure
      * @return this
@@ -94,4 +94,38 @@ public interface CopyProcessingSpec {
      * @return this
      */
     CopyProcessingSpec filter(Closure closure);
+
+    /**
+     * Returns the Unix permissions to use for the target files. It is dependent on the copy action implementation
+     * whether these permissions will actually be applied.
+     *
+     * @return The file permissions.
+     */
+    int getFileMode();
+
+    /**
+     * Sets the Unix permissions to use for the target files. It is dependent on the copy action implementation
+     * whether these permissions will actually be applied.
+     *
+     * @param mode The file permissions.
+     * @return this
+     */
+    CopyProcessingSpec setFileMode(int mode);
+
+    /**
+     * Returns the Unix permissions to use for the target directories. It is dependent on the copy action implementation
+     * whether these permissions will actually be applied.
+     *
+     * @return The directory permissions.
+     */
+    int getDirMode();
+
+    /**
+     * Sets the Unix permissions to use for the target directories. It is dependent on the copy action implementation
+     * whether these permissions will actually be applied.
+     *
+     * @param mode The directory permissions.
+     * @return this
+     */
+    CopyProcessingSpec setDirMode(int mode);
 }

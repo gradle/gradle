@@ -18,13 +18,11 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
+import org.gradle.api.file.*;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ReflectionUtil;
+import org.apache.tools.zip.UnixStat;
 
 import java.io.File;
 import java.io.FilterReader;
@@ -45,6 +43,8 @@ public class CopySpecImpl implements CopySpec {
     private final CopySpecImpl parentSpec;
     private final FilterChain filterChain;
     private final DefaultCopyDestinationMapper destinationMapper = new DefaultCopyDestinationMapper();
+    private Integer dirMode;
+    private Integer fileMode;
 
     private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec, boolean root) {
         this.parentSpec = parentSpec;
@@ -72,7 +72,7 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public CopySpec from(Object sourcePath, Closure c) {
-        if (c==null) {
+        if (c == null) {
             from(sourcePath);
             return this;
         } else {
@@ -158,7 +158,7 @@ public class CopySpecImpl implements CopySpec {
         return parentSpec.getDestDir();
     }
 
-    public CopySpec include(String ... includes) {
+    public CopySpec include(String... includes) {
         patternSet.include(includes);
         return this;
     }
@@ -196,7 +196,7 @@ public class CopySpecImpl implements CopySpec {
         return result;
     }
 
-    public CopySpec exclude(String ... excludes) {
+    public CopySpec exclude(String... excludes) {
         patternSet.exclude(excludes);
         return this;
     }
@@ -248,17 +248,17 @@ public class CopySpecImpl implements CopySpec {
         return this;
     }
 
-    public CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType ) {
+    public CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType) {
         try {
             Constructor<FilterReader> constructor = filterType.getConstructor(Reader.class);
-            FilterReader result = constructor.newInstance(  filterChain.getLastFilter() );
+            FilterReader result = constructor.newInstance(filterChain.getLastFilter());
             filterChain.addFilter(result);
 
             if (map != null) {
                 ReflectionUtil.setFromMap(result, map);
             }
         } catch (Throwable th) {
-            throw new InvalidUserDataException("Error - Invalid filter specification for "+filterType.getName());
+            throw new InvalidUserDataException("Error - Invalid filter specification for " + filterType.getName());
         }
         return this;
     }
@@ -268,10 +268,40 @@ public class CopySpecImpl implements CopySpec {
         return this;
     }
 
+    public int getDirMode() {
+        if (dirMode != null) {
+            return dirMode;
+        }
+        if (parentSpec != null) {
+            return parentSpec.getDirMode();
+        }
+        return UnixStat.DEFAULT_DIR_PERM;
+    }
+
+    public int getFileMode() {
+        if (fileMode != null) {
+            return fileMode;
+        }
+        if (parentSpec != null) {
+            return parentSpec.getFileMode();
+        }
+        return UnixStat.DEFAULT_FILE_PERM;
+    }
+
+    public CopyProcessingSpec setDirMode(int mode) {
+        dirMode = mode;
+        return this;
+    }
+
+    public CopyProcessingSpec setFileMode(int mode) {
+        fileMode = mode;
+        return this;
+    }
+
     public CopyDestinationMapper getDestinationMapper() {
         return destinationMapper;
     }
-    
+
     public List<String> getAllExcludes() {
         List<String> result = new ArrayList<String>();
         if (parentSpec != null) {

@@ -21,6 +21,7 @@ import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
 import org.apache.tools.zip.ZipOutputStream;
 import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.UnixStat;
 
 import java.io.IOException;
 import java.io.File;
@@ -28,6 +29,7 @@ import java.io.File;
 public class ZipCopyVisitor implements CopySpecVisitor {
     private ZipOutputStream zipOutStr;
     private File zipFile;
+    private CopySpecImpl spec;
 
     public void startVisit(CopyAction action) {
         ArchiveCopyAction archiveAction = (ArchiveCopyAction) action;
@@ -44,10 +46,14 @@ public class ZipCopyVisitor implements CopySpecVisitor {
             zipOutStr.close();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            spec = null;
+            zipOutStr = null;
         }
     }
 
     public void visitSpec(CopySpecImpl spec) {
+        this.spec = spec;
     }
 
     public void visitFile(FileVisitDetails fileDetails) {
@@ -55,6 +61,7 @@ public class ZipCopyVisitor implements CopySpecVisitor {
             ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
             archiveEntry.setMethod(ZipEntry.DEFLATED);
             archiveEntry.setTime(fileDetails.getLastModified());
+            archiveEntry.setUnixMode(UnixStat.FILE_FLAG | spec.getFileMode());
             zipOutStr.putNextEntry(archiveEntry);
             fileDetails.copyTo(zipOutStr);
             zipOutStr.closeEntry();
@@ -64,6 +71,16 @@ public class ZipCopyVisitor implements CopySpecVisitor {
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
+        try {
+            // Trailing slash in name indicates that entry is a directory
+            ZipEntry archiveEntry = new ZipEntry(dirDetails.getRelativePath().getPathString() + '/');
+            archiveEntry.setTime(dirDetails.getLastModified());
+            archiveEntry.setUnixMode(UnixStat.DIR_FLAG | spec.getDirMode());
+            zipOutStr.putNextEntry(archiveEntry);
+            zipOutStr.closeEntry();
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not add %s to ZIP '%s'.", dirDetails, zipFile), e);
+        }
     }
 
     public boolean getDidWork() {

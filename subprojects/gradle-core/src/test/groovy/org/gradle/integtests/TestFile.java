@@ -18,8 +18,6 @@ package org.gradle.integtests;
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.apache.tools.ant.taskdefs.Tar;
-import org.apache.tools.ant.taskdefs.Expand;
-import org.apache.tools.ant.taskdefs.Untar;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleUtil;
@@ -37,6 +35,8 @@ import java.net.URISyntaxException;
 import groovy.lang.Closure;
 
 public class TestFile extends File {
+    private boolean useNativeTools;
+
     public TestFile(File file, Object... path) {
         super(join(file, path).getAbsolutePath());
     }
@@ -47,6 +47,11 @@ public class TestFile extends File {
 
     public TestFile(URL url) {
         this(toUri(url));
+    }
+
+    public TestFile usingNativeTools() {
+        useNativeTools = true;
+        return this;
     }
 
     private static URI toUri(URL url) {
@@ -105,33 +110,13 @@ public class TestFile extends File {
 
     public void unzipTo(File target) {
         assertIsFile();
-        
-        Expand unzip = new Expand();
-        unzip.setSrc(this);
-        unzip.setDest(target);
-
-        AntUtil.execute(unzip);
+        new TestFileHelper(this).unzipTo(target, useNativeTools);
     }
 
     public void untarTo(File target) {
         assertIsFile();
 
-        Untar untar = new Untar();
-        untar.setSrc(this);
-        untar.setDest(target);
-
-        if (getName().endsWith(".tgz")) {
-            Untar.UntarCompressionMethod method = new Untar.UntarCompressionMethod();
-            method.setValue("gzip");
-            untar.setCompression(method);
-        }
-        else if (getName().endsWith(".tbz2")) {
-            Untar.UntarCompressionMethod method = new Untar.UntarCompressionMethod();
-            method.setValue("bzip2");
-            untar.setCompression(method);
-        }
-
-        AntUtil.execute(untar);
+        new TestFileHelper(this).untarTo(target, useNativeTools);
     }
 
     public void copyTo(File target) {
@@ -201,6 +186,14 @@ public class TestFile extends File {
         assertThat(getText(), matcher);
     }
 
+    public void assertPermissions(Matcher<String> matcher) {
+        assertThat(getPermissions(), matcher);
+    }
+
+    private String getPermissions() {
+        return new TestFileHelper(this).getPermissions();
+    }
+
     /**
      * Asserts that this file contains exactly the given set of descendants.
      */
@@ -255,7 +248,7 @@ public class TestFile extends File {
         AntUtil.execute(zip);
         return this;
     }
-    
+
     public TestFile tarTo(TestFile zipFile) {
         Tar tar = new Tar();
         tar.setBasedir(this);

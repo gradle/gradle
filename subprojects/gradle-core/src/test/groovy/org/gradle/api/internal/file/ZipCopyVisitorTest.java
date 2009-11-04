@@ -24,6 +24,7 @@ import org.gradle.util.TemporaryFolder;
 import org.hamcrest.Description;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
@@ -31,6 +32,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.OutputStream;
@@ -39,9 +41,22 @@ import java.io.OutputStream;
 public class ZipCopyVisitorTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4Mockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
     private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
+    private final CopySpecImpl copySpec = context.mock(CopySpecImpl.class);
     private final ZipCopyVisitor visitor = new ZipCopyVisitor();
+
+    @Before
+    public void setUp() {
+        context.checking(new Expectations(){{
+            allowing(copySpec).getFileMode();
+            will(returnValue(1));
+            allowing(copySpec).getDirMode();
+            will(returnValue(2));
+        }});
+    }
 
     @Test
     public void createsZipFile() {
@@ -53,6 +68,7 @@ public class ZipCopyVisitorTest {
         }});
 
         visitor.startVisit(copyAction);
+        visitor.visitSpec(copySpec);
 
         visitor.visitFile(file("dir/file1"));
         visitor.visitFile(file("file2"));
@@ -92,6 +108,7 @@ public class ZipCopyVisitorTest {
         }});
 
         visitor.startVisit(copyAction);
+        visitor.visitSpec(copySpec);
 
         Throwable failure = new RuntimeException("broken");
         try {

@@ -95,6 +95,28 @@ public class MappingCopySpecVisitorTest {
     }
 
     @Test
+    public void visitDirWrapsFileElementToMapName() {
+        final Collector<FileVisitDetails> collector = expectSpecAndDirVisited();
+
+        final CopyDestinationMapper mapper = context.mock(CopyDestinationMapper.class);
+        final RelativePath specPath = new RelativePath(false, "spec");
+        final RelativePath relativePath = new RelativePath(false, "file");
+
+        context.checking(new Expectations() {{
+            allowing(spec).getDestinationMapper();
+            will(returnValue(mapper));
+            allowing(spec).getDestPath();
+            will(returnValue(specPath));
+            one(mapper).getPath(details);
+            will(returnValue(relativePath));
+        }});
+
+        FileVisitDetails mappedDetails = collector.get();
+
+        assertThat(mappedDetails.getRelativePath(), equalTo(new RelativePath(false, specPath, "file")));
+    }
+
+    @Test
     public void visitFileWrapsFileElementToFilterContentStream() {
         final Collector<FileVisitDetails> collector = expectSpecAndFileVisited();
 
@@ -164,13 +186,28 @@ public class MappingCopySpecVisitorTest {
 
         context.checking(new Expectations() {{
             one(delegate).visitSpec(spec);
-            one(delegate).visitFile(with(notNullValue(FileVisitDetails.class)));
+            one(delegate).visitFile(with(not(sameInstance(details))));
 
             will(collector);
         }});
 
         visitor.visitSpec(spec);
         visitor.visitFile(details);
+        return collector;
+    }
+
+    private Collector<FileVisitDetails> expectSpecAndDirVisited() {
+        final Collector<FileVisitDetails> collector = collectParam();
+
+        context.checking(new Expectations() {{
+            one(delegate).visitSpec(spec);
+            one(delegate).visitDir(with(not(sameInstance(details))));
+
+            will(collector);
+        }});
+
+        visitor.visitSpec(spec);
+        visitor.visitDir(details);
         return collector;
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.util.TemporaryFolder;
 import org.hamcrest.Description;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
@@ -32,6 +33,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.OutputStream;
@@ -40,15 +42,28 @@ import java.io.OutputStream;
 public class TarCopyVisitorTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4Mockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
     private final TarCopyAction copyAction = context.mock(TarCopyAction.class);
+    private final CopySpecImpl copySpec = context.mock(CopySpecImpl.class);
     private final TarCopyVisitor visitor = new TarCopyVisitor();
 
+    @Before
+    public void setUp() {
+        context.checking(new Expectations(){{
+            allowing(copySpec).getFileMode();
+            will(returnValue(1));
+            allowing(copySpec).getDirMode();
+            will(returnValue(2));
+        }});
+    }
+    
     @Test
     public void createsTarFile() {
         final TestFile tarFile = tmpDir.getDir().file("test.tar");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(copyAction).getArchivePath();
             will(returnValue(tarFile));
             allowing(copyAction).getCompression();
@@ -56,6 +71,7 @@ public class TarCopyVisitorTest {
         }});
 
         visitor.startVisit(copyAction);
+        visitor.visitSpec(copySpec);
 
         visitor.visitFile(file("dir/file1"));
         visitor.visitFile(file("file2"));
@@ -80,6 +96,7 @@ public class TarCopyVisitorTest {
         }});
 
         visitor.startVisit(copyAction);
+        visitor.visitSpec(copySpec);
 
         visitor.visitFile(file("dir/file1"));
         visitor.visitFile(file("file2"));
@@ -104,6 +121,7 @@ public class TarCopyVisitorTest {
         }});
 
         visitor.startVisit(copyAction);
+        visitor.visitSpec(copySpec);
 
         visitor.visitFile(file("dir/file1"));
         visitor.visitFile(file("file2"));
@@ -146,6 +164,7 @@ public class TarCopyVisitorTest {
         }});
 
         visitor.startVisit(copyAction);
+        visitor.visitSpec(copySpec);
 
         Throwable failure = new RuntimeException("broken");
         try {

@@ -44,6 +44,7 @@ public class MappingCopySpecVisitor implements CopySpecVisitor {
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
+        visitor.visitDir(new FileVisitDetailsImpl(dirDetails, spec));
     }
 
     public void visitFile(final FileVisitDetails fileDetails) {

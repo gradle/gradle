@@ -106,7 +106,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             file 'file1.txt'
             dir2 {
                 file 'file2.txt'
-                file 'ignored.xml'
+                file 'script.sh'
             }
         }
 
@@ -118,6 +118,12 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                     rename { "renamed_$it" }
                     filter { "[$it]" }
                 }
+                into('scripts') {
+                    from 'test'
+                    include '**/*.sh'
+                    dirMode = 0750
+                    fileMode = 0754
+                }
                 destinationDir = buildDir
                 archiveName = 'test.zip'
             }
@@ -126,9 +132,19 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks('zip').run()
 
         TestFile expandDir = testFile('expanded')
-        testFile('build/test.zip').unzipTo(expandDir)
-        expandDir.assertHasDescendants('prefix/dir1/renamed_file1.txt', 'prefix/renamed_file1.txt', 'prefix/dir2/renamed_file2.txt')
-        expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]')) 
+        testFile('build/test.zip').usingNativeTools().unzipTo(expandDir)
+        expandDir.assertHasDescendants(
+                'prefix/dir1/renamed_file1.txt',
+                'prefix/renamed_file1.txt',
+                'prefix/dir2/renamed_file2.txt',
+                'scripts/dir2/script.sh')
+
+        expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
+
+        expandDir.file('prefix/dir1').assertPermissions(equalTo("drwxr-xr-x"))
+        expandDir.file('prefix/dir1/renamed_file1.txt').assertPermissions(equalTo("-rw-r--r--"))
+        expandDir.file('scripts/dir2').assertPermissions(equalTo("drwxr-x---"))
+        expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("-rwxr-xr--"))
     }
 
     @Test public void canCreateATarArchive() {
@@ -139,14 +155,21 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             file 'file1.txt'
             dir2 {
                 file 'file2.txt'
-                file 'ignored.xml'
+                file 'script.sh'
             }
         }
 
         testFile('build.gradle') << '''
             task tar(type: Tar) {
-                from 'test'
-                include '**/*.txt'
+                from('test') {
+                    include '**/*.txt'
+                }
+                from('test') {
+                    include '**/*.sh'
+                    into 'scripts'
+                    fileMode = 0754
+                    dirMode = 0750
+                }
                 destinationDir = buildDir
                 archiveName = 'test.tar'
             }
@@ -155,8 +178,13 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks('tar').run()
 
         TestFile expandDir = testFile('expanded')
-        testFile('build/test.tar').untarTo(expandDir)
-        expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt')
+        testFile('build/test.tar').usingNativeTools().untarTo(expandDir)
+        expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt', 'scripts/dir2/script.sh')
+
+        expandDir.file('dir1').assertPermissions(equalTo("drwxr-xr-x"))
+        expandDir.file('dir1/file1.txt').assertPermissions(equalTo("-rw-r--r--"))
+        expandDir.file('scripts/dir2').assertPermissions(equalTo("drwxr-x---"))
+        expandDir.file('scripts/dir2/script.sh').assertPermissions(equalTo("-rwxr-xr--"))
     }
 
     @Test public void canCreateATgzArchive() {
