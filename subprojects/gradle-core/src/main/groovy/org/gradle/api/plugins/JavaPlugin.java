@@ -260,12 +260,7 @@ public class JavaPlugin implements Plugin {
 
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.setDescription("Generates a jar archive with all the compiled classes.");
-        jar.conventionMapping("defaultSource", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
-                        SourceSet.MAIN_SOURCE_SET_NAME).getClasses();
-            }
-        });
+        jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses());
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(jar));
     }
 

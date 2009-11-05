@@ -82,6 +82,7 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
 
     @Override
     protected void addDependencies(DefaultTaskDependency dependency) {
+        super.addDependencies(dependency);
         dependency.add(builtBy);
     }
 

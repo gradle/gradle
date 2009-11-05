@@ -188,7 +188,7 @@ class JavaPluginTest {
         assertThat(task, instanceOf(Jar))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.libsDir))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.classes))
+        assertThat(task.rootSpec.sourcePaths, equalTo([project.sourceSets.main.classes] as Set))
         assertThat(task.manifest, notNullValue())
 
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]

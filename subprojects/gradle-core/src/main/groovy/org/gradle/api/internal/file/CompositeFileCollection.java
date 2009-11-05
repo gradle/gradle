@@ -95,8 +95,8 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
             }
 
             @Override
-            protected void addDependencies(DefaultTaskDependency dependency) {
-                CompositeFileCollection.this.addDependencies(dependency);
+            public TaskDependency getBuildDependencies() {
+                return CompositeFileCollection.this.getBuildDependencies();
             }
         };
     }
@@ -106,9 +106,6 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency dependency = new DefaultTaskDependency();
-                for (FileCollection collection : getSourceCollections()) {
-                    dependency.add(collection);
-                }
                 addDependencies(dependency);
                 return dependency.getDependencies(task);
             }
@@ -117,8 +114,12 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
 
     /**
      * Allows subclasses to add additional dependencies
+     * @param dependency The dependency container to add dependencies to.
      */
     protected void addDependencies(DefaultTaskDependency dependency) {
+        for (FileCollection collection : getSourceCollections()) {
+            dependency.add(collection);
+        }
     }
 
     protected List<? extends FileCollection> getSourceCollections() {

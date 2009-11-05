@@ -77,7 +77,7 @@ public class CopySpecImplTest {
 
         assertThat(spec.allSpecs, equalTo([spec, child, grandchild, child2]))
     }
-    
+
     @Test public void testRootSpecResolvesItsIntoArgAsDestinationDir() {
         spec.into 'somedir'
         assertThat(spec.destPath, equalTo(new RelativePath(false)))
@@ -136,7 +136,7 @@ public class CopySpecImplTest {
     }
 
     @Test public void testArgFilter() {
-        spec.filter(HeadFilter, lines:15, skip:2)
+        spec.filter(HeadFilter, lines: 15, skip: 2)
 
         org.apache.tools.ant.filters.HeadFilter filter = spec.filterChain.getLastFilter()
         assertThat(filter, instanceOf(HeadFilter))
@@ -146,8 +146,8 @@ public class CopySpecImplTest {
 
     @Test public void testTwoFilters() {
         spec.filter(StripJavaComments)
-        spec.filter(HeadFilter, lines:15, skip:2)
-        
+        spec.filter(HeadFilter, lines: 15, skip: 2)
+
         assertThat(spec.filterChain.getLastFilter(), instanceOf(org.apache.tools.ant.filters.HeadFilter))
         assertThat(spec.filterChain.getLastFilter().in, instanceOf(org.apache.tools.ant.filters.StripJavaComments))
     }
@@ -158,14 +158,14 @@ public class CopySpecImplTest {
         assertThat(spec.destinationMapper.nameTransformer.transformers.size(), equalTo(1))
         assertThat(spec.destinationMapper.nameTransformer.transformers[0], instanceOf(RegExpNameMapper))
     }
-    
+
     @Test public void testAddsClosureToDestinationMapper() {
         spec.rename {}
 
         assertThat(spec.destinationMapper.nameTransformer.transformers.size(), equalTo(1))
     }
 
-    @Test public void testDefaultValues() {
+    @Test public void testDefaultPermissions() {
         assertEquals(UnixStat.DEFAULT_FILE_PERM, spec.fileMode)
         assertEquals(UnixStat.DEFAULT_DIR_PERM, spec.dirMode)
     }
@@ -178,4 +178,20 @@ public class CopySpecImplTest {
         assertEquals(0x1, child.fileMode)
         assertEquals(0x2, child.dirMode)
     }
+
+    @Test public void testHasNoSourceByDefault() {
+        assertFalse(spec.hasSource())
+    }
+
+    @Test public void testHasSourceWhenSpecHasSource() {
+        spec.from 'source'
+        assertTrue(spec.hasSource())
+    }
+    
+    @Test public void testHasSourceWhenChildSpecHasSource() {
+        spec.from('source') {}
+        assertTrue(spec.hasSource())
+    }
+
 }
+

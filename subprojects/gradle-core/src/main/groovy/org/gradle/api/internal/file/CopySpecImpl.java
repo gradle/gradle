@@ -310,4 +310,16 @@ public class CopySpecImpl implements CopySpec {
         result.addAll(getExcludes());
         return result;
     }
+
+    public boolean hasSource() {
+        if (!sourcePaths.isEmpty()) {
+            return true;
+        }
+        for (CopySpecImpl spec : childSpecs) {
+            if (spec.hasSource()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

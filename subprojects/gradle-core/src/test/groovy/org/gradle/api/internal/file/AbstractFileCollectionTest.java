@@ -23,6 +23,8 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.integtests.TestFile;
 import static org.gradle.util.Matchers.*;
+
+import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.Matcher;
@@ -250,6 +252,7 @@ public class AbstractFileCollectionTest {
         collection.files.add(new File("f1"));
 
         assertThat(collection.getAsFileTree().getBuildDependencies(), sameInstance(dependency));
+        assertThat(collection.getAsFileTree().matching(HelperUtil.TEST_CLOSURE).getBuildDependencies(), sameInstance(dependency));
     }
 
     private class TestFileCollection extends AbstractFileCollection {

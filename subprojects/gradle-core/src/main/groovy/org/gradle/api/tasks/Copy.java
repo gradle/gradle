@@ -16,9 +16,8 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.internal.file.CopyVisitor;
 import org.gradle.api.internal.file.CopyActionImpl;
+import org.gradle.api.internal.file.CopyVisitor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 
@@ -55,7 +54,6 @@ import java.io.File;
  * @author Steve Appling
  */
 public class Copy extends AbstractCopyTask {
-    private boolean hasDestBeenSet;
     private CopyActionImpl copyAction;
 
     public Copy() {
@@ -65,7 +63,7 @@ public class Copy extends AbstractCopyTask {
 
     protected void configureRootSpec() {
         super.configureRootSpec();
-        if (!hasDestBeenSet) {
+        if (getCopyAction().getDestDir() == null) {
             File destDir = getDestinationDir();
             if (destDir != null) {
                 into(destDir);
@@ -88,17 +86,5 @@ public class Copy extends AbstractCopyTask {
 
     public void setDestinationDir(File destinationDir) {
         into(destinationDir);
-    }
-
-    // -------------------------------------------------
-    // ---- Delegate CopySpec methods to copyAction ----
-    // -------------------------------------------------
-
-    /**
-     * {@inheritDoc}
-     */
-    public CopySpec into(Object destDir) {
-        hasDestBeenSet = true;
-        return super.into(destDir);
     }
 }

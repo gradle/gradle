@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.*;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.FileSet;
 
@@ -38,8 +37,8 @@ class SingletonFileTree extends CompositeFileTree {
     }
 
     @Override
-    protected void addDependencies(DefaultTaskDependency dependency) {
-        dependency.add(builtBy);
+    public TaskDependency getBuildDependencies() {
+        return builtBy;
     }
 
     protected void addSourceCollections(Collection<FileCollection> sources) {

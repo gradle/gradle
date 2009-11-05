@@ -8,7 +8,6 @@ import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.file.FileCollection
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyTest extends AbstractTaskTest {
@@ -34,45 +33,37 @@ public class CopyTest extends AbstractTaskTest {
 
     @Test public void executesActionOnExecute() {
         context.checking {
-            one(action).from('src')
-            one(action).into('dest')
+            one(action).hasSource(); will(returnValue(true))
+            one(action).getDestDir(); will(returnValue(new File('dest')))
             one(action).execute()
             one(action).getDidWork()
         }
 
-        copyTask.from('src')
-        copyTask.into('dest')
         copyTask.copy()
     }
     
     @Test public void usesConventionValuesForDestDirWhenNotSpecified() {
-        copyTask.conventionMapping.destinationDir = { new File('dest') }
+        copyTask.conventionMapping.destinationDir = { new File('convention') }
 
         context.checking {
-            one(action).from('src')
-            one(action).getDestDir()
+            exactly(2).of(action).getDestDir()
             will(returnValue(null))
-            one(action).into(new File('dest'))
-            one(action).execute()
-            one(action).getDidWork()
+            one(action).into(new File('convention'))
+            one(action).hasSource(); will(returnValue(true))
         }
 
-        copyTask.from('src')
-        copyTask.copy()
+        copyTask.configureRootSpec()
     }
 
-    @Test public void usesConventionValuesForSourceWhenNotSpecified() {
-        FileCollection source = project.files('src')
-        copyTask.conventionMapping.defaultSource = { source }
+    @Test public void doesNotUseConventionValueForDestDirWhenSpecified() {
+        copyTask.conventionMapping.destinationDir = { new File('convention') }
 
         context.checking {
-            one(action).into('dest')
-            one(action).from(source)
-            one(action).execute()
-            one(action).getDidWork()
+            one(action).getDestDir()
+            will(returnValue(new File('dest')))
+            one(action).hasSource(); will(returnValue(true))
         }
 
-        copyTask.into('dest')
-        copyTask.copy()
+        copyTask.configureRootSpec()
     }
 }

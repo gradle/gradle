@@ -1206,18 +1206,6 @@
             </tr>
             <tr>
                 <td>
-                    <apilink class="org.gradle.api.tasks.util.ZipFileSet" lang="groovy"/>
-                </td>
-                <td>Extends FileSet with additional properties known from Ant's zipfileset task.</td>
-            </tr>
-            <tr>
-                <td>
-                    <apilink class="org.gradle.api.tasks.util.TarFileSet" lang="groovy"/>
-                </td>
-                <td>Extends ZipFileSet with additional properties known from Ant's tarfileset task.</td>
-            </tr>
-            <tr>
-                <td>
                     <apilink class="org.gradle.api.file.FileCollection"/>
                 </td>
                 <td>An arbitrary collection of files to include in the archive. In contrast to a

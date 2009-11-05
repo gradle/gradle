@@ -30,7 +30,6 @@ import java.util.Set;
  * {@code AbstractCopyTask} is the base class for all copy tasks.
  */
 public abstract class AbstractCopyTask extends ConventionTask implements CopyAction {
-    private boolean hasSrcBeenSet;
 
     @TaskAction
     void copy() {
@@ -40,7 +39,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
     }
 
     protected void configureRootSpec() {
-        if (!hasSrcBeenSet) {
+        if (!getCopyAction().hasSource()) {
             Object srcDirs = getDefaultSource();
             if (srcDirs != null) {
                 from(srcDirs);
@@ -54,7 +53,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
 
     @InputFiles @SkipWhenEmpty @Optional
     public FileCollection getSource() {
-        return hasSrcBeenSet ? getCopyAction().getAllSource() : getDefaultSource();
+        return getCopyAction().hasSource() ? getCopyAction().getAllSource() : getDefaultSource();
     }
     
     protected abstract CopyActionImpl getCopyAction();
@@ -82,7 +81,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
      * {@inheritDoc}
      */
     public CopySpec from(Object... sourcePaths) {
-        hasSrcBeenSet = true;
         return getRootSpec().from(sourcePaths);
     }
 
@@ -90,7 +88,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
      * {@inheritDoc}
      */
     public CopySpec from(Object sourcePath, Closure c) {
-        hasSrcBeenSet = true;
         return getRootSpec().from(sourcePath, c);
     }
 
