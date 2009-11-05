@@ -23,23 +23,22 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
-
-import org.junit.Assert;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class PathResolvingFileCollectionTest {
