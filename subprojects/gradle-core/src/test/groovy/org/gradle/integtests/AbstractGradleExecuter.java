@@ -16,15 +16,39 @@
 package org.gradle.integtests;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.List;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+    private final List<String> args = new ArrayList<String>();
+    private final List<String> tasks = new ArrayList<String>();
+    private File workingDir;
     private boolean quiet;
+    private boolean taskList;
 
     public GradleExecuter inDirectory(File directory) {
-        throw new UnsupportedOperationException();
+        workingDir = directory;
+        return this;
+    }
+
+    public File getWorkingDir() {
+        return workingDir;
+    }
+
+    protected void copyTo(GradleExecuter executer) {
+        if (workingDir != null) {
+            executer.inDirectory(workingDir);
+        }
+        executer.withTasks(tasks);
+        executer.withArguments(args);
+        if (quiet) {
+            executer.withQuietLogging();
+        }
+        if (taskList) {
+            executer.withTaskList();
+        }
     }
 
     public GradleExecuter usingBuildScript(String script) {
@@ -57,7 +81,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withTaskList() {
-        throw new UnsupportedOperationException();
+        taskList = true;
+        return this;
     }
 
     public GradleExecuter withDependencyList() {
@@ -65,7 +90,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withArguments(String... args) {
-        throw new UnsupportedOperationException();
+        return withArguments(Arrays.asList(args));
+    }
+
+    public GradleExecuter withArguments(List<String> args) {
+        this.args.clear();
+        this.args.addAll(args);
+        return this;
     }
 
     public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
@@ -77,6 +108,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withTasks(List<String> names) {
-        throw new UnsupportedOperationException();
+        tasks.clear();
+        tasks.addAll(names);
+        return this;
+    }
+
+    protected List<String> getAllArgs() {
+        List<String> allArgs = new ArrayList<String>();
+        if (quiet) {
+            allArgs.add("--quiet");
+        }
+        if (taskList) {
+            allArgs.add("--tasks");
+        }
+        allArgs.addAll(args);
+        allArgs.addAll(tasks);
+        return allArgs;
     }
 }

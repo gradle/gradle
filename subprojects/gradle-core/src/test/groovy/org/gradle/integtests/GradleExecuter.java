@@ -36,6 +36,8 @@ public interface GradleExecuter {
 
     GradleExecuter withArguments(String... args);
 
+    GradleExecuter withArguments(List<String> args);
+
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
     GradleExecuter usingSettingsFile(File settingsFile);

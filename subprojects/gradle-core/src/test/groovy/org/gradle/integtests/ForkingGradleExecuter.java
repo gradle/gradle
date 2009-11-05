@@ -36,36 +36,16 @@ import java.util.*;
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final GradleDistribution distribution;
-    private File workingDir;
-    private List<String> tasks;
-    private List<String> args;
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private String command;
 
     public ForkingGradleExecuter(GradleDistribution distribution) {
-        tasks = new ArrayList<String>();
-        args = new ArrayList<String>();
         this.distribution = distribution;
-        workingDir = distribution.getTestDir();
-    }
-
-    public GradleExecuter inDirectory(File directory) {
-        workingDir = directory;
-        return this;
+        inDirectory(distribution.getTestDir());
     }
 
     public GradleExecuter withSearchUpwards() {
         throw new UnsupportedOperationException();
-    }
-
-    public GradleExecuter withTasks(List<String> names) {
-        tasks = new ArrayList<String>(names);
-        return this;
-    }
-
-    public GradleExecuter withArguments(String... args) {
-        this.args = Arrays.asList(args);
-        return this;
     }
 
     public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
@@ -96,7 +76,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         String unixCmd;
         if (command != null) {
             windowsCmd = command.replace('/', File.separatorChar);
-            unixCmd = String.format("%s/%s", workingDir.getAbsolutePath(), command);
+            unixCmd = String.format("%s/%s", getWorkingDir().getAbsolutePath(), command);
         } else {
             windowsCmd = "gradle";
             unixCmd = String.format("%s/bin/gradle", distribution.getGradleHomeDir().getAbsolutePath());
@@ -104,8 +84,9 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return executeInternal(windowsCmd, unixCmd, expectFailure);
     }
 
-    private List<String> getAllArgs() {
-        return GUtil.addLists(getExtraArgs(), args, tasks);
+    @Override
+    protected List<String> getAllArgs() {
+        return GUtil.addLists(getExtraArgs(), super.getAllArgs());
     }
 
     private List<String> getExtraArgs() {
@@ -114,12 +95,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         args.add("--gradle-user-home");
         args.add(distribution.getUserHomeDir().getAbsolutePath());
 
-        if (isQuiet()) {
-            args.add("--quiet");
-        }
-
         boolean settingsFound = false;
-        for (File dir = workingDir;
+        for (File dir = getWorkingDir();
              dir != null && distribution.isFileUnderTest(dir) && !settingsFound;
              dir = dir.getParentFile()) {
             if (new File(dir, "settings.gradle").isFile()) {
@@ -143,7 +120,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.inheritEnvironment();
         builder.environment("GRADLE_HOME", "");
         builder.environment(environmentVars);
-        builder.execDirectory(workingDir);
+        builder.execDirectory(getWorkingDir());
 
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             builder.execCommand("cmd");

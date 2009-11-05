@@ -62,12 +62,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    public InProcessGradleExecuter withTasks(String... names) {
-        parameter.setTaskNames(Arrays.asList(names));
-        return this;
-    }
-
-    @Override
     public GradleExecuter withTasks(List<String> names) {
         parameter.setTaskNames(names);
         return this;
@@ -104,8 +98,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    public GradleExecuter withArguments(String... args) {
-        new DefaultCommandLine2StartParameterConverter().convert(args, parameter);
+    public GradleExecuter withArguments(List<String> args) {
+        new DefaultCommandLine2StartParameterConverter().convert(args.toArray(new String[args.size()]), parameter);
         return this;
     }
 

@@ -15,7 +15,9 @@ class TestFileHelper {
 
     public void unzipTo(File target, boolean nativeTools) {
         if (nativeTools && !System.getProperty("os.name").toLowerCase().contains("windows")) {
-            assertThat(['unzip', file.absolutePath, '-d', target.absolutePath].execute().waitFor(), equalTo(0))
+            Process process = ['unzip', file.absolutePath, '-d', target.absolutePath].execute()
+            process.consumeProcessOutput()
+            assertThat(process.waitFor(), equalTo(0))
             return
         }
 
@@ -30,7 +32,9 @@ class TestFileHelper {
             target.mkdirs()
             ProcessBuilder builder = new ProcessBuilder(['tar', '-xf', file.absolutePath])
             builder.directory(target)
-            assertThat(builder.start().waitFor(), equalTo(0))
+            Process process = builder.start()
+            process.consumeProcessOutput()
+            assertThat(process.waitFor(), equalTo(0))
             return
         }
 

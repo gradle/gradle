@@ -18,47 +18,18 @@ package org.gradle.integtests;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 
-import java.io.File;
 import java.util.Map;
 import java.util.HashMap;
 
 public class QuickGradleExecuter extends AbstractGradleExecuter {
     private final GradleDistribution dist;
-    private File directory;
-    private String[] tasks = new String[0];
-    private String[] args = new String[0];
-    private boolean quiet;
     private StartParameterModifier inProcessStartParameterModifier;
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private String script = null;
 
     public QuickGradleExecuter(GradleDistribution dist) {
         this.dist = dist;
-        directory = dist.getTestDir();
-    }
-
-    @Override
-    public GradleExecuter inDirectory(File directory) {
-        this.directory = directory;
-        return this;
-    }
-
-    @Override
-    public GradleExecuter withArguments(String... args) {
-        this.args = args;
-        return this;
-    }
-
-    @Override
-    public GradleExecuter withTasks(String... names) {
-        this.tasks = names;
-        return this;
-    }
-
-    @Override
-    public GradleExecuter withQuietLogging() {
-        quiet = true;
-        return this;
+        inDirectory(dist.getTestDir());
     }
 
     @Override
@@ -95,40 +66,20 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
         parameter.setGradleUserHomeDir(dist.getUserHomeDir());
 
         InProcessGradleExecuter inProcessGradleExecuter = new InProcessGradleExecuter(parameter);
-        inProcessGradleExecuter.inDirectory(directory);
-
-        if (args.length > 0) {
-            inProcessGradleExecuter.withArguments(args);
-        }
+        copyTo(inProcessGradleExecuter);
 
         GradleExecuter returnedExecuter = inProcessGradleExecuter; 
 
         if (inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty() || script != null) {
             ForkingGradleExecuter forkingGradleExecuter = new ForkingGradleExecuter(dist);
-            forkingGradleExecuter.inDirectory(directory);
-            if (tasks.length > 0) {
-                forkingGradleExecuter.withTasks(tasks);
-            }
-            if (args.length > 0) {
-                forkingGradleExecuter.withArguments(args);
-            }
+            copyTo(forkingGradleExecuter);
             forkingGradleExecuter.withEnvironmentVars(environmentVars);
-            if (quiet) {
-                forkingGradleExecuter.withArguments("-q");
-            }
             forkingGradleExecuter.usingExecutable(script);
             returnedExecuter = forkingGradleExecuter;
         } else {
             if (inProcessStartParameterModifier != null) {
                 inProcessStartParameterModifier.modify(inProcessGradleExecuter.getParameter());
             }
-        }
-
-        if (tasks.length > 0) {
-            returnedExecuter.withTasks(tasks);
-        }
-        if (quiet) {
-            returnedExecuter.withArguments("-q");
         }
 
         return returnedExecuter;

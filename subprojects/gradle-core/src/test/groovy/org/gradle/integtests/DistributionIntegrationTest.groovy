@@ -3,7 +3,6 @@ package org.gradle.integtests
 import org.junit.runner.RunWith
 import org.junit.Test
 import org.gradle.util.GradleVersion
-import org.apache.tools.ant.taskdefs.Chmod
 import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Expand
 
@@ -17,8 +16,7 @@ class DistributionIntegrationTest {
     @Test
     public void binZipContents() {
         TestFile binZip = dist.distributionsDir.file("gradle-$version-bin.zip")
-        binZip.assertIsFile()
-        binZip.unzipTo(dist.testDir)
+        binZip.usingNativeTools().unzipTo(dist.testDir)
         TestFile contentsDir = dist.testDir.file("gradle-$version")
 
         checkMinimalContents(contentsDir)
@@ -32,8 +30,7 @@ class DistributionIntegrationTest {
     @Test
     public void allZipContents() {
         TestFile binZip = dist.distributionsDir.file("gradle-$version-all.zip")
-        binZip.assertIsFile()
-        binZip.unzipTo(dist.testDir)
+        binZip.usingNativeTools().unzipTo(dist.testDir)
         TestFile contentsDir = dist.testDir.file("gradle-$version")
 
         checkMinimalContents(contentsDir)
@@ -59,6 +56,9 @@ class DistributionIntegrationTest {
     }
 
     private def checkMinimalContents(TestFile contentsDir) {
+        // Check it can be executed
+        executer.inDirectory(contentsDir).usingExecutable('bin/gradle').withTaskList().run()
+
         // Scripts
         contentsDir.file('bin/gradle').assertIsFile()
         contentsDir.file('bin/gradle.bat').assertIsFile()
@@ -78,14 +78,8 @@ class DistributionIntegrationTest {
     @Test
     public void sourceZipContents() {
         TestFile srcZip = dist.distributionsDir.file("gradle-$version-src.zip")
-        srcZip.assertIsFile()
-        srcZip.unzipTo(dist.testDir)
+        srcZip.usingNativeTools().unzipTo(dist.testDir)
         TestFile contentsDir = dist.testDir.file("gradle-$version")
-
-        Chmod chmod = new Chmod()
-        chmod.file = contentsDir.file('gradlew')
-        chmod.perm = 'u+x'
-        AntUtil.execute(chmod)
 
         // Build self using wrapper in source distribution
         executer.inDirectory(contentsDir).usingExecutable('gradlew').withTasks('binZip').run()
