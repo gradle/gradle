@@ -24,7 +24,7 @@ public class DefaultTaskOutputs implements TaskOutputs {
     private final PathResolvingFileCollection outputFiles;
 
     public DefaultTaskOutputs(FileResolver resolver) {
-        outputFiles = new PathResolvingFileCollection(resolver, null);
+        outputFiles = new PathResolvingFileCollection("task output files", resolver, null);
     }
 
     public boolean getHasOutputFiles() {

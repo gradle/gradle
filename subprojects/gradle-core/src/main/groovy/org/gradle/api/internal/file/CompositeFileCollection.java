@@ -93,6 +93,11 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
             public String getDisplayName() {
                 return CompositeFileCollection.this.getDisplayName();
             }
+
+            @Override
+            protected void addDependencies(DefaultTaskDependency dependency) {
+                CompositeFileCollection.this.addDependencies(dependency);
+            }
         };
     }
 
@@ -101,16 +106,19 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency dependency = new DefaultTaskDependency();
+                for (FileCollection collection : getSourceCollections()) {
+                    dependency.add(collection);
+                }
                 addDependencies(dependency);
                 return dependency.getDependencies(task);
             }
         };
     }
 
+    /**
+     * Allows subclasses to add additional dependencies
+     */
     protected void addDependencies(DefaultTaskDependency dependency) {
-        for (FileCollection collection : getSourceCollections()) {
-            dependency.add(collection);
-        }
     }
 
     protected List<? extends FileCollection> getSourceCollections() {

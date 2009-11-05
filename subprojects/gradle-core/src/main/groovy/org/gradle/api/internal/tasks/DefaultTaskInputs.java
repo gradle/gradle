@@ -26,7 +26,7 @@ public class DefaultTaskInputs implements TaskInputs {
 
     public DefaultTaskInputs(FileResolver resolver) {
         this.resolver = resolver;
-        inputFiles = new PathResolvingFileCollection(resolver, null);
+        inputFiles = new PathResolvingFileCollection("task input files", resolver, null);
     }
 
     public boolean getHasInputFiles() {

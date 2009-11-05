@@ -81,6 +81,11 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
     }
 
     @Override
+    protected void addDependencies(DefaultTaskDependency dependency) {
+        dependency.add(builtBy);
+    }
+
+    @Override
     protected void addSourceCollections(Collection<FileCollection> sources) {
         for (final Object element : resolveToFilesAndFileCollections()) {
             if (element instanceof FileCollection) {

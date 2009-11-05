@@ -27,6 +27,7 @@ import static org.gradle.api.tasks.AntBuilderAwareUtil.*
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.Task
 
 class SingletonFileTreeTest {
     @Rule public TemporaryFolder rootDir = new TemporaryFolder();
@@ -148,4 +149,14 @@ class SingletonFileTreeTest {
         assertSetContains(filtered)
         assertVisits(filtered, [], [])
     }
+
+    @Test
+    public void hasSpecifiedDependencies() {
+        Task task = [:] as Task
+        SingletonFileTree tree = new SingletonFileTree(missingFile, [getDependencies: { [task] as Set}] as TaskDependency)
+        assertThat(tree.buildDependencies.getDependencies(null), equalTo([task] as Set))
+        assertThat(tree.matching{}.buildDependencies.getDependencies(null), equalTo([task] as Set))
+    }
 }
+
+

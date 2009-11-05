@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 import java.util.Collection;
@@ -77,6 +78,11 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         @Override
         public String getDisplayName() {
             return CompositeFileTree.this.getDisplayName();
+        }
+
+        @Override
+        protected void addDependencies(DefaultTaskDependency dependency) {
+            CompositeFileTree.this.addDependencies(dependency);
         }
 
         @Override

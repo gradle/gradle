@@ -30,6 +30,8 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -86,7 +88,7 @@ public class PathResolvingFileCollectionTest {
     }
 
     @Test
-    public void resolvesSpecifiedNamesUseFileResolver() {
+    public void resolvesSpecifiedPathsUseFileResolver() {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
@@ -184,7 +186,7 @@ public class PathResolvingFileCollectionTest {
             will(returnValue(file2));
         }});
 
-        collection.from((Object)toArray("src1", "src2"));
+        collection.from((Object) toArray("src1", "src2"));
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1, file2)));
     }
 
@@ -279,7 +281,7 @@ public class PathResolvingFileCollectionTest {
         final FileCollection fileCollectionMock = context.mock(FileCollection.class);
 
         collection.from(fileCollectionMock);
-        assertThat((Iterable<FileCollection>)collection.getSourceCollections(), hasItem(fileCollectionMock));
+        assertThat((Iterable<FileCollection>) collection.getSourceCollections(), hasItem(fileCollectionMock));
     }
 
     @Test
@@ -308,7 +310,7 @@ public class PathResolvingFileCollectionTest {
     }
 
     @Test
-    public void returnsUnionOfDependenciesOfNestedFileCollectionsPlusOwnDependencies() {
+    public void taskDependenciesContainsUnionOfDependenciesOfNestedFileCollectionsPlusOwnDependencies() {
         final FileCollection fileCollectionMock = context.mock(FileCollection.class);
 
         collection.from(fileCollectionMock);
@@ -331,4 +333,20 @@ public class PathResolvingFileCollectionTest {
 
         assertThat(collection.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(taskA, taskB)));
     }
+
+    @Test
+    public void hasSpecifiedDependenciesWhenEmpty() {
+        collection.builtBy("task");
+
+        final Task task = context.mock(Task.class);
+        context.checking(new Expectations(){{
+            allowing(taskResolverStub).resolveTask("task");
+            will(returnValue(task));
+        }});
+
+        assertThat(collection.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
+        assertThat(collection.getAsFileTree().getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
+        assertThat(collection.getAsFileTree().matching(HelperUtil.TEST_CLOSURE).getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
+    }
+    
 }
