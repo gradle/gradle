@@ -46,4 +46,34 @@ public class JUnitIntegrationTest {
         failure.assertHasDescription("Execution failed for task ':test'.");
         failure.assertThatCause(startsWith("There were failing tests."));
     }
+
+    @Test
+    public void canUseSuperClassesFromAnotherProject() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("settings.gradle").write("include 'a', 'b'");
+        testDir.file("b/build.gradle").writelns(
+                "usePlugin('java')",
+                "repositories { mavenCentral() }",
+                "dependencies { compile 'junit:junit:4.4' }"
+        );
+        testDir.file("b/src/main/java/org/gradle/AbstractTest.java").writelns(
+                "package org.gradle;",
+                "public abstract class AbstractTest {",
+                "@org.junit.Test public void ok() { }",
+                "}");
+        TestFile buildFile = testDir.file("a/build.gradle");
+        buildFile.writelns(
+                "usePlugin('java')",
+                "repositories { mavenCentral() }",
+                "dependencies { testCompile project(':b') }",
+                "test { options.fork() }"
+        );
+        testDir.file("a/src/test/java/org/gradle/SomeTest.java").writelns(
+                "package org.gradle;",
+                "public class SomeTest extends AbstractTest {",
+                "}");
+
+        executer.withTasks("a:test").run();
+        testDir.file("a/build/test-results/TEST-org.gradle.SomeTest.xml").assertIsFile();
+    }
 }

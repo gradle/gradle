@@ -20,8 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.objectweb.asm.ClassReader;
 
@@ -40,35 +38,17 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     protected static final String CLASS_FILE_EXT = ".class";
 
     private final File testClassesDirectory;
-    protected final List<File> testClassDirectories;
-    protected final ClassFileExtractionManager classFileExtractionManager;
-    protected final Map<File, Boolean> superClasses;
+    private final FileCollection testClasspath;
+    private List<File> testClassDirectories;
+    private ClassFileExtractionManager classFileExtractionManager;
+    private final Map<File, Boolean> superClasses;
 
     protected TestClassProcessor testClassProcessor;
 
     protected AbstractTestFrameworkDetector(File testClassesDirectory, FileCollection testClasspath) {
         this.testClassesDirectory = testClassesDirectory;
-        this.classFileExtractionManager = new ClassFileExtractionManager();
+        this.testClasspath = testClasspath;
         this.superClasses = new HashMap<File, Boolean>();
-
-        testClassDirectories = new ArrayList<File>();
-
-        testClassDirectories.add(testClassesDirectory);
-
-        if ( testClasspath != null ) {
-            testClasspath.getAsFileTree().visit(new FileVisitor() {
-                public void visitDir(FileVisitDetails dirDetails) {
-                    testClassDirectories.add(dirDetails.getFile());
-                }
-
-                public void visitFile(FileVisitDetails fileDetails) {
-                    final File file = fileDetails.getFile();
-
-                    if ( file.getName().endsWith(".jar") )
-                        classFileExtractionManager.addLibraryJar(file);
-                }
-            });
-        }
     }
 
     public File getTestClassesDirectory() {
@@ -78,7 +58,10 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     protected abstract T createClassVisitor();
 
     protected File getSuperTestClassFile(String superClassName) {
-        if (StringUtils.isEmpty(superClassName)) throw new IllegalArgumentException("superClassName is empty!");
+        prepareClasspath();
+        if (StringUtils.isEmpty(superClassName)) {
+            throw new IllegalArgumentException("superClassName is empty!");
+        }
         if (isLangPackageClassName(superClassName)) {
             return null;  // Object or GroovyObject class reached - no super class that has to be scanned
         } else {
@@ -88,14 +71,36 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             while (superTestClassFile == null && testClassDirectoriesIt.hasNext()) {
                 final File testClassDirectory = testClassDirectoriesIt.next();
                 final File superTestClassFileCandidate = new File(testClassDirectory, superClassName + ".class");
-                if (superTestClassFileCandidate.exists())
+                if (superTestClassFileCandidate.exists()) {
                     superTestClassFile = superTestClassFileCandidate;
+                }
             }
 
             if (superTestClassFile != null) {
                 return superTestClassFile;
             } else { // super test class file not in test class directories
                 return classFileExtractionManager.getLibraryClassFile(superClassName);
+            }
+        }
+    }
+
+    private void prepareClasspath() {
+        if (classFileExtractionManager != null) {
+            return;
+        }
+
+        classFileExtractionManager = new ClassFileExtractionManager();
+        testClassDirectories = new ArrayList<File>();
+
+        testClassDirectories.add(testClassesDirectory);
+        if (testClasspath != null) {
+            for (File file : testClasspath) {
+                if (file.isDirectory()) {
+                    testClassDirectories.add(file);
+                }
+                else if (file.isFile() && file.getName().endsWith(".jar")) {
+                    classFileExtractionManager.addLibraryJar(file);
+                }
             }
         }
     }

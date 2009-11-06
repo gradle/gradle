@@ -38,7 +38,7 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
     }
 
     /**
-     * Uses a TestClassVisitor to detect wether the class in the testClassFile is a test class.
+     * Uses a TestClassVisitor to detect whether the class in the testClassFile is a test class.
      * <p/>
      * If the class is not a test, this function will go up the inheritance tree to check if a
      * parent class is a test class. First the package of the parent class is checked, if it is a java.lang or groovy.lang
