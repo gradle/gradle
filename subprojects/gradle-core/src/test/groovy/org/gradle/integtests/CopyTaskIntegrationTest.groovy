@@ -25,6 +25,24 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
         )
     }
 
+   @Test
+   public void testSingleSourceWithSpecClosures() {
+       TestFile buildFile = testFile("build.gradle").writelns(
+               "task (copy, type:Copy) {",
+               "   from 'src'",
+               "   into 'dest'",
+               "   include { fte -> !fte.file.name.endsWith('b') }",
+               "   exclude { fte -> fte.file.name == 'bad.file' }",
+               "}"
+       )
+       usingBuildFile(buildFile).withTasks("copy").run()
+       testFile('dest').assertHasDescendants(
+               'root.a',
+               'one/one.a',
+               'two/two.a',
+       )
+   }
+
     @Test
     public void testMultipleSourceWithInheritedPatterns() {
         TestFile buildFile = testFile("build.gradle") << '''

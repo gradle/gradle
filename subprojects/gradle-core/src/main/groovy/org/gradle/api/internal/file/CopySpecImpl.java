@@ -196,6 +196,15 @@ public class CopySpecImpl implements CopySpec {
         return result;
     }
 
+    public List<Spec<FileTreeElement>> getAllIncludeSpecs() {
+        List<Spec<FileTreeElement>> result = new ArrayList<Spec<FileTreeElement>>();
+        if (parentSpec != null) {
+            result.addAll(parentSpec.getAllIncludeSpecs());
+        }
+        result.addAll(patternSet.getIncludeSpecs());
+        return result;
+    }
+
     public CopySpec exclude(String... excludes) {
         patternSet.exclude(excludes);
         return this;
@@ -308,6 +317,15 @@ public class CopySpecImpl implements CopySpec {
             result.addAll(parentSpec.getAllExcludes());
         }
         result.addAll(getExcludes());
+        return result;
+    }
+
+    public List<Spec<FileTreeElement>> getAllExcludeSpecs() {
+        List<Spec<FileTreeElement>> result = new ArrayList<Spec<FileTreeElement>>();
+        if (parentSpec != null) {
+            result.addAll(parentSpec.getAllExcludeSpecs());
+        }
+        result.addAll(patternSet.getExcludeSpecs());
         return result;
     }
 

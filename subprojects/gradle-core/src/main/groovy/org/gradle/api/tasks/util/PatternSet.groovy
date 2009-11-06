@@ -124,6 +124,10 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         includes
     }
 
+    public Set<Spec<FileTreeElement>> getIncludeSpecs() {
+        return includeSpecs
+    }
+
     public PatternSet setIncludes(Iterable<String> includes) {
         this.includes.clear()
         include(includes)
@@ -131,6 +135,10 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
 
     public Set<String> getExcludes() {
         excludes
+    }
+
+    public Set<Spec<FileTreeElement>> getExcludeSpecs() {
+       return excludeSpecs
     }
 
     public PatternSet setExcludes(Iterable<String> excludes) {
@@ -152,6 +160,14 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         this
     }
 
+    /*
+    This can't be called just include, because it has the same erasure as include(Iterable<String>)
+     */
+    public PatternFilterable includeSpecs(Iterable<Spec<FileTreeElement>> includes) {
+        GUtil.addToCollection(this.includeSpecs, includes)
+        this
+    }
+
     public PatternFilterable include(Closure closure) {
         include(closure as Spec)
         this
@@ -168,6 +184,11 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
 
     public PatternFilterable exclude(Spec<FileTreeElement> spec) {
         excludeSpecs << spec
+        this
+    }
+
+    public PatternFilterable excludeSpecs(Iterable<Spec<FileTreeElement>> excludes) {
+        GUtil.addToCollection(this.excludeSpecs, excludes)
         this
     }
 

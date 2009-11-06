@@ -19,8 +19,8 @@ import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.util.PatternSet;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Steve Appling
@@ -70,8 +70,9 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
         PatternSet patterns = new PatternSet();
         patterns.setCaseSensitive(caseSensitive);
         patterns.include(spec.getAllIncludes());
+        patterns.includeSpecs(spec.getAllIncludeSpecs());
         patterns.exclude(spec.getAllExcludes());
-
+        patterns.excludeSpecs(spec.getAllExcludeSpecs());
         return spec.getSource().matching(patterns);
     }
 
