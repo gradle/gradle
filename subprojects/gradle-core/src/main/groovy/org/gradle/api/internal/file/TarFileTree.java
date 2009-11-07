@@ -140,7 +140,7 @@ public class TarFileTree extends AbstractFileTree {
         }
 
         public RelativePath getRelativePath() {
-            return new RelativePath(true, entry.getName().split("/"));
+            return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
         }
     }
 

@@ -31,7 +31,7 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
 
     public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor) {
         super(resolver);
-        this.visitor = new MappingCopySpecVisitor(visitor);
+        this.visitor = new MappingCopySpecVisitor(new NormalizingCopyVisitor(visitor));
     }
 
     public void setVisitor(CopySpecVisitor visitor) {

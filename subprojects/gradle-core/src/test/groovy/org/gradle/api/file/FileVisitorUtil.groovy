@@ -30,6 +30,7 @@ class FileVisitorUtil {
                         assertThat(dirs, hasItem(details.relativePath.parent.pathString))
                     }
                     assertTrue(files.add(details.relativePath.pathString))
+                    assertTrue(details.relativePath.isFile())
                     assertEquals(details.file.lastModified(), details.lastModified)
                     assertTrue(details.file.file)
                     ByteArrayOutputStream outstr = new ByteArrayOutputStream()
@@ -41,6 +42,7 @@ class FileVisitorUtil {
                         assertThat(dirs, hasItem(details.relativePath.parent.pathString))
                     }
                     assertTrue(dirs.add(details.relativePath.pathString))
+                    assertFalse(details.relativePath.isFile())
                     assertEquals(details.file.lastModified(), details.lastModified)
                     assertTrue(details.file.directory)
                 }

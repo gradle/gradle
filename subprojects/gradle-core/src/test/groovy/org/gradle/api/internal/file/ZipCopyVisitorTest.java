@@ -70,6 +70,7 @@ public class ZipCopyVisitorTest {
         visitor.startVisit(copyAction);
         visitor.visitSpec(copySpec);
 
+        visitor.visitDir(dir("dir"));
         visitor.visitFile(file("dir/file1"));
         visitor.visitFile(file("file2"));
 
@@ -141,6 +142,20 @@ public class ZipCopyVisitorTest {
                     return null;
                 }
             });
+        }});
+
+        return details;
+    }
+
+    private FileVisitDetails dir(final String path) {
+        final FileVisitDetails details = context.mock(FileVisitDetails.class, path);
+
+        context.checking(new Expectations() {{
+            allowing(details).getRelativePath();
+            will(returnValue(RelativePath.parse(false, path)));
+
+            allowing(details).getLastModified();
+            will(returnValue(1000L));
         }});
 
         return details;
