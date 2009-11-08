@@ -88,12 +88,24 @@ public class DefaultPersistentIndexedCache<K, V> implements PersistentIndexedCac
     }
 
     private String getStateFileName(String key) {
-        StringBuilder name = new StringBuilder(key);
-        boolean encode = false;
+        return encode(key, key);
+    }
+
+    private String getStateFileName(File keyFile) {
+        return encode(keyFile.getAbsolutePath(), keyFile.getName());
+    }
+
+    private String encode(String key, String displayName) {
+        StringBuilder name = new StringBuilder(displayName);
+        boolean encode = !key.equals(displayName);
         for (int i = 0; i < name.length(); i++) {
             char ch = name.charAt(i);
             if (!Character.isLetterOrDigit(ch) && ch != '_') {
                 name.setCharAt(i, '_');
+                encode = true;
+            }
+            else if (Character.isUpperCase(ch)) {
+                name.setCharAt(i, Character.toLowerCase(ch));
                 encode = true;
             }
         }
@@ -102,14 +114,6 @@ public class DefaultPersistentIndexedCache<K, V> implements PersistentIndexedCac
             return name.toString();
         }
         name.append(HashUtil.createHash(key));
-        return name.toString();
-    }
-
-    private String getStateFileName(File keyFile) {
-        StringBuilder name = new StringBuilder();
-        name.append(keyFile.getName());
-        name.append('_');
-        name.append(HashUtil.createHash(keyFile.getAbsolutePath()));
         return name.toString();
     }
 }

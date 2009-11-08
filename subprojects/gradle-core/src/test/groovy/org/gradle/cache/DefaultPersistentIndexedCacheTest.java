@@ -27,14 +27,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+
 @RunWith(JMock.class)
 public class DefaultPersistentIndexedCacheTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final PersistentCache backingCache = context.mock(PersistentCache.class);
+    private final Serializer<Integer> serializer = new DefaultSerializer<Integer>();
     private final DefaultPersistentIndexedCache<String, Integer> cache
-            = new DefaultPersistentIndexedCache<String, Integer>(backingCache, new DefaultSerializer<Integer>());
+            = new DefaultPersistentIndexedCache<String, Integer>(backingCache, serializer);
 
     @Before
     public void setup() {
@@ -97,6 +100,12 @@ public class DefaultPersistentIndexedCacheTest {
         cache.put(".", 5);
         cache.put("/abcd", 6);
         cache.put("q:\\abcd", 7);
+        cache.put("a bcd", 8);
+        cache.put("abc d", 9);
+        cache.put("abc.d", 10);
+        cache.put("aBc", 11);
+        cache.put("abc", 12);
+        cache.put("Abc", 13);
 
         assertThat(cache.get("a/b/c/d/e"), equalTo(2));
         assertThat(cache.get("a\\b\\c\\d\\e"), equalTo(3));
@@ -104,6 +113,27 @@ public class DefaultPersistentIndexedCacheTest {
         assertThat(cache.get("."), equalTo(5));
         assertThat(cache.get("/abcd"), equalTo(6));
         assertThat(cache.get("q:\\abcd"), equalTo(7));
+        assertThat(cache.get("a bcd"), equalTo(8));
+        assertThat(cache.get("abc d"), equalTo(9));
+        assertThat(cache.get("abc.d"), equalTo(10));
+        assertThat(cache.get("aBc"), equalTo(11));
+        assertThat(cache.get("abc"), equalTo(12));
+        assertThat(cache.get("Abc"), equalTo(13));
+    }
+
+    @Test
+    public void canUseFileAsKey() {
+        expectCacheUpdated();
+
+        DefaultPersistentIndexedCache<File, Integer> cache = new DefaultPersistentIndexedCache<File, Integer>(backingCache, serializer);
+
+        cache.put(new File("file"), 1);
+        cache.put(new File("dir/file"), 2);
+        cache.put(new File("File"), 3);
+
+        assertThat(cache.get(new File("file")), equalTo(1));
+        assertThat(cache.get(new File("dir/file")), equalTo(2));
+        assertThat(cache.get(new File("File")), equalTo(3));
     }
 
     @Test
