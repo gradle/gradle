@@ -70,9 +70,9 @@ task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
 
 task userguideStyleSheets {
     stylesheetsDir = new File(srcDocsDir, 'stylesheets')
-    inputs.inputFiles configurations.userGuideStyleSheets
-    inputs.inputFiles stylesheetsDir
-    outputs.outputFiles docbookDir
+    inputs.files configurations.userGuideStyleSheets
+    inputs.dir stylesheetsDir
+    outputs.files docbookDir
     doFirst {
         ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
             globmapper(from: 'docbook-xsl-1.75.2/*', to: '*')
@@ -86,10 +86,10 @@ task userguideStyleSheets {
 }
 
 task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) {
-    inputs.inputFiles new File(docbookSrc, 'userguide.xml')
-    inputs.inputFiles docbookDir
-    inputs.inputFiles userguideSrcDir
-    outputs.outputFiles userguideDir
+    inputs.files new File(docbookSrc, 'userguide.xml')
+    inputs.dir docbookDir
+    inputs.dir userguideSrcDir
+    outputs.files userguideDir
     doFirst {
         ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
             jvmarg(value: '-Xmx128m')

@@ -1,9 +1,8 @@
 dependencies {
-   compile project(':core')
-   compile project(':openApi')
+    compile project(':core')
+    compile project(':openApi')
 
     groovy libraries.groovy_depends
-
 
     compile libraries.jopt_simple,
             libraries.dom4j,

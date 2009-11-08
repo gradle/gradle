@@ -2,12 +2,10 @@ import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.artifacts.repositories.WebdavResolver
-import org.gradle.api.tasks.testing.ForkMode
-import org.gradle.api.tasks.wrapper.Wrapper
+
 import org.gradle.build.samples.WrapperProjectCreator
 import org.gradle.build.startscripts.StartScriptsGenerator
 import org.apache.ivy.plugins.resolver.*
-import org.gradle.api.tasks.Optional
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -30,7 +28,6 @@ usePlugin BasePlugin
 type = 'jar'
 
 startScriptsDir = new File("$buildDir/startScripts")
-distLibsDir = new File("$buildDir/distLibs")
 
 archivesBaseName = 'gradle'
 
@@ -155,59 +152,65 @@ task startScripts << {
     StartScriptsGenerator.generate(project(':core').jar.archiveName, startScriptsDir, archivesBaseName)    
 }
 
-task distLibs(dependsOn: configurations.distLib) << {
-    removeAnyExistingOldGradleLibs()
-    copy {
-        from configurations.distLib
-        into distLibsDir
-    }
-}
-
-def removeAnyExistingOldGradleLibs() {
-    if (distLibsDir.exists()) ant.delete { fileset(dir: distLibsDir, includes: "$archivesBaseName-*.jar") }
-}
-
 zipRootFolder = "$archivesBaseName-${-> version}"
 
-task allZip(type: Zip, dependsOn: [startScripts, distLibs, 'docs:docs']) {
+task allZip(type: Zip, dependsOn: [startScripts, 'docs:docs']) {
     classifier = 'all'
-    zipFileSet(dir: startScriptsDir, prefix: "$zipRootFolder/bin", fileMode: '775')
-    zipFileSet(dir: 'src/toplevel', prefix: zipRootFolder)
-    groovyProjects().each { project ->
-        project.sourceSets.main.java.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
-        project.sourceSets.main.resources.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
-        project.sourceSets.main.groovy.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
+    into(zipRootFolder) {
+        from 'src/toplevel'
+        from project(':docs').distDocsDir
+        into('bin') {
+            from startScriptsDir
+            fileMode = 0755
+        }
+        into('lib') {
+            from configurations.distLib
+        }
+        into('src') {
+            from groovyProjects().collect {project -> project.sourceSets.main.allSource }
+        }
+        into('docs') {
+            from project(':docs').docsDir
+        }
+        into('samples') {
+            from project(':docs').samplesDir
+        }
     }
-    zipFileSet(dir: distLibsDir, prefix: "$zipRootFolder/lib")
-    zipFileSet(dir: project(':docs').distDocsDir, prefix: zipRootFolder)
-    zipFileSet(dir: project(':docs').docsDir, prefix: "$zipRootFolder/docs")
-    zipFileSet(dir: project(':docs').samplesDir, prefix: "$zipRootFolder/samples")
 }
 
-task binZip(type: Zip, dependsOn: [startScripts, distLibs, 'docs:distDocs']) {
+task binZip(type: Zip, dependsOn: [startScripts, 'docs:distDocs']) {
     classifier = 'bin'
-    zipFileSet(dir: startScriptsDir, prefix: "$zipRootFolder/bin", fileMode: '775')
-    zipFileSet(dir: 'src/toplevel', prefix: zipRootFolder)
-    zipFileSet(dir: distLibsDir, prefix: "$zipRootFolder/lib")
-    zipFileSet(dir: project(':docs').distDocsDir, prefix: zipRootFolder)
+    into(zipRootFolder) {
+        from 'src/toplevel'
+        from project(':docs').distDocsDir
+        into('bin') {
+            from startScriptsDir
+            fileMode = 0755
+        }
+        into('lib') {
+            from configurations.distLib
+        }
+    }
 }
 
 task srcZip(type: Zip) {
     classifier = 'src'
-    zipFileSet(dir: projectDir, prefix: zipRootFolder, fileMode: '775') {
-        include 'gradlew'
-    }
-    zipFileSet(dir: projectDir, prefix: zipRootFolder) {
-        ['buildSrc', 'subprojects/*'].each {
-            include "$it/*.gradle"
-            include "$it/src/"
+    into(zipRootFolder) {
+        from('gradlew') {
+            fileMode = 0755
         }
-        include 'config/'
-        include 'src/'
-        include '*.gradle'
-        include 'gradle.properties'
-        include 'wrapper/'
-        include 'gradlew.bat'
+        from(projectDir) {
+            ['buildSrc', 'subprojects/*'].each {
+                include "$it/*.gradle"
+                include "$it/src/"
+            }
+            include 'config/'
+            include 'src/'
+            include '*.gradle'
+            include 'gradle.properties'
+            include 'wrapper/'
+            include 'gradlew.bat'
+        }
     }
 }
 
@@ -218,7 +221,7 @@ task translateLibsTo14(type: TranslateLibsTo14) {
         onlyIf { false }
     }
     translatedLibsDir = new File(distsDir, 'retroLibs')
-    libsDir = distLibsDir
+    libs = configurations.distLib
     libsToTranslate = ['logback-core', 'logback-classic', 'gradle-', 'gradle-wrapper']
 
 }
@@ -226,26 +229,27 @@ task translateLibsTo14(type: TranslateLibsTo14) {
 task jdk14AllZip(type: Zip, dependsOn: [translateLibsTo14, startScripts]) {
     onlyIf { project.hasProperty('gradle_retroLibsDir') }
     classifier = 'all-jdk14'
-    zipFileSet(dir: distLibsDir, prefix: "$zipRootFolder/lib") {
-        exclude 'gradle*.jar'
-        exclude 'logback*.jar'
-    }
-    zipFileSet(dir: translateLibsTo14.translatedLibsDir, prefix: "$zipRootFolder/lib")
-    zipFileSet(dir: startScriptsDir, prefix: "$zipRootFolder/bin", fileMode: '775')
-    zipFileSet(dir: 'src/toplevel', prefix: zipRootFolder)
-    groovyProjects().each { project ->
-        project.sourceSets.main.java.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
-        project.sourceSets.main.resources.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
-        project.sourceSets.main.groovy.srcDirs.each { zipFileSet(dir: it, prefix: "$zipRootFolder/src") }
-    }
-    zipFileSet(dir: project(':docs').distDocsDir, prefix: zipRootFolder)
-    zipFileSet(dir: project(':docs').docsDir, prefix: "$zipRootFolder/docs")
-    zipFileSet(dir: project(':docs').samplesDir, prefix: "$zipRootFolder/samples")
-    doFirst {task ->
-        configurations.retrotranslatorAntTask.each {File file ->
-            task.zipFileSet(dir: file.parentFile, prefix: "$zipRootFolder/lib") {
-                include file.name
+    into(zipRootFolder) {
+        from 'src/toplevel'
+        from project(':docs').distDocsDir
+        into('bin') {
+            from startScriptsDir
+            fileMode = 0755
+        }
+        into('lib') {
+            from translateLibsTo14.translatedLibsDir
+            from configurations.retrotranslatorAntTask
+        }
+        into('src') {
+            groovyProjects().each {project ->
+                from project.sourceSets.main.allSource
             }
+        }
+        into('docs') {
+            from project(':docs').docsDir
+        }
+        into('samples') {
+            from project(':docs').samplesDir
         }
     }
 }
@@ -322,12 +326,13 @@ task install(type: Install, dependsOn: binZip, description: 'Installs the distri
 
 uploadDists {
     dependsOn testedDists
+    uploadDescriptor = false
     doFirst {
         it.repositories.add(new WebdavResolver()) {
             name = 'gradleReleases'
             user = codehausUserName
             userPassword = codehausUserPassword
-            addArtifactPattern("$distributionUploadUrl/[artifact]-[revision](-[classifier]).[ext]" as String)
+            addArtifactPattern("${version.distributionUrl}/[artifact]-[revision](-[classifier]).[ext]" as String)
         }
     }
 }
@@ -370,7 +375,7 @@ class Version {
     def Version(versionNumber, taskGraph) {
         this.versionNumber = versionNumber
         buildTime = new Date()
-        taskGraph.whenReady { graph ->
+        taskGraph.whenReady {graph ->
             if (!graph.hasTask(':release')) {
                 this.versionNumber += "-" + getTimestamp()
                 release = false
@@ -394,12 +399,22 @@ class Version {
         }
         return release
     }
+
+    String getDistributionUrl() {
+        if (release) {
+            'https://dav.codehaus.org/dist/gradle'
+        } else {
+            'https://dav.codehaus.org/snapshots.dist/gradle'
+        }
+    }
 }
 
 class TranslateLibsTo14 extends DefaultTask {
+    @OutputDirectory
     File translatedLibsDir
 
-    File libsDir
+    @InputFiles
+    FileCollection libs
 
     File toolClasspath
 
@@ -411,17 +426,20 @@ class TranslateLibsTo14 extends DefaultTask {
         project.ant {
             taskdef(name: "retrotranslator", classname: "net.sf.retrotranslator.transformer.RetrotranslatorTask",
                     classpath: this.project.configurations.retrotranslatorAntTask.asPath)
-            List libFiles = libsDir.listFiles()
-            List retroFiles = libsToTranslate.collect { String fileName ->
+            List libFiles = libs as List
+            List retroFiles = libsToTranslate.collect {String fileName ->
                 libFiles.find { it.name.startsWith(fileName) }
             }
-            String libExcludes = retroFiles.join(',')
             retroFiles.each {File file ->
                 retroExe(file) {
                     fileset(dir: translatedLibsDir)
-                    fileset(dir: libsDir, excludes: libExcludes)
+                    libs.addToAntBuilder(delegate)
                     fileset(dir: toolClasspath)
                 }
+            }
+            copy {
+                from libFiles - retroFiles
+                into translatedLibsDir
             }
         }
     }
@@ -429,7 +447,7 @@ class TranslateLibsTo14 extends DefaultTask {
     void retroExe(File file, Closure fileSet) {
         project.ant {
             retrotranslator(target: "1.4", destjar: new File(translatedLibsDir, file.name), smart: true, verify: false, failonwarning: false) {
-                jarfileset(dir: libsDir, includes: file.name)
+                jarfileset(dir: file.parentFile, includes: file.name)
                 classpath() {
                     fileset(dir: toolClasspath)
                     fileSet.delegate = delegate
