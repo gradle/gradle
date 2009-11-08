@@ -200,9 +200,10 @@ task srcZip(type: Zip) {
             fileMode = 0755
         }
         from(projectDir) {
+            def spec = delegate
             ['buildSrc', 'subprojects/*'].each {
-                include "$it/*.gradle"
-                include "$it/src/"
+                spec.include "$it/*.gradle"
+                spec.include "$it/src/"
             }
             include 'config/'
             include 'src/'
