@@ -18,7 +18,7 @@ package org.gradle.openapi.external;
 import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.Constructor;
-import org.gradle.BootstrapLoader;
+import org.gradle.foundation.BootstrapLoader;
 
 /**
 
@@ -56,7 +56,7 @@ public class ExternalUtility
       ////create a class loader that will load our bootloader.
       //URLClassLoader contextClassLoader = new URLClassLoader(new URL[] { gradleJarFile.toURI().toURL() }, parentClassLoader );
       //
-      //Class bootstrapClass = contextClassLoader.loadClass("org.gradle.BootstrapLoader");
+      //Class bootstrapClass = contextClassLoader.loadClass("org.gradle.foundation.BootstrapLoader");
       //
       //Object loader = bootstrapClass.newInstance();
       //Method initializeMethod = bootstrapClass.getDeclaredMethod( "initialize", new Class<?>[]{ClassLoader.class, File.class, boolean.class, boolean.class, boolean.class } );

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import org.gradle.*;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
+import org.gradle.initialization.CommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.util.Clock;
 import org.gradle.util.GradleVersion;
 

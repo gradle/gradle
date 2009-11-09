@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.initialization;
 
+import org.gradle.CacheUsage;
+import org.gradle.CommandLineArgumentException;
+import org.gradle.GradleLauncher;
+import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;

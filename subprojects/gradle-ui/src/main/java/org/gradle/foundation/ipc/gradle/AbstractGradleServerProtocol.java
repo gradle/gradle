@@ -16,7 +16,7 @@
 package org.gradle.foundation.ipc.gradle;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;

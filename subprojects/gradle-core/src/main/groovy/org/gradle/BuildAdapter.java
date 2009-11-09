@@ -19,7 +19,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 
 /**
- * An abstract adapter class for receiving build events. The methods in this class are empty.
+ * A {@link BuildListener} adapter class for receiving build events. The methods in this class are empty.
  * This class exists as convenience for creating listener objects.
  */
 public class BuildAdapter implements BuildListener

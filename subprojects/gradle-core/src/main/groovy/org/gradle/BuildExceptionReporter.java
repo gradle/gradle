@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.util.GUtil;
 import org.gradle.execution.TaskSelectionException;
 import org.slf4j.Logger;

@@ -15,7 +15,7 @@
  */
 package org.gradle.foundation;
 
-import org.gradle.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 
 import java.util.List;
 import java.util.ArrayList;

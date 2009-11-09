@@ -28,6 +28,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import static org.gradle.util.Matchers.*;
+
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.hamcrest.Matcher;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;

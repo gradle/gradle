@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.initialization;
 
+import org.gradle.GradleLauncher;
+import org.gradle.GradleLauncherFactory;
+import org.gradle.StartParameter;
+import org.gradle.TaskExecutionLogger;
 import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectFactory;
@@ -24,7 +28,6 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
-import org.gradle.initialization.*;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
@@ -42,14 +45,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     public DefaultGradleLauncherFactory(LoggingConfigurer loggingConfigurer, CommandLine2StartParameterConverter commandLine2StartParameterConverter) {
         this.loggingConfigurer = loggingConfigurer;
         this.commandLine2StartParameterConverter = commandLine2StartParameterConverter;
-    }
-
-    public LoggingConfigurer getLoggingConfigurer() {
-        return loggingConfigurer;
-    }
-
-    public void setLoggingConfigurer(LoggingConfigurer loggingConfigurer) {
-        this.loggingConfigurer = loggingConfigurer;
     }
 
     public StartParameter createStartParameter(String[] commandLineArgs) {

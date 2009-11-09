@@ -16,7 +16,7 @@
 package org.gradle.gradleplugin.foundation;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.gradle.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.logging.LogLevel;

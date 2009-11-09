@@ -15,7 +15,7 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic.tabs;
 
-import org.gradle.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;

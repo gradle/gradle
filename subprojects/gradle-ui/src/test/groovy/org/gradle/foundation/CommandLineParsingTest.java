@@ -16,7 +16,7 @@
 package org.gradle.foundation;
 
 import junit.framework.TestCase;
-import org.gradle.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 
 /**
  * This tests aspects of command line parsing that the UI does.
