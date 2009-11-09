@@ -13,7 +13,9 @@ dependencies {
 }
 
 jar.manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
-jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name}")
+jar.doFirst {
+    jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name}")
+}
 
 task startScripts << {
     ant.mkdir(dir: startScriptsDir)
