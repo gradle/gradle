@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-
 package org.gradle.api.plugins.jetty;
 
 
 import org.gradle.api.*;
+import org.gradle.api.plugins.jetty.internal.*;
 import org.gradle.api.tasks.*;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.plugins.jetty.util.*;
-import org.gradle.api.plugins.jetty.util.JettyPluginServer;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.RequestLog;
 import org.mortbay.jetty.Server;
@@ -177,7 +175,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * @return The Jetty Plugin Server
      */
     public abstract JettyPluginServer createServer() throws Exception;
-
 
     public abstract void finishConfigurationBeforeStart() throws Exception;
 

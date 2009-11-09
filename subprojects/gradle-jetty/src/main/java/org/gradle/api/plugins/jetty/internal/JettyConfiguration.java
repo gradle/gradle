@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jetty;
+package org.gradle.api.plugins.jetty.internal;
 
 import java.io.File;
 import java.io.IOException;

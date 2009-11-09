@@ -69,6 +69,8 @@ class DistributionIntegrationTest {
         // Libs
         contentsDir.file("lib/gradle-core-${version}.jar").assertIsFile()
         contentsDir.file("lib/gradle-ui-${version}.jar").assertIsFile()
+        contentsDir.file("lib/gradle-launcher-${version}.jar").assertIsFile()
+        contentsDir.file("lib/gradle-jetty-${version}.jar").assertIsFile()
         contentsDir.file("lib/gradle-wrapper-${version}.jar").assertIsFile()
 
         // Docs

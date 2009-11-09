@@ -14,27 +14,13 @@
  * limitations under the License.
  */
 
-//========================================================================
-//$Id: AbstractJettyRunTask.java 3649 2008-09-18 06:36:58Z dyu $
-//Copyright 2000-2004 Mort Bay Consulting Pty. Ltd.
-//------------------------------------------------------------------------
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at 
-//http://www.apache.org/licenses/LICENSE-2.0
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//========================================================================
-
 package org.gradle.api.plugins.jetty;
 
-import hidden.org.codehaus.plexus.util.FileUtils;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.jetty.util.ScanTargetPattern;
+import org.gradle.api.plugins.jetty.internal.Jetty6PluginServer;
+import org.gradle.api.plugins.jetty.internal.JettyPluginServer;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
@@ -172,42 +158,17 @@ public class JettyRun extends AbstractJettyRunTask {
         }
 
         if (scanTargetPatterns != null) {
-            for (int i = 0; i < scanTargetPatterns.length; i++) {
-                Iterator itor = scanTargetPatterns[i].getIncludes().iterator();
-                StringBuffer strbuff = new StringBuffer();
-                while (itor.hasNext()) {
-                    strbuff.append((String) itor.next());
-                    if (itor.hasNext())
-                        strbuff.append(",");
-                }
-                String includes = strbuff.toString();
-
-                itor = scanTargetPatterns[i].getExcludes().iterator();
-                strbuff = new StringBuffer();
-                while (itor.hasNext()) {
-                    strbuff.append((String) itor.next());
-                    if (itor.hasNext())
-                        strbuff.append(",");
-                }
-                String excludes = strbuff.toString();
-
-                try {
-                    List<File> files = FileUtils.getFiles(scanTargetPatterns[i].getDirectory(), includes, excludes);
-                    itor = files.iterator();
-                    while (itor.hasNext())
-                        logger.info("Adding extra scan target from pattern: " + itor.next());
-                    List<File> currentTargets = getExtraScanTargets();
-                    if (currentTargets != null && !currentTargets.isEmpty())
-                        currentTargets.addAll(files);
-                    else
-                        setExtraScanTargets(files);
-                }
-                catch (IOException e) {
-                    throw new InvalidUserDataException(e.getMessage());
+            for (ScanTargetPattern scanTargetPattern : scanTargetPatterns) {
+                ConfigurableFileTree files = getProject().fileTree(scanTargetPattern.getDirectory());
+                files.include(scanTargetPattern.getIncludes());
+                files.exclude(scanTargetPattern.getExcludes());
+                List<File> currentTargets = getExtraScanTargets();
+                if (currentTargets != null && !currentTargets.isEmpty()) {
+                    currentTargets.addAll(files.getFiles());
+                } else {
+                    setExtraScanTargets((List) files.asType(List.class));
                 }
             }
-
-
         }
     }
 
@@ -369,7 +330,7 @@ public class JettyRun extends AbstractJettyRunTask {
 
     public void finishConfigurationBeforeStart() throws Exception {
         Handler[] handlers = getConfiguredContextHandlers();
-        org.gradle.api.plugins.jetty.util.JettyPluginServer plugin = getServer();
+        org.gradle.api.plugins.jetty.internal.JettyPluginServer plugin = getServer();
         Server server = (Server) plugin.getProxiedObject();
 
         HandlerCollection contexts = (HandlerCollection) server.getChildHandlerByClass(ContextHandlerCollection.class);
@@ -394,8 +355,8 @@ public class JettyRun extends AbstractJettyRunTask {
     /**
      * @see JettyRun#createServer()
      */
-    public org.gradle.api.plugins.jetty.util.JettyPluginServer createServer() {
-        return new JettyPluginServer();
+    public JettyPluginServer createServer() {
+        return new Jetty6PluginServer();
     }
 
     @InputFile @Optional

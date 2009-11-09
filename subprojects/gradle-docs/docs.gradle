@@ -209,7 +209,7 @@ task javadoc(type: Javadoc) {
     include 'org/gradle/api/**'
     include 'org/gradle/*'
     include 'org/gradle/external/javadoc/**'
-    exclude 'org/gradle/api/internal/**'
+    exclude '**/internal/**'
     optionsFile = file("$buildDir/tmp/javadoc.options")
     doFirst {
         title = "Gradle API $version"
@@ -219,10 +219,8 @@ task javadoc(type: Javadoc) {
 task groovydoc(type: Groovydoc) {
     source groovyProjects().collect { project -> project.sourceSets.main.groovy }
     destinationDir = groovydocDir
-    include 'org/gradle/api/**'
-    include 'org/gradle/*'
-    include 'org/gradle/external/javadoc/**'
-    exclude 'org/gradle/api/internal/**'
+    includes = javadoc.includes
+    excludes = javadoc.excludes
     doFirst {
         title = "Gradle API $version"
     }

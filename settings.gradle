@@ -1,6 +1,7 @@
 include 'core'
 include 'wrapper'
 include 'launcher'
+include 'jetty'
 include 'ui'
 include 'openApi'
 include 'docs'

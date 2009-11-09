@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
+package org.gradle.api.plugins.jetty.internal;
+
 /**
- * The Jetty {@link org.gradle.api.Plugin} implementation.
+ * Proxy
+ * 
+ * Provides untyped access to an object of
+ * a particular jetty version.
+ *
  */
-package org.gradle.api.plugins.jetty;
+public interface Proxy {
+    
+    public Object getProxiedObject();
+
+}

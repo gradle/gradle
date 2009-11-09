@@ -280,7 +280,7 @@ task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
 
     testClassesDir = project(':core').sourceSets.test.classesDir
-    classpath = project(':core').sourceSets.test.runtimeClasspath
+    classpath = project(':core').sourceSets.test.runtimeClasspath + project(':jetty').sourceSets.test.runtimeClasspath
     testResultsDir = file('build/test-results')
     testReportDir = file('build/reports/tests')
     testSrcDirs = []

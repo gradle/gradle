@@ -17,7 +17,7 @@
 /**
  *
  */
-package org.gradle.api.plugins.jetty.util;
+package org.gradle.api.plugins.jetty.internal;
 
 import java.io.IOException;
 

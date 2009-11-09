@@ -14,22 +14,7 @@
  * limitations under the License.
  */
 
-//========================================================================
-//$Id: JettyPluginServer.java 2094 2007-09-10 06:11:26Z janb $
-//Copyright 2000-2004 Mort Bay Consulting Pty. Ltd.
-//------------------------------------------------------------------------
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at 
-//http://www.apache.org/licenses/LICENSE-2.0
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//========================================================================
-
-package org.gradle.api.plugins.jetty;
+package org.gradle.api.plugins.jetty.internal;
 
 
 import org.mortbay.jetty.Connector;
@@ -52,8 +37,8 @@ import org.slf4j.LoggerFactory;
  * <p/>
  * Jetty6 version of a wrapper for the Server class.
  */
-public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.JettyPluginServer {
-    private static Logger logger = LoggerFactory.getLogger(JettyPluginServer.class);
+public class Jetty6PluginServer implements org.gradle.api.plugins.jetty.internal.JettyPluginServer {
+    private static Logger logger = LoggerFactory.getLogger(Jetty6PluginServer.class);
 
     public static int DEFAULT_MAX_IDLE_TIME = 30000;
     private Server server;
@@ -65,7 +50,7 @@ public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.Jett
     private RequestLog requestLog; //the particular request log implementation
 
 
-    public JettyPluginServer() {
+    public Jetty6PluginServer() {
         this.server = new Server();
         this.server.setStopAtShutdown(true);
         //make sure Jetty does not use URLConnection caches with the plugin
@@ -73,7 +58,7 @@ public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.Jett
     }
 
     /**
-     * @see JettyPluginServer#setConnectors(Object[])
+     * @see Jetty6PluginServer#setConnectors(Object[])
      */
     public void setConnectors(Object[] connectors) {
         if (connectors == null || connectors.length == 0)
@@ -87,14 +72,14 @@ public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.Jett
     }
 
     /**
-     * @see org.gradle.api.plugins.jetty.util.JettyPluginServer#getConnectors()
+     * @see org.gradle.api.plugins.jetty.internal.JettyPluginServer#getConnectors()
      */
     public Object[] getConnectors() {
         return this.server.getConnectors();
     }
 
     /**
-     * @see JettyPluginServer#setUserRealms(Object[])
+     * @see Jetty6PluginServer#setUserRealms(Object[])
      */
     public void setUserRealms(Object[] realms) throws Exception {
         if (realms == null)
@@ -105,7 +90,7 @@ public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.Jett
     }
 
     /**
-     * @see org.gradle.api.plugins.jetty.util.JettyPluginServer#getUserRealms()
+     * @see org.gradle.api.plugins.jetty.internal.JettyPluginServer#getUserRealms()
      */
     public Object[] getUserRealms() {
         return this.server.getUserRealms();
@@ -121,7 +106,7 @@ public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.Jett
     }
 
     /**
-     * @see org.gradle.api.plugins.jetty.util.JettyPluginServer#start()
+     * @see org.gradle.api.plugins.jetty.internal.JettyPluginServer#start()
      */
     public void start() throws Exception {
         logger.info("Starting jetty " + this.server.getClass().getPackage().getImplementationVersion() + " ...");
@@ -129,14 +114,14 @@ public class JettyPluginServer implements org.gradle.api.plugins.jetty.util.Jett
     }
 
     /**
-     * @see org.gradle.api.plugins.jetty.util.Proxy#getProxiedObject()
+     * @see org.gradle.api.plugins.jetty.internal.Proxy#getProxiedObject()
      */
     public Object getProxiedObject() {
         return this.server;
     }
 
     /**
-     * @see JettyPluginServer#addWebApplication
+     * @see Jetty6PluginServer#addWebApplication
      */
     public void addWebApplication(WebAppContext webapp) throws Exception {
         contexts.addHandler(webapp);
