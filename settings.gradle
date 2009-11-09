@@ -1,5 +1,6 @@
-include 'wrapper'
 include 'core'
+include 'wrapper'
+include 'launcher'
 include 'ui'
 include 'openApi'
 include 'docs'

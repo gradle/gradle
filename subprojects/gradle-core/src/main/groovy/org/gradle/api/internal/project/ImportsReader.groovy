@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.Main
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -33,7 +33,7 @@ class ImportsReader {
     }
 
     String getImports(File rootDir) {
-        File projectImportsFiles = rootDir ? new File(rootDir, Main.IMPORTS_FILE_NAME) : null
+        File projectImportsFiles = rootDir ? new File(rootDir, StartParameter.IMPORTS_FILE_NAME) : null
         String importsText = (defaultImportsFile ? defaultImportsFile.text : '') +
         (projectImportsFiles && projectImportsFiles.isFile() ? projectImportsFiles.text : '')
         importsText

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle;
+package org.gradle.launcher;
 
 import org.gradle.util.BootstrapUtil;
 
@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * @author Steven Devijver, Hans Dockter
  */
-public class BootstrapMain {
+public class GradleMain {
 
     public static void main(String[] args) throws Exception {
         String bootStrapDebugValue = System.getProperty("gradle.bootstrap.debug");
@@ -45,7 +45,7 @@ public class BootstrapMain {
         }
         URLClassLoader libClassLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]), parentClassloader);
         Thread.currentThread().setContextClassLoader(libClassLoader);
-        Class mainClass = libClassLoader.loadClass("org.gradle.Main");
+        Class mainClass = libClassLoader.loadClass("org.gradle.launcher.Main");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, new Object[]{args});
     }

@@ -45,12 +45,6 @@ if [ "$PROFILER" != "" ] ; then
     fi
 fi
 
-# For Darwin, use classes.jar for TOOLS_JAR
-TOOLS_JAR="$JAVA_HOME/lib/tools.jar"
-#if $darwin; then
-#    TOOLS_JAR="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Classes/classes.jar"
-#fi
-
 # For Darwin, add GRADLE_APP_NAME to the JAVA_OPTS as -Xdock:name
 if $darwin; then
     JAVA_OPTS="$JAVA_OPTS -Xdock:name=$GRADLE_APP_NAME"
@@ -61,7 +55,6 @@ fi
 if $cygwin ; then
     GRADLE_HOME=`cygpath --path --mixed "$GRADLE_HOME"`
     JAVA_HOME=`cygpath --path --mixed "$JAVA_HOME"`
-    TOOLS_JAR=`cygpath --path --mixed "$TOOLS_JAR"`
     CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
 
     # We build the pattern for arguments to be converted via cygpath
@@ -104,8 +97,7 @@ if $cygwin ; then
 
 fi
 
-
-STARTER_MAIN_CLASS=org.gradle.BootstrapMain
+STARTER_MAIN_CLASS=org.gradle.launcher.GradleMain
 
 # Start the Profiler or the JVM
 if $useprofiler ; then
@@ -114,7 +106,6 @@ else
     exec "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
         -Dgradle.home="$GRADLE_HOME" \
-        -Dtools.jar="$TOOLS_JAR" \
         $STARTER_MAIN_CLASS \
         "$@"
 fi

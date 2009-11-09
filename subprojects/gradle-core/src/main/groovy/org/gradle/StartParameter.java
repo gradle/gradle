@@ -48,6 +48,9 @@ import java.util.*;
  * @see GradleLauncher
  */
 public class StartParameter {
+    public final static String DEFAULT_PLUGIN_PROPERTIES = "plugin.properties";
+    public final static String IMPORTS_FILE_NAME = "gradle-imports";
+
     public enum ShowStacktrace {
         INTERNAL_EXCEPTIONS, ALWAYS, ALWAYS_FULL
     }
@@ -60,7 +63,8 @@ public class StartParameter {
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
-    private File gradleUserHomeDir = new File(Main.DEFAULT_GRADLE_USER_HOME);
+    public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
+    private File gradleUserHomeDir = new File(DEFAULT_GRADLE_USER_HOME);
     private File defaultImportsFile;
     private File pluginPropertiesFile;
     private File gradleHomeDir;
@@ -179,10 +183,10 @@ public class StartParameter {
     public void setGradleHomeDir(File gradleHomeDir) {
         this.gradleHomeDir = GFileUtils.canonicalise(gradleHomeDir);
         if (defaultImportsFile == null) {
-            defaultImportsFile = new File(this.gradleHomeDir, Main.IMPORTS_FILE_NAME);
+            defaultImportsFile = new File(this.gradleHomeDir, IMPORTS_FILE_NAME);
         }
         if (pluginPropertiesFile == null) {
-            pluginPropertiesFile = new File(this.gradleHomeDir, Main.DEFAULT_PLUGIN_PROPERTIES);
+            pluginPropertiesFile = new File(this.gradleHomeDir, DEFAULT_PLUGIN_PROPERTIES);
         }
     }
 

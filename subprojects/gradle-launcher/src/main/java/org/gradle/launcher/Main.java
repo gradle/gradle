@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.launcher;
 
-import org.gradle.util.GradleVersion;
-import org.gradle.util.Clock;
-import org.gradle.api.logging.Logging;
+import org.gradle.*;
 import org.gradle.api.logging.Logger;
-import java.lang.reflect.Method;
+import org.gradle.api.logging.Logging;
+import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
+import org.gradle.util.Clock;
+import org.gradle.util.GradleVersion;
 
 /**
  * @author Hans Dockter
@@ -27,11 +28,6 @@ import java.lang.reflect.Method;
 public class Main {
     private static Logger logger = Logging.getLogger(Main.class);
 
-    public static final String GRADLE_HOME_PROPERTY_KEY = "gradle.home";
-    public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
-    public final static String DEFAULT_PLUGIN_PROPERTIES = "plugin.properties";
-    public final static String IMPORTS_FILE_NAME = "gradle-imports";
-    
     private final String[] args;
     private BuildCompleter buildCompleter = new ProcessExitBuildCompleter();
     private CommandLine2StartParameterConverter parameterConverter = new DefaultCommandLine2StartParameterConverter();
@@ -75,18 +71,13 @@ public class Main {
             buildCompleter.exit(null);
         }
 
-
-        if (startParameter.isLaunchGUI()){
-           try
-           {   //due to a circular dependency, we'll have to launch this using reflection.
-              Class blockingApplicationClass = getClass().forName( "org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication");
-              Method method = blockingApplicationClass.getDeclaredMethod( "launchAndBlock" );
-              method.invoke( null );
-           }
-           catch( Throwable e )
-           {
-              logger.error("Failed to run the UI.", e);
-           }
+        if (startParameter.isLaunchGUI()) {
+            try {
+                BlockingApplication.launchAndBlock();
+            } catch (Throwable e) {
+                logger.error("Failed to run the UI.", e);
+                buildCompleter.exit(e);
+            }
 
             buildCompleter.exit(null);
         }

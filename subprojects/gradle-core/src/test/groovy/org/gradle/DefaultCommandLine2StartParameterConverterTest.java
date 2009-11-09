@@ -43,7 +43,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     private String previousGradleHome;
     private File expectedBuildFile = null;
-    private File expectedGradleUserHome = new File(Main.DEFAULT_GRADLE_USER_HOME);
+    private File expectedGradleUserHome = new File(StartParameter.DEFAULT_GRADLE_USER_HOME);
     private File expectedGradleImportsFile;
     private File expectedPluginPropertiesFile;
     private File expectedProjectDir;
@@ -71,8 +71,8 @@ public class DefaultCommandLine2StartParameterConverterTest {
         previousGradleHome = System.getProperty("gradle.home");
         System.setProperty("gradle.home", "roadToNowhere");
 
-        expectedGradleImportsFile = new File(TEST_GRADLE_HOME, Main.IMPORTS_FILE_NAME).getCanonicalFile();
-        expectedPluginPropertiesFile = new File(TEST_GRADLE_HOME, Main.DEFAULT_PLUGIN_PROPERTIES).getCanonicalFile();
+        expectedGradleImportsFile = new File(TEST_GRADLE_HOME, StartParameter.IMPORTS_FILE_NAME).getCanonicalFile();
+        expectedPluginPropertiesFile = new File(TEST_GRADLE_HOME, StartParameter.DEFAULT_PLUGIN_PROPERTIES).getCanonicalFile();
         expectedProjectDir = new File("").getCanonicalFile();
     }
 
@@ -389,7 +389,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     @Test(expected = CommandLineArgumentException.class)
     public void withMissingGradleHome() {
-        System.getProperties().remove(Main.GRADLE_HOME_PROPERTY_KEY);
+        System.getProperties().remove(DefaultCommandLine2StartParameterConverter.GRADLE_HOME_PROPERTY_KEY);
         checkConversion("clean");
     }
 

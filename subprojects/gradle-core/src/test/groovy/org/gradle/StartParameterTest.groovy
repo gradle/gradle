@@ -65,7 +65,7 @@ class StartParameterTest {
 
     @Test public void testDefaultValues() {
         StartParameter parameter = new StartParameter();
-        assertThat(parameter.gradleUserHomeDir, equalTo(new File(Main.DEFAULT_GRADLE_USER_HOME)))
+        assertThat(parameter.gradleUserHomeDir, equalTo(new File(StartParameter.DEFAULT_GRADLE_USER_HOME)))
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
 
         assertThat(parameter.buildFile, nullValue())
@@ -191,8 +191,8 @@ class StartParameterTest {
         TestFile gradleHome = tmpDir.dir
         parameter.gradleHomeDir = gradleHome
         assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
-        assertThat(parameter.defaultImportsFile, equalTo(new File(gradleHome.canonicalFile, Main.IMPORTS_FILE_NAME)))
-        assertThat(parameter.pluginPropertiesFile, equalTo(new File(gradleHome.canonicalFile, Main.DEFAULT_PLUGIN_PROPERTIES)))
+        assertThat(parameter.defaultImportsFile, equalTo(new File(gradleHome.canonicalFile, StartParameter.IMPORTS_FILE_NAME)))
+        assertThat(parameter.pluginPropertiesFile, equalTo(new File(gradleHome.canonicalFile, StartParameter.DEFAULT_PLUGIN_PROPERTIES)))
 
         parameter = new StartParameter()
         parameter.defaultImportsFile = new File("imports")

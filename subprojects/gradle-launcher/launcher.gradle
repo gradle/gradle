@@ -1,0 +1,21 @@
+import org.gradle.build.startscripts.StartScriptsGenerator
+
+dependencies {
+    groovy libraries.groovy_depends
+
+    compile project(':core')
+    compile project(':ui')
+
+    compile libraries.slf4j_api
+
+    testCompile project(path: ':core', configuration: 'testFixtures')
+    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+}
+
+jar.manifest.mainAttributes('Main-Class': "org.gradle.launcher.GradleMain")
+jar.manifest.mainAttributes('Class-Path': "${project(':core').jar.archivePath.name}")
+
+task startScripts << {
+    ant.mkdir(dir: startScriptsDir)
+    StartScriptsGenerator.generate(jar.archiveName, startScriptsDir, 'gradle')
+}

@@ -67,8 +67,6 @@ dependencies {
     testFixtures sourceSets.test.classes, sourceSets.main.classes
 }
 
-jar.manifest.mainAttributes("Main-Class": "org.gradle.BootstrapMain")
-
 processResources.doLast {
     File versionPropertiesDestination = new File(sourceSets.main.classesDir, GradleVersion.FILE_NAME)
     [versionPropertiesDestination, new File(buildDir, "resources/test/$GradleVersion.FILE_NAME")].each { File file ->

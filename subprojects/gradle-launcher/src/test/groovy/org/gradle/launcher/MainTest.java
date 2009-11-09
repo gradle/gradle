@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle;
+package org.gradle.launcher;
 
+import org.gradle.*;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;

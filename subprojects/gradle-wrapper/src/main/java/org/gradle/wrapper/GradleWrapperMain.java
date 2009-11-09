@@ -19,7 +19,7 @@ package org.gradle.wrapper;
 /**
  * @author Hans Dockter
  */
-public class WrapperMain {
+public class GradleWrapperMain {
     public static final String WRAPPER_DEBUG_ENV = "GRADLE_WRAPPER_DEBUG_ENV";
     public static final String ALWAYS_UNPACK_ENV = "GRADLE_WRAPPER_ALWAYS_UNPACK";
     public static final String ALWAYS_DOWNLOAD_ENV = "GRADLE_WRAPPER_ALWAYS_DOWNLOAD";

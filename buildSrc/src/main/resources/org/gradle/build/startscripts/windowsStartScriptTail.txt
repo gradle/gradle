@@ -1,10 +1,9 @@
-set STARTER_MAIN_CLASS=org.gradle.BootstrapMain
+set STARTER_MAIN_CLASS=org.gradle.launcher.GradleMain
 
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
-set TOOLS_JAR=%JAVA_HOME%\lib\tools.jar
 
 set GRADLE_OPTS=%JAVA_OPTS% %GRADLE_OPTS% -Dgradle.home="%GRADLE_HOME%"
-set GRADLE_OPTS=%GRADLE_OPTS% -Dtools.jar="%TOOLS_JAR%"
+set GRADLE_OPTS=%GRADLE_OPTS%
 
 @rem Execute Gradle
 "%JAVA_EXE%" %GRADLE_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%

@@ -21,11 +21,9 @@ import org.apache.ivy.plugins.resolver.*
 
 version = new Version("0.9", gradle.taskGraph)
 
-defaultTasks "clean", "dists"
+defaultTasks "clean", "assemble"
 
-usePlugin BasePlugin
-
-type = 'jar'
+usePlugin 'base'
 
 startScriptsDir = new File("$buildDir/startScripts")
 
@@ -127,7 +125,9 @@ configurations {
 }
 
 dependencies {
-    distLib project(':wrapper'), project(':core'), project(':ui'), project(':openApi')
+    groovyProjects().each {
+        distLib project(it.path)
+    }
 
     retrotranslatorAntTask 'net.sf.retrotranslator:retrotranslator-runtime:1.2.7@jar', 'net.sf.retrotranslator:retrotranslator-transformer:1.2.7@jar',
             'backport-util-concurrent:backport-util-concurrent:3.1@jar'
@@ -147,14 +147,9 @@ gradle.taskGraph.whenReady {graph ->
     }
 }
 
-task startScripts << {
-    ant.mkdir(dir: startScriptsDir)
-    StartScriptsGenerator.generate(project(':core').jar.archiveName, startScriptsDir, archivesBaseName)    
-}
-
 zipRootFolder = "$archivesBaseName-${-> version}"
 
-task allZip(type: Zip, dependsOn: [startScripts, 'docs:docs']) {
+task allZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:docs']) {
     classifier = 'all'
     into(zipRootFolder) {
         from 'src/toplevel'
@@ -178,7 +173,7 @@ task allZip(type: Zip, dependsOn: [startScripts, 'docs:docs']) {
     }
 }
 
-task binZip(type: Zip, dependsOn: [startScripts, 'docs:distDocs']) {
+task binZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:distDocs']) {
     classifier = 'bin'
     into(zipRootFolder) {
         from 'src/toplevel'
@@ -227,7 +222,7 @@ task translateLibsTo14(type: TranslateLibsTo14) {
 
 }
 
-task jdk14AllZip(type: Zip, dependsOn: [translateLibsTo14, startScripts]) {
+task jdk14AllZip(type: Zip, dependsOn: [translateLibsTo14, 'launcher:startScripts']) {
     onlyIf { project.hasProperty('gradle_retroLibsDir') }
     classifier = 'all-jdk14'
     into(zipRootFolder) {

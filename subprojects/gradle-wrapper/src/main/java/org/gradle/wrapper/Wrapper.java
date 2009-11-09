@@ -38,7 +38,7 @@ public class Wrapper {
     public void execute(String[] args, Install install, BootstrapMainStarter bootstrapMainStarter) throws Exception {
         Properties wrapperProperties = new Properties();
         wrapperProperties.load(new FileInputStream(new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY))));
-        if (WrapperMain.isDebug()) {
+        if (GradleWrapperMain.isDebug()) {
             System.out.println("wrapperProperties = " + wrapperProperties);
         }
         String version = (String) wrapperProperties.get(DISTRIBUTION_VERSION_PROPERTY);
@@ -52,7 +52,7 @@ public class Wrapper {
                 (String) wrapperProperties.get(ZIP_STORE_BASE_PROPERTY),
                 (String) wrapperProperties.get(ZIP_STORE_PATH_PROPERTY)
         );
-        if (WrapperMain.isDebug()) {
+        if (GradleWrapperMain.isDebug()) {
             System.out.println("args = " + Arrays.asList(args));
         }
         bootstrapMainStarter.start(args, gradleHome, version);

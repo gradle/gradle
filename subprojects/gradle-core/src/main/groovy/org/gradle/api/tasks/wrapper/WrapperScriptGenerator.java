@@ -35,7 +35,7 @@ public class WrapperScriptGenerator {
     public static final String CURRENT_DIR_UNIX = "`dirname \"$0\"`";
     public static final String WINDOWS_NL = "\n";
     public static final String CURRENT_DIR_WINDOWS = "%DIRNAME%";
-    private static final String FULLY_QUALIFIED_WRAPPER_NAME = "org.gradle.wrapper.WrapperMain";
+    private static final String FULLY_QUALIFIED_WRAPPER_NAME = "org.gradle.wrapper.GradleWrapperMain";
 
     public void generate(String jarPath, String wrapperPropertiesPath, File scriptDestinationDir) {
         try {

@@ -16,12 +16,12 @@
  
 package org.gradle.api.internal.project
 
-import org.gradle.Main
 import org.gradle.util.TemporaryFolder
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import static org.junit.Assert.*
+import org.gradle.StartParameter
 
 /**
  * @author Hans Dockter
@@ -41,7 +41,7 @@ class ImportsReaderTest {
     @Before public void setUp()  {
         testDir = tmpDir.dir
         (testDefaultImportsFile = new File(testDir, 'defaultImports')).write(TEST_DEFAULT_IMPORTS)
-        (testProjectImportsFile = new File(testDir, Main.IMPORTS_FILE_NAME)).write(TEST_PROJECT_IMPORTS)
+        (testProjectImportsFile = new File(testDir, StartParameter.IMPORTS_FILE_NAME)).write(TEST_PROJECT_IMPORTS)
         testObj = new ImportsReader(testDefaultImportsFile)
     }
 
