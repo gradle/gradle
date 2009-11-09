@@ -1,0 +1,19 @@
+dependencies {
+    groovy libraries.groovy_depends
+
+    compile project(':core')
+
+    compile "org.codenarc:CodeNarc:0.7@jar",
+            "org.slf4j:log4j-over-slf4j:1.5.8@jar",
+            libraries.slf4j_api
+
+    def BEAN_UTILS = ["commons-beanutils:commons-beanutils-core:1.7.0@jar", "commons-collections:commons-collections:2.0@jar", "org.slf4j:jcl-over-slf4j:1.5.8@jar"]
+    runtime "checkstyle:checkstyle:5.0@jar",
+            libraries.antlr,
+            "org.slf4j:jcl-over-slf4j:1.5.8@jar",
+            "com.google.collections:google-collections:0.9@jar",
+            BEAN_UTILS
+    
+    testCompile project(path: ':core', configuration: 'testFixtures')
+    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+}
