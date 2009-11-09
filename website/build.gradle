@@ -1,7 +1,7 @@
 import groovy.text.SimpleTemplateEngine
 
 // to get a clean
-usePlugin(BasePlugin)
+usePlugin 'base'
 
 repositories {
     mavenCentral()
@@ -46,7 +46,7 @@ task build << {
             skeletonTemplate.make(binding + [content: content, title: extractTitle(contentFile)]).toString()
     }
     webContentSrcDir.eachFileMatch(~/^.+?\.html$/, transformClosure)
-    transformClosure("$gradleCorePath/build/docs/getting-started.html" as File)
+    transformClosure("$gradleCorePath/subprojects/gradle-docs/build/docs/getting-started.html" as File)
     transformClosure("$webContentSrcDir/index.php" as File, new File(webPhpSrcDir, "indexPhpNews.php").text)
     File indexPhp = new File(buildWebsiteDir, "index.php")
     indexPhp.write(new File(webPhpSrcDir, 'indexPhpHeader.php').text + indexPhp.text)
@@ -70,7 +70,7 @@ String extractTitle(File contentFile) {
     title
 }
 
-createTask('uploadWebsite', dependsOn: 'build') {
+task uploadWebsite(dependsOn: 'build') << {
     ftp(action: 'delete') {
         fileset() {
             include(name: '*.html')

@@ -286,8 +286,8 @@ task websiteDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) 
     classpath = configurations.userGuideTask
 }
 websiteDocs.doFirst {
-    websiteDocs.javadocUrl = remoteLocations.getJavadocRemoteDir()
-    websiteDocs.groovydocUrl = remoteLocations.getGroovydocRemoteDir()
+    websiteDocs.javadocUrl = remoteLocations.javadocUrl
+    websiteDocs.groovydocUrl = remoteLocations.groovydocUrl
 }
 websiteDocs << {
     File websiteDocs = new File(buildDir, 'docs')
