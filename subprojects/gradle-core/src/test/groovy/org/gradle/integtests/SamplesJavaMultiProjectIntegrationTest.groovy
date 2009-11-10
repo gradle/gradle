@@ -16,15 +16,14 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matchers
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -170,7 +169,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         String testPackagePrefix = 'build/classes/test/org/gradle'
 
         // Partial build using current directory
-        executer.inDirectory(javaprojectDir.file("$SERVICES_NAME/$WEBAPP_NAME")).withTasks(JavaPlugin.BUILD_NEEDED_TASK_NAME).run()
+        executer.inDirectory(javaprojectDir.file("$SERVICES_NAME/$WEBAPP_NAME")).withTasks('buildNeeded').run()
         checkPartialWebAppBuild(packagePrefix, javaprojectDir, testPackagePrefix)
 
         // Partial build using task path
@@ -182,7 +181,7 @@ class SamplesJavaMultiProjectIntegrationTest {
 
     @Test
     public void buildDependents() {
-        executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:${JavaPlugin.BUILD_DEPENDENTS_TASK_NAME}".toString()).run()
+        executer.inDirectory(javaprojectDir).withTasks('clean', "$SHARED_NAME:buildDependents".toString()).run()
         assertEverythingBuilt()
     }
 

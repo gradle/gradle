@@ -18,9 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
 import org.jmock.lib.legacy.ClassImposteriser
@@ -45,7 +43,6 @@ class BuildSourceBuilderTest {
     GradleLauncher gradleMock
     Project rootProjectMock
     Configuration configurationMock
-    ConfigurationContainer configurationContainerStub
     CacheInvalidationStrategy cacheInvalidationStrategyMock
     File rootDir
     File testBuildSrcDir
@@ -65,7 +62,6 @@ class BuildSourceBuilderTest {
         gradleFactoryMock = context.mock(GradleLauncherFactory)
         gradleMock = context.mock(GradleLauncher)
         rootProjectMock = context.mock(Project)
-        configurationContainerStub = context.mock(ConfigurationContainer)
         configurationMock = context.mock(Configuration)
         cacheInvalidationStrategyMock = context.mock(CacheInvalidationStrategy)
         buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, cacheInvalidationStrategyMock)
@@ -82,8 +78,6 @@ class BuildSourceBuilderTest {
         Convention convention = context.mock(Convention)
         EmbedableJavaProject projectMetaInfo = context.mock(EmbedableJavaProject)
         context.checking {
-            allowing(rootProjectMock).getConfigurations(); will(returnValue(configurationContainerStub))
-            allowing(configurationContainerStub).getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME); will(returnValue(configurationMock))
             allowing(build).getRootProject(); will(returnValue(rootProjectMock))
             allowing(build).getStartParameter(); will(returnValue(expectedStartParameter))
             allowing(rootProjectMock).getConvention(); will(returnValue(convention))

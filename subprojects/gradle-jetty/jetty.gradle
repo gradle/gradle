@@ -2,6 +2,7 @@ dependencies {
     groovy libraries.groovy_depends
 
     compile project(':core')
+    compile project(':plugins')
 
     compile libraries.slf4j_api,
             "org.mortbay.jetty:jetty:6.1.21@jar",

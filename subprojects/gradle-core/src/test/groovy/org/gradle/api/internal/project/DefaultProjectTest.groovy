@@ -47,7 +47,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
 import org.gradle.api.plugins.Convention
-import org.gradle.api.plugins.JavaPluginTest
 import org.gradle.api.plugins.ProjectPluginsContainer
 import org.gradle.api.tasks.Directory
 import org.gradle.configuration.ProjectEvaluator
@@ -354,7 +353,7 @@ class DefaultProjectTest {
     }
 
     @Test void testUsePluginWithClass() {
-        checkUsePlugin(JavaPluginTest)
+        checkUsePlugin(Plugin)
     }
 
     private void checkUsePlugin(def usePluginArgument) {

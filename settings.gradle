@@ -1,6 +1,7 @@
 include 'core'
 include 'wrapper'
 include 'launcher'
+include 'plugins'
 include 'jetty'
 include 'codeQuality'
 include 'ui'

@@ -2,6 +2,7 @@ dependencies {
     groovy libraries.groovy_depends
 
     compile project(':core')
+    compile project(':plugins')
 
     compile "org.codenarc:CodeNarc:0.7@jar",
             "org.slf4j:log4j-over-slf4j:1.5.8@jar",

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.plugins.osgi;
-
-import org.junit.Test;import static org.junit.Assert.assertNotNull;
 
 /**
- * @author Hans Dockter
+ * The OSGi {@link org.gradle.api.Plugin} implementation.
  */
-public class DefaultAnalyzerFactoryTest {
-    @Test
-    public void create() {
-        ContainedVersionAnalyzer analyzer = new DefaultAnalyzerFactory().createAnalyzer();
-        assertNotNull(analyzer);
-    }
-}
+package org.gradle.api.plugins.osgi;

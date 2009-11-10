@@ -1,0 +1,12 @@
+dependencies {
+    groovy libraries.groovy_depends
+
+    compile project(':core')
+
+    compile libraries.slf4j_api,
+            "org.apache.ivy:ivy:2.1.0-rc2@jar",
+            "biz.aQute:bndlib:0.0.255@jar"
+
+    testCompile project(path: ':core', configuration: 'testFixtures')
+    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+}

@@ -17,13 +17,10 @@ package org.gradle.external.junit;
 
 import static junit.framework.Assert.assertNotNull;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
-import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.junit.Before;
 
@@ -47,10 +44,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
     private JunitForkOptions jUnitForkOptionsMock;
     private AbstractTestTask testTask;
 
-
-
-    private ProjectPluginsContainer projectPluginsHandlerMock;
-
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -60,7 +53,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         antJUnitReportMock = context.mock(AntJUnitReport.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
         jUnitForkOptionsMock = context.mock(JunitForkOptions.class);
-        projectPluginsHandlerMock = context.mock(ProjectPluginsContainer.class);
         testTask = context.mock(AntTest.class, "JUnitTestFrameworkInstanceTest");
 
         jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testTask, jUnitTestFrameworkMock);
@@ -71,9 +63,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         setMocks();
 
         context.checking(new Expectations() {{
-            allowing(projectMock).getPlugins(); will(returnValue(projectPluginsHandlerMock));
-            allowing(projectPluginsHandlerMock).hasPlugin(JavaPlugin.class); will(returnValue(true));
-            allowing(projectPluginsHandlerMock).hasPlugin(with(Matchers.not(JavaPlugin.class))); will(returnValue(true));
             one(jUnitOptionsMock).getForkOptions(); will(returnValue(jUnitForkOptionsMock));
             one(jUnitOptionsMock).setFork(true);
             one(jUnitForkOptionsMock).setForkMode(ForkMode.PER_TEST);
