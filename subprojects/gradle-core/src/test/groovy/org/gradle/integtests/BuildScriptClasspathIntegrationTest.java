@@ -35,8 +35,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
 
         inTestDirectory().withTaskList().run();
 
-        TestFile buildSrcJar = testFile(
-                "buildSrc/build/libs/buildSrc-SNAPSHOT.jar");
+        TestFile buildSrcJar = testFile("buildSrc/build/libs/buildSrc.jar");
         buildSrcJar.assertIsFile();
         long modTime = buildSrcJar.lastModified();
 

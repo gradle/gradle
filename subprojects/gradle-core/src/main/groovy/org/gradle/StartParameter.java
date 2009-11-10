@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,11 +275,11 @@ public class StartParameter {
 
     /**
      * <p>Sets the tasks to execute in this build. Set to an empty list, or null, to execute the default tasks for the
-     * project.</p>
+     * project. The tasks are executed in the order provided, subject to dependency between the tasks.</p>
      *
      * @param taskNames the names of the tasks to execute in this build.
      */
-    public void setTaskNames(List<String> taskNames) {
+    public void setTaskNames(Collection<String> taskNames) {
         this.taskNames = !GUtil.isTrue(taskNames) ? new ArrayList<String>() : new ArrayList<String>(taskNames);
         buildExecuter = null;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.test.util.Check;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;
@@ -85,7 +84,6 @@ public abstract class AbstractTaskTest {
         assertEquals(TEST_TASK_NAME, getTask().getName());
         assertNull(getTask().getDescription());
         assertSame(project, getTask().getProject());
-        assertNotNull(getTask().getOutput());
         assertEquals(getExpectedStandardOutputCapture(), getTask().getStandardOutputCapture());
         assertEquals(new HashMap(), getTask().getAdditionalProperties());
         assertNotNull(getTask().getInputs());
@@ -134,8 +132,8 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDoFirst() {
-        TaskAction action1 = Check.createTaskAction();
-        TaskAction action2 = Check.createTaskAction();
+        TaskAction action1 = createTaskAction();
+        TaskAction action2 = createTaskAction();
         int actionSizeBefore = getTask().getActions().size();
         assertSame(getTask(), getTask().doFirst(action2));
         assertEquals(actionSizeBefore + 1, getTask().getActions().size());
@@ -146,8 +144,8 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDoLast() {
-        TaskAction action1 = Check.createTaskAction();
-        TaskAction action2 = Check.createTaskAction();
+        TaskAction action1 = createTaskAction();
+        TaskAction action2 = createTaskAction();
         int actionSizeBefore = getTask().getActions().size();
         assertSame(getTask(), getTask().doLast(action1));
         assertEquals(actionSizeBefore + 1, getTask().getActions().size());
@@ -158,8 +156,8 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDeleteAllActions() {
-        TaskAction action1 = Check.createTaskAction();
-        TaskAction action2 = Check.createTaskAction();
+        TaskAction action1 = createTaskAction();
+        TaskAction action2 = createTaskAction();
         getTask().doLast(action1);
         getTask().doLast(action2);
         assertSame(getTask(), getTask().deleteAllActions());
@@ -268,4 +266,13 @@ public abstract class AbstractTaskTest {
 
         assertTrue(getTask().dependsOnTaskDidWork());
     }
+
+    public static TaskAction createTaskAction() {
+        return new TaskAction() {
+            public void execute(Task task) {
+
+            }
+        };
+    }
+
 }

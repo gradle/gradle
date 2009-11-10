@@ -20,11 +20,9 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.*;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
+import org.gradle.api.internal.plugins.EmbedableJavaProject;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +38,6 @@ import java.util.*;
  */
 public class BuildSourceBuilder {
     private static Logger logger = LoggerFactory.getLogger(BuildSourceBuilder.class);
-
-    public static final String BUILD_SRC_ORG = "org.gradle";
-    public static final String BUILD_SRC_MODULE = "buildSrc";
-    public static final String BUILD_SRC_REVISION = "SNAPSHOT";
-    public static final String BUILD_SRC_TYPE = "jar";
 
     private GradleLauncherFactory gradleLauncherFactory;
     private CacheInvalidationStrategy cacheInvalidationStrategy;
@@ -85,13 +78,12 @@ public class BuildSourceBuilder {
         }
         logger.info("================================================" + " Start building buildSrc");
         StartParameter startParameterArg = startParameter.newInstance();
-        startParameterArg.setProjectProperties(GUtil.addMaps(startParameter.getProjectProperties(), getDependencyProjectProps()));
+        startParameterArg.setProjectProperties(startParameter.getProjectProperties());
         startParameterArg.setSearchUpwards(false);
-        startParameterArg.setTaskNames(WrapUtil.toList(BasePlugin.CLEAN_TASK_NAME, JavaPlugin.BUILD_TASK_NAME));
         boolean executeBuild = true;
 
-        File artifactFile = buildArtifactFile(startParameter.getCurrentDir());
-        if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(artifactFile, startParameter.getCurrentDir())) {
+        File markerFile = markerFile(startParameter.getCurrentDir());
+        if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(markerFile, startParameter.getCurrentDir())) {
             executeBuild = false;
         }
 
@@ -101,6 +93,8 @@ public class BuildSourceBuilder {
         }
 
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameterArg);
+        BuildSrcBuildListener listener = new BuildSrcBuildListener();
+        gradleLauncher.addListener(listener);
         BuildResult buildResult;
         if (executeBuild) {
             buildResult = gradleLauncher.run();
@@ -108,16 +102,10 @@ public class BuildSourceBuilder {
             buildResult = gradleLauncher.getBuildAnalysis();
         }
         buildResult.rethrowFailure();
+        GFileUtils.touch(markerFile);
 
         Set<File> buildSourceClasspath = new LinkedHashSet<File>();
-        if (artifactFile.exists()) {
-            buildSourceClasspath.add(artifactFile);
-        } else {
-            logger.info("Building buildSrc has not produced any artifacts.");
-        }
-        Configuration runtimeConfiguration = buildResult.getGradle().getRootProject().getConfigurations().getByName(
-                JavaPlugin.RUNTIME_CONFIGURATION_NAME);
-        buildSourceClasspath.addAll(runtimeConfiguration.getFiles());
+        buildSourceClasspath.addAll(listener.getRuntimeClasspath());
         logger.debug("Gradle source classpath is: {}", buildSourceClasspath);
         logger.info("================================================" + " Finished building buildSrc");
         return buildSourceClasspath;
@@ -131,15 +119,8 @@ public class BuildSourceBuilder {
         }
     }
 
-    public File buildArtifactFile(File buildSrcDir) {
-        return new File(buildSrcDir, String.format("build/libs/buildSrc-%s.jar", BuildSourceBuilder.BUILD_SRC_REVISION));
-    }
-
-    private Map getDependencyProjectProps() {
-        return GUtil.map(
-                "group", BUILD_SRC_ORG,
-                "version", BUILD_SRC_REVISION,
-                "type", BUILD_SRC_TYPE);
+    public File markerFile(File buildSrcDir) {
+        return new File(buildSrcDir, "build/COMPLETED");
     }
 
     public GradleLauncherFactory getGradleLauncherFactory() {
@@ -148,5 +129,20 @@ public class BuildSourceBuilder {
 
     public void setGradleLauncherFactory(GradleLauncherFactory gradleLauncherFactory) {
         this.gradleLauncherFactory = gradleLauncherFactory;
+    }
+
+    private static class BuildSrcBuildListener extends BuildAdapter {
+        private EmbedableJavaProject projectInfo;
+
+        @Override
+        public void projectsEvaluated(Gradle gradle) {
+            projectInfo = gradle.getRootProject().getConvention().getPlugin(
+                    EmbedableJavaProject.class);
+            gradle.getStartParameter().setTaskNames(projectInfo.getRebuildTasks());
+        }
+
+        public Collection<File> getRuntimeClasspath() {
+            return projectInfo.getRuntimeClasspath().getFiles();
+        }
     }
 }

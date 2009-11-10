@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution;
+package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
+
+import java.util.Collection;
 
 /**
- * @author Hans Dockter
+ * Meta-info about a Java project which can be embedded in the build.
  */
-public interface OutputHistoryReader {
-    OutputHistory readHistory(Task task);
+public interface EmbedableJavaProject {
+    Collection<String> getRebuildTasks();
+
+    FileCollection getRuntimeClasspath();
 }

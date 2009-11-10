@@ -74,7 +74,7 @@ class SamplesJavaMultiProjectIntegrationTest {
     private void assertBuildSrcBuilt() {
         TestFile buildSrcDir = javaprojectDir.file('buildSrc')
 
-        buildSrcDir.file('build/libs/buildSrc-SNAPSHOT.jar').assertIsFile()
+        buildSrcDir.file('build/libs/buildSrc.jar').assertIsFile()
         buildSrcDir.file('build/test-results/TEST-org.gradle.buildsrc.BuildSrcClassTest.xml').assertIsFile()
         buildSrcDir.file('build/reports/tests/index.html').assertIsFile()
     }

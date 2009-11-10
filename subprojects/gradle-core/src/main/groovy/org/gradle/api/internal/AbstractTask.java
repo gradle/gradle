@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.execution.DefaultOutputHandler;
-import org.gradle.execution.OutputHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,8 +66,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private Spec<? super Task> onlyIfSpec = Specs.satisfyAll();
 
-    private OutputHandler outputHandler;
-
     private final TaskOutputs outputs;
 
     private final TaskInputs inputs;
@@ -95,7 +91,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         assert name != null;
         path = project.absolutePath(name);
         dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention());
-        outputHandler = new DefaultOutputHandler(this);
         dependencies = new DefaultTaskDependency(project.getTasks());
         ServiceRegistry services = project.getServiceRegistryFactory().createFor(this);
         outputs = services.get(TaskOutputs.class);
@@ -170,10 +165,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return onlyIfSpec;
     }
 
-    public OutputHandler getOutput() {
-        return outputHandler;
-    }
-
     public boolean getExecuted() {
         return state.isExecuted();
     }
@@ -200,10 +191,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public String getPath() {
         return path;
-    }
-
-    public void setOutputHandler(OutputHandler outputHandler) {
-        this.outputHandler = outputHandler;
     }
 
     public Task deleteAllActions() {

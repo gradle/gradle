@@ -24,7 +24,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.execution.OutputHandler;
 
 import java.util.List;
 import java.util.Set;
@@ -308,12 +307,6 @@ public interface Task extends Comparable<Task> {
      * @see #setEnabled(boolean)
      */
     boolean getEnabled();
-
-    /**
-     * Returns a OutputHandler object providing information whether a task's output was created successfully and when it
-     * was last modified.
-     */
-    OutputHandler getOutput();
 
     /**
      * <p>Set the enabled state of a task. If a task is disabled none of the its actions are executed. Note that
