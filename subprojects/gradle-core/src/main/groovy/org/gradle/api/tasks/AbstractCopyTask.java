@@ -65,6 +65,13 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
     /**
      * {@inheritDoc}
      */
+    public boolean isCaseSensitive() {
+        return getCopyAction().isCaseSensitive();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public void setCaseSensitive(boolean caseSensitive) {
         getCopyAction().setCaseSensitive(caseSensitive);
     }

@@ -42,6 +42,12 @@ public class RelativePathTest {
 
         childPath = new RelativePath(true, path, "three");
         assertPathContains(childPath, true, "one", "two", "three");
+
+        childPath = new RelativePath(new RelativePath(false, "one", "two"), new RelativePath(true, "three", "four"));
+        assertPathContains(childPath, true, "one", "two", "three", "four");
+
+        childPath = new RelativePath(new RelativePath(false, "one", "two"), new RelativePath(false));
+        assertPathContains(childPath, false, "one", "two");
     }
 
     @Test

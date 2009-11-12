@@ -44,12 +44,12 @@ public class BreadthFirstDirectoryWalkerTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private CopyVisitor visitor;
+    private FileCopyVisitor visitor;
     private BreadthFirstDirectoryWalker walker;
 
     @Before
     public void setUp() {
-        visitor = context.mock(CopyVisitor.class);
+        visitor = context.mock(FileCopyVisitor.class);
     }
 
     @Test public void rootDirEmpty() throws IOException {

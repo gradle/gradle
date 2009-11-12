@@ -24,15 +24,12 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
 
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
 public class NormalizingCopyVisitorTest {
-    private final JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private final JUnit4Mockery context = new JUnit4Mockery();
     private final CopySpecVisitor delegate = context.mock(CopySpecVisitor.class);
     private final NormalizingCopyVisitor visitor = new NormalizingCopyVisitor(delegate);
 
@@ -96,7 +93,7 @@ public class NormalizingCopyVisitorTest {
 
     @Test
     public void visitsSpecRootDir() {
-        final CopySpecImpl spec = context.mock(CopySpecImpl.class);
+        final ReadableCopySpec spec = context.mock(ReadableCopySpec.class);
 
         context.checking(new Expectations() {{
             allowing(spec).getDestPath();

@@ -25,21 +25,21 @@ import java.io.File;
 /**
  * @author Steve Appling
  */
-public class CopyVisitor implements CopySpecVisitor {
+public class FileCopyVisitor implements CopySpecVisitor {
     private File baseDestDir;
     private boolean didWork;
 
     public void startVisit(CopyAction action) {
+        baseDestDir = ((FileCopyAction) action).getDestinationDir();
+        if (baseDestDir == null) {
+            throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
+        }
     }
 
     public void endVisit() {
     }
 
-    public void visitSpec(CopySpecImpl spec) {
-        baseDestDir = spec.getDestDir();
-        if (baseDestDir == null) {
-            throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
-        }
+    public void visitSpec(ReadableCopySpec spec) {
     }
 
     public void visitDir(FileVisitDetails dirDetails) {

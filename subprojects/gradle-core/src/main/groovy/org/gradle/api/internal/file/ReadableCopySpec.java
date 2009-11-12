@@ -15,23 +15,25 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.CopyAction;
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.RelativePath;
 
-public interface CopySpecVisitor extends FileVisitor, WorkResult {
-    /**
-     * Called at the start of the visit.
-     */
-    void startVisit(CopyAction action);
+import java.util.Collection;
 
-    /**
-     * Called at the end of the visit.
-     */
-    void endVisit();
+public interface ReadableCopySpec {
+    FilterChain getFilterChain();
 
-    /**
-     * Visits a spec. Called before any of the files or directories of the spec are visited.
-     */
-    void visitSpec(ReadableCopySpec spec);
+    CopyDestinationMapper getDestinationMapper();
+
+    RelativePath getDestPath();
+
+    int getFileMode();
+
+    int getDirMode();
+
+    FileTree getSource();
+
+    Collection<? extends ReadableCopySpec> getAllSpecs();
+
+    boolean hasSource();
 }

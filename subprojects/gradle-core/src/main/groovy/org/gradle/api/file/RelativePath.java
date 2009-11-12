@@ -57,6 +57,10 @@ public class RelativePath {
         System.arraycopy(children, 0, segments, sourceLength, children.length);
     }
 
+    public RelativePath(RelativePath parent, RelativePath child) {
+        this(child.endsWithFile, parent, child.segments);
+    }
+
     public String[] getSegments() {
         return segments;
     }

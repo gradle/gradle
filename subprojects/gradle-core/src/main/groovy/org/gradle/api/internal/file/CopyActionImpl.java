@@ -17,7 +17,6 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.tasks.util.PatternSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,6 @@ import java.util.List;
  * @author Steve Appling
  */
 public class CopyActionImpl extends CopySpecImpl implements CopyAction {
-    private boolean caseSensitive = true;
     private CopySpecVisitor visitor;
 
     public CopyActionImpl(FileResolver resolver, CopySpecVisitor visitor) {
@@ -40,8 +38,9 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
 
     public void execute() {
         visitor.startVisit(this);
-        for (CopySpecImpl spec : getAllSpecs()) {
-            copySingleSpec(spec);
+        for (ReadableCopySpec spec : getAllSpecs()) {
+            visitor.visitSpec(spec);
+            spec.getSource().visit(visitor);
         }
         visitor.endVisit();
     }
@@ -52,31 +51,11 @@ public class CopyActionImpl extends CopySpecImpl implements CopyAction {
 
     public FileTree getAllSource() {
         List<FileTree> sources = new ArrayList<FileTree>();
-        for (CopySpecImpl spec : getAllSpecs()) {
-            FileTree source = getSource(spec);
+        for (ReadableCopySpec spec : getAllSpecs()) {
+            FileTree source = spec.getSource();
             sources.add(source);
         }
         return getResolver().resolveFilesAsTree(sources);
     }
 
-    private void copySingleSpec(CopySpecImpl spec) {
-        visitor.visitSpec(spec);
-
-        FileTree source = getSource(spec);
-        source.visit(visitor);
-    }
-
-    private FileTree getSource(CopySpecImpl spec) {
-        PatternSet patterns = new PatternSet();
-        patterns.setCaseSensitive(caseSensitive);
-        patterns.include(spec.getAllIncludes());
-        patterns.includeSpecs(spec.getAllIncludeSpecs());
-        patterns.exclude(spec.getAllExcludes());
-        patterns.excludeSpecs(spec.getAllExcludeSpecs());
-        return spec.getSource().matching(patterns);
-    }
-
-    public void setCaseSensitive(boolean caseSensitive) {
-        this.caseSensitive = caseSensitive;
-    }
 }

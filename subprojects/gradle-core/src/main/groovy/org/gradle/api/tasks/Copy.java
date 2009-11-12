@@ -16,9 +16,7 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.internal.file.CopyActionImpl;
-import org.gradle.api.internal.file.CopyVisitor;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
@@ -54,16 +52,16 @@ import java.io.File;
  * @author Steve Appling
  */
 public class Copy extends AbstractCopyTask {
-    private CopyActionImpl copyAction;
+    private FileCopyActionImpl copyAction;
 
     public Copy() {
         FileResolver fileResolver = ((ProjectInternal) getProject()).getFileResolver();
-        setCopyAction(new CopyActionImpl(fileResolver, new CopyVisitor()));
+        copyAction = new FileCopyActionImpl(fileResolver, new FileCopyVisitor());
     }
 
     protected void configureRootSpec() {
         super.configureRootSpec();
-        if (getCopyAction().getDestDir() == null) {
+        if (getCopyAction().getDestinationDir() == null) {
             File destDir = getDestinationDir();
             if (destDir != null) {
                 into(destDir);
@@ -71,17 +69,17 @@ public class Copy extends AbstractCopyTask {
         }
     }
 
-    public CopyActionImpl getCopyAction() {
+    public FileCopyActionImpl getCopyAction() {
         return copyAction;
     }
 
-    public void setCopyAction(CopyActionImpl copyAction) {
+    public void setCopyAction(FileCopyActionImpl copyAction) {
         this.copyAction = copyAction;
     }
 
     @OutputDirectory
     public File getDestinationDir() {
-        return getCopyAction().getDestDir();
+        return getCopyAction().getDestinationDir();
     }
 
     public void setDestinationDir(File destinationDir) {

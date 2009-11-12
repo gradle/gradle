@@ -21,10 +21,4 @@ import org.gradle.api.tasks.WorkResult;
  * @author Steve Appling
  */
 public interface CopyAction extends CopySpec, WorkResult {
-
-    /**
-     * Set case sensitivity for comparisons.
-     * @param caseSensitive
-     */
-    void setCaseSensitive(boolean caseSensitive);
 }

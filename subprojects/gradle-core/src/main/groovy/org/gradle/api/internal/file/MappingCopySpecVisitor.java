@@ -24,7 +24,7 @@ import java.io.*;
 
 public class MappingCopySpecVisitor implements CopySpecVisitor {
     private final CopySpecVisitor visitor;
-    private CopySpecImpl spec;
+    private ReadableCopySpec spec;
 
     public MappingCopySpecVisitor(CopySpecVisitor visitor) {
         this.visitor = visitor;
@@ -38,7 +38,7 @@ public class MappingCopySpecVisitor implements CopySpecVisitor {
         visitor.endVisit();
     }
 
-    public void visitSpec(CopySpecImpl spec) {
+    public void visitSpec(ReadableCopySpec spec) {
         this.spec = spec;
         visitor.visitSpec(spec);
     }
@@ -57,9 +57,9 @@ public class MappingCopySpecVisitor implements CopySpecVisitor {
 
     private static class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
         private final FileVisitDetails fileDetails;
-        private final CopySpecImpl spec;
+        private final ReadableCopySpec spec;
 
-        public FileVisitDetailsImpl(FileVisitDetails fileDetails, CopySpecImpl spec) {
+        public FileVisitDetailsImpl(FileVisitDetails fileDetails, ReadableCopySpec spec) {
             this.fileDetails = fileDetails;
             this.spec = spec;
         }

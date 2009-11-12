@@ -41,7 +41,7 @@ public class NormalizingCopyVisitor implements CopySpecVisitor {
         visitor.endVisit();
     }
 
-    public void visitSpec(CopySpecImpl spec) {
+    public void visitSpec(ReadableCopySpec spec) {
         maybeVisit(spec.getDestPath());
         visitor.visitSpec(spec);
     }

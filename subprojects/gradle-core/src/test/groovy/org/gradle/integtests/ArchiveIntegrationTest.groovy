@@ -311,7 +311,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         testFile('build/test.jar').unzipTo(expandDir)
         expandDir.assertHasDescendants('META-INF/MANIFEST.MF', 'META-INF/dir2/file2.xml', 'dir1/file1.txt')
     }
-    
+
     @Test public void canCreateAWarArchiveWithNoWebXml() {
         createDir('content') {
             content1 {
@@ -401,7 +401,51 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 'WEB-INF/web.xml',
                 'WEB-INF/webinf1/file1.txt')
     }
-    
+
+    @Test public void canCreateArchivesAndExplodedImageFromSameSpec() {
+        createDir('test') {
+            dir1 {
+                file 'file1.txt'
+                file 'ignored.xml'
+            }
+            dir2 {
+                dir3 { file 'file2.txt' }
+                file 'ignored.xml'
+            }
+        }
+
+        testFile('build.gradle') << '''
+            def distImage = copySpec {
+                include '**/*.txt'
+                from('test/dir1') {
+                    into 'lib'
+                }
+                from('test/dir2') {
+                    into 'src'
+                }
+            }
+            task copy(type: Copy) {
+                into 'build/exploded'
+                from distImage
+            }
+            task zip(type: Zip) {
+                destinationDir = file('build')
+                archiveName = 'test.zip'
+                into('prefix') {
+                    from distImage
+                }
+            }
+'''
+
+        inTestDirectory().withTasks('copy', 'zip').run()
+        testFile('build/exploded').assertHasDescendants(
+                'lib/file1.txt', 'src/dir3/file2.txt'
+        )
+        TestFile expandDir = testFile('expanded')
+        testFile('build/test.zip').unzipTo(expandDir)
+        expandDir.assertHasDescendants('prefix/lib/file1.txt', 'prefix/src/dir3/file2.txt')
+    }
+
     @Test public void canMergeArchivesIntoAnotherArchive() {
         createZip('test.zip') {
             shared {
@@ -429,38 +473,38 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         }
 
         testFile('build.gradle') << '''
-task zip(type: Zip) {
-    from zipTree('test.zip')
-    from tarTree('test.tar')
-    from fileTree('test')
-    destinationDir = buildDir
-    archiveName = 'test.zip'
-}
-'''
+        task zip(type: Zip) {
+            from zipTree('test.zip')
+            from tarTree('test.tar')
+            from fileTree('test')
+            destinationDir = buildDir
+            archiveName = 'test.zip'
+        }
+        '''
 
-        inTestDirectory().withTasks('zip').run()
+                inTestDirectory().withTasks('zip').run()
 
-        TestFile expandDir = testFile('expanded')
-        testFile('build/test.zip').unzipTo(expandDir) 
-        expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
-    }
+                TestFile expandDir = testFile('expanded')
+                testFile('build/test.zip').unzipTo(expandDir)
+                expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
+            }
 
-    private def createZip(String name, Closure cl) {
-        TestFile zipRoot = testFile("${name}.root")
-        TestFile zip = testFile(name)
-        zipRoot.create(cl)
-        zipRoot.zipTo(zip)
-    }
+            private def createZip(String name, Closure cl) {
+                TestFile zipRoot = testFile("${name}.root")
+                TestFile zip = testFile(name)
+                zipRoot.create(cl)
+                zipRoot.zipTo(zip)
+            }
 
-    private def createTar(String name, Closure cl) {
-        TestFile tarRoot = testFile("${name}.root")
-        TestFile tar = testFile(name)
-        tarRoot.create(cl)
-        tarRoot.tarTo(tar)
-    }
+            private def createTar(String name, Closure cl) {
+                TestFile tarRoot = testFile("${name}.root")
+                TestFile tar = testFile(name)
+                tarRoot.create(cl)
+                tarRoot.tarTo(tar)
+            }
 
-    private def createDir(String name, Closure cl) {
-        TestFile root = testFile(name)
-        root.create(cl)
-    }
-}
+            private def createDir(String name, Closure cl) {
+                TestFile root = testFile(name)
+                root.create(cl)
+            }
+        }

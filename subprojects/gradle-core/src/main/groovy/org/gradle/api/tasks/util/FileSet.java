@@ -92,7 +92,7 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     }
 
     public WorkResult copy(Closure closure) {
-        CopyActionImpl action = new CopyActionImpl(resolver, new CopyVisitor());
+        CopyActionImpl action = new FileCopyActionImpl(resolver, new FileCopyVisitor());
         action.from(this);
         ConfigureUtil.configure(closure, action);
         action.execute();

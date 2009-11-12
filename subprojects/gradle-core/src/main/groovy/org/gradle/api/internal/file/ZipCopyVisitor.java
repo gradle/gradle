@@ -29,7 +29,7 @@ import java.io.File;
 public class ZipCopyVisitor implements CopySpecVisitor {
     private ZipOutputStream zipOutStr;
     private File zipFile;
-    private CopySpecImpl spec;
+    private ReadableCopySpec spec;
 
     public void startVisit(CopyAction action) {
         ArchiveCopyAction archiveAction = (ArchiveCopyAction) action;
@@ -52,7 +52,7 @@ public class ZipCopyVisitor implements CopySpecVisitor {
         }
     }
 
-    public void visitSpec(CopySpecImpl spec) {
+    public void visitSpec(ReadableCopySpec spec) {
         this.spec = spec;
     }
 

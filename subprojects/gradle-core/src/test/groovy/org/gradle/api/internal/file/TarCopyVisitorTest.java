@@ -25,7 +25,6 @@ import org.gradle.util.TemporaryFolder;
 import org.hamcrest.Description;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
@@ -42,11 +41,9 @@ import java.io.OutputStream;
 public class TarCopyVisitorTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private final JUnit4Mockery context = new JUnit4Mockery();
     private final TarCopyAction copyAction = context.mock(TarCopyAction.class);
-    private final CopySpecImpl copySpec = context.mock(CopySpecImpl.class);
+    private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
     private final TarCopyVisitor visitor = new TarCopyVisitor();
 
     @Before

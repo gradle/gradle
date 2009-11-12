@@ -201,7 +201,7 @@ public class TestFile extends File {
      */
     public void assertHasDescendants(String... descendants) {
         Set<String> actual = new TreeSet<String>();
-        assertTrue(this.isDirectory());
+        assertIsDir();
         visit(actual, "", this);
         Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
         assertEquals(expected, actual);

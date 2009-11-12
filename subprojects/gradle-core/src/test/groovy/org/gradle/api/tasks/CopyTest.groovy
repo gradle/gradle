@@ -8,12 +8,13 @@ import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.api.internal.file.FileCopyActionImpl
 
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyTest extends AbstractTaskTest {
     Copy copyTask;
     BreadthFirstDirectoryWalker walker;
-    CopyActionImpl action;
+    FileCopyActionImpl action;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
@@ -22,7 +23,7 @@ public class CopyTest extends AbstractTaskTest {
         super.setUp()
         context.setImposteriser(ClassImposteriser.INSTANCE)
         walker = context.mock(BreadthFirstDirectoryWalker.class)
-        action = context.mock(CopyActionImpl.class)
+        action = context.mock(FileCopyActionImpl.class)
         copyTask = createTask(Copy.class)
         copyTask.copyAction = action
     }
@@ -34,7 +35,7 @@ public class CopyTest extends AbstractTaskTest {
     @Test public void executesActionOnExecute() {
         context.checking {
             one(action).hasSource(); will(returnValue(true))
-            one(action).getDestDir(); will(returnValue(new File('dest')))
+            one(action).getDestinationDir(); will(returnValue(new File('dest')))
             one(action).execute()
             one(action).getDidWork()
         }
@@ -46,7 +47,7 @@ public class CopyTest extends AbstractTaskTest {
         copyTask.conventionMapping.destinationDir = { new File('convention') }
 
         context.checking {
-            exactly(2).of(action).getDestDir()
+            exactly(2).of(action).getDestinationDir()
             will(returnValue(null))
             one(action).into(new File('convention'))
             one(action).hasSource(); will(returnValue(true))
@@ -59,7 +60,7 @@ public class CopyTest extends AbstractTaskTest {
         copyTask.conventionMapping.destinationDir = { new File('convention') }
 
         context.checking {
-            one(action).getDestDir()
+            one(action).getDestinationDir()
             will(returnValue(new File('dest')))
             one(action).hasSource(); will(returnValue(true))
         }

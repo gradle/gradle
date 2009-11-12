@@ -33,25 +33,26 @@ import java.util.*;
 /**
  * @author Steve Appling
  */
-public class CopySpecImpl implements CopySpec {
+public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private final FileResolver resolver;
     private final boolean root;
     private final Set<Object> sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
-    private final List<CopySpecImpl> childSpecs;
+    private final List<ReadableCopySpec> childSpecs;
     private final CopySpecImpl parentSpec;
     private final FilterChain filterChain;
     private final DefaultCopyDestinationMapper destinationMapper = new DefaultCopyDestinationMapper();
     private Integer dirMode;
     private Integer fileMode;
+    private Boolean caseSensitive;
 
     private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec, boolean root) {
         this.parentSpec = parentSpec;
         this.resolver = resolver;
         this.root = root;
         sourcePaths = new LinkedHashSet<Object>();
-        childSpecs = new ArrayList<CopySpecImpl>();
+        childSpecs = new ArrayList<ReadableCopySpec>();
         patternSet = new PatternSet();
         filterChain = new FilterChain();
     }
@@ -66,7 +67,11 @@ public class CopySpecImpl implements CopySpec {
 
     public CopySpec from(Object... sourcePaths) {
         for (Object sourcePath : sourcePaths) {
-            this.sourcePaths.add(sourcePath);
+            if (sourcePath instanceof ReadableCopySpec) {
+                childSpecs.add(new WrapperCopySpec(this, (ReadableCopySpec) sourcePath));
+            } else {
+                this.sourcePaths.add(sourcePath);
+            }
         }
         return this;
     }
@@ -100,13 +105,13 @@ public class CopySpecImpl implements CopySpec {
     }
 
     public FileTree getSource() {
-        return resolver.resolveFilesAsTree(sourcePaths);
+        return resolver.resolveFilesAsTree(sourcePaths).matching(getPatternSet());
     }
 
-    public List<CopySpecImpl> getAllSpecs() {
-        List<CopySpecImpl> result = new ArrayList<CopySpecImpl>();
+    public List<ReadableCopySpec> getAllSpecs() {
+        List<ReadableCopySpec> result = new ArrayList<ReadableCopySpec>();
         result.add(this);
-        for (CopySpecImpl childSpec : childSpecs) {
+        for (ReadableCopySpec childSpec : childSpecs) {
             result.addAll(childSpec.getAllSpecs());
         }
         return result;
@@ -151,11 +156,27 @@ public class CopySpecImpl implements CopySpec {
         return RelativePath.parse(false, parentPath, path);
     }
 
-    public File getDestDir() {
-        if (parentSpec == null) {
-            return destDir == null ? null : resolver.resolve(destDir);
+    public PatternSet getPatternSet() {
+        PatternSet patterns = new PatternSet();
+        patterns.setCaseSensitive(isCaseSensitive());
+        patterns.include(getAllIncludes());
+        patterns.includeSpecs(getAllIncludeSpecs());
+        patterns.exclude(getAllExcludes());
+        patterns.excludeSpecs(getAllExcludeSpecs());
+        return patterns;
+    }
+
+    public boolean isCaseSensitive() {
+        if (caseSensitive != null) {
+            return caseSensitive;
+        } else if (parentSpec != null) {
+            return parentSpec.isCaseSensitive();
         }
-        return parentSpec.getDestDir();
+        return true;
+    }
+
+    public void setCaseSensitive(boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
     }
 
     public CopySpec include(String... includes) {
@@ -333,11 +354,57 @@ public class CopySpecImpl implements CopySpec {
         if (!sourcePaths.isEmpty()) {
             return true;
         }
-        for (CopySpecImpl spec : childSpecs) {
+        for (ReadableCopySpec spec : childSpecs) {
             if (spec.hasSource()) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static class WrapperCopySpec implements ReadableCopySpec {
+        private final ReadableCopySpec root;
+        private final ReadableCopySpec spec;
+
+        public WrapperCopySpec(ReadableCopySpec root, ReadableCopySpec spec) {
+            this.root = root;
+            this.spec = spec;
+        }
+
+        public FilterChain getFilterChain() {
+            return spec.getFilterChain();
+        }
+
+        public CopyDestinationMapper getDestinationMapper() {
+            return spec.getDestinationMapper();
+        }
+
+        public RelativePath getDestPath() {
+            return new RelativePath(root.getDestPath(), spec.getDestPath());
+        }
+
+        public int getFileMode() {
+            return spec.getFileMode();
+        }
+
+        public int getDirMode() {
+            return spec.getDirMode();
+        }
+
+        public FileTree getSource() {
+            return spec.getSource();
+        }
+
+        public Collection<? extends ReadableCopySpec> getAllSpecs() {
+            List<WrapperCopySpec> specs = new ArrayList<WrapperCopySpec>();
+            for (ReadableCopySpec child : spec.getAllSpecs()) {
+                specs.add(new WrapperCopySpec(root, child));
+            }
+            return specs;
+        }
+
+        public boolean hasSource() {
+            return spec.hasSource();
+        }
     }
 }

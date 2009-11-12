@@ -26,7 +26,6 @@ import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,14 +37,12 @@ import java.io.File;
 
 @RunWith(JMock.class)
 public class MappingCopySpecVisitorTest {
-    private final JUnit4Mockery context = new JUnit4Mockery(){{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private final JUnit4Mockery context = new JUnit4Mockery();
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final CopySpecVisitor delegate = context.mock(CopySpecVisitor.class);
     private final MappingCopySpecVisitor visitor = new MappingCopySpecVisitor(delegate);
-    private final CopySpecImpl spec = context.mock(CopySpecImpl.class);
+    private final ReadableCopySpec spec = context.mock(ReadableCopySpec.class);
     private final FileVisitDetails details = context.mock(FileVisitDetails.class);
 
     @Test

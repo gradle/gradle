@@ -24,21 +24,28 @@ import java.io.FilterReader;
 
 /**
  * A set of specifications for copying files.  This includes:
+ *
  * <ul>
- *   <li>source directories (multiples allowed)
- *   <li>destination directory
- *   <li>ANT like include patterns
- *   <li>ANT like exclude patterns
- *   <li>File relocating rules
- *   <li>renaming rules
- *   <li>content filters
+ *
+ * <li>source directories (multiples allowed)
+ *
+ * <li>destination directory
+ *
+ * <li>ANT like include patterns
+ *
+ * <li>ANT like exclude patterns
+ *
+ * <li>File relocating rules
+ *
+ * <li>renaming rules
+ *
+ * <li>content filters
+ *
  * </ul>
  *
- * CopySpecs may be nested by passing a closure to one of the from methods.  The
- * closure creates a child CopySpec and delegates methods in the closure to the child.
- * Child CopySpecs inherit any values specified in the parent.  Only the leaf CopySpecs
- * will be used in any copy operations.
- * This allows constructs like:
+ * CopySpecs may be nested by passing a closure to one of the from methods.  The closure creates a child CopySpec and
+ * delegates methods in the closure to the child. Child CopySpecs inherit any values specified in the parent. This
+ * allows constructs like:
  * <pre>
  * into('webroot')
  * exclude('**&#47;.svn/**')
@@ -50,13 +57,27 @@ import java.io.FilterReader;
  * }
  * </pre>
  *
- * In this example, the <code>into</code> and <code>exclude</code> specifications at the
- * root level are inherited by the two child CopySpecs.
+ * In this example, the <code>into</code> and <code>exclude</code> specifications at the root level are inherited by the
+ * two child CopySpecs.
+ *
  * @author Steve Appling
  * @see org.gradle.api.tasks.Copy Copy Task
  * @see org.gradle.api.Project#copy(groovy.lang.Closure) Project.copy()
  */
 public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFilterable {
+    /**
+     * Returns true if this CopySpec uses case-sensitive pattern matching. The default is true.
+     *
+     * @return true for case-sensitive matching.
+     */
+    boolean isCaseSensitive();
+
+    /**
+     * Specifies whether case-sensitive pattern matching should be used for this CopySpec.
+     *
+     * @param caseSensitive true for case-sensitive matching.
+     */
+    void setCaseSensitive(boolean caseSensitive);
 
     // CopySourceSpec overrides to broaden return type
 
@@ -74,60 +95,70 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec setIncludes(Iterable<String> includes);
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec setExcludes(Iterable<String> excludes);
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec include(String... includes);
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec include(Iterable<String> includes);
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec include(Spec<FileTreeElement> includeSpec);
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec include(Closure includeSpec);
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec exclude(String... excludes);
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec exclude(Iterable<String> excludes);
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec exclude(Spec<FileTreeElement> excludeSpec);
 
     /**
      * {@inheritDoc}
+     *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     CopySpec exclude(Closure excludeSpec);
@@ -140,8 +171,8 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     CopySpec into(Object destPath);
 
     /**
-     * Creates and configures a child {@code CopySpec} with the given destination path. The destination is evaluated
-     * as for {@link org.gradle.api.Project#file(Object)}.
+     * Creates and configures a child {@code CopySpec} with the given destination path. The destination is evaluated as
+     * for {@link org.gradle.api.Project#file(Object)}.
      *
      * @param destPath Path to the destination directory for a Copy
      * @param configureClosure The closure to use to configure the child {@code CopySpec}.

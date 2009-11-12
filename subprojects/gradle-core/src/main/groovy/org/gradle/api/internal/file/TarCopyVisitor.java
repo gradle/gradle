@@ -33,7 +33,7 @@ import java.util.zip.GZIPOutputStream;
 public class TarCopyVisitor implements CopySpecVisitor {
     private TarOutputStream tarOutStr;
     private File tarFile;
-    private CopySpecImpl spec;
+    private ReadableCopySpec spec;
 
     public void startVisit(CopyAction action) {
         TarCopyAction archiveAction = (TarCopyAction) action;
@@ -68,7 +68,7 @@ public class TarCopyVisitor implements CopySpecVisitor {
         }
     }
 
-    public void visitSpec(CopySpecImpl spec) {
+    public void visitSpec(ReadableCopySpec spec) {
         this.spec = spec;
     }
 

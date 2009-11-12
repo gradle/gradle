@@ -25,10 +25,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopyAction;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
@@ -43,6 +40,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 import org.gradle.api.tasks.Directory;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.FileSet;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -855,11 +853,17 @@ public abstract class AbstractProject implements ProjectInternal {
         return dynamicObjectHelper.getProperties();
     }
 
-    public CopyAction copy(Closure closure) {
-        CopyActionImpl result = new CopyActionImpl(fileResolver, new CopyVisitor());
+    public WorkResult copy(Closure closure) {
+        CopyActionImpl result = new FileCopyActionImpl(fileResolver, new FileCopyVisitor());
         configure(result,  closure);
         result.execute();
         return result;
+    }
+
+    public CopySpec copySpec(Closure closure) {
+        CopySpecImpl copySpec = new CopySpecImpl(fileResolver);
+        configure(copySpec, closure);
+        return copySpec;
     }
 
     public ServiceRegistryFactory getServiceRegistryFactory() {

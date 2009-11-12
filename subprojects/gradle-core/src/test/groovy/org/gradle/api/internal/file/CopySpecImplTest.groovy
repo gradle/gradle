@@ -7,27 +7,24 @@ import org.gradle.integtests.TestFile
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.apache.tools.zip.UnixStat
+import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.file.FileTree
 
 @RunWith(JMock)
 public class CopySpecImplTest {
 
-    private CopySpecImpl spec;
     @Rule public TemporaryFolder testDir = new TemporaryFolder();
     private TestFile baseFile = testDir.dir
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final FileResolver fileResolver = context.mock(FileResolver);
-
-    @Before
-    public void setUp() {
-        spec = new CopySpecImpl(fileResolver);
-    }
+    private final CopySpecImpl spec = new CopySpecImpl(fileResolver)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -53,6 +50,7 @@ public class CopySpecImplTest {
         CopySpecImpl child = spec.from('source') {
         }
 
+        assertThat(child, not(sameInstance(spec)))
         assertEquals(['source'], child.sourcePaths as List);
     }
 
@@ -60,13 +58,22 @@ public class CopySpecImplTest {
         CopySpecImpl child = spec.from(['source1', 'source2']) {
         }
 
+        assertThat(child, not(sameInstance(spec)))
         assertEquals(['source1', 'source2'], child.sourcePaths.flatten() as List);
     }
 
+    @Test public void testFromSpec() {
+        CopySpecImpl other = new CopySpecImpl(fileResolver)
+        spec.from other
+        assertTrue(spec.sourcePaths.empty)
+        assertThat(spec.childSpecs.size(), equalTo(1))
+    }
+    
     @Test public void testDestinationWithClosure() {
         CopySpecImpl child = spec.into('target') {
         }
 
+        assertThat(child, not(sameInstance(spec)))
         assertThat(child.destPath, equalTo(new RelativePath(false, 'target')))
     }
 
@@ -78,31 +85,11 @@ public class CopySpecImplTest {
         assertThat(spec.allSpecs, equalTo([spec, child, grandchild, child2]))
     }
 
-    @Test public void testRootSpecResolvesItsIntoArgAsDestinationDir() {
-        spec.into 'somedir'
+    @Test public void testRootSpecHasRootPathAsDestination() {
         assertThat(spec.destPath, equalTo(new RelativePath(false)))
-
-        context.checking {
-            allowing(fileResolver).resolve('somedir')
-            will(returnValue(baseFile))
-        }
-
-        assertThat(spec.destDir, equalTo(baseFile))
-    }
-
-    @Test public void testRootSpecHasNoDefaultDestinationDir() {
-        assertThat(spec.destPath, equalTo(new RelativePath(false)))
-        assertThat(spec.destDir, nullValue())
     }
 
     @Test public void testChildSpecResolvesIntoArgRelativeToParentDestinationDir() {
-        spec.into 'dest'
-
-        context.checking {
-            allowing(fileResolver).resolve('dest')
-            will(returnValue(baseFile))
-        }
-
         CopySpecImpl child = spec.from('somedir') { into 'child' }
         assertThat(child.destPath, equalTo(new RelativePath(false, 'child')))
 
@@ -113,23 +100,87 @@ public class CopySpecImplTest {
         assertThat(grandchild.destPath, equalTo(new RelativePath(false, 'grandchild')))
     }
 
-    @Test public void testChildSpecUsesParentDestinationDirAsDefault() {
-        spec.into 'dest'
-
-        context.checking {
-            allowing(fileResolver).resolve('dest')
-            will(returnValue(baseFile))
-        }
-
+    @Test public void testChildSpecUsesParentDestinationPathAsDefault() {
         CopySpecImpl child = spec.from('somedir') { }
-        assertThat(child.destPath, equalTo(new RelativePath(false)))
+        assertThat(child.destPath, equalTo(spec.destPath))
 
         child.into 'child'
 
         CopySpecImpl grandchild = child.from('somedir') { }
-        assertThat(grandchild.destPath, equalTo(new RelativePath(false, 'child')))
+        assertThat(grandchild.destPath, equalTo(child.destPath))
     }
 
+    @Test public void testSourceIsFilteredTreeOfSources() {
+        spec.from 'a'
+        spec.from 'b'
+
+        def filteredTree = context.mock(FileTree, 'filtered')
+
+        context.checking {
+            one(fileResolver).resolveFilesAsTree(['a', 'b'] as Set)
+            def tree = context.mock(FileTree, 'source')
+            will(returnValue(tree))
+            one(tree).matching(withParam(equalTo(spec.patternSet)))
+            will(returnValue(filteredTree))
+        }
+
+        assertThat(spec.source, sameInstance(filteredTree))
+    }
+    
+    @Test public void testChildUsesPatternsFromParent() {
+        CopySpecImpl child = spec.from('dir') {}
+        Spec specInclude = [:] as Spec
+        Spec specExclude = [:] as Spec
+        Spec childInclude = [:] as Spec
+        Spec childExclude = [:] as Spec
+
+        spec.include('parent-include')
+        spec.exclude('parent-exclude')
+        spec.include(specInclude)
+        spec.exclude(specExclude)
+        child.include('child-include')
+        child.exclude('child-exclude')
+        child.include(childInclude)
+        child.exclude(childExclude)
+
+        PatternSet patterns = child.patternSet
+        assertThat(patterns.includes, equalTo(['parent-include', 'child-include'] as Set))
+        assertThat(patterns.excludes, equalTo(['parent-exclude', 'child-exclude'] as Set))
+        assertThat(patterns.includeSpecs, equalTo([specInclude, childInclude] as Set))
+        assertThat(patterns.excludeSpecs, equalTo([specExclude, childExclude] as Set))
+    }
+
+    @Test public void testChildUsesParentPatternsAsDefault() {
+        CopySpecImpl child = spec.from('dir') {}
+        Spec specInclude = [:] as Spec
+        Spec specExclude = [:] as Spec
+
+        spec.include('parent-include')
+        spec.exclude('parent-exclude')
+        spec.include(specInclude)
+        spec.exclude(specExclude)
+
+        PatternSet patterns = child.patternSet
+        assertThat(patterns.includes, equalTo(['parent-include'] as Set))
+        assertThat(patterns.excludes, equalTo(['parent-exclude'] as Set))
+        assertThat(patterns.includeSpecs, equalTo([specInclude] as Set))
+        assertThat(patterns.excludeSpecs, equalTo([specExclude] as Set))
+    }
+
+    @Test public void testChildUsesCaseSensitiveFlagFromParentAsDefault() {
+        CopySpecImpl child = spec.from('dir') {}
+        assertTrue(child.caseSensitive)
+        assertTrue(child.patternSet.caseSensitive)
+
+        spec.caseSensitive = false
+        assertFalse(child.caseSensitive)
+        assertFalse(child.patternSet.caseSensitive)
+
+        child.caseSensitive = true
+        assertTrue(child.caseSensitive)
+        assertTrue(child.patternSet.caseSensitive)
+    }
+    
     @Test public void testNoArgFilter() {
         spec.filter(StripJavaComments)
         assertThat(spec.filterChain.getLastFilter(), instanceOf(StripJavaComments))
@@ -187,7 +238,7 @@ public class CopySpecImplTest {
         spec.from 'source'
         assertTrue(spec.hasSource())
     }
-    
+
     @Test public void testHasSourceWhenChildSpecHasSource() {
         spec.from('source') {}
         assertTrue(spec.hasSource())
