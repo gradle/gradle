@@ -149,6 +149,18 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test
+    public void testCompileScriptToDirWithClassDefinitionOnlyScript() {
+        final ScriptSource scriptSource = scriptSource("class SomeClass {}");
+        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+
+        checkScriptClassesInCache();
+
+        Script script = scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
+                expectedScriptClass);
+        assertThat(script, is(expectedScriptClass));
+    }
+
+    @Test
     public void testCreateScriptOnTheFly() {
         Script script = scriptCompilationHandler.compileScript(scriptSource, classLoader, null,
                 expectedScriptClass);

@@ -116,13 +116,17 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
         }
 
-        if (scriptClass == null) {
+        if (!hasScriptStatements(scriptName, scriptClass)) {
             // Assume an empty script
             String emptySource = String.format("class %s extends %s { public Object run() { return null } }",
                     source.getClassName(), configuration.getScriptBaseClass().replaceAll("\\$", "."));
             scriptClass = groovyClassLoader.parseClass(emptySource, scriptName);
         }
         return scriptClass;
+    }
+
+    private boolean hasScriptStatements(String scriptName, Class scriptClass) {
+        return scriptClass != null && scriptClass.getName().equals(scriptName);
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
