@@ -3,7 +3,7 @@ package org.gradle.integtests
 import org.apache.commons.io.FileUtils
 import org.junit.Before
 
-public abstract class AbstactCopyIntegrationTest extends AbstractIntegrationTest  {
+public class AbstactCopyIntegrationTest extends AbstractIntegrationTest  {
     @Before
     public void setUp() {
         ['src', 'src2'].each {

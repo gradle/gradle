@@ -5,23 +5,21 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
+    
     @Test
-    public void testSingleSourceWithExclude() {
-        TestFile buildFile = testFile("build.gradle").writelns(
-                "task (copy, type:Copy) {",
-                "   from 'src'",
-                "   into 'dest'",
-                "   exclude '**/ignore/**'",
-                "}"
-        )
+    public void testSingleSourceWithIncludeAndExclude() {
+        TestFile buildFile = testFile("build.gradle") << '''
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               include '**/sub/**'
+               exclude '**/ignore/**'
+            }
+'''
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
-                'root.a',
-                'root.b',
-                'one/one.a',
-                'one/one.b',
-                'two/two.a',
-                'two/two.b',
+                'one/sub/onesub.a',
+                'one/sub/onesub.b'
         )
     }
 
@@ -49,11 +47,11 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
             task (copy, type:Copy) {
                into 'dest'
                from('src/one') {
-                  into 'one'
+                  into '1'
                   include '**/*.a'
                }
                from('src/two') {
-                  into 'two'
+                  into '2'
                   include '**/*.b'
                }
                exclude '**/ignore/**'
@@ -61,8 +59,9 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
 '''
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
-                'one/one.a',
-                'two/two.b',
+                '1/one.a',
+                '1/sub/onesub.a',
+                '2/two.b',
         )
     }
 
@@ -74,7 +73,7 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
                into('common') {
                   from('src/one') {
                      into 'a/one'
-                     include '**/*.a'
+                     include '*.a'
                   }
                   into('b') {
                      from('src/two') {
@@ -108,6 +107,8 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
                 'root.b',
                 'one/renamed_one.renamed',
                 'one/renamed_one.b',
+                'one/sub/onesub.renamed',
+                'one/sub/onesub.b',
                 'two/two.renamed',
                 'two/two.b'
         )
@@ -130,6 +131,8 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
                 'root.b',
                 'one/one.a',
                 'one/one.b',
+                'one/sub/onesub.a',
+                'one/sub/onesub.b',
                 'two/two.a',
                 'two/two.b',
         )
@@ -178,7 +181,7 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
                    copy {
-                        from fileTree(dir: 'src', excludes: ['**/ignore/**'])
+                        from fileTree(dir: 'src', excludes: ['**/ignore/**'], includes: ['*', '*/*'])
                         into 'dest'
                     }
                 }"""
@@ -201,6 +204,7 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
                         from files('src')
                         into 'dest'
                         exclude '**/ignore/**'
+                        exclude '*/*/*/**'
                     }
                 }"""
         )
@@ -226,7 +230,7 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
                    copy {
                         from files('src2') + fileTree { from 'src'; exclude '**/ignore/**' } + configurations.compile
                         into 'dest'
-                        include '**/*a*'
+                        include { fte -> fte.relativePath.segments.length < 3 && (fte.file.directory || fte.file.name.contains('a')) }
                     }
                 }"""
         )

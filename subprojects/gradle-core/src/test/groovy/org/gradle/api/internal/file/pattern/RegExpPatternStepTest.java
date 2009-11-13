@@ -38,38 +38,38 @@ public class RegExpPatternStepTest {
 
     @Test public void testEscapeSet() {
         String testChars = "`~!@#$%^&*()-_=+[]{}\\|;:'\"<>,/";
-        RegExpPatternStep step = new RegExpPatternStep(testChars, true, true);
+        RegExpPatternStep step = new RegExpPatternStep(testChars, true);
         assertTrue(step.matches(testChars, true));
     }
 
     @Test public void testMatches() {
-        RegExpPatternStep step = new RegExpPatternStep("literal", true, true);
+        RegExpPatternStep step = new RegExpPatternStep("literal", true);
         assertTrue(step.matches("literal", true));
         assertFalse(step.matches("Literal", true));
         assertFalse(step.matches("literally", true));
         assertFalse(step.matches("aliteral", true));
 
-        step = new RegExpPatternStep("a?c", true, true);
+        step = new RegExpPatternStep("a?c", true);
         assertTrue(step.matches("abc", true));
         assertFalse(step.matches("abcd", true));
         assertTrue(step.matches("a$c", true));
 
-        step = new RegExpPatternStep("a*c", true, true);
+        step = new RegExpPatternStep("a*c", true);
         assertTrue(step.matches("abc", true));
         assertTrue(step.matches("abrac", true));
         assertFalse(step.matches("abcd", true));
 
-        step = new RegExpPatternStep("*", true, true);
+        step = new RegExpPatternStep("*", true);
         assertTrue(step.matches("asd;flkj", true));
     }
 
 
     @Test public void testCase() {
-        RegExpPatternStep step = new RegExpPatternStep("MiXeD", true, true);
+        RegExpPatternStep step = new RegExpPatternStep("MiXeD", true);
         assertTrue(step.matches("MiXeD", true));
         assertFalse(step.matches("mixed", true));
 
-        step = new RegExpPatternStep("MiXeD", true, false);
+        step = new RegExpPatternStep("MiXeD", false);
         assertTrue(step.matches("MiXeD", true));
         assertTrue(step.matches("mixed", true));
     }

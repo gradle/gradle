@@ -49,6 +49,10 @@ public class NameOnlyPatternMatcher implements Spec<RelativePath> {
         if (!path.isFile()) {
             return partialMatchDirs;
         }
-        return nameStep.matches(path.getLastName(), true);
+        String lastName = path.getLastName();
+        if (lastName == null) {
+            return false;
+        }
+        return nameStep.matches(lastName, true);
     }
 }

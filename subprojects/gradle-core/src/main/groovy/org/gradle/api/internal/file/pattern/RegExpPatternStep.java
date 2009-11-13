@@ -25,12 +25,10 @@ public class RegExpPatternStep implements PatternStep {
     private static final String escapeChars = "\\[]^-&.{}()$+|<=!";
     private static final String patternChars = "*?";
 
-    private Matcher matcher;
-    private boolean isLast;
+    private final Pattern pattern;
 
-    public RegExpPatternStep(String pattern, boolean isLast, boolean caseSensitive) {
-        matcher = Pattern.compile(getRegExPattern(pattern), caseSensitive?0:Pattern.CASE_INSENSITIVE).matcher("");
-        this.isLast = isLast;
+    public RegExpPatternStep(String pattern, boolean caseSensitive) {
+        this.pattern = Pattern.compile(getRegExPattern(pattern), caseSensitive?0:Pattern.CASE_INSENSITIVE);
     }
 
     protected static String getRegExPattern(String pattern) {
@@ -48,8 +46,7 @@ public class RegExpPatternStep implements PatternStep {
     }
 
     public boolean matches(String testString, boolean isFile) {
-        matcher.reset(testString);
-        // (isLast == isFile) &&
+        Matcher matcher = pattern.matcher(testString);
         return matcher.matches();
     }
 

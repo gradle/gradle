@@ -19,6 +19,8 @@ public class FileSetCopyIntegrationTest extends AbstactCopyIntegrationTest {
                 'root.b',
                 'one/one.a',
                 'one/one.b',
+                'one/sub/onesub.a',
+                'one/sub/onesub.b',
                 'two/two.a',
                 'two/two.b',
         )
@@ -27,7 +29,7 @@ public class FileSetCopyIntegrationTest extends AbstactCopyIntegrationTest {
     @Test public void testCopyWithMap() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileTree(dir:'src', excludes:['**/ignore/**']).copy { into 'dest'}
+                   fileTree(dir:'src', excludes:['**/ignore/**', '**/sub/**']).copy { into 'dest'}
                 }"""
         )
         usingBuildFile(buildFile).withTasks("cpy").run()
@@ -44,7 +46,7 @@ public class FileSetCopyIntegrationTest extends AbstactCopyIntegrationTest {
     @Test public void testCopyFluent() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {
-                   fileTree(dir:'src').exclude('**/ignore/**').copy { into 'dest' }
+                   fileTree(dir:'src').exclude('**/ignore/**', '**/sub/*.?').copy { into 'dest' }
                 }"""
         )
         usingBuildFile(buildFile).withTasks("cpy").run()

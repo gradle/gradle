@@ -20,7 +20,7 @@ public class PatternStepFactory {
         if (source.equals("**")) {
             return new GreedyPatternStep();
         } else {
-            return new RegExpPatternStep(source, isLast, caseSensitive);
+            return new RegExpPatternStep(source, caseSensitive);
         }
     }
 }

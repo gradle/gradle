@@ -72,7 +72,7 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
                 while ( ! (patternStep.matches(nextToTest, !testIt.hasNext()&& pathToTest.isFile()) &&
                 ((patternIt.hasNext() == testIt.hasNext()) || nextPatternIsGreedy(patternIt) )) ) {
                     if (!testIt.hasNext()) {
-                        return false; //isTerminatingMatch(pathToTest, patternIt);  // didn't match, but no more segments to test
+                        return partialMatchDirs && !pathToTest.isFile(); //isTerminatingMatch(pathToTest, patternIt);  // didn't match, but no more segments to test
                     }
                     nextToTest = testIt.next();
                 }

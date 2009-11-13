@@ -145,7 +145,7 @@ public class DefaultPatternMatcherTest {
         assertTrue(matcher.isSatisfiedBy(path));
 
         path = new RelativePath(false, "a", "aa", "bb", "d");
-        assertFalse(matcher.isSatisfiedBy(path));
+        assertTrue(matcher.isSatisfiedBy(path));
 
         path = new RelativePath(true, "a", "aa", "bb", "d");
         assertFalse(matcher.isSatisfiedBy(path));
