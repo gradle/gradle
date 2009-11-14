@@ -27,10 +27,19 @@ public class PipelineDispatcherForkInfoListener implements ForkInfoListener {
         this.pipelineDispatcher = pipelineDispatcher;
     }
 
-    public void started(int forkId) {
+    public void starting(int forkId) {
+        pipelineDispatcher.forkStarting(forkId);
     }
 
-    public void stopped(int forkId, Throwable cause) {
-        pipelineDispatcher.clientStopped(forkId);
+    public void stopped(int forkId) {
+        pipelineDispatcher.forkStopped(forkId);
+    }
+
+    public void aborted(int forkId) {
+        pipelineDispatcher.forkAborted(forkId);
+    }
+
+    public void failed(int forkId, Throwable cause) {
+        pipelineDispatcher.forkFailed(forkId, cause);
     }
 }

@@ -25,20 +25,20 @@ import java.util.Map;
  */
 public class ReforkDataGatherControl {
 
-    private final Map<DataGatherMoment, List<DecisionContextItemDataGatherer>> dataGatherers;
+    private final Map<DataGatherMoment, List<ReforkReasonDataGatherer>> dataGatherers;
 
     public ReforkDataGatherControl() {
-        dataGatherers = new HashMap<DataGatherMoment, List<DecisionContextItemDataGatherer>>();
+        dataGatherers = new HashMap<DataGatherMoment, List<ReforkReasonDataGatherer>>();
     }
 
     public void initialize(final ReforkItemConfigs reforkItemConfigs) {
-        final Map<DecisionContextItemKey, DecisionContextItemConfig> itemConfigs = reforkItemConfigs.getItemConfigs();
-        for (final DecisionContextItemKey itemKey : reforkItemConfigs.getItemKeys()) {
-            final DecisionContextItem item = DecisionContextItems.getDecisionContextItem(itemKey);
+        final Map<ReforkReasonKey, ReforkReasonConfig> itemConfigs = reforkItemConfigs.getItemConfigs();
+        for (final ReforkReasonKey itemKey : reforkItemConfigs.getItemKeys()) {
+            final ReforkReason item = ReforkReasonRegister.getDecisionContextItem(itemKey);
 
-            final DecisionContextItemDataGatherer dataGatherer = item.getDataGatherer();
+            final ReforkReasonDataGatherer dataGatherer = item.getDataGatherer();
 
-            final DecisionContextItemConfig itemConfig = itemConfigs.get(itemKey);
+            final ReforkReasonConfig itemConfig = itemConfigs.get(itemKey);
             if (itemConfig != null) {
                 dataGatherer.configure(itemConfig);
             }
@@ -46,9 +46,9 @@ public class ReforkDataGatherControl {
             final List<DataGatherMoment> dataGatherMoments = dataGatherer.getDataGatherMoments();
             if (dataGatherMoments != null && !dataGatherMoments.isEmpty()) {
                 for (final DataGatherMoment dataGatherMoment : dataGatherMoments) {
-                    List<DecisionContextItemDataGatherer> momentDataGatherers = dataGatherers.get(dataGatherMoment);
+                    List<ReforkReasonDataGatherer> momentDataGatherers = dataGatherers.get(dataGatherMoment);
                     if (momentDataGatherers == null) {
-                        momentDataGatherers = new ArrayList<DecisionContextItemDataGatherer>();
+                        momentDataGatherers = new ArrayList<ReforkReasonDataGatherer>();
                     }
                     momentDataGatherers.add(dataGatherer);
                     dataGatherers.put(dataGatherMoment, momentDataGatherers);
@@ -60,11 +60,11 @@ public class ReforkDataGatherControl {
     public ReforkDecisionContext gatherData(DataGatherMoment moment, Object... momentData) {
         ReforkDecisionContext reforkDecisionContext = new ReforkDecisionContextImpl();
 
-        final List<DecisionContextItemDataGatherer> momentDataGatherers = dataGatherers.get(moment);
+        final List<ReforkReasonDataGatherer> momentDataGatherers = dataGatherers.get(moment);
 
         if (momentDataGatherers != null && !momentDataGatherers.isEmpty()) {
 
-            for (final DecisionContextItemDataGatherer dataGatherer : momentDataGatherers) {
+            for (final ReforkReasonDataGatherer dataGatherer : momentDataGatherers) {
                 try {
                     if (dataGatherer.processDataGatherMoment(moment, momentData)) {
                         reforkDecisionContext.addItem(dataGatherer.getItemKey(), dataGatherer.getCurrentData());

@@ -60,7 +60,7 @@ public class DefaultReportsManager implements ReportsManager {
         for (final ReportConfig reportConfig : reportConfigs.values() ) {
             final ReportPolicyConfig reportPolicyConfig = reportConfig.getPolicyConfig();
             final ReportPolicy reportPolicy = ReportPolicyRegister.getReportPolicy(reportPolicyConfig.getPolicyName());
-            final ReportPolicyInstance reportPolicyInstance = reportPolicy.createReportPolicyInstance();
+            final ReportPolicyInstance reportPolicyInstance = reportPolicy.createReportPolicyInstance(testTask.getTestFramework());
 
             final Report report = new Report(reportConfig, reportPolicyInstance);
 

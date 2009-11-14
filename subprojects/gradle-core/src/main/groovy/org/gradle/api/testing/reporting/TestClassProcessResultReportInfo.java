@@ -22,12 +22,18 @@ import org.gradle.api.testing.fabric.TestClassProcessResult;
  * @author Tom Eyckmans
  */
 public class TestClassProcessResultReportInfo implements ReportInfo {
+    private final int forkId;
     private final Pipeline pipeline;
     private final TestClassProcessResult testClassProcessResult;
 
-    public TestClassProcessResultReportInfo(Pipeline pipeline, TestClassProcessResult testClassProcessResult) {
+    public TestClassProcessResultReportInfo(int forkId, Pipeline pipeline, TestClassProcessResult testClassProcessResult) {
+        this.forkId = forkId;
         this.pipeline = pipeline;
         this.testClassProcessResult = testClassProcessResult;
+    }
+
+    public int getForkId() {
+        return forkId;
     }
 
     public Pipeline getPipeline() {

@@ -13,17 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.testing.execution.fork;
+package org.gradle.api.testing.execution.control.refork;
+
+import java.io.Serializable;
 
 /**
  * @author Tom Eyckmans
  */
-public enum ForkStatus {
-    STOPPED,
-    STARTING,
-    STARTED,
-    RESTARTING,
-    STOPPING,
-    FAILED,
-    ABORTED
+public interface ReforkReasonConfig extends Serializable {
+
+    /**
+     *
+     * Each implementation of this interface should have the following methods to control serialization: 
+     *
+     * private void writeObject(ObjectOutputStream out) throws IOException {
+     *
+     * }
+     *
+     * private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+     *
+     * }
+     *
+     */
 }

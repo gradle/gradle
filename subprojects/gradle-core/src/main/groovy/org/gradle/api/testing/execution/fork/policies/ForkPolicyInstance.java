@@ -26,7 +26,7 @@ public interface ForkPolicyInstance {
 
     void initialize();
 
-    void initializeFork(ForkInfo forkInfo);
+    void prepareFork(ForkInfo forkInfo);
 
     void startFork(ForkInfo forkInfo);
 

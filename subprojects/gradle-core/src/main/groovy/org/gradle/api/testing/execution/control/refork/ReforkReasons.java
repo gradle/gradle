@@ -20,6 +20,6 @@ package org.gradle.api.testing.execution.control.refork;
  *
  * @author Tom Eyckmans
  */
-public enum DecisionContextItemKeys implements DecisionContextItemKey {
+public enum ReforkReasons implements ReforkReasonKey {
     AMOUNT_OF_TEST_EXECUTED_BY_FORK
 }

@@ -16,10 +16,11 @@
 package org.gradle.api.testing.execution.control.messages;
 
 import org.apache.mina.core.session.IoSession;
+import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
 
 /**
  * @author Tom Eyckmans
  */
 public interface TestControlMessageHandler {
-    void handle(IoSession ioSession, Object controlMessage);
+    void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client);
 }

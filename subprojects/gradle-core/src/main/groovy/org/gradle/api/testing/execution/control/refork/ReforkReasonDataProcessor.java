@@ -25,7 +25,7 @@ import org.gradle.api.tasks.testing.NativeTest;
  *
  * @author Tom Eyckmans
  */
-public interface DecisionContextItemDataProcessor {
+public interface ReforkReasonDataProcessor {
 
     /**
      * Allow the data processor to perform initialization.

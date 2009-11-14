@@ -51,7 +51,8 @@ public class TestProcessorRunnable implements Runnable {
             testProcessResult = testProcessor.process(testClassRunInfo);
         }
         catch (Throwable t) {
-            testProcessResult = testProcessResultFactory.createClassExecutionErrorResult(testClassRunInfo, t);
+            testProcessResult = testProcessResultFactory.createEmptyClassResult(testClassRunInfo);
+            testProcessResult.setProcessorErrorReason(t);
         }
 
 //        System.out.println("[fork] test " + testClassRunInfo.getTestClassName() + " run, gathering refork data");

@@ -20,13 +20,13 @@ package org.gradle.api.testing.execution.control.refork;
  *
  * @author Tom Eyckmans
  */
-public interface DecisionContextItem {
+public interface ReforkReason {
     /**
      * Defines a unique id to identify the criteria.
      *
      * @return Key of the criteria.
      */
-    DecisionContextItemKey getKey();
+    ReforkReasonKey getKey();
 
     /**
      * Returns an instance of the data gatherer that needs to be used for this criteria.
@@ -35,7 +35,7 @@ public interface DecisionContextItem {
      *
      * @return A data gatherer instance.
      */
-    DecisionContextItemDataGatherer getDataGatherer();
+    ReforkReasonDataGatherer getDataGatherer();
 
     /**
      * Returns an instance of the data processor that needs to be used for this criteria.
@@ -44,7 +44,7 @@ public interface DecisionContextItem {
      *
      * @return A data processor instance.
      */
-    DecisionContextItemDataProcessor getDataProcessor();
+    ReforkReasonDataProcessor getDataProcessor();
 
     /**
      * Returns an instance of the configuration class used by this criteria.
@@ -53,5 +53,5 @@ public interface DecisionContextItem {
      *
      * @return A config class instance. Null in case no configuration is needed.
      */
-    DecisionContextItemConfig getConfig();
+    ReforkReasonConfig getConfig();
 }

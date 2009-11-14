@@ -22,7 +22,8 @@ import org.gradle.api.testing.execution.control.messages.server.ExecuteTestActio
 import org.gradle.api.testing.execution.control.messages.server.StopForkActionMessage;
 import org.gradle.api.testing.execution.control.messages.server.WaitActionMesssage;
 import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
-import org.gradle.api.testing.execution.fork.ForkStatus;
+import org.gradle.api.testing.execution.control.refork.ReforkController;
+import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.reporting.Report;
@@ -34,61 +35,76 @@ import java.util.List;
  * @author Tom Eyckmans
  */
 public class NextActionRequestMessageHandler extends AbstractTestServerControlMessageHandler {
+
     protected NextActionRequestMessageHandler(PipelineDispatcher pipelineDispatcher) {
         super(pipelineDispatcher);
     }
 
-    public void handle(IoSession ioSession, Object controlMessage) {
+    public void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client) {
         final NextActionRequestMessage message = (NextActionRequestMessage) controlMessage;
         final int forkId = message.getForkId();
+        final int pipelineId = pipeline.getId();
 
         if (pipelineDispatcher.isStopping()) {
-            ioSession.write(new StopForkActionMessage(pipeline.getId()));
+            stopClient(ioSession, pipelineId, client);
         } else {
             if (pipelineDispatcher.isAllTestsExecuted() && pipelineDispatcher.isPipelineSplittingEnded()) {
-                ioSession.write(new StopForkActionMessage(pipeline.getId()));
+                stopClient(ioSession, pipelineId, client);
 
                 pipelineDispatcher.stop();
             } else {
-                final TestClassProcessResult previousProcessedTestResult = message.getPreviousProcessedTestResult();
-                if (previousProcessedTestResult != null) {
-                    // TODO dispatch previous test result to handle reporting
-                    final List<Report> reports = pipeline.getReports();
-                    for ( final Report report : reports ) {
-                        report.addReportInfo(new TestClassProcessResultReportInfo(pipeline, previousProcessedTestResult));
-                    }
-                }
+                final TestClassProcessResult previousProcesTestResult = message.getPreviousProcessedTestResult();
 
-                final ReforkDecisionContext reforkDecisionContext = message.getReforkDecisionContext();
-                boolean reforkNeeded = false;
-                if (reforkDecisionContext != null) {
-                    reforkNeeded = pipelineDispatcher.determineReforkNeeded(forkId, reforkDecisionContext);
-                }
+                processPreviousTestResult(forkId, previousProcesTestResult);
 
-                if (reforkNeeded) {
-                    pipelineDispatcher.scheduleForkRestart(forkId);
-
-                    ioSession.write(new StopForkActionMessage(pipeline.getId()));
+                if (isReforkNeeded(message)) {
+                    restartClient(ioSession, pipelineId, client);
                 } else {
-                    boolean wait = false;
+                    final TestClassRunInfo nextTest = client.nextTest(pipelineDispatcher);
 
-                    if (pipelineDispatcher.getClientHandle(forkId).getStatus() == ForkStatus.TESTING) {
-                        TestClassRunInfo nextTest = pipelineDispatcher.getNextTest();
-
-                        if (nextTest != null) {
-                            ioSession.write(new ExecuteTestActionMessage(pipeline.getId(), nextTest));
-                        } else { // no tests for pipeline yet
-                            wait = true;
-                        }
-                    } else { // fork not in RUN_TEST mode
-                        wait = !reforkNeeded;
+                    if (nextTest == null) {
+                        ioSession.write(new WaitActionMesssage(pipelineId, 1000));
                     }
-
-                    if (wait) {
-                        ioSession.write(new WaitActionMesssage(pipeline.getId(), 1000));
+                    else {
+                        ioSession.write(new ExecuteTestActionMessage(pipelineId, nextTest));
                     }
                 }
             }
         }
+    }
+
+    void stopClient(IoSession ioSession, int pipelineId, TestServerClientHandle client) {
+        ioSession.write(new StopForkActionMessage(pipelineId));
+    }
+
+    void restartClient(IoSession ioSession, int pipelineId, TestServerClientHandle client) {
+        client.restarting();
+
+        ioSession.write(new StopForkActionMessage(pipelineId));
+    }
+
+    void processPreviousTestResult(int forkId, TestClassProcessResult previousProcessResult) {
+        // TODO submit to thread pool before reporting to different reports.
+        if (previousProcessResult != null) {
+            final List<Report> reports = pipeline.getReports();
+            final TestClassProcessResultReportInfo result = new TestClassProcessResultReportInfo(forkId, pipeline, previousProcessResult);
+            for ( final Report report : reports ) {
+                report.addReportInfo(result);
+            }
+        }
+    }
+
+    boolean isReforkNeeded(NextActionRequestMessage message) {
+        boolean reforkNeeded = false;
+
+        final ReforkController reforkController = pipeline.getReforkController();
+        if ( reforkController != null ) {
+            final ReforkDecisionContext reforkDecisionContext = message.getReforkDecisionContext();
+
+            if ( reforkDecisionContext != null )
+                reforkNeeded = reforkController.reforkNeeded(reforkDecisionContext);
+        }
+
+        return reforkNeeded;
     }
 }

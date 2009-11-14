@@ -22,28 +22,28 @@ import java.util.*;
  * @author Tom Eyckmans
  */
 public class ReforkItemConfigs implements Serializable {
-    private final List<DecisionContextItemKey> itemKeys;
-    private final Map<DecisionContextItemKey, DecisionContextItemConfig> itemConfigs;
+    private final List<ReforkReasonKey> itemKeys;
+    private final Map<ReforkReasonKey, ReforkReasonConfig> itemConfigs;
 
     public ReforkItemConfigs() {
-        this.itemKeys = new ArrayList<DecisionContextItemKey>();
-        this.itemConfigs = new HashMap<DecisionContextItemKey, DecisionContextItemConfig>();
+        this.itemKeys = new ArrayList<ReforkReasonKey>();
+        this.itemConfigs = new HashMap<ReforkReasonKey, ReforkReasonConfig>();
     }
 
-    public List<DecisionContextItemKey> getItemKeys() {
+    public List<ReforkReasonKey> getItemKeys() {
         return Collections.unmodifiableList(itemKeys);
     }
 
-    public Map<DecisionContextItemKey, DecisionContextItemConfig> getItemConfigs() {
+    public Map<ReforkReasonKey, ReforkReasonConfig> getItemConfigs() {
         return Collections.unmodifiableMap(itemConfigs);
     }
 
-    public void addItem(DecisionContextItemKey itemKey) {
+    public void addItem(ReforkReasonKey itemKey) {
         if (!itemKeys.contains(itemKey))
             itemKeys.add(itemKey);
     }
 
-    public void addItemConfig(DecisionContextItemKey itemKey, DecisionContextItemConfig itemConfig) {
+    public void addItemConfig(ReforkReasonKey itemKey, ReforkReasonConfig itemConfig) {
         addItem(itemKey);
 
         if (itemConfig != null) {

@@ -17,25 +17,29 @@ package org.gradle.api.testing.execution.control.server.messagehandlers;
 
 import org.apache.mina.core.session.IoSession;
 import org.gradle.api.testing.execution.PipelineDispatcher;
-import org.gradle.api.testing.execution.control.messages.client.ForkStartedMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
+import org.gradle.api.testing.execution.control.messages.server.InitializeActionMessage;
+import org.gradle.api.tasks.testing.NativeTest;
 
 /**
  * @author Tom Eyckmans
  */
 public class ForkStartedMessageHandler extends AbstractTestServerControlMessageHandler {
-    private static final Logger logger = LoggerFactory.getLogger(ForkStartedMessageHandler.class);
 
-    protected ForkStartedMessageHandler(PipelineDispatcher pipelineDispatcher) {
+    public ForkStartedMessageHandler(PipelineDispatcher pipelineDispatcher) {
         super(pipelineDispatcher);
     }
 
-    public void handle(IoSession ioSession, Object controlMessage) {
-        final ForkStartedMessage message = (ForkStartedMessage) controlMessage;
-        final int forkId = message.getForkId();
+    public void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client) {
+        client.started();
 
-        pipelineDispatcher.initializeFork(forkId, ioSession);
-        pipelineDispatcher.scheduleExecuteTest(forkId);
+        final InitializeActionMessage initializeForkMessage = new InitializeActionMessage(pipeline.getId());
+        final NativeTest testTask = pipeline.getTestTask();
+
+        initializeForkMessage.setTestFrameworkId(testTask.getTestFramework().getTestFramework().getId());
+        initializeForkMessage.setReforkItemConfigs(pipeline.getConfig().getReforkItemConfigs());
+        // TODO add sandbox classpath ?
+
+        ioSession.write(initializeForkMessage);
     }
 }

@@ -78,8 +78,11 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
         
         // TODO [teyck] I think it would be better to start the forks for a pipeline when a certain amount of tests are found.
         for (int i=0;i<amountToStart;i++){
-            final ForkInfo forkInfo = forkControl.requestForkStart(pipeline);
-            forkInfo.addListener(new PipelineDispatcherForkInfoListener(pipeline.getDispatcher()));
+            final ForkInfo forkInfo = forkControl.createForkInfo(pipeline);
+            forkInfo.addListener(new PipelineDispatcherForkInfoListener(pipelineDispatcher));
+            pipelineDispatcher.forkAttach(forkInfo.getId());
+
+            forkControl.requestForkStart(forkInfo);
         }
     }
 
@@ -100,7 +103,7 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
         testServersManager.stopServer(pipeline);
     }
 
-    public void initializeFork(ForkInfo forkInfo) {
+    public void prepareFork(ForkInfo forkInfo) {
         final LocalSimpleForkPolicyForkInfo policyInfo = (LocalSimpleForkPolicyForkInfo) forkInfo.getForkPolicyInfo();
         final Pipeline pipeline = forkInfo.getPipeline();
         final NativeTest testTask = pipeline.getTestTask();

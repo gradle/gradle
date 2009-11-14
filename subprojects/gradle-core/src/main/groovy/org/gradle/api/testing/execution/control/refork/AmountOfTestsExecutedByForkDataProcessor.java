@@ -21,7 +21,7 @@ import org.gradle.api.tasks.testing.NativeTest;
 /**
  * @author Tom Eyckmans
  */
-public class AmountOfTestsExecutedByForkDataProcessor implements DecisionContextItemDataProcessor {
+public class AmountOfTestsExecutedByForkDataProcessor implements ReforkReasonDataProcessor {
 
     private long reforkEveryThisAmountOfTests = Long.MAX_VALUE; // Long.MAX_VALUE ~ fork once.
 

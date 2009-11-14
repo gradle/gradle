@@ -17,6 +17,8 @@ package org.gradle.api.testing.fabric;
 
 import org.gradle.api.tasks.testing.AbstractTestTask;
 
+import java.util.Map;
+
 /**
  * @author Tom Eyckmans
  */
@@ -28,4 +30,6 @@ public interface TestFramework {
     TestFrameworkInstance getInstance(AbstractTestTask testTask);
 
     TestProcessorFactory getProcessorFactory();
+
+    Map<TestMethodProcessResultState, TestMethodProcessResultState> getMethodProcessResultStateMapping();
 }

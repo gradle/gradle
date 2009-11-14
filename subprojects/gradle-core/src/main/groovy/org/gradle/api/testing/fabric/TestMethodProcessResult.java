@@ -29,6 +29,12 @@ public class TestMethodProcessResult implements Serializable {
     private TestMethodProcessResultState state;
     private Throwable thrownException;
 
+    public TestMethodProcessResult(String methodName, TestMethodProcessResultState state, Throwable thrownException) {
+        this.methodName = methodName;
+        this.state = state;
+        this.thrownException = thrownException;
+    }
+
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeUTF(methodName);
         out.writeObject(state);

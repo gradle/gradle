@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.testing.execution.control.refork;
-
-import java.io.Serializable;
+package org.gradle.api.testing.fabric;
 
 /**
  * @author Tom Eyckmans
  */
-public interface DecisionContextItemConfig extends Serializable {
-
-    /**
-     *
-     * Each implementation of this interface should have the following methods to control serialization: 
-     *
-     * private void writeObject(ObjectOutputStream out) throws IOException {
-     *
-     * }
-     *
-     * private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-     *
-     * }
-     *
-     */
+public enum TestMethodProcessResultStates implements TestMethodProcessResultState {
+    SUCCESS,
+    FAILURE,
+    ERROR,
+    SKIPPED,
+    TODO
 }

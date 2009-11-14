@@ -17,7 +17,8 @@ package org.gradle.api.testing.execution.fork;
 
 import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyForkInfo;
-import org.gradle.util.ThreadUtils;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author Tom Eyckmans
  */
 public class ForkInfo {
+    private static final Logger logger = LoggerFactory.getLogger(ForkInfo.class);
+
     private final int id;
     private final Pipeline pipeline;
     private ForkPolicyForkInfo policyInfo;
@@ -71,25 +74,53 @@ public class ForkInfo {
         listeners.remove(listener);
     }
 
-    public void started() {
+    public void starting() {
         final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
         for (final ForkInfoListener currentListener : currentListeners) {
-            ThreadUtils.join(ThreadUtils.run(new Runnable() {
-                public void run() {
-                    currentListener.started(id);
-                }
-            }));
+            try {
+                currentListener.starting(id);
+            }
+            catch ( Throwable t ) {
+                logger.warn("failed to notify fork listener of fork "+id+" start", t);
+            }
         }
     }
 
-    public void stopped(final Throwable cause) {
+    public void finished()
+    {
         final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
         for (final ForkInfoListener currentListener : currentListeners) {
-            ThreadUtils.join(ThreadUtils.run(new Runnable() {
-                public void run() {
-                    currentListener.stopped(id, cause);
-                }
-            }));
+            try {
+                    currentListener.stopped(id);
+            }
+            catch ( Throwable t ) {
+                logger.warn("failed to notify fork listener of fork "+id+" stop", t);
+            }
+        }
+    }
+
+    public void failed(final Throwable cause) {
+        final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
+        for (final ForkInfoListener currentListener : currentListeners) {
+            try {
+                    currentListener.failed(id, cause);
+            }
+            catch ( Throwable t ) {
+                logger.warn("failed to notify fork listener of fork "+id+" failure", t);
+            }
+        }
+    }
+
+    public void aborted()
+    {
+        final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
+        for (final ForkInfoListener currentListener : currentListeners) {
+            try {
+                    currentListener.aborted(id);
+            }
+            catch ( Throwable t ) {
+                logger.warn("failed to notify fork aborted of fork " +id+" aborted", t);
+            }
         }
     }
 }

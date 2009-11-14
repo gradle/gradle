@@ -19,7 +19,11 @@ package org.gradle.api.testing.execution.fork;
  * @author Tom Eyckmans
  */
 public interface ForkInfoListener {
-    void started(int forkId);
+    void starting(int forkId);
 
-    void stopped(int forkId, Throwable cause);
+    void stopped(int forkId);
+
+    void failed(int forkId, Throwable cause);
+
+    void aborted(int forkId);
 }

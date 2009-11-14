@@ -16,63 +16,220 @@
 package org.gradle.api.testing.execution.control.server;
 
 import org.gradle.api.testing.execution.Pipeline;
+import org.gradle.api.testing.execution.PipelineDispatcher;
 import org.gradle.api.testing.execution.fork.ForkControl;
-import org.gradle.api.testing.execution.fork.ForkInfo;
 import org.gradle.api.testing.execution.fork.ForkStatus;
-import org.gradle.api.testing.execution.fork.policies.local.single.LocalSimpleForkPolicyForkInfo;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.util.exec.ExecHandleState;
+import org.gradle.util.ThreadUtils;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Tom Eyckmans
  */
 public class TestServerClientHandle {
+    private static final Logger logger = LoggerFactory.getLogger(TestServerClientHandle.class);
+
     private final Pipeline pipeline;
     private final int forkId;
     private final ForkControl forkControl;
 
-    private ForkStatus status = ForkStatus.INIT;
+    private final Lock statusLock;
+    private ForkStatus status = ForkStatus.STOPPED;
     private TestClassRunInfo currentTest;
 
     public TestServerClientHandle(Pipeline pipeline, int forkId, ForkControl forkControl) {
         this.pipeline = pipeline;
         this.forkId = forkId;
         this.forkControl = forkControl;
+        statusLock = new ReentrantLock();
     }
 
     public ForkStatus getStatus() {
-        return status;
+        statusLock.lock();
+        try {
+            return status;
+        }
+        finally {
+            statusLock.unlock();
+        }
     }
 
     public TestClassRunInfo getCurrentTest() {
-        return currentTest;
+        statusLock.lock();
+        try {
+            return currentTest;
+        }
+        finally {
+            statusLock.unlock();
+        }
     }
 
     public void setCurrentTest(TestClassRunInfo currentTest) {
-        this.currentTest = currentTest;
+        statusLock.lock();
+        try {
+            this.currentTest = currentTest;
+        }
+        finally {
+            statusLock.unlock();
+        }
     }
 
-    public void scheduleForkRestart() {
-        status = ForkStatus.RESTART;
-        getForkInfo().setRestarting(true);
+    public void starting()
+    {
+        statusLock.lock();
+        try {
+            if ( status != ForkStatus.STOPPED && status != ForkStatus.FAILED && status != ForkStatus.ABORTED && status != ForkStatus.RESTARTING )
+                throw new IllegalArgumentException("can't change status to STARTING, current status is " + status);
+
+            status = ForkStatus.STARTING;
+        }
+        finally {
+            statusLock.unlock();
+        }
     }
 
-    public void scheduleExecuteTest() {
-        status = ForkStatus.TESTING;
-        getForkInfo().setRestarting(false);
+    public void restarting()
+    {
+        statusLock.lock();
+        try {
+            if ( status != ForkStatus.STARTED)
+                throw new IllegalArgumentException("can't change status to RESTARTING, current status is " + status);
+
+            status = ForkStatus.RESTARTING;
+            forkControl.setRestarting(pipeline.getId(), forkId, true);
+        }
+        finally {
+            statusLock.unlock();
+        }
     }
 
-    private ForkInfo getForkInfo() {
-        return forkControl.getForkInfo(pipeline.getId(), forkId);
+    public void started()
+    {
+        statusLock.lock();
+        try {
+            if ( status != ForkStatus.STARTING && status != ForkStatus.RESTARTING )
+                throw new IllegalArgumentException("can't change status to RUNNING, current status is " + status);
+
+            status = ForkStatus.STARTED;
+            forkControl.setRestarting(pipeline.getId(), forkId, false);
+        }
+        finally {
+            statusLock.unlock();
+        }
     }
 
-    public void forkStopped() {
-        final ForkInfo forkInfo = forkControl.getForkInfo(pipeline.getId(), forkId);
-        final ExecHandleState forkEndState = ((LocalSimpleForkPolicyForkInfo) forkInfo.getForkPolicyInfo()).getForkHandle().waitForFinish();
+    public void stopping()
+    {
+        statusLock.lock();
+        try {
+            if ( status != ForkStatus.RESTARTING ) {
+                if ( status != ForkStatus.STARTED)
+                    throw new IllegalStateException("can't change status to STOPPING, current status is " + status);
 
-        // TODO handle forkEndState of stopped fork
+                status = ForkStatus.STOPPING;
+            }
+            // else stopping is ignored when restarting
+        }
+        finally {
+            statusLock.unlock();
+        }
+    }
 
-        if (!pipeline.isPipelineSplittingEnded())
-            forkControl.requestForkStart(forkInfo);
+    public void stopped(PipelineDispatcher pipelineDispatcher)
+    {
+        statusLock.lock();
+        try {
+            if ( status != ForkStatus.STOPPING && status != ForkStatus.RESTARTING )
+                throw new IllegalStateException("can't change status to STOPPED, current status is " + status);
+
+            final ForkStatus previousStatus = status;
+            status = ForkStatus.STOPPED;
+
+            pipelineDispatcher.removeRunningHandle(this);
+
+            signalAllClientsStoppedWhenNeeded(previousStatus, pipelineDispatcher);
+        }
+        finally {
+            statusLock.unlock();
+        }
+    }
+
+    public void failed(PipelineDispatcher pipelineDispatcher, Throwable cause)
+    {
+        statusLock.lock();
+        try {
+            if ( status != ForkStatus.STARTED && status != ForkStatus.STARTING && status != ForkStatus.RESTARTING && status != ForkStatus.STOPPING )
+                throw new IllegalArgumentException("can't change status to FAILED, current status is " + status);
+
+            final ForkStatus previousStatus = status;
+            status = ForkStatus.FAILED;
+
+            pipelineDispatcher.removeRunningHandle(this);
+
+            signalAllClientsStoppedWhenNeeded(previousStatus, pipelineDispatcher);
+        }
+        finally {
+            statusLock.unlock();
+        }
+    }
+
+    public void aborted(PipelineDispatcher pipelineDispatcher)
+    {
+        statusLock.lock();
+        try {
+            if ( status != ForkStatus.STARTED && status != ForkStatus.STARTING && status != ForkStatus.RESTARTING && status != ForkStatus.STOPPING )
+                throw new IllegalArgumentException("can't change status to ABORTED, current status is " + status);
+
+            final ForkStatus previousStatus = status;
+            status = ForkStatus.ABORTED;
+
+            pipelineDispatcher.removeRunningHandle(this);
+
+            signalAllClientsStoppedWhenNeeded(previousStatus, pipelineDispatcher);
+        }
+        finally {
+            statusLock.unlock();
+        }
+    }
+
+    public void signalAllClientsStoppedWhenNeeded(ForkStatus previousStatus, PipelineDispatcher pipelineDispatcher) {
+        if ( previousStatus != ForkStatus.RESTARTING && pipelineDispatcher.areAllClientsStopped() && !pipelineDispatcher.isStopping())
+            pipelineDispatcher.allClientsStopped();
+    }
+
+    public void requestClientStart(PipelineDispatcher pipelineDispatcher) {
+        if ( !pipelineDispatcher.isStopping() )
+            forkControl.requestForkStart(pipeline.getId(), forkId);
+    }
+
+    public TestClassRunInfo nextTest(PipelineDispatcher pipelineDispatcher) {
+        statusLock.lock();
+        try {
+            TestClassRunInfo nextTest = null;
+
+            switch(status) {
+                case FAILED: // TODO add re-launch failed fork policy, Never, FailFast, Fail after n crashes, ...?
+                    nextTest = currentTest; // retry previous test
+                    break;
+                case STARTED:
+                    try {
+                        nextTest = pipelineDispatcher.nextTest();
+                    }
+                    catch (InterruptedException e) {
+                        // ignore
+                    }
+                    break;
+                // else no test case available
+            }
+
+            return nextTest;
+        }
+        finally {
+            statusLock.unlock();
+        }
     }
 }

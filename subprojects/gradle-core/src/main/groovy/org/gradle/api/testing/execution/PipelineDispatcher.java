@@ -16,12 +16,10 @@
 package org.gradle.api.testing.execution;
 
 import org.apache.mina.core.session.IoSession;
-import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.execution.control.messages.TestControlMessageHandler;
-import org.gradle.api.testing.execution.control.messages.server.InitializeActionMessage;
+import org.gradle.api.testing.execution.control.messages.client.TestClientControlMessage;
+import org.gradle.api.testing.execution.control.messages.server.StopForkActionMessage;
 import org.gradle.api.testing.execution.control.messages.server.WaitActionMesssage;
-import org.gradle.api.testing.execution.control.refork.ReforkController;
-import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandleFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
@@ -78,13 +76,6 @@ public class PipelineDispatcher {
         allClientsStopped = runningClientsLock.newCondition();
     }
 
-//    public void initialize(ForkControl forkControl) {
-//        for (ForkInfo forkInfo : forkControl.getForkInfos(pipeline.getId())) {
-//
-//            forkInfo.addListener(new PipelineDispatcherForkInfoListener(this));
-//        }
-//    }
-
     /**
      * Handle messages received from the fork.
      *
@@ -93,21 +84,25 @@ public class PipelineDispatcher {
      */
     public void messageReceived(IoSession ioSession, Object message) {
         if (message != null) {
-//            System.out.println("[fork -> server] " + message);
-
             final Class<?> messageClass = message.getClass();
             final TestControlMessageHandler handler = messageClassHandlers.get(messageClass);
 
-            if (handler == null) {
-                logger.error("received unknown message of type {} on pipeline with id {} ", messageClass, pipeline.getId());
-                ioSession.write(new WaitActionMesssage(pipeline.getId(), 100));
-            } else {
+            if (handler != null) {
                 try {
-                    handler.handle(ioSession, message);
+                    final int forkId = ((TestClientControlMessage)message).getForkId();
+                    final TestServerClientHandle client = clientHandles.get(forkId);
+                    if ( client == null )
+                        ioSession.write(new WaitActionMesssage(pipeline.getId(), 1000L));
+                    else
+                        handler.handle(ioSession, message, client);
                 }
                 catch (Throwable t) {
                     logger.error("failed to handle " + message, t);
                 }
+            }
+            else {
+                logger.error("received unknown message of type {} on pipeline ", messageClass, pipeline.getConfig().getName());
+                ioSession.write(new StopForkActionMessage(pipeline.getId()));
             }
         }
     }
@@ -124,73 +119,83 @@ public class PipelineDispatcher {
         return testsToDispatch.isEmpty();
     }
 
-    public void scheduleForkRestart(int forkId) {
-        getClientHandle(forkId).scheduleForkRestart();
-    }
-
-    public void scheduleExecuteTest(int forkId) {
-        getClientHandle(forkId).scheduleExecuteTest();
-    }
-
-    public TestServerClientHandle getClientHandle(int forkId) {
-        return clientHandles.get(forkId);
-    }
-
-    public void setCurrentForkTest(int forkId, TestClassRunInfo currentTestClassRunInfo) {
-        getClientHandle(forkId).setCurrentTest(currentTestClassRunInfo);
-    }
-
-    public TestClassRunInfo getCurrentForkTest(int forkId) {
-        return getClientHandle(forkId).getCurrentTest();
-    }
-
     public void addMessageHandler(List<Class> supportedMessageClasses, TestControlMessageHandler messageHandler) {
         for (final Class supportedMessageClass : supportedMessageClasses) {
-            final TestControlMessageHandler replacedMessageHandler = messageClassHandlers.put(supportedMessageClass, messageHandler);
-
-            logger.info("Message handler {} for {} has been replaced by {}", new Object[]{replacedMessageHandler, supportedMessageClass, messageHandler});
+            messageClassHandlers.put(supportedMessageClass, messageHandler);
         }
     }
 
-    public void forkStopped(int forkId) {
-        getClientHandle(forkId).forkStopped();
+    public void forkAttach(int forkId)
+    {
+        TestServerClientHandle client = clientHandles.get(forkId);
+        if ( client == null ) {
+            client = clientHandleFactory.createTestServerClientHandle(pipeline, forkId);
+            clientHandles.put(forkId, client);
+        }
     }
 
-    public TestClassRunInfo getNextTest() {
-        TestClassRunInfo testClassRunInfo = null;
-
+    public void forkStarting(int forkId)
+    {
+        runningClientsLock.lock();
         try {
-            testClassRunInfo = testsToDispatch.poll(100L, TimeUnit.MILLISECONDS);
-        }
-        catch (InterruptedException e) {
-            // ignore
-        }
+            TestServerClientHandle client = clientHandles.get(forkId);
 
-        return testClassRunInfo;
+            client.starting();
+
+            runningClients.add(client);
+        }
+        finally {
+            runningClientsLock.unlock();
+        }
     }
 
-    public boolean determineReforkNeeded(int forkId, ReforkDecisionContext reforkDecisionContext) {
-        final ReforkController reforkController = pipeline.getReforkController();
+    public void forkStopped(int forkId)
+    {
+        runningClientsLock.lock();
+        
+        TestServerClientHandle client = null;
+        try {
+            client = clientHandles.get(forkId);
 
-        boolean reforkNeeded = reforkController.reforkNeeded(reforkDecisionContext);
-
-        if (reforkNeeded) {
-            scheduleForkRestart(forkId);
+            client.stopped(this);
+        }
+        finally {
+            runningClientsLock.unlock();
         }
 
-        return reforkNeeded;
+        client.requestClientStart(this);
     }
 
-    public void initializeFork(int forkId, IoSession ioSession) {
-        clientStarted(forkId);
+    public void forkFailed(int forkId, Throwable cause)
+    {
+        runningClientsLock.lock();
+        
+        TestServerClientHandle client = null;
+        try {
+            client = clientHandles.get(forkId);
 
-        final InitializeActionMessage initializeForkMessage = new InitializeActionMessage(pipeline.getId());
-        final NativeTest testTask = pipeline.getTestTask();
+            client.failed(this, cause);
+        }
+        finally {
+            runningClientsLock.unlock();
+        }
 
-        initializeForkMessage.setTestFrameworkId(testTask.getTestFramework().getTestFramework().getId());
-        initializeForkMessage.setReforkItemConfigs(pipeline.getConfig().getReforkItemConfigs());
+        client.requestClientStart(this);
+    }
 
-        ioSession.write(initializeForkMessage);
+    public void forkAborted(int forkId)
+    {
+        runningClientsLock.lock();
+
+        TestServerClientHandle client = null;
+        try {
+            client = clientHandles.get(forkId);
+
+            client.aborted(this);
+        }
+        finally {
+            runningClientsLock.unlock();
+        }
     }
 
     public boolean isStopping() {
@@ -227,41 +232,20 @@ public class PipelineDispatcher {
         }
     }
 
-    public void clientStarted(int forkId) {
-        runningClientsLock.lock();
-        try {
-            TestServerClientHandle client = clientHandles.get(forkId);
-            if ( client == null ) { // first interaction with client -> create handle.
-                client = clientHandleFactory.createTestServerClientHandle(pipeline, forkId);
-                
-                clientHandles.put(forkId, client);
-            }
-
-            runningClients.add(client);
-        }
-        finally {
-            runningClientsLock.unlock();
-        }
+    public TestClassRunInfo nextTest() throws InterruptedException {
+        return testsToDispatch.poll(100L, TimeUnit.MILLISECONDS);
     }
 
-    public void clientStopped(int forkId) {
-        runningClientsLock.lock();
-        try {
-            final TestServerClientHandle client = clientHandles.get(forkId);
-            if (client != null) {
-                final boolean removed = runningClients.remove(client);
+    public boolean areAllClientsStopped() {
+        return runningClients.isEmpty();
+    }
 
-                if (!removed)
-                    logger.error("clientStopped called for forkId(" + forkId + ") that was not in running clients for test server off pipeline (" + pipeline.getId() + ")");
+    public void allClientsStopped() {
+        if ( ! stopping.get() ) throw new IllegalStateException("pipeline dispatcher is not stopping!");
+        allClientsStopped.signal();
+    }
 
-                if (runningClients.isEmpty())
-                    allClientsStopped.signal();
-            } else {
-                logger.error("clientStopped called for forkId(" + forkId + ") that is unrelated to test server off pipeline (" + pipeline.getId() + ")");
-            }
-        }
-        finally {
-            runningClientsLock.unlock();
-        }
+    public void removeRunningHandle(TestServerClientHandle clientHandle) {
+        runningClients.remove(clientHandle);
     }
 }

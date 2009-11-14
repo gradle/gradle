@@ -25,20 +25,20 @@ import java.util.*;
  */
 public class ReforkControllerImpl implements ReforkController {
 
-    private final List<DecisionContextItemKey> itemProcessorsOrdered;
-    private final Map<DecisionContextItemKey, DecisionContextItemDataProcessor> itemProcessors;
+    private final List<ReforkReasonKey> itemProcessorsOrdered;
+    private final Map<ReforkReasonKey, ReforkReasonDataProcessor> itemProcessors;
 
     public ReforkControllerImpl() {
-        itemProcessorsOrdered = new ArrayList<DecisionContextItemKey>();
-        itemProcessors = new HashMap<DecisionContextItemKey, DecisionContextItemDataProcessor>();
+        itemProcessorsOrdered = new ArrayList<ReforkReasonKey>();
+        itemProcessors = new HashMap<ReforkReasonKey, ReforkReasonDataProcessor>();
     }
 
     public void initialize(NativeTest testTask, PipelineConfig pipelineConfig) {
         final ReforkItemConfigs reforkItemConfigs = pipelineConfig.getReforkItemConfigs();
 
-        for (DecisionContextItemKey itemKey : reforkItemConfigs.getItemKeys()) {
-            final DecisionContextItem item = DecisionContextItems.getDecisionContextItem(itemKey);
-            final DecisionContextItemDataProcessor itemDataProcessor = item.getDataProcessor();
+        for (ReforkReasonKey itemKey : reforkItemConfigs.getItemKeys()) {
+            final ReforkReason item = ReforkReasonRegister.getDecisionContextItem(itemKey);
+            final ReforkReasonDataProcessor itemDataProcessor = item.getDataProcessor();
 
             itemDataProcessor.configure(testTask.getProject(), testTask);
 
@@ -50,14 +50,14 @@ public class ReforkControllerImpl implements ReforkController {
     public boolean reforkNeeded(ReforkDecisionContext reforkDecisionContext) {
         boolean reforkNeeded = false;
 
-        final Iterator<DecisionContextItemKey> itemsIterator = itemProcessorsOrdered.iterator();
+        final Iterator<ReforkReasonKey> itemsIterator = itemProcessorsOrdered.iterator();
 
         while (!reforkNeeded && itemsIterator.hasNext()) {
-            final DecisionContextItemKey currentItemKey = itemsIterator.next();
+            final ReforkReasonKey currentItemKey = itemsIterator.next();
             final Object currentItemData = reforkDecisionContext.getData(currentItemKey);
 
             if (currentItemData != null) {
-                final DecisionContextItemDataProcessor currentItemDataProcessor = itemProcessors.get(currentItemKey);
+                final ReforkReasonDataProcessor currentItemDataProcessor = itemProcessors.get(currentItemKey);
 
                 reforkNeeded = currentItemDataProcessor.determineReforkNeeded(currentItemData);
             }

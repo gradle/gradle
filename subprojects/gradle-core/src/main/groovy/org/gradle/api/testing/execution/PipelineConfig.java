@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.execution;
 
-import org.gradle.api.testing.execution.control.refork.DecisionContextItemKeys;
+import org.gradle.api.testing.execution.control.refork.ReforkReasons;
 import org.gradle.api.testing.execution.control.refork.ReforkItemConfigs;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyConfig;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyNames;
@@ -51,7 +51,7 @@ public class PipelineConfig {
         this.splitPolicyConfig = splitPolicyConfig;
         this.forkPolicyConfig = forkPolicyConfig;
         this.reforkItemConfigs = new ReforkItemConfigs();
-        reforkItemConfigs.addItemConfig(DecisionContextItemKeys.AMOUNT_OF_TEST_EXECUTED_BY_FORK, null);
+        reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK, null);
         this.reports = new ArrayList<ReportConfig>();
     }
 

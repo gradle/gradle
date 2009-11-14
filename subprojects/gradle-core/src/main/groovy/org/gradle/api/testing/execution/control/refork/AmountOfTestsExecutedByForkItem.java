@@ -18,21 +18,21 @@ package org.gradle.api.testing.execution.control.refork;
 /**
  * @author Tom Eyckmans
  */
-public class AmountOfTestsExecutedByForkItem implements DecisionContextItem {
+public class AmountOfTestsExecutedByForkItem implements ReforkReason {
 
-    public DecisionContextItemKey getKey() {
-        return DecisionContextItemKeys.AMOUNT_OF_TEST_EXECUTED_BY_FORK;
+    public ReforkReasonKey getKey() {
+        return ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK;
     }
 
-    public DecisionContextItemDataGatherer getDataGatherer() {
+    public ReforkReasonDataGatherer getDataGatherer() {
         return new AmountOfTestsExecutedByForkDataGatherer();
     }
 
-    public DecisionContextItemDataProcessor getDataProcessor() {
+    public ReforkReasonDataProcessor getDataProcessor() {
         return new AmountOfTestsExecutedByForkDataProcessor();
     }
 
-    public DecisionContextItemConfig getConfig() {
-        return null;
+    public ReforkReasonConfig getConfig() {
+        return new AmountOfTestsExecutedByForkConfig();
     }
 }

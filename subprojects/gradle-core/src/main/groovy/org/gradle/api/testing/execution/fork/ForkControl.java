@@ -34,64 +34,71 @@ public class ForkControl {
 
     private final Lock forkControlLock;
     private final AtomicInteger forkIdSeq;
-    private final AtomicInteger maximumNumberOfForks;
-    private final AtomicInteger startedForks;
+    private final int maximumNumberOfForks;
+    private int startedForks;
 
     private final List<ForkInfo> pendingForkStartRequests;
 
-    private final Lock runningHandlesLock;
     private final Map<Integer, Map<Integer, ForkInfo>> forkHandles;
 
     public ForkControl(int maximumNumberOfForks) {
         forkControlLock = new ReentrantLock();
 
         this.forkIdSeq = new AtomicInteger(0);
-        this.maximumNumberOfForks = new AtomicInteger(maximumNumberOfForks);
-        this.startedForks = new AtomicInteger(0);
+        this.maximumNumberOfForks = maximumNumberOfForks;
+        this.startedForks = 0;
 
         this.pendingForkStartRequests = new CopyOnWriteArrayList<ForkInfo>();
         forkHandles = new HashMap<Integer, Map<Integer, ForkInfo>>();
-        runningHandlesLock = new ReentrantLock();
-    }
-
-    public void setMaximumNumberOfForks(int maximumNumberOfForks) {
-        forkControlLock.lock();
-        try {
-            this.maximumNumberOfForks.set(maximumNumberOfForks);
-        }
-        finally {
-            forkControlLock.unlock();
-        }
     }
 
     private int getNextForkId() {
         return forkIdSeq.incrementAndGet();
     }
 
-    public ForkInfo createForkInfo(int forkId, Pipeline pipeline) {
+    private ForkInfo createForkInfo(int forkId, Pipeline pipeline) {
         final ForkPolicyInstance forkPolicyInstance = pipeline.getForkPolicyInstance();
 
         final ForkInfo forkInfo = new ForkInfo(forkId, pipeline);
 
         forkInfo.setPolicyInfo(forkPolicyInstance.createForkPolicyForkInfo());
 
-        forkPolicyInstance.initializeFork(forkInfo);
+        forkPolicyInstance.prepareFork(forkInfo);
 
         return forkInfo;
     }
 
-    public ForkInfo requestForkStart(Pipeline pipeline)
+    public ForkInfo createForkInfo(Pipeline pipeline)
     {
-        final ForkInfo forkInfo = createForkInfo(getNextForkId(), pipeline);
-
-        requestForkStart(forkInfo);
-
-        return forkInfo;
-    }
-
-    public void requestForkStart(ForkInfo forkInfo) {
         forkControlLock.lock();
         try {
+            final int pipelineId = pipeline.getId();
+            final int forkId = getNextForkId();
+            final ForkInfo forkInfo = createForkInfo(forkId, pipeline);
+
+            Map<Integer, ForkInfo> pipelineForks = forkHandles.get(pipelineId);
+            if ( pipelineForks == null ) {
+                pipelineForks = new HashMap<Integer, ForkInfo>();
+            }
+            pipelineForks.put(forkId, forkInfo);
+            forkHandles.put(pipelineId, pipelineForks);
+
+            return forkInfo;
+        }
+        finally {
+            forkControlLock.unlock();
+        }
+    }
+
+    public void requestForkStart(ForkInfo forkInfo)
+    {
+        requestForkStart(forkInfo.getPipeline().getId(), forkInfo.getId());
+    }
+
+    public void requestForkStart(int pipelineId, int forkId) {
+        forkControlLock.lock();
+        try {
+            final ForkInfo forkInfo = forkHandles.get(pipelineId).get(forkId);
             if (startAllowed()) {
                 startFork(forkInfo);
             } else {
@@ -106,24 +113,20 @@ public class ForkControl {
     void startFork(ForkInfo forkInfo) {
         forkControlLock.lock();
         try {
+            forkInfo.starting();
+
             final ForkPolicyInstance forkPolicyInstance = forkInfo.getPipeline().getForkPolicyInstance();
 
-            runningHandlesLock.lock();
-            try {
-                Map<Integer, ForkInfo> forks = forkHandles.get(forkInfo.getPipeline().getId());
-                if (forks == null) {
-                    forks = new HashMap<Integer, ForkInfo>();
-                }
-                forks.put(forkInfo.getId(), forkInfo);
-                forkHandles.put(forkInfo.getPipeline().getId(), forks);
+            Map<Integer, ForkInfo> forks = forkHandles.get(forkInfo.getPipeline().getId());
+            if (forks == null) {
+                forks = new HashMap<Integer, ForkInfo>();
             }
-            finally {
-                runningHandlesLock.unlock();
-            }
+            forks.put(forkInfo.getId(), forkInfo);
+            forkHandles.put(forkInfo.getPipeline().getId(), forks);
 
             forkPolicyInstance.startFork(forkInfo);
 
-            startedForks.incrementAndGet();
+            startedForks++;
         }
         finally {
             forkControlLock.unlock();
@@ -133,17 +136,7 @@ public class ForkControl {
     boolean startAllowed() {
         forkControlLock.lock();
         try {
-            return startedForks.get() < maximumNumberOfForks.get();
-        }
-        finally {
-            forkControlLock.unlock();
-        }
-    }
-
-    void lowerStartedForksCount() {
-        forkControlLock.lock();
-        try {
-            startedForks.decrementAndGet();
+            return startedForks < maximumNumberOfForks;
         }
         finally {
             forkControlLock.unlock();
@@ -165,64 +158,75 @@ public class ForkControl {
 
     public void forkStarted(int pipelineId, int forkId) {
         logger.warn("fork {} started for pipeline with id {}", forkId, pipelineId);
-        try {
-            forkHandles.get(pipelineId).get(forkId).started();
-        }
-        catch (Throwable t) {
-            logger.error("failed to properly signal fork started for fork {} started for pipeline with id {}", forkId, pipelineId);
-        }
-    }
-
-    private void forkStopped(int pipelineId, int forkId, Throwable cause) {
-        logger.warn("fork {} stopped for pipeline with id {}", forkId, pipelineId);
-
-        runningHandlesLock.lock();
-        try {
-            if (!getForkInfo(pipelineId, forkId).isRestarting()) {
-                try {
-                    forkHandles.get(pipelineId).get(forkId).stopped(cause);
-                }
-                catch (Throwable t) {
-
-                }
-                startPending();
-            }
-            lowerStartedForksCount();
-        }
-        finally {
-            runningHandlesLock.unlock();
-        }
     }
 
     public void forkFinished(int pipelineId, int forkId) {
-        forkStopped(pipelineId, forkId, null);
+        logger.warn("fork {} finished for pipeline with id {}", forkId, pipelineId);
+
+        forkControlLock.lock();
+        try {
+            startedForks--;
+
+            forkHandles.get(pipelineId).get(forkId).finished();
+
+            if (!forkHandles.get(pipelineId).get(forkId).isRestarting()) {
+                startPending();
+            }
+        }
+        finally {
+            forkControlLock.unlock();
+        }
     }
 
     public void forkAborted(int pipelineId, int forkId) {
-        forkStopped(pipelineId, forkId, null);
+        logger.warn("fork {} aborted for pipeline with id {}", forkId, pipelineId);
+
+        forkControlLock.lock();
+        try {
+            startedForks--;
+
+            forkHandles.get(pipelineId).get(forkId).aborted();
+
+            startPending();
+        }
+        finally {
+            forkControlLock.unlock();
+        }
     }
 
     public void forkFailed(int pipelineId, int forkId, Throwable cause) {
-        forkStopped(pipelineId, forkId, cause);
-    }
+        logger.warn("fork {} failed for pipeline with id {}", forkId, pipelineId);
 
-    public ForkInfo getForkInfo(int pipelineId, int forkId) {
-        runningHandlesLock.lock();
+        forkControlLock.lock();
         try {
-            return forkHandles.get(pipelineId).get(forkId);
+            startedForks--;
+
+            forkHandles.get(pipelineId).get(forkId).failed(cause);
+            
+            startPending();
         }
         finally {
-            runningHandlesLock.unlock();
+            forkControlLock.unlock();
         }
     }
 
     public List<ForkInfo> getForkInfos(int pipelineId) {
-        runningHandlesLock.lock();
+        forkControlLock.lock();
         try {
             return Collections.unmodifiableList(new ArrayList<ForkInfo>(forkHandles.get(pipelineId).values()));
         }
         finally {
-            runningHandlesLock.unlock();
+            forkControlLock.unlock();
+        }
+    }
+
+    public void setRestarting(int pipelineId, int forkId, boolean restarting) {
+        forkControlLock.lock();
+        try {
+            forkHandles.get(pipelineId).get(forkId).setRestarting(restarting);
+        }
+        finally {
+            forkControlLock.unlock();
         }
     }
 }

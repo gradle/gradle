@@ -24,13 +24,13 @@ import java.util.Map;
  */
 public interface ReforkDecisionContext extends Serializable {
 
-    List<DecisionContextItemKey> getItemKeys();
+    List<ReforkReasonKey> getItemKeys();
 
-    Map<DecisionContextItemKey, Object> getItemData();
+    Map<ReforkReasonKey, Object> getItemData();
 
-    void addItem(DecisionContextItemKey itemKey, Object itemData);
+    void addItem(ReforkReasonKey itemKey, Object itemData);
 
-    Object getData(DecisionContextItemKey itemKey);
+    Object getData(ReforkReasonKey itemKey);
 
     boolean isEmpty();
 }

@@ -73,11 +73,11 @@ public class TestClassProcessResult implements Serializable {
         return processorErrorReason;
     }
 
-    void setExecutionErrorReason(Throwable executionErrorReason) {
+    public void setExecutionErrorReason(Throwable executionErrorReason) {
         this.executionErrorReason = executionErrorReason;
     }
 
-    void setProcessorErrorReason(Throwable processorErrorReason) {
+    public void setProcessorErrorReason(Throwable processorErrorReason) {
         this.processorErrorReason = processorErrorReason;
     }
 }

@@ -17,10 +17,17 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.testing.TestOrchestrator;
+import org.gradle.api.testing.fabric.TestMethodProcessResultStates;
 import org.gradle.api.testing.execution.PipelineConfig;
+import org.gradle.api.testing.execution.fork.policies.local.single.LocalSimpleForkPolicyConfig;
+import org.gradle.api.testing.execution.control.refork.ReforkItemConfigs;
+import org.gradle.api.testing.execution.control.refork.ReforkReasons;
+import org.gradle.api.testing.execution.control.refork.ReforkReasonRegister;
+import org.gradle.api.testing.execution.control.refork.AmountOfTestsExecutedByForkConfig;
 import org.gradle.api.testing.reporting.ReportConfig;
 import org.gradle.api.testing.reporting.policies.ReportPolicyNames;
 import org.gradle.api.testing.reporting.policies.ReportPolicyRegister;
+import org.gradle.api.testing.reporting.policies.console.ConsoleReportPolicyConfig;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +41,11 @@ import java.util.Map;
 public class NativeTest extends AbstractTestTask {
     private static final Logger logger = LoggerFactory.getLogger(NativeTest.class);
 
-    private long reforkEvery = Long.MAX_VALUE;
+    private long reforkEvery = -1;
 
     private PipelineConfig defaultPipelineConfig;
     private Map<String, PipelineConfig> pipelineConfigs;
-    private ReportConfig errorsToConsoleReport;
+    private ReportConfig consoleReport;
     private Map<String, ReportConfig> reportConfigs;
 
     private int maximumNumberOfForks = 4;
@@ -49,21 +56,42 @@ public class NativeTest extends AbstractTestTask {
 
         // default pipeline
         defaultPipelineConfig = new PipelineConfig("default");
+        ((LocalSimpleForkPolicyConfig)defaultPipelineConfig.getForkPolicyConfig()).setAmountToStart(4);
 
         pipelineConfigs.put(defaultPipelineConfig.getName(), defaultPipelineConfig);
 
         reportConfigs = new HashMap<String, ReportConfig>();
 
         // by default we report errors and failures to the console
-        errorsToConsoleReport = new ReportConfig("errorsToConsole");
-        errorsToConsoleReport.setPolicyConfig(ReportPolicyRegister.getReportPolicy(ReportPolicyNames.ERRORS_TO_CONSOLE).createReportPolicyConfigInstance());
+        consoleReport = new ReportConfig("console");
+        consoleReport.setPolicyConfig(ReportPolicyRegister.getReportPolicy(ReportPolicyNames.CONSOLE).createReportPolicyConfigInstance());
+        final ConsoleReportPolicyConfig reportPolicyConfig = (ConsoleReportPolicyConfig) consoleReport.getPolicyConfig();
+        reportPolicyConfig.addShowStates(TestMethodProcessResultStates.values()); // add all 
 
-        reportConfigs.put(errorsToConsoleReport.getName(), errorsToConsoleReport);
+        reportConfigs.put(consoleReport.getName(), consoleReport);
 
-        defaultPipelineConfig.getReports().add(errorsToConsoleReport);
+        defaultPipelineConfig.getReports().add(consoleReport);
     }
 
     public void executeTests() {
+        if ( reforkEvery > 0 ) {
+            final ReforkItemConfigs reforkItemConfigs = new ReforkItemConfigs();
+
+            final AmountOfTestsExecutedByForkConfig reforkEveryConfig = (AmountOfTestsExecutedByForkConfig) ReforkReasonRegister.getDecisionContextItem(
+                        ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK
+                    ).getConfig();
+
+            reforkEveryConfig.setReforkEvery(reforkEvery);
+
+            reforkItemConfigs.addItemConfig(
+                    ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK,
+                    reforkEveryConfig
+            );
+
+            defaultPipelineConfig.setReforkItemConfigs(reforkItemConfigs);
+        }
+
+
         final TestOrchestrator orchestrator = new TestOrchestrator(this);
 
         orchestrator.execute();

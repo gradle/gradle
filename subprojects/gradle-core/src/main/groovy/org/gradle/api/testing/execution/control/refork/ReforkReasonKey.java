@@ -13,23 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.testing.reporting.policies.errorstoconsole;
-
-import org.gradle.api.testing.reporting.policies.*;
+package org.gradle.api.testing.execution.control.refork;
 
 /**
  * @author Tom Eyckmans
  */
-public class ErrorsToConsoleReportPolicy implements ReportPolicy {
-    public ReportPolicyName getName() {
-        return ReportPolicyNames.ERRORS_TO_CONSOLE;
-    }
-
-    public ReportPolicyConfig createReportPolicyConfigInstance() {
-        return new ReportPolicyConfig(getName());
-    }
-
-    public ReportPolicyInstance createReportPolicyInstance() {
-        return new ErrorsToConsoleReportPolicyInstance();
-    }
+public interface ReforkReasonKey {
 }

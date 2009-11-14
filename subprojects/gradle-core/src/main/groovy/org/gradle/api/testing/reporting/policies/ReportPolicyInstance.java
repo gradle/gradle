@@ -23,11 +23,9 @@ import org.gradle.api.testing.reporting.Report;
  */
 public interface ReportPolicyInstance {
 
+    void initialize(Report report);
+
     void start();
 
-    void process(ReportInfo reportInfo);
-
     void stop();
-
-    void initialize(Report report);
 }

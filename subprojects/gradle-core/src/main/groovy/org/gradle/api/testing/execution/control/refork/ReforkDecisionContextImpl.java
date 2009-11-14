@@ -24,23 +24,23 @@ import java.util.*;
  * @author Tom Eyckmans
  */
 public class ReforkDecisionContextImpl implements ReforkDecisionContext {
-    private List<DecisionContextItemKey> itemKeys;
-    private Map<DecisionContextItemKey, Object> itemData;
+    private List<ReforkReasonKey> itemKeys;
+    private Map<ReforkReasonKey, Object> itemData;
 
     public ReforkDecisionContextImpl() {
-        itemKeys = new ArrayList<DecisionContextItemKey>();
-        itemData = new HashMap<DecisionContextItemKey, Object>();
+        itemKeys = new ArrayList<ReforkReasonKey>();
+        itemData = new HashMap<ReforkReasonKey, Object>();
     }
 
-    public List<DecisionContextItemKey> getItemKeys() {
+    public List<ReforkReasonKey> getItemKeys() {
         return Collections.unmodifiableList(itemKeys);
     }
 
-    public Map<DecisionContextItemKey, Object> getItemData() {
+    public Map<ReforkReasonKey, Object> getItemData() {
         return Collections.unmodifiableMap(itemData);
     }
 
-    public void addItem(DecisionContextItemKey itemKey, Object itemData) {
+    public void addItem(ReforkReasonKey itemKey, Object itemData) {
         if (!itemKeys.contains(itemKey)) {
             itemKeys.add(itemKey);
         }
@@ -49,7 +49,7 @@ public class ReforkDecisionContextImpl implements ReforkDecisionContext {
         }
     }
 
-    public Object getData(DecisionContextItemKey itemKey) {
+    public Object getData(ReforkReasonKey itemKey) {
         return itemData.get(itemKey);
     }
 
@@ -63,7 +63,7 @@ public class ReforkDecisionContextImpl implements ReforkDecisionContext {
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        itemKeys = (List<DecisionContextItemKey>) in.readObject();
-        itemData = (Map<DecisionContextItemKey, Object>) in.readObject();
+        itemKeys = (List<ReforkReasonKey>) in.readObject();
+        itemData = (Map<ReforkReasonKey, Object>) in.readObject();
     }
 }

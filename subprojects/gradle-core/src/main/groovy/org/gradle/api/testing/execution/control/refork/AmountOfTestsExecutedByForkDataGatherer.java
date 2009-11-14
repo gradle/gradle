@@ -24,10 +24,11 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Tom Eyckmans
  */
-public class AmountOfTestsExecutedByForkDataGatherer implements DecisionContextItemDataGatherer {
+public class AmountOfTestsExecutedByForkDataGatherer implements ReforkReasonDataGatherer {
 
     private static final List<DataGatherMoment> dataGatherMoments = Arrays.asList(DataGatherMoment.AFTER_TEST_EXECUTION);
 
+    private long reforkEvery;
     private AtomicLong amountOfTestsExecutedByFork;
 
     /**
@@ -37,8 +38,8 @@ public class AmountOfTestsExecutedByForkDataGatherer implements DecisionContextI
         amountOfTestsExecutedByFork = new AtomicLong(0);
     }
 
-    public DecisionContextItemKey getItemKey() {
-        return DecisionContextItemKeys.AMOUNT_OF_TEST_EXECUTED_BY_FORK;
+    public ReforkReasonKey getItemKey() {
+        return ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK;
     }
 
     /**
@@ -46,7 +47,9 @@ public class AmountOfTestsExecutedByForkDataGatherer implements DecisionContextI
      *
      * @param config Item configuration.
      */
-    public void configure(DecisionContextItemConfig config) {
+    public void configure(ReforkReasonConfig config) {
+        reforkEvery = ((AmountOfTestsExecutedByForkConfig)config).getReforkEvery();
+
         this.amountOfTestsExecutedByFork = new AtomicLong(0);
     }
 
@@ -66,9 +69,7 @@ public class AmountOfTestsExecutedByForkDataGatherer implements DecisionContextI
      * @param momentData Variable size array of Objects, the amount of data depends on the data gather moment.
      */
     public boolean processDataGatherMoment(DataGatherMoment moment, Object... momentData) {
-        amountOfTestsExecutedByFork.incrementAndGet();
-
-        return true; // report back after each test perhaps a little excessive but ok for now.
+        return amountOfTestsExecutedByFork.incrementAndGet() % reforkEvery == 0;
     }
 
     /**

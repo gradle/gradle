@@ -57,6 +57,8 @@ public class TestClientIoHandler extends IoHandlerAdapter {
         logger.info("Disconnecting the idle.");
         // disconnect an idle client
         session.close(true);
+
+        System.exit(1);
     }
 
     @Override

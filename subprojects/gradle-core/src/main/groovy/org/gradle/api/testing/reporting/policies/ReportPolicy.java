@@ -15,6 +15,8 @@
  */
 package org.gradle.api.testing.reporting.policies;
 
+import org.gradle.api.testing.fabric.TestFrameworkInstance;
+
 /**
  * @author Tom Eyckmans
  */
@@ -23,5 +25,5 @@ public interface ReportPolicy {
 
     ReportPolicyConfig createReportPolicyConfigInstance();
 
-    ReportPolicyInstance createReportPolicyInstance();
+    ReportPolicyInstance createReportPolicyInstance(TestFrameworkInstance testFrameworkInstance);
 }

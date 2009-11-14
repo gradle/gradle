@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.reporting.policies;
 
-import org.gradle.api.testing.reporting.policies.errorstoconsole.ErrorsToConsoleReportPolicy;
+import org.gradle.api.testing.reporting.policies.console.ConsoleReportPolicy;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +27,7 @@ public class ReportPolicyRegister {
     private static final Map<ReportPolicyName, ReportPolicy> reportPolicies = new ConcurrentHashMap<ReportPolicyName, ReportPolicy>();
 
     static {
-        registerReportPolicy(new ErrorsToConsoleReportPolicy());
+        registerReportPolicy(new ConsoleReportPolicy());
     }
 
     public static void registerReportPolicy(final ReportPolicy reportPolicy) {

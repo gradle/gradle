@@ -19,11 +19,23 @@ import org.gradle.api.tasks.testing.AbstractTestFramework;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.api.testing.fabric.TestProcessorFactory;
+import org.gradle.api.testing.fabric.TestMethodProcessResultState;
+import org.gradle.api.testing.fabric.TestMethodProcessResultStates;
+
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * @author Tom Eyckmans
  */
 public class JUnitTestFramework extends AbstractTestFramework {
+
+    private static final Map<TestMethodProcessResultState, TestMethodProcessResultState> methodProcessResultStateMapping = new HashMap<TestMethodProcessResultState, TestMethodProcessResultState>();
+    static {
+        methodProcessResultStateMapping.put(JUnitTestMethodProcessResultStates.SUCCESS, TestMethodProcessResultStates.SUCCESS);
+        methodProcessResultStateMapping.put(JUnitTestMethodProcessResultStates.FAILURE, TestMethodProcessResultStates.FAILURE);
+        methodProcessResultStateMapping.put(JUnitTestMethodProcessResultStates.ERROR, TestMethodProcessResultStates.ERROR);
+    }
     public JUnitTestFramework() {
         super("junit", "JUnit");
     }
@@ -34,5 +46,9 @@ public class JUnitTestFramework extends AbstractTestFramework {
 
     public TestProcessorFactory getProcessorFactory() {
         return new JUnitTestProcessorFactory();
+    }
+
+    public Map<TestMethodProcessResultState, TestMethodProcessResultState> getMethodProcessResultStateMapping() {
+        return methodProcessResultStateMapping;
     }
 }

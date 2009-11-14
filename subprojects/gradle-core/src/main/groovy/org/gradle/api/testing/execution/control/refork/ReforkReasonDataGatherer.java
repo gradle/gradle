@@ -25,15 +25,15 @@ import java.util.List;
  *
  * @author Tom Eyckmans
  */
-public interface DecisionContextItemDataGatherer {
-    DecisionContextItemKey getItemKey();
+public interface ReforkReasonDataGatherer {
+    ReforkReasonKey getItemKey();
 
     /**
      * Allows the data gatherer to initialize itself.
      *
      * @param config context item configuration.
      */
-    void configure(DecisionContextItemConfig config);
+    void configure(ReforkReasonConfig config);
 
     /**
      * Defines the moments when this data gatherer needs to be notified.

@@ -13,10 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.testing.execution.control.refork;
+package org.gradle.api.testing.reporting.policies.console;
+
+import org.gradle.api.testing.reporting.policies.*;
+import org.gradle.api.testing.fabric.TestFrameworkInstance;
 
 /**
  * @author Tom Eyckmans
  */
-public interface DecisionContextItemKey {
+public class ConsoleReportPolicy implements ReportPolicy {
+    public ReportPolicyName getName() {
+        return ReportPolicyNames.CONSOLE;
+    }
+
+    public ReportPolicyConfig createReportPolicyConfigInstance() {
+        return new ConsoleReportPolicyConfig(getName());
+    }
+
+    public ReportPolicyInstance createReportPolicyInstance(TestFrameworkInstance testFrameworkInstance) {
+        return new ConsoleReportPolicyInstance(testFrameworkInstance);
+    }
 }

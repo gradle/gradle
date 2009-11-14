@@ -28,21 +28,19 @@ import java.lang.reflect.Method;
  */
 public class JUnitTestListenerWrapper implements junit.framework.TestListener {
 
-    private final boolean junit4;
     private final junit.framework.TestListener wrappedListener;
 
-    public JUnitTestListenerWrapper(final boolean junit4, final TestListener wrappedListener) {
-        this.junit4 = junit4;
+    public JUnitTestListenerWrapper(final TestListener wrappedListener) {
         this.wrappedListener = wrappedListener;
     }
 
     public void addError(Test test, Throwable t) {
-        if (junit4 && t instanceof AssertionFailedError) {
+        if (JUnit4Detecter.isJUnit4Available() && t instanceof AssertionFailedError) {
             // JUnit 4 does not distinguish between errors and failures
             // even in the JUnit 3 adapter.
             // So we need to help it a bit to retain compatibility for JUnit 3 tests.
             wrappedListener.addFailure(test, (AssertionFailedError) t);
-        } else if (junit4 && t.getClass().getName().equals("java.lang.AssertionError")) {
+        } else if (JUnit4Detecter.isJUnit4Available() && t.getClass().getName().equals("java.lang.AssertionError")) {
             // Not strictly necessary but probably desirable.
             // JUnit 4-specific test GUIs will show just "failures".
             // But Ant's output shows "failures" vs. "errors".
