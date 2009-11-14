@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
  */
 package org.gradle.api.file;
 
+import groovy.lang.Closure;
 import org.gradle.api.Buildable;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.StopExecutionException;
 
@@ -45,14 +47,14 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     Set<File> getFiles();
 
     /**
-     * Determines whether this collection contains the given file. Generally, this method is more efficient
-     * than calling {@code getFiles().contains(file)}.
+     * Determines whether this collection contains the given file. Generally, this method is more efficient than calling
+     * {@code getFiles().contains(file)}.
      *
      * @param file The file to check for.
      * @return true if this collection contains the given file, false otherwise.
      */
     boolean contains(File file);
-    
+
     /**
      * Returns the contents of this collection as a platform-specific path. This can be used, for example, in an Ant
      * <path> element.
@@ -65,7 +67,7 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * <p>Returns a {@code FileCollection} which contains the union of this collection and the given collection. The
      * returned collection is live, and tracks changes to both source collections.</p>
      *
-     * <p>You can call this method in your build script using the + operator.</p>
+     * <p>You can call this method in your build script using the {@code +} operator.</p>
      *
      * @param collection The other collection. Should not be null.
      * @return A new collection containing the union.
@@ -73,8 +75,39 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     FileCollection plus(FileCollection collection);
 
     /**
+     * <p>Returns a {@code FileCollection} which contains the intersection of this collection and the given collection.
+     * The returned collection is live, and tracks changes to both source collections.</p>
+     *
+     * <p>You can call this method in your build script using the {@code -} operator.</p>
+     *
+     * @param collection The other collection. Should not be null.
+     * @return A new collection containing the intersection.
+     */
+    FileCollection minus(FileCollection collection);
+
+    /**
+     * <p>Restricts the contents of this collection to those files which match the given criteria. The filtered
+     * collection is live, so that it reflects any changes to this collection.</p>
+     *
+     * <p>The given closure is passed the File as a parameter, and should return a boolean value.</p>
+     *
+     * @param filterClosure The closure to use to select the contents of the filtered collection.
+     * @return The filtered collection.
+     */
+    FileCollection filter(Closure filterClosure);
+
+    /**
+     * <p>Restricts the contents of this collection to those files which match the given criteria. The filtered
+     * collection is live, so that it reflects any changes to this collection.</p>
+     *
+     * @param filterSpec The criteria to use to select the contents of the filtered collection.
+     * @return The filtered collection.
+     */
+    FileCollection filter(Spec<? super File> filterSpec);
+
+    /**
      * <p>Converts this collection into an object of the specified type. Supported types are: {@code Collection}, {@code
-     * List}, {@code Set}, {@code Object[]}, {@code File[]}, and {@code File}.</p>
+     * List}, {@code Set}, {@code Object[]}, {@code File[]}, {@code File}, and {@link FileTree}.</p>
      *
      * <p>You can call this method in your build script using the {@code as} operator.</p>
      *
@@ -102,7 +135,9 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     FileCollection stopExecutionIfEmpty() throws StopExecutionException;
 
     /**
-     * Converts this collection to a {@link FileTree}.
+     * Converts this collection to a {@link FileTree}. Generally, for each file in this collection, the resulting file
+     * tree will contain the source file at the root of the tree. For each directory in this collection, the resulting
+     * file tree will contain all the files under the source directory.
      *
      * @return this collection as a {@link FileTree}. Never returns null.
      */
@@ -140,7 +175,7 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
 
     /**
      * Adds this collection to an Ant task as a nested node. Equivalent to calling {@code addToAntBuilder(builder,
-     * nodeName,AntType.ResourceCollection)}.
+     *nodeName,AntType.ResourceCollection)}.
      */
     Object addToAntBuilder(Object builder, String nodeName);
 }

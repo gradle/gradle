@@ -42,12 +42,14 @@ class War extends Jar {
         CopySpec otherWebInf = getCopyAction().addNoInheritChild().into('WEB-INF')
         otherWebInf.into('classes') {
             from {
-                getClasspath().findAll {File file -> file.isDirectory()}
+                def classpath = getClasspath()
+                classpath ? classpath.filter {File file -> file.isDirectory()} : []
             }
         }
         otherWebInf.into('lib') {
             from {
-                getClasspath().findAll {File file -> file.isFile()}
+                def classpath = getClasspath()
+                classpath ? classpath.filter {File file -> file.isFile()} : []
             }
         }
         otherWebInf.into('') {

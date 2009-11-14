@@ -18,23 +18,24 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.integtests.TestFile;
-import static org.gradle.util.Matchers.*;
-
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.Matcher;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.*;
+
+import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class AbstractFileCollectionTest {
     @Rule
@@ -125,6 +126,18 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
+    public void canSubtractCollections() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+        FileCollection sum = collection1.minus(collection2);
+        assertThat(sum.getFiles(), equalTo(toLinkedSet(file1)));
+    }
+
+    @Test
     public void cannotAddCollection() {
         try {
             new TestFileCollection().add(new TestFileCollection());
@@ -210,17 +223,6 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
-    public void toFileTreeReturnsSingletonTreeForEachFile() {
-        File file = new File("f1");
-
-        TestFileCollection collection = new TestFileCollection(file);
-        FileTree tree = collection.getAsFileTree();
-        assertThat(tree, instanceOf(CompositeFileTree.class));
-        CompositeFileTree compositeTree = (CompositeFileTree) tree;
-        assertThat(compositeTree.getSourceCollections(), hasItems((Matcher) instanceOf(SingletonFileTree.class)));
-    }
-
-    @Test
     public void throwsUnsupportedOperationExceptionWhenConvertingToUnsupportedType() {
         try {
             new TestFileCollection().asType(Integer.class);
@@ -232,31 +234,77 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
+    public void toFileTreeReturnsSingletonTreeForEachFileInCollection() {
+        File file = new File("f1");
+
+        TestFileCollection collection = new TestFileCollection(file);
+        FileTree tree = collection.getAsFileTree();
+        assertThat(tree, instanceOf(CompositeFileTree.class));
+        CompositeFileTree compositeTree = (CompositeFileTree) tree;
+        assertThat(compositeTree.getSourceCollections(), hasItems((Matcher) instanceOf(SingletonFileTree.class)));
+    }
+
+    @Test
+    public void canFilterContentsOfCollectionUsingSpec() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+
+        TestFileCollection collection = new TestFileCollection(file1, file2);
+        FileCollection filtered = collection.filter(new Spec<File>() {
+            public boolean isSatisfiedBy(File element) {
+                return element.getName().equals("f1");
+            }
+        });
+        assertThat(filtered.getFiles(), equalTo(toSet(file1)));
+    }
+
+    @Test
+    public void canFilterContentsOfCollectionUsingClosure() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+
+        TestFileCollection collection = new TestFileCollection(file1, file2);
+        FileCollection filtered = collection.filter(HelperUtil.toClosure("{f -> f.name == 'f1'}"));
+        assertThat(filtered.getFiles(), equalTo(toSet(file1)));
+    }
+    
+    @Test
+    public void filteredCollectionIsLive() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("dir/f1");
+
+        TestFileCollection collection = new TestFileCollection(file1, file2);
+        FileCollection filtered = collection.filter(HelperUtil.toClosure("{f -> f.name == 'f1'}"));
+        assertThat(filtered.getFiles(), equalTo(toSet(file1)));
+
+        collection.files.add(file3);
+        assertThat(filtered.getFiles(), equalTo(toSet(file1, file3)));
+    }
+
+    @Test
     public void hasNoDependencies() {
         assertThat(new TestFileCollection().getBuildDependencies().getDependencies(null), isEmpty());
     }
 
     @Test
     public void fileTreeHasSameDependenciesAsThis() {
-        final TaskDependency dependency = new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                throw new UnsupportedOperationException();
-            }
-        };
-        TestFileCollection collection = new TestFileCollection() {
-            @Override
-            public TaskDependency getBuildDependencies() {
-                return dependency;
-            }
-        };
+        TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency();
         collection.files.add(new File("f1"));
 
-        assertThat(collection.getAsFileTree().getBuildDependencies(), sameInstance(dependency));
-        assertThat(collection.getAsFileTree().matching(HelperUtil.TEST_CLOSURE).getBuildDependencies(), sameInstance(dependency));
+        assertThat(collection.getAsFileTree().getBuildDependencies(), sameInstance(collection.dependency));
+        assertThat(collection.getAsFileTree().matching(HelperUtil.TEST_CLOSURE).getBuildDependencies(), sameInstance(collection.dependency));
+    }
+
+    @Test
+    public void filteredCollectionHasSameDependenciesAsThis() {
+        TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency();
+
+        assertThat(collection.filter(HelperUtil.toClosure("{true}")).getBuildDependencies(), sameInstance( collection.dependency));
     }
 
     private class TestFileCollection extends AbstractFileCollection {
-        private Set<File> files = new LinkedHashSet<File>();
+        Set<File> files = new LinkedHashSet<File>();
 
         private TestFileCollection(File... files) {
             this.files.addAll(Arrays.asList(files));
@@ -268,6 +316,19 @@ public class AbstractFileCollectionTest {
 
         public Set<File> getFiles() {
             return files;
+        }
+    }
+
+    private class TestFileCollectionWithDependency extends TestFileCollection {
+        TaskDependency dependency = new TaskDependency() {
+            public Set<? extends Task> getDependencies(Task task) {
+                throw new UnsupportedOperationException();
+            }
+        };
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return dependency;
         }
     }
 }

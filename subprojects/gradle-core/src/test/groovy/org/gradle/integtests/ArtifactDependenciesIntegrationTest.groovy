@@ -98,4 +98,26 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withTasks('test').run()
     }
 
+    @Test
+    public void canUseArtifactSelectorForProjectDependencies() {
+        testFile('settings.gradle').write("include 'a', 'b'");
+        testFile('a/build.gradle') << '''
+            usePlugin('base')
+            configurations { 'default' {} }
+            task aJar(type: Jar) { }
+            artifacts { 'default' aJar }
+'''
+        testFile('b/build.gradle') << '''
+            configurations { compile }
+            dependencies { compile project(':a') { artifact { name = 'a'; type = 'jar' } } }
+            task test {
+                inputs.files configurations.compile
+                doFirst {
+                    assertEquals([project(':a').tasks.aJar.archivePath] as Set, configurations.compile.files)
+                }
+            }
+'''
+        inTestDirectory().withTasks('test').run()
+    }
 }
+

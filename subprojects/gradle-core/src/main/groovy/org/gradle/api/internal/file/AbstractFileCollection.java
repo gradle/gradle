@@ -15,10 +15,14 @@
  */
 package org.gradle.api.internal.file;
 
+import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.FileSet;
@@ -68,6 +72,26 @@ public abstract class AbstractFileCollection implements FileCollection {
 
     public FileCollection plus(FileCollection collection) {
         return new UnionFileCollection(this, collection);
+    }
+
+    public FileCollection minus(final FileCollection collection) {
+        return new AbstractFileCollection() {
+            @Override
+            public String getDisplayName() {
+                return AbstractFileCollection.this.getDisplayName();
+            }
+
+            @Override
+            public TaskDependency getBuildDependencies() {
+                return AbstractFileCollection.this.getBuildDependencies();
+            }
+
+            public Set<File> getFiles() {
+                Set<File> files = new LinkedHashSet<File>(AbstractFileCollection.this.getFiles());
+                files.removeAll(collection.getFiles());
+                return files;
+            }
+        };
     }
 
     public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
@@ -174,6 +198,28 @@ public abstract class AbstractFileCollection implements FileCollection {
             @Override
             public String getDisplayName() {
                 return AbstractFileCollection.this.getDisplayName();
+            }
+        };
+    }
+
+    public FileCollection filter(Closure filterClosure) {
+        return filter((Spec) DefaultGroovyMethods.asType(filterClosure, Spec.class));
+    }
+
+    public FileCollection filter(final Spec<? super File> filterSpec) {
+        return new AbstractFileCollection() {
+            @Override
+            public String getDisplayName() {
+                return AbstractFileCollection.this.getDisplayName();
+            }
+
+            @Override
+            public TaskDependency getBuildDependencies() {
+                return AbstractFileCollection.this.getBuildDependencies();
+            }
+
+            public Set<File> getFiles() {
+                return Specs.filterIterable(AbstractFileCollection.this, filterSpec);
             }
         };
     }

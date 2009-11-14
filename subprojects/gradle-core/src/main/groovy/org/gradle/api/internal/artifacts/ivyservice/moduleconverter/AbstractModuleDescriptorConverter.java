@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -31,8 +29,6 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public abstract class AbstractModuleDescriptorConverter implements ModuleDescriptorConverter {
-    private static Logger logger = LoggerFactory.getLogger(AbstractModuleDescriptorConverter.class);
-
     private ModuleDescriptorFactory moduleDescriptorFactory;
 
     private ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
@@ -51,29 +47,5 @@ public abstract class AbstractModuleDescriptorConverter implements ModuleDescrip
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
         dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations, ivySettings);
         return moduleDescriptor;
-    }
-
-    public ModuleDescriptorFactory getModuleDescriptorFactory() {
-        return moduleDescriptorFactory;
-    }
-
-    public void setModuleDescriptorFactory(ModuleDescriptorFactory moduleDescriptorFactory) {
-        this.moduleDescriptorFactory = moduleDescriptorFactory;
-    }
-
-    public ConfigurationsToModuleDescriptorConverter getConfigurationsToModuleDescriptorConverter() {
-        return configurationsToModuleDescriptorConverter;
-    }
-
-    public void setConfigurationsToModuleDescriptorConverter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter) {
-        this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
-    }
-
-    public DependenciesToModuleDescriptorConverter getDependenciesToModuleDescriptorConverter() {
-        return dependenciesToModuleDescriptorConverter;
-    }
-
-    public void setDependenciesToModuleDescriptorConverter(DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter) {
-        this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
     }
 }

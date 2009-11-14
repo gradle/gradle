@@ -82,4 +82,11 @@ public interface FileTree extends FileCollection {
      * @return The union of this tree and the given tree.
      */
     FileTree plus(FileTree fileTree);
+
+    /**
+     * Returns this.
+     *
+     * @return this
+     */
+    FileTree getAsFileTree();
 }

@@ -23,13 +23,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.War;
 
-import java.io.File;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -63,12 +62,11 @@ public class WarPlugin implements Plugin {
                 });
                 task.classpath(new Object[] {new Callable() {
                     public Object call() throws Exception {
-                        Set<File> classpath = project.getConvention().getPlugin(JavaPluginConvention.class)
-                                .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath().getFiles();
-                        Set<File> provided = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME)
-                                .getFiles();
-                        classpath.removeAll(provided);
-                        return classpath;
+                        FileCollection runtimeClasspath = project.getConvention().getPlugin(JavaPluginConvention.class)
+                                .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+                        Configuration providedRuntime = project.getConfigurations().getByName(
+                                PROVIDED_RUNTIME_CONFIGURATION_NAME);
+                        return runtimeClasspath.minus(providedRuntime);
                     }
                 }});
             }

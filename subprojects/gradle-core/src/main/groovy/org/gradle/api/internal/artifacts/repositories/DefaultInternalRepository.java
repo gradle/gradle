@@ -17,9 +17,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
@@ -41,6 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -89,8 +88,21 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         }
         Project project = gradle.getRootProject().project(projectPathValue);
         DependencyMetaDataProvider dependencyMetaDataProvider = ((ProjectInternal) project).getServiceRegistryFactory().get(DependencyMetaDataProvider.class);
-        return moduleDescriptorConverter.convert(project.getConfigurations().getAll(), dependencyMetaDataProvider.getModuleForResolve(),
-                IvyContext.getContext().getIvy().getSettings());
+        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations().getAll(),
+                dependencyMetaDataProvider.getModuleForResolve(), IvyContext.getContext().getIvy().getSettings());
+
+        for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
+            for (Artifact artifact : projectDescriptor.getAllArtifacts()) {
+                if (artifact.getName().equals(artifactDescriptor.getName()) && artifact.getExt().equals(
+                        artifactDescriptor.getExt())) {
+                    String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
+                    ReflectionUtil.invoke(artifactDescriptor, "setExtraAttribute",
+                            new Object[]{DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, path});
+                }
+            }
+        }
+
+        return projectDescriptor;
     }
 
     @Override
