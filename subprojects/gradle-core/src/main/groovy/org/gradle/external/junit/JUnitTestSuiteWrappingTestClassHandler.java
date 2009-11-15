@@ -21,7 +21,7 @@ package org.gradle.external.junit;
 public class JUnitTestSuiteWrappingTestClassHandler extends AbstractJUnitTestClassHandler {
 
     public JUnitTestSuiteWrappingTestClassHandler(Class testClass) {
-//        super(new junit.framework.TestSuite(testClass));
+        super(new junit.framework.TestSuite(testClass));
     }
 
 }

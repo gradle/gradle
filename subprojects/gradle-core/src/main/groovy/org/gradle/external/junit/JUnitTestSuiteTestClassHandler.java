@@ -15,7 +15,7 @@
  */
 package org.gradle.external.junit;
 
-//import junit.framework.Test;
+import junit.framework.Test;
 
 import java.lang.reflect.Method;
 
@@ -26,7 +26,7 @@ public class JUnitTestSuiteTestClassHandler extends AbstractJUnitTestClassHandle
 
     public JUnitTestSuiteTestClassHandler(Method suiteMethod) {
         try {
-//            suite = ((Test) suiteMethod.invoke(null));
+            suite = ((Test) suiteMethod.invoke(null));
         }
         catch ( Throwable t ) {
             throw new RuntimeException("failed to create junit test suite", t);
