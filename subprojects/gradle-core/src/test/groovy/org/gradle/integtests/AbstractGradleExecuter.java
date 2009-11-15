@@ -27,6 +27,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
+    private boolean searchUpwards = false;
 
     public GradleExecuter inDirectory(File directory) {
         workingDir = directory;
@@ -68,7 +69,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withSearchUpwards() {
-        throw new UnsupportedOperationException();
+        searchUpwards = true;
+        return this;
     }
 
     public boolean isQuiet() {
@@ -120,6 +122,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (taskList) {
             allArgs.add("--tasks");
+        }
+        if (!searchUpwards) {
+            allArgs.add("--no-search-upward");
         }
         allArgs.addAll(args);
         allArgs.addAll(tasks);

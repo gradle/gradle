@@ -18,17 +18,20 @@ package org.gradle.integtests;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 
+import java.io.File;
 import java.util.Map;
 import java.util.HashMap;
 
 public class QuickGradleExecuter extends AbstractGradleExecuter {
     private final GradleDistribution dist;
+    private final boolean fork;
     private StartParameterModifier inProcessStartParameterModifier;
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private String script = null;
 
-    public QuickGradleExecuter(GradleDistribution dist) {
+    public QuickGradleExecuter(GradleDistribution dist, boolean fork) {
         this.dist = dist;
+        this.fork = fork;
         inDirectory(dist.getTestDir());
     }
 
@@ -70,7 +73,7 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
 
         GradleExecuter returnedExecuter = inProcessGradleExecuter; 
 
-        if (inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty() || script != null) {
+        if (fork || inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty() || script != null) {
             ForkingGradleExecuter forkingGradleExecuter = new ForkingGradleExecuter(dist);
             copyTo(forkingGradleExecuter);
             forkingGradleExecuter.withEnvironmentVars(environmentVars);
@@ -80,6 +83,18 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
             if (inProcessStartParameterModifier != null) {
                 inProcessStartParameterModifier.modify(inProcessGradleExecuter.getParameter());
             }
+        }
+
+        boolean settingsFound = false;
+        for ( File dir = getWorkingDir();
+             dir != null && dist.isFileUnderTest(dir) && !settingsFound;
+             dir = dir.getParentFile()) {
+            if (new File(dir, "settings.gradle").isFile()) {
+                settingsFound = true;
+            }
+        }
+        if (settingsFound) {
+            returnedExecuter.withSearchUpwards();
         }
 
         return returnedExecuter;

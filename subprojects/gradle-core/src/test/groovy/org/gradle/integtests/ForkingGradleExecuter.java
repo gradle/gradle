@@ -44,10 +44,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         inDirectory(distribution.getTestDir());
     }
 
-    public GradleExecuter withSearchUpwards() {
-        throw new UnsupportedOperationException();
-    }
-
     public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
         environmentVars.clear();
         for (Map.Entry<String, ?> entry : environment.entrySet()) {
@@ -95,17 +91,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         args.add("--gradle-user-home");
         args.add(distribution.getUserHomeDir().getAbsolutePath());
 
-        boolean settingsFound = false;
-        for (File dir = getWorkingDir();
-             dir != null && distribution.isFileUnderTest(dir) && !settingsFound;
-             dir = dir.getParentFile()) {
-            if (new File(dir, "settings.gradle").isFile()) {
-                settingsFound = true;
-            }
-        }
-        if (!settingsFound) {
-            args.add("--no-search-upward");
-        }
         return args;
     }
 
