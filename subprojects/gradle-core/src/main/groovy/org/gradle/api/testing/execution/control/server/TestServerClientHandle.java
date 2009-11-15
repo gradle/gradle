@@ -20,7 +20,6 @@ import org.gradle.api.testing.execution.PipelineDispatcher;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.ForkStatus;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.util.ThreadUtils;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 

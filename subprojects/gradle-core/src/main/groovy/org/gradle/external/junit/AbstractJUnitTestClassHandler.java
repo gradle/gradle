@@ -15,13 +15,10 @@
  */
 package org.gradle.external.junit;
 
-/**
- * @author Tom Eyckmans
- */
-public class JUnitTestSuiteWrappingTestClassHandler extends AbstractJUnitTestClassHandler {
+import junit.framework.Test;
 
-    public JUnitTestSuiteWrappingTestClassHandler(Class testClass) {
-//        super(new junit.framework.TestSuite(testClass));
+public class AbstractJUnitTestClassHandler implements JUnitTestClassHandler {
+    public Test getSuite() {
+        throw new UnsupportedOperationException();
     }
-
 }
