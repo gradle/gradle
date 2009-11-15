@@ -48,7 +48,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         FileSet
     }
 
-    @Before public void setUp()  {
+    @Before public void setUp() {
         super.setUp()
         fileSet = patternSetType.newInstance(testDir, resolver)
     }
@@ -144,7 +144,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertVisits(fileSet, [], [])
     }
 
-    @Test public void testCanLimitFilesUsingPatterns() {
+    @Test public void testCanSelectFilesUsingPatterns() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -165,7 +165,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertFalse(fileSet.contains(ignored1))
     }
 
-    @Test public void testCanFilterFileSetUsingConfigureClosure() {
+    @Test public void testCanFilterMatchingFilesUsingConfigureClosure() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -187,8 +187,8 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertFalse(filtered.contains(excluded1))
         assertFalse(filtered.contains(ignored1))
     }
-    
-    @Test public void testCanFilterFileSetUsingPatternSet() {
+
+    @Test public void testCanFilterMatchingFilesUsingPatternSet() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -208,8 +208,8 @@ class FileSetTest extends AbstractTestForPatternSet {
         assertFalse(filtered.contains(excluded1))
         assertFalse(filtered.contains(ignored1))
     }
-    
-    @Test public void testCanFilterAndLimitFileSet() {
+
+    @Test public void testCanFilterAndSelectFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
@@ -257,19 +257,11 @@ class FileSetTest extends AbstractTestForPatternSet {
             assertThat(e.message, equalTo("File set '$testDir' does not contain any files." as String))
         }
     }
-    
+
     @Test public void testStopExecutionIfEmptyWhenMatchingFilesFound() {
         fileSet.include('**/*included')
         new File(testDir, 'included').text = 'some text'
 
         fileSet.stopExecutionIfEmpty()
     }
-
-    void checkPatternSetForAntBuilderTest(antPatternSet, PatternSet patternSet) {
-        // Unfortunately, the ant fileset task has no public properties to check its includes/excludes values
-        // todo: We might get hold of those properties via reflection. But this makes things unstable. As Ant
-        // only guarantees stability for its public API.
-        assertEquals(testDir, antPatternSet.dir)
-    }
-
 }

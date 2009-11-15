@@ -34,48 +34,79 @@ public class NormalizingCopyVisitorTest {
     private final NormalizingCopyVisitor visitor = new NormalizingCopyVisitor(delegate);
 
     @Test
-    public void visitsADirectoryWhenItHasNotBeenVisitedBefore() {
+    public void doesNotVisitADirectoryWhichHasBeenVisitedBefore() {
         final FileVisitDetails details = file("dir");
+        final FileVisitDetails file = file("dir/file");
 
         context.checking(new Expectations() {{
             one(delegate).visitDir(details);
+            one(delegate).visitFile(file);
         }});
 
+        visitor.visitDir(details);
+        visitor.visitFile(file);
         visitor.visitDir(details);
     }
 
     @Test
-    public void doesNotVisitADirectoryWhichHasBeenVisitedBefore() {
-        final FileVisitDetails details = file("dir");
+    public void doesNotVisitADirectoryUntilAChildFileIsVisited() {
+        final FileVisitDetails dir = file("dir");
+        final FileVisitDetails file = file("dir/file");
+
+        visitor.visitDir(dir);
 
         context.checking(new Expectations() {{
-            one(delegate).visitDir(details);
+            one(delegate).visitDir(dir);
+            one(delegate).visitFile(file);
         }});
 
-        visitor.visitDir(details);
-        visitor.visitDir(details);
+        visitor.visitFile(file);
+    }
+
+    @Test
+    public void doesNotVisitADirectoryUntilAChildDirIsVisited() {
+        final FileVisitDetails dir = file("dir");
+        final FileVisitDetails subdir = file("dir/sub");
+        final FileVisitDetails file = file("dir/sub/file");
+
+        visitor.visitDir(dir);
+        visitor.visitDir(subdir);
+
+        context.checking(new Expectations() {{
+            one(delegate).visitDir(dir);
+            one(delegate).visitDir(subdir);
+            one(delegate).visitFile(file);
+        }});
+
+        visitor.visitFile(file);
     }
 
     @Test
     public void visitsDirectoryAncestorsWhichHaveNotBeenVisited() {
         final FileVisitDetails dir1 = file("a/b/c");
+        final FileVisitDetails file1 = file("a/b/c/file");
 
         context.checking(new Expectations() {{
             one(delegate).visitDir(with(hasPath("a")));
             one(delegate).visitDir(with(hasPath("a/b")));
             one(delegate).visitDir(dir1);
+            one(delegate).visitFile(file1);
         }});
 
         visitor.visitDir(dir1);
+        visitor.visitFile(file1);
 
         final FileVisitDetails dir2 = file("a/b/d/e");
+        final FileVisitDetails file2 = file("a/b/d/e/file");
 
         context.checking(new Expectations() {{
             one(delegate).visitDir(with(hasPath("a/b/d")));
             one(delegate).visitDir(dir2);
+            one(delegate).visitFile(file2);
         }});
 
         visitor.visitDir(dir2);
+        visitor.visitFile(file2);
     }
 
     @Test
@@ -92,14 +123,10 @@ public class NormalizingCopyVisitorTest {
     }
 
     @Test
-    public void visitsSpecRootDir() {
+    public void visitSpecDelegatesToVisitor() {
         final ReadableCopySpec spec = context.mock(ReadableCopySpec.class);
 
         context.checking(new Expectations() {{
-            allowing(spec).getDestPath();
-            will(returnValue(RelativePath.parse(false, "a/b")));
-            one(delegate).visitDir(with(hasPath("a")));
-            one(delegate).visitDir(with(hasPath("a/b")));
             one(delegate).visitSpec(spec);
         }});
 

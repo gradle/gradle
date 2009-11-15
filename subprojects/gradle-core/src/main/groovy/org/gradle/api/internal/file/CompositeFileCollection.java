@@ -19,6 +19,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.FileSet;
@@ -86,6 +87,28 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
             protected void addSourceCollections(Collection<FileCollection> sources) {
                 for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
                     sources.add(collection.getAsFileTree());
+                }
+            }
+
+            @Override
+            public String getDisplayName() {
+                return CompositeFileCollection.this.getDisplayName();
+            }
+
+            @Override
+            public TaskDependency getBuildDependencies() {
+                return CompositeFileCollection.this.getBuildDependencies();
+            }
+        };
+    }
+
+    @Override
+    public FileCollection filter(final Spec<? super File> filterSpec) {
+        return new CompositeFileCollection() {
+            @Override
+            protected void addSourceCollections(Collection<FileCollection> sources) {
+                for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
+                    sources.add(collection.filter(filterSpec));
                 }
             }
 

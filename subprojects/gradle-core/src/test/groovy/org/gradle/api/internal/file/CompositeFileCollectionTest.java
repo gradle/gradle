@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.FileSet;
@@ -214,6 +215,24 @@ public class CompositeFileCollectionTest {
         }});
 
         assertThat(((CompositeFileTree) fileTree).getSourceCollections(), equalTo((Iterable) toList(tree1, tree2, tree3)));
+    }
+
+    @Test
+    public void filterDelegatesToEachSet() {
+        final FileCollection filtered1 = context.mock(FileCollection.class, "filtered1");
+        final FileCollection filtered2 = context.mock(FileCollection.class, "filtered2");
+        final Spec spec = context.mock(Spec.class);
+
+        context.checking(new Expectations() {{
+            one(source1).filter(spec);
+            will(returnValue(filtered1));
+            one(source2).filter(spec);
+            will(returnValue(filtered2));
+        }});
+
+        FileCollection filtered = collection.filter(spec);
+        assertThat(filtered, instanceOf(CompositeFileCollection.class));
+        assertThat(((CompositeFileCollection) filtered).getSourceCollections(), equalTo((Iterable) toList(filtered1, filtered2)));
     }
 
     @Test

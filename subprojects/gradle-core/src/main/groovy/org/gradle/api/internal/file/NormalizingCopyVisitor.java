@@ -21,12 +21,19 @@ import org.gradle.api.file.RelativePath;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+/**
+ * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate and empty directories and
+ * adds in missing directories.
+ */
 public class NormalizingCopyVisitor implements CopySpecVisitor {
     private final CopySpecVisitor visitor;
     private final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
+    private final Map<RelativePath, FileVisitDetails> pendingDirs = new HashMap<RelativePath, FileVisitDetails>();
 
     public NormalizingCopyVisitor(CopySpecVisitor visitor) {
         this.visitor = visitor;
@@ -38,24 +45,24 @@ public class NormalizingCopyVisitor implements CopySpecVisitor {
 
     public void endVisit() {
         visitedDirs.clear();
+        pendingDirs.clear();
         visitor.endVisit();
     }
 
     public void visitSpec(ReadableCopySpec spec) {
-        maybeVisit(spec.getDestPath());
         visitor.visitSpec(spec);
     }
 
     private void maybeVisit(RelativePath path) {
-        maybeVisit(path, new FileVisitDetailsImpl(path));
-    }
-
-    private void maybeVisit(RelativePath path, FileVisitDetails dirDetails) {
         if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
             return;
         }
         maybeVisit(path.getParent());
-        visitor.visitDir(dirDetails);
+        FileVisitDetails dir = pendingDirs.remove(path);
+        if (dir == null) {
+            dir = new FileVisitDetailsImpl(path);
+        }
+        visitor.visitDir(dir);
     }
 
     public void visitFile(FileVisitDetails fileDetails) {
@@ -64,7 +71,10 @@ public class NormalizingCopyVisitor implements CopySpecVisitor {
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
-        maybeVisit(dirDetails.getRelativePath(), dirDetails);
+        RelativePath path = dirDetails.getRelativePath();
+        if (!visitedDirs.contains(path)) {
+            pendingDirs.put(path, dirDetails);
+        }
     }
 
     public boolean getDidWork() {
