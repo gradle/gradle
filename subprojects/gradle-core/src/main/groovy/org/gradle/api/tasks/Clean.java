@@ -47,7 +47,7 @@ public class Clean extends ConventionTask {
         try {
             FileUtils.deleteDirectory(getDir());
         } catch (IOException e) {
-            throw new InvalidUserDataException("Can't delete directory: " + getDir());
+            throw new InvalidUserDataException("Can't delete directory: " + getDir(), e);
         }
     }
 

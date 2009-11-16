@@ -31,15 +31,23 @@ RemoteLocations remoteLocations = new RemoteLocations(version: version)
 srcDocsDir = file('src/docs')
 userguideSrcDir = new File(srcDocsDir, 'userguide')
 
+docsDir = file("$buildDir/docs")
 userguideDir = new File(docsDir, 'userguide')
 userguidePdfFile = new File(userguideDir, 'userguide.pdf')
 userguideSingleHtmlFile = new File(userguideDir, 'userguide_single.html')
-docbookDir = new File(project.buildDir, 'docbook/stylesheets')
-snippetsDir = new File(project.buildDir, 'docbook/snippets')
+docbookDir = new File(buildDir, 'docbookStylesheets')
+snippetsDir = new File(buildDir, 'snippets')
 javadocDir = new File(docsDir, 'javadoc')
 groovydocDir = new File(docsDir, 'groovydoc')
+distDocsDir = new File(buildDir, 'distDocs')
+samplesDir = file("$buildDir/samples")
+docbookSrc = new File(project.buildDir, 'docbookSrc')
+samplesSrcDir = file('src/samples')
 
-task userguide(dependsOn: ['userguideHtml', 'userguideSingleHtml', 'userguidePdf'], description: 'Generates the userguide')
+tasks.withType(Docbook2Xhtml).allObjects { task->
+    task.classpath = configurations.userGuideTask
+    task.stylesheetsDir = docbookDir
+}
 
 task samples(type: ExtractSnippetsTask) {
     source samplesSrcDir
@@ -70,136 +78,65 @@ task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
 
 task userguideStyleSheets {
     stylesheetsDir = new File(srcDocsDir, 'stylesheets')
+    resources = fileTree {
+        from stylesheetsDir
+        include '*.xsl'
+    } + fileTree {
+        from userguideSrcDir
+        include 'style.css'
+    }
     inputs.files configurations.userGuideStyleSheets
-    inputs.dir stylesheetsDir
+    inputs.files resources
     outputs.files docbookDir
     doFirst {
         ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
             globmapper(from: 'docbook-xsl-1.75.2/*', to: '*')
         }
         copy {
-            from stylesheetsDir
+            from resources
             into docbookDir
-            include '*.xsl'
         }
     }
 }
 
-task userguideHtml(dependsOn: [userguideSrc, userguideStyleSheets]) {
-    inputs.files new File(docbookSrc, 'userguide.xml')
-    inputs.dir docbookDir
-    inputs.dir userguideSrcDir
-    outputs.files userguideDir
-    doFirst {
-        ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-            jvmarg(value: '-Xmx128m')
-            sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
-            arg(value: '-in')
-            arg(value: new File(docbookSrc, 'userguide.xml'))
-            arg(value: '-xsl')
-            arg(value: new File(docbookDir, 'userGuideHtml.xsl'))
-            arg(line: "-param base.dir ${userguideDir}/")
-            classpath {
-                path(path: configurations.userGuideTask.asPath)
-                path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-            }
-        }
-        copy {
-            from userguideSrcDir
-            into userguideDir
-            include 'style.css'
-            include 'images/*.png'
-        }
-    }
-}
-
-task userguideSingleHtml(dependsOn: [userguideSrc, userguideStyleSheets]) << {
-    userguideSingleHtmlFile.parentFile.mkdirs()
-
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
-        arg(value: '-in')
-        arg(value: new File(docbookSrc, 'userguide.xml'))
-        arg(value: '-out')
-        arg(value: userguideSingleHtmlFile)
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'userGuideSingleHtml.xsl'))
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-        }
-    }
-    copy {
+task userguideHtml(type: Docbook2Xhtml, dependsOn: [userguideSrc, userguideStyleSheets]) {
+    sourceFile = userguideSrc.destFile
+    destDir = userguideDir
+    stylesheetName = 'userGuideHtml.xsl'
+    resources = fileTree {
         from userguideSrcDir
-        into userguideSingleHtmlFile.parentFile
         include 'style.css'
         include 'images/*.png'
     }
 }
 
-task userguidePdf(dependsOn: [userguideSrc, userguideStyleSheets]) << {
-    File pdfSourceHtml = new File(docbookSrc, 'userguidePdf.html')
-
-    pdfSourceHtml.parentFile.mkdirs()
-    userguidePdfFile.parentFile.mkdirs()
-
-    println "transforming docbook -> html"
-
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
-        arg(value: '-in')
-        arg(value: new File(docbookSrc, 'userguide.xml'))
-        arg(value: '-out')
-        arg(value: pdfSourceHtml)
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'userGuidePdf.xsl'))
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-        }
-    }
-
-    copy {
+task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: [userguideSrc, userguideStyleSheets]) {
+    sourceFile = userguideSrc.destFile
+    destFile = userguideSingleHtmlFile
+    stylesheetName = 'userGuideSingleHtml.xsl'
+    resources = fileTree {
         from userguideSrcDir
-        into pdfSourceHtml.parentFile
+        include 'style.css'
+        include 'images/*.png'
+    }
+}
+
+task userguidePdfSrc(type: Docbook2Xhtml, dependsOn: [userguideSrc, userguideStyleSheets]) {
+    sourceFile = userguideSrc.destFile
+    destFile = new File(docbookSrc, 'userguidePdf.html')
+    stylesheetName = 'userGuidePdf.xsl'
+    resources = fileTree {
+        from userguideSrcDir
         include 'style.css'
         include 'print.css'
         include 'images/*.png'
     }
-
-    println "transforming html -> pdf, using ${System.getProperty('java.vm.version')}"
-
-    def uris = configurations.userGuideTask.files.collect {it.toURI().toURL()}
-
-    println "using classpath $uris"
-
-    def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
-
-    println "classloader constructed"
-
-    def renderer = classloader.loadClass('org.xhtmlrenderer.pdf.ITextRenderer').newInstance()
-
-    println "clases loaded"
-
-    renderer.setDocument(pdfSourceHtml)
-
-    println "document loaded"
-
-    renderer.layout()
-
-    println "layout done"
-
-    userguidePdfFile.withOutputStream {
-        renderer.createPDF(it)
-    }
-
-    println "done"
 }
 
-[userguidePdf].each {
-    it.onlyIf { !System.getProperty("os.name").toLowerCase().contains('windows') }
+task userguidePdf(type: Xhtml2Pdf, dependsOn: userguidePdfSrc) {
+    sourceFile = userguidePdfSrc.destFile
+    destFile = userguidePdfFile
+    classpath = configurations.userGuideTask
 }
 
 task javadoc(type: Javadoc) {
@@ -217,7 +154,7 @@ task javadoc(type: Javadoc) {
 }
 
 task groovydoc(type: Groovydoc) {
-    source groovyProjects().collect { project -> project.sourceSets.main.groovy }
+    source groovyProjects().collect {project -> project.sourceSets.main.groovy }
     destinationDir = groovydocDir
     includes = javadoc.includes
     excludes = javadoc.excludes
@@ -227,8 +164,34 @@ task groovydoc(type: Groovydoc) {
     groovyClasspath = project(':core').configurations.groovy
 }
 
+task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
+    standalone = true
+    sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
+    destFile = new File(docbookSrc, 'gettingStarted.xml')
+    snippetsDir = project.snippetsDir
+    classpath = configurations.userGuideTask
+    doFirst {task ->
+        task.javadocUrl = remoteLocations.javadocUrl
+        task.groovydocUrl = remoteLocations.groovydocUrl
+    }
+}
 
-task docs(dependsOn: [javadoc, groovydoc, 'userguide', 'distDocs'])
+task distDocs(type: Docbook2Xhtml, dependsOn: [userguideFragmentSrc, userguideStyleSheets]) {
+    sourceFile = userguideFragmentSrc.destFile
+    destFile = new File(distDocsDir, 'getting-started.html')
+    stylesheetName = 'standaloneHtml.xsl'
+}
+
+task websiteDocs(type: Docbook2Xhtml, dependsOn: [userguideFragmentSrc, userguideStyleSheets]) {
+    File websiteDocs = new File(buildDir, 'websiteDocs')
+    sourceFile = userguideFragmentSrc.destFile
+    destFile = new File(websiteDocs, 'getting-started.html')
+    stylesheetName = 'docFragment.xsl'
+}
+
+task userguide(dependsOn: [userguideHtml, userguideSingleHtml, userguidePdf], description: 'Generates the userguide')
+
+task docs(dependsOn: [javadoc, groovydoc, userguide, distDocs])
 
 task uploadDocs(dependsOn: docs) << {
     ftp(action: 'mkdir', remotedir: remoteLocations.docsRemoteDir)
@@ -239,72 +202,6 @@ task uploadDocs(dependsOn: docs) << {
     }
     ftp(action: 'send', remotedir: remoteLocations.docsRemoteDir) {
         fileset(dir: docsDir)
-    }
-}
-
-task distDocs(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
-    standalone = true
-    sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
-    destFile = new File(docbookSrc, 'gettingStarted.xml')
-    snippetsDir = project.snippetsDir
-    classpath = configurations.userGuideTask
-}
-distDocs.doFirst {
-    distDocs.javadocUrl = remoteLocations.javadocUrl
-    distDocs.groovydocUrl = remoteLocations.groovydocUrl
-}
-distDocs << {
-    distDocsDir.mkdirs()
-
-    copy {
-        from userguideSrcDir
-        into docbookDir
-        include 'style.css'
-    }
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        sysproperty(key: 'xslthl.config', value: new File("$docbookDir/highlighting/xslthl-config.xml").toURI())
-        sysproperty(key: 'org.apache.xerces.xni.parser.XMLParserConfiguration', value: 'org.apache.xerces.parsers.XIncludeParserConfiguration')
-        arg(value: '-in')
-        arg(value: new File(docbookSrc , 'gettingStarted.xml'))
-        arg(value: '-out')
-        arg(value: new File(distDocsDir, 'getting-started.html'))
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'standaloneHtml.xsl'))
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-        }
-    }
-}
-
-task websiteDocs(type: UserGuideTransformTask, dependsOn: userguideStyleSheets) {
-    standalone = true
-    sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
-    destFile = new File(docbookSrc, 'gettingStarted.xml')
-    snippetsDir = project.snippetsDir
-    classpath = configurations.userGuideTask
-}
-websiteDocs.doFirst {
-    websiteDocs.javadocUrl = remoteLocations.javadocUrl
-    websiteDocs.groovydocUrl = remoteLocations.groovydocUrl
-}
-websiteDocs << {
-    File websiteDocs = new File(buildDir, 'docs')
-    websiteDocs.mkdirs()
-
-    ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-        jvmarg(value: '-Xmx128m')
-        arg(value: '-in')
-        arg(value: new File(docbookSrc , 'gettingStarted.xml'))
-        arg(value: '-out')
-        arg(value: new File(websiteDocs, 'getting-started.html'))
-        arg(value: '-xsl')
-        arg(value: new File(docbookDir, 'docFragment.xsl'))
-        classpath {
-            path(path: configurations.userGuideTask.asPath)
-            path(location: new File(docbookDir, 'extensions/xalan27.jar'))
-        }
     }
 }
 
@@ -347,6 +244,85 @@ class RemoteLocations {
     }
 }
 
+class Docbook2Xhtml extends DefaultTask {
+    @InputFiles
+    FileCollection classpath
 
+    @InputFile
+    File sourceFile
 
+    @OutputFile @Optional
+    File destFile
 
+    @OutputDirectory @Optional
+    File destDir
+
+    @InputDirectory
+    File stylesheetsDir
+
+    String stylesheetName
+
+    @InputFiles @Optional
+    FileCollection resources
+
+    @org.gradle.api.tasks.TaskAction
+    def transform() {
+        if (!((destFile != null) ^ (destDir != null))) {
+            throw new InvalidUserDataException("Must specify exactly 1 of output file or dir.")
+        }
+        ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+            jvmarg(value: '-Xmx256m')
+            arg(value: '-in')
+            arg(value: sourceFile)
+            if (destFile) {
+                arg(value: '-out')
+                arg(value: destFile)
+            }
+            arg(value: '-xsl')
+            arg(value: new File(stylesheetsDir, stylesheetName))
+            if (destDir) {
+                arg(line: "-param base.dir ${destDir}/")
+            }
+            sysproperty(key: 'xslthl.config', value: new File("$stylesheetsDir/highlighting/xslthl-config.xml").toURI())
+            sysproperty(key: 'org.apache.xerces.xni.parser.XMLParserConfiguration', value: 'org.apache.xerces.parsers.XIncludeParserConfiguration')
+            classpath {
+                path(path: classpath.asPath)
+                path(location: new File(stylesheetsDir, 'extensions/xalan27.jar'))
+            }
+        }
+
+        if (resources) {
+            project.copy {
+                into this.destDir ?: destFile.parentFile
+                from resources
+            }
+        }
+    }
+}
+
+class Xhtml2Pdf extends DefaultTask {
+    @InputFile
+    File sourceFile
+
+    @OutputFile
+    File destFile
+
+    @InputFiles
+    FileCollection classpath
+
+    def Xhtml2Pdf() {
+        onlyIf { !System.getProperty("os.name").toLowerCase().contains('windows') }
+    }
+
+    @org.gradle.api.tasks.TaskAction
+    def transform() {
+        def uris = classpath.files.collect {it.toURI().toURL()}
+        def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)
+        def renderer = classloader.loadClass('org.xhtmlrenderer.pdf.ITextRenderer').newInstance()
+        renderer.setDocument(sourceFile)
+        renderer.layout()
+        destFile.withOutputStream {
+            renderer.createPDF(it)
+        }
+    }
+}

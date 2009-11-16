@@ -18,7 +18,7 @@ import org.apache.ivy.plugins.resolver.*
  * a JDK 1.4).
  */
 
-version = new Version("0.9", gradle.taskGraph)
+version = new Version(project)
 
 defaultTasks "clean", "assemble"
 
@@ -92,14 +92,6 @@ configure(groovyProjects()) {
     [checkstyleMain, checkstyleTest].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
 }
 
-project(':docs') {
-    docsDir = file("$buildDir/docs")
-    samplesDir = file("$buildDir/samples")
-    distDocsDir = file("$buildDir/distDocs")
-    docbookSrc = new File(project.buildDir, 'docbook/src')
-    samplesSrcDir = file('src/samples')
-}
-
 allprojects {
     task ide << { task ->
         def config = task.project.configurations.findByName('testRuntime')
@@ -132,6 +124,8 @@ dependencies {
             'backport-util-concurrent:backport-util-concurrent:3.1@jar'
 }
 
+evaluationDependsOn(':docs')
+
 clean.dependsOn subprojects.collect { "$it.path:clean" }
 
 task check(overwrite: true, dependsOn: groovyProjects()*.check)
@@ -152,7 +146,7 @@ task allZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:docs']) {
     classifier = 'all'
     into(zipRootFolder) {
         from 'src/toplevel'
-        from project(':docs').distDocsDir
+        from project(':docs').distDocs.destFile
         into('bin') {
             from startScriptsDir
             fileMode = 0755
@@ -176,7 +170,7 @@ task binZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:distDocs']) {
     classifier = 'bin'
     into(zipRootFolder) {
         from 'src/toplevel'
-        from project(':docs').distDocsDir
+        from project(':docs').distDocs.destFile
         into('bin') {
             from startScriptsDir
             fileMode = 0755
@@ -226,7 +220,7 @@ task jdk14AllZip(type: Zip, dependsOn: [translateLibsTo14, 'launcher:startScript
     classifier = 'all-jdk14'
     into(zipRootFolder) {
         from 'src/toplevel'
-        from project(':docs').distDocsDir
+        from project(':docs').distDocs.destFile
         into('bin') {
             from startScriptsDir
             fileMode = 0755
@@ -344,6 +338,14 @@ task developerBuild(dependsOn: [clean, testedDists])
 task ciBuild(dependsOn: [clean, testedDists])
 
 task release(dependsOn: [uploadDists, ':docs:uploadDocs']) << {
+    Properties props = new Properties()
+    File propsFile = file('gradle.properties')
+    propsFile.withReader { props.load(it) }
+    props.previousVersion = props.nextVersion
+    def nextVersion = props.nextVersion.split('\\.')
+    nextVersion[1] = (nextVersion[1] as Integer) +1
+    props.nextVersion = nextVersion.join('.')
+    propsFile.withWriter { props.store(it, 'properties') }
 // todo rewrite release functionality for Git. Until then we have to do tagging and branching manually.
 //    svn.release()
 }
@@ -367,10 +369,28 @@ class Version {
     Date buildTime
     Boolean release = null
 
-    def Version(versionNumber, taskGraph) {
-        this.versionNumber = versionNumber
-        buildTime = new Date()
-        taskGraph.whenReady {graph ->
+    def Version(project) {
+        this.versionNumber = project.nextVersion
+        File timestampFile = new File(project.buildDir, 'timestamp.txt')
+        if (!timestampFile.isFile()) {
+            timestampFile.parentFile.mkdirs()
+            timestampFile.createNewFile()
+        } else {
+            boolean uptodate = true
+            def modified = timestampFile.lastModified()
+            project.project(':core').fileTree('src').visit {fte ->
+                if (fte.file.isFile() && fte.lastModified > modified) {
+                    uptodate = false
+                    fte.stopVisiting()
+                }
+            }
+            if (!uptodate) {
+                timestampFile.setLastModified(new Date().time)
+            }
+        }
+        buildTime = new Date(timestampFile.lastModified())
+
+        project.gradle.taskGraph.whenReady {graph ->
             if (!graph.hasTask(':release')) {
                 this.versionNumber += "-" + getTimestamp()
                 release = false
