@@ -157,12 +157,16 @@ public class ForkControl {
     }
 
     public void forkStarted(int pipelineId, int forkId) {
-        logger.warn("fork {} started for pipeline with id {}", forkId, pipelineId);
+        forkControlLock.lock();
+        try {
+            forkHandles.get(pipelineId).get(forkId).started();
+        }
+        finally {
+            forkControlLock.unlock();
+        }
     }
 
     public void forkFinished(int pipelineId, int forkId) {
-        logger.warn("fork {} finished for pipeline with id {}", forkId, pipelineId);
-
         forkControlLock.lock();
         try {
             startedForks--;
@@ -179,8 +183,6 @@ public class ForkControl {
     }
 
     public void forkAborted(int pipelineId, int forkId) {
-        logger.warn("fork {} aborted for pipeline with id {}", forkId, pipelineId);
-
         forkControlLock.lock();
         try {
             startedForks--;
@@ -195,14 +197,12 @@ public class ForkControl {
     }
 
     public void forkFailed(int pipelineId, int forkId, Throwable cause) {
-        logger.warn("fork {} failed for pipeline with id {}", forkId, pipelineId);
-
         forkControlLock.lock();
         try {
             startedForks--;
 
             forkHandles.get(pipelineId).get(forkId).failed(cause);
-            
+
             startPending();
         }
         finally {

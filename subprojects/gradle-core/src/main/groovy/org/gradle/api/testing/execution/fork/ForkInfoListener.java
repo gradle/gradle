@@ -26,4 +26,6 @@ public interface ForkInfoListener {
     void failed(int forkId, Throwable cause);
 
     void aborted(int forkId);
+
+    void started(int forkId);
 }
