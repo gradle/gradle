@@ -33,9 +33,10 @@ import java.util.*;
  * @author Tom Eyckmans
  */
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
-    protected static final String JAVA_LANG = "java/lang";
-    protected static final String GROOVY_LANG = "groovy/lang";
     protected static final String CLASS_FILE_EXT = ".class";
+
+    protected static final String TEST_CASE = "junit/framework/TestCase";
+    protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
 
     private final File testClassesDirectory;
     private final FileCollection testClasspath;
@@ -45,10 +46,14 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     protected TestClassProcessor testClassProcessor;
 
+    protected List<String> knownTestCaseClassNames;
+
     protected AbstractTestFrameworkDetector(File testClassesDirectory, FileCollection testClasspath) {
         this.testClassesDirectory = testClassesDirectory;
         this.testClasspath = testClasspath;
         this.superClasses = new HashMap<File, Boolean>();
+        this.knownTestCaseClassNames = new ArrayList<String>();
+        addKnownTestCaseClassNames(TEST_CASE, GROOVY_TEST_CASE);
     }
 
     public File getTestClassesDirectory() {
@@ -62,25 +67,22 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         if (StringUtils.isEmpty(superClassName)) {
             throw new IllegalArgumentException("superClassName is empty!");
         }
-        if (isLangPackageClassName(superClassName)) {
-            return null;  // Object or GroovyObject class reached - no super class that has to be scanned
-        } else {
-            final Iterator<File> testClassDirectoriesIt = testClassDirectories.iterator();
+        
+        final Iterator<File> testClassDirectoriesIt = testClassDirectories.iterator();
 
-            File superTestClassFile = null;
-            while (superTestClassFile == null && testClassDirectoriesIt.hasNext()) {
-                final File testClassDirectory = testClassDirectoriesIt.next();
-                final File superTestClassFileCandidate = new File(testClassDirectory, superClassName + ".class");
-                if (superTestClassFileCandidate.exists()) {
-                    superTestClassFile = superTestClassFileCandidate;
-                }
+        File superTestClassFile = null;
+        while (superTestClassFile == null && testClassDirectoriesIt.hasNext()) {
+            final File testClassDirectory = testClassDirectoriesIt.next();
+            final File superTestClassFileCandidate = new File(testClassDirectory, superClassName + ".class");
+            if (superTestClassFileCandidate.exists()) {
+                superTestClassFile = superTestClassFileCandidate;
             }
+        }
 
-            if (superTestClassFile != null) {
-                return superTestClassFile;
-            } else { // super test class file not in test class directories
-                return classFileExtractionManager.getLibraryClassFile(superClassName);
-            }
+        if (superTestClassFile != null) {
+            return superTestClassFile;
+        } else { // super test class file not in test class directories
+            return classFileExtractionManager.getLibraryClassFile(superClassName);
         }
     }
 
@@ -122,10 +124,6 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         }
 
         return classVisitor;
-    }
-
-    protected boolean isLangPackageClassName(final String className) {
-        return className.startsWith(JAVA_LANG) || className.startsWith(GROOVY_LANG);
     }
 
     protected String classVisitorToClassFilename(final TestClassVisitor classVisitor) {
@@ -178,5 +176,29 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     public void setTestClassProcessor(TestClassProcessor testClassProcessor) {
         this.testClassProcessor = testClassProcessor;
+    }
+
+    public void addKnownTestCaseClassNames(String ... knownTestCaseClassNames) {
+        if ( knownTestCaseClassNames != null && knownTestCaseClassNames.length != 0 ) {
+            for ( String knownTestCaseClassName : knownTestCaseClassNames ) {
+                if ( StringUtils.isNotEmpty(knownTestCaseClassName) )
+                    this.knownTestCaseClassNames.add(knownTestCaseClassName.replaceAll("\\.", "/"));
+            }
+        }
+    }
+
+    protected boolean isKnownTestCaseClassName(String testCaseClassName) {
+        boolean isKnownTestCase = false;
+
+        if ( StringUtils.isNotEmpty(testCaseClassName) ) {
+            final Iterator<String> knownTestCaseClassNamesIterator = knownTestCaseClassNames.iterator();
+            while ( !isKnownTestCase && knownTestCaseClassNamesIterator.hasNext() ) {
+                final String currentKnownTestCaseClassName = knownTestCaseClassNamesIterator.next();
+                if ( currentKnownTestCaseClassName.equals(testCaseClassName) )
+                    isKnownTestCase = true;
+            }
+        }
+
+        return isKnownTestCase;
     }
 }

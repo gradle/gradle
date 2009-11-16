@@ -84,6 +84,8 @@ class TestNGTestClassDetecter extends TestClassVisitor {
      *         this visitor is not interested in visiting this annotation.
      */
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+        if ("Lorg/testng/annotations/Test;".equals(desc))
+            test = true;
         return new EmptyVisitor();
     }
 
