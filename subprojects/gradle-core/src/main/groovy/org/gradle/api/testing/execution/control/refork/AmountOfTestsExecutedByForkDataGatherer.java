@@ -28,7 +28,7 @@ public class AmountOfTestsExecutedByForkDataGatherer implements ReforkReasonData
 
     private static final List<DataGatherMoment> dataGatherMoments = Arrays.asList(DataGatherMoment.AFTER_TEST_EXECUTION);
 
-    private long reforkEvery;
+    private long reforkEvery = -1;
     private AtomicLong amountOfTestsExecutedByFork;
 
     /**
@@ -69,7 +69,7 @@ public class AmountOfTestsExecutedByForkDataGatherer implements ReforkReasonData
      * @param momentData Variable size array of Objects, the amount of data depends on the data gather moment.
      */
     public boolean processDataGatherMoment(DataGatherMoment moment, Object... momentData) {
-        return amountOfTestsExecutedByFork.incrementAndGet() % reforkEvery == 0;
+        return reforkEvery >= 1 && amountOfTestsExecutedByFork.incrementAndGet() % reforkEvery == 0;
     }
 
     /**
