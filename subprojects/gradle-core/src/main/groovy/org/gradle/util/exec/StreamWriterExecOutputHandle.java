@@ -25,33 +25,40 @@ public class StreamWriterExecOutputHandle implements ExecOutputHandle {
 
     private final BufferedWriter target;
     private final boolean directFlush;
+    private final boolean stopOnError;
 
-    public StreamWriterExecOutputHandle(Writer target) {
+    public StreamWriterExecOutputHandle(Writer target, boolean stopOnError) {
+        this.stopOnError = stopOnError;
         this.target = new BufferedWriter(target);
         this.directFlush = false;
     }
 
-    public StreamWriterExecOutputHandle(BufferedWriter target) {
+    public StreamWriterExecOutputHandle(BufferedWriter target, boolean stopOnError) {
         this.target = target;
+        this.stopOnError = stopOnError;
         this.directFlush = false;
     }
 
-    public StreamWriterExecOutputHandle(OutputStream target) {
+    public StreamWriterExecOutputHandle(OutputStream target, boolean stopOnError) {
+        this.stopOnError = stopOnError;
         this.target = new BufferedWriter(new OutputStreamWriter(target));
         this.directFlush = false;
     }
 
-    public StreamWriterExecOutputHandle(Writer target, boolean directFlush) {
+    public StreamWriterExecOutputHandle(Writer target, boolean directFlush, boolean stopOnError) {
+        this.stopOnError = stopOnError;
         this.target = new BufferedWriter(target);
         this.directFlush = directFlush;
     }
 
-    public StreamWriterExecOutputHandle(BufferedWriter target, boolean directFlush) {
+    public StreamWriterExecOutputHandle(BufferedWriter target, boolean directFlush, boolean stopOnError) {
         this.target = target;
         this.directFlush = directFlush;
+        this.stopOnError = stopOnError;
     }
 
-    public StreamWriterExecOutputHandle(OutputStream target, boolean directFlush) {
+    public StreamWriterExecOutputHandle(OutputStream target, boolean directFlush, boolean stopOnError) {
+        this.stopOnError = stopOnError;
         this.target = new BufferedWriter(new OutputStreamWriter(target));
         this.directFlush = directFlush;
     }
@@ -65,7 +72,7 @@ public class StreamWriterExecOutputHandle implements ExecOutputHandle {
 
     public boolean execOutputHandleError(Throwable t) {
         t.printStackTrace();
-        return true;
+        return !stopOnError;
     }
 
     public void endOutput() throws IOException {
