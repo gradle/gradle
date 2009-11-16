@@ -192,7 +192,7 @@ public class ExecHandleBuilder {
 
     public ExecHandleBuilder standardOutput(OutputStream outputStream) {
         if ( outputStream == null ) throw new IllegalArgumentException("outputStream == null!");
-        this.standardOutputHandle = new StreamWriterExecOutputHandle(outputStream);
+        this.standardOutputHandle = new StreamWriterExecOutputHandle(outputStream, true);
         return this;
     }
 
@@ -204,7 +204,7 @@ public class ExecHandleBuilder {
 
     public ExecHandleBuilder errorOutput(OutputStream outputStream) {
         if ( outputStream == null ) throw new IllegalArgumentException("outputStream == null!");
-        this.errorOutputHandle = new StreamWriterExecOutputHandle(outputStream);
+        this.errorOutputHandle = new StreamWriterExecOutputHandle(outputStream, true);
         return this;
     }
 
