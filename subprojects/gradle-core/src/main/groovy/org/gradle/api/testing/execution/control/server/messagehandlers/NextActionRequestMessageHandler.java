@@ -48,26 +48,20 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
         if (pipelineDispatcher.isStopping()) {
             stopClient(ioSession, pipelineId, client);
         } else {
-            if (pipelineDispatcher.isAllTestsExecuted() && pipelineDispatcher.isPipelineSplittingEnded()) {
-                stopClient(ioSession, pipelineId, client);
+            final TestClassProcessResult previousProcesTestResult = message.getPreviousProcessedTestResult();
 
-                pipelineDispatcher.stop();
+            processPreviousTestResult(forkId, previousProcesTestResult);
+
+            if (isReforkNeeded(message)) {
+                restartClient(ioSession, pipelineId, client);
             } else {
-                final TestClassProcessResult previousProcesTestResult = message.getPreviousProcessedTestResult();
+                final TestClassRunInfo nextTest = client.nextTest(pipelineDispatcher);
 
-                processPreviousTestResult(forkId, previousProcesTestResult);
-
-                if (isReforkNeeded(message)) {
-                    restartClient(ioSession, pipelineId, client);
-                } else {
-                    final TestClassRunInfo nextTest = client.nextTest(pipelineDispatcher);
-
-                    if (nextTest == null) {
-                        ioSession.write(new WaitActionMesssage(pipelineId, 1000));
-                    }
-                    else {
-                        ioSession.write(new ExecuteTestActionMessage(pipelineId, nextTest));
-                    }
+                if (nextTest == null) {
+                    ioSession.write(new WaitActionMesssage(pipelineId, 1000));
+                }
+                else {
+                    ioSession.write(new ExecuteTestActionMessage(pipelineId, nextTest));
                 }
             }
         }
