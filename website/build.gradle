@@ -23,8 +23,7 @@ gradleCorePath = projectDir.parentFile
 
 gradleCoreProperties = GUtil.loadProperties(new File(gradleCorePath, Project.GRADLE_PROPERTIES))
 
-String revision = gradleCoreProperties.previousRevision == '0' ? '' : ".$gradleCoreProperties.previousRevision"
-version = [gradleCoreProperties.previousMajor, gradleCoreProperties.previousMinor].join('.') + revision
+version = gradleCoreProperties.previousVersion
 
 buildWebsiteDir = new File(buildDir, 'website')
 task build << {
@@ -46,7 +45,7 @@ task build << {
             skeletonTemplate.make(binding + [content: content, title: extractTitle(contentFile)]).toString()
     }
     webContentSrcDir.eachFileMatch(~/^.+?\.html$/, transformClosure)
-    transformClosure("$gradleCorePath/subprojects/gradle-docs/build/docs/getting-started.html" as File)
+    transformClosure("$gradleCorePath/subprojects/gradle-docs/build/websiteDocs/getting-started.html" as File)
     transformClosure("$webContentSrcDir/index.php" as File, new File(webPhpSrcDir, "indexPhpNews.php").text)
     File indexPhp = new File(buildWebsiteDir, "index.php")
     indexPhp.write(new File(webPhpSrcDir, 'indexPhpHeader.php').text + indexPhp.text)
