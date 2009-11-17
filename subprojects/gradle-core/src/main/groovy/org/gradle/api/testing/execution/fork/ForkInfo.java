@@ -81,7 +81,19 @@ public class ForkInfo {
                 currentListener.starting(id);
             }
             catch ( Throwable t ) {
-                logger.warn("failed to notify fork listener of fork "+id+" start", t);
+                logger.warn("failed to notify fork listener of fork "+id+" starting", t);
+            }
+        }
+    }
+
+    public void started() {
+        final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
+        for (final ForkInfoListener currentListener : currentListeners) {
+            try {
+                currentListener.started(id);
+            }
+            catch ( Throwable t ) {
+                logger.warn("failed to notify fork listener of fork "+id+" started", t);
             }
         }
     }

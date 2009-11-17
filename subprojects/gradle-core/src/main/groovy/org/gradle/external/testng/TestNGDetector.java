@@ -58,16 +58,12 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
         if (!isTest) {
             final String superClassName = classVisitor.getSuperClassName();
 
-            if (isLangPackageClassName(superClassName)) {
-                isTest = false;
-            } else {
-                final File superClassFile = getSuperTestClassFile(superClassName);
+            final File superClassFile = getSuperTestClassFile(superClassName);
 
-                if (superClassFile != null) {
-                    isTest = processSuperClass(superClassFile);
-                } else
-                    logger.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
-            }
+            if (superClassFile != null) {
+                isTest = processSuperClass(superClassFile);
+            } else
+                logger.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
         }
 
         publishTestClass(isTest, classVisitor, superClass);

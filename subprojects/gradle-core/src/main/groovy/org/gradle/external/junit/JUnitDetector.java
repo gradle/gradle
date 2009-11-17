@@ -29,9 +29,6 @@ import java.io.File;
 public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetecter> {
     private static final Logger logger = LoggerFactory.getLogger(JUnitDetector.class);
 
-    protected static final String TEST_CASE = "junit/framework/TestCase";
-    protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
-
     JUnitDetector(File testClassesDirectory, FileCollection testClasspath) {
         super(testClassesDirectory, testClasspath);
     }
@@ -48,9 +45,7 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
         if (!isTest) { // scan parent class
             final String superClassName = classVisitor.getSuperClassName();
 
-            if (isLangPackageClassName(superClassName)) {
-                isTest = false;
-            } else if (isTestCaseClassName(superClassName)) {
+            if (isKnownTestCaseClassName(superClassName)) {
                 isTest = true;
             } else {
                 final File superClassFile = getSuperTestClassFile(superClassName);
@@ -60,14 +55,12 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
                 } else
                     logger.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
             }
+
+
         }
 
         publishTestClass(isTest, classVisitor, superClass);
 
         return isTest;
-    }
-
-    protected boolean isTestCaseClassName(final String className) {
-        return TEST_CASE.equals(className) || GROOVY_TEST_CASE.equals(className);
     }
 }

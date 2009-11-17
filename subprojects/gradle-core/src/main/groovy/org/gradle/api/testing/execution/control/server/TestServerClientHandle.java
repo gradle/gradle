@@ -196,7 +196,8 @@ public class TestServerClientHandle {
     }
 
     public void signalAllClientsStoppedWhenNeeded(ForkStatus previousStatus, PipelineDispatcher pipelineDispatcher) {
-        if ( previousStatus != ForkStatus.RESTARTING && pipelineDispatcher.areAllClientsStopped() && !pipelineDispatcher.isStopping())
+        // TODO add check for other failed clients that need to re-run a test
+        if ( previousStatus != ForkStatus.RESTARTING && pipelineDispatcher.areAllClientsStopped() && pipelineDispatcher.isStopping())
             pipelineDispatcher.allClientsStopped();
     }
 
@@ -224,6 +225,9 @@ public class TestServerClientHandle {
                     break;
                 // else no test case available
             }
+
+            if ( pipeline.isPipelineSplittingEnded() && pipelineDispatcher.isAllTestsExecuted() )
+                pipelineDispatcher.stop();
 
             return nextTest;
         }

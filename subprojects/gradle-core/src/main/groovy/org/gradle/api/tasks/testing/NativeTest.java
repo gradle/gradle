@@ -41,14 +41,15 @@ import java.util.Map;
 public class NativeTest extends AbstractTestTask {
     private static final Logger logger = LoggerFactory.getLogger(NativeTest.class);
 
-    private long reforkEvery = -1;
+    private long reforkEvery = -1; // Don't refork
 
     private PipelineConfig defaultPipelineConfig;
     private Map<String, PipelineConfig> pipelineConfigs;
     private ReportConfig consoleReport;
     private Map<String, ReportConfig> reportConfigs;
 
-    private int maximumNumberOfForks = 4;
+    private int maximumNumberOfForks = Integer.MAX_VALUE; // +/- no limit
+    private int amountOfForksToStart = 1; // default
 
     public NativeTest() {
         super();
@@ -56,7 +57,7 @@ public class NativeTest extends AbstractTestTask {
 
         // default pipeline
         defaultPipelineConfig = new PipelineConfig("default");
-        ((LocalSimpleForkPolicyConfig)defaultPipelineConfig.getForkPolicyConfig()).setAmountToStart(4);
+
 
         pipelineConfigs.put(defaultPipelineConfig.getName(), defaultPipelineConfig);
 
@@ -74,7 +75,9 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void executeTests() {
-        if ( reforkEvery > 0 ) {
+        ((LocalSimpleForkPolicyConfig)defaultPipelineConfig.getForkPolicyConfig()).setAmountToStart(amountOfForksToStart);
+
+        if ( reforkEvery >= 1 ) {
             final ReforkItemConfigs reforkItemConfigs = new ReforkItemConfigs();
 
             final AmountOfTestsExecutedByForkConfig reforkEveryConfig = (AmountOfTestsExecutedByForkConfig) ReforkReasonRegister.getDecisionContextItem(
@@ -142,7 +145,9 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void addReportConfing(ReportConfig reportConfig) {
+        if ( reportConfig == null ) throw new IllegalArgumentException("reportConfig can't be null!");
 
+        reportConfigs.put(reportConfig.getName(), reportConfig);
     }
 
     public int getMaximumNumberOfForks() {
@@ -153,5 +158,15 @@ public class NativeTest extends AbstractTestTask {
         if (maximumNumberOfForks < 1) throw new IllegalArgumentException("maximumNumberOfForks can't be lower than 1!");
 
         this.maximumNumberOfForks = maximumNumberOfForks;
+    }
+
+    public int getAmountOfForksToStart() {
+        return amountOfForksToStart;
+    }
+
+    public void setAmountOfForksToStart(int amountOfForksToStart) {
+        if (amountOfForksToStart < 1) throw new IllegalArgumentException("amountOfForksToStart can't be lower than 1!");
+
+        this.amountOfForksToStart = amountOfForksToStart;
     }
 }

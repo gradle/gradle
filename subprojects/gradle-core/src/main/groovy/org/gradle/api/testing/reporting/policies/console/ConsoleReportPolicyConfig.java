@@ -28,6 +28,7 @@ import java.util.ArrayList;
 public class ConsoleReportPolicyConfig extends ReportPolicyConfig {
 
     private final List<TestMethodProcessResultState> toShowStates;
+    private int amountOfReportingThreads = 10;
 
     public ConsoleReportPolicyConfig(ReportPolicyName policyName) {
         super(policyName);
@@ -51,5 +52,15 @@ public class ConsoleReportPolicyConfig extends ReportPolicyConfig {
 
     public List<TestMethodProcessResultState> getToShowStates() {
         return toShowStates;
+    }
+
+    public int getAmountOfReportingThreads() {
+        return amountOfReportingThreads;
+    }
+
+    public void setAmountOfReportingThreads(int amountOfReportingThreads) {
+        if ( amountOfReportingThreads < 1 ) throw new IllegalArgumentException("amountOfReportingThreads can't be less then 1");
+        
+        this.amountOfReportingThreads = amountOfReportingThreads;
     }
 }

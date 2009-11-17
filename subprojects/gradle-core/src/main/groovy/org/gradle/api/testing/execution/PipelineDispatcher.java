@@ -203,33 +203,25 @@ public class PipelineDispatcher {
     }
 
     public void stop() {
-        doneLock.lock();
-        try {
-            if (!stopping.get()) {
-                stopping.set(true);
+        stopping.set(true);
 
-                ThreadUtils.run(new Runnable() {
-                    public void run() {
-                        ThreadUtils.interleavedConditionWait(
-                                runningClientsLock, allClientsStopped,
-                                100L, TimeUnit.MILLISECONDS,
-                                new ConditionWaitHandle() {
-                                    public boolean checkCondition() {
-                                        return runningClients.isEmpty();
-                                    }
+        ThreadUtils.run(new Runnable() {
+            public void run() {
+                ThreadUtils.interleavedConditionWait(
+                        runningClientsLock, allClientsStopped,
+                        100L, TimeUnit.MILLISECONDS,
+                        new ConditionWaitHandle() {
+                            public boolean checkCondition() {
+                                return runningClients.isEmpty();
+                            }
 
-                                    public void conditionMatched() {
-                                        pipeline.stopped();
-                                    }
-                                }
-                        );
-                    }
-                });
+                            public void conditionMatched() {
+                                pipeline.stopped();
+                            }
+                        }
+                );
             }
-        }
-        finally {
-            doneLock.unlock();
-        }
+        });
     }
 
     public TestClassRunInfo nextTest() throws InterruptedException {

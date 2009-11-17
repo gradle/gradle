@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 import java.util.*;
 
 /**
@@ -38,31 +39,46 @@ public class ConsoleReportPolicyInstance implements ReportPolicyInstance {
     private static Logger logger = LoggerFactory.getLogger(ConsoleReportPolicyInstance.class);
 
     private Report report;
-    private ReportInfoQueueItemConsumer consumer;
-    private Thread consumerThread;
+
+    private ExecutorService reportThreadPool;
+    private List<ReportInfoQueueItemConsumer> consumers;
+
     private Map<TestMethodProcessResultState, TestMethodProcessResultState> methodProcessResultStateMapping;
     private ConsoleReportPolicyConfig config;
 
     public ConsoleReportPolicyInstance(TestFrameworkInstance testFrameworkInstance)
     {
         methodProcessResultStateMapping = testFrameworkInstance.getTestFramework().getMethodProcessResultStateMapping();
+
     }
 
     public void initialize(Report report) {
         this.report = report;
+
         config = (ConsoleReportPolicyConfig) report.getConfig().getPolicyConfig();
+
+        reportThreadPool = ThreadUtils.newFixedThreadPool(config.getAmountOfReportingThreads());
+
+        consumers = new ArrayList<ReportInfoQueueItemConsumer>();
+
+        for (int i=0;i<config.getAmountOfReportingThreads();i++) {
+            consumers.add(new ReportInfoQueueItemConsumer(report.getReportInfoQueue(), 100L, TimeUnit.MILLISECONDS, this));
+        }
     }
 
     public void start() {
-        consumer = new ReportInfoQueueItemConsumer(report.getReportInfoQueue(), 100L, TimeUnit.MILLISECONDS, this);
-
-        consumerThread = ThreadUtils.run(consumer);
+        for ( ReportInfoQueueItemConsumer reportConsumer : consumers ) {
+            reportThreadPool.submit(reportConsumer);
+        }
     }
 
     public void stop() {
-        consumer.stopConsuming();
+        for ( ReportInfoQueueItemConsumer reportConsumer : consumers ) {
+            reportConsumer.stopConsuming();
+        }
 
-        ThreadUtils.join(consumerThread);
+        ThreadUtils.shutdown(reportThreadPool);
+        ThreadUtils.awaitTermination(reportThreadPool);
     }
 
     private class ReportInfoQueueItemConsumer extends AbstractBlockingQueueItemConsumer<ReportInfo> {
@@ -120,16 +136,28 @@ public class ConsoleReportPolicyInstance implements ReportPolicyInstance {
             }
 
             if ( show ) {
+                final int failureCount = stateCounts.get(TestMethodProcessResultStates.FAILURE) == null ? 0 : stateCounts.get(TestMethodProcessResultStates.FAILURE);
+                final int errorCount = stateCounts.get(TestMethodProcessResultStates.ERROR) == null ? 0 : stateCounts.get(TestMethodProcessResultStates.ERROR);
+                final int successCount = stateCounts.get(TestMethodProcessResultStates.SUCCESS) == null ? 0 : stateCounts.get(TestMethodProcessResultStates.SUCCESS);
+
                 logger.info(
-                        "success#{}, failure#{}, error#{} :: Test {} executed by fork {} for pipeline {} : ",
+                        "pipeline {}, fork {} : Test {} : success#{}, failure#{}, error#{}",
                         new Object[]{
-                            stateCounts.get(TestMethodProcessResultStates.SUCCESS) == null ? 0 : stateCounts.get(TestMethodProcessResultStates.SUCCESS),
-                            stateCounts.get(TestMethodProcessResultStates.FAILURE) == null ? 0 : stateCounts.get(TestMethodProcessResultStates.FAILURE),
-                            stateCounts.get(TestMethodProcessResultStates.ERROR) == null ? 0 : stateCounts.get(TestMethodProcessResultStates.ERROR),
-                            classResult.getTestClassRunInfo().getTestClassName(),
-                            reportInfo.getForkId(),
-                            pipeline.getConfig().getName()
+                            pipeline.getConfig().getName(), reportInfo.getForkId(), classResult.getTestClassRunInfo().getTestClassName(),
+                            successCount, failureCount, errorCount
                         });
+
+                if ( failureCount > 0 || errorCount > 0 ) {
+                    for ( final TestMethodProcessResult methodResult : methodResults ) {
+                        if ( methodResult.getState() == TestMethodProcessResultStates.ERROR ||
+                            methodResult.getState() == TestMethodProcessResultStates.FAILURE ) {
+                            logger.info("pipeline {}, fork {} : Test {} :",
+                                    new Object[]{pipeline.getConfig().getName(), reportInfo.getForkId(), classResult.getTestClassRunInfo().getTestClassName() + "." + methodResult.getMethodName()
+                                    });
+                            logger.info("cause", methodResult.getThrownException());
+                        }
+                    }
+                }
             }
         }
         // else unsupported reportInfo -> warning ?
