@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.file;
 
-import org.apache.tools.ant.util.ReaderInputStream;
-import org.gradle.api.file.CopyAction;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.RelativePath;
+import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.file.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.FilterReader;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
 
 public class MappingCopySpecVisitor implements CopySpecVisitor {
     private final CopySpecVisitor visitor;
@@ -48,16 +51,26 @@ public class MappingCopySpecVisitor implements CopySpecVisitor {
     }
 
     public void visitFile(final FileVisitDetails fileDetails) {
-        visitor.visitFile(new FileVisitDetailsImpl(fileDetails, spec));
+        FileVisitDetailsImpl details = new FileVisitDetailsImpl(fileDetails, spec);
+        for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
+            action.execute(details);
+            if (details.excluded) {
+                return;
+            }
+        }
+        visitor.visitFile(details);
     }
 
     public boolean getDidWork() {
         return visitor.getDidWork();
     }
 
-    private static class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
+    private static class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetails {
         private final FileVisitDetails fileDetails;
         private final ReadableCopySpec spec;
+        private final FilterChain filterChain = new FilterChain();
+        private RelativePath relativePath;
+        private boolean excluded;
 
         public FileVisitDetailsImpl(FileVisitDetails fileDetails, ReadableCopySpec spec) {
             this.fileDetails = fileDetails;
@@ -89,23 +102,15 @@ public class MappingCopySpecVisitor implements CopySpecVisitor {
         }
 
         public InputStream open() {
-            FilterChain filterChain = spec.getFilterChain();
             if (filterChain.hasFilters()) {
-                final Reader reader = new InputStreamReader(fileDetails.open());
-                filterChain.findFirstFilterChain().setInputSource(reader);
-                return new ReaderInputStream(filterChain) {
-                    @Override
-                    public void close() throws IOException {
-                        reader.close();
-                    }
-                };
+                return filterChain.transform(fileDetails.open());
             } else {
                 return fileDetails.open();
             }
         }
 
         public void copyTo(OutputStream outstr) {
-            if (spec.getFilterChain().hasFilters()) {
+            if (filterChain.hasFilters()) {
                 super.copyTo(outstr);
             } else {
                 fileDetails.copyTo(outstr);
@@ -113,7 +118,7 @@ public class MappingCopySpecVisitor implements CopySpecVisitor {
         }
 
         public boolean copyTo(File target) {
-            if (spec.getFilterChain().hasFilters()) {
+            if (filterChain.hasFilters()) {
                 return super.copyTo(target);
             }
             else {
@@ -122,8 +127,42 @@ public class MappingCopySpecVisitor implements CopySpecVisitor {
         }
 
         public RelativePath getRelativePath() {
-            RelativePath relativePath = spec.getDestinationMapper().getPath(fileDetails);
-            return new RelativePath(relativePath.isFile(), spec.getDestPath(), relativePath.getSegments());
+            if (relativePath == null) {
+                RelativePath path = fileDetails.getRelativePath();
+                relativePath = spec.getDestPath().append(path.isFile(), path.getSegments());
+            }
+            return relativePath;
+        }
+
+        public void setRelativePath(RelativePath path) {
+            this.relativePath = path;
+        }
+
+        public void setName(String name) {
+            relativePath = getRelativePath().replaceLastName(name);
+        }
+
+        public void setPath(String path) {
+            relativePath = RelativePath.parse(getRelativePath().isFile(), path);
+        }
+
+        public void exclude() {
+            excluded = true;
+        }
+
+        public ContentFilterable filter(Closure closure) {
+            filterChain.add(closure);
+            return this;
+        }
+
+        public ContentFilterable filter(Map<String, ?> map, Class<? extends FilterReader> filterType) {
+            filterChain.add(filterType, map);
+            return this;
+        }
+
+        public ContentFilterable filter(Class<? extends FilterReader> filterType) {
+            filterChain.add(filterType);
+            return this;
         }
     }
 }

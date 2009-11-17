@@ -16,6 +16,7 @@ import org.apache.tools.zip.UnixStat
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.file.FileTree
+import org.gradle.api.Action
 
 @RunWith(JMock)
 public class CopySpecImplTest {
@@ -68,7 +69,7 @@ public class CopySpecImplTest {
         assertTrue(spec.sourcePaths.empty)
         assertThat(spec.childSpecs.size(), equalTo(1))
     }
-    
+
     @Test public void testDestinationWithClosure() {
         CopySpecImpl child = spec.into('target') {
         }
@@ -126,7 +127,7 @@ public class CopySpecImplTest {
 
         assertThat(spec.source, sameInstance(filteredTree))
     }
-    
+
     @Test public void testChildUsesPatternsFromParent() {
         CopySpecImpl child = spec.from('dir') {}
         Spec specInclude = [:] as Spec
@@ -180,40 +181,63 @@ public class CopySpecImplTest {
         assertTrue(child.caseSensitive)
         assertTrue(child.patternSet.caseSensitive)
     }
-    
+
     @Test public void testNoArgFilter() {
         spec.filter(StripJavaComments)
-        assertThat(spec.filterChain.getLastFilter(), instanceOf(StripJavaComments))
+        assertThat(spec.allCopyActions.size(), equalTo(1))
     }
 
     @Test public void testArgFilter() {
         spec.filter(HeadFilter, lines: 15, skip: 2)
-
-        org.apache.tools.ant.filters.HeadFilter filter = spec.filterChain.getLastFilter()
-        assertThat(filter, instanceOf(HeadFilter))
-        assertEquals(15, filter.lines)
-        assertEquals(2, filter.skip)
+        assertThat(spec.allCopyActions.size(), equalTo(1))
     }
 
     @Test public void testTwoFilters() {
         spec.filter(StripJavaComments)
         spec.filter(HeadFilter, lines: 15, skip: 2)
 
-        assertThat(spec.filterChain.getLastFilter(), instanceOf(org.apache.tools.ant.filters.HeadFilter))
-        assertThat(spec.filterChain.getLastFilter().in, instanceOf(org.apache.tools.ant.filters.StripJavaComments))
+        assertThat(spec.allCopyActions.size(), equalTo(2))
     }
 
-    @Test public void testAddsNameTransformerToDestinationMapper() {
+    @Test public void testAddsNameTransformerToActions() {
         spec.rename("regexp", "replacement")
 
-        assertThat(spec.destinationMapper.nameTransformer.transformers.size(), equalTo(1))
-        assertThat(spec.destinationMapper.nameTransformer.transformers[0], instanceOf(RegExpNameMapper))
+        assertThat(spec.allCopyActions.size(), equalTo(1))
+        assertThat(spec.allCopyActions[0], instanceOf(RenamingCopyAction))
+        assertThat(spec.allCopyActions[0].transformer, instanceOf(RegExpNameMapper))
     }
 
-    @Test public void testAddsClosureToDestinationMapper() {
+    @Test public void testAddsClosureToActions() {
         spec.rename {}
 
-        assertThat(spec.destinationMapper.nameTransformer.transformers.size(), equalTo(1))
+        assertThat(spec.allCopyActions.size(), equalTo(1))
+        assertThat(spec.allCopyActions[0], instanceOf(RenamingCopyAction))
+    }
+
+    @Test public void testAddAction() {
+        def action = context.mock(Action)
+        spec.eachFile(action)
+
+        assertThat(spec.allCopyActions, equalTo([action]))
+    }
+
+    @Test public void testAddActionAsClosure() {
+        def action = {}
+        spec.eachFile(action)
+
+        assertThat(spec.allCopyActions.size(), equalTo(1))
+    }
+
+    @Test public void testSpecInheritsActionsFromParent() {
+        Action parentAction = context.mock(Action, 'parent')
+        Action childAction = context.mock(Action, 'child')
+
+        spec.eachFile parentAction
+        CopySpecImpl childSpec = spec.from('src') {
+            eachFile childAction
+        }
+
+        assertThat(childSpec.allCopyActions, equalTo([parentAction, childAction]))
     }
 
     @Test public void testDefaultPermissions() {
@@ -243,6 +267,5 @@ public class CopySpecImplTest {
         spec.from('source') {}
         assertTrue(spec.hasSource())
     }
-
 }
 

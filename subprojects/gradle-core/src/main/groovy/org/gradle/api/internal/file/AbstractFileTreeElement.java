@@ -30,6 +30,14 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         return getDisplayName();
     }
 
+    public String getName() {
+        return getRelativePath().getLastName();
+    }
+
+    public String getPath() {
+        return getRelativePath().getPathString();
+    }
+
     public void copyTo(OutputStream outstr) {
         try {
             InputStream inputStream = open();

@@ -16,7 +16,9 @@
 package org.gradle.api.file;
 
 /**
- * Contains details about the file or directory being visited.
+ * Provides access to details about a file or directory being visited by a {@link FileVisitor}.
+ *
+ * @see FileTree#visit(groovy.lang.Closure)
  */
 public interface FileVisitDetails extends FileTreeElement {
 

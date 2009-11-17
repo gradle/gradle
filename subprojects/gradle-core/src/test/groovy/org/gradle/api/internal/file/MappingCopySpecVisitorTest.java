@@ -15,18 +15,20 @@
  */
 package org.gradle.api.internal.file;
 
-import org.apache.tools.ant.filters.PrefixLines;
+import org.gradle.api.Action;
 import org.gradle.api.file.CopyAction;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.integtests.TestFile;
-import static org.gradle.util.Matchers.*;
+import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
-import static org.hamcrest.Matchers.*;
+import org.hamcrest.Description;
 import org.jmock.Expectations;
+import org.jmock.Sequence;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +36,11 @@ import org.junit.runner.RunWith;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class MappingCopySpecVisitorTest {
@@ -70,66 +77,116 @@ public class MappingCopySpecVisitorTest {
     }
 
     @Test
-    public void visitFileWrapsFileElementToMapName() {
-        final Collector<FileVisitDetails> collector = expectSpecAndFileVisited();
+    public void visitFileInvokesEachCopyAction() {
+        final Action<FileCopyDetails> action1 = context.mock(Action.class, "action1");
+        final Action<FileCopyDetails> action2 = context.mock(Action.class, "action2");
+        final Collector<FileCopyDetails> collectDetails1 = collectParam();
+        final Collector<Object> collectDetails2 = collectParam();
+        final Collector<Object> collectDetails3 = collectParam();
 
-        final CopyDestinationMapper mapper = context.mock(CopyDestinationMapper.class);
-        final RelativePath specPath = new RelativePath(false, "spec");
-        final RelativePath relativePath = new RelativePath(true, "file");
+        context.checking(new Expectations(){{
+            Sequence seq = context.sequence("seq");
+            one(delegate).visitSpec(spec);
+            inSequence(seq);
 
-        context.checking(new Expectations() {{
-            allowing(spec).getDestinationMapper();
-            will(returnValue(mapper));
-            allowing(spec).getDestPath();
-            will(returnValue(specPath));
-            one(mapper).getPath(details);
-            will(returnValue(relativePath));
+            allowing(spec).getAllCopyActions();
+            will(returnValue(toList(action1, action2)));
+
+            one(action1).execute(with(notNullValue(FileCopyDetails.class)));
+            inSequence(seq);
+            will(collectDetails1);
+
+            one(action2).execute(with(notNullValue(FileCopyDetails.class)));
+            inSequence(seq);
+            will(collectDetails2);
+
+            one(delegate).visitFile(with(not(sameInstance(details))));
+            inSequence(seq);
+            will(collectDetails3);
         }});
 
-        FileVisitDetails mappedDetails = collector.get();
+        visitor.visitSpec(spec);
+        visitor.visitFile(details);
 
-        assertThat(mappedDetails.getRelativePath(), equalTo(new RelativePath(true, specPath, "file")));
+        assertThat(collectDetails1.get(), sameInstance(collectDetails2.get()));
+        assertThat(collectDetails1.get(), sameInstance(collectDetails3.get()));
     }
 
     @Test
-    public void visitDirWrapsFileElementToMapName() {
-        final Collector<FileVisitDetails> collector = expectSpecAndDirVisited();
+    public void initialRelativePathForFileIsSpecPathPlusFilePath() {
+        FileCopyDetails copyDetails = expectActionExecutedWhenFileVisited();
 
-        final CopyDestinationMapper mapper = context.mock(CopyDestinationMapper.class);
-        final RelativePath specPath = new RelativePath(false, "spec");
-        final RelativePath relativePath = new RelativePath(false, "file");
-
-        context.checking(new Expectations() {{
-            allowing(spec).getDestinationMapper();
-            will(returnValue(mapper));
+        context.checking(new Expectations(){{
             allowing(spec).getDestPath();
-            will(returnValue(specPath));
-            one(mapper).getPath(details);
-            will(returnValue(relativePath));
+            will(returnValue(new RelativePath(false, "spec")));
+            allowing(details).getRelativePath();
+            will(returnValue(new RelativePath(true, "file")));
         }});
 
-        FileVisitDetails mappedDetails = collector.get();
+        assertThat(copyDetails.getRelativePath(), equalTo(new RelativePath(true, "spec", "file")));
+    }
+    
+    @Test
+    public void relativePathForDirIsSpecPathPlusFilePath() {
+        FileVisitDetails visitDetails = expectSpecAndDirVisited();
 
-        assertThat(mappedDetails.getRelativePath(), equalTo(new RelativePath(false, specPath, "file")));
+        context.checking(new Expectations(){{
+            allowing(spec).getDestPath();
+            will(returnValue(new RelativePath(false, "spec")));
+            allowing(details).getRelativePath();
+            will(returnValue(new RelativePath(false, "dir")));
+        }});
+
+        assertThat(visitDetails.getRelativePath(), equalTo(new RelativePath(false, "spec", "dir")));
     }
 
     @Test
-    public void visitFileWrapsFileElementToFilterContentStream() {
-        final Collector<FileVisitDetails> collector = expectSpecAndFileVisited();
+    public void copyActionCanChangeFileDestinationPath() {
+        FileCopyDetails copyDetails = expectActionExecutedWhenFileVisited();
 
-        final FilterChain filterChain = new FilterChain();
-        PrefixLines filter = new PrefixLines(filterChain.getLastFilter());
-        filter.setPrefix("PREFIX: ");
-        filterChain.addFilter(filter);
+        RelativePath newPath = new RelativePath(true, "new");
+        copyDetails.setRelativePath(newPath);
+        assertThat(copyDetails.getRelativePath(), equalTo(newPath));
+
+        copyDetails.setPath("/a/b");
+        assertThat(copyDetails.getRelativePath(), equalTo(new RelativePath(true, "a", "b")));
+
+        copyDetails.setName("new name");
+        assertThat(copyDetails.getRelativePath(), equalTo(new RelativePath(true, "a", "new name")));
+    }
+
+    @Test
+    public void copyActionCanExcludeFile() {
+        final Action<FileCopyDetails> action1 = context.mock(Action.class, "action1");
+        final Action<FileCopyDetails> action2 = context.mock(Action.class, "action2");
+
+        context.checking(new Expectations(){{
+            Sequence seq = context.sequence("seq");
+            one(delegate).visitSpec(spec);
+            inSequence(seq);
+
+            allowing(spec).getAllCopyActions();
+            will(returnValue(toList(action1, action2)));
+
+            one(action1).execute(with(notNullValue(FileCopyDetails.class)));
+            inSequence(seq);
+            will(excludeFile());
+        }});
+
+        visitor.visitSpec(spec);
+        visitor.visitFile(details);
+    }
+
+    @Test
+    public void copyActionCanFilterContentWhenFileIsCopiedToStream() {
+        final FileCopyDetails mappedDetails = expectActionExecutedWhenFileVisited();
 
         context.checking(new Expectations() {{
-            allowing(spec).getFilterChain();
-            will(returnValue(filterChain));
             one(details).open();
             will(returnValue(new ByteArrayInputStream("content".getBytes())));
         }});
 
-        FileVisitDetails mappedDetails = collector.get();
+        mappedDetails.filter(HelperUtil.toClosure("{ 'PREFIX: ' + it } "));
 
         ByteArrayOutputStream outstr = new ByteArrayOutputStream();
         mappedDetails.copyTo(outstr);
@@ -137,17 +194,10 @@ public class MappingCopySpecVisitorTest {
     }
 
     @Test
-    public void visitFileWrapsFileElementToFilterContentFile() {
-        final Collector<FileVisitDetails> collector = expectSpecAndFileVisited();
-
-        final FilterChain filterChain = new FilterChain();
-        PrefixLines filter = new PrefixLines(filterChain.getLastFilter());
-        filter.setPrefix("PREFIX: ");
-        filterChain.addFilter(filter);
+    public void copyActionCanFilterContentWhenFileIsCopiedToFile() {
+        final FileCopyDetails mappedDetails = expectActionExecutedWhenFileVisited();
 
         context.checking(new Expectations() {{
-            allowing(spec).getFilterChain();
-            will(returnValue(filterChain));
             one(details).open();
             will(returnValue(new ByteArrayInputStream("content".getBytes())));
             one(details).isDirectory();
@@ -156,7 +206,7 @@ public class MappingCopySpecVisitorTest {
             will(returnValue(90L));
         }});
 
-        FileVisitDetails mappedDetails = collector.get();
+        mappedDetails.filter(HelperUtil.toClosure("{ 'PREFIX: ' + it } "));
 
         TestFile destDir = tmpDir.getDir().file("test.txt");
         mappedDetails.copyTo(destDir);
@@ -165,7 +215,7 @@ public class MappingCopySpecVisitorTest {
 
     @Test
     public void wrappedFileElementDelegatesToSourceForRemainingMethods() {
-        final Collector<FileVisitDetails> collector = expectSpecAndFileVisited();
+        final FileVisitDetails mappedDetails = expectSpecAndFileVisited();
         final File file = new File("file");
 
         context.checking(new Expectations() {{
@@ -173,27 +223,55 @@ public class MappingCopySpecVisitorTest {
             will(returnValue(file));
         }});
 
-        FileVisitDetails mappedDetails = collector.get();
-
         assertThat(mappedDetails.getFile(), sameInstance(file));
     }
 
-    private Collector<FileVisitDetails> expectSpecAndFileVisited() {
+    private FileVisitDetails expectSpecAndFileVisited() {
         final Collector<FileVisitDetails> collector = collectParam();
 
         context.checking(new Expectations() {{
             one(delegate).visitSpec(spec);
-            one(delegate).visitFile(with(not(sameInstance(details))));
 
+            one(spec).getAllCopyActions();
+            will(returnValue(toList()));
+
+            one(delegate).visitFile(with(not(sameInstance(details))));
             will(collector);
         }});
 
         visitor.visitSpec(spec);
         visitor.visitFile(details);
-        return collector;
+        return collector.get();
     }
 
-    private Collector<FileVisitDetails> expectSpecAndDirVisited() {
+    private FileCopyDetails expectActionExecutedWhenFileVisited() {
+        final Collector<FileCopyDetails> collectDetails = collectParam();
+        final Action<FileCopyDetails> action = context.mock(Action.class, "action1");
+
+        context.checking(new Expectations(){{
+            Sequence seq = context.sequence("seq");
+            one(delegate).visitSpec(spec);
+            inSequence(seq);
+
+            allowing(spec).getAllCopyActions();
+            will(returnValue(toList(action)));
+
+            one(action).execute(with(notNullValue(FileCopyDetails.class)));
+            inSequence(seq);
+            will(collectDetails);
+
+            one(delegate).visitFile(with(not(sameInstance(details))));
+            inSequence(seq);
+        }});
+
+        visitor.visitSpec(spec);
+        visitor.visitFile(details);
+
+        FileCopyDetails copyDetails = collectDetails.get();
+        return copyDetails;
+    }
+
+    private FileVisitDetails expectSpecAndDirVisited() {
         final Collector<FileVisitDetails> collector = collectParam();
 
         context.checking(new Expectations() {{
@@ -205,6 +283,22 @@ public class MappingCopySpecVisitorTest {
 
         visitor.visitSpec(spec);
         visitor.visitDir(details);
-        return collector;
+
+        return collector.get();
     }
+
+    private org.jmock.api.Action excludeFile() {
+        return new org.jmock.api.Action() {
+            public void describeTo(Description description) {
+                description.appendText("exclude file");
+            }
+
+            public Object invoke(Invocation invocation) throws Throwable {
+                FileCopyDetails details = (FileCopyDetails) invocation.getParameter(0);
+                details.exclude();
+                return null;
+            }
+        };
+    }
+    
 }

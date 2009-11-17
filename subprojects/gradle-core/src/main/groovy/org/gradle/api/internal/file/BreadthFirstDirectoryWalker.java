@@ -91,7 +91,7 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
         for (int i = 0; !stopFlag.get() && i < children.length; i++) {
             File child = children[i];
             boolean isFile = child.isFile();
-            RelativePath childPath = new RelativePath(isFile, path, child.getName());
+            RelativePath childPath = path.append(isFile, child.getName());
             FileVisitDetailsImpl details = new FileVisitDetailsImpl(child, childPath, stopFlag);
             if (isAllowed(details)) {
                 if (isFile) {

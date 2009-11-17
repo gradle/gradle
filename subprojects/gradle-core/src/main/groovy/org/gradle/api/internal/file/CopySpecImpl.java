@@ -16,18 +16,17 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.specs.Spec;
+import org.apache.tools.zip.UnixStat;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.api.Action;
 import org.gradle.api.file.*;
+import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.ReflectionUtil;
-import org.apache.tools.zip.UnixStat;
 
 import java.io.File;
 import java.io.FilterReader;
-import java.io.Reader;
-import java.lang.reflect.Constructor;
 import java.util.*;
 
 /**
@@ -41,8 +40,7 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private final PatternSet patternSet;
     private final List<ReadableCopySpec> childSpecs;
     private final CopySpecImpl parentSpec;
-    private final FilterChain filterChain;
-    private final DefaultCopyDestinationMapper destinationMapper = new DefaultCopyDestinationMapper();
+    private final List<Action<? super FileCopyDetails>> actions = new ArrayList<Action<? super FileCopyDetails>>();
     private Integer dirMode;
     private Integer fileMode;
     private Boolean caseSensitive;
@@ -54,7 +52,6 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<ReadableCopySpec>();
         patternSet = new PatternSet();
-        filterChain = new FilterChain();
     }
 
     public CopySpecImpl(FileResolver resolver) {
@@ -256,45 +253,41 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     public CopySpec rename(String sourceRegEx, String replaceWith) {
-        destinationMapper.add(new RegExpNameMapper(sourceRegEx, replaceWith));
+        actions.add(new RenamingCopyAction(new RegExpNameMapper(sourceRegEx, replaceWith)));
         return this;
     }
 
-    public FilterChain getFilterChain() {
-        if (parentSpec != null) {
-            filterChain.setInputSource(parentSpec.getFilterChain());
-        }
-        return filterChain;
-    }
-
-    public CopySpec filter(Class<FilterReader> filterType) {
-        filter(null, filterType);
-        return this;
-    }
-
-    public CopySpec filter(Closure closure) {
-        LineFilter newFilter = new LineFilter(filterChain.getLastFilter(), closure);
-        filterChain.addFilter(newFilter);
-        return this;
-    }
-
-    public CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType) {
-        try {
-            Constructor<FilterReader> constructor = filterType.getConstructor(Reader.class);
-            FilterReader result = constructor.newInstance(filterChain.getLastFilter());
-            filterChain.addFilter(result);
-
-            if (map != null) {
-                ReflectionUtil.setFromMap(result, map);
+    public CopySpec filter(final Class<? extends FilterReader> filterType) {
+        actions.add(new Action<FileCopyDetails>() {
+            public void execute(FileCopyDetails fileCopyDetails) {
+                fileCopyDetails.filter(filterType);
             }
-        } catch (Throwable th) {
-            throw new InvalidUserDataException("Error - Invalid filter specification for " + filterType.getName());
-        }
+        });
+        return this;
+    }
+
+    public CopySpec filter(final Closure closure) {
+        actions.add(new Action<FileCopyDetails>() {
+            public void execute(FileCopyDetails fileCopyDetails) {
+                fileCopyDetails.filter(closure);
+            }
+        });
+        return this;
+    }
+
+    public CopySpec filter(final Map<String, ?> map, final Class<? extends FilterReader> filterType) {
+        actions.add(new Action<FileCopyDetails>() {
+            public void execute(FileCopyDetails fileCopyDetails) {
+                fileCopyDetails.filter(map, filterType);
+            }
+        });
         return this;
     }
 
     public CopySpec rename(Closure closure) {
-        destinationMapper.add(closure);
+        ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
+        transformer.add(closure);
+        actions.add(new RenamingCopyAction(transformer));
         return this;
     }
 
@@ -328,8 +321,14 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         return this;
     }
 
-    public CopyDestinationMapper getDestinationMapper() {
-        return destinationMapper;
+    public CopySpec eachFile(Action<? super FileCopyDetails> action) {
+        actions.add(action);
+        return this;
+    }
+
+    public CopySpec eachFile(Closure closure) {
+        actions.add((Action<? super FileCopyDetails>) DefaultGroovyMethods.asType(closure, Action.class));
+        return this;
     }
 
     public List<String> getAllExcludes() {
@@ -348,6 +347,16 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         }
         result.addAll(patternSet.getExcludeSpecs());
         return result;
+    }
+
+    public List<Action<? super FileCopyDetails>> getAllCopyActions() {
+        if (parentSpec == null) {
+            return actions;
+        }
+        List<Action<? super FileCopyDetails>> allActions = new ArrayList<Action<? super FileCopyDetails>>();
+        allActions.addAll(parentSpec.getAllCopyActions());
+        allActions.addAll(actions);
+        return allActions;
     }
 
     public boolean hasSource() {
@@ -371,16 +380,8 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
             this.spec = spec;
         }
 
-        public FilterChain getFilterChain() {
-            return spec.getFilterChain();
-        }
-
-        public CopyDestinationMapper getDestinationMapper() {
-            return spec.getDestinationMapper();
-        }
-
         public RelativePath getDestPath() {
-            return new RelativePath(root.getDestPath(), spec.getDestPath());
+            return root.getDestPath().append(spec.getDestPath());
         }
 
         public int getFileMode() {
@@ -405,6 +406,10 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
         public boolean hasSource() {
             return spec.hasSource();
+        }
+
+        public Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions() {
+            return spec.getAllCopyActions();
         }
     }
 }

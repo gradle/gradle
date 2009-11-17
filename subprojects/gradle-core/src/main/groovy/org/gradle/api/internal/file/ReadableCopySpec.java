@@ -15,16 +15,14 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Action;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RelativePath;
 
 import java.util.Collection;
 
 public interface ReadableCopySpec {
-    FilterChain getFilterChain();
-
-    CopyDestinationMapper getDestinationMapper();
-
     RelativePath getDestPath();
 
     int getFileMode();
@@ -36,4 +34,6 @@ public interface ReadableCopySpec {
     Collection<? extends ReadableCopySpec> getAllSpecs();
 
     boolean hasSource();
+
+    Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
 }

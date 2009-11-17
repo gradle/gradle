@@ -226,7 +226,7 @@ public class BreadthFirstDirectoryWalkerTest {
             if (parent == null) {
                 return new RelativePath(isFile);
             } else {
-                return new RelativePath(isFile, parent.getRelativePath(), name);
+                return parent.getRelativePath().append(isFile, name);
             }
         }
 

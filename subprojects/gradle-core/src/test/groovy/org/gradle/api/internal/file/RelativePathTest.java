@@ -17,11 +17,13 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.io.File;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class RelativePathTest {
 
@@ -39,15 +41,47 @@ public class RelativePathTest {
 
         path = new RelativePath(false, "one", "two");
         assertPathContains(path, false, "one", "two");
+    }
 
-        childPath = new RelativePath(true, path, "three");
-        assertPathContains(childPath, true, "one", "two", "three");
-
-        childPath = new RelativePath(new RelativePath(false, "one", "two"), new RelativePath(true, "three", "four"));
+    @Test
+    public void appendPath() {
+        RelativePath childPath = new RelativePath(false, "one", "two").append(new RelativePath(true, "three", "four"));
         assertPathContains(childPath, true, "one", "two", "three", "four");
 
-        childPath = new RelativePath(new RelativePath(false, "one", "two"), new RelativePath(false));
+        childPath = new RelativePath(false, "one", "two").append(new RelativePath(true));
+        assertPathContains(childPath, true, "one", "two");
+
+        childPath = new RelativePath(false, "one", "two").plus(new RelativePath(true, "three"));
+        assertPathContains(childPath, true, "one", "two", "three");
+    }
+
+    @Test
+    public void appendNames() {
+        RelativePath childPath = new RelativePath(false, "one", "two").append(true, "three", "four");
+        assertPathContains(childPath, true, "one", "two", "three", "four");
+
+        childPath = new RelativePath(false, "one", "two").append(true);
+        assertPathContains(childPath, true, "one", "two");
+    }
+
+    @Test
+    public void prependNames() {
+        RelativePath childPath = new RelativePath(false, "one", "two").prepend("three", "four");
+        assertPathContains(childPath, false, "three", "four", "one", "two");
+
+        childPath = new RelativePath(false, "one", "two").prepend();
         assertPathContains(childPath, false, "one", "two");
+    }
+
+    @Test
+    public void hasWellBehavedEqualsAndHashCode() {
+        assertThat(new RelativePath(true), strictlyEqual(new RelativePath(true)));
+        assertThat(new RelativePath(true, "one"), strictlyEqual(new RelativePath(true, "one")));
+        assertThat(new RelativePath(false, "one", "two"), strictlyEqual(new RelativePath(false, "one", "two")));
+
+        assertThat(new RelativePath(true, "one"), not(equalTo(new RelativePath(true, "two"))));
+        assertThat(new RelativePath(true, "one"), not(equalTo(new RelativePath(true, "one", "two"))));
+        assertThat(new RelativePath(true, "one"), not(equalTo(new RelativePath(false, "one"))));
     }
 
     @Test
@@ -85,5 +119,12 @@ public class RelativePathTest {
         assertThat(new RelativePath(false, "a", "b").getParent(), equalTo(new RelativePath(false, "a")));
         assertThat(new RelativePath(false, "a").getParent(), equalTo(new RelativePath(false)));
         assertThat(new RelativePath(false).getParent(), nullValue());
+    }
+
+    @Test
+    public void canReplaceLastName() {
+        assertPathContains(new RelativePath(true, "old").replaceLastName("new"), true, "new");
+        assertPathContains(new RelativePath(false, "old").replaceLastName("new"), false, "new");
+        assertPathContains(new RelativePath(true, "a", "b", "old").replaceLastName("new"), true, "a", "b", "new");
     }
 }

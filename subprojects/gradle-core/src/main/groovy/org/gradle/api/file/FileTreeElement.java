@@ -62,8 +62,8 @@ public interface FileTreeElement {
     InputStream open();
 
     /**
-     * Copies the content of this file to an output stream. Generally, calling this method is more performant than calling {@code new
-     * FileInputStream(getFile())}.
+     * Copies the content of this file to an output stream. Generally, calling this method is more performant than
+     * calling {@code new FileInputStream(getFile())}.
      *
      * @param outstr The output stream to write to. The caller is responsible for closing this stream.
      */
@@ -78,7 +78,22 @@ public interface FileTreeElement {
     boolean copyTo(File target);
 
     /**
-     * Returns the path of the file being visited, relative to the root of the containing file tree.
+     * Returns the name of this file.
+     *
+     * @return The name. Never returns null.
+     */
+    String getName();
+
+    /**
+     * Returns the path of this file, relative to the root of thie containing file tree. Uses '/' as the hierarchy
+     * separator.
+     *
+     * @return The path. Never returns null.
+     */
+    String getPath();
+
+    /**
+     * Returns the path of this file, relative to the root of the containing file tree.
      *
      * @return The path. Never returns null.
      */

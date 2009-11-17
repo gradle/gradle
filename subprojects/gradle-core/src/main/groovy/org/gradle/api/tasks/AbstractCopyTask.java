@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.CopyActionImpl;
@@ -87,92 +88,105 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
     /**
      * {@inheritDoc}
      */
-    public CopySpec from(Object... sourcePaths) {
-        return getRootSpec().from(sourcePaths);
+    public AbstractCopyTask from(Object... sourcePaths) {
+        getRootSpec().from(sourcePaths);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec from(Object sourcePath, Closure c) {
-        return getRootSpec().from(sourcePath, c);
+    public AbstractCopyTask from(Object sourcePath, Closure c) {
+        getRootSpec().from(sourcePath, c);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec into(Object destDir) {
-        return getRootSpec().into(destDir);
+    public AbstractCopyTask into(Object destDir) {
+        getRootSpec().into(destDir);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec into(Object destPath, Closure configureClosure) {
-        return getRootSpec().into(destPath, configureClosure);
+    public AbstractCopyTask into(Object destPath, Closure configureClosure) {
+        getRootSpec().into(destPath, configureClosure);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec include(String... includes) {
-        return getRootSpec().include(includes);
+    public AbstractCopyTask include(String... includes) {
+        getRootSpec().include(includes);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec include(Iterable<String> includes) {
-        return getRootSpec().include(includes);
+    public AbstractCopyTask include(Iterable<String> includes) {
+        getRootSpec().include(includes);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec include(Spec<FileTreeElement> includeSpec) {
-        return getRootSpec().include(includeSpec);
+    public AbstractCopyTask include(Spec<FileTreeElement> includeSpec) {
+        getRootSpec().include(includeSpec);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec include(Closure includeSpec) {
-        return getRootSpec().include(includeSpec);
+    public AbstractCopyTask include(Closure includeSpec) {
+        getRootSpec().include(includeSpec);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec exclude(String... excludes) {
-        return getRootSpec().exclude(excludes);
+    public AbstractCopyTask exclude(String... excludes) {
+        getRootSpec().exclude(excludes);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec exclude(Iterable<String> excludes) {
-        return getRootSpec().exclude(excludes);
+    public AbstractCopyTask exclude(Iterable<String> excludes) {
+        getRootSpec().exclude(excludes);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec exclude(Spec<FileTreeElement> excludeSpec) {
-        return getRootSpec().exclude(excludeSpec);
+    public AbstractCopyTask exclude(Spec<FileTreeElement> excludeSpec) {
+        getRootSpec().exclude(excludeSpec);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec exclude(Closure excludeSpec) {
-        return getRootSpec().exclude(excludeSpec);
+    public AbstractCopyTask exclude(Closure excludeSpec) {
+        getRootSpec().exclude(excludeSpec);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec setIncludes(Iterable<String> includes) {
-        return getRootSpec().setIncludes(includes);
+    public AbstractCopyTask setIncludes(Iterable<String> includes) {
+        getRootSpec().setIncludes(includes);
+        return this;
     }
 
     /**
@@ -185,8 +199,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
     /**
      * {@inheritDoc}
      */
-    public CopySpec setExcludes(Iterable<String> excludes) {
-        return getRootSpec().setExcludes(excludes);
+    public AbstractCopyTask setExcludes(Iterable<String> excludes) {
+        getRootSpec().setExcludes(excludes);
+        return this;
     }
 
     /**
@@ -199,36 +214,41 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
     /**
      * {@inheritDoc}
      */
-    public CopySpec rename(Closure closure) {
-        return getRootSpec().rename(closure);
+    public AbstractCopyTask rename(Closure closure) {
+        getRootSpec().rename(closure);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec rename(String sourceRegEx, String replaceWith) {
-        return getRootSpec().rename(sourceRegEx, replaceWith);
+    public AbstractCopyTask rename(String sourceRegEx, String replaceWith) {
+        getRootSpec().rename(sourceRegEx, replaceWith);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType) {
-        return getRootSpec().filter(map, filterType);
+    public AbstractCopyTask filter(Map<String, ?> map, Class<? extends FilterReader> filterType) {
+        getRootSpec().filter(map, filterType);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec filter(Class<FilterReader> filterType) {
-        return getRootSpec().filter(filterType);
+    public AbstractCopyTask filter(Class<? extends FilterReader> filterType) {
+        getRootSpec().filter(filterType);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopySpec filter(Closure closure) {
-        return getRootSpec().filter(closure);
+    public AbstractCopyTask filter(Closure closure) {
+        getRootSpec().filter(closure);
+        return this;
     }
 
     /**
@@ -248,14 +268,32 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
     /**
      * {@inheritDoc}
      */
-    public CopyProcessingSpec setDirMode(int mode) {
-        return getRootSpec().setDirMode(mode);
+    public AbstractCopyTask setDirMode(int mode) {
+        getRootSpec().setDirMode(mode);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public CopyProcessingSpec setFileMode(int mode) {
-        return getRootSpec().setFileMode(mode);
+    public AbstractCopyTask setFileMode(int mode) {
+        getRootSpec().setFileMode(mode);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask eachFile(Action<? super FileCopyDetails> action) {
+        getRootSpec().eachFile(action);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask eachFile(Closure closure) {
+        getRootSpec().eachFile(closure);
+        return this;
     }
 }

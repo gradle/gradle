@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.specs.Spec;
 
@@ -193,15 +194,25 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      */
-    CopySpec filter(Map<String, Object> map, Class<FilterReader> filterType);
+    CopySpec filter(Map<String, ?> map, Class<? extends FilterReader> filterType);
 
     /**
      * {@inheritDoc}
      */
-    CopySpec filter(Class<FilterReader> filterType);
+    CopySpec filter(Class<? extends FilterReader> filterType);
 
     /**
      * {@inheritDoc}
      */
     CopySpec filter(Closure closure);
+
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec eachFile(Action<? super FileCopyDetails> action);
+
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec eachFile(Closure closure);
 }

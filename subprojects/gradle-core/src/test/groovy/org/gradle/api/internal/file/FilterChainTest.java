@@ -15,72 +15,65 @@
  */
 package org.gradle.api.internal.file;
 
-import java.io.Reader;
-import java.io.IOException;
-import java.io.StringReader;
+import org.gradle.util.HelperUtil;
 import org.junit.Test;
+
+import java.io.FilterReader;
+import java.io.Reader;
+import java.io.StringReader;
+
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class FilterChainTest {
+    private final FilterChain filterChain = new FilterChain();
+    private final Reader originalReader = new StringReader("string");
 
-    @Test public void testSetInput() throws IOException {
-        String test1 = "Testing1";
-        String test2 = "something else";
-        FilterChain chain = new FilterChain();
-        chain.setInputSource(new StringReader(test1));
-        assertThat(readToString(chain), equalTo(test1));
-
-        chain.setInputSource(new StringReader(test2));
-        assertThat(readToString(chain), equalTo(test2));        
+    @Test
+    public void usesOriginalReaderByDefault() {
+        assertThat(filterChain.transform(originalReader), sameInstance(originalReader));
     }
 
-    @Test public void testMultipleChains() {
-        FilterChain chain1 = new FilterChain();
-        FilterChain chain2 = new FilterChain();
-        FilterChain chain3 = new FilterChain();
-
-        chain2.setInputSource(chain1);
-        chain3.setInputSource(chain2);
-
-        assertThat(chain3.findFirstFilterChain(), equalTo(chain1));
+    @Test
+    public void canAddFilterReaderToEndOfChain() {
+        filterChain.add(TestFilterReader.class);
+        Reader transformedReader = filterChain.transform(originalReader);
+        assertThat(transformedReader, instanceOf(TestFilterReader.class));
+        TestFilterReader reader = (TestFilterReader) transformedReader;
+        assertThat(reader.getIn(), sameInstance(originalReader));
     }
 
-
-    @Test public void testSingleChain() {
-        FilterChain chain1 = new FilterChain();
-
-        assertThat(chain1.findFirstFilterChain(), equalTo(chain1));
+    @Test
+    public void canAddFilterReaderWithParametersToEndOfChain() {
+        filterChain.add(TestFilterReader.class, toMap("property", "value"));
+        Reader transformedReader = filterChain.transform(originalReader);
+        assertThat(transformedReader, instanceOf(TestFilterReader.class));
+        TestFilterReader reader = (TestFilterReader) transformedReader;
+        assertThat(reader.getIn(), sameInstance(originalReader));
+        assertThat(reader.property, equalTo("value"));
     }
 
-    @Test public void testHasFilterSingle() {
-        FilterChain chain1 = new FilterChain();
-        assertFalse(chain1.hasFilters());
-
-        chain1.addFilter(new StringReader(""));
-        assertTrue(chain1.hasFilters());
+    @Test
+    public void canAddLineFilterReaderToEndOfChain() {
+        filterChain.add(HelperUtil.TEST_CLOSURE);
+        Reader transformedReader = filterChain.transform(originalReader);
+        assertThat(transformedReader, instanceOf(LineFilter.class));
     }
 
-    @Test public void testHasFilterMultiple() {
-        FilterChain chain1 = new FilterChain();
-        FilterChain chain2 = new FilterChain();
-        chain2.setInputSource(chain1);
+    public static class TestFilterReader extends FilterReader {
+        String property;
 
-        assertFalse(chain2.hasFilters());
-
-        chain1.addFilter(new StringReader(""));
-        assertTrue(chain2.hasFilters());
-    }
-
-    private String readToString(Reader filter) throws IOException {
-        StringBuilder result = new StringBuilder();
-        int nextChar = 0;
-        while (nextChar != -1){
-            nextChar = filter.read();
-            if (nextChar != -1) {
-                result.append((char)nextChar);
-            }
+        public TestFilterReader(Reader reader) {
+            super(reader);
         }
-        return result.toString();
+
+        public Reader getIn() {
+            return in;
+        }
+
+        public void setProperty(String property) {
+            this.property = property;
+        }
     }
 }

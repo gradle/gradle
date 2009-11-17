@@ -15,18 +15,21 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.RelativePath;
 
-/**
- * A {@code CopyNameMapper} is responsible for determining the destination path when copying a file tree element.
- */
-public interface CopyDestinationMapper {
-    /**
-     * Returns the destination path for the given element, relative to the root of the destination.
-     *
-     * @param element The element
-     * @return the path.
-     */
-    RelativePath getPath(FileTreeElement element);
+public class RenamingCopyAction implements Action<FileCopyDetails> {
+    private final Transformer<String> transformer;
+
+    public RenamingCopyAction(Transformer<String> transformer) {
+        this.transformer = transformer;
+    }
+
+    public void execute(FileCopyDetails fileCopyDetails) {
+        RelativePath path = fileCopyDetails.getRelativePath();
+        path = path.replaceLastName(transformer.transform(path.getLastName()));
+        fileCopyDetails.setRelativePath(path);
+    }
 }

@@ -23,10 +23,11 @@ import java.util.ListIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-
 /**
- * Represents a relative path from a base directory to a file.  Used in file copying to
- * represent both a source and target file path when copying files.
+ * <p>Represents a relative path from some base directory to a file.  Used in file copying to represent both a source
+ * and target file path when copying files.</p>
+ *
+ * <p>{@code RelativePath} instances are immutable.</p>
  *
  * @author Steve Appling
  */
@@ -36,29 +37,25 @@ public class RelativePath {
 
     /**
      * CTOR
+     *
      * @param endsWithFile - if true, the path ends with a file, otherwise a directory
-     * @param segments
      */
     public RelativePath(boolean endsWithFile, String... segments) {
         this(endsWithFile, null, segments);
     }
 
-    public RelativePath(boolean endsWithFile, RelativePath parentPath, String... children) {
+    private RelativePath(boolean endsWithFile, RelativePath parentPath, String... childSegments) {
         this.endsWithFile = endsWithFile;
         int sourceLength = 0;
         if (parentPath != null) {
             String[] sourceSegments = parentPath.getSegments();
             sourceLength = sourceSegments.length;
-            segments = new String[sourceLength + children.length];
+            segments = new String[sourceLength + childSegments.length];
             System.arraycopy(sourceSegments, 0, segments, 0, sourceLength);
         } else {
-            segments = new String[children.length];
+            segments = new String[childSegments.length];
         }
-        System.arraycopy(children, 0, segments, sourceLength, children.length);
-    }
-
-    public RelativePath(RelativePath parent, RelativePath child) {
-        this(child.endsWithFile, parent, child.segments);
+        System.arraycopy(childSegments, 0, segments, sourceLength, childSegments.length);
     }
 
     public String[] getSegments() {
@@ -75,14 +72,7 @@ public class RelativePath {
     }
 
     public String getPathString() {
-        StringBuilder result = new StringBuilder();
-        for (int i=0; i<segments.length; i++) {
-            result.append(segments[i]);
-            if (i < segments.length-1) {
-                result.append("/");
-            }
-        }
-        return result.toString();
+        return GUtil.join(segments, "/");
     }
 
     public File getFile(File baseDir) {
@@ -91,7 +81,7 @@ public class RelativePath {
 
     public String getLastName() {
         if (segments.length > 0) {
-            return segments[segments.length-1];
+            return segments[segments.length - 1];
         } else {
             return null;
         }
@@ -99,13 +89,21 @@ public class RelativePath {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         RelativePath that = (RelativePath) o;
 
-        if (endsWithFile != that.endsWithFile) return false;
-        if (!Arrays.equals(segments, that.segments)) return false;
+        if (endsWithFile != that.endsWithFile) {
+            return false;
+        }
+        if (!Arrays.equals(segments, that.segments)) {
+            return false;
+        }
 
         return true;
     }
@@ -119,9 +117,14 @@ public class RelativePath {
 
     @Override
     public String toString() {
-        return GUtil.join(segments, "/");
+        return getPathString();
     }
 
+    /**
+     * Returns the parent of this path.
+     *
+     * @return The parent of this path, or null if this is the root path.
+     */
     public RelativePath getParent() {
         if (segments.length == 0) {
             return null;
@@ -138,5 +141,59 @@ public class RelativePath {
     public static RelativePath parse(boolean isFile, RelativePath parent, String path) {
         String[] names = StringUtils.split(path, "/" + File.separator);
         return new RelativePath(isFile, parent, names);
+    }
+
+    /**
+     * <p>Returns a copy of this path, with the last name replaced with the given name.</p>
+     *
+     * @param name The name.
+     * @return The path.
+     */
+    public RelativePath replaceLastName(String name) {
+        String[] newSegments = new String[segments.length];
+        System.arraycopy(segments, 0, newSegments, 0, segments.length);
+        newSegments[segments.length - 1] = name;
+        return new RelativePath(endsWithFile, newSegments);
+    }
+
+    /**
+     * <p>Appends the given path to the end of this path.
+     *
+     * @param other The path to append
+     * @return The new path
+     */
+    public RelativePath append(RelativePath other) {
+        return new RelativePath(other.endsWithFile, this, other.segments);
+    }
+
+    /**
+     * <p>Appends the given path to the end of this path.
+     *
+     * @param other The path to append
+     * @return The new path
+     */
+    public RelativePath plus(RelativePath other) {
+        return append(other);
+    }
+
+    /**
+     * Appends the given names to the end of this path.
+     *
+     * @param segments The names to append.
+     * @param endsWithFile when true, the new path refers to a file.
+     * @return The new path.
+     */
+    public RelativePath append(boolean endsWithFile, String... segments) {
+        return new RelativePath(endsWithFile, this, segments);
+    }
+
+    /**
+     * Prepends the given names to the start of this path.
+     *
+     * @param segments The names to prepend
+     * @return The new path.
+     */
+    public RelativePath prepend(String... segments) {
+        return new RelativePath(false, segments).append(this);
     }
 }

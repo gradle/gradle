@@ -15,52 +15,59 @@
  */
 package org.gradle.api.internal.file;
 
-import java.io.FilterReader;
-import java.io.Reader;
-import java.io.StringReader;
+import groovy.lang.Closure;
+import org.apache.tools.ant.util.ReaderInputStream;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.util.ReflectionUtil;
 
-public class FilterChain extends FilterReader {
-    private ChainableFilterReader input;
-    private Reader tail;
+import java.io.*;
+import java.lang.reflect.Constructor;
+import java.util.Map;
 
-    protected FilterChain() {
-        super(new StringReader(""));
-        input = new ChainableFilterReader();
-        in = tail = input;
+public class FilterChain implements Transformer<InputStream> {
+    private final ChainingTransformer<Reader> transformers = new ChainingTransformer<Reader>(Reader.class);
+
+    public Reader transform(Reader original) {
+        return transformers.transform(original);
     }
 
-    public void setInputSource(Reader in) {
-        input.setInput(in);
-    }
-
-    public Reader getLastFilter() {
-        return tail;
-    }
-
-    public void addFilter(Reader newFilter) {
-        tail = newFilter;
-        in = tail;
+    public InputStream transform(InputStream original) {
+        return new ReaderInputStream(transform(new InputStreamReader(original)));
     }
 
     public boolean hasFilters() {
-        if (tail != input) {
-            return true;
-        } else {
-            Reader mySource = input.getInput();
-            if (mySource instanceof FilterChain) {
-                return ((FilterChain)mySource).hasFilters();
+        return transformers.hasTransformers();
+    }
+
+    public void add(Class<? extends FilterReader> filterType) {
+        add(filterType, null);
+    }
+
+    public void add(final Class<? extends FilterReader> filterType, final Map<String, ?> properties) {
+        transformers.add(new Transformer<Reader>() {
+            public Reader transform(Reader original) {
+                try {
+                    Constructor<? extends FilterReader> constructor = filterType.getConstructor(Reader.class);
+                    FilterReader result = constructor.newInstance(original);
+
+                    if (properties != null) {
+                        ReflectionUtil.setFromMap(result, properties);
+                    }
+                    return result;
+                } catch (Throwable th) {
+                    throw new InvalidUserDataException("Error - Invalid filter specification for " + filterType.getName());
+                }
             }
-        }
-        return false;
+        });
     }
 
-    public FilterChain findFirstFilterChain() {
-        Reader myInput = input.getInput();
-        if (myInput instanceof FilterChain) {
-            return ((FilterChain)myInput).findFirstFilterChain();
-        } else {
-            return this;
-        }
+    public void add(final Closure closure) {
+        transformers.add(new Transformer<Reader>() {
+            public Reader transform(Reader original) {
+                return new LineFilter(original, closure);
+            }
+        });
     }
-
 }

@@ -16,11 +16,9 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 
-import java.util.Map;
-import java.io.FilterReader;
-
-public interface CopyProcessingSpec {
+public interface CopyProcessingSpec extends ContentFilterable {
     /**
      * Specifies the destination directory for a copy. The destination is evaluated as for {@link
      * org.gradle.api.Project#file(Object)}.
@@ -58,44 +56,6 @@ public interface CopyProcessingSpec {
     CopyProcessingSpec rename(String sourceRegEx, String replaceWith);
 
     /**
-     * Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the filter
-     * chain.  Each filter should implement java.io.FilterReader. Include org.apache.tools.ant.filters.* for access to
-     * all the standard ANT filters. <p> Filter parameters may be specified using groovy map syntax. <p> Examples:
-     * <pre>
-     *    filter(HeadFilter, lines:25, skip:2)
-     *    filter(ReplaceTokens, tokens:[copyright:'2009', version:'2.3.1'])
-     * </pre>
-     *
-     * @param map map of filter parameters
-     * @param filterType Class of filter to add
-     * @return this
-     */
-    CopyProcessingSpec filter(Map<String, Object> map, Class<FilterReader> filterType);
-
-    /**
-     * Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the filter
-     * chain.  Each filter should implement java.io.FilterReader. Include org.apache.tools.ant.filters.* for access to
-     * all the standard ANT filters. <p> Examples:
-     * <pre>
-     *    filter(StripJavaComments)
-     *    filter(com.mycompany.project.CustomFilter)
-     * </pre>
-     *
-     * @param filterType Class of filter to add
-     * @return this
-     */
-    CopyProcessingSpec filter(Class<FilterReader> filterType);
-
-    /**
-     * Adds a content filter based on the provided closure.  The Closure will be called with each line (stripped of line
-     * endings) and should return a String to replace the line.
-     *
-     * @param closure to implement line based filtering
-     * @return this
-     */
-    CopyProcessingSpec filter(Closure closure);
-
-    /**
      * Returns the Unix permissions to use for the target files. It is dependent on the copy action implementation
      * whether these permissions will actually be applied.
      *
@@ -104,8 +64,8 @@ public interface CopyProcessingSpec {
     int getFileMode();
 
     /**
-     * Sets the Unix permissions to use for the target files. It is dependent on the copy action implementation
-     * whether these permissions will actually be applied.
+     * Sets the Unix permissions to use for the target files. It is dependent on the copy action implementation whether
+     * these permissions will actually be applied.
      *
      * @param mode The file permissions.
      * @return this
@@ -128,4 +88,24 @@ public interface CopyProcessingSpec {
      * @return this
      */
     CopyProcessingSpec setDirMode(int mode);
+
+    /**
+     * Adds an action to be applied to each file as it about to be copied into its destination. The action can change
+     * the destination path of the file, filter the contents of the file, or exclude the file from the result entirely.
+     * Actions are executed in the order added, and are inherited from the parent spec.
+     *
+     * @param action The action to execute.
+     * @return this
+     */
+    CopyProcessingSpec eachFile(Action<? super FileCopyDetails> action);
+
+    /**
+     * Adds an action to be applied to each file as it about to be copied into its destination. The given closure is
+     * called with a {@link org.gradle.api.file.FileCopyDetails} as its parameter. Actions are executed in the order
+     * added, and are inherited from the parent spec.
+     *
+     * @param closure The action to execute.
+     * @return this
+     */
+    CopyProcessingSpec eachFile(Closure closure);
 }
