@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.gradle.execution;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.diagnostics.AbstractReportTask;
@@ -81,7 +81,7 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
             }
         });
         task.setProject(gradle.getDefaultProject());
-        task.doFirst(new TaskAction() {
+        task.doFirst(new Action<Task>() {
             public void execute(Task x) {
                 task.generate();
             }

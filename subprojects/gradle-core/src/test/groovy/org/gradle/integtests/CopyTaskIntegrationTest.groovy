@@ -177,6 +177,38 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
         assertThat(it.next(), startsWith('16'))
     }
 
+    @Test public void chainedTransformations() {
+        testFile('build.gradle') << '''
+            task copy(type: Copy) {
+                into 'dest'
+                rename '(.*).a', '\$1.renamed'
+                eachFile { fcd -> if (fcd.path.contains('/ignore/')) { fcd.exclude() } }
+                eachFile { fcd -> if (fcd.relativePath.segments.length > 1) { fcd.relativePath = fcd.relativePath.prepend('prefix') }}
+                filter(org.apache.tools.ant.filters.PrefixLines, prefix: 'line: ')
+                eachFile { fcd -> fcd.filter { it.replaceAll('^line:', 'prefix:') } }
+                from ('src') {
+                    rename '(.*).renamed', '\$1.renamed_twice'
+                    eachFile { fcd -> fcd.path = fcd.path.replaceAll('/one/sub/', '/one_sub/') }
+                    eachFile { fcd -> if (fcd.path.contains('/two/')) { fcd.exclude() } }
+                    eachFile { fcd -> fcd.filter { "[$it]" } }
+                }
+            }
+'''
+        inTestDirectory().withTasks('copy').run()
+        testFile('dest').assertHasDescendants(
+                'root.renamed_twice',
+                'root.b',
+                'prefix/one/one.renamed_twice',
+                'prefix/one/one.b',
+                'prefix/one_sub/onesub.renamed_twice',
+                'prefix/one_sub/onesub.b'
+        )
+
+        Iterator<String> it = testFile('dest/root.renamed_twice').readLines().iterator()
+        assertThat(it.next(), equalTo('[prefix: line 1]'))
+        assertThat(it.next(), equalTo('[prefix: line 2]'))
+    }
+
     @Test public void testCopyFromFileTree() {
         TestFile buildFile = testFile("build.gradle").writelns(
                 """task cpy << {

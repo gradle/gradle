@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,8 +61,8 @@ public class TaskFactory implements ITaskFactory {
             task.setDescription(description.toString());
         }
         Object action = actualArgs.get(Task.TASK_ACTION);
-        if (action instanceof TaskAction) {
-            TaskAction taskAction = (TaskAction) action;
+        if (action instanceof Action) {
+            Action<? super Task> taskAction = (Action<? super Task>) action;
             task.doFirst(taskAction);
         } else if (action != null) {
             Closure closure = (Closure) action;

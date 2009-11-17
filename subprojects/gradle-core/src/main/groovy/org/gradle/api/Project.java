@@ -38,71 +38,124 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>, you
- * can programmatically access all Gradle's features.</p> <p/> <h3>Lifecycle</h3> <p/> <p>There is a one-to-one
- * relationship between a <code>Project</code> and a <code>{@value #DEFAULT_BUILD_FILE}</code> file. During build
- * initialisation, Gradle assembles a <code>Project</code> object for each project which is to participate in the build,
- * as follows:</p> <p/> <ul> <p/> <li>Create a {@link org.gradle.api.initialization.Settings} instance for the
- * build.</li> <p/> <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code>
- * script, if present, against the {@link org.gradle.api.initialization.Settings} object to configure it.</li> <p/>
+ * <p>This interface is the main API you use to interact with Gradle from your build file. From a <code>Project</code>,
+ * you have programmatic access to all of Gradle's features.</p>
+ *
+ * <h3>Lifecycle</h3>
+ *
+ * <p>There is a one-to-one relationship between a <code>Project</code> and a <code>{@value #DEFAULT_BUILD_FILE}</code>
+ * file. During build initialisation, Gradle assembles a <code>Project</code> object for each project which is to
+ * participate in the build, as follows:</p>
+ *
+ * <ul>
+ *
+ * <li>Create a {@link org.gradle.api.initialization.Settings} instance for the build.</li>
+ *
+ * <li>Evaluate the <code>{@value org.gradle.api.initialization.Settings#DEFAULT_SETTINGS_FILE}</code> script, if
+ * present, against the {@link org.gradle.api.initialization.Settings} object to configure it.</li>
+ *
  * <li>Use the configured {@link org.gradle.api.initialization.Settings} object to create the hierarchy of
- * <code>Project</code> instances.</li> <p/> <li>Finally, evaluate each <code>Project</code> by executing its
- * <code>{@value #DEFAULT_BUILD_FILE}</code> file, if present, against the project. The project are evaulated in
- * breadth-wise order, such that a project is evaulated before its child projects. This order can be overridden by
- * adding an evaluation dependency.</p> <p/> </ul> <p/> <h3>Tasks</h3> <p/> <p>A project is essentially a collection of
- * {@link Task} objects. Each task performs some basic piece of work, such as compiling classes, or running unit tests,
- * or zipping up a WAR file. You add tasks to a project using one of the {@code add()} methods on {@link TaskContainer},
- * such as {@link TaskContainer#add(String)}.  You can locate existing tasks using one of the lookup methods on {@link
- * TaskContainer}, such as {@link TaskContainer#getByName(String)}.</p> <p/> <h3>Dependencies</h3> <p/> <p>A project
- * generally has a number of dependencies it needs in order to do its work.  Also, a project generally produces a number
- * of artifacts, which other projects can use. Those dependencies are grouped in configurations, and can be retrieved
- * and uploaded from repositories. You use the {@link org.gradle.api.artifacts.ConfigurationContainer} returned by
- * {@link #getConfigurations()} ()} method to manage the configurations. The {@link
+ * <code>Project</code> instances.</li>
+ *
+ * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
+ * present, against the project. The project are evaulated in breadth-wise order, such that a project is evaulated
+ * before its child projects. This order can be overridden by adding an evaluation dependency.</li>
+ *
+ * </ul>
+ *
+ * <h3>Tasks</h3>
+ *
+ * <p>A project is essentially a collection of {@link Task} objects. Each task performs some basic piece of work, such
+ * as compiling classes, or running unit tests, or zipping up a WAR file. You add tasks to a project using one of the
+ * {@code add()} methods on {@link TaskContainer}, such as {@link TaskContainer#add(String)}.  You can locate existing
+ * tasks using one of the lookup methods on {@link TaskContainer}, such as {@link TaskContainer#getByName(String)}.</p>
+ *
+ * <h3>Dependencies</h3>
+ *
+ * <p>A project generally has a number of dependencies it needs in order to do its work.  Also, a project generally
+ * produces a number of artifacts, which other projects can use. Those dependencies are grouped in configurations, and
+ * can be retrieved and uploaded from repositories. You use the {@link org.gradle.api.artifacts.ConfigurationContainer}
+ * returned by {@link #getConfigurations()} ()} method to manage the configurations. The {@link
  * org.gradle.api.artifacts.dsl.DependencyHandler} returned by {@link #getDependencies()} method to manage the
  * dependencies. The {@link org.gradle.api.artifacts.dsl.ArtifactHandler} returned by {@link #getArtifacts()} ()} method
  * to manage the artifacts. The {@link org.gradle.api.artifacts.dsl.RepositoryHandler} returned by {@link
- * #getRepositories()} ()} method to manage the repositories.</p> <p/> <h3>Multi-project Builds</h3> <p/> <p>Projects
- * are arranged into a hierarchy of projects. A project has a name, and a fully qualified path which uniquely identifies
- * it in the hierarchy.</p> <p/> <h3>Using a Project in a Build File</h3> <p/> <p>Gradle executes the project's build
- * file against the <code>Project</code> instance to configure the project. Any property or method which your script
- * uses which is not defined in the script is delegated through to the associated <code>Project</code> object.  This
- * means, that you can use any of the methods and properties on the <code>Project</code> interface directly in your
- * script.</p> <p/> <p>For example:
+ * #getRepositories()} ()} method to manage the repositories.</p>
+ *
+ * <h3>Multi-project Builds</h3>
+ *
+ * <p>Projects are arranged into a hierarchy of projects. A project has a name, and a fully qualified path which
+ * uniquely identifies it in the hierarchy.</p>
+ *
+ * <h3>Using a Project in a Build File</h3>
+ *
+ * <p>Gradle executes the project's build file against the <code>Project</code> instance to configure the project. Any
+ * property or method which your script uses which is not defined in the script is delegated through to the associated
+ * <code>Project</code> object.  This means, that you can use any of the methods and properties on the
+ * <code>Project</code> interface directly in your script.</p><p>For example:
  * <pre>
  * defaultTasks('some-task')  // Delegates to Project.defaultTasks()
  * reportDir = file('reports') // Delegates to Project.file() and Project.setProperty()
  * </pre>
- * </p> <p/> <p>You can also access the <code>Project</code> instance using the <code>project</code> property. This can
- * make the script clearer in some cases. For example, you could use <code>project.name</code> rather than
- * <code>name</code> to access the project's name.</p> <p/> <a name="properties"/> <h4>Dynamic Properties</h4> <p/> <p>A
- * project has 5 property 'scopes', which it searches for properties. You can access these properties by name in your
- * build file, or by calling the project's {@link #property(String)} method. The scopes are:</p> <p/> <ul> <p/> <li>The
- * <code>Project</code> object itself. This scope includes any property getters and setters declared by the
- * <code>Project</code> implementation class.  For example, {@link #getRootProject()} is accessable as the
+ * <p>You can also access the <code>Project</code> instance using the <code>project</code> property. This can make the
+ * script clearer in some cases. For example, you could use <code>project.name</code> rather than <code>name</code> to
+ * access the project's name.</p>
+ *
+ * <a name="properties"/> <h4>Dynamic Properties</h4>
+ *
+ * <p>A project has 5 property 'scopes', which it searches for properties. You can access these properties by name in
+ * your build file, or by calling the project's {@link #property(String)} method. The scopes are:</p>
+ *
+ * <ul>
+ *
+ * <li>The <code>Project</code> object itself. This scope includes any property getters and setters declared by the
+ * <code>Project</code> implementation class.  For example, {@link #getRootProject()} is accessible as the
  * <code>rootProject</code> property.  The properties of this scope are readable or writable depending on the presence
- * of the corresponding getter or setter method.</li> <p/> <li>The <em>additional</em> properties of the project.  Each
- * project maintains a map of additional properties, which can contain any arbitrary name -> value pair.  The properties
- * of this scope are readable and writable.</li> <p/> <li>The <em>convention</em> properties added to the project by
- * each {@link Plugin} applied to the project. A {@link Plugin} can add properties and methods to a project through the
- * project's {@link Convention} object.  The properties of this scope may be readable or writable, depending on the
- * convention objects.</li> <p/> <li>The tasks of the project.  A task is accessable by using its name as a property
- * name.  The properties of this scope are read-only. For example, a task called <code>compile</code> is accessable as
- * the <code>compile</code> property.</li> <p/> <li>The additional properties and convention properties of the project's
- * parent project, recursively up to the root project. The properties of this scope are read-only.</li> <p/> </ul> <p/>
+ * of the corresponding getter or setter method.</li>
+ *
+ * <li>The <em>additional</em> properties of the project.  Each project maintains a map of additional properties, which
+ * can contain any arbitrary name -> value pair.  The properties of this scope are readable and writable.</li>
+ *
+ * <li>The <em>convention</em> properties added to the project by each {@link Plugin} applied to the project. A {@link
+ * Plugin} can add properties and methods to a project through the project's {@link Convention} object.  The properties
+ * of this scope may be readable or writable, depending on the convention objects.</li>
+ *
+ * <li>The tasks of the project.  A task is accessible by using its name as a property name.  The properties of this
+ * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
+ * property.</li>
+ *
+ * <li>The additional properties and convention properties of the project's parent project, recursively up to the root
+ * project. The properties of this scope are read-only.</li>
+ *
+ * </ul>
+ *
  * <p>When reading a property, the project searches the above scopes in order, and returns the value from the first
- * scope it finds the property in.  See {@link #property(String)} for more details.</p> <p/> <p>When writing a property,
- * the project searches the above scopes in order, and sets the property in the first scope it finds the property in. If
- * not found, the project adds the property to its map of additional properties. See {@link #setProperty(String,
- * Object)} for more details.</p> <p/> <h4>Dynamic Methods</h4> <p/> <p>A project has 5 method 'scopes', which it
- * searches for methods:</p> <p/> <ul> <p/> <li>The <code>Project</code> object itself.</li> <p/> <li>The build file.
- * The project searches for a matching method declared in the build file.</li> <p/> <li>The <em>convention</em> methods
- * added to the project by each {@link Plugin} applied to the project. A {@link Plugin} can add properties and method to
- * a project through the project's {@link Convention} object.</li> <p/> <li>The tasks of the project. A method is added
- * for each task, using the name of the task as the method name and taking a single closure parameter. The method calls
- * the {@link Task#configure(groovy.lang.Closure)} method for the associated task with the provided closure. For
- * example, if the project has a task called <code>compile</code>, then a method is added with the following signature:
- * <code>void compile(Closure configureClosure)</code>.</li> <p/> <li>The parent project, recursively up to the root
- * project.</li> <p/> </ul>
+ * scope it finds the property in.  See {@link #property(String)} for more details.</p>
+ *
+ * <p>When writing a property, the project searches the above scopes in order, and sets the property in the first scope
+ * it finds the property in. If not found, the project adds the property to its map of additional properties. See {@link
+ * #setProperty(String, Object)} for more details.</p>
+ *
+ * <h4>Dynamic Methods</h4>
+ *
+ * <p>A project has 5 method 'scopes', which it searches for methods:</p>
+ *
+ * <ul>
+ *
+ * <li>The <code>Project</code> object itself.</li>
+ *
+ * <li>The build file. The project searches for a matching method declared in the build file.</li>
+ *
+ * <li>The <em>convention</em> methods added to the project by each {@link Plugin} applied to the project. A {@link
+ * Plugin} can add properties and method to a project through the project's {@link Convention} object.</li>
+ *
+ * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
+ * taking a single closure parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
+ * associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
+ * method is added with the following signature: <code>void compile(Closure configureClosure)</code>.</li>
+ *
+ * <li>The parent project, recursively up to the root project.</li>
+ *
+ * </ul>
  *
  * @author Hans Dockter
  */
@@ -323,7 +376,7 @@ public interface Project extends Comparable<Project> {
      * an existing task?</td><td><code>false</code></td></tr> <p/> <tr><td><code>{@value
      * org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>A task name or set of task names which this task depends
      * on</td><td><code>[]</code></td></tr> <p/> <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>A
-     * closure or {@link TaskAction} to add to the task.</td><td><code>null</code></td></tr> <p/> </table> <p/> <p>After
+     * closure or {@link Action} to add to the task.</td><td><code>null</code></td></tr> <p/> </table> <p/> <p>After
      * the task is added to the project, it is made available as a property of the project, so that you can reference
      * the task by name in your build file.  See <a href="#properties">here</a> for more details</p> <p/> <p>If a task
      * with the given name already exists in this project and the <code>override</code> option is not set to true, an
@@ -383,7 +436,7 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
      * action is passed to the task's {@link Task#doFirst(Action)} method. Calling this method is equivalent to calling
-     * {@link #createTask(java.util.Map, String, TaskAction)} with an empty options map.</p> <p/> <p>After the task is
+     * {@link #createTask(java.util.Map, String, Action)} with an empty options map.</p> <p/> <p>After the task is
      * added to the project, it is made available as a property of the project, so that you can reference the task by
      * name in your build file.  See <a href="#properties">here</a> for more details</p> <p/> <p>If a task with the
      * given name already exists in this project, an exception is thrown.</p>
@@ -394,7 +447,7 @@ public interface Project extends Comparable<Project> {
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
     @Deprecated
-    Task createTask(String name, TaskAction action) throws InvalidUserDataException;
+    Task createTask(String name, Action<? super Task> action) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. A map of creation options can be
@@ -433,7 +486,7 @@ public interface Project extends Comparable<Project> {
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
     @Deprecated
-    Task createTask(Map<String, ?> args, String name, TaskAction action) throws InvalidUserDataException;
+    Task createTask(Map<String, ?> args, String name, Action<? super Task> action) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given

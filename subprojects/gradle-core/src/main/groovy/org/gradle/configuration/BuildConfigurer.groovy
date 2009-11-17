@@ -17,11 +17,11 @@
 package org.gradle.configuration
 
 import org.gradle.api.Project
-import org.gradle.api.ProjectAction
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.Clock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.Action
 
 /**
  * @author Hans Dockter
@@ -31,7 +31,7 @@ class BuildConfigurer {
 
     ProjectDependencies2TaskResolver projectDependencies2TasksResolver
 
-    ProjectAction projectEvaluateAction
+    Action<Project> projectEvaluateAction
 
     BuildConfigurer() {}
 
@@ -39,7 +39,7 @@ class BuildConfigurer {
         this.projectDependencies2TasksResolver = projectDependencies2TasksResolver
         projectEvaluateAction = {ProjectInternal project ->
             project.evaluate()
-        } as ProjectAction
+        } as Action
     }
 
     void process(Project rootProject) {

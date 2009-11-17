@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.ProjectAction;
 import org.gradle.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class ProjectDependencies2TaskResolver {
     private static Logger logger = LoggerFactory.getLogger(ProjectDependencies2TaskResolver.class);
 
     public void resolve(Project rootProject) {
-        ProjectAction projectAction = new ProjectAction() {
+        Action<Project> projectAction = new Action<Project>() {
             public void execute(Project project) {
                 for (Project dependsOnProject : project.getDependsOnProjects()) {
                     logger.debug("Checking task dependencies for project: {} dependsOn: {}", project, dependsOnProject);

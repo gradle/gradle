@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.ProjectAction;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
@@ -58,7 +58,7 @@ public class BuildConfigurerTest {
     }
 
     private void createExpectations() {
-        final ProjectAction testEvaluateAction = new ProjectAction() {
+        final Action<Project> testEvaluateAction = new Action<Project>() {
             public void execute(Project project) {
             }
         };

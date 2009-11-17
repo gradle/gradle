@@ -266,7 +266,7 @@
                 <sourcefile file="build.gradle"/>
                 <output args="-q a"/>
             </sample>
-            <para>You can also add a <apilink class="org.gradle.api.TaskAction"/> to a
+            <para>You can also add an <apilink class="org.gradle.api.Action"/> to a
                 <apilink class="org.gradle.api.tasks.TaskContainer"/> to receive these events.</para>
         </section>
 

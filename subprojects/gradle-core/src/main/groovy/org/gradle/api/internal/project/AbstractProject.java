@@ -557,14 +557,14 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Task createTask(String name) {
-        return createTask(new HashMap<String, Object>(), name, (TaskAction) null);
+        return createTask(new HashMap<String, Object>(), name, (Action) null);
     }
 
     public Task createTask(Map<String, ?> args, String name) {
-        return createTask(args, name, (TaskAction) null);
+        return createTask(args, name, (Action) null);
     }
 
-    public Task createTask(String name, TaskAction action) {
+    public Task createTask(String name, Action<? super Task> action) {
         return createTask(new HashMap<String, Object>(), name, action);
     }
 
@@ -580,7 +580,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return taskContainer.add(allArgs);
     }
 
-    public Task createTask(Map args, String name, TaskAction action) {
+    public Task createTask(Map<String, ?> args, String name, Action<? super Task> action) {
         warnDeprecated();
         Map<String, Object> allArgs = new HashMap<String, Object>(args);
         allArgs.put(Task.TASK_NAME, name);
@@ -663,7 +663,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public Map<Project, Set<Task>> getAllTasks(boolean recursive) {
         final Map<Project, Set<Task>> foundTargets = new TreeMap<Project, Set<Task>>();
-        ProjectAction action = new ProjectAction() {
+        Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
                 foundTargets.put(project, new TreeSet<Task>(project.getTasks().getAll()));
             }
@@ -681,7 +681,7 @@ public abstract class AbstractProject implements ProjectInternal {
             throw new InvalidUserDataException("Name is not specified!");
         }
         final Set<Task> foundTasks = new HashSet<Task>();
-        ProjectAction action = new ProjectAction() {
+        Action<Project> action = new Action<Project>() {
             public void execute(Project project) {
                 Task task = project.getTasks().findByName(name);
                 if (task != null) {

@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.plugins.DefaultConvention;
@@ -33,6 +34,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -349,6 +351,36 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return false;
     }
 
+    public Task doFirst(Closure action) {
+        if (action == null) {
+            throw new InvalidUserDataException("Action must not be null!");
+        }
+        doFirst(convertClosureToAction(action));
+        return this;
+    }
+
+    public Task doLast(Closure action) {
+        if (action == null) {
+            throw new InvalidUserDataException("Action must not be null!");
+        }
+        doLast(convertClosureToAction(action));
+        return this;
+    }
+
+    public Task leftShift(Closure action) {
+        return doLast(action);
+    }
+
+    public Task configure(Closure closure) {
+        return (Task) ConfigureUtil.configure(closure, this);
+    }
+
+    private Action<Task> convertClosureToAction(Closure actionClosure) {
+        actionClosure.setDelegate(getProject());
+        actionClosure.setResolveStrategy(Closure.OWNER_FIRST);
+        return new ClosureTaskAction(actionClosure);
+    }
+
     private static class TaskInfo {
         private final ProjectInternal project;
         private final String name;
@@ -358,4 +390,30 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             this.project = project;
         }
     }
+
+    private static class ClosureTaskAction implements Action<Task> {
+        private final Closure closure;
+
+        private ClosureTaskAction(Closure closure) {
+            this.closure = closure;
+        }
+
+        public void execute(Task task) {
+            try {
+                if (closure.getMaximumNumberOfParameters() == 0) {
+                    closure.call();
+                }
+                else {
+                    closure.call(task);
+                }
+            } catch (InvokerInvocationException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof RuntimeException) {
+                    throw (RuntimeException) cause;
+                }
+                throw e;
+            }
+        }
+    }
+
 }

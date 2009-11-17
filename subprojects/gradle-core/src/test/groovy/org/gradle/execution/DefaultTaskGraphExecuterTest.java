@@ -294,7 +294,7 @@ public class DefaultTaskGraphExecuterTest {
         final TaskExecutionListener listener = context.mock(TaskExecutionListener.class);
         final RuntimeException failure = new RuntimeException();
         final Task a = createTask("a");
-        a.doLast(new TaskAction() {
+        a.doLast(new Action<Task>() {
             public void execute(Task task) {
                 throw failure;
             }
@@ -390,7 +390,7 @@ public class DefaultTaskGraphExecuterTest {
             }
         });
         task.dependsOn((Object[]) dependsOn);
-        task.doFirst(new TaskAction() {
+        task.doFirst(new Action<Task>() {
             public void execute(Task task) {
                 executedTasks.add(task);
             }

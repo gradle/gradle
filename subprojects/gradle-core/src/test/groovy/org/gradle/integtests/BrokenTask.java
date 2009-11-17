@@ -16,13 +16,13 @@
 
 package org.gradle.integtests;
 
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
-import org.gradle.api.TaskAction;
 
 public class BrokenTask extends DefaultTask {
     public BrokenTask() {
-        doFirst(new TaskAction() {
+        doFirst(new Action<Task>() {
             public void execute(Task task) {
                 throw new RuntimeException("broken action");
             }

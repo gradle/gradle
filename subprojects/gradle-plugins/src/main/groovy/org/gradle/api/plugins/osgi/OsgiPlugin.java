@@ -47,7 +47,7 @@ public class OsgiPlugin implements Plugin {
             public void execute(final Jar jar) {
                 jar.dependsOn(jar.getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getBuildDependencies());
                 jar.setProperty("osgi", createDefaultOsgiManifest(jar.getProject()));
-                jar.doFirst(new TaskAction() {
+                jar.doFirst(new Action<Task>() {
                     public void execute(Task task) {
                         OsgiManifest osgiManifest = (OsgiManifest) jar.getAdditionalProperties().get("osgi");
                         osgiManifest.setClasspath(getDependencies(osgiManifest,

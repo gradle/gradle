@@ -50,8 +50,8 @@ import java.util.Set;
  *
  * <h3>Task Actions</h3>
  *
- * <p>A <code>Task</code> is made up of a sequence of {@link TaskAction} objects. When the task is executed, each of the
- * actions is executed in turn, by calling {@link TaskAction#execute}.  You can add actions to a task by calling {@link
+ * <p>A <code>Task</code> is made up of a sequence of {@link Action} objects. When the task is executed, each of the
+ * actions is executed in turn, by calling {@link Action#execute}.  You can add actions to a task by calling {@link
  * #doFirst(Action)} or {@link #doLast(Action)}.</p>
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
@@ -154,7 +154,7 @@ public interface Task extends Comparable<Task> {
     Project getProject();
 
     /**
-     * <p>Returns the sequence of {@link TaskAction} objects which will be executed by this task, in the order of
+     * <p>Returns the sequence of {@link Action} objects which will be executed by this task, in the order of
      * execution.</p>
      *
      * @return The task actions in the order they are executed. Returns an empty list if this task has no actions.
@@ -162,7 +162,7 @@ public interface Task extends Comparable<Task> {
     List<Action<? super Task>> getActions();
 
     /**
-     * <p>Sets the sequence of {@link org.gradle.api.TaskAction} objects which will be executed by this task.</p>
+     * <p>Sets the sequence of {@link Action} objects which will be executed by this task.</p>
      *
      * @param actions The actions.
      */
@@ -252,7 +252,7 @@ public interface Task extends Comparable<Task> {
     String getPath();
 
     /**
-     * <p>Adds the given {@link TaskAction} to the beginning of this task's action list.</p>
+     * <p>Adds the given {@link Action} to the beginning of this task's action list.</p>
      *
      * @param action The action to add
      * @return the task object this method is applied to
@@ -269,7 +269,7 @@ public interface Task extends Comparable<Task> {
     Task doFirst(Closure action);
 
     /**
-     * <p>Adds the given {@link TaskAction} to the end of this task's action list.</p>
+     * <p>Adds the given {@link Action} to the end of this task's action list.</p>
      *
      * @param action The action to add.
      * @return the task object this method is applied to

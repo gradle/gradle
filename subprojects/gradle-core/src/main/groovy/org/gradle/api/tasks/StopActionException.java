@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.gradle.api.tasks;
 import org.gradle.api.GradleException;
 
 /**
- * <p>A <code>StopActionException</code> is be thrown by a {@link org.gradle.api.TaskAction} or task action closure to
+ * <p>A <code>StopActionException</code> is be thrown by a task {@link org.gradle.api.Action} or task action closure to
  * stop its own execution and to start execution of the task's next action. An action can usually be stopped by just
  * calling return inside the action closure. But if the action works with helper methods that can lead to redundant
  * code. For example:</p>

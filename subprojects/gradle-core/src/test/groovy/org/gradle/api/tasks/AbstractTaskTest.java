@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
-import org.gradle.api.TaskAction;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.project.*;
@@ -132,8 +131,8 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDoFirst() {
-        TaskAction action1 = createTaskAction();
-        TaskAction action2 = createTaskAction();
+        Action<Task> action1 = createTaskAction();
+        Action<Task> action2 = createTaskAction();
         int actionSizeBefore = getTask().getActions().size();
         assertSame(getTask(), getTask().doFirst(action2));
         assertEquals(actionSizeBefore + 1, getTask().getActions().size());
@@ -144,8 +143,8 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDoLast() {
-        TaskAction action1 = createTaskAction();
-        TaskAction action2 = createTaskAction();
+        Action<Task> action1 = createTaskAction();
+        Action<Task> action2 = createTaskAction();
         int actionSizeBefore = getTask().getActions().size();
         assertSame(getTask(), getTask().doLast(action1));
         assertEquals(actionSizeBefore + 1, getTask().getActions().size());
@@ -156,8 +155,8 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testDeleteAllActions() {
-        TaskAction action1 = createTaskAction();
-        TaskAction action2 = createTaskAction();
+        Action<Task> action1 = createTaskAction();
+        Action<Task> action2 = createTaskAction();
         getTask().doLast(action1);
         getTask().doLast(action2);
         assertSame(getTask(), getTask().deleteAllActions());
@@ -216,7 +215,7 @@ public abstract class AbstractTaskTest {
 
     @Test(expected=GradleScriptException.class)
     public void disabledStandardOutCaptureDuringExecution() {
-        ((AbstractTask)getTask().doFirst(new TaskAction() {
+        ((AbstractTask)getTask().doFirst(new Action<Task>() {
             public void execute(Task task) {
                 task.disableStandardOutputCapture();
             }
@@ -225,7 +224,7 @@ public abstract class AbstractTaskTest {
 
     @Test(expected=GradleScriptException.class)
     public void captureStandardOutDuringExecution() {
-        ((AbstractTask)getTask().doFirst(new TaskAction() {
+        ((AbstractTask)getTask().doFirst(new Action<Task>() {
             public void execute(Task task) {
                 task.captureStandardOutput(LogLevel.DEBUG);
             }
@@ -267,8 +266,8 @@ public abstract class AbstractTaskTest {
         assertTrue(getTask().dependsOnTaskDidWork());
     }
 
-    public static TaskAction createTaskAction() {
-        return new TaskAction() {
+    public static Action<Task> createTaskAction() {
+        return new Action<Task>() {
             public void execute(Task task) {
 
             }

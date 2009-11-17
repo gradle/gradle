@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import java.io.File;
 
 public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void reportsProjectEvaulationFailsWithGroovyException() {
+    public void reportsProjectEvaluationFailsWithGroovyException() {
         ExecutionFailure failure = usingBuildScript("\ncreateTakk('do-stuff')").runWithFailure();
 
         failure.assertHasFileName("Embedded build file");
         failure.assertHasLineNumber(2);
-        failure.assertHasDescription("A problem occurred evaluating root project 'reportsProjectEvaulationFailsWithGroovyException");
-        failure.assertHasCause("Could not find method createTakk() for arguments [do-stuff] on root project 'reportsProjectEvaulationFailsWithGroovyException");
+        failure.assertHasDescription("A problem occurred evaluating root project 'reportsProjectEvaluationFailsWithGroovyException");
+        failure.assertHasCause("Could not find method createTakk() for arguments [do-stuff] on root project 'reportsProjectEvaluationFailsWithGroovyException");
     }
 
     @Test

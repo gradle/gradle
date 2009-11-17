@@ -299,7 +299,7 @@ class DefaultProjectTest {
     }
     
     @Test public void testExecutesActionBeforeEvaluation() {
-        ProjectAction listener = context.mock(ProjectAction)
+        Action<Project> listener = context.mock(Action)
         context.checking {
             one(listener).execute(project)
             one(projectEvaluator).evaluate(project)
@@ -309,7 +309,7 @@ class DefaultProjectTest {
     }
 
     @Test public void testExecutesActionAfterEvaluation() {
-        ProjectAction listener = context.mock(ProjectAction)
+        Action<Project> listener = context.mock(Action)
         context.checking {
             one(projectEvaluator).evaluate(project)
             one(listener).execute(project)
@@ -523,7 +523,7 @@ class DefaultProjectTest {
     }
 
     @Test public void testCreateTaskWithNameAndAction() {
-        TaskAction testAction = {} as TaskAction
+        Action<Task> testAction = {} as Action
         context.checking {
             one(taskContainerMock).add([name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
         }
@@ -540,7 +540,7 @@ class DefaultProjectTest {
 
     @Test public void testCreateTaskWithNameArgsAndActions() {
         Map testArgs = [a: 'b']
-        TaskAction testAction = {} as TaskAction
+        Action<Task> testAction = {} as Action
         context.checking {
             one(taskContainerMock).add(testArgs + [name: TEST_TASK_NAME, action: testAction]); will(returnValue(testTask))
         }

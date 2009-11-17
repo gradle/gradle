@@ -16,9 +16,8 @@
 
 package org.gradle.api;
 
-import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.NoConventionMapping;
+import org.gradle.api.internal.NoConventionMapping
 
 /**
  * @author Hans Dockter
@@ -29,52 +28,4 @@ class DefaultTask extends AbstractTask {
         super();
         setMetaClass(GroovySystem.getMetaClassRegistry().getMetaClass(getClass()))
     }
-
-    Task doFirst(Closure action) {
-        if (action == null) {
-            throw new InvalidUserDataException("Action must not be null!");
-        }
-        doFirst(convertClosureToAction(action));
-        return this;
-    }
-
-    Task doLast(Closure action) {
-        if (action == null) {
-            throw new InvalidUserDataException("Action must not be null!");
-        }
-        doLast(convertClosureToAction(action));
-        return this;
-    }
-
-    public Task leftShift(Closure action) {
-        return doLast(action)
-    }
-
-    Task configure(Closure closure) {
-        return (Task) ConfigureUtil.configure(closure, this);
-    }
-
-    private TaskAction convertClosureToAction(Closure actionClosure) {
-        actionClosure.setDelegate(getProject());
-        actionClosure.setResolveStrategy(Closure.OWNER_FIRST);
-        return new ClosureTaskAction(actionClosure);
-    }
-}
-
-class ClosureTaskAction implements TaskAction {
-    private final Closure closure;
-
-    def ClosureTaskAction(Closure closure) {
-        this.closure = closure;
-    }
-
-    public void execute(Task task) {
-        if (closure.maximumNumberOfParameters == 0) {
-            closure.call()
-        }
-        else {
-            closure.call(task);
-        }
-    }
-
 }
