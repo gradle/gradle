@@ -19,7 +19,6 @@ package org.gradle.api.tasks;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,14 +33,15 @@ public class Clean extends ConventionTask {
 
     private File dir;
 
-    private ExistingDirsFilter existingDirsFilter = new ExistingDirsFilter();
-
     @TaskAction
     protected void clean() {
         if (getDir() == null) {
             throw new InvalidUserDataException("The dir property must be specified!");
         }
-        existingDirsFilter.checkExistenceAndThrowStopActionIfNot(getDir());
+        if (!getDir().exists()) {
+            return;
+        }
+
         logger.debug("Deleting dir: {}", getDir());
 
         try {
@@ -57,13 +57,5 @@ public class Clean extends ConventionTask {
 
     public void setDir(File dir) {
         this.dir = dir;
-    }
-
-    public ExistingDirsFilter getExistingDirsFilter() {
-        return existingDirsFilter;
-    }
-
-    public void setExistingDirsFilter(ExistingDirsFilter existingDirsFilter) {
-        this.existingDirsFilter = existingDirsFilter;
     }
 }

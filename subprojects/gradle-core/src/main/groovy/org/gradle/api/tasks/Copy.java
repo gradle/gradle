@@ -17,6 +17,8 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.copy.FileCopyActionImpl;
+import org.gradle.api.internal.file.copy.FileCopyVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;

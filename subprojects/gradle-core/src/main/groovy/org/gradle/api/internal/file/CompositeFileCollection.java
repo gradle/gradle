@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.util.FileSet;
 
 import java.io.File;
 import java.util.*;

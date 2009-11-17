@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.copy.FileCopyVisitor;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.specs.Spec;
 import org.hamcrest.BaseMatcher;

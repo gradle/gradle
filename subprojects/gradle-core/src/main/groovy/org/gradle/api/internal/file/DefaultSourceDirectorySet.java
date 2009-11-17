@@ -20,7 +20,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.tasks.util.FileSet;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 

@@ -18,7 +18,7 @@ package org.gradle.api.testing.detection;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.tasks.util.FileSet;
+import org.gradle.api.internal.file.FileSet;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
 
 import java.io.File;

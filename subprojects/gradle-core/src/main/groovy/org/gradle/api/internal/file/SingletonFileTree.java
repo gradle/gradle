@@ -17,7 +17,6 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.*;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.util.FileSet;
 
 import java.io.File;
 import java.util.Collection;

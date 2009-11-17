@@ -20,15 +20,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.api.testing.detection.SetBuildingTestClassProcessor;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.fabric.TestFramework;
-import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.startsWith;
 import org.jmock.Expectations;
@@ -57,7 +54,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     private File reportDir;
 
     private static final Set TEST_DEPENDENCY_MANAGER_CLASSPATH = WrapUtil.toSet(new File("jar1"));
-    private List convertedClasspath;
 
     static final Set<String> okTestClassNames = new HashSet<String>(Arrays.asList("test.HumanTest", "test.CarTest"));
 
@@ -67,13 +63,11 @@ public class AntTestTest extends AbstractConventionTaskTest {
 
     TestFramework testFrameworkMock = context.mock(TestFramework.class);
     TestFrameworkInstance testFrameworkInstanceMock = context.mock(TestFrameworkInstance.class);
-    TestFrameworkDetector testFrameworkDetectorMock = context.mock(TestFrameworkDetector.class);
     TestClassScannerFactory testClassScannerFactoryMock = context.mock(TestClassScannerFactory.class);
     TestClassScanner testClassScannerMock = context.mock(TestClassScanner.class);
     SetBuildingTestClassProcessor testClassProcessorMock = context.mock(SetBuildingTestClassProcessor.class);
 
     private FileCollection classpathMock = context.mock(FileCollection.class);
-    private ExistingDirsFilter existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
 
     private AntTest test;
     private File classfile;
@@ -97,7 +91,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
         GFileUtils.touch(classfile);
         resultsDir = new File(rootDir, "resultDir");
         reportDir = new File(rootDir, "report/tests");
-        convertedClasspath = GUtil.addLists(WrapUtil.toList(classesDir), TEST_DEPENDENCY_MANAGER_CLASSPATH);
     }
 
     public ConventionTask getTask() {

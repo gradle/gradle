@@ -20,7 +20,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.tasks.util.FileSet;
 
 import java.io.File;
 import java.io.InputStream;

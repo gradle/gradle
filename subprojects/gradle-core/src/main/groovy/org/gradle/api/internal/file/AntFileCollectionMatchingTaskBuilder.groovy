@@ -1,7 +1,6 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.tasks.AntBuilderAware
-import org.gradle.api.tasks.util.FileSet
 
 class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
     private final Iterable<FileSet> fileSets

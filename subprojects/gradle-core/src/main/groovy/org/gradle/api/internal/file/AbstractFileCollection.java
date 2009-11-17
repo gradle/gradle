@@ -25,7 +25,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.util.FileSet;
 import org.gradle.util.GUtil;
 
 import java.io.File;

@@ -16,6 +16,9 @@
 package org.gradle.api.tasks.bundling;
 
 import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.archive.TarCopyAction;
+import org.gradle.api.internal.file.archive.TarCopyVisitor;
+import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;

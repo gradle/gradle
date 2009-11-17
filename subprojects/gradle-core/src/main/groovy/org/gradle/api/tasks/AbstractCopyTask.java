@@ -19,8 +19,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.CopyActionImpl;
-import org.gradle.api.internal.file.CopySpecImpl;
+import org.gradle.api.internal.file.copy.CopyActionImpl;
+import org.gradle.api.internal.file.copy.CopySpecImpl;
 import org.gradle.api.specs.Spec;
 
 import java.io.FilterReader;

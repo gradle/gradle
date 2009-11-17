@@ -18,9 +18,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.tasks.util.ExistingDirsFilter;
 import org.gradle.integtests.TestFile;
-import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;
@@ -39,14 +37,11 @@ public class CleanTest extends AbstractConventionTaskTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private ExistingDirsFilter existentDirsFilterMock;
-
     @Before
     public void setUp() {
         super.setUp();
         context.setImposteriser(ClassImposteriser.INSTANCE);
         clean = createTask(Clean.class);
-        existentDirsFilterMock = context.mock(ExistingDirsFilter.class);
     }
 
     public ConventionTask getTask() {
@@ -62,11 +57,6 @@ public class CleanTest extends AbstractConventionTaskTest {
     public void testExecute() throws IOException {
         TestFile dir = tmpDir.getDir();
         clean.setDir(dir);
-        context.checking(new Expectations() {
-            {
-                allowing(existentDirsFilterMock).checkExistenceAndThrowStopActionIfNot(clean.getDir());
-            }
-        });
         dir.file("somefile");
         clean.execute();
         assertFalse(clean.getDir().exists());

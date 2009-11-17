@@ -18,7 +18,7 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.file.CopyActionImpl;
+import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
