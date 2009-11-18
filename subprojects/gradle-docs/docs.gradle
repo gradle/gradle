@@ -76,26 +76,18 @@ task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
     }
 }
 
-task userguideStyleSheets {
-    stylesheetsDir = new File(srcDocsDir, 'stylesheets')
-    resources = fileTree {
-        from stylesheetsDir
+task userguideStyleSheets(type: Copy) {
+    File stylesheetsDir = new File(srcDocsDir, 'stylesheets')
+    into docbookDir
+    from(stylesheetsDir) {
         include '*.xsl'
-    } + fileTree {
-        from userguideSrcDir
+    }
+    from(userguideSrcDir) {
         include 'style.css'
     }
-    inputs.files configurations.userGuideStyleSheets
-    inputs.files resources
-    outputs.files docbookDir
-    doFirst {
-        ant.unzip(src: configurations.userGuideStyleSheets.singleFile, dest: docbookDir) {
-            globmapper(from: 'docbook-xsl-1.75.2/*', to: '*')
-        }
-        copy {
-            from resources
-            into docbookDir
-        }
+    from(zipTree(configurations.userGuideStyleSheets.singleFile)) {
+        // Remove the prefix
+        eachFile { fcd -> fcd.path = fcd.path.replaceFirst('^docbook-xsl-[0-9\\.]+/', '') }
     }
 }
 

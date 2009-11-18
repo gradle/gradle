@@ -19,7 +19,7 @@ dependencies {
 
 task integTest(type: AntTest, dependsOn: [ rootProject.intTestImage ]) {
     options.fork(jvmArgs: ["-ea"])
-    options.systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestDistDir.absolutePath
+    options.systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
     options.systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTest.integTestUserDir.absolutePath
     include 'org/gradle/integtests/**/*IntegrationTest.*'

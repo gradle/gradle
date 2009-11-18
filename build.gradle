@@ -142,42 +142,42 @@ gradle.taskGraph.whenReady {graph ->
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 
-task allZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:docs']) {
+binDistImage = copySpec {
+    from 'src/toplevel'
+    from project(':docs').distDocs.destFile
+    into('bin') {
+        from startScriptsDir
+        fileMode = 0755
+    }
+    into('lib') {
+        from configurations.distLib
+    }
+}
+
+allDistImage = copySpec {
+    from binDistImage
+    into('src') {
+        from groovyProjects().collect {project -> project.sourceSets.main.allSource }
+    }
+    into('docs') {
+        from project(':docs').docsDir
+    }
+    into('samples') {
+        from project(':docs').samplesDir
+    }
+}
+
+task allZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:docs', 'docs:samples']) {
     classifier = 'all'
     into(zipRootFolder) {
-        from 'src/toplevel'
-        from project(':docs').distDocs.destFile
-        into('bin') {
-            from startScriptsDir
-            fileMode = 0755
-        }
-        into('lib') {
-            from configurations.distLib
-        }
-        into('src') {
-            from groovyProjects().collect {project -> project.sourceSets.main.allSource }
-        }
-        into('docs') {
-            from project(':docs').docsDir
-        }
-        into('samples') {
-            from project(':docs').samplesDir
-        }
+        from allDistImage
     }
 }
 
 task binZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:distDocs']) {
     classifier = 'bin'
     into(zipRootFolder) {
-        from 'src/toplevel'
-        from project(':docs').distDocs.destFile
-        into('bin') {
-            from startScriptsDir
-            fileMode = 0755
-        }
-        into('lib') {
-            from configurations.distLib
-        }
+        from binDistImage
     }
 }
 
@@ -249,15 +249,13 @@ artifacts {
     }
 }
 
-task intTestImage(dependsOn: [allZip, binZip, srcZip]) {
-    integTestDistDir = file("$buildDir/integ test")
-    doFirst { task ->
-        task.integTestGradleHome = new File(integTestDistDir, "gradle-" + version.toString())
-        project.ant {
-            delete(dir: integTestDistDir)
-            unzip(dest: integTestDistDir, src: allZip.archivePath)
-            chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
-        }
+task intTestImage(type: Sync) {
+    dependsOn allZip.taskDependencies
+    from allDistImage
+    integTestGradleHome = file("$buildDir/integ test")
+    into integTestGradleHome
+    doLast { task ->
+        ant.chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
         WrapperProjectCreator.createProject(new File(integTestGradleHome, 'samples'), binZip.archivePath.parentFile, version.toString())
     }
 }
@@ -282,7 +280,7 @@ task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, 
             task.exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
         }
         task.options.systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
-        def forkArgs = [:]
+        def forkArgs
         if (noForkIntegTests()) {
             task.options.systemProperties['org.gradle.integtest.nofork'] = "true"
             forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError']]
@@ -308,8 +306,15 @@ task testedDists(dependsOn: [assemble, check, integTest])
 
 task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 
-task install(type: Install, dependsOn: binZip, description: 'Installs the distribution into directory $gradle_installPath') {
-    distribution = binZip
+task install(type: Install, description: 'Installs the minimal distribution into directory $gradle_installPath') {
+    dependsOn binZip.taskDependencies
+    from binDistImage
+    installDirProperyName = 'gradle_installPath'
+}
+
+task installAll(type: Install, description: 'Installs the full distribution into directory $gradle_installPath') {
+    dependsOn allZip.taskDependencies
+    from allDistImage
     installDirProperyName = 'gradle_installPath'
 }
 
@@ -473,27 +478,16 @@ class TranslateLibsTo14 extends DefaultTask {
     }
 }
 
-class Install extends DefaultTask {
-    // This is a private property set by the graph listener. But due to some groovy bug the property has to be public.
-    File installDir
-
-    Zip distribution
+class Install extends Sync {
 
     String installDirProperyName
+    File installDir
 
     def Install() {
         addPropertyCheck()
-    }
-
-    @org.gradle.api.tasks.TaskAction
-    void install() {
-        project.ant.delete(dir: installDir)
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            windowsInstall()
-        } else {
-            asternixInstall()
+        doLast {
+            ant.chmod(file: "$installDir/bin/gradle", perm: 'ugo+x')
         }
-        project.ant.move(file: "${installDir.parentFile}/$project.zipRootFolder", tofile: installDir)
     }
 
     private void addPropertyCheck() {
@@ -503,7 +497,7 @@ class Install extends DefaultTask {
                 if (!project.hasProperty(installDirProperyName)) {
                     throw new RuntimeException("You can't install without setting the $installDirProperyName property.")
                 }
-                this.installDir = project.file(this.project."$installDirProperyName")
+                installDir = project.file(this.project."$installDirProperyName")
                 if (installDir.file) {
                     throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
                 }
@@ -513,23 +507,8 @@ class Install extends DefaultTask {
                         throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
                     }
                 }
+                into installDir
             }
-        }
-    }
-
-    void windowsInstall() {
-        project.ant.unzip(src: distribution.archivePath, dest: installDir.parentFile)
-    }
-
-    /**
-     * We can't use the Ant unzip task, as this task does not preserve the *nix file system permissions of the Gradle zip.
-     */
-    void asternixInstall() {
-        project.ant.exec(executable: "unzip") {
-            arg(value: '-q')
-            arg(value: '-d')
-            arg(value: installDir.parentFile)
-            arg(value: "${distribution.archivePath}")
         }
     }
 }
