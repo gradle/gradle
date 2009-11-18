@@ -93,17 +93,13 @@ configure(groovyProjects()) {
 }
 
 allprojects {
-    task ide << { task ->
-        def config = task.project.configurations.findByName('testRuntime')
+    task ide(type: Sync) {
+        into file('lib')
+        def config = configurations.findByName('testRuntime')
         if (!config) {
             return
         }
-        def libDir = task.project.file('lib')
-        ant.delete(dir: libDir)
-        copy {
-            from config.copyRecursive(DependencySpecs.type(Type.EXTERNAL)).files
-            into libDir
-        }
+        from { config.copyRecursive(DependencySpecs.type(Type.EXTERNAL)).files }
     }
 }
 

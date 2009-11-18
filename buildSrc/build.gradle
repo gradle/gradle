@@ -24,11 +24,7 @@ checkstyleConfigFileName = new File(checkstyleConfigDir, 'checkstyle.xml')
 codeNarcConfigFileName = "$rootDir/../config/codenarc.xml"
 [checkstyleMain, checkstyleTest].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
 
-task ide << {
-    def libDir = file('lib')
-    ant.delete(dir: libDir)
-    copy {
-        from configurations.testRuntime.files(DependencySpecs.type(Type.EXTERNAL))
-        into libDir
-    }
+task ide(type: Sync) {
+    into file('lib')
+    from { configurations.testRuntime.files(DependencySpecs.type(Type.EXTERNAL)) }
 }
