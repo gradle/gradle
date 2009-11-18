@@ -39,13 +39,13 @@ import org.junit.runner.RunWith;
 import java.io.OutputStream;
 
 @RunWith(JMock.class)
-public class ZipCopyVisitorTest {
+public class ZipCopySpecVisitorTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ArchiveCopyAction copyAction = context.mock(ArchiveCopyAction.class);
     private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
-    private final ZipCopyVisitor visitor = new ZipCopyVisitor();
+    private final ZipCopySpecVisitor visitor = new ZipCopySpecVisitor();
 
     @Before
     public void setUp() {

@@ -39,13 +39,13 @@ import org.junit.runner.RunWith;
 import java.io.OutputStream;
 
 @RunWith(JMock.class)
-public class TarCopyVisitorTest {
+public class TarCopySpecVisitorTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TarCopyAction copyAction = context.mock(TarCopyAction.class);
     private final ReadableCopySpec copySpec = context.mock(ReadableCopySpec.class);
-    private final TarCopyVisitor visitor = new TarCopyVisitor();
+    private final TarCopySpecVisitor visitor = new TarCopySpecVisitor();
 
     @Before
     public void setUp() {

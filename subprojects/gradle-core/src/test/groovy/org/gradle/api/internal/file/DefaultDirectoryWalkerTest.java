@@ -17,9 +17,9 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.copy.FileCopyVisitor;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.internal.file.copy.CopySpecVisitor;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternSet;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -41,22 +41,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(JMock.class)
-public class BreadthFirstDirectoryWalkerTest {
+public class DefaultDirectoryWalkerTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private FileCopyVisitor visitor;
-    private BreadthFirstDirectoryWalker walker;
+    private CopySpecVisitor visitor;
+    private DirectoryWalker walker;
 
     @Before
     public void setUp() {
-        visitor = context.mock(FileCopyVisitor.class);
+        visitor = context.mock(CopySpecVisitor.class);
     }
 
     @Test public void rootDirEmpty() throws IOException {
         final MockFile root = new MockFile(context, "root", false);
 
-        walker = new BreadthFirstDirectoryWalker(visitor);
+        walker = new DefaultDirectoryWalker(visitor);
         root.setExpectations();
 
         walker.start(root.getMock());
@@ -71,12 +71,12 @@ public class BreadthFirstDirectoryWalkerTest {
             will(returnValue(spec));
         }});
 
-        walker = new BreadthFirstDirectoryWalker(visitor);
+        walker = new DefaultDirectoryWalker(visitor);
         walker.match(patternSet);
     }
 
     @Test public void walkSingleFile() throws IOException {
-        walker = new BreadthFirstDirectoryWalker(visitor);
+        walker = new DefaultDirectoryWalker(visitor);
 
         final MockFile root = new MockFile(context, "root", false);
         final MockFile fileToCopy = root.addFile("file.txt");
@@ -103,7 +103,7 @@ public class BreadthFirstDirectoryWalkerTest {
      */
     @Test public void walkBreadthFirst() throws IOException {
 
-        walker = new BreadthFirstDirectoryWalker(visitor);
+        walker = new DefaultDirectoryWalker(visitor);
 
         final MockFile root = new MockFile(context, "root", false);
         final MockFile rootFile1 = root.addFile("rootFile1");
@@ -125,9 +125,33 @@ public class BreadthFirstDirectoryWalkerTest {
         walker.start(root.getMock());
     }
 
+    @Test public void walkDepthFirst() throws IOException {
+
+        walker = new DefaultDirectoryWalker(visitor).depthFirst();
+
+        final MockFile root = new MockFile(context, "root", false);
+        final MockFile rootFile1 = root.addFile("rootFile1");
+        final MockFile dir1 = root.addDir("dir1");
+        final MockFile dirFile1 = dir1.addFile("dirFile1");
+        final MockFile dirFile2 = dir1.addFile("dirFile2");
+        final MockFile rootFile2 = root.addFile("rootFile2");
+        root.setExpectations();
+
+        final Sequence visiting = context.sequence("visiting");
+        context.checking(new Expectations() {{
+            one(visitor).visitFile(with(file(rootFile1))); inSequence(visiting);
+            one(visitor).visitFile(with(file(rootFile2))); inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile1))); inSequence(visiting);
+            one(visitor).visitFile(with(file(dirFile2))); inSequence(visiting);
+            one(visitor).visitDir(with(file(dir1))); inSequence(visiting);
+        }});
+
+        walker.start(root.getMock());
+    }
+
     @Test public void canVisitorCanStopVisit() throws IOException {
 
-        walker = new BreadthFirstDirectoryWalker(visitor);
+        walker = new DefaultDirectoryWalker(visitor);
 
         final MockFile root = new MockFile(context, "root", false);
         final MockFile rootFile1 = root.addFile("rootFile1");

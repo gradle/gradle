@@ -36,7 +36,7 @@ import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.CopySpecImpl;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopyVisitor;
+import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -860,7 +860,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public WorkResult copy(Closure closure) {
-        CopyActionImpl result = new FileCopyActionImpl(fileResolver, new FileCopyVisitor());
+        CopyActionImpl result = new FileCopyActionImpl(fileResolver, new FileCopySpecVisitor());
         configure(result,  closure);
         result.execute();
         return result;

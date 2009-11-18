@@ -23,7 +23,7 @@ import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.apache.tools.zip.UnixStat;
-import org.gradle.api.internal.file.copy.CopySpecVisitor;
+import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
 
 import java.io.File;
@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class TarCopyVisitor implements CopySpecVisitor {
+public class TarCopySpecVisitor extends EmptyCopySpecVisitor {
     private TarOutputStream tarOutStr;
     private File tarFile;
     private ReadableCopySpec spec;

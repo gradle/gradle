@@ -28,7 +28,7 @@ public class CopyActionImplTest  {
     public void setUp() {
         project = HelperUtil.createRootProject();
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        visitor = context.mock(FileCopyVisitor.class)
+        visitor = context.mock(FileCopySpecVisitor.class)
         resolver = context.mock(FileResolver.class)
         sourceFileTree = context.mock(FileTree.class)
 

@@ -28,10 +28,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
-public class NormalizingCopyVisitorTest {
+public class NormalizingCopySpecVisitorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final CopySpecVisitor delegate = context.mock(CopySpecVisitor.class);
-    private final NormalizingCopyVisitor visitor = new NormalizingCopyVisitor(delegate);
+    private final NormalizingCopySpecVisitor visitor = new NormalizingCopySpecVisitor(delegate);
 
     @Test
     public void doesNotVisitADirectoryWhichHasBeenVisitedBefore() {

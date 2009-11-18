@@ -1,7 +1,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.file.BreadthFirstDirectoryWalker
+import org.gradle.api.internal.file.DefaultDirectoryWalker
 
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
@@ -13,7 +13,7 @@ import org.gradle.api.internal.file.copy.FileCopyActionImpl
 @RunWith (org.jmock.integration.junit4.JMock)
 public class CopyTest extends AbstractTaskTest {
     Copy copyTask;
-    BreadthFirstDirectoryWalker walker;
+    DefaultDirectoryWalker walker;
     FileCopyActionImpl action;
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery();
@@ -22,7 +22,7 @@ public class CopyTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp()
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        walker = context.mock(BreadthFirstDirectoryWalker.class)
+        walker = context.mock(DefaultDirectoryWalker.class)
         action = context.mock(FileCopyActionImpl.class)
         copyTask = createTask(Copy.class)
         copyTask.copyAction = action

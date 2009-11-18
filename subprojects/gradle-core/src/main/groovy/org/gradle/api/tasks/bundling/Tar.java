@@ -17,7 +17,7 @@ package org.gradle.api.tasks.bundling;
 
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.archive.TarCopyAction;
-import org.gradle.api.internal.file.archive.TarCopyVisitor;
+import org.gradle.api.internal.file.archive.TarCopySpecVisitor;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.project.ProjectInternal;
 
@@ -68,7 +68,7 @@ public class Tar extends AbstractArchiveTask {
 
     private class TarCopyActionImpl extends CopyActionImpl implements TarCopyAction {
         public TarCopyActionImpl(FileResolver fileResolver) {
-            super(fileResolver, new TarCopyVisitor());
+            super(fileResolver, new TarCopySpecVisitor());
         }
 
         public File getArchivePath() {

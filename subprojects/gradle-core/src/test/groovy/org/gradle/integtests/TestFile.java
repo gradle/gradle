@@ -235,6 +235,7 @@ public class TestFile extends File {
     }
 
     public TestFile createFile() {
+        new TestFile(getParentFile()).createDir();
         try {
             assertTrue(isFile() || createNewFile());
         } catch (IOException e) {

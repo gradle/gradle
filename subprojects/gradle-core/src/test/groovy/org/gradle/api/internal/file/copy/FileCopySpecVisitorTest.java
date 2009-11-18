@@ -36,11 +36,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
-public class FileCopyVisitorTest {
+public class FileCopySpecVisitorTest {
     private File destDir;
     private TestFile sourceDir;
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final FileCopyVisitor visitor = new FileCopyVisitor();
+    private final FileCopySpecVisitor visitor = new FileCopySpecVisitor();
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 

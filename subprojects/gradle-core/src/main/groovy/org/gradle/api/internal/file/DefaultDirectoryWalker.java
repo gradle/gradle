@@ -41,18 +41,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author Steve Appling
  */
-public class BreadthFirstDirectoryWalker implements DirectoryWalker {
-    private static Logger logger = LoggerFactory.getLogger(BreadthFirstDirectoryWalker.class);
+public class DefaultDirectoryWalker implements DirectoryWalker {
+    private static Logger logger = LoggerFactory.getLogger(DefaultDirectoryWalker.class);
 
     private FileVisitor visitor;
     private Spec<FileTreeElement> spec;
+    private boolean depthFirst;
 
-    public BreadthFirstDirectoryWalker(FileVisitor visitor) {
+    public DefaultDirectoryWalker(FileVisitor visitor) {
         spec = Specs.satisfyAll();
         this.visitor = visitor;
     }
 
-    public BreadthFirstDirectoryWalker match(PatternSet patternSet) {
+    public DefaultDirectoryWalker match(PatternSet patternSet) {
         spec = patternSet.getAsSpec();
         return this;
     }
@@ -105,13 +106,24 @@ public class BreadthFirstDirectoryWalker implements DirectoryWalker {
         // now handle dirs
         for (int i = 0; !stopFlag.get() && i < dirs.size(); i++) {
             FileVisitDetailsImpl dir = dirs.get(i);
-            visitor.visitDir(dir);
-            walkDir(dir.getFile(), dir.getRelativePath(), stopFlag);
+            if (depthFirst) {
+                walkDir(dir.getFile(), dir.getRelativePath(), stopFlag);
+                visitor.visitDir(dir);
+            }
+            else {
+                visitor.visitDir(dir);
+                walkDir(dir.getFile(), dir.getRelativePath(), stopFlag);
+            }
         }
     }
 
     boolean isAllowed(FileTreeElement element) {
         return spec.isSatisfiedBy(element);
+    }
+
+    public DirectoryWalker depthFirst() {
+        depthFirst = true;
+        return this;
     }
 
     private static class FileVisitDetailsImpl extends DefaultFileTreeElement implements FileVisitDetails {

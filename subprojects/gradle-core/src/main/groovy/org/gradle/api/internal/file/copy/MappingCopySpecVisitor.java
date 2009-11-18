@@ -26,29 +26,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-public class MappingCopySpecVisitor implements CopySpecVisitor {
-    private final CopySpecVisitor visitor;
+public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
     private ReadableCopySpec spec;
 
     public MappingCopySpecVisitor(CopySpecVisitor visitor) {
-        this.visitor = visitor;
-    }
-
-    public void startVisit(CopyAction action) {
-        visitor.startVisit(action);
-    }
-
-    public void endVisit() {
-        visitor.endVisit();
+        super(visitor);
     }
 
     public void visitSpec(ReadableCopySpec spec) {
         this.spec = spec;
-        visitor.visitSpec(spec);
+        getVisitor().visitSpec(spec);
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
-        visitor.visitDir(new FileVisitDetailsImpl(dirDetails, spec));
+        getVisitor().visitDir(new FileVisitDetailsImpl(dirDetails, spec));
     }
 
     public void visitFile(final FileVisitDetails fileDetails) {
@@ -59,11 +50,7 @@ public class MappingCopySpecVisitor implements CopySpecVisitor {
                 return;
             }
         }
-        visitor.visitFile(details);
-    }
-
-    public boolean getDidWork() {
-        return visitor.getDidWork();
+        getVisitor().visitFile(details);
     }
 
     private static class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetails {

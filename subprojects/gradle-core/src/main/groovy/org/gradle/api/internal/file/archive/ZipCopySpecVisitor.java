@@ -15,21 +15,21 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.gradle.api.UncheckedIOException;
+import org.apache.tools.zip.UnixStat;
+import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
-import org.apache.tools.zip.ZipOutputStream;
-import org.apache.tools.zip.ZipEntry;
-import org.apache.tools.zip.UnixStat;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.internal.file.copy.CopySpecVisitor;
+import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 
-public class ZipCopyVisitor implements CopySpecVisitor {
+public class ZipCopySpecVisitor extends EmptyCopySpecVisitor {
     private ZipOutputStream zipOutStr;
     private File zipFile;
     private ReadableCopySpec spec;

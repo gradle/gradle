@@ -16,7 +16,7 @@
 package org.gradle.api.tasks.bundling;
 
 import org.gradle.api.internal.file.*;
-import org.gradle.api.internal.file.archive.ZipCopyVisitor;
+import org.gradle.api.internal.file.archive.ZipCopySpecVisitor;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -41,7 +41,7 @@ public class Zip extends AbstractArchiveTask {
 
     private class ZipCopyAction extends CopyActionImpl implements ArchiveCopyAction {
         public ZipCopyAction(FileResolver fileResolver) {
-            super(fileResolver, new ZipCopyVisitor());
+            super(fileResolver, new ZipCopySpecVisitor());
         }
 
         public File getArchivePath() {

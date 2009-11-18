@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopyVisitor;
+import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -90,13 +90,13 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     }
 
     public FileSet visit(FileVisitor visitor) {
-        BreadthFirstDirectoryWalker walker = new BreadthFirstDirectoryWalker(visitor);
+        DefaultDirectoryWalker walker = new DefaultDirectoryWalker(visitor);
         walker.match(patternSet).start(getDir());
         return this;
     }
 
     public WorkResult copy(Closure closure) {
-        CopyActionImpl action = new FileCopyActionImpl(resolver, new FileCopyVisitor());
+        CopyActionImpl action = new FileCopyActionImpl(resolver, new FileCopySpecVisitor());
         action.from(this);
         ConfigureUtil.configure(closure, action);
         action.execute();

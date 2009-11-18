@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
@@ -31,27 +30,18 @@ import java.util.Set;
  * A {@link CopySpecVisitor} which cleans up the tree as it is visited. Removes duplicate and empty directories and
  * adds in missing directories.
  */
-public class NormalizingCopyVisitor implements CopySpecVisitor {
-    private final CopySpecVisitor visitor;
+public class NormalizingCopySpecVisitor extends DelegatingCopySpecVisitor {
     private final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
     private final Map<RelativePath, FileVisitDetails> pendingDirs = new HashMap<RelativePath, FileVisitDetails>();
 
-    public NormalizingCopyVisitor(CopySpecVisitor visitor) {
-        this.visitor = visitor;
-    }
-
-    public void startVisit(CopyAction action) {
-        visitor.startVisit(action);
+    public NormalizingCopySpecVisitor(CopySpecVisitor visitor) {
+        super(visitor);
     }
 
     public void endVisit() {
         visitedDirs.clear();
         pendingDirs.clear();
-        visitor.endVisit();
-    }
-
-    public void visitSpec(ReadableCopySpec spec) {
-        visitor.visitSpec(spec);
+        getVisitor().endVisit();
     }
 
     private void maybeVisit(RelativePath path) {
@@ -63,12 +53,12 @@ public class NormalizingCopyVisitor implements CopySpecVisitor {
         if (dir == null) {
             dir = new FileVisitDetailsImpl(path);
         }
-        visitor.visitDir(dir);
+        getVisitor().visitDir(dir);
     }
 
     public void visitFile(FileVisitDetails fileDetails) {
         maybeVisit(fileDetails.getRelativePath().getParent());
-        visitor.visitFile(fileDetails);
+        getVisitor().visitFile(fileDetails);
     }
 
     public void visitDir(FileVisitDetails dirDetails) {
@@ -76,10 +66,6 @@ public class NormalizingCopyVisitor implements CopySpecVisitor {
         if (!visitedDirs.contains(path)) {
             pendingDirs.put(path, dirDetails);
         }
-    }
-
-    public boolean getDidWork() {
-        return visitor.getDidWork();
     }
 
     private static class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
