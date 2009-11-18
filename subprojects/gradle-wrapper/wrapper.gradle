@@ -2,6 +2,10 @@ usePlugin 'groovy'
 
 dependencies {
     groovy libraries.groovy_depends
+    compile project(':core')
+
+    compile libraries.commons_io
+
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }

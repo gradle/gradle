@@ -109,15 +109,18 @@ allprojects {
 
 configurations {
     dists
-    distLib {
+    runtime {
         visible = false
     }
     retrotranslatorAntTask
+    testRuntime {
+        extendsFrom runtime
+    }
 }
 
 dependencies {
     groovyProjects().each {
-        distLib project(it.path)
+        runtime project(path: it.path)
     }
 
     retrotranslatorAntTask 'net.sf.retrotranslator:retrotranslator-runtime:1.2.7@jar', 'net.sf.retrotranslator:retrotranslator-transformer:1.2.7@jar',
@@ -150,7 +153,7 @@ binDistImage = copySpec {
         fileMode = 0755
     }
     into('lib') {
-        from configurations.distLib
+        from configurations.runtime
     }
 }
 
@@ -210,7 +213,7 @@ task translateLibsTo14(type: TranslateLibsTo14) {
         onlyIf { false }
     }
     translatedLibsDir = new File(distsDir, 'retroLibs')
-    libs = configurations.distLib
+    libs = configurations.runtime
     libsToTranslate = ['logback-core', 'logback-classic', 'gradle-', 'gradle-wrapper']
 
 }
@@ -260,8 +263,6 @@ task intTestImage(type: Sync) {
     }
 }
 
-// The integtests depend on dists because of the wrapper test, and userguideSrc because of the int test generated from
-// the userguide source
 task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideSrc']) {
     integTestUserDir = file('intTestHomeDir')
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
@@ -271,7 +272,7 @@ task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, 
     include 'org/gradle/integtests/**/*IntegrationTest.*'
 
     testClassesDir = project(':core').sourceSets.test.classesDir
-    classpath = project(':core').sourceSets.test.runtimeClasspath + project(':jetty').sourceSets.test.runtimeClasspath + project(':codeQuality').sourceSets.test.runtimeClasspath
+    classpath = project(':core').sourceSets.test.runtimeClasspath + configurations.testRuntime
     testResultsDir = file('build/test-results')
     testReportDir = file('build/reports/tests')
     testSrcDirs = []

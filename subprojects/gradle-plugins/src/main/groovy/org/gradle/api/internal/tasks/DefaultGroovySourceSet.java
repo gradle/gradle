@@ -16,13 +16,13 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.tasks.GroovySourceSet;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.UnionFileTree;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
 import groovy.lang.Closure;
 

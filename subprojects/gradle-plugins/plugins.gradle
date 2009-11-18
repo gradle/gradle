@@ -4,6 +4,7 @@ dependencies {
     compile project(':core')
 
     compile libraries.slf4j_api,
+            "commons-lang:commons-lang:2.3@jar",
             "org.apache.ivy:ivy:2.1.0-rc2@jar",
             "biz.aQute:bndlib:0.0.255@jar"
 
