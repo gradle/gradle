@@ -1,9 +1,6 @@
-import org.gradle.api.DefaultTask
 import groovy.text.SimpleTemplateEngine
-import org.gradle.api.artifacts.Configuration
+
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.OutputDirectory
 
 buildscript {
     repositories {
