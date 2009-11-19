@@ -85,6 +85,11 @@
             <output args="-q list"/>
         </sample>
 
+        <para>It is important to note that the content of a file collection is evaluated lazily, when it is needed.
+            This means you can, for example, create a <literal>FileCollection</literal> that represents files which
+            will be created in the future, say, by some task. 
+        </para>
+
         <para>The <literal>files()</literal> method also accepts <classname>FileCollection</classname> instances.
             These are flattened and the contents included in the file collection.
         </para>
@@ -161,23 +166,40 @@
         <para>You can use the <apilink class="org.gradle.api.tasks.Copy"/> task to copy files. The copy task allows
             you to filter the contents of the files as they are copied, and to map the files names.
         </para>
+        <para>To use the copy task, you must provide a set of source files to copy, and a destination directory to copy
+            the files to. You specify the source files using the <apilink class="org.gradle.api.file.CopySpec" method="from"/>
+            method. To specify the destination directory, you use the <apilink class="org.gradle.api.file.CopySpec" method="into"/>
+            method.
+        </para>
         <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy task">
             <sourcefile file="build.gradle" snippet="copy-task"/>
-            <test args="copyTask copyMethod"/>
+            <test args="test"/>
         </sample>
         <para>The <literal>from()</literal> method accepts any of the arguments that the
-            <link linkend="sec:file_collections">files()</link> method does. The <literal>into()</literal> accepts
+            <link linkend="sec:file_collections">files()</link> method does. When an argument resolves to a directory,
+            everything under that directory (but not the directory itself) is recursively copied into the destination
+            directory. When an argument resolves to a file, that file is copied into the destination directory.
+            When an argument resolves to a non-existing file, that argument is ignored.
+            The <literal>into()</literal> accepts
             any of the arguments that the <link linkend="sec:locating_files">file()</link> method does. Here is another
             example:
         </para>
-        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy task">
+        <sample id="copy" dir="userguide/files/copy" title="Specifying copy task source files and destination directory">
             <sourcefile file="build.gradle" snippet="copy-task-2"/>
-            <test args="copyTask anotherCopyTask copyMethod"/>
+        </sample>
+        <para>You can select the files to copy using Ant-style include or exclude patterns, or using a closure:</para>
+        <sample id="copy" dir="userguide/files/copy" title="Selecting the files to copy">
+            <sourcefile file="build.gradle" snippet="copy-task-with-patterns"/>
         </sample>
         <para>You can also use the <apilink class="org.gradle.api.Project" method="copy"/> method to copy files. It works the
             same way as the task.</para>
         <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method">
             <sourcefile file="build.gradle" snippet="copy-method"/>
         </sample>
+    </section>
+
+    <section id="sec:archives">
+        <title>Creating ZIP and TAR archives</title>
+        <para>TBD</para>
     </section>
 </chapter>

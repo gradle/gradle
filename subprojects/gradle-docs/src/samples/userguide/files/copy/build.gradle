@@ -2,18 +2,29 @@
 task copyTask(type: Copy) {
     from 'src/main/webapp'
     into 'build/explodedWar'
-    include '**/*.html'
-    include '**/*.jsp'
-    include 'assets/**'
 }
 // END SNIPPET copy-task
 
-// START SNIPPET copy-task-2
-task anotherCopyTask(type: Copy) {
-    from 'src/main/webapp', zipTree('src/main/assets.zip')
-    into { getDestDir() }
+// START SNIPPET copy-task-with-patterns
+task copyTaskWithPatterns(type: Copy) {
+    from 'src/main/webapp'
+    into 'build/explodedWar'
     include '**/*.html'
     include '**/*.jsp'
+    exclude { details -> details.file.name.endsWith('.xml') && details.file.text.contains('staging') }
+}
+// END SNIPPET copy-task-with-patterns
+
+// START SNIPPET copy-task-2
+task anotherCopyTask(type: Copy) {
+    // Copy everything under src/main/webapp
+    from 'src/main/webapp'
+    // Copy a single file
+    from 'src/staging/index.html'
+    // Copy the contents of a Zip file
+    from zipTree('src/main/assets.zip')
+    // Determine the destination directory later
+    into { getDestDir() }
 }
 // END SNIPPET copy-task-2
 
@@ -28,7 +39,10 @@ task copyMethod << {
         into 'build/explodedWar'
         include '**/*.html'
         include '**/*.jsp'
-        include 'assets/**'
     }
 }
 // END SNIPPET copy-method
+
+task test {
+    dependsOn copyTask, copyTaskWithPatterns, anotherCopyTask, copyMethod
+}
