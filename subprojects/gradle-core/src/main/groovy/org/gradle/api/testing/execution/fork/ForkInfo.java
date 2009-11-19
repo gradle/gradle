@@ -28,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author Tom Eyckmans
  */
 public class ForkInfo {
-    private static final Logger logger = LoggerFactory.getLogger(ForkInfo.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ForkInfo.class);
 
     private final int id;
     private final Pipeline pipeline;
@@ -81,7 +81,7 @@ public class ForkInfo {
                 currentListener.starting(id);
             }
             catch ( Throwable t ) {
-                logger.warn("failed to notify fork listener of fork "+id+" starting", t);
+                LOGGER.warn("failed to notify fork listener of fork "+id+" starting", t);
             }
         }
     }
@@ -93,7 +93,7 @@ public class ForkInfo {
                 currentListener.started(id);
             }
             catch ( Throwable t ) {
-                logger.warn("failed to notify fork listener of fork "+id+" started", t);
+                LOGGER.warn("failed to notify fork listener of fork "+id+" started", t);
             }
         }
     }
@@ -106,7 +106,7 @@ public class ForkInfo {
                     currentListener.stopped(id);
             }
             catch ( Throwable t ) {
-                logger.warn("failed to notify fork listener of fork "+id+" stop", t);
+                LOGGER.warn("failed to notify fork listener of fork "+id+" stop", t);
             }
         }
     }
@@ -118,7 +118,7 @@ public class ForkInfo {
                     currentListener.failed(id, cause);
             }
             catch ( Throwable t ) {
-                logger.warn("failed to notify fork listener of fork "+id+" failure", t);
+                LOGGER.warn("failed to notify fork listener of fork "+id+" failure", t);
             }
         }
     }
@@ -131,7 +131,7 @@ public class ForkInfo {
                     currentListener.aborted(id);
             }
             catch ( Throwable t ) {
-                logger.warn("failed to notify fork aborted of fork " +id+" aborted", t);
+                LOGGER.warn("failed to notify fork aborted of fork " +id+" aborted", t);
             }
         }
     }

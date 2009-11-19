@@ -52,7 +52,7 @@ public abstract class AbstractTaskTest {
     private AbstractProject project;
 
     protected JUnit4Mockery context = new JUnit4Mockery();
-    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
+    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
 
     @Before
     public void setUp() {
@@ -70,7 +70,7 @@ public abstract class AbstractTaskTest {
     }
 
     public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = taskFactory.createTask((ProjectInternal) project,
+        Task task = TASK_FACTORY.createTask((ProjectInternal) project,
                 GUtil.map(Task.TASK_TYPE, type,
                         Task.TASK_NAME, name));
         assertTrue(type.isAssignableFrom(task.getClass()));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,7 @@ public class DefaultIvyDependencyResolverTest {
     }
 
     @Test
-    public void testResolveAndGetFilesWithMissingDependencies_shouldThrowGradleEx() throws IOException, ParseException {
+    public void testResolveAndGetFilesWithMissingDependenciesShouldThrowGradleEx() throws IOException, ParseException {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
         prepareResolveReportWithError();
@@ -179,7 +179,7 @@ public class DefaultIvyDependencyResolverTest {
     }
 
     @Test
-    public void testResolveAndRethrowFailureWithMissingDependencies_shouldThrowGradleEx() throws IOException, ParseException {
+    public void testResolveAndRethrowFailureWithMissingDependenciesShouldThrowGradleEx() throws IOException, ParseException {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
         prepareResolveReportWithError();
@@ -196,7 +196,7 @@ public class DefaultIvyDependencyResolverTest {
     }
 
     @Test
-    public void testResolveAndRethrowFailureWithNoMissingDependencies_shouldDoNothing() throws IOException, ParseException {
+    public void testResolveAndRethrowFailureWithNoMissingDependenciesShouldDoNothing() throws IOException, ParseException {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
         prepareResolveReport();

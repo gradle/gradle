@@ -53,9 +53,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
     private File resultsDir;
     private File reportDir;
 
-    private static final Set TEST_DEPENDENCY_MANAGER_CLASSPATH = WrapUtil.toSet(new File("jar1"));
-
-    static final Set<String> okTestClassNames = new HashSet<String>(Arrays.asList("test.HumanTest", "test.CarTest"));
+    static final Set<String> OK_TEST_CLASS_NAMES = new HashSet<String>(Arrays.asList("test.HumanTest", "test.CarTest"));
 
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
@@ -162,8 +160,8 @@ public class AntTestTest extends AbstractConventionTaskTest {
         context.checking(new Expectations() {{
             one(testClassScannerFactoryMock).createTestClassScanner(test, testClassProcessorMock);will(returnValue(testClassScannerMock));
             one(testClassScannerMock).executeScan();
-            one(testClassProcessorMock).getTestClassNames(); will(returnValue(okTestClassNames));
-            one(testFrameworkInstanceMock).execute(getProject(), test, okTestClassNames, new ArrayList<String>());
+            one(testClassProcessorMock).getTestClassNames(); will(returnValue(OK_TEST_CLASS_NAMES));
+            one(testFrameworkInstanceMock).execute(getProject(), test, OK_TEST_CLASS_NAMES, new ArrayList<String>());
         }});
     }
 

@@ -59,7 +59,7 @@ public class GradleLauncher {
         Configure, PopulateTaskGraph, Build
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(GradleLauncher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GradleLauncher.class);
     private static GradleLauncherFactory factory = new DefaultGradleLauncherFactory(new DefaultLoggingConfigurer(), new DefaultCommandLine2StartParameterConverter());
 
     private final GradleInternal gradle;
@@ -189,7 +189,7 @@ public class GradleLauncher {
         }
 
         // Execute build
-        logger.info(String.format("Starting build for %s.", executer.getDisplayName()));
+        LOGGER.info(String.format("Starting build for %s.", executer.getDisplayName()));
         executer.execute();
 
         assert upTo == Stage.Build;

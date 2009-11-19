@@ -83,7 +83,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     }
 
     @Test
-    public void addExternalModuleDependenciesWithSameModuleRevisionIdAndDifferentConfs_shouldBePartOfSameDependencyDescriptor() {
+    public void addExternalModuleDependenciesWithSameModuleRevisionIdAndDifferentConfsShouldBePartOfSameDependencyDescriptor() {
         final ProjectDependency dependency1 = createProjectDependency(TEST_DEP_CONF);
         final ProjectDependency dependency2 = createProjectDependency(TEST_OTHER_DEP_CONF);
 
@@ -94,13 +94,13 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
             will(returnValue(IvyUtil.createModuleRevisionId(dependency2)));
         }});
         
-        assertThataddDependenciesWithSameModuleRevisionIdAndDifferentConfs_shouldBePartOfSameDependencyDescriptor(
+        assertThataddDependenciesWithSameModuleRevisionIdAndDifferentConfsShouldBePartOfSameDependencyDescriptor(
                 dependency1, dependency2, projectDependencyDescriptorFactory
         );
     }
 
     @Test
-    public void ivyFileModuleRevisionId_shouldBeDeterminedByModuleForPublicDescriptorWithoutExtraAttributes() {
+    public void ivyFileModuleRevisionIdShouldBeDeterminedByModuleForPublicDescriptorWithoutExtraAttributes() {
         ProjectDependency projectDependency = createProjectDependency(TEST_CONF);
         Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModuleForPublicDescriptor();
         ModuleRevisionId moduleRevisionId =
@@ -112,7 +112,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     }
 
     @Test
-    public void resolveModuleRevisionId_shouldBeDeterminedByModuleForResolvePlusExtraAttributes() {
+    public void resolveModuleRevisionIdShouldBeDeterminedByModuleForResolvePlusExtraAttributes() {
         ProjectDependency projectDependency = createProjectDependency(TEST_CONF);
         Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModuleForResolve();
         ModuleRevisionId moduleRevisionId =

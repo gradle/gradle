@@ -44,7 +44,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     }
 
     @Test
-    public void testAddWithNullGroupAndNullVersion_shouldHaveEmptyStringModuleRevisionValues() {
+    public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF);
         externalModuleDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, dependency);
         DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
@@ -67,11 +67,11 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     }
 
     @Test
-    public void addExternalModuleDependenciesWithSameModuleRevisionIdAndDifferentConfs_shouldBePartOfSameDependencyDescriptor() {
+    public void addExternalModuleDependenciesWithSameModuleRevisionIdAndDifferentConfsShouldBePartOfSameDependencyDescriptor() {
         ModuleDependency dependency1 = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF);
         ModuleDependency dependency2 = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", TEST_OTHER_DEP_CONF);
 
-        assertThataddDependenciesWithSameModuleRevisionIdAndDifferentConfs_shouldBePartOfSameDependencyDescriptor(
+        assertThataddDependenciesWithSameModuleRevisionIdAndDifferentConfsShouldBePartOfSameDependencyDescriptor(
                 dependency1, dependency2, externalModuleDependencyDescriptorFactory
         );
     }

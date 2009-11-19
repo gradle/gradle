@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import java.util.Set;
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultPomFileWriterTest {
-    private File _dest = new File("build/test/test-write.xml");
+    private File dest = new File("build/test/test-write.xml");
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
@@ -60,27 +60,27 @@ public class DefaultPomFileWriterTest {
             }
         });
 
-        new DefaultPomFileWriter(writerMock).write(testPom, testConfigurations, _dest);
-        assertTrue(_dest.exists());
+        new DefaultPomFileWriter(writerMock).write(testPom, testConfigurations, dest);
+        assertTrue(dest.exists());
 
-        String wrote = FileUtils.readFileToString(_dest);
+        String wrote = FileUtils.readFileToString(dest);
         assertEquals(expectedPomText + System.getProperty("line.separator"), wrote);
     }
 
     @Before
     public void setUp() {
-        if (_dest.exists()) {
-            _dest.delete();
+        if (dest.exists()) {
+            dest.delete();
         }
-        if (!_dest.getParentFile().exists()) {
-            _dest.getParentFile().mkdirs();
+        if (!dest.getParentFile().exists()) {
+            dest.getParentFile().mkdirs();
         }
     }
 
     @After
     public void tearDown() throws Exception {
-        if (_dest.exists()) {
-            _dest.delete();
+        if (dest.exists()) {
+            dest.delete();
         }
     }
 

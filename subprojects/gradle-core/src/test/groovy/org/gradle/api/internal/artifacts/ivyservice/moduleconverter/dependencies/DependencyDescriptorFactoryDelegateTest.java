@@ -36,7 +36,7 @@ public class DependencyDescriptorFactoryDelegateTest {
     private ProjectDependency projectDependency = context.mock(ProjectDependency.class);
 
     @Test
-    public void convert_shouldDelegateToTypeSpecificFactory() {
+    public void convertShouldDelegateToTypeSpecificFactory() {
         final DependencyDescriptorFactoryInternal dependencyDescriptorFactoryInternal1 = context.mock(DependencyDescriptorFactoryInternal.class, "factory1");
         final DependencyDescriptorFactoryInternal dependencyDescriptorFactoryInternal2 = context.mock(DependencyDescriptorFactoryInternal.class, "factory2");
         context.checking(new Expectations() {{
@@ -53,7 +53,7 @@ public class DependencyDescriptorFactoryDelegateTest {
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void convert_shouldThrowExForUnknownDependencyType() {
+    public void convertShouldThrowExForUnknownDependencyType() {
         final DependencyDescriptorFactoryInternal dependencyDescriptorFactoryInternal1 = context.mock(DependencyDescriptorFactoryInternal.class, "factory1");
         context.checking(new Expectations() {{
             allowing(dependencyDescriptorFactoryInternal1).canConvert(projectDependency);

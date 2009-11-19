@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ public class ModuleDependencyFactory implements IDependencyImplementationFactory
     }
 
     private static class StringNotationParser {
-        private static final Pattern extensionSplitter = Pattern.compile("^(.+)\\@([^:]+$)");
-        
+        private static final Pattern EXTENSION_SPLITTER = Pattern.compile("^(.+)\\@([^:]+$)");
+
         public DefaultExternalModuleDependency createDependency(String notation) {
             ParsedModuleStringNotation parsedNotation = splitDescriptionIntoModuleNotationAndArtifactType(notation);
             DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency(
@@ -55,7 +55,7 @@ public class ModuleDependencyFactory implements IDependencyImplementationFactory
         }
 
         public ParsedModuleStringNotation splitDescriptionIntoModuleNotationAndArtifactType(String notation) {
-            Matcher matcher = extensionSplitter.matcher(notation);
+            Matcher matcher = EXTENSION_SPLITTER.matcher(notation);
             boolean hasArtifactType = matcher.matches();
             if (hasArtifactType) {
                 if (matcher.groupCount() != 2) {

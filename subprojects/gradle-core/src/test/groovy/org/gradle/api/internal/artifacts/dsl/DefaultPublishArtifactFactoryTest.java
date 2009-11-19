@@ -44,12 +44,12 @@ public class DefaultPublishArtifactFactoryTest {
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void createArtifactWithNullNotation_shouldThrowInvalidUserDataEx() {
+    public void createArtifactWithNullNotationShouldThrowInvalidUserDataEx() {
         publishArtifactFactory.createArtifact(null);
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void createArtifactWithUnknownNotation_shouldThrowInvalidUserDataEx() {
+    public void createArtifactWithUnknownNotationShouldThrowInvalidUserDataEx() {
         publishArtifactFactory.createArtifact(new Point(1,2));
     }
 }

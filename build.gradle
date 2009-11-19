@@ -1,6 +1,5 @@
 import java.text.SimpleDateFormat
 import java.util.jar.Attributes
-import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.artifacts.repositories.WebdavResolver
 
 import org.gradle.build.samples.WrapperProjectCreator
@@ -89,16 +88,25 @@ configure(groovyProjects()) {
     checkstyleConfigDir = "$rootDir/config/checkstyle"
     checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
     codeNarcConfigFileName = "$rootDir/config/codenarc.xml"
-    [checkstyleMain, checkstyleTest].each { it.properties.checkstyleConfigDir = checkstyleConfigDir }
+    checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
+
+    sourceSets.allObjects { sourceSet ->
+        task "${sourceSet.getCompileTaskName('groovy').replaceAll('compile', 'checkstyle')}"(type: Checkstyle) {
+            configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
+            source sourceSet.allGroovy
+            classpath = sourceSet.compileClasspath
+            resultFile = new File(checkstyleResultsDir, "${sourceSet.name}.xml")
+        }
+    }
 }
 
 allprojects {
+    def config = configurations.findByName('testRuntime')
+    if (!config) {
+        return
+    }
     task ide(type: Sync) {
         into file('lib')
-        def config = configurations.findByName('testRuntime')
-        if (!config) {
-            return
-        }
         from { config.copyRecursive(DependencySpecs.type(Type.EXTERNAL)).files }
     }
 }
@@ -380,7 +388,7 @@ class Version {
         } else {
             boolean uptodate = true
             def modified = timestampFile.lastModified()
-            project.project(':core').fileTree('src').visit {fte ->
+            project.project(':core').fileTree('src/main').visit {fte ->
                 if (fte.file.isFile() && fte.lastModified > modified) {
                     uptodate = false
                     fte.stopVisiting()

@@ -45,12 +45,12 @@ public abstract class AbstractModuleFactoryTest {
     protected abstract ExternalDependency createDependency(Object notation);
 
     @Test(expected = IllegalDependencyNotation.class)
-    public void testStringNotationWithOneElementString_shouldThrowInvalidUserDataEx() {
+    public void testStringNotationWithOneElementStringShouldThrowInvalidUserDataEx() {
         createDependency("singlestring");
     }
 
     @Test(expected = IllegalDependencyNotation.class)
-    public void testUnknownType_shouldThrowInvalidUserDataEx() {
+    public void testUnknownTypeShouldThrowInvalidUserDataEx() {
         createDependency(new Point(3, 4));
     }
 

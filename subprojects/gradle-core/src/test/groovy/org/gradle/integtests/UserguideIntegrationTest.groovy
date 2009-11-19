@@ -191,3 +191,12 @@ class UserguideIntegrationTest {
         return new File(pathName);
     }
 }
+
+class GradleRun {
+    String id
+    List execute = []
+    String subDir
+    Map envs = [:]
+    String outputFile
+    boolean expectFailure
+}

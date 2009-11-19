@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class TestServerClientHandle {
-    private static final Logger logger = LoggerFactory.getLogger(TestServerClientHandle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestServerClientHandle.class);
 
     private final Pipeline pipeline;
     private final int forkId;

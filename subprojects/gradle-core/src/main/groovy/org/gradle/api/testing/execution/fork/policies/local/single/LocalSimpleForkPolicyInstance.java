@@ -41,7 +41,7 @@ import java.io.File;
  * @author Tom Eyckmans
  */
 public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
-    private static final Logger logger = LoggerFactory.getLogger(LocalSimpleForkPolicyInstance.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalSimpleForkPolicyInstance.class);
 
     private final Pipeline pipeline;
     private final ForkControl forkControl;
@@ -68,7 +68,7 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
         final int pipelineId = pipeline.getId();
         final int amountToStart = ((LocalSimpleForkPolicyConfig)pipeline.getConfig().getForkPolicyConfig()).getAmountToStart();
 
-        logger.warn("Setting up test server & fork for pipeline {}", pipelineId);
+        LOGGER.warn("Setting up test server & fork for pipeline {}", pipelineId);
 
         final PipelineDispatcher pipelineDispatcher = new PipelineDispatcher(pipeline, new TestServerClientHandleFactory(forkControl));
         pipeline.setDispatcher(pipelineDispatcher);

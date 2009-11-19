@@ -41,7 +41,7 @@ import java.io.IOException;
  */
 public class OutputTab extends OutputPanel {
 
-    private static final Logger logger = Logging.getLogger(OutputTab.class);
+    private static final Logger LOGGER = Logging.getLogger(OutputTab.class);
 
     private JPanel mainPanel;
     private JLabel mainTextLabel;
@@ -87,7 +87,7 @@ public class OutputTab extends OutputPanel {
              return image;
           }
           catch ( IOException e) {
-              logger.error("Reading image " + imageResourceName, e);
+              LOGGER.error("Reading image " + imageResourceName, e);
           }
        }
 

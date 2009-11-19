@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import java.util.Properties;
  * @author Hans Dockter
  */
 public class BuildLoader {
-    private static final Logger logger = LoggerFactory.getLogger(BuildLoader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildLoader.class);
 
     private final IProjectFactory projectFactory;
 
@@ -50,11 +50,11 @@ public class BuildLoader {
      */
     public void load(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle,
                      Map<String, String> externalProjectProperties) {
-        logger.debug("Loading Project objects");
+        LOGGER.debug("Loading Project objects");
         Clock clock = new Clock();
         createProjects(rootProjectDescriptor, gradle, externalProjectProperties);
         attachDefaultProject(gradle);
-        logger.debug("Timing: Loading projects took: " + clock.getTime());
+        LOGGER.debug("Timing: Loading projects took: " + clock.getTime());
     }
 
     private void attachDefaultProject(GradleInternal gradle) {
@@ -90,13 +90,13 @@ public class BuildLoader {
     private void addPropertiesToProject(Map<String, String> externalProperties, ProjectInternal project) {
         Properties projectProperties = new Properties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
-        logger.debug("Looking for project properties from: {}", projectPropertiesFile);
+        LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
         if (projectPropertiesFile.isFile()) {
             projectProperties = GUtil.loadProperties(projectPropertiesFile);
-            logger.debug("Adding project properties (if not overwritten by user properties): {}",
+            LOGGER.debug("Adding project properties (if not overwritten by user properties): {}",
                     projectProperties.keySet());
         } else {
-            logger.debug("project property file does not exists. We continue!");
+            LOGGER.debug("project property file does not exists. We continue!");
         }
         projectProperties.putAll(externalProperties);
         for (Object key : projectProperties.keySet()) {

@@ -20,8 +20,6 @@ import org.gradle.api.testing.execution.control.client.transport.IoConnectorFact
 import org.gradle.api.testing.execution.control.messages.TestControlMessage;
 import org.gradle.api.testing.execution.fork.ForkExecuter;
 import org.gradle.util.ThreadUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -32,8 +30,6 @@ import java.util.concurrent.TimeUnit;
  * @author Tom Eyckmans
  */
 public class TestForkExecuter implements ForkExecuter {
-    private static final Logger logger = LoggerFactory.getLogger(TestForkExecuter.class);
-
     private ClassLoader sharedClassLoader;
     private ClassLoader controlClassLoader;
     private ClassLoader sandboxClassLoader;

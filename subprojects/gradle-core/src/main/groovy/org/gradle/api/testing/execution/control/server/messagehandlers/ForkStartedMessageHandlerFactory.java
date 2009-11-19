@@ -27,10 +27,10 @@ import java.util.List;
  * @author Tom Eyckmans
  */
 public class ForkStartedMessageHandlerFactory implements TestControlMessageHandlerFactory {
-    private static final List<Class> supportedMessageClasses = Arrays.asList((Class) ForkStartedMessage.class);
+    private static final List<Class> SUPPORTED_MESSAGE_CLASSES = Arrays.asList((Class) ForkStartedMessage.class);
 
     public List<Class> getMessageClasses() {
-        return supportedMessageClasses;
+        return SUPPORTED_MESSAGE_CLASSES;
     }
 
     public TestControlMessageHandler createTestControlMessageHandler(PipelineDispatcher pipelineDispatcher) {

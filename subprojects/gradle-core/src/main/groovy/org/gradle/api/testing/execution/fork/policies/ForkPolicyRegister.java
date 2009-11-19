@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Tom Eyckmans
  */
 public class ForkPolicyRegister {
-    private static final Map<ForkPolicyName, ForkPolicy> splitPolicies = new ConcurrentHashMap<ForkPolicyName, ForkPolicy>();
+    private static final Map<ForkPolicyName, ForkPolicy> SPLIT_POLICIES = new ConcurrentHashMap<ForkPolicyName, ForkPolicy>();
 
     static {
         registerForkPolicy(new LocalSimpleForkPolicy());
@@ -36,15 +36,15 @@ public class ForkPolicyRegister {
         final ForkPolicyName forkPolicyName = forkPolicy.getName();
 
         if (forkPolicyName == null) throw new IllegalArgumentException("forkPolicy.name == null!");
-        if (splitPolicies.containsKey(forkPolicyName))
+        if (SPLIT_POLICIES.containsKey(forkPolicyName))
             throw new IllegalArgumentException("split polciy (" + forkPolicyName + ") already registered!");
 
-        splitPolicies.put(forkPolicyName, forkPolicy);
+        SPLIT_POLICIES.put(forkPolicyName, forkPolicy);
     }
 
     public static ForkPolicy getForkPolicy(final ForkPolicyName forkPolicyName) {
         if (forkPolicyName == null) throw new IllegalArgumentException("forkPolicyName == null!");
 
-        return splitPolicies.get(forkPolicyName);
+        return SPLIT_POLICIES.get(forkPolicyName);
     }
 }

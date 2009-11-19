@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class ForkControl {
-    private static final Logger logger = LoggerFactory.getLogger(ForkControl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ForkControl.class);
 
     private final Lock forkControlLock;
     private final AtomicInteger forkIdSeq;

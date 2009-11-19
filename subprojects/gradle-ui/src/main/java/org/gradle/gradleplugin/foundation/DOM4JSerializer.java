@@ -41,7 +41,7 @@ import java.io.IOException;
  * @author mhunsicker
  */
 public class DOM4JSerializer {
-    private static final Logger logger = Logging.getLogger(DOM4JSerializer.class);
+    private static final Logger LOGGER = Logging.getLogger(DOM4JSerializer.class);
 
     /**
         Implement this when you export a file. This allows to interactively ask
@@ -88,7 +88,7 @@ public class DOM4JSerializer {
             fileOutputStream = new FileOutputStream(file);
         }
         catch (FileNotFoundException e) {
-            logger.error("Could not write to file: " + file.getAbsolutePath(), e);
+            LOGGER.error("Could not write to file: " + file.getAbsolutePath(), e);
             exportInteraction.reportError("Could not write to file: " + file.getAbsolutePath());
             return;
         }
@@ -105,13 +105,13 @@ public class DOM4JSerializer {
                     serializable.serializeOut(settingsNode);
                 }
                 catch (Exception e) {
-                    logger.error("serializing", e);
+                    LOGGER.error("serializing", e);
                 }
             }
             xmlWriter.write(document);
         }
         catch (Throwable t) {
-            logger.error("Failed to save", t);
+            LOGGER.error("Failed to save", t);
             exportInteraction.reportError("Internal error. Failed to save.");
         }
         finally {
@@ -129,7 +129,7 @@ public class DOM4JSerializer {
             fileOutputStream = new FileOutputStream(file);
         }
         catch (FileNotFoundException e) {
-            logger.error("Could not write to file: " + file.getAbsolutePath(), e);
+            LOGGER.error("Could not write to file: " + file.getAbsolutePath(), e);
             exportInteraction.reportError("Could not write to file: " + file.getAbsolutePath());
             return;
         }
@@ -144,7 +144,7 @@ public class DOM4JSerializer {
             xmlWriter.write(document);
         }
         catch (Throwable t) {
-            logger.error("Internal error. Failed to save.", t);
+            LOGGER.error("Internal error. Failed to save.", t);
             exportInteraction.reportError("Internal error. Failed to save.");
         }
         finally {
@@ -214,7 +214,7 @@ public class DOM4JSerializer {
                 serializable.serializeIn(settings);
             }
             catch (Exception e) {
-                logger.error("importing file", e);
+                LOGGER.error("importing file", e);
             }
         }
 
@@ -238,7 +238,7 @@ public class DOM4JSerializer {
             return new DOM4JSettingsNode(document.getRootElement());
         }
         catch (Throwable t) {
-            logger.error("Unable to read file: " + file.getAbsolutePath(), t);
+            LOGGER.error("Unable to read file: " + file.getAbsolutePath(), t);
             importInteraction.reportError("Unable to read file: " + file.getAbsolutePath());
             return null;
         }
@@ -250,7 +250,7 @@ public class DOM4JSerializer {
                 closeable.close();
         }
         catch (IOException e) {
-            logger.error("Closing", e);
+            LOGGER.error("Closing", e);
         }
     }
 

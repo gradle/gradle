@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TestClientIoHandler extends IoHandlerAdapter {
 
-    private final static Logger logger = LoggerFactory.getLogger(TestClientIoHandler.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(TestClientIoHandler.class);
 
     private final BlockingQueueItemProducer<TestControlMessage> testControlMessageProducer;
 
@@ -47,14 +47,14 @@ public class TestClientIoHandler extends IoHandlerAdapter {
             if (TestControlMessage.class.isAssignableFrom(messageClass)) {
                 testControlMessageProducer.produce((TestControlMessage) message);
             } else {
-                logger.warn("received an unsupported message of type {}", messageClass);
+                LOGGER.warn("received an unsupported message of type {}", messageClass);
             }
         }
     }
 
     @Override
     public void sessionIdle(IoSession session, IdleStatus status) {
-        logger.info("Disconnecting the idle.");
+        LOGGER.info("Disconnecting the idle.");
         // disconnect an idle client
         session.close(true);
 
@@ -64,7 +64,7 @@ public class TestClientIoHandler extends IoHandlerAdapter {
     @Override
     public void exceptionCaught(IoSession session, Throwable cause) {
         // close the connection on exceptional situation
-        logger.error("Client error", cause);
+        LOGGER.error("Client error", cause);
         session.close(true);
     }
 }

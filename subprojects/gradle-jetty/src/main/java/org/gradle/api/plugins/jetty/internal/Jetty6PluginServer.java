@@ -37,10 +37,10 @@ import org.slf4j.LoggerFactory;
  * <p/>
  * Jetty6 version of a wrapper for the Server class.
  */
-public class Jetty6PluginServer implements org.gradle.api.plugins.jetty.internal.JettyPluginServer {
-    private static Logger logger = LoggerFactory.getLogger(Jetty6PluginServer.class);
+public class Jetty6PluginServer implements JettyPluginServer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Jetty6PluginServer.class);
 
-    public static int DEFAULT_MAX_IDLE_TIME = 30000;
+    public static final int DEFAULT_MAX_IDLE_TIME = 30000;
     private Server server;
     private ContextHandlerCollection contexts; //the list of ContextHandlers
     HandlerCollection handlers; //the list of lists of Handlers
@@ -48,7 +48,6 @@ public class Jetty6PluginServer implements org.gradle.api.plugins.jetty.internal
     private DefaultHandler defaultHandler; //default handler
 
     private RequestLog requestLog; //the particular request log implementation
-
 
     public Jetty6PluginServer() {
         this.server = new Server();
@@ -66,7 +65,7 @@ public class Jetty6PluginServer implements org.gradle.api.plugins.jetty.internal
 
         for (int i = 0; i < connectors.length; i++) {
             Connector connector = (Connector) connectors[i];
-            logger.debug("Setting Connector: " + connector.getClass().getName() + " on port " + connector.getPort());
+            LOGGER.debug("Setting Connector: " + connector.getClass().getName() + " on port " + connector.getPort());
             this.server.addConnector(connector);
         }
     }
@@ -109,7 +108,7 @@ public class Jetty6PluginServer implements org.gradle.api.plugins.jetty.internal
      * @see org.gradle.api.plugins.jetty.internal.JettyPluginServer#start()
      */
     public void start() throws Exception {
-        logger.info("Starting jetty " + this.server.getClass().getPackage().getImplementationVersion() + " ...");
+        LOGGER.info("Starting jetty " + this.server.getClass().getPackage().getImplementationVersion() + " ...");
         this.server.start();
     }
 

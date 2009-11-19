@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,13 +41,13 @@ public class DefaultModuleDescriptorFactoryForClientModuleTest {
                 new DefaultModuleDescriptorFactoryForClientModule();
         clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactorySpy);
         ModuleDependency dependencyMock = context.mock(ModuleDependency.class);
-        final ModuleRevisionId TEST_MODULE_REVISION_ID = ModuleRevisionId.newInstance("org", "name", "version");
+        final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance("org", "name", "version");
 
         ModuleDescriptor moduleDescriptor = clientModuleDescriptorFactory.createModuleDescriptor(
-                TEST_MODULE_REVISION_ID,
+                moduleRevisionId,
                 WrapUtil.toSet(dependencyMock));
 
-        assertThat(moduleDescriptor.getModuleRevisionId(), equalTo(TEST_MODULE_REVISION_ID));
+        assertThat(moduleDescriptor.getModuleRevisionId(), equalTo(moduleRevisionId));
         assertThatDescriptorHasOnlyDefaultConfiguration(moduleDescriptor);
         assertCorrectCallToDependencyDescriptorFactory(dependencyDescriptorFactorySpy, Dependency.DEFAULT_CONFIGURATION, moduleDescriptor, dependencyMock);
     }

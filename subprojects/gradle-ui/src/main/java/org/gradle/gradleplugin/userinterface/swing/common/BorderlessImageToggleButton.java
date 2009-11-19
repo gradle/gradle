@@ -57,7 +57,7 @@ public class BorderlessImageToggleButton extends JToggleButton
    private void init( Icon icon )
    {
       this.setBorder( BorderlessUtility.DEFAULT_BORDER );
-      BorderlessUtility.DEFAULT_BACKGROUND = this.getBackground();
+      BorderlessUtility.defaultBackground = this.getBackground();
       this.addMouseListener( new HighlightMouseListener() );
 
       setText( null );
@@ -136,7 +136,7 @@ public class BorderlessImageToggleButton extends JToggleButton
 
       public void mouseExited( MouseEvent event )
       {
-         BorderlessImageToggleButton.this.setBackground( BorderlessUtility.DEFAULT_BACKGROUND );
+         BorderlessImageToggleButton.this.setBackground( BorderlessUtility.defaultBackground);
 
          if( BorderlessImageToggleButton.this.isSelected() )
             BorderlessImageToggleButton.this.setBorder( selectedBorder );

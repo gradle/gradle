@@ -24,7 +24,7 @@ import java.util.Map;
  * A {@link ITaskFactory} which wires the dependencies of a task based on its input files.
  */
 public class DependencyAutoWireTaskFactory implements ITaskFactory {
-    public static String DEPENDENCY_AUTO_WIRE = "dependencyAutoWire";
+    public static final String DEPENDENCY_AUTO_WIRE = "dependencyAutoWire";
     private final ITaskFactory taskFactory;
 
     public DependencyAutoWireTaskFactory(ITaskFactory taskFactory) {

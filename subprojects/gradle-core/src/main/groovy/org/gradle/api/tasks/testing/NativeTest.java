@@ -39,7 +39,7 @@ import java.util.Map;
  * @author Tom Eyckmans
  */
 public class NativeTest extends AbstractTestTask {
-    private static final Logger logger = LoggerFactory.getLogger(NativeTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NativeTest.class);
 
     private long reforkEvery = -1; // Don't refork
 

@@ -30,11 +30,13 @@ import java.util.HashMap;
  */
 public class JUnitTestFramework extends AbstractTestFramework {
 
-    private static final Map<TestMethodProcessResultState, TestMethodProcessResultState> methodProcessResultStateMapping = new HashMap<TestMethodProcessResultState, TestMethodProcessResultState>();
+    private static final Map<TestMethodProcessResultState, TestMethodProcessResultState>
+            METHOD_PROCESS_RESULT_STATE_MAPPING = new HashMap<TestMethodProcessResultState, TestMethodProcessResultState>();
+
     static {
-        methodProcessResultStateMapping.put(JUnitTestMethodProcessResultStates.SUCCESS, TestMethodProcessResultStates.SUCCESS);
-        methodProcessResultStateMapping.put(JUnitTestMethodProcessResultStates.FAILURE, TestMethodProcessResultStates.FAILURE);
-        methodProcessResultStateMapping.put(JUnitTestMethodProcessResultStates.ERROR, TestMethodProcessResultStates.ERROR);
+        METHOD_PROCESS_RESULT_STATE_MAPPING.put(JUnitTestMethodProcessResultStates.SUCCESS, TestMethodProcessResultStates.SUCCESS);
+        METHOD_PROCESS_RESULT_STATE_MAPPING.put(JUnitTestMethodProcessResultStates.FAILURE, TestMethodProcessResultStates.FAILURE);
+        METHOD_PROCESS_RESULT_STATE_MAPPING.put(JUnitTestMethodProcessResultStates.ERROR, TestMethodProcessResultStates.ERROR);
     }
     public JUnitTestFramework() {
         super("junit", "JUnit");
@@ -49,6 +51,6 @@ public class JUnitTestFramework extends AbstractTestFramework {
     }
 
     public Map<TestMethodProcessResultState, TestMethodProcessResultState> getMethodProcessResultStateMapping() {
-        return methodProcessResultStateMapping;
+        return METHOD_PROCESS_RESULT_STATE_MAPPING;
     }
 }

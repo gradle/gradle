@@ -27,7 +27,7 @@ import java.io.File;
  * @author Tom Eyckmans
  */
 class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetecter> {
-    private static final Logger logger = LoggerFactory.getLogger(TestNGDetector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestNGDetector.class);
 
     TestNGDetector(File testClassesDirectory, FileCollection testClasspath) {
         super(testClassesDirectory, testClasspath);
@@ -63,7 +63,7 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
             if (superClassFile != null) {
                 isTest = processSuperClass(superClassFile);
             } else
-                logger.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
+                LOGGER.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
         }
 
         publishTestClass(isTest, classVisitor, superClass);

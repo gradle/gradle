@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class AntTest extends AbstractTestTask {
-    private static final Logger logger = LoggerFactory.getLogger(AntTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AntTest.class);
 
     private TestClassScannerFactory testClassScannerFactory;
     private SetBuildingTestClassProcessor testClassProcessor;
@@ -75,7 +75,7 @@ public class AntTest extends AbstractTestTask {
         if (!(toUseIncludes.isEmpty() && toUseExcludes.isEmpty()))
             testFrameworkInstance.execute(getProject(), this, toUseIncludes, toUseExcludes);
         else // when there are no includes/excludes -> don't execute test framework
-            logger.debug("skipping test execution, because no tests were found");
+            LOGGER.debug("skipping test execution, because no tests were found");
         // TestNG execution fails when there are no tests
         // JUnit execution doesn't fail when there are no tests
 

@@ -35,7 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class TestOrchestrator {
-    private static final Logger logger = LoggerFactory.getLogger(TestOrchestrator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestOrchestrator.class);
     /**
      * The test task that has the configuration that needs to be used by this test orchestrator.
      */
@@ -44,7 +44,6 @@ public class TestOrchestrator {
 
     private final Lock initLock;
     private TestOrchestratorContext context;
-
 
     /**
      * Initialize a test orchestrator with the test task that needs to be run and the default test orchestrator factory
@@ -138,7 +137,7 @@ public class TestOrchestrator {
 
                 testDetectionOrchestrator.startDetection();
                 reportsManager.startReporting();
-                logger.debug("test - detection & reporting - started");
+                LOGGER.debug("test - detection & reporting - started");
             }
         });
 
@@ -148,7 +147,7 @@ public class TestOrchestrator {
                 final PipelinesManager pipelinesManager = context.getPipelinesManager();
 
                 pipelineSplitOrchestrator.startPipelineSplitting(pipelinesManager);
-                logger.debug("test - pipeline splitting - started");
+                LOGGER.debug("test - pipeline splitting - started");
             }
         });
 
@@ -157,7 +156,7 @@ public class TestOrchestrator {
                 final TestDetectionOrchestrator testDetectionOrchestrator = context.getTestDetectionOrchestrator();
 
                 testDetectionOrchestrator.waitForDetectionEnd();
-                logger.debug("test - detection - ended");
+                LOGGER.debug("test - detection - ended");
             }
         });
 
@@ -168,7 +167,7 @@ public class TestOrchestrator {
 
                 pipelineSplitOrchestrator.waitForPipelineSplittingEnded();
                 pipelinesManager.pipelineSplittingEnded();
-                logger.debug("test - pipeline splitting - ended");
+                LOGGER.debug("test - pipeline splitting - ended");
             }
         });
 
@@ -196,6 +195,6 @@ public class TestOrchestrator {
             currentAction.execute(context);
         }
 
-        logger.debug("test - execution - ended");
+        LOGGER.debug("test - execution - ended");
     }
 }

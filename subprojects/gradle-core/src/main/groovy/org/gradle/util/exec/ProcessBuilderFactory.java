@@ -29,20 +29,20 @@ import java.util.ArrayList;
  * @author Tom Eyckmans
  */
 public class ProcessBuilderFactory {
-    private static final Logger logger = LoggerFactory.getLogger(ProcessBuilderFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessBuilderFactory.class);
 
     public ProcessBuilder createProcessBuilder(ExecHandle execHandle) {
         final List<String> commandWithArguments = new ArrayList<String>();
         final String command = execHandle.getCommand();
-        if (logger.isDebugEnabled()) {
-            logger.debug("creating process builder for command {}", command);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("creating process builder for command {}", command);
         }
         commandWithArguments.add(command);
         final List<String> arguments = execHandle.getArguments();
-        if (logger.isDebugEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             int argumentIndex = 0;
             for ( String argument : arguments ) {
-                logger.debug("with argument#{} = {}", argumentIndex, argument);
+                LOGGER.debug("with argument#{} = {}", argumentIndex, argument);
                 argumentIndex++;
             }
         }

@@ -45,7 +45,7 @@ import java.lang.reflect.Method;
  * @author mhunsicker
  */
 public class Utility {
-    private static final Logger logger = Logging.getLogger(Utility.class);
+    private static final Logger LOGGER = Logging.getLogger(Utility.class);
 
     public static Component addLeftJustifiedComponent(Component component) {
         JPanel panel = new JPanel();
@@ -105,7 +105,7 @@ public class Utility {
             //we're not requiring 1.6, so its not a problem if we don't find the method. We just don't get this feature.
         }
         catch (Exception e) {
-            logger.error("Setting tab component", e);
+            LOGGER.error("Setting tab component", e);
         }
     }
 
@@ -132,7 +132,7 @@ public class Utility {
                     button = new BorderlessImageButton( action, new ImageIcon(image) );
                 }
                 catch (IOException e) {
-                    logger.error("Reading image " + imageResourceName, e);
+                    LOGGER.error("Reading image " + imageResourceName, e);
                 }
             }
         }
@@ -159,7 +159,7 @@ public class Utility {
                     button = new BorderlessImageToggleButton( action, new ImageIcon(image) );
                 }
                 catch (IOException e) {
-                    logger.error("Reading image " + imageResourceName, e);
+                    LOGGER.error("Reading image " + imageResourceName, e);
                 }
             }
         }

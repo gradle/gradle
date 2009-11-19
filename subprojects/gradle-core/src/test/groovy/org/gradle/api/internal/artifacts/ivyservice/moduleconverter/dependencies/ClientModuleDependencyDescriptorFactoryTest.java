@@ -80,7 +80,7 @@ public class ClientModuleDependencyDescriptorFactoryTest extends AbstractDepende
     }
 
     @Test
-    public void testAddWithNullGroupAndNullVersion_shouldHaveEmptyStringModuleRevisionValues() {
+    public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ClientModule clientModule = new DefaultClientModule(null, "gradle-core", null, TEST_DEP_CONF);
         final ModuleRevisionId testModuleRevisionId = IvyUtil.createModuleRevisionId(
                 clientModule, WrapUtil.toMap(ClientModule.CLIENT_MODULE_KEY, clientModule.getId()));

@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Tom Eyckmans
  */
 public class SplitPolicyRegister {
-    private static final Map<SplitPolicyName, SplitPolicy> splitPolicies = new ConcurrentHashMap<SplitPolicyName, SplitPolicy>();
+    private static final Map<SplitPolicyName, SplitPolicy> SPLIT_POLICIES = new ConcurrentHashMap<SplitPolicyName, SplitPolicy>();
 
     static {
         registerSplitPolicy(new SingleSplitPolicy());
@@ -36,15 +36,15 @@ public class SplitPolicyRegister {
         final SplitPolicyName splitPolicyName = splitPolicy.getName();
 
         if (splitPolicyName == null) throw new IllegalArgumentException("splitPolicy.name == null!");
-        if (splitPolicies.containsKey(splitPolicyName))
+        if (SPLIT_POLICIES.containsKey(splitPolicyName))
             throw new IllegalArgumentException("split polciy (" + splitPolicyName + ") already registered!");
 
-        splitPolicies.put(splitPolicyName, splitPolicy);
+        SPLIT_POLICIES.put(splitPolicyName, splitPolicy);
     }
 
     public static SplitPolicy getSplitPolicy(final SplitPolicyName splitPolicyName) {
         if (splitPolicyName == null) throw new IllegalArgumentException("splitPolicyName == null!");
 
-        return splitPolicies.get(splitPolicyName);
+        return SPLIT_POLICIES.get(splitPolicyName);
     }
 }

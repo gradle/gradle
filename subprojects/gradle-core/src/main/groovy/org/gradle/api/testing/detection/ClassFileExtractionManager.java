@@ -33,7 +33,7 @@ import java.util.*;
  * @author Tom Eyckmans
  */
 public class ClassFileExtractionManager {
-    private static final Logger logger = LoggerFactory.getLogger(ClassFileExtractionManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClassFileExtractionManager.class);
     protected final Map<String, Set<File>> packageJarFilesMappings;
     protected final Map<String, File> extractedJarClasses;
     protected final Set<String> unextractableClasses;
@@ -116,7 +116,7 @@ public class ClassFileExtractionManager {
             }
 
             if (classFileExtracted) {
-                logger.debug("extracted class {} from {}", className, classFileSourceJar.getName());
+                LOGGER.debug("extracted class {} from {}", className, classFileSourceJar.getName());
 
                 extractedJarClasses.put(className, extractedClassFile);
             }

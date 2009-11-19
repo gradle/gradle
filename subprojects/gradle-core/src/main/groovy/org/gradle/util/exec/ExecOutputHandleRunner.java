@@ -27,7 +27,7 @@ import java.io.InputStreamReader;
  * @author Tom Eyckmans
  */
 public class ExecOutputHandleRunner implements Runnable {
-    private final static Logger logger = LoggerFactory.getLogger(ExecOutputHandleRunner.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ExecOutputHandleRunner.class);
 
     private final BufferedReader inputReader;
     private final ExecOutputHandle execOutputHandle;
@@ -58,7 +58,7 @@ public class ExecOutputHandleRunner implements Runnable {
             }
             execOutputHandle.endOutput();
         } catch (Throwable t) {
-            logger.error("Could not process output from exec'd process.", t);
+            LOGGER.error("Could not process output from exec'd process.", t);
         }
     }
 }

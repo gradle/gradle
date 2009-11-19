@@ -157,7 +157,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      */
     protected Thread consoleScanner;
 
-    public String PORT_SYSPROPERTY = "jetty.port";
+    public static final String PORT_SYSPROPERTY = "jetty.port";
 
 
     public abstract void validateConfiguration();

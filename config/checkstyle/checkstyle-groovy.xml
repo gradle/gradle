@@ -20,28 +20,6 @@
     <module name="SuppressionFilter">
         <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
     </module>
-    <module name="TreeWalker">
-        <module name="RedundantImport"/>
-        <module name="UnusedImports"/>
-        <!--<module name="JavadocMethod">-->
-        <!--<property name="scope" value="public"/>-->
-        <!--<property name="allowMissingReturnTag" value="true"/>-->
-        <!--</module>-->
-
-        <module name="ClassTypeParameterName"/>
-        <module name="ConstantName"/>
-        <module name="LocalFinalVariableName"/>
-        <module name="LocalVariableName"/>
-        <module name="MemberName"/>
-        <module name="MethodName"/>
-        <module name="MethodTypeParameterName"/>
-        <module name="PackageName">
-            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
-        </module>
-        <module name="ParameterName"/>
-        <module name="StaticVariableName"/>
-        <module name="TypeName"/>
-    </module>
     <module name="RegexpHeader">
         <property name="headerFile" value="${checkstyleConfigDir}/required-header.txt"/>
     </module>

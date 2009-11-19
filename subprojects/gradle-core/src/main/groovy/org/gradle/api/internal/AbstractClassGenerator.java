@@ -27,17 +27,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractClassGenerator implements ClassGenerator {
-    private static final Map<Class, Map<Class, Class>> generatedClasses = new HashMap<Class, Map<Class, Class>>();
+    private static final Map<Class, Map<Class, Class>> GENERATED_CLASSES = new HashMap<Class, Map<Class, Class>>();
 
     public <T> T newInstance(Class<T> type, Object... parameters) {
         return type.cast(ReflectionUtil.newInstance(generate(type), parameters));
     }
 
     public <T> Class<? extends T> generate(Class<T> type) {
-        Map<Class, Class> cache = generatedClasses.get(getClass());
+        Map<Class, Class> cache = GENERATED_CLASSES.get(getClass());
         if (cache == null) {
             cache = new HashMap<Class, Class>();
-            generatedClasses.put(getClass(), cache);
+            GENERATED_CLASSES.put(getClass(), cache);
         }
         Class generatedClass = cache.get(type);
         if (generatedClass != null) {

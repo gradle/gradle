@@ -40,7 +40,7 @@ import java.util.List;
  */
 public class JUnitTestProcessor extends AbstractTestProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(JUnitTestProcessor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestProcessor.class);
 
     private JUnitTestClassHandlerFactory testClassHandlerFactory;
 
@@ -135,15 +135,15 @@ public class JUnitTestProcessor extends AbstractTestProcessor {
                 final int successCount = runCount - (errorCount + failureCount);
 
                 if (errorCount > 0 || failureCount > 0) {
-                    logger.warn(testClassName + "[run #: " + runCount + ", success #: " + successCount + ", failure #: " + failureCount + ", error #: " + errorCount + "]");
+                    LOGGER.warn(testClassName + "[run #: " + runCount + ", success #: " + successCount + ", failure #: " + failureCount + ", error #: " + errorCount + "]");
                     if (failureCount > 0) {
                         final Enumeration failuresEnumeration = testResult.failures();
                         while (failuresEnumeration.hasMoreElements()) {
                             final junit.framework.TestFailure testFailure = (junit.framework.TestFailure) failuresEnumeration.nextElement();
 
                             Throwable t = testFailure.thrownException();
-                            logger.warn("\t {} failed because of [FAILURE] {}", testFailure.failedTest(), testFailure.exceptionMessage());
-                            logger.warn("\t\t", t);
+                            LOGGER.warn("\t {} failed because of [FAILURE] {}", testFailure.failedTest(), testFailure.exceptionMessage());
+                            LOGGER.warn("\t\t", t);
                         }
                     }
                     if (errorCount > 0) {
@@ -154,16 +154,16 @@ public class JUnitTestProcessor extends AbstractTestProcessor {
                             Throwable t = testError.thrownException();
                             if (t instanceof AssertionFailedError
                                     || t.getClass().getName().equals("java.lang.AssertionError")) {
-                                logger.warn("\t {} failed because of [FAILURE] {}", testError.failedTest(), testError.exceptionMessage());
-                                logger.warn("\t\t", t);
+                                LOGGER.warn("\t {} failed because of [FAILURE] {}", testError.failedTest(), testError.exceptionMessage());
+                                LOGGER.warn("\t\t", t);
                             } else {
-                                logger.warn("\t {} failed because of [ERROR] {}", testError.failedTest(), testError.exceptionMessage());
-                                logger.warn("\t\t", t);
+                                LOGGER.warn("\t {} failed because of [ERROR] {}", testError.failedTest(), testError.exceptionMessage());
+                                LOGGER.warn("\t\t", t);
                             }
                         }
                     }
                 } else
-                    logger.debug(testClassName + "[run #: " + runCount + ", success #: " + successCount + ", failure #: " + failureCount + ", error #: " + errorCount + "]");
+                    LOGGER.debug(testClassName + "[run #: " + runCount + ", success #: " + successCount + ", failure #: " + failureCount + ", error #: " + errorCount + "]");
             }
             catch (Throwable t) {
                 classProcessResult.setProcessorErrorReason(t);

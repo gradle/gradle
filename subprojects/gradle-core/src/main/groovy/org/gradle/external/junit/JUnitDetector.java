@@ -27,7 +27,7 @@ import java.io.File;
  * @author Tom Eyckmans
  */
 public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetecter> {
-    private static final Logger logger = LoggerFactory.getLogger(JUnitDetector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitDetector.class);
 
     JUnitDetector(File testClassesDirectory, FileCollection testClasspath) {
         super(testClassesDirectory, testClasspath);
@@ -53,7 +53,7 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
                 if (superClassFile != null) {
                     isTest = processSuperClass(superClassFile);
                 } else
-                    logger.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
+                    LOGGER.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
             }
 
 

@@ -26,7 +26,7 @@ import org.gradle.api.logging.Logging;
  @author mhunsicker
   */
 public class IPCUtilities {
-    private static final Logger logger = Logging.getLogger(IPCUtilities.class);
+    private static final Logger LOGGER = Logging.getLogger(IPCUtilities.class);
 
     /**
        This starts a gradle client for doing regular execution of a command. It
@@ -58,7 +58,7 @@ public class IPCUtilities {
     private static Integer getPort(Gradle gradle) {
         String portText = gradle.getStartParameter().getSystemPropertiesArgs().get(ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY);
         if (portText == null) {
-            logger.error("Failed to set " + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + " system property");
+            LOGGER.error("Failed to set " + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + " system property");
             return null;
         }
 
@@ -67,7 +67,7 @@ public class IPCUtilities {
             return new Integer(port);
         }
         catch (NumberFormatException e) {
-            logger.error("Invalid " + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + " system property", e);
+            LOGGER.error("Invalid " + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + " system property", e);
             return null;
         }
     }

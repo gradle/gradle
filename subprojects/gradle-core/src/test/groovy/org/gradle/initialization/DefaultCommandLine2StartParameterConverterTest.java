@@ -247,7 +247,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     @Test(expected = CommandLineArgumentException.class)
-    public void withShowStacktraceAndShowFullStacktrace_shouldThrowCommandLineArgumentEx() {
+    public void withShowStacktraceAndShowFullStacktraceShouldThrowCommandLineArgumentEx() {
         checkConversion("-sf");
     }
 

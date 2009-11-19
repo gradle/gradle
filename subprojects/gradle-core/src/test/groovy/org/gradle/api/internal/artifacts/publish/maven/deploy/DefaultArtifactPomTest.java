@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class DefaultArtifactPomTest {
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void addClassifierTwice_shouldThrowInvalidUserDataEx() {
+    public void addClassifierTwiceShouldThrowInvalidUserDataEx() {
         File classifierFile = new File("someClassifierFile");
         Artifact classifierArtifact = createTestArtifact(expectedArtifact.getName(), "javadoc");
         artifactPom.addArtifact(classifierArtifact, classifierFile);
@@ -70,7 +70,7 @@ public class DefaultArtifactPomTest {
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void addMainArtifactTwice_shouldThrowInvalidUserDataEx() {
+    public void addMainArtifactTwiceShouldThrowInvalidUserDataEx() {
         artifactPom.addArtifact(expectedArtifact, expectedFile);
     }
 

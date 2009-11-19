@@ -27,7 +27,7 @@ import javax.swing.SwingUtilities;
  * @author mhunsicker
  */
 public class BlockingApplication {
-    private static final Logger logger = Logging.getLogger(BlockingApplication.class);
+    private static final Logger LOGGER = Logging.getLogger(BlockingApplication.class);
 
     /**
        This launches this application and blocks until it closes. Useful for
@@ -66,7 +66,7 @@ public class BlockingApplication {
             });
         }
         catch (Throwable t) {
-            logger.error("Running blocking application.", t);
+            LOGGER.error("Running blocking application.", t);
             return;
         }
 

@@ -44,7 +44,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class PipelineDispatcher {
-    private static final Logger logger = LoggerFactory.getLogger(PipelineDispatcher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PipelineDispatcher.class);
 
     private final Pipeline pipeline;
     private final BlockingQueue<TestClassRunInfo> testsToDispatch;
@@ -97,11 +97,11 @@ public class PipelineDispatcher {
                         handler.handle(ioSession, message, client);
                 }
                 catch (Throwable t) {
-                    logger.error("failed to handle " + message, t);
+                    LOGGER.error("failed to handle " + message, t);
                 }
             }
             else {
-                logger.error("received unknown message of type {} on pipeline ", messageClass, pipeline.getConfig().getName());
+                LOGGER.error("received unknown message of type {} on pipeline ", messageClass, pipeline.getConfig().getName());
                 ioSession.write(new StopForkActionMessage(pipeline.getId()));
             }
         }

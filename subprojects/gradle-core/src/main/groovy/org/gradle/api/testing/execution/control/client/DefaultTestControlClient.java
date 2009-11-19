@@ -28,8 +28,6 @@ import org.gradle.api.testing.execution.control.messages.client.NextActionReques
 import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
 import org.gradle.util.queues.BlockingQueueItemProducer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +36,6 @@ import java.util.concurrent.TimeUnit;
  * @author Tom Eyckmans
  */
 public class DefaultTestControlClient implements TestControlClient {
-    private static final Logger logger = LoggerFactory.getLogger(DefaultTestControlClient.class);
     private final int forkId;
     private final IoConnectorFactory ioConnectorFactory;
 

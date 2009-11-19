@@ -19,9 +19,10 @@ package org.gradle.external.junit;
  * @author Tom Eyckmans
  */
 public class JUnit4Detecter {
-    private static final JUnit4Detecter detecter = new JUnit4Detecter();
+    private static final JUnit4Detecter DETECTER = new JUnit4Detecter();
 
     private final boolean junit4;
+
     private JUnit4Detecter() {
         Class junit4TestAdapterClass = null;
 
@@ -37,6 +38,6 @@ public class JUnit4Detecter {
 
     public static boolean isJUnit4Available()
     {
-        return detecter.junit4;
+        return DETECTER.junit4;
     }
 }

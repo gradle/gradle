@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,14 +136,14 @@ public class DefaultConfigurationTest {
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void extendsFromWithDirectCycle_shouldThrowInvalidUserDataEx() {
+    public void extendsFromWithDirectCycleShouldThrowInvalidUserDataEx() {
         Configuration otherConfiguration = configurationContainer.add("otherConf");
         otherConfiguration.extendsFrom(configuration);
         configuration.extendsFrom(otherConfiguration);
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void extendsFromWithIndirectCycle_shouldThrowInvalidUserDataEx() {
+    public void extendsFromWithIndirectCycleShouldThrowInvalidUserDataEx() {
         Configuration otherConfiguration1 = configurationContainer.add("otherConf1");
         Configuration otherConfiguration2 = configurationContainer.add("otherConf2");
         configuration.extendsFrom(otherConfiguration1);
@@ -152,7 +152,7 @@ public class DefaultConfigurationTest {
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void setExtendsFromWithCycle_shouldThrowInvalidUserDataEx() {
+    public void setExtendsFromWithCycleShouldThrowInvalidUserDataEx() {
         Configuration otherConfiguration = configurationContainer.add("otherConf");
         otherConfiguration.extendsFrom(configuration);
         configuration.setExtendsFrom(toSet(otherConfiguration));
@@ -819,7 +819,7 @@ public class DefaultConfigurationTest {
     }
 
     @Test
-    public void propertyChangeWithNonUnresolvedState_shouldThrowEx() {
+    public void propertyChangeWithNonUnresolvedStateShouldThrowEx() {
         makeResolveReturnFileSet(new HashSet<File>());
         configuration.resolve();
         assertInvalidUserDataException(new Executer() {

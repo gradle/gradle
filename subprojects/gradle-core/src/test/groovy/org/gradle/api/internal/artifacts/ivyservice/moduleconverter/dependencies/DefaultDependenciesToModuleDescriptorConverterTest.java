@@ -55,8 +55,8 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
     private ModuleDependency similarDependency1 = HelperUtil.createDependency("group", "name", "version");
     private ModuleDependency similarDependency2 = HelperUtil.createDependency("group", "name", "version");
     private ModuleDependency similarDependency3 = HelperUtil.createDependency("group", "name", "version");
-    private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub_1 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule1");
-    private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub_2 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule2");
+    private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub1 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule1");
+    private org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRuleStub2 = context.mock(org.apache.ivy.core.module.descriptor.ExcludeRule.class, "rule2");
 
     private DependencyDescriptorFactory dependencyDescriptorFactoryStub = context.mock(DependencyDescriptorFactory.class);
     private ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
@@ -76,14 +76,16 @@ public class DefaultDependenciesToModuleDescriptorConverterTest {
         associateDependencyWithDescriptor(similarDependency1, moduleDescriptor, configurationStub1);
         associateDependencyWithDescriptor(similarDependency2, moduleDescriptor, configurationStub2);
         associateDependencyWithDescriptor(similarDependency3, moduleDescriptor, configurationStub3);
-        associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_1, ivyExcludeRuleStub_1, configurationStub1);
-        associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_2, ivyExcludeRuleStub_2, configurationStub2);
+        associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_1, ivyExcludeRuleStub1, configurationStub1);
+        associateGradleExcludeRuleWithIvyExcludeRule(GRADLE_EXCLUDE_RULE_DUMMY_2, ivyExcludeRuleStub2, configurationStub2);
 
         converter.addDependencyDescriptors(moduleDescriptor, toSet(configurationStub1, configurationStub2, configurationStub3),
                 ivySettingsDummy);
                 
-        assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub1.getName())), equalTo(toArray(ivyExcludeRuleStub_1)));
-        assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub2.getName())), equalTo(toArray(ivyExcludeRuleStub_2)));
+        assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub1.getName())), equalTo(toArray(
+                ivyExcludeRuleStub1)));
+        assertThat(moduleDescriptor.getExcludeRules(toArray(configurationStub2.getName())), equalTo(toArray(
+                ivyExcludeRuleStub2)));
         assertIsCorrectConflictResolver(moduleDescriptor);
         
     }

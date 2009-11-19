@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Tom Eyckmans
  */
 public class TestFrameworkRegister {
-    private static final Map<String, TestFramework> testFrameworks = new ConcurrentHashMap<String, TestFramework>();
+    private static final Map<String, TestFramework> TEST_FRAMEWORKS = new ConcurrentHashMap<String, TestFramework>();
 
     static {
         // add the default supported test frameworks (JUnit, TestNG)
@@ -60,7 +60,7 @@ public class TestFrameworkRegister {
 
         if (StringUtils.isEmpty(testFrameworkId)) throw new IllegalArgumentException("testFramework.id is empty!");
 
-        return testFrameworks.put(testFrameworkId, testFramework);
+        return TEST_FRAMEWORKS.put(testFrameworkId, testFramework);
     }
 
     
@@ -68,6 +68,6 @@ public class TestFrameworkRegister {
     public static TestFramework getTestFramework(final String testFrameworkId) {
         if (StringUtils.isEmpty(testFrameworkId)) throw new IllegalArgumentException("testFrameworkId is empty!");
 
-        return testFrameworks.get(testFrameworkId);
+        return TEST_FRAMEWORKS.get(testFrameworkId);
     }
 }

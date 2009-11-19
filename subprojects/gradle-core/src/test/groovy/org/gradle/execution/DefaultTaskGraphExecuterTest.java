@@ -49,7 +49,7 @@ import java.util.concurrent.Callable;
 @RunWith(JMock.class)
 public class DefaultTaskGraphExecuterTest {
 
-    static File TEST_ROOT_DIR = new File("/path/root");
+    static final File TEST_ROOT_DIR = new File("/path/root");
 
     JUnit4Mockery context = new JUnit4Mockery();
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);

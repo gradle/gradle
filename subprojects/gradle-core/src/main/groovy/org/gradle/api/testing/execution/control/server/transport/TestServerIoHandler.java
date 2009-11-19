@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TestServerIoHandler extends IoHandlerAdapter {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestServerIoHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestServerIoHandler.class);
 
     private final PipelineDispatcher pipelineDispatcher;
 
@@ -42,7 +42,7 @@ public class TestServerIoHandler extends IoHandlerAdapter {
 
     @Override
     public void sessionIdle(IoSession session, IdleStatus status) {
-        logger.info("session is idle (" + status + ")");
+        LOGGER.info("session is idle (" + status + ")");
         // disconnect an idle client ?
 //        session.close(true);
     }
@@ -50,7 +50,7 @@ public class TestServerIoHandler extends IoHandlerAdapter {
     @Override
     public void exceptionCaught(IoSession session, Throwable cause) {
         // close the connection on exceptional situation
-        logger.error("server io error", cause);
+        LOGGER.error("server io error", cause);
         session.close(true);
     }
 

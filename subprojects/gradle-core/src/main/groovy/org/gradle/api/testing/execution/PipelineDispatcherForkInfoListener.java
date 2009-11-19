@@ -23,7 +23,7 @@ import org.slf4j.Logger;
  * @author Tom Eyckmans
  */
 public class PipelineDispatcherForkInfoListener implements ForkInfoListener {
-    private static final Logger logger = LoggerFactory.getLogger(PipelineDispatcherForkInfoListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PipelineDispatcherForkInfoListener.class);
     private final PipelineDispatcher pipelineDispatcher;
 
     public PipelineDispatcherForkInfoListener(PipelineDispatcher pipelineDispatcher) {
@@ -31,7 +31,7 @@ public class PipelineDispatcherForkInfoListener implements ForkInfoListener {
     }
 
     public void starting(int forkId) {
-        logger.info("pipeline {}, fork {} : started", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
+        LOGGER.info("pipeline {}, fork {} : started", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
 
         pipelineDispatcher.forkStarting(forkId);
     }
@@ -41,19 +41,19 @@ public class PipelineDispatcherForkInfoListener implements ForkInfoListener {
     }
 
     public void stopped(int forkId) {
-        logger.info("pipeline {}, fork {} : stopped", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
+        LOGGER.info("pipeline {}, fork {} : stopped", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
 
         pipelineDispatcher.forkStopped(forkId);
     }
 
     public void aborted(int forkId) {
-        logger.info("pipeline {}, fork {} : aborted", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
+        LOGGER.info("pipeline {}, fork {} : aborted", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
 
         pipelineDispatcher.forkAborted(forkId);
     }
 
     public void failed(int forkId, Throwable cause) {
-        logger.info("pipeline {}, fork {} : failed", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
+        LOGGER.info("pipeline {}, fork {} : failed", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
 
         pipelineDispatcher.forkFailed(forkId, cause);
     }

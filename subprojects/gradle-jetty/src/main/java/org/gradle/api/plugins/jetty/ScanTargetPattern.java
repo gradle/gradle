@@ -22,16 +22,16 @@ import java.util.List;
 
 public class ScanTargetPattern
 {
-    private File _directory;
-    private List _includes = Collections.EMPTY_LIST;
-    private List _excludes = Collections.EMPTY_LIST;
+    private File directory;
+    private List includes = Collections.EMPTY_LIST;
+    private List excludes = Collections.EMPTY_LIST;
 
     /**
      * @return the _directory
      */
     public File getDirectory()
     {
-        return _directory;
+        return directory;
     }
 
     /**
@@ -39,27 +39,27 @@ public class ScanTargetPattern
      */
     public void setDirectory(File directory)
     {
-        this._directory = directory;
+        this.directory = directory;
     }
     
     public void setIncludes (List includes)
     {
-        _includes= includes;
+        this.includes = includes;
     }
     
     public void setExcludes(List excludes)
     {
-        _excludes = excludes;
+        this.excludes = excludes;
     }
     
     public List getIncludes()
     {
-        return _includes;
+        return includes;
     }
     
     public List getExcludes()
     {
-        return _excludes;
+        return excludes;
     }
 
 }

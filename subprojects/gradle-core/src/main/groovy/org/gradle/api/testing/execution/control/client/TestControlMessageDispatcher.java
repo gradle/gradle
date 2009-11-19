@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Tom Eyckmans
  */
 public class TestControlMessageDispatcher {
-    private static final Logger logger = LoggerFactory.getLogger(TestControlMessageDispatcher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestControlMessageDispatcher.class);
 
     private final TestControlClient testControlClient;
     private final ClassLoader sandboxClassLoader;
@@ -68,7 +68,7 @@ public class TestControlMessageDispatcher {
         } else if (testControlMessage instanceof WaitActionMesssage) {
             final WaitActionMesssage waitMessage = (WaitActionMesssage) testControlMessage;
 
-            logger.debug("waiting for {} ms - for tests to become available", waitMessage.getTimeToWait());
+            LOGGER.debug("waiting for {} ms - for tests to become available", waitMessage.getTimeToWait());
 
             try {
                 Thread.sleep(waitMessage.getTimeToWait());

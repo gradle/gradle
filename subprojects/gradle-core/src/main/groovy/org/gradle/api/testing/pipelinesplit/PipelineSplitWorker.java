@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Tom Eyckmans
  */
 public class PipelineSplitWorker extends AbstractBlockingQueueItemConsumer<TestClassRunInfo> {
-    private static final Logger logger = LoggerFactory.getLogger(PipelineSplitWorker.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PipelineSplitWorker.class);
 
     private final TestPipelineSplitOrchestrator splitOrchestrator;
     private final AtomicLong matchCount = new AtomicLong(0);
@@ -53,7 +53,7 @@ public class PipelineSplitWorker extends AbstractBlockingQueueItemConsumer<TestC
     }
 
     protected boolean consume(TestClassRunInfo queueItem) {
-        logger.debug("[pipeline-splitting >> test-run] {}", queueItem.getTestClassName());
+        LOGGER.debug("[pipeline-splitting >> test-run] {}", queueItem.getTestClassName());
 
         SplitPolicyMatcher matcher = null;
 
@@ -76,8 +76,8 @@ public class PipelineSplitWorker extends AbstractBlockingQueueItemConsumer<TestC
     }
 
     protected void tearDown() {
-        logger.debug("[split-worker-match-count] " + matchCount.get());
-        logger.debug("[split-worker-discarded-count] " + discardedCount.get());
+        LOGGER.debug("[split-worker-match-count] " + matchCount.get());
+        LOGGER.debug("[split-worker-discarded-count] " + discardedCount.get());
 
         splitOrchestrator.splitWorkerStopped(this);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,12 +43,12 @@ public class PublishInstructionTest {
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void initWithUploadFalseAndFileNotNull_shouldThrowInvalidUserDataEx() {
+    public void initWithUploadFalseAndFileNotNullShouldThrowInvalidUserDataEx() {
         new PublishInstruction(false, new File("somePath"));
     }
 
     @Test(expected = InvalidUserDataException.class)
-    public void initWithUploadTrueAndFileNull_shouldThrowInvalidUserDataEx() {
+    public void initWithUploadTrueAndFileNullShouldThrowInvalidUserDataEx() {
         new PublishInstruction(true, null);
     }
 

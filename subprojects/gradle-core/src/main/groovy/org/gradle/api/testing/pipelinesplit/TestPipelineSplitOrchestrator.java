@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class TestPipelineSplitOrchestrator {
-    private static final Logger logger = LoggerFactory.getLogger(TestPipelineSplitOrchestrator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestPipelineSplitOrchestrator.class);
 
     private final BlockingQueue<TestClassRunInfo> testDetectionQueue;
 
@@ -124,7 +124,7 @@ public class TestPipelineSplitOrchestrator {
             final boolean removed = runningWorkers.remove(worker);
 
             if (!removed) {
-                logger.warn("splitWorkerStopped called for an unrelated split worker");
+                LOGGER.warn("splitWorkerStopped called for an unrelated split worker");
             }
 
             if (runningWorkers.isEmpty())

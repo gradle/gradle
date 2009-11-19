@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.InputStreamClassLoader;
 import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
 import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
@@ -42,7 +41,6 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author Hans Dockter
@@ -63,7 +61,7 @@ public class DefaultScriptCompilationHandlerTest {
     private String scriptClassName;
     private String scriptFileName;
 
-    private InputStreamClassLoader classLoader;
+    private ClassLoader classLoader;
 
     private Class<? extends Script> expectedScriptClass;
 
@@ -74,9 +72,7 @@ public class DefaultScriptCompilationHandlerTest {
     @Before
     public void setUp() throws IOException, ClassNotFoundException {
         File testProjectDir = tmpDir.dir("projectDir");
-        classLoader = new InputStreamClassLoader();
-        InputStream inputStream = this.getClass().getResourceAsStream("/org/gradle/api/ClasspathTester.dat");
-        classLoader.loadClass("org.gradle.api.ClasspathTester", inputStream);
+        classLoader = getClass().getClassLoader();
         scriptCompilationHandler = new DefaultScriptCompilationHandler();
         scriptCacheDir = new File(testProjectDir, "cache");
         scriptText = "System.setProperty('" + TEST_EXPECTED_SYSTEMPROP_KEY + "', '" + TEST_EXPECTED_SYSTEMPROP_VALUE

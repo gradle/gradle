@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
  * @author Steve Appling
  */
 public class RegExpPatternStep implements PatternStep {
-    private static final String escapeChars = "\\[]^-&.{}()$+|<=!";
-    private static final String patternChars = "*?";
+    private static final String ESCAPE_CHARS = "\\[]^-&.{}()$+|<=!";
+    private static final String PATTERN_CHARS = "*?";
 
     private final Pattern pattern;
 
@@ -35,9 +35,9 @@ public class RegExpPatternStep implements PatternStep {
         StringBuilder result = new StringBuilder();
         for (int i=0; i<pattern.length(); i++) {
             char next = pattern.charAt(i);
-            if (escapeChars.indexOf(next) >= 0) {
+            if (ESCAPE_CHARS.indexOf(next) >= 0) {
                 result.append('\\');
-            } else if (patternChars.indexOf(next) >= 0) {
+            } else if (PATTERN_CHARS.indexOf(next) >= 0) {
                 result.append('.');
             }
             result.append(next);
