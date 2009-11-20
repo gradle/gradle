@@ -10,6 +10,8 @@
 # GRADLE_OPTS="$GRADLE_OPTS -Xmx512"
 # JAVA_OPTS="$JAVA_OPTS -Xmx512"
 
+GRADLE_APP_NAME=Gradle
+
 warn ( ) {
     echo "${PROGNAME}: $*"
 }
