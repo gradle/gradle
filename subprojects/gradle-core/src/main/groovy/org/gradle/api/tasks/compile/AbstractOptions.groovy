@@ -22,7 +22,7 @@ import java.lang.reflect.Modifier
 /**
  * @author Hans Dockter
  */
-abstract class AbstractOptions {
+class AbstractOptions {
 
     void define(Map args) {
         args.each {String key, Object value ->
