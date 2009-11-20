@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
+import org.gradle.util.GUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -36,10 +37,10 @@ import java.util.Set;
 public class TaskNameResolvingBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ProjectInternal project = context.mock(ProjectInternal.class, "[project]");
-    private final ProjectInternal subProject = context.mock(ProjectInternal.class, "[subProject]");
+    private final ProjectInternal otherProject = context.mock(ProjectInternal.class, "[otherProject]");
     private final GradleInternal gradle = context.mock(GradleInternal.class);
-    private final TaskContainerInternal taskContainer = context.mock(TaskContainerInternal.class, "[projecTasks]");
-    private final TaskContainerInternal subProjectTaskContainer = context.mock(TaskContainerInternal.class, "[subProjectTasks]");
+    private final TaskContainerInternal taskContainer = context.mock(TaskContainerInternal.class, "[projectTasks]");
+    private final TaskContainerInternal otherProjectTaskContainer = context.mock(TaskContainerInternal.class, "[otherProjectTasks]");
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private int counter;
 
@@ -53,9 +54,9 @@ public class TaskNameResolvingBuildExecuterTest {
             allowing(project).getTasks();
             will(returnValue(taskContainer));
             allowing(project).getAllprojects();
-            will(returnValue(toSet(project, subProject)));
-            allowing(subProject).getTasks();
-            will(returnValue(subProjectTaskContainer));
+            will(returnValue(toSet(project, otherProject)));
+            allowing(otherProject).getTasks();
+            will(returnValue(otherProjectTaskContainer));
         }});
     }
 
@@ -105,7 +106,7 @@ public class TaskNameResolvingBuildExecuterTest {
             will(returnValue(toSet()));
             one(taskContainer).getAll();
             will(returnValue(toSet(task1)));
-            one(subProjectTaskContainer).getAll();
+            one(otherProjectTaskContainer).getAll();
             will(returnValue(tasks));
             one(taskExecuter).addTasks(toSet(task1, task2));
         }});
@@ -116,13 +117,13 @@ public class TaskNameResolvingBuildExecuterTest {
     }
     
     @Test
-    public void selectsTaskWithMatchingPath() {
+    public void selectsTaskWithMatchingRelativePath() {
         final Task task1 = task("b");
 
         context.checking(new Expectations(){{
-            one(project).findProject("a");
-            will(returnValue(subProject));
-            one(subProjectTaskContainer).findByName("b");
+            one(project).getChildProjects();
+            will(returnValue(toMap("a", otherProject)));
+            one(otherProjectTaskContainer).findByName("b");
             will(returnValue(task1));
             one(taskExecuter).addTasks(toSet(task1));
         }});
@@ -133,27 +134,87 @@ public class TaskNameResolvingBuildExecuterTest {
     }
 
     @Test
+    public void selectsTaskWithMatchingTaskInRootProject() {
+        final Task task1 = task("b");
+
+        context.checking(new Expectations(){{
+            one(project).getRootProject();
+            will(returnValue(otherProject));
+            one(otherProjectTaskContainer).findByName("b");
+            will(returnValue(task1));
+            one(taskExecuter).addTasks(toSet(task1));
+        }});
+
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList(":b"));
+        executer.select(gradle);
+        assertThat(executer.getDisplayName(), equalTo("primary task ':b'"));
+    }
+
+    @Test
+    public void selectsTaskWithMatchingAbsolutePath() {
+        final Task task1 = task("b");
+
+        context.checking(new Expectations(){{
+            one(project).getRootProject();
+            will(returnValue(otherProject));
+            one(otherProject).getChildProjects();
+            will(returnValue(toMap("a", otherProject)));
+            one(otherProjectTaskContainer).findByName("b");
+            will(returnValue(task1));
+            one(taskExecuter).addTasks(toSet(task1));
+        }});
+
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList(":a:b"));
+        executer.select(gradle);
+        assertThat(executer.getDisplayName(), equalTo("primary task ':a:b'"));
+    }
+
+    @Test
     public void usesCamelCaseAbbreviationToSelectTasksWhenNoExactMatchAndPathProvided() {
         final Task task1 = task("someTask");
         final Task task2 = task("other");
 
         context.checking(new Expectations(){{
-            one(project).findProject("a:b:c");
-            will(returnValue(subProject));
-            one(subProjectTaskContainer).findByName("soTa");
+            one(project).getChildProjects();
+            will(returnValue(toMap("a", otherProject)));
+            one(otherProjectTaskContainer).findByName("soTa");
             will(returnValue(null));
-            one(subProjectTaskContainer).getAll();
+            one(otherProjectTaskContainer).getAll();
             will(returnValue(toSet(task1, task2)));
             one(taskExecuter).addTasks(toSet(task1));
+            allowing(otherProject).getPath();
+            will(returnValue(":a"));
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:b:c:soTa"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:soTa"));
         executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary task 'a:b:c:someTask'"));
+        assertThat(executer.getDisplayName(), equalTo("primary task ':a:someTask'"));
     }
 
     @Test
-    public void failsWhenProvidedNameIsAmbiguous() {
+    public void usesCamelCaseAbbreviationToSelectProjectWhenPathProvided() {
+        final Task task1 = task("someTask");
+        final Task task2 = task("other");
+
+        context.checking(new Expectations(){{
+            one(project).getChildProjects();
+            will(returnValue(toMap("someProject", otherProject)));
+            one(otherProjectTaskContainer).findByName("soTa");
+            will(returnValue(null));
+            one(otherProjectTaskContainer).getAll();
+            will(returnValue(toSet(task1, task2)));
+            one(taskExecuter).addTasks(toSet(task1));
+            allowing(otherProject).getPath();
+            will(returnValue(":someProject"));
+        }});
+
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("soPr:soTa"));
+        executer.select(gradle);
+        assertThat(executer.getDisplayName(), equalTo("primary task ':someProject:someTask'"));
+    }
+
+    @Test
+    public void failsWhenProvidedTaskNameIsAmbiguous() {
         final Task task1 = task("someTask");
         final Task task2 = task("someTasks");
 
@@ -162,7 +223,7 @@ public class TaskNameResolvingBuildExecuterTest {
             will(returnValue(toSet()));
             one(taskContainer).getAll();
             will(returnValue(toSet(task1)));
-            one(subProjectTaskContainer).getAll();
+            one(otherProjectTaskContainer).getAll();
             will(returnValue(toSet(task2)));
         }});
 
@@ -187,7 +248,7 @@ public class TaskNameResolvingBuildExecuterTest {
             will(returnValue(toSet()));
             one(taskContainer).getAll();
             will(returnValue(toSet(task1, task2)));
-            one(subProjectTaskContainer).getAll();
+            one(otherProjectTaskContainer).getAll();
             will(returnValue(toSet(task3, task4)));
         }});
 
@@ -256,7 +317,7 @@ public class TaskNameResolvingBuildExecuterTest {
             will(returnValue(toSet()));
             one(taskContainer).getAll();
             will(returnValue(toSet(task1, task2)));
-            one(subProjectTaskContainer).getAll();
+            one(otherProjectTaskContainer).getAll();
             will(returnValue(toSet()));
         }});
 
@@ -270,10 +331,10 @@ public class TaskNameResolvingBuildExecuterTest {
     }
 
     @Test
-    public void failsWhenUnknownTaskPathIsProvided() {
+    public void failsWhenCannotFindProjectInPath() {
         context.checking(new Expectations() {{
-            one(project).findProject("a");
-            will(returnValue(null));
+            one(project).getChildProjects();
+            will(returnValue(GUtil.map("aa", otherProject, "ab", otherProject)));
         }});
 
         BuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("a:b", "name2"));
@@ -281,7 +342,7 @@ public class TaskNameResolvingBuildExecuterTest {
             executer.select(gradle);
             fail();
         } catch (TaskSelectionException e) {
-            assertThat(e.getMessage(), equalTo("Project 'a' not found in [project]."));
+            assertThat(e.getMessage(), equalTo("Project 'a' is ambiguous in [project]. Candidates are: 'aa', 'ab'."));
         }
     }
 
@@ -293,5 +354,4 @@ public class TaskNameResolvingBuildExecuterTest {
         }});
         return task;
     }
-
 }

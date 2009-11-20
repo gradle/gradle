@@ -20,10 +20,9 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.util.GUtil;
+import org.gradle.util.NameMatcher;
 
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 /**
  * A {@link BuildExecuter} which selects tasks which match the provided names. For each name, selects all tasks in all
@@ -57,7 +56,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
     }
 
     private static Map<String, Collection<Task>> doSelect(GradleInternal gradle, Iterable<String> paths) {
-        Project defaultProject = gradle.getDefaultProject();
+        Project project = gradle.getDefaultProject();
 
         Map<String, Collection<Task>> allProjectsTasksByName = null;
 
@@ -68,13 +67,9 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
             String prefix;
 
             if (path.contains(Project.PATH_SEPARATOR)) {
-                prefix = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
-                prefix = prefix.length() == 0 ? Project.PATH_SEPARATOR : prefix;
-                Project project = defaultProject.findProject(prefix);
-                if (project == null) {
-                    throw new TaskSelectionException(String.format("Project '%s' not found in %s.", prefix,
-                            defaultProject));
-                }
+                String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
+                projectPath = projectPath.length() == 0 ? Project.PATH_SEPARATOR : projectPath;
+                project = findProject(project, projectPath);
                 baseName = StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR);
                 Task match = project.getTasks().findByName(baseName);
                 if (match != null) {
@@ -86,69 +81,60 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
                 for (Task task : project.getTasks().getAll()) {
                     tasksByName.put(task.getName(), Collections.singleton(task));
                 }
-                prefix = prefix + Project.PATH_SEPARATOR;
 
+                prefix = project.getPath() + Project.PATH_SEPARATOR;
             }
             else {
-                Set<Task> tasks = defaultProject.getTasksByName(path, true);
+                Set<Task> tasks = project.getTasksByName(path, true);
                 if (!tasks.isEmpty()) {
                     matches.put(path, tasks);
                     continue;
                 }
                 if (allProjectsTasksByName == null) {
-                    allProjectsTasksByName = buildTaskMap(defaultProject);
+                    allProjectsTasksByName = buildTaskMap(project);
                 }
                 tasksByName = allProjectsTasksByName;
                 baseName = path;
                 prefix = "";
             }
 
-            Pattern pattern = getPatternForName(baseName);
-            Set<String> patternCandidates = new TreeSet<String>();
-            Set<String> typoCandidates = new TreeSet<String>();
-            for (String candidate : tasksByName.keySet()) {
-                if (pattern.matcher(candidate).matches()) {
-                    patternCandidates.add(candidate);
-                }
-                if (StringUtils.getLevenshteinDistance(baseName.toUpperCase(), candidate.toUpperCase()) <= Math.min(3,
-                        baseName.length() / 2)) {
-                    typoCandidates.add(candidate);
-                }
-            }
-            if (patternCandidates.size() == 1) {
-                String actualName = patternCandidates.iterator().next();
+            NameMatcher matcher = new NameMatcher();
+            String actualName = matcher.find(baseName, tasksByName.keySet());
+
+            if (actualName != null) {
                 matches.put(prefix + actualName, tasksByName.get(actualName));
                 continue;
             }
 
-            if (!patternCandidates.isEmpty()) {
-                throw new TaskSelectionException(String.format("Task '%s' is ambiguous in %s. Candidates are: %s.",
-                        baseName, defaultProject, GUtil.toString(patternCandidates)));
-            }
-            if (!typoCandidates.isEmpty()) {
-                throw new TaskSelectionException(String.format("Task '%s' not found in %s. Some candidates are: %s.",
-                        baseName, defaultProject, GUtil.toString(typoCandidates)));
-            }
-            throw new TaskSelectionException(String.format("Task '%s' not found in %s.", baseName, defaultProject));
+            throw new TaskSelectionException(matcher.formatErrorMessage("task", project));
         }
 
         return matches;
     }
 
-    private static Pattern getPatternForName(String name) {
-        Pattern boundaryPattern = Pattern.compile("(^\\p{javaLowerCase}+)|(\\p{javaUpperCase}\\p{javaLowerCase}*)");
-        Matcher matcher = boundaryPattern.matcher(name);
-        int pos = 0;
-        StringBuilder builder = new StringBuilder();
-        while (matcher.find()) {
-            builder.append(Pattern.quote(name.substring(pos, matcher.start())));
-            builder.append(matcher.group());
-            builder.append("\\p{javaLowerCase}*");
-            pos = matcher.end();
+    private static Project findProject(Project startFrom, String path) {
+        if (path.equals(Project.PATH_SEPARATOR)) {
+            return startFrom.getRootProject();
         }
-        builder.append(Pattern.quote(name.substring(pos, name.length())));
-        builder.append(".*");
-        return Pattern.compile(builder.toString());
+        Project current = startFrom;
+        if (path.startsWith(Project.PATH_SEPARATOR)) {
+            current = current.getRootProject();
+            path = path.substring(1);
+        }
+        for (String pattern : path.split(Project.PATH_SEPARATOR)) {
+            Map<String, Project> children = current.getChildProjects();
+
+            NameMatcher matcher = new NameMatcher();
+            Project child = matcher.find(pattern, children);
+            if (child != null) {
+                current = child;
+                continue;
+            }
+
+            throw new TaskSelectionException(matcher.formatErrorMessage("project", current));
+        }
+
+        return current;
     }
 
     private static Map<String, Collection<Task>> buildTaskMap(Project defaultProject) {
