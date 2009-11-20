@@ -37,6 +37,8 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     private String configuration;
     private Set<String> configurationHierarchy;
     private Set<ResolvedArtifact> moduleArtifacts = new LinkedHashSet<ResolvedArtifact>();
+    private Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
+    private Set<ResolvedArtifact> allModuleArtifactsCache = null;
 
     public DefaultResolvedDependency(String name, String moduleGroup, String moduleName, String moduleVersion,
                                      String configuration, Set<String> configurationHierarchy,
@@ -96,35 +98,41 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     public Set<ResolvedArtifact> getAllModuleArtifacts() {
-        Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<ResolvedArtifact>();
-        allArtifacts.addAll(getModuleArtifacts());
-        for (ResolvedDependency childResolvedDependency : getChildren()) {
-            allArtifacts.addAll(childResolvedDependency.getAllModuleArtifacts());
+        if (allModuleArtifactsCache == null) {
+            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<ResolvedArtifact>();
+            allArtifacts.addAll(getModuleArtifacts());
+            for (ResolvedDependency childResolvedDependency : getChildren()) {
+                allArtifacts.addAll(childResolvedDependency.getAllModuleArtifacts());
+            }
+            allModuleArtifactsCache = allArtifacts;
         }
-        return allArtifacts;
+        return allModuleArtifactsCache;
     }
 
     public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
-        throwExceptionIfUnknownParent(parent);
+        if (!parents.contains(parent)) {
+            throw new InvalidUserDataException("Unknown Parent");
+        }
         Set<ResolvedArtifact> artifacts = parentArtifacts.get(parent);
         return artifacts == null ? Collections.<ResolvedArtifact>emptySet() : artifacts;
     }
 
     public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
-        throwExceptionIfUnknownParent(parent);
         return GUtil.addSets(getParentArtifacts(parent), getModuleArtifacts());
     }
 
     public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
-        throwExceptionIfUnknownParent(parent);
-        Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<ResolvedArtifact>();
-        allArtifacts.addAll(getArtifacts(parent));
-        for (ResolvedDependency childResolvedDependency : getChildren()) {
-            for (ResolvedDependency childParent : childResolvedDependency.getParents()) {
-                allArtifacts.addAll(childResolvedDependency.getAllArtifacts(childParent));
+        if (allArtifactsCache.get(parent) == null) {
+            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<ResolvedArtifact>();
+            allArtifacts.addAll(getArtifacts(parent));
+            for (ResolvedDependency childResolvedDependency : getChildren()) {
+                for (ResolvedDependency childParent : childResolvedDependency.getParents()) {
+                    allArtifacts.addAll(childResolvedDependency.getAllArtifacts(childParent));
+                }
             }
+            allArtifactsCache.put(parent, allArtifacts);
         }
-        return allArtifacts;
+        return allArtifactsCache.get(parent);
     }
 
     private void throwExceptionIfUnknownParent(ResolvedDependency parent) {
@@ -132,7 +140,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
             throw new InvalidUserDataException("Unknown Parent");
         }
     }
-
+    
     public Set<ResolvedDependency> getParents() {
         return parents;
     }
