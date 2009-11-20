@@ -26,7 +26,16 @@ gradleCoreProperties = GUtil.loadProperties(new File(gradleCorePath, Project.GRA
 version = gradleCoreProperties.previousVersion
 
 buildWebsiteDir = new File(buildDir, 'website')
-task build << {
+
+task userguideContent << {
+    def startParams = gradle.startParameter.newBuild()
+    startParams.taskNames = ['websiteDocs']
+    startParams.currentDir = gradleCorePath
+    def launcher = GradleLauncher.newInstance(startParams)
+    launcher.run().rethrowFailure()
+}
+
+task html(dependsOn: userguideContent) << {
     buildWebsiteDir.mkdirs()
     File webContentSrcDir = new File(webSrcDir, 'content')
     File webPhpSrcDir = new File(webSrcDir, 'php')
@@ -59,6 +68,8 @@ task build << {
     }
 }
 
+task ciBuild(dependsOn: [clean, html])
+
 String extractTitle(File contentFile) {
     if (contentFile.name == 'index.php') {
         return 'Home'
@@ -69,7 +80,7 @@ String extractTitle(File contentFile) {
     title
 }
 
-task uploadWebsite(dependsOn: 'build') << {
+task uploadWebsite(dependsOn: html) << {
     ftp(action: 'delete') {
         fileset() {
             include(name: '*.html')
