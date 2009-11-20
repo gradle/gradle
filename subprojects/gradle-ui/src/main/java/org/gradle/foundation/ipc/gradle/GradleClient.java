@@ -22,12 +22,10 @@ import org.gradle.api.logging.Logging;
 import java.io.Serializable;
 
 /**
- * <p>This is used to send information from a one process to another process. This
- * one is used by the launched process where the server (the process that launched
- * us) is listening for our messages over a socket connection. The server typically
- * sets the port to listen to via java system properties.</p>
- * <p>To use this, instantiate it, then call start passing in a protocol (which defines
- * the actual communication messages).</p>
+ * <p>This is used to send information from a one process to another process. This one is used by the launched process
+ * where the server (the process that launched us) is listening for our messages over a socket connection. The server
+ * typically sets the port to listen to via java system properties.</p> <p>To use this, instantiate it, then call start
+ * passing in a protocol (which defines the actual communication messages).</p>
  */
 public class GradleClient {
     private ClientProcess clientProcess;
@@ -37,12 +35,12 @@ public class GradleClient {
     }
 
     /**
-       Call this to start the client. This version gets the port number as a
-       system property. It does nothing if this property isn't defined.
-
-       @param  protocol   the protocol to use to communicate with the server.
-       @return true if successful, false if not.
-    */
+     * Call this to start the client. This version gets the port number as a system property. It does nothing if this
+     * property isn't defined.
+     *
+     * @param protocol the protocol to use to communicate with the server.
+     * @return true if successful, false if not.
+     */
     public boolean start(ClientProcess.Protocol protocol) {
         //make sure we've been given the port number to use
         String portText = System.getProperty(ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY);
@@ -54,32 +52,32 @@ public class GradleClient {
         try {
             int port = Integer.parseInt(portText);
             return start(protocol, port);
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             logger.error("Parsing port '" + portText + "'", e);
             return false;
         }
     }
 
     /**
-       Call this to start the client.
-       @param  protocol   the protocol to use to communicate with the server.
-       @param  port       the port the server is listening on
-       @return true if successful, false if not.
-    */
+     * Call this to start the client.
+     *
+     * @param protocol the protocol to use to communicate with the server.
+     * @param port the port the server is listening on
+     * @return true if successful, false if not.
+     */
     public boolean start(ClientProcess.Protocol protocol, int port) {
         clientProcess = new ClientProcess(protocol);
 
-        if (!clientProcess.start(port))
+        if (!clientProcess.start(port)) {
             return false;
+        }
 
         return true;
     }
 
     /**
-       Call this to send a message and wait for the server to acknowledge siad
-       message.
-    */
+     * Call this to send a message and wait for the server to acknowledge siad message.
+     */
     public boolean sendMessage(String messageType, String message, Serializable data) {
         return clientProcess.sendMessage(messageType, message, data);
     }
@@ -89,8 +87,8 @@ public class GradleClient {
     }
 
     /**
-       Call this to stop communications with the server.
-    */
+     * Call this to stop communications with the server.
+     */
     public void stop() {
         clientProcess.stop();
     }

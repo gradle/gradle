@@ -42,7 +42,9 @@ public class JavadocOptionFile {
     }
 
     public <T> JavadocOptionFileOption<T> addOption(JavadocOptionFileOption<T> option) {
-        if ( option == null ) throw new IllegalArgumentException("option == null!");
+        if (option == null) {
+            throw new IllegalArgumentException("option == null!");
+        }
 
         options.put(option.getOption(), option);
 
@@ -81,9 +83,9 @@ public class JavadocOptionFile {
         return addOption(new StringsJavadocOptionFileOption(option, new ArrayList<String>(), joinBy));
     }
 
-   public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
-       return addOption(new MultilineStringsJavadocOptionFileOption(option, new ArrayList<String>()));
-   }
+    public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
+        return addOption(new MultilineStringsJavadocOptionFileOption(option, new ArrayList<String>()));
+    }
 
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option) {
         return addBooleanOption(option, false);
@@ -102,7 +104,9 @@ public class JavadocOptionFile {
     }
 
     public void write(File optionFile) throws IOException {
-        if ( optionFile == null ) throw new IllegalArgumentException("optionFile == null!");
+        if (optionFile == null) {
+            throw new IllegalArgumentException("optionFile == null!");
+        }
 
         final JavadocOptionFileWriter optionFileWriter = new JavadocOptionFileWriter(this);
 

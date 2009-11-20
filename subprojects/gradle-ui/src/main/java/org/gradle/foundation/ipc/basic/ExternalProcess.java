@@ -21,12 +21,12 @@ import org.gradle.api.logging.Logging;
 import java.io.*;
 
 /**
-   <p>Helper class for running an external process.  This handles starting/stopping
-   and pumping the IO for the process.  If you don't provide a sink for the
-   output, it will save it for retrieval as a String.</p>
-   <p>Start the process running with {@link #start}</p>
-   @author sappling
-*/
+ * <p>Helper class for running an external process.  This handles starting/stopping and pumping the IO for the process.
+ * If you don't provide a sink for the output, it will save it for retrieval as a String.</p> <p>Start the process
+ * running with {@link #start}</p>
+ *
+ * @author sappling
+ */
 public class ExternalProcess {
     private final Logger logger = Logging.getLogger(ExternalProcess.class);
 
@@ -40,55 +40,54 @@ public class ExternalProcess {
     ByteArrayOutputStream internalProcessOutput;
     public String inputString = "";
 
-
     /**
-       Create an ExternalProcess that takes no input and saves all output as a
-       String.
-       @param  commandLine variable number of Strings for the command line, one
-               String for each param.
-    */
+     * Create an ExternalProcess that takes no input and saves all output as a String.
+     *
+     * @param commandLine variable number of Strings for the command line, one String for each param.
+     */
     public ExternalProcess(String... commandLine) {
         this(null, null, null, commandLine);
     }
 
     /**
-       Create an ExternalProcess that takes no input and saves all output as a
-       String.
-       @param  workingDirectory the working directory for the new process.
-       @param  commandLine variable number of Strings for the command line, one
-               String for each param.
-    */
+     * Create an ExternalProcess that takes no input and saves all output as a String.
+     *
+     * @param workingDirectory the working directory for the new process.
+     * @param commandLine variable number of Strings for the command line, one String for each param.
+     */
     public ExternalProcess(File workingDirectory, String... commandLine) {
         this(null, null, workingDirectory, commandLine);
     }
 
     /**
-       Create an ExternalProcess using the specified Input and Output streams.
-       @param  procInput   InputStream for process.
-       @param  procOutput  OutputStream for process.
-       @param  commandLine variable number of Strings for the command line, one
-               String for each param.
-    */
+     * Create an ExternalProcess using the specified Input and Output streams.
+     *
+     * @param procInput InputStream for process.
+     * @param procOutput OutputStream for process.
+     * @param commandLine variable number of Strings for the command line, one String for each param.
+     */
     public ExternalProcess(InputStream procInput, OutputStream procOutput, String... commandLine) {
         this(procInput, procOutput, null, commandLine);
     }
 
-    public ExternalProcess(InputStream procInput, OutputStream procOutput, File workingDirectory, String... commandLine) {
+    public ExternalProcess(InputStream procInput, OutputStream procOutput, File workingDirectory,
+                           String... commandLine) {
         pb = new ProcessBuilder(commandLine);
-        if (workingDirectory != null)
+        if (workingDirectory != null) {
             pb.directory(workingDirectory);
+        }
         this.procInput = procInput;
         this.procOutput = procOutput;
     }
 
-   /**
-    Sets environment variables. Must be called before starting the process.
-    @param name the name of the variable.
-    @param value the value of said variable.
-    */
-    public void setEnvironmentVariable( String name, String value )
-    {
-       pb.environment().put( name, value );
+    /**
+     * Sets environment variables. Must be called before starting the process.
+     *
+     * @param name the name of the variable.
+     * @param value the value of said variable.
+     */
+    public void setEnvironmentVariable(String name, String value) {
+        pb.environment().put(name, value);
     }
 
     public void setInput(String inData) {
@@ -150,8 +149,7 @@ public class ExternalProcess {
         try {
             process.exitValue();
             running = false;
-        }
-        catch (Throwable th) {
+        } catch (Throwable th) {
         }
         return running;
     }
@@ -198,20 +196,20 @@ public class ExternalProcess {
                         if (!copyData()) {
                             Thread.sleep(100);
                         }
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         logger.error("Error copying data", e);
                     }
                 }
                 if (finish) {
                     try {
-                        while (copyData()) ;
+                        while (copyData()) {
+                            ;
+                        }
                     } catch (IOException e) {
                         logger.error("Error copying data", e);
                     }
                 }
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
             } // ignore
         }
 

@@ -18,13 +18,10 @@ package org.gradle.api.plugins.jetty.internal;
 
 /**
  * Proxy
- * 
- * Provides untyped access to an object of
- * a particular jetty version.
  *
+ * Provides untyped access to an object of a particular jetty version.
  */
 public interface Proxy {
-    
-    public Object getProxiedObject();
 
+    public Object getProxiedObject();
 }

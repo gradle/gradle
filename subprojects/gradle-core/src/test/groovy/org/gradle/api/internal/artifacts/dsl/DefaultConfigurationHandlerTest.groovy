@@ -86,7 +86,7 @@ class DefaultConfigurationHandlerTest {
     }
 
     @Test (expected = MissingMethodException)
-    void newConfigurationWithNonClosureParameters_shouldThrowMissingMethodEx() {
+    void newConfigurationWithNonClosureParametersShouldThrowMissingMethodEx() {
         configurationHandler.newConf('a', 'b')
     }
 }

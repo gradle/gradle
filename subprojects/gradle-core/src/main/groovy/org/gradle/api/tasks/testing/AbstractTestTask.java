@@ -135,7 +135,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
      *
      * @return All test class directories to be used.
      */
-    @InputDirectory @SkipWhenEmpty
+    @InputDirectory
+    @SkipWhenEmpty
     public File getTestClassesDir() {
         return testClassesDir;
     }
@@ -255,11 +256,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
         return testFrameworkInstance;
     }
 
-
     /**
-     * Backwards compatible access to the TestFramework options.
-     * <p/>
-     * Be sure to call the appropriate useJUnit/useTestNG/useTestFramework function or set the default before using this function.
+     * Backwards compatible access to the TestFramework options. <p/> Be sure to call the appropriate
+     * useJUnit/useTestNG/useTestFramework function or set the default before using this function.
      *
      * @return The testframework options.
      */
@@ -270,8 +269,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     public Object options(Closure testFrameworkConfigure) {
         final Object options = getTestFramework().getOptions();
 
-        if (testFrameworkConfigure != null)
+        if (testFrameworkConfigure != null) {
             ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
+        }
 
         return options;
     }
@@ -281,15 +281,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     }
 
     public TestFrameworkInstance useTestFramework(TestFramework testFramework, Closure testFrameworkConfigure) {
-        if (testFramework == null)
+        if (testFramework == null) {
             throw new IllegalArgumentException("testFramework is null!");
+        }
 
         this.testFrameworkInstance = testFramework.getInstance(this);
 
         testFrameworkInstance.initialize(getProject(), this);
 
-        if (testFrameworkConfigure != null)
+        if (testFrameworkConfigure != null) {
             ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
+        }
 
         return testFrameworkInstance;
     }
@@ -314,7 +316,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
         try {
             final String testFrameworkDefault = (String) getProject().property(TEST_FRAMEWORK_DEFAULT_PROPERTY);
 
-            if (testFrameworkDefault == null || "".equals(testFrameworkDefault) || "junit".equalsIgnoreCase(testFrameworkDefault)) {
+            if (testFrameworkDefault == null || "".equals(testFrameworkDefault) || "junit".equalsIgnoreCase(
+                    testFrameworkDefault)) {
                 return useJUnit(testFrameworkConfigure);
             } else if ("testng".equalsIgnoreCase(testFrameworkDefault)) {
                 return useTestNG(testFrameworkConfigure);
@@ -326,12 +329,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
                 } catch (ClassNotFoundException e) {
                     throw new GradleException(testFrameworkDefault + " could not be found on the classpath", e);
                 } catch (Exception e) {
-                    throw new GradleException("Could not create an instance of the test framework class " + testFrameworkDefault + ". Make sure that it has a public noargs constructor.", e);
+                    throw new GradleException(
+                            "Could not create an instance of the test framework class " + testFrameworkDefault
+                                    + ". Make sure that it has a public noargs constructor.", e);
                 }
-
             }
-        }
-        catch (MissingPropertyException e) {
+        } catch (MissingPropertyException e) {
             return useJUnit(testFrameworkConfigure);
         }
     }

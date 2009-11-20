@@ -46,9 +46,8 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests that addChild actually works. We'll verify a child isn't
-       present, then add one.
-    */
+     * This tests that addChild actually works. We'll verify a child isn't present, then add one.
+     */
     public void testAddChild() {
         //make sure we have no child named 'fred' at the DOM4J level
         assertNull(rootElement.element(SAMPLE_NAME_1));
@@ -56,20 +55,19 @@ public class DOM4JSettingsNodeTest extends TestCase {
         //as such, we shouldn't have one at the DOM4JSettingsNode level either.
         assertNull(rootNode.getChildNode(SAMPLE_NAME_1));
 
-
         SettingsNode settingsNode = rootNode.addChild(SAMPLE_NAME_1);
         assertNotNull(settingsNode);
 
         //and now it should be present under both.
-        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_1));
+        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE,
+                SAMPLE_NAME_1));
         assertNotNull(rootNode.getChildNode(SAMPLE_NAME_1));
     }
 
     /**
-       This tests that if you call addChildIfNotPresent, it actually adds a
-       child that is not present. We'll verify a child isn't present, then add
-       one.
-    */
+     * This tests that if you call addChildIfNotPresent, it actually adds a child that is not present. We'll verify a
+     * child isn't present, then add one.
+     */
     public void testAddingChildrenIfNotPresent() {
         //make sure we have no child named 'fred' at the DOM4J level
         assertNull(rootElement.element(SAMPLE_NAME_1));
@@ -77,57 +75,62 @@ public class DOM4JSettingsNodeTest extends TestCase {
         //as such, we shouldn't have one at the DOM4JSettingsNode level either.
         assertNull(rootNode.getChildNode(SAMPLE_NAME_1));
 
-
         SettingsNode settingsNode = rootNode.addChildIfNotPresent(SAMPLE_NAME_1);
         assertNotNull(settingsNode);
 
         //and now it should be present under both.
-        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_1));
+        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE,
+                SAMPLE_NAME_1));
         assertNotNull(rootNode.getChildNode(SAMPLE_NAME_1));
     }
 
     /**
-       This tests that if you call addChildIfNotPresent, it won't add a
-       child if one is already present. We'll verify a child is present, then
-       call addChildIfNotPresent.
-    */
+     * This tests that if you call addChildIfNotPresent, it won't add a child if one is already present. We'll verify a
+     * child is present, then call addChildIfNotPresent.
+     */
     public void testAddingChildrenIfNotPresent2() {
         rootNode.addChild(SAMPLE_NAME_1);
 
-        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_1));
+        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE,
+                SAMPLE_NAME_1));
         assertNotNull(rootNode.getChildNode(SAMPLE_NAME_1));
 
-        List list = Dom4JUtility.getChildren(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_1);
+        List list = Dom4JUtility.getChildren(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE,
+                SAMPLE_NAME_1);
         assertEquals(1, list.size());  //there should only be the one element.
 
         SettingsNode settingsNode = rootNode.addChildIfNotPresent(SAMPLE_NAME_1);
         assertNotNull(settingsNode);
 
         //it should still be present under both.
-        assertNotNull(Dom4JUtility.getChildren(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_1));
+        assertNotNull(Dom4JUtility.getChildren(rootElement, DOM4JSettingsNode.TAG_NAME,
+                DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_1));
         assertNotNull(rootNode.getChildNode(SAMPLE_NAME_1));
 
         //but make sure we didn't add an additional one. There should still be only one element.
-        list = Dom4JUtility.getChildren(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_1);
+        list = Dom4JUtility.getChildren(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE,
+                SAMPLE_NAME_1);
         assertEquals(1, list.size());
     }
 
     /**
-       This tests that getChildNode works. We'll add some nodes and make sure
-       they are found correctly. We'll also add a duplicate named node. It should
-       never be returned because getChildNode only finds the first one. Lastly,
-       we'll call getChildNode for a node that doesn't exist. It shouldn't be
-       returned.
-    */
+     * This tests that getChildNode works. We'll add some nodes and make sure they are found correctly. We'll also add a
+     * duplicate named node. It should never be returned because getChildNode only finds the first one. Lastly, we'll
+     * call getChildNode for a node that doesn't exist. It shouldn't be returned.
+     */
     public void testGetChildNode() {
         SettingsNode childNode1 = rootNode.addChild(SAMPLE_NAME_1);
         SettingsNode childNode2 = rootNode.addChild(SAMPLE_NAME_2);
         SettingsNode childNode3 = rootNode.addChild(SAMPLE_NAME_3);
-        SettingsNode childNode4 = rootNode.addChild(SAMPLE_NAME_2);  //this is a duplicate and should never be found via getChildNode.
+        SettingsNode childNode4 = rootNode.addChild(
+                SAMPLE_NAME_2);  //this is a duplicate and should never be found via getChildNode.
 
-        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_1));
-        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_2));
-        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE, SAMPLE_NAME_3));
+        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE,
+                SAMPLE_NAME_1));
+        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE,
+                SAMPLE_NAME_2));
+        assertNotNull(Dom4JUtility.getChild(rootElement, DOM4JSettingsNode.TAG_NAME, DOM4JSettingsNode.NAME_ATTRIBUTE,
+                SAMPLE_NAME_3));
         assertNotNull(rootNode.getChildNode(SAMPLE_NAME_1));
         assertNotNull(rootNode.getChildNode(SAMPLE_NAME_2));
         assertNotNull(rootNode.getChildNode(SAMPLE_NAME_3));
@@ -151,12 +154,10 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests getChildNodes. We'll make sure it returns all the child nodes.
-       First we'll make sure it returns nothing when no children are present.
-       Then we'll add some nodes, and make sure it returns them all. Lastly, we'll
-       add some more again to make sure they're included in the list.
-
-    */
+     * This tests getChildNodes. We'll make sure it returns all the child nodes. First we'll make sure it returns
+     * nothing when no children are present. Then we'll add some nodes, and make sure it returns them all. Lastly, we'll
+     * add some more again to make sure they're included in the list.
+     */
     public void testGetChildNodes() {
         //try it with no nodes
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -178,17 +179,16 @@ public class DOM4JSettingsNodeTest extends TestCase {
 
         //again, all should be returned
         children = rootNode.getChildNodes();
-        TestUtility.assertListContents(children, childNode1, childNode2, childNode3, childNode4, childNode5, childNode6);
+        TestUtility.assertListContents(children, childNode1, childNode2, childNode3, childNode4, childNode5,
+                childNode6);
     }
 
     /**
-       This tests getChildNodes that takes a sought node name. We'll make sure
-       it returns all the child nodes. First we'll make sure it returns nothing
-       when no children are present. Then we'll add some nodes and make sure it
-       returns the correct ones. Lastly, we'll add some more again to make sure
-       they're appropriately included in the list.
-
-    */
+     * This tests getChildNodes that takes a sought node name. We'll make sure it returns all the child nodes. First
+     * we'll make sure it returns nothing when no children are present. Then we'll add some nodes and make sure it
+     * returns the correct ones. Lastly, we'll add some more again to make sure they're appropriately included in the
+     * list.
+     */
     public void testGetChildNodesByName() {
         //try it with no nodes
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -214,9 +214,9 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This verifies that getName and setName work correctly. We call each
-       and make sure the value is stored and retrieved correctly.
-    */
+     * This verifies that getName and setName work correctly. We call each and make sure the value is stored and
+     * retrieved correctly.
+     */
     public void testName() {
         SettingsNode childNode1 = rootNode.addChild(SAMPLE_NAME_1);
 
@@ -228,9 +228,9 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This verifies that getValue and setValue work correctly. We call each
-       and make sure the value is stored and retrieved correctly.
-    */
+     * This verifies that getValue and setValue work correctly. We call each and make sure the value is stored and
+     * retrieved correctly.
+     */
     public void testValue() {
         SettingsNode childNode1 = rootNode.addChild(SAMPLE_NAME_1);
 
@@ -246,11 +246,10 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests that removeFromParent works. We'll add some sample nodes and
-       then delete them one by one and verify they're really removed. We'll also
-       add two with the same name just to make sure that the wrong one isn't
-       deleted.
-    */
+     * This tests that removeFromParent works. We'll add some sample nodes and then delete them one by one and verify
+     * they're really removed. We'll also add two with the same name just to make sure that the wrong one isn't
+     * deleted.
+     */
     public void testRemoveFromParent() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -311,9 +310,9 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests removeAllChildren. We'll add some nodes and call removeAllChildren
-       and then make sure they're no longer present.
-    */
+     * This tests removeAllChildren. We'll add some nodes and call removeAllChildren and then make sure they're no
+     * longer present.
+     */
     public void testRemoveAllChildren() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -346,9 +345,8 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests getNodeAtPath. We want to make sure it locates nodes via path
-       from several locations.
-    */
+     * This tests getNodeAtPath. We want to make sure it locates nodes via path from several locations.
+     */
     public void testGetNodeAtPath() {
         //add some sample nodes. I'm indenting these to better show the structure I'm making
         SettingsNode childNode1 = rootNode.addChild(SAMPLE_NAME_1);
@@ -366,7 +364,6 @@ public class DOM4JSettingsNodeTest extends TestCase {
         SettingsNode grandChildNodeB2 = childNode2.addChild("sub_nodeB2");
 
         SettingsNode childNode3 = rootNode.addChild(SAMPLE_NAME_3);
-
 
         //now start searching for some nodes
         SettingsNode foundNode1 = rootNode.getNodeAtPath(SAMPLE_NAME_1, "sub_nodeA2", "sub_sub_nodeA22");
@@ -394,9 +391,9 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests setValueOfChild. We're going to make sure the value is set
-       as well as that repeated calls to this don't add child nodes.
-    */
+     * This tests setValueOfChild. We're going to make sure the value is set as well as that repeated calls to this
+     * don't add child nodes.
+     */
     public void testSetValueOfChild() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -426,10 +423,9 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests getValueOfChild. We're interested in that it gets the child
-       value correctly, but also that it returns the default value if either the
-       node or its value isn't present.
-    */
+     * This tests getValueOfChild. We're interested in that it gets the child value correctly, but also that it returns
+     * the default value if either the node or its value isn't present.
+     */
     public void testGetValueOfChild() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -456,9 +452,9 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests setValueOfChildAsInt. We're going to make sure the value is set
-       as well as that repeated calls to this don't add child nodes.
-    */
+     * This tests setValueOfChildAsInt. We're going to make sure the value is set as well as that repeated calls to this
+     * don't add child nodes.
+     */
     public void testSetValueOfChildAsInt() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -488,10 +484,9 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests getValueOfChildAsInt. We're interested in that it gets the child
-       value correctly, but also that it returns the default value if either the
-       node, its value isn't present, or the valid isn't illegal as an int.
-    */
+     * This tests getValueOfChildAsInt. We're interested in that it gets the child value correctly, but also that it
+     * returns the default value if either the node, its value isn't present, or the valid isn't illegal as an int.
+     */
     public void testGetValueOfChildAsInt() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -524,11 +519,10 @@ public class DOM4JSettingsNodeTest extends TestCase {
         assertEquals(333, rootNode.getValueOfChildAsInt("illegal", 333));
     }
 
-
     /**
-       This tests setValueOfChildAsLong. We're going to make sure the value is set
-       as well as that repeated calls to this don't add child nodes.
-    */
+     * This tests setValueOfChildAsLong. We're going to make sure the value is set as well as that repeated calls to
+     * this don't add child nodes.
+     */
     public void testSetValueOfChildAsLong() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -558,10 +552,9 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests getValueOfChildAsLong. We're interested in that it gets the child
-       value correctly, but also that it returns the default value if either the
-       node, its value isn't present, or the valid isn't illegal as an long.
-    */
+     * This tests getValueOfChildAsLong. We're interested in that it gets the child value correctly, but also that it
+     * returns the default value if either the node, its value isn't present, or the valid isn't illegal as an long.
+     */
     public void testGetValueOfChildAsLong() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -594,11 +587,10 @@ public class DOM4JSettingsNodeTest extends TestCase {
         assertEquals(33300000000l, rootNode.getValueOfChildAsLong("illegal", 33300000000l));
     }
 
-
     /**
-       This tests setValueOfChildAsBoolean. We're going to make sure the value is set
-       as well as that repeated calls to this don't add child nodes.
-    */
+     * This tests setValueOfChildAsBoolean. We're going to make sure the value is set as well as that repeated calls to
+     * this don't add child nodes.
+     */
     public void testSetValueOfChildAsBoolean() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();
@@ -638,14 +630,11 @@ public class DOM4JSettingsNodeTest extends TestCase {
     }
 
     /**
-       This tests getValueOfChildAsBoolean. We're interested in that it gets
-       the child value correctly, but also that it returns the default value if
-       either the node, its value isn't present, or the valid isn't illegal as
-       a boolean.
-       Because we're dealing with just true and false, I'll test several of these
-       twice; once with a default of true and again with a default of false.
-       This is just to be paranoid.
-    */
+     * This tests getValueOfChildAsBoolean. We're interested in that it gets the child value correctly, but also that it
+     * returns the default value if either the node, its value isn't present, or the valid isn't illegal as a boolean.
+     * Because we're dealing with just true and false, I'll test several of these twice; once with a default of true and
+     * again with a default of false. This is just to be paranoid.
+     */
     public void testGetValueOfChildAsBoolean() {
         //make sure we have no children first
         List<SettingsNode> children = rootNode.getChildNodes();

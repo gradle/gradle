@@ -19,27 +19,25 @@ import java.io.File;
 import java.util.List;
 
 /**
- * This allows this plugin to interact with alternative UIs. Specifically, this
- * has callbacks for IDE's so tell it to edit a project file or the like.
- * This is the 'alternate' UI interaction because it interacts with other UIs
- * (other than the built-in UI).
+ * This allows this plugin to interact with alternative UIs. Specifically, this has callbacks for IDE's so tell it to
+ * edit a project file or the like. This is the 'alternate' UI interaction because it interacts with other UIs (other
+ * than the built-in UI).
  *
  * @author mhunsicker
  */
 public interface AlternateUIInteraction {
     /**
-       This is called when we should edit the specified files. Open them in the
-       current IDE or some external editor.
-
-       @param  files      the files to open
-    */
+     * This is called when we should edit the specified files. Open them in the current IDE or some external editor.
+     *
+     * @param files the files to open
+     */
     public void editFiles(List<File> files);
 
     /**
-       Determines if we can call editFiles. This is not a dynamic answer and
-       should always return either true of false. If you want to change the
-       answer, return true and then handle the files differently in editFiles.
-       @return true if support editing files, false otherwise.
-    */
+     * Determines if we can call editFiles. This is not a dynamic answer and should always return either true of false.
+     * If you want to change the answer, return true and then handle the files differently in editFiles.
+     *
+     * @return true if support editing files, false otherwise.
+     */
     public boolean doesSupportEditingFiles();
 }

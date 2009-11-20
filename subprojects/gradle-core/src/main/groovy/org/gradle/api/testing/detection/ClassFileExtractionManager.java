@@ -50,38 +50,35 @@ public class ClassFileExtractionManager {
      * @param libraryJar Jar file to add to the index.
      */
     public void addLibraryJar(final File libraryJar) {
-        new JarFilePackageLister().listJarPackages(
-                libraryJar,
-                new JarFilePackageListener() {
-                    public void receivePackage(String packageName) {
-                        Set<File> jarFiles = packageJarFilesMappings.get(packageName);
-                        if (jarFiles == null) {
-                            jarFiles = new TreeSet<File>();
-                        }
-                        jarFiles.add(libraryJar);
-
-                        packageJarFilesMappings.put(packageName, jarFiles);
-                    }
+        new JarFilePackageLister().listJarPackages(libraryJar, new JarFilePackageListener() {
+            public void receivePackage(String packageName) {
+                Set<File> jarFiles = packageJarFilesMappings.get(packageName);
+                if (jarFiles == null) {
+                    jarFiles = new TreeSet<File>();
                 }
-        );
+                jarFiles.add(libraryJar);
+
+                packageJarFilesMappings.put(packageName, jarFiles);
+            }
+        });
     }
 
     /**
-     * Retrieve the file that contains the extracted class file.
-     * <p/>
-     * This method will extract the class file if it is not extracted yet. Extracted class files are deleted on exit
-     * of the Gradle process. The same class is only extracted once.
+     * Retrieve the file that contains the extracted class file. <p/> This method will extract the class file if it is
+     * not extracted yet. Extracted class files are deleted on exit of the Gradle process. The same class is only
+     * extracted once.
      *
      * @param className Name of the class to extract.
      * @return File that contains the extracted class file.
      */
     public File getLibraryClassFile(final String className) {
-        if (unextractableClasses.contains(className))
+        if (unextractableClasses.contains(className)) {
             return null;
-        else {
+        } else {
             if (!extractedJarClasses.containsKey(className)) {
-                if (!extractClassFile(className))
+                if (!extractClassFile(className)) {
                     unextractableClasses.add(className);
+                }
             }
 
             return extractedJarClasses.get(className);
@@ -107,10 +104,10 @@ public class ClassFileExtractionManager {
                 try {
                     classFileExtracted = JarUtil.extractZipEntry(jarFile, classFileName, extractedClassFile);
 
-                    if (classFileExtracted)
+                    if (classFileExtracted) {
                         classFileSourceJar = jarFile;
-                }
-                catch (IOException e) {
+                    }
+                } catch (IOException e) {
                     throw new GradleException("failed to extract class file from jar (" + jarFile + ")", e);
                 }
             }
@@ -142,8 +139,7 @@ public class ClassFileExtractionManager {
             tempFile.deleteOnExit();
 
             return tempFile;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new GradleException("failed to create temp file to extract class from jar into", e);
         }
     }

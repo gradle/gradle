@@ -26,10 +26,10 @@ import java.io.File;
 import java.util.*;
 
 /**
- * This task generates html api doc for Groovy classes. It uses Groovy's Groovydoc tool for this. Please note that
- * the Groovydoc tool has some severe limitations at the moment (for example no doc for properties comments). The
- * version of the Groovydoc that is used, is the one from the Groovy defined in the build script. Please note also,
- * that the Groovydoc tool prints to System.out for many of its statements and does circumvents our logging currently.
+ * This task generates html api doc for Groovy classes. It uses Groovy's Groovydoc tool for this. Please note that the
+ * Groovydoc tool has some severe limitations at the moment (for example no doc for properties comments). The version of
+ * the Groovydoc that is used, is the one from the Groovy defined in the build script. Please note also, that the
+ * Groovydoc tool prints to System.out for many of its statements and does circumvents our logging currently.
  *
  * @author Hans Dockter
  */
@@ -65,9 +65,9 @@ public class Groovydoc extends SourceTask {
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         ProjectInternal project = (ProjectInternal) getProject();
-        antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(),
-                getDocTitle(), getHeader(), getFooter(), getOverview(), isIncludePrivate(), getLinks(),
-                project.getGradle().getIsolatedAntBuilder(), taskClasspath, project);
+        antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(), getDocTitle(), getHeader(),
+                getFooter(), getOverview(), isIncludePrivate(), getLinks(), project.getGradle().getIsolatedAntBuilder(),
+                taskClasspath, project);
     }
 
     private void throwExceptionIfTaskClasspathIsEmpty(List taskClasspath) {
@@ -127,8 +127,6 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Set's whether to create class and package usage pages. Defaults to false.
-     *
-     * @param use
      */
     public void setUse(boolean use) {
         this.use = use;
@@ -207,8 +205,6 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Set's a html file to be used for overview documentation (optional).
-     *
-     * @param overview
      */
     public void setOverview(String overview) {
         this.overview = overview;
@@ -222,9 +218,8 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Set's whether to include all classes and members (i.e. including private ones) if set to true. Defaults to false.
-     *
-     * @param includePrivate
+     * Set's whether to include all classes and members (i.e. including private ones) if set to true. Defaults to
+     * false.
      */
     public void setIncludePrivate(boolean includePrivate) {
         this.includePrivate = includePrivate;
@@ -241,7 +236,7 @@ public class Groovydoc extends SourceTask {
      * Sets links to groovydoc/javadoc output at the given URL
      *
      * @param links The links to set
-     * @see #link(String, String[]) 
+     * @see #link(String, String[])
      */
     public void setLinks(Set<Link> links) {
         this.links = links;
@@ -265,7 +260,6 @@ public class Groovydoc extends SourceTask {
         private String url;
 
         /**
-         *
          * @param url Base URL of external site
          * @param packages list of package prefixes
          */
@@ -303,13 +297,21 @@ public class Groovydoc extends SourceTask {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             Link link = (Link) o;
 
-            if (packages != null ? !packages.equals(link.packages) : link.packages != null) return false;
-            if (url != null ? !url.equals(link.url) : link.url != null) return false;
+            if (packages != null ? !packages.equals(link.packages) : link.packages != null) {
+                return false;
+            }
+            if (url != null ? !url.equals(link.url) : link.url != null) {
+                return false;
+            }
 
             return true;
         }

@@ -30,7 +30,7 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
     private Map<Configuration, Conf2ScopeMapping> mappings = new HashMap<Configuration, Conf2ScopeMapping>();
 
     private boolean skipUnmappedConfs = true;
-                  
+
     public DefaultConf2ScopeMappingContainer() {
     }
 
@@ -49,8 +49,9 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
     private Conf2ScopeMapping getMappingWithHighestPriority(Configuration[] configurations) {
         Set<Conf2ScopeMapping> result = getMappingsWithHighestPriority(configurations);
         if (result.size() > 1) {
-            throw new InvalidUserDataException("The configuration to scope mapping is not unique. The following configurations " +
-                    "have the same priority: " + result);
+            throw new InvalidUserDataException(
+                    "The configuration to scope mapping is not unique. The following configurations "
+                            + "have the same priority: " + result);
         }
         return result.size() == 0 ? null : result.iterator().next();
     }
@@ -103,12 +104,18 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
     }
 
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DefaultConf2ScopeMappingContainer that = (DefaultConf2ScopeMappingContainer) o;
 
-        if (!mappings.equals(that.mappings)) return false;
+        if (!mappings.equals(that.mappings)) {
+            return false;
+        }
 
         return true;
     }

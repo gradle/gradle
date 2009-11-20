@@ -20,23 +20,25 @@ import org.gradle.api.testing.fabric.TestClassRunInfoFactory;
 import org.gradle.util.queues.BlockingQueueItemProducer;
 
 /**
- * The queue item producing test class processor is used when running tests natively to queue the test class on the
- * test detection queue.
+ * The queue item producing test class processor is used when running tests natively to queue the test class on the test
+ * detection queue.
  *
  * @author Tom Eyckmans
  */
-public class QueueItemProducingTestClassProcessor implements TestClassProcessor
-{
+public class QueueItemProducingTestClassProcessor implements TestClassProcessor {
     private final BlockingQueueItemProducer<TestClassRunInfo> testDetectionQueueProducer;
     private final TestClassRunInfoFactory testClassRunInfoFactory;
 
     public QueueItemProducingTestClassProcessor(
             final BlockingQueueItemProducer<TestClassRunInfo> testDetectionQueueProducer,
-            final TestClassRunInfoFactory testClassRunInfoFactory)
-    {
-        if ( testDetectionQueueProducer == null ) throw new IllegalArgumentException("testDetectionQueueProducer  == null!");
-        if ( testClassRunInfoFactory == null ) throw new IllegalArgumentException("testClassRunInfoFactory  == null!");
-        
+            final TestClassRunInfoFactory testClassRunInfoFactory) {
+        if (testDetectionQueueProducer == null) {
+            throw new IllegalArgumentException("testDetectionQueueProducer  == null!");
+        }
+        if (testClassRunInfoFactory == null) {
+            throw new IllegalArgumentException("testClassRunInfoFactory  == null!");
+        }
+
         this.testDetectionQueueProducer = testDetectionQueueProducer;
         this.testClassRunInfoFactory = testClassRunInfoFactory;
     }
@@ -44,7 +46,7 @@ public class QueueItemProducingTestClassProcessor implements TestClassProcessor
     public void processTestClass(final String testClassName) {
         final TestClassRunInfo testClassRunInfo = testClassRunInfoFactory.createTestClassRunInfo(testClassName);
 
-        if ( testClassRunInfo != null ) {
+        if (testClassRunInfo != null) {
             testDetectionQueueProducer.produce(testClassRunInfo);
         }
     }

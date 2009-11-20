@@ -33,9 +33,8 @@ import java.io.InputStream;
 import java.io.IOException;
 
 /**
- * This just wraps up an OutputPanel so it has a tab header that an be dynamic.
- * The current (rather awkward) JTabbedPane implemenation is to separate the
- * tab contents from its component. This only works with java 1.6 or later.
+ * This just wraps up an OutputPanel so it has a tab header that an be dynamic. The current (rather awkward) JTabbedPane
+ * implemenation is to separate the tab contents from its component. This only works with java 1.6 or later.
  *
  * @author mhunsicker
  */
@@ -60,11 +59,12 @@ public class OutputTab extends OutputPanel {
         pinnedLabel = new JLabel("(Pinned) ");
         pinnedLabel.setVisible(isPinned());
 
-       BufferedImage image = getImageResource( "close.png" );
-       if( image != null )
-         closeLabel = new JLabel( new ImageIcon( image ) );
-       else
-         closeLabel = new JLabel("X");   //for now. Ultimately, I need to use an image.
+        BufferedImage image = getImageResource("close.png");
+        if (image != null) {
+            closeLabel = new JLabel(new ImageIcon(image));
+        } else {
+            closeLabel = new JLabel("X");
+        }   //for now. Ultimately, I need to use an image.
 
         mainPanel.add(mainTextLabel);
         mainPanel.add(Box.createHorizontalStrut(5));
@@ -78,20 +78,18 @@ public class OutputTab extends OutputPanel {
         });
     }
 
-    private BufferedImage getImageResource( String imageResourceName )
-    {
-       InputStream inputStream = getClass().getResourceAsStream(imageResourceName);
-       if (inputStream != null) {
-          try {
-              BufferedImage image = ImageIO.read(inputStream);
-             return image;
-          }
-          catch ( IOException e) {
-              LOGGER.error("Reading image " + imageResourceName, e);
-          }
-       }
+    private BufferedImage getImageResource(String imageResourceName) {
+        InputStream inputStream = getClass().getResourceAsStream(imageResourceName);
+        if (inputStream != null) {
+            try {
+                BufferedImage image = ImageIO.read(inputStream);
+                return image;
+            } catch (IOException e) {
+                LOGGER.error("Reading image " + imageResourceName, e);
+            }
+        }
 
-       return null;
+        return null;
     }
 
     /**
@@ -117,19 +115,20 @@ public class OutputTab extends OutputPanel {
         closeLabel.setEnabled(false); // provide feedback to the user that we received their click
 
         boolean result = super.close();
-        if (result)
+        if (result) {
             ownerTabbedPane.remove(this);
+        }
 
         closeLabel.setEnabled(true);
         return result;
     }
 
     /**
-       Overridden so we can indicate the pinned state.
-
-       @param  pinned     whether or not we're pinned
-       @author mhunsicker
-    */
+     * Overridden so we can indicate the pinned state.
+     *
+     * @param pinned whether or not we're pinned
+     * @author mhunsicker
+     */
     @Override
     public void setPinned(boolean pinned) {
         pinnedLabel.setVisible(pinned);

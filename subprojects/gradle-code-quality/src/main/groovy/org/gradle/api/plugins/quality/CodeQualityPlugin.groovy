@@ -27,10 +27,10 @@ import org.gradle.api.tasks.GroovySourceSet
  * A {@link Plugin} which measures and enforces code quality for Java and Groovy projects.
  */
 public class CodeQualityPlugin implements Plugin {
-    public static String CHECKSTYLE_MAIN_TASK = "checkstyleMain";
-    public static String CHECKSTYLE_TEST_TASK = "checkstyleTest";
-    public static String CODE_NARC_MAIN_TASK = "codenarcMain";
-    public static String CODE_NARC_TEST_TASK = "codenarcTest";
+    public static final String CHECKSTYLE_MAIN_TASK = "checkstyleMain";
+    public static final String CHECKSTYLE_TEST_TASK = "checkstyleTest";
+    public static final String CODE_NARC_MAIN_TASK = "codenarcMain";
+    public static final String CODE_NARC_TEST_TASK = "codenarcTest";
 
     public void use(final Project project, ProjectPluginsContainer projectPluginsHandler) {
         projectPluginsHandler.usePlugin(ReportingBasePlugin.class, project);

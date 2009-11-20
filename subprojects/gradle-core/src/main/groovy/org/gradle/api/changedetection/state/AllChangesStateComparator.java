@@ -23,7 +23,8 @@ import java.io.IOException;
  */
 class AllChangesStateComparator extends AbstractStateComparator {
 
-    public boolean compareState(DefaultDirectoryStateChangeDetecter directoryStateChangeDetecter, int level) throws IOException {
+    public boolean compareState(DefaultDirectoryStateChangeDetecter directoryStateChangeDetecter, int level)
+            throws IOException {
         return compareLevel(directoryStateChangeDetecter, level);
     }
 }

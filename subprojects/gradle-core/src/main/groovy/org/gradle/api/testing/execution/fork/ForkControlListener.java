@@ -50,8 +50,10 @@ public class ForkControlListener implements ExecHandleListener {
         final int normalExitCode = execHandle.getNormalTerminationExitCode();
 
         Throwable cause = execHandle.getFailureCause();
-        if (cause == null && exitCode != normalExitCode)
-            cause = new BadExitCodeException("exit code was " + exitCode + " expected normal exit code " + normalExitCode);
+        if (cause == null && exitCode != normalExitCode) {
+            cause = new BadExitCodeException(
+                    "exit code was " + exitCode + " expected normal exit code " + normalExitCode);
+        }
 
         forkControl.forkFailed(pipelineId, forkId, cause);
     }

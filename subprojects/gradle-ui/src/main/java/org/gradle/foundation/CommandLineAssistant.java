@@ -38,13 +38,12 @@ public class CommandLineAssistant {
     }
 
     /**
-       This breaks up the full command line string into space-delimited and/or
-       quoted command line arguments. This currently does not handle escaping
-       characters such as quotes.
-
-       @param  fullCommandLine the full command line
-       @return a string array of the separate command line arguments.
-    */
+     * This breaks up the full command line string into space-delimited and/or quoted command line arguments. This
+     * currently does not handle escaping characters such as quotes.
+     *
+     * @param fullCommandLine the full command line
+     * @return a string array of the separate command line arguments.
+     */
     public static String[] breakUpCommandLine(String fullCommandLine) {
         List<String> commandLineArguments = new ArrayList<String>();
 
@@ -55,21 +54,24 @@ public class CommandLineAssistant {
             char c = fullCommandLine.charAt(index);
             if (Character.isSpaceChar(c) && !isInsideQuotes) {
                 currentOption.trimToSize();
-                if (currentOption.length() > 0)
+                if (currentOption.length() > 0) {
                     commandLineArguments.add(currentOption.toString());
+                }
 
                 currentOption = new StringBuffer();
             } else {
-                if (c == '"')
+                if (c == '"') {
                     isInsideQuotes = !isInsideQuotes;
+                }
 
                 currentOption.append(c);
             }
         }
 
         currentOption.trimToSize();
-        if (currentOption.length() > 0)
+        if (currentOption.length() > 0) {
             commandLineArguments.add(currentOption.toString());
+        }
 
         return commandLineArguments.toArray(new String[commandLineArguments.size()]);
     }
@@ -96,84 +98,86 @@ public class CommandLineAssistant {
     }
 
     /**
-       This determines if one of the sought options is defined on the command line.
-       We're only looking for options that are prefixed with a single '-'.
-       Note: this IS case-sensitive.
-
-       @param  commandLineOptions the command line options
-       @param  commandLineSearch the options we're looking for. This won't have the prefixed dash in them (just "s", "d", etc.).
-       @return true if one of the sought options exists in the
-    */
+     * This determines if one of the sought options is defined on the command line. We're only looking for options that
+     * are prefixed with a single '-'. Note: this IS case-sensitive.
+     *
+     * @param commandLineOptions the command line options
+     * @param commandLineSearch the options we're looking for. This won't have the prefixed dash in them (just "s", "d",
+     * etc.).
+     * @return true if one of the sought options exists in the
+     */
     private boolean hasCommandLineOptionsDefined(String[] commandLineOptions, CommandLineSearch commandLineSearch) {
-        for (int commandLineOptionsIndex = 0; commandLineOptionsIndex < commandLineOptions.length; commandLineOptionsIndex++) {
+        for (
+                int commandLineOptionsIndex = 0; commandLineOptionsIndex < commandLineOptions.length;
+                commandLineOptionsIndex++) {
             String commandLineOption = commandLineOptions[commandLineOptionsIndex];
 
             if (commandLineOption != null && commandLineOption.length() > 1 && commandLineOption.charAt(0) == '-') {
                 //everything minus the dash must be equivalent to the sought option.
                 String remainder = commandLineOption.substring(1);
 
-                if (commandLineSearch.contains(remainder))
+                if (commandLineSearch.contains(remainder)) {
                     return true;
+                }
             }
         }
 
         return false;
     }
 
-
     /**
-       This appends additional command line options to a task name to generate
-       a full command line option.
-
-       @param  task                 the task to execute
-       @param  additionCommandLineOptions the additional options
-       @return a single command line string.
-    */
+     * This appends additional command line options to a task name to generate a full command line option.
+     *
+     * @param task the task to execute
+     * @param additionCommandLineOptions the additional options
+     * @return a single command line string.
+     */
     public static String appendAdditionalCommandLineOptions(TaskView task, String... additionCommandLineOptions) {
-        if (additionCommandLineOptions == null || additionCommandLineOptions.length == 0)
+        if (additionCommandLineOptions == null || additionCommandLineOptions.length == 0) {
             return task.getFullTaskName();
+        }
 
         StringBuilder builder = new StringBuilder(task.getFullTaskName());
         builder.append(' ');
 
-        appendAdditionalCommandLineOptions( builder, additionCommandLineOptions );
+        appendAdditionalCommandLineOptions(builder, additionCommandLineOptions);
 
         return builder.toString();
     }
 
+    /*
+   combines the tasks into a single command
+    */
 
-   /*
-      combines the tasks into a single command
-       */
-   public static String combineTasks( List<TaskView> tasks, String... additionCommandLineOptions )
-   {
-      if( tasks == null || tasks.isEmpty() )
-         return null;
+    public static String combineTasks(List<TaskView> tasks, String... additionCommandLineOptions) {
+        if (tasks == null || tasks.isEmpty()) {
+            return null;
+        }
 
-      StringBuilder builder = new StringBuilder();
-      Iterator<TaskView> iterator = tasks.iterator();
-      while( iterator.hasNext() )
-      {
-         TaskView taskView = iterator.next();
-         builder.append( taskView.getFullTaskName() );
-         if( iterator.hasNext() )
-            builder.append( ' ' );
-      }
-
-      appendAdditionalCommandLineOptions( builder, additionCommandLineOptions );
-
-      return builder.toString();
-   }
-
-   public static void appendAdditionalCommandLineOptions( StringBuilder builder, String ... additionCommandLineOptions )
-   {
-      if( additionCommandLineOptions != null ) {
-         for (int index = 0; index < additionCommandLineOptions.length; index++) {
-            String additionCommandLineOption = additionCommandLineOptions[index];
-            builder.append(additionCommandLineOption);
-            if (index + 1 < additionCommandLineOptions.length)
+        StringBuilder builder = new StringBuilder();
+        Iterator<TaskView> iterator = tasks.iterator();
+        while (iterator.hasNext()) {
+            TaskView taskView = iterator.next();
+            builder.append(taskView.getFullTaskName());
+            if (iterator.hasNext()) {
                 builder.append(' ');
-         }
-      }
-   }
+            }
+        }
+
+        appendAdditionalCommandLineOptions(builder, additionCommandLineOptions);
+
+        return builder.toString();
+    }
+
+    public static void appendAdditionalCommandLineOptions(StringBuilder builder, String... additionCommandLineOptions) {
+        if (additionCommandLineOptions != null) {
+            for (int index = 0; index < additionCommandLineOptions.length; index++) {
+                String additionCommandLineOption = additionCommandLineOptions[index];
+                builder.append(additionCommandLineOption);
+                if (index + 1 < additionCommandLineOptions.length) {
+                    builder.append(' ');
+                }
+            }
+        }
+    }
 }

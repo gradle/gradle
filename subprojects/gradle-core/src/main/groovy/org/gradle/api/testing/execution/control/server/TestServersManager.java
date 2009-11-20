@@ -33,7 +33,9 @@ public class TestServersManager {
     private final ControlServerFactory controlServerFactory;
 
     public TestServersManager(ControlServerFactory controlServerFactory) {
-        if (controlServerFactory == null) throw new IllegalArgumentException("controlServerFactory == null!");
+        if (controlServerFactory == null) {
+            throw new IllegalArgumentException("controlServerFactory == null!");
+        }
 
         this.controlServerFactory = controlServerFactory;
 
@@ -42,36 +44,43 @@ public class TestServersManager {
     }
 
     private TestControlServer getServer(Pipeline pipeline) {
-        if (pipeline == null) throw new IllegalArgumentException("pipeline == null!");
+        if (pipeline == null) {
+            throw new IllegalArgumentException("pipeline == null!");
+        }
 
         serversLock.readLock().lock();
         try {
             return pipelineServers.get(pipeline);
-        }
-        finally {
+        } finally {
             serversLock.readLock().unlock();
         }
     }
 
     public void addServer(Pipeline pipeline, PipelineDispatcher pipelineDispatcher) {
-        if (pipeline == null) throw new IllegalArgumentException("pipeline == null!");
+        if (pipeline == null) {
+            throw new IllegalArgumentException("pipeline == null!");
+        }
 
         serversLock.writeLock().lock();
         try {
-            final TestControlServer controlServer = controlServerFactory.createTestControlServer(pipeline, pipelineDispatcher);
+            final TestControlServer controlServer = controlServerFactory.createTestControlServer(pipeline,
+                    pipelineDispatcher);
             pipelineServers.put(pipeline, controlServer);
-        }
-        finally {
+        } finally {
             serversLock.writeLock().unlock();
         }
     }
 
     public int startServer(Pipeline pipeline) {
-        if (pipeline == null) throw new IllegalArgumentException("pipeline == null!");
+        if (pipeline == null) {
+            throw new IllegalArgumentException("pipeline == null!");
+        }
 
         final TestControlServer controlServer = getServer(pipeline);
 
-        if (controlServer == null) throw new IllegalStateException("no server found for pipeline " + pipeline.getId());
+        if (controlServer == null) {
+            throw new IllegalStateException("no server found for pipeline " + pipeline.getId());
+        }
 
         return controlServer.start();
     }
@@ -83,21 +92,29 @@ public class TestServersManager {
     }
 
     public int getServerPort(Pipeline pipeline) {
-        if (pipeline == null) throw new IllegalArgumentException("pipeline == null!");
+        if (pipeline == null) {
+            throw new IllegalArgumentException("pipeline == null!");
+        }
 
         final TestControlServer controlServer = getServer(pipeline);
 
-        if (controlServer == null) throw new IllegalStateException("no server found for pipeline " + pipeline.getId());
+        if (controlServer == null) {
+            throw new IllegalStateException("no server found for pipeline " + pipeline.getId());
+        }
 
         return controlServer.getPort();
     }
 
     public void stopServer(Pipeline pipeline) {
-        if (pipeline == null) throw new IllegalArgumentException("pipeline == null!");
+        if (pipeline == null) {
+            throw new IllegalArgumentException("pipeline == null!");
+        }
 
         final TestControlServer controlServer = getServer(pipeline);
 
-        if (controlServer == null) throw new IllegalStateException("no server found for pipeline " + pipeline.getId());
+        if (controlServer == null) {
+            throw new IllegalStateException("no server found for pipeline " + pipeline.getId());
+        }
 
         controlServer.stop();
     }

@@ -19,12 +19,9 @@ import javax.swing.filechooser.FileFilter;
 import java.io.File;
 
 /**
- * Man! Why doesn't this get put into java's standard library?! Well, they did,
- * but it doesn't hide hidden files. By definition of them being hidden, you
- * probably don't want to see them.
- * <p/>
- * While FileFilter is technically a Swing class, it shouldn't be. The foundation
- * needs to drive what is allowed in the UI.
+ * Man! Why doesn't this get put into java's standard library?! Well, they did, but it doesn't hide hidden files. By
+ * definition of them being hidden, you probably don't want to see them. <p/> While FileFilter is technically a Swing
+ * class, it shouldn't be. The foundation needs to drive what is allowed in the UI.
  *
  * @author mhunsicker
  */
@@ -38,11 +35,13 @@ public class ExtensionFileFilter extends FileFilter {
     }
 
     public boolean accept(File file) {
-        if (file.isHidden())
+        if (file.isHidden()) {
             return false;
+        }
 
-        if (file.isDirectory())
+        if (file.isDirectory()) {
             return true;
+        }
 
         return file.getName().toLowerCase().endsWith(extension);
     }

@@ -34,7 +34,9 @@ public class AmountOfTestsExecutedByForkConfig implements ReforkReasonConfig {
     }
 
     public void setReforkEvery(long reforkEvery) {
-        if ( reforkEvery <= 0 ) throw new IllegalArgumentException("reforkEvery needs to be larger than zero!");
+        if (reforkEvery <= 0) {
+            throw new IllegalArgumentException("reforkEvery needs to be larger than zero!");
+        }
 
         this.reforkEvery = reforkEvery;
     }

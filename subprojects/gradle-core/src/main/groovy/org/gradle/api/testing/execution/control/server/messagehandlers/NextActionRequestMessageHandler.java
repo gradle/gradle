@@ -59,8 +59,7 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
 
                 if (nextTest == null) {
                     ioSession.write(new WaitActionMesssage(pipelineId, 1000));
-                }
-                else {
+                } else {
                     ioSession.write(new ExecuteTestActionMessage(pipelineId, nextTest));
                 }
             }
@@ -81,8 +80,9 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
         // TODO submit to thread pool before reporting to different reports.
         if (previousProcessResult != null) {
             final List<Report> reports = pipeline.getReports();
-            final TestClassProcessResultReportInfo result = new TestClassProcessResultReportInfo(forkId, pipeline, previousProcessResult);
-            for ( final Report report : reports ) {
+            final TestClassProcessResultReportInfo result = new TestClassProcessResultReportInfo(forkId, pipeline,
+                    previousProcessResult);
+            for (final Report report : reports) {
                 report.addReportInfo(result);
             }
         }
@@ -92,11 +92,12 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
         boolean reforkNeeded = false;
 
         final ReforkController reforkController = pipeline.getReforkController();
-        if ( reforkController != null ) {
+        if (reforkController != null) {
             final ReforkDecisionContext reforkDecisionContext = message.getReforkDecisionContext();
 
-            if ( reforkDecisionContext != null )
+            if (reforkDecisionContext != null) {
                 reforkNeeded = reforkController.reforkNeeded(reforkDecisionContext);
+            }
         }
 
         return reforkNeeded;

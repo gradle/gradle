@@ -16,19 +16,19 @@
 package org.gradle.foundation;
 
 /**
-   Small helper class that aids walking a full task path which can be multiple
-  projects deep with a task on the end.
-   @author mhunsicker
-*/
+ * Small helper class that aids walking a full task path which can be multiple projects deep with a task on the end.
+ *
+ * @author mhunsicker
+ */
 public class PathParserPortion {
     private String firstPart;
     private String remainder;
 
     public PathParserPortion(String path) {
         int indexOfColon = path.indexOf(':');
-        if (indexOfColon == -1)
+        if (indexOfColon == -1) {
             firstPart = path;
-        else {
+        } else {
             firstPart = path.substring(0, indexOfColon);  //get everyting up to the colon
             remainder = path.substring(indexOfColon + 1); //everything else
         }

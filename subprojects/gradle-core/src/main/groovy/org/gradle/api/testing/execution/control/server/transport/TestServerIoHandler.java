@@ -53,6 +53,4 @@ public class TestServerIoHandler extends IoHandlerAdapter {
         LOGGER.error("server io error", cause);
         session.close(true);
     }
-
-
 }

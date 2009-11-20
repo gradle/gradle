@@ -63,10 +63,13 @@ public class TestOrchestrator {
      * @param factory The test orchestator factory to use.
      * @throws IllegalArgumentException when either testTask or factory are null.
      */
-    public TestOrchestrator(final NativeTest testTask, TestOrchestratorFactory factory)
-    {
-        if (testTask == null) throw new IllegalArgumentException("testTask == null!");
-        if (factory == null) throw new IllegalArgumentException("factory == null!");
+    public TestOrchestrator(final NativeTest testTask, TestOrchestratorFactory factory) {
+        if (testTask == null) {
+            throw new IllegalArgumentException("testTask == null!");
+        }
+        if (factory == null) {
+            throw new IllegalArgumentException("factory == null!");
+        }
 
         this.testTask = testTask;
         this.factory = factory;
@@ -81,13 +84,11 @@ public class TestOrchestrator {
         return factory;
     }
 
-    public void stop()
-    {
+    public void stop() {
         initLock.lock();
         try {
             context.getKeepRunning().set(false);
-        }
-        finally {
+        } finally {
             initLock.unlock();
         }
     }
@@ -100,19 +101,15 @@ public class TestOrchestrator {
      *
      * Then initialize the pipelines manager, the test detection and pipeline splitting start.
      *
-     * Execution:
-     * When test are detected they advance to pipeline splitting.
-     * When pipeline splitting decides on which pipeline to execute the test they advance to that pipeline.
-     * When a pipeline receives a test it executes it.
-     *
+     * Execution: When test are detected they advance to pipeline splitting. When pipeline splitting decides on which
+     * pipeline to execute the test they advance to that pipeline. When a pipeline receives a test it executes it.
      */
     public void execute() {
         // initialization
         initLock.lock();
         try {
             this.context = factory.createContext(this);
-        }
-        finally {
+        } finally {
             initLock.unlock();
         }
 
@@ -130,7 +127,7 @@ public class TestOrchestrator {
             }
         });
 
-        actions.add(new TestOrchestratorAction(){
+        actions.add(new TestOrchestratorAction() {
             public void execute(TestOrchestratorContext context) {
                 final TestDetectionOrchestrator testDetectionOrchestrator = context.getTestDetectionOrchestrator();
                 final ReportsManager reportsManager = context.getReportsManager();
@@ -189,7 +186,7 @@ public class TestOrchestrator {
 
         final Iterator<TestOrchestratorAction> actionsIterator = actions.iterator();
 
-        while ( context.getKeepRunning().get() && actionsIterator.hasNext() ) {
+        while (context.getKeepRunning().get() && actionsIterator.hasNext()) {
             final TestOrchestratorAction currentAction = actionsIterator.next();
 
             currentAction.execute(context);

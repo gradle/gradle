@@ -31,7 +31,9 @@ public class JavadocOptionFileWriter {
     private final JavadocOptionFile optionFile;
 
     public JavadocOptionFileWriter(JavadocOptionFile optionFile) {
-        if ( optionFile == null ) throw new IllegalArgumentException("optionFile == null!");
+        if (optionFile == null) {
+            throw new IllegalArgumentException("optionFile == null!");
+        }
         this.optionFile = optionFile;
     }
 
@@ -42,13 +44,12 @@ public class JavadocOptionFileWriter {
             writer = new BufferedWriter(new FileWriter(outputFile));
             JavadocOptionFileWriterContext writerContext = new JavadocOptionFileWriterContext(writer);
 
-            for ( final String option : options.keySet() ) {
+            for (final String option : options.keySet()) {
                 options.get(option).write(writerContext);
             }
 
             optionFile.getSourceNames().write(writerContext);
-        }
-        finally {
+        } finally {
             IOUtils.closeQuietly(writer);
         }
     }

@@ -29,7 +29,9 @@ public class ThreadUtils {
 
     public static int threadPoolSize(int minimalSize) {
         int threadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
-        if ( threadPoolSize < minimalSize ) threadPoolSize = minimalSize;
+        if (threadPoolSize < minimalSize) {
+            threadPoolSize = minimalSize;
+        }
         return threadPoolSize;
     }
 
@@ -43,12 +45,11 @@ public class ThreadUtils {
 
     public static <T extends Thread> void join(T threadToJoinWith, InterruptHandler<T> interruptHandler) {
         boolean joined = false;
-        while ( !joined ) {
+        while (!joined) {
             try {
                 threadToJoinWith.join();
                 joined = true;
-            }
-            catch ( InterruptedException e ) {
+            } catch (InterruptedException e) {
                 joined = interruptHandler.handleIterrupt(threadToJoinWith, e);
             }
         }
@@ -68,14 +69,14 @@ public class ThreadUtils {
         awaitTermination(executorService, new IgnoreInterruptHandler<T>());
     }
 
-    public static <T extends ExecutorService> void awaitTermination(T executorService, InterruptHandler<T> interruptHandler)  {
+    public static <T extends ExecutorService> void awaitTermination(T executorService,
+                                                                    InterruptHandler<T> interruptHandler) {
         boolean stopped = false;
-        while ( !stopped ) {
+        while (!stopped) {
             try {
                 executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
                 stopped = true;
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 stopped = interruptHandler.handleIterrupt(executorService, e);
             }
         }
@@ -89,18 +90,17 @@ public class ThreadUtils {
         return runnableThread;
     }
 
-    public static void interleavedConditionWait(Lock lock, Condition condition, long waitLength, TimeUnit waitUnit, ConditionWaitHandle handle) {
+    public static void interleavedConditionWait(Lock lock, Condition condition, long waitLength, TimeUnit waitUnit,
+                                                ConditionWaitHandle handle) {
         while (!handle.checkCondition()) {
             lock.lock();
             try {
                 condition.await(waitLength, waitUnit);
 
                 Thread.yield();
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 // ignore - TODO add interruptHandler?
-            }
-            finally {
+            } finally {
                 lock.unlock();
             }
         }

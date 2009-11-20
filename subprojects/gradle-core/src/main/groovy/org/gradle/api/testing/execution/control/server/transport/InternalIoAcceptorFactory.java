@@ -52,7 +52,9 @@ public class InternalIoAcceptorFactory extends AbstractIoAcceptorFactory<VmPipeA
      * @throws IOException When the 'network' communication acceptor could not be linked to the selected port.
      */
     protected void bind(VmPipeAcceptor acceptor) throws IOException {
-        if (acceptor == null) throw new IllegalArgumentException("acceptor is null!");
+        if (acceptor == null) {
+            throw new IllegalArgumentException("acceptor is null!");
+        }
 
         acceptor.bind(new VmPipeAddress(port));
     }
@@ -64,7 +66,9 @@ public class InternalIoAcceptorFactory extends AbstractIoAcceptorFactory<VmPipeA
      * @return The 'network' port the acceptor is listening on.
      */
     public int getLocalPort(IoAcceptor ioAcceptor) {
-        if (ioAcceptor == null) throw new IllegalArgumentException("ioAcceptor is null!");
+        if (ioAcceptor == null) {
+            throw new IllegalArgumentException("ioAcceptor is null!");
+        }
 
         return ((VmPipeAcceptor) ioAcceptor).getLocalAddress().getPort();
     }

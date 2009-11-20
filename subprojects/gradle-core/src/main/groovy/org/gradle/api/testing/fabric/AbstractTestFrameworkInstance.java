@@ -26,8 +26,12 @@ public abstract class AbstractTestFrameworkInstance<T extends TestFramework> imp
     protected final T testFramework;
 
     protected AbstractTestFrameworkInstance(AbstractTestTask testTask, T testFramework) {
-        if (testTask == null) throw new IllegalArgumentException("testTaks == null!");
-        if (testFramework == null) throw new IllegalArgumentException("testFramework == null!");
+        if (testTask == null) {
+            throw new IllegalArgumentException("testTaks == null!");
+        }
+        if (testFramework == null) {
+            throw new IllegalArgumentException("testFramework == null!");
+        }
 
         this.testTask = testTask;
         this.testFramework = testFramework;

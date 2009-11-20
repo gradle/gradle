@@ -24,7 +24,9 @@ public abstract class AbstractSplitPolicyInstance implements SplitPolicyInstance
     protected final PipelineConfig config;
 
     protected AbstractSplitPolicyInstance(PipelineConfig config) {
-        if (config == null) throw new IllegalArgumentException("config == null!");
+        if (config == null) {
+            throw new IllegalArgumentException("config == null!");
+        }
 
         this.config = config;
     }

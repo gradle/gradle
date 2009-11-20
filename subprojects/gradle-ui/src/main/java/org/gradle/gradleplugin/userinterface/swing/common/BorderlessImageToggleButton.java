@@ -26,122 +26,105 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 
-
 /**
- This is button that has no border and only an image. It highlights when the user moves over it.
- This version is a toggle button.
- This style was modeled after Idea. This was used because the borders on toolbars can get a little
- busy and this looks a little cleaner.
- @author mhunsicker
+ * This is button that has no border and only an image. It highlights when the user moves over it. This version is a
+ * toggle button. This style was modeled after Idea. This was used because the borders on toolbars can get a little busy
+ * and this looks a little cleaner.
+ *
+ * @author mhunsicker
  */
-public class BorderlessImageToggleButton extends JToggleButton
-{
-   public Border selectedBorder = BorderFactory.createLoweredBevelBorder();
+public class BorderlessImageToggleButton extends JToggleButton {
+    public Border selectedBorder = BorderFactory.createLoweredBevelBorder();
 
-   public BorderlessImageToggleButton( Action action, Icon icon )
-   {
-      super( action );
-      setUI();
+    public BorderlessImageToggleButton(Action action, Icon icon) {
+        super(action);
+        setUI();
 
-      this.init( icon);
-   }
+        this.init(icon);
+    }
 
-   private void setUI()
-   {
-      // This fixes an issue where the WindowsButtonUI wants to draw a border
-      // around a button that isn't in a toolbar.  This occurs even if you set
-      // an empty border because it ignores your border and draws its own.
-      setUI( MetalButtonUI.createUI( this ) );
-   }
+    private void setUI() {
+        // This fixes an issue where the WindowsButtonUI wants to draw a border
+        // around a button that isn't in a toolbar.  This occurs even if you set
+        // an empty border because it ignores your border and draws its own.
+        setUI(MetalButtonUI.createUI(this));
+    }
 
-   private void init( Icon icon )
-   {
-      this.setBorder( BorderlessUtility.DEFAULT_BORDER );
-      BorderlessUtility.defaultBackground = this.getBackground();
-      this.addMouseListener( new HighlightMouseListener() );
+    private void init(Icon icon) {
+        this.setBorder(BorderlessUtility.DEFAULT_BORDER);
+        BorderlessUtility.defaultBackground = this.getBackground();
+        this.addMouseListener(new HighlightMouseListener());
 
-      setText( null );
+        setText(null);
 
-      if( icon != null )
-      {
-         setIcon( icon );
+        if (icon != null) {
+            setIcon(icon);
 
-         int height = icon.getIconHeight();
-         int width = icon.getIconWidth();
-         Dimension preferredSize = new Dimension( width + 2, height + 2 ); //plus 2 for the border
+            int height = icon.getIconHeight();
+            int width = icon.getIconWidth();
+            Dimension preferredSize = new Dimension(width + 2, height + 2); //plus 2 for the border
 
-         setMinimumSize( preferredSize );
-         setMaximumSize( preferredSize );
-         setPreferredSize( preferredSize );
-         setFocusPainted(false);
-      }
-  }
+            setMinimumSize(preferredSize);
+            setMaximumSize(preferredSize);
+            setPreferredSize(preferredSize);
+            setFocusPainted(false);
+        }
+    }
 
-   public void setSelected( boolean select )
-   {
-      super.setSelected( select );
-      setBorder( null );
-   }
+    public void setSelected(boolean select) {
+        super.setSelected(select);
+        setBorder(null);
+    }
 
-   /**<!===== setBorder =====================================================>
-      I added this to correct an architecture problem. Whenever this button
-      was removed or added to a parent container the underlying swing
-      architecture was resetting the border and it wasn't taking into account
-      our need to change the border depending on the selection state of the
-      button. This overrides negates that effect causing the button to behave
-      as intended.
+    /**
+     * <!===== setBorder =====================================================> I added this to correct an architecture
+     * problem. Whenever this button was removed or added to a parent container the underlying swing architecture was
+     * resetting the border and it wasn't taking into account our need to change the border depending on the selection
+     * state of the button. This overrides negates that effect causing the button to behave as intended.
+     *
+     * @param border The new border to set for this button the we disregard and replace with our own.
+     * @author wwhitaker <!=======================================================================>
+     */
+    public void setBorder(Border border) {
+        super.setBorder(
+                BorderlessImageToggleButton.this.isSelected() ? selectedBorder : BorderlessUtility.DEFAULT_BORDER);
+    }
 
-      @param   border    The new border to set for this button the we
-                         disregard and replace with our own.
-      @author  wwhitaker
-   <!=======================================================================>*/
-   public void setBorder( Border border )
-   {
-      super.setBorder( BorderlessImageToggleButton.this.isSelected() ? selectedBorder : BorderlessUtility.DEFAULT_BORDER );
-   }
+    private class HighlightMouseListener extends MouseAdapter {
+        public HighlightMouseListener() {
+        }
 
-   private class HighlightMouseListener extends MouseAdapter
-   {
-      public HighlightMouseListener()
-      {
-      }
+        public void mouseEntered(MouseEvent event) {
+            if (getAction() != null ? getAction().isEnabled() : isEnabled()) {
+                BorderlessImageToggleButton.this.setBackground(BorderlessUtility.ON_MOUSE_OVER_BACKGROUND);
+                BorderlessImageToggleButton.this.setBorder(BorderlessUtility.ON_MOUSEOVER_BORDER);
+            }
+        }
 
-      public void mouseEntered( MouseEvent event )
-      {
-         if (getAction() != null ? getAction().isEnabled() : isEnabled())
-         {
-            BorderlessImageToggleButton.this.setBackground( BorderlessUtility.ON_MOUSE_OVER_BACKGROUND );
-            BorderlessImageToggleButton.this.setBorder( BorderlessUtility.ON_MOUSEOVER_BORDER );
-         }
-      }
+        public void mousePressed(MouseEvent event) {
+            if (getAction() != null ? getAction().isEnabled() : isEnabled()) {
+                BorderlessImageToggleButton.this.setBackground(BorderlessUtility.ON_BUTTON_PRESSED_BACKGROUND);
+            }
+        }
 
-      public void mousePressed( MouseEvent event )
-      {
-         if (getAction() != null ? getAction().isEnabled() : isEnabled())
-         {
-            BorderlessImageToggleButton.this.setBackground( BorderlessUtility.ON_BUTTON_PRESSED_BACKGROUND );
-         }
-      }
+        public void mouseReleased(MouseEvent event) {
+            if (getAction() != null ? getAction().isEnabled() : isEnabled()) {
+                // do a hit test to make sure the mouse is being released inside the button
+                Rectangle2D buttonRect = BorderlessImageToggleButton.this.getBounds();
+                if (buttonRect.contains(event.getPoint())) {
+                    BorderlessImageToggleButton.this.setBackground(BorderlessUtility.ON_MOUSE_OVER_BACKGROUND);
+                }
+            }
+        }
 
-      public void mouseReleased( MouseEvent event )
-      {
-         if (getAction() != null ? getAction().isEnabled() : isEnabled())
-         {
-            // do a hit test to make sure the mouse is being released inside the button
-            Rectangle2D buttonRect = BorderlessImageToggleButton.this.getBounds();
-            if( buttonRect.contains( event.getPoint() ) )
-               BorderlessImageToggleButton.this.setBackground( BorderlessUtility.ON_MOUSE_OVER_BACKGROUND );
-         }
-      }
+        public void mouseExited(MouseEvent event) {
+            BorderlessImageToggleButton.this.setBackground(BorderlessUtility.defaultBackground);
 
-      public void mouseExited( MouseEvent event )
-      {
-         BorderlessImageToggleButton.this.setBackground( BorderlessUtility.defaultBackground);
-
-         if( BorderlessImageToggleButton.this.isSelected() )
-            BorderlessImageToggleButton.this.setBorder( selectedBorder );
-         else
-            BorderlessImageToggleButton.this.setBorder( BorderlessUtility.DEFAULT_BORDER );
-      }
-   }
+            if (BorderlessImageToggleButton.this.isSelected()) {
+                BorderlessImageToggleButton.this.setBorder(selectedBorder);
+            } else {
+                BorderlessImageToggleButton.this.setBorder(BorderlessUtility.DEFAULT_BORDER);
+            }
+        }
+    }
 }

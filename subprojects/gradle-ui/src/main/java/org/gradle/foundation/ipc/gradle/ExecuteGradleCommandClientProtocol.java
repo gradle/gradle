@@ -31,9 +31,8 @@ import java.util.TimerTask;
 import java.net.Socket;
 
 /**
- * This manages the communication between the UI and an externally-launched copy
- * of Gradle when using socket-based inter-process communication. This is the
- * client (gradle) side used when executing commands (the most common case). We
+ * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based
+ * inter-process communication. This is the client (gradle) side used when executing commands (the most common case). We
  * add gradle listeners and send their notifications as messages back to the server.
  *
  * @author mhunsicker
@@ -51,8 +50,7 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
     }
 
     /**
-     * Gives your protocol a chance to store this client so it can access its
-     * functions.
+     * Gives your protocol a chance to store this client so it can access its functions.
      */
     public void initialize(ClientProcess client) {
         this.client = client;
@@ -67,8 +65,9 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
      */
     public boolean serverConnected(Socket clientSocket) {
         MessageObject message = client.readMessage();
-        if (message == null)
+        if (message == null) {
             return false;
+        }
 
         if (!ProtocolConstants.HANDSHAKE_TYPE.equalsIgnoreCase(message.getMessageType())) {
             logger.error("Incorrect server handshaking.");
@@ -86,8 +85,7 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
     /**
      * We just keep a flag around for this.
      *
-     * @return true if we should keep the connection alive. False if we should
-     *         stop communicaiton.
+     * @return true if we should keep the connection alive. False if we should stop communicaiton.
      */
     public boolean continueConnection() {
         return continueConnection;
@@ -97,11 +95,8 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
         continueConnection = false;
     }
 
-
     /**
-     * This converts gradle messages to messages that we send to our server over
-     * a socket.
-     *
+     * This converts gradle messages to messages that we send to our server over a socket.
      */
     private class IPCExecutionListener implements ExecutionListener {
         private ClientProcess client;
@@ -119,7 +114,6 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
                 }
             }, 500, 500);
         }
-
 
         public void reportExecutionStarted() {
             //we'll never get this message because execution has started before we're instantiated
@@ -158,10 +152,12 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
 
             //we can't send the exception itself because it might not be serializable (it can include anything from anywhere inside gradle
             //or one of its dependencies). So format it as text.
-            String details = GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(), gradle.getStartParameter().getShowStacktrace());
+            String details = GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(),
+                    gradle.getStartParameter().getShowStacktrace());
             output += details;
 
-            client.sendMessageWaitForReply(ProtocolConstants.EXECUTION_COMPLETED_TYPE, output, new Boolean(wasSuccessful));
+            client.sendMessageWaitForReply(ProtocolConstants.EXECUTION_COMPLETED_TYPE, output, new Boolean(
+                    wasSuccessful));
 
             client.sendMessageWaitForReply(ProtocolConstants.EXITING, null, null);
             client.stop();

@@ -40,12 +40,12 @@ class MultiParentClassLoaderTest {
 
     @Test
     public void loadsClassFromParentsInOrderSpecified() {
-        Class StringClass = String.class
+        Class stringClass = String.class
         Class integerClass = Integer.class
 
         context.checking {
             allowing(parent1).loadClass('string')
-            will(returnValue(StringClass))
+            will(returnValue(stringClass))
             allowing(parent1).loadClass('integer')
             will(throwException(new ClassNotFoundException()))
             allowing(parent2).loadClass('integer')

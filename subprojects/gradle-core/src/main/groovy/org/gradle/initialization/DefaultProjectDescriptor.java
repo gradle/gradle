@@ -37,7 +37,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private String path;
     private String buildFileName = Project.DEFAULT_BUILD_FILE;
 
-    public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir, IProjectDescriptorRegistry projectDescriptorRegistry) {
+    public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir,
+                                    IProjectDescriptorRegistry projectDescriptorRegistry) {
         this.parent = parent;
         this.name = name;
         this.dir = GFileUtils.canonicalise(dir);
@@ -127,8 +128,12 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DefaultProjectDescriptor that = (DefaultProjectDescriptor) o;
 

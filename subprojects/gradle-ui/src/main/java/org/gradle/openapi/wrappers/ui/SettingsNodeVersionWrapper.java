@@ -23,8 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Wrapper to shield version changes in SettingsNode from an external user of
- * gradle open API.
+ * Wrapper to shield version changes in SettingsNode from an external user of gradle open API.
  *
  * @author mhunsicker
  */
@@ -90,8 +89,9 @@ public class SettingsNodeVersionWrapper implements SettingsNode {
 
     public SettingsNode getChildNode(String name) {
         SettingsNodeVersion1 childNode = settingsNodeVersion1.getChildNode(name);
-        if (childNode == null)
+        if (childNode == null) {
             return null;
+        }
 
         return new SettingsNodeVersionWrapper(childNode);
     }
@@ -105,6 +105,7 @@ public class SettingsNodeVersionWrapper implements SettingsNode {
     }
 
     /*package*/
+
     static List<SettingsNode> convertNodes(List<SettingsNodeVersion1> nodes) {
         List<SettingsNode> settingsNodes = new ArrayList<SettingsNode>();
 
@@ -127,8 +128,9 @@ public class SettingsNodeVersionWrapper implements SettingsNode {
 
     public SettingsNode getNodeAtPath(String... pathPortions) {
         SettingsNodeVersion1 node = settingsNodeVersion1.getNodeAtPath(pathPortions);
-        if (node == null)
+        if (node == null) {
             return null;
+        }
         return new SettingsNodeVersionWrapper(node);
     }
 

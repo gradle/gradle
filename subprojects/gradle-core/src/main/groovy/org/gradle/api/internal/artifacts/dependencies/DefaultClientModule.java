@@ -106,7 +106,8 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
     }
 
     public ClientModule copy() {
-        DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(), getConfiguration());
+        DefaultClientModule copiedClientModule = new DefaultClientModule(getGroup(), getName(), getVersion(),
+                getConfiguration());
         copyTo(copiedClientModule);
         for (ModuleDependency dependency : dependencies) {
             copiedClientModule.addDependency(dependency.copy());
@@ -115,19 +116,29 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
     }
 
     public boolean contentEquals(Dependency dependency) {
-        if (this == dependency) return true;
-        if (dependency == null || getClass() != dependency.getClass()) return false;
+        if (this == dependency) {
+            return true;
+        }
+        if (dependency == null || getClass() != dependency.getClass()) {
+            return false;
+        }
 
         ClientModule that = (ClientModule) dependency;
-        if (!isContentEqualsFor(that)) return false;
-        
+        if (!isContentEqualsFor(that)) {
+            return false;
+        }
+
         return dependencies.equals(that.getDependencies());
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ClientModule that = (ClientModule) o;
 

@@ -77,8 +77,9 @@ public class UIFactory
       {  //might be a version mismatch
          e.printStackTrace();
       }
-      if( soughtClass == null )
+      if( soughtClass == null ) {
          return null;
+      }
 
       //instantiate it.
       Constructor constructor = null;

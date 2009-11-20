@@ -39,13 +39,17 @@ public class PipelineConfig {
     private List<ReportConfig> reports;
 
     public PipelineConfig(String name) {
-        this(   name, SplitPolicyRegister.getSplitPolicy(SplitPolicyNames.SINGLE).getSplitPolicyConfigInstance(),
+        this(name, SplitPolicyRegister.getSplitPolicy(SplitPolicyNames.SINGLE).getSplitPolicyConfigInstance(),
                 ForkPolicyRegister.getForkPolicy(ForkPolicyNames.LOCAL_SIMPLE).getForkPolicyConfigInstance());
     }
 
     public PipelineConfig(String name, SplitPolicyConfig splitPolicyConfig, ForkPolicyConfig forkPolicyConfig) {
-        if (splitPolicyConfig == null) throw new IllegalArgumentException("splitPolicyConfig == null!");
-        if (forkPolicyConfig == null) throw new IllegalArgumentException("forkPolicyConfig == null!");
+        if (splitPolicyConfig == null) {
+            throw new IllegalArgumentException("splitPolicyConfig == null!");
+        }
+        if (forkPolicyConfig == null) {
+            throw new IllegalArgumentException("forkPolicyConfig == null!");
+        }
 
         this.name = name;
         this.splitPolicyConfig = splitPolicyConfig;
@@ -64,7 +68,9 @@ public class PipelineConfig {
     }
 
     public void setSplitPolicyConfig(SplitPolicyConfig splitPolicyConfig) {
-        if (splitPolicyConfig == null) throw new IllegalArgumentException("splitPolicy == null!");
+        if (splitPolicyConfig == null) {
+            throw new IllegalArgumentException("splitPolicy == null!");
+        }
 
         this.splitPolicyConfig = splitPolicyConfig;
     }
@@ -74,7 +80,9 @@ public class PipelineConfig {
     }
 
     public void setForkPolicyConfig(ForkPolicyConfig forkPolicyConfig) {
-        if (forkPolicyConfig == null) throw new IllegalArgumentException("forkPolicyConfig == null!");
+        if (forkPolicyConfig == null) {
+            throw new IllegalArgumentException("forkPolicyConfig == null!");
+        }
 
         this.forkPolicyConfig = forkPolicyConfig;
     }

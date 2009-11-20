@@ -26,8 +26,12 @@ class StateFileItem {
     private final String digest;
 
     StateFileItem(String key, String digest) {
-        if ( key == null ) throw new IllegalArgumentException("key is null!");
-        if ( StringUtils.isEmpty(digest) ) throw new IllegalArgumentException("digest is empty!");
+        if (key == null) {
+            throw new IllegalArgumentException("key is null!");
+        }
+        if (StringUtils.isEmpty(digest)) {
+            throw new IllegalArgumentException("digest is empty!");
+        }
         this.key = key;
         this.digest = digest;
     }

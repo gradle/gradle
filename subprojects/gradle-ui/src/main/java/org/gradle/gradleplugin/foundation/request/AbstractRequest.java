@@ -19,12 +19,12 @@ import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.queue.ExecutionQueue;
 
 /**
-  This represents a basic reques to gradle that is executed in a separate process
- using the ProcessLauncherServer. This stores the command line to execute and
- has the ability to cancel itself by either removing it from the queue if it
- hasn't started yet, or killing the external process.
-    @author mhunsicker
-*/
+ * This represents a basic reques to gradle that is executed in a separate process using the ProcessLauncherServer. This
+ * stores the command line to execute and has the ability to cancel itself by either removing it from the queue if it
+ * hasn't started yet, or killing the external process.
+ *
+ * @author mhunsicker
+ */
 public abstract class AbstractRequest implements Request {
     private String fullCommandLine;
     private ExecutionQueue executionQueue;
@@ -42,12 +42,13 @@ public abstract class AbstractRequest implements Request {
     /**
      * Cancels this request.
      *
-     * @return true if you can cancel or it or if it has already ran. This return
-     *         code is mainly meant to prevent you from
+     * @return true if you can cancel or it or if it has already ran. This return code is mainly meant to prevent you
+     *         from
      */
     public synchronized boolean cancel() {
-        if (this.server != null)
+        if (this.server != null) {
             server.killProcess();
+        }
 
         executionQueue.removeRequestFromQueue(this);
         return true;

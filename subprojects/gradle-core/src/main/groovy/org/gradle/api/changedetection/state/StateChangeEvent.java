@@ -27,8 +27,12 @@ class StateChangeEvent {
     private final StateFileItem newState;
 
     StateChangeEvent(final File fileOrDirectory, StateFileItem oldState, StateFileItem newState) {
-        if ( fileOrDirectory == null ) throw new IllegalArgumentException("fileOrDirectory is null!");
-        if ( oldState == null && newState == null ) throw new IllegalArgumentException("old and new state are null!");
+        if (fileOrDirectory == null) {
+            throw new IllegalArgumentException("fileOrDirectory is null!");
+        }
+        if (oldState == null && newState == null) {
+            throw new IllegalArgumentException("old and new state are null!");
+        }
         this.fileOrDirectory = fileOrDirectory;
         this.oldState = oldState;
         this.newState = newState;

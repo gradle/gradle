@@ -16,10 +16,9 @@
 package org.gradle.gradleplugin.foundation.favorites;
 
 /**
- * This holds onto a favorite task. Note: a user may define a favorite task,
- * but it may or may be not present (or may be hidden because of a temporary
- * error in gradle files). So we hold onto the full name of the task so we can
- * get to the task should it become available.
+ * This holds onto a favorite task. Note: a user may define a favorite task, but it may or may be not present (or may be
+ * hidden because of a temporary error in gradle files). So we hold onto the full name of the task so we can get to the
+ * task should it become available.
  *
  * @author mhunsicker
  */
@@ -38,13 +37,14 @@ public class FavoriteTask {
         return displayName;
     }
 
-
     public String getFullCommandLine() {
         return fullCommandLine;
     }
 
     //if you're wanting to set this, go through the FavoritesEditor.
-    /*package*/ void setFullCommandLine(String fullCommandLine) {
+    /*package*/
+
+    void setFullCommandLine(String fullCommandLine) {
         this.fullCommandLine = fullCommandLine;
     }
 
@@ -53,7 +53,9 @@ public class FavoriteTask {
     }
 
     //if you're wanting to set this, go through the FavoritesEditor.
-    /*package*/ void setDisplayName(String displayName) {
+    /*package*/
+
+    void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
@@ -62,7 +64,9 @@ public class FavoriteTask {
     }
 
     //if you're wanting to set this, go through the FavoritesEditor.
-    /*package*/ void setAlwaysShowOutput(boolean alwaysShowOutput) {
+    /*package*/
+
+    void setAlwaysShowOutput(boolean alwaysShowOutput) {
         this.alwaysShowOutput = alwaysShowOutput;
     }
 }

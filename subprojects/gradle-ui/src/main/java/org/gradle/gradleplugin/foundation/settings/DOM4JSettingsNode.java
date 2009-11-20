@@ -22,8 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * An implementation of SettingsNode that uses DOM4J nodes as its actual storage
- * medium.
+ * An implementation of SettingsNode that uses DOM4J nodes as its actual storage medium.
  *
  * @author mhunsicker
  */
@@ -32,7 +31,6 @@ public class DOM4JSettingsNode implements SettingsNode {
     public static final String NAME_ATTRIBUTE = "name";
     public static final String VALUE_ATTRIBUTE = "value";
     private Element element;
-
 
     public DOM4JSettingsNode(Element element) {
         this.element = element;
@@ -67,8 +65,9 @@ public class DOM4JSettingsNode implements SettingsNode {
         SettingsNode settingsNode = getChildNode(name);
         if (settingsNode != null) {
             String value = settingsNode.getValue();
-            if (value != null)
+            if (value != null) {
                 return value;
+            }
         }
         return defaultValue;
     }
@@ -77,8 +76,9 @@ public class DOM4JSettingsNode implements SettingsNode {
         Iterator iterator = element.elements().iterator();
         while (iterator.hasNext()) {
             Element childElement = (Element) iterator.next();
-            if (name.equals(childElement.attributeValue(NAME_ATTRIBUTE)))
+            if (name.equals(childElement.attributeValue(NAME_ATTRIBUTE))) {
                 return new DOM4JSettingsNode(childElement);
+            }
         }
         return null;
     }
@@ -105,8 +105,9 @@ public class DOM4JSettingsNode implements SettingsNode {
         Iterator iterator = element.elements().iterator();
         while (iterator.hasNext()) {
             Element childElement = (Element) iterator.next();
-            if (name.equals(childElement.attributeValue(NAME_ATTRIBUTE)))
+            if (name.equals(childElement.attributeValue(NAME_ATTRIBUTE))) {
                 children.add(new DOM4JSettingsNode(childElement));
+            }
         }
 
         return children;
@@ -118,10 +119,10 @@ public class DOM4JSettingsNode implements SettingsNode {
             String value = settingsNode.getValue();
 
             try {
-                if (value != null)
+                if (value != null) {
                     return Integer.parseInt(value);
-            }
-            catch (NumberFormatException e) {
+                }
+            } catch (NumberFormatException e) {
                 //we couldn't parse it. Just return the default.
             }
         }
@@ -138,10 +139,10 @@ public class DOM4JSettingsNode implements SettingsNode {
             String value = settingsNode.getValue();
 
             try {
-                if (value != null)
+                if (value != null) {
                     return Long.parseLong(value);
-            }
-            catch (NumberFormatException e) {
+                }
+            } catch (NumberFormatException e) {
                 //we couldn't parse it. Just return the default.
             }
         }
@@ -160,11 +161,13 @@ public class DOM4JSettingsNode implements SettingsNode {
             //I'm not calling 'Boolean.parseBoolean( value )' because it will return false if the value isn't true/false
             //and we want it to return whatever the default is if its not a boolean.
             if (value != null) {
-                if ("true".equalsIgnoreCase(value))
+                if ("true".equalsIgnoreCase(value)) {
                     return true;
+                }
 
-                if ("false".equalsIgnoreCase(value))
+                if ("false".equalsIgnoreCase(value)) {
                     return false;
+                }
             }
         }
 
@@ -184,15 +187,17 @@ public class DOM4JSettingsNode implements SettingsNode {
 
     public SettingsNode addChildIfNotPresent(String name) {
         SettingsNode settingsNode = getChildNode(name);
-        if (settingsNode == null)
+        if (settingsNode == null) {
             settingsNode = addChild(name);
+        }
 
         return settingsNode;
     }
 
     public SettingsNode getNodeAtPath(String... pathPortions) {
-        if (pathPortions == null || pathPortions.length == 0)
+        if (pathPortions == null || pathPortions.length == 0) {
             return null;
+        }
 
         String firstPathPortion = pathPortions[0];
 
@@ -209,21 +214,24 @@ public class DOM4JSettingsNode implements SettingsNode {
     }
 
     private SettingsNode getNodeAtPathCreateIfNotFound(String... pathPortions) {
-        if (pathPortions == null || pathPortions.length == 0)
+        if (pathPortions == null || pathPortions.length == 0) {
             return null;
+        }
 
         String firstPathPortion = pathPortions[0];
 
         SettingsNode currentNode = getChildNode(firstPathPortion);
-        if (currentNode == null)
+        if (currentNode == null) {
             currentNode = addChild(firstPathPortion);
+        }
 
         int index = 1;
         while (index < pathPortions.length) {
             String pathPortion = pathPortions[index];
             currentNode = currentNode.getChildNode(pathPortion);
-            if (currentNode == null)
+            if (currentNode == null) {
                 currentNode = addChild(firstPathPortion);
+            }
 
             index++;
         }
@@ -247,8 +255,9 @@ public class DOM4JSettingsNode implements SettingsNode {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof DOM4JSettingsNode))
+        if (!(obj instanceof DOM4JSettingsNode)) {
             return false;
+        }
 
         DOM4JSettingsNode otherNode = (DOM4JSettingsNode) obj;
 
@@ -260,5 +269,4 @@ public class DOM4JSettingsNode implements SettingsNode {
     public String toString() {
         return getName() + "='" + getValue() + "' " + element.elements().size() + " children";
     }
-
 }

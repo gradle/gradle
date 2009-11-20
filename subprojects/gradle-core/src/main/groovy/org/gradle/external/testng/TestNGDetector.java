@@ -62,8 +62,10 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
 
             if (superClassFile != null) {
                 isTest = processSuperClass(superClassFile);
-            } else
-                LOGGER.debug("test-class-scan : failed to scan parent class {}, could not find the class file", superClassName);
+            } else {
+                LOGGER.debug("test-class-scan : failed to scan parent class {}, could not find the class file",
+                        superClassName);
+            }
         }
 
         publishTestClass(isTest, classVisitor, superClass);

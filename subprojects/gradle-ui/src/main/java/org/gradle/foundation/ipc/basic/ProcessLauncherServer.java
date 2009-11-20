@@ -22,23 +22,21 @@ import org.gradle.api.logging.Logging;
 import java.util.Iterator;
 
 /**
- * This launches an application as a separate process then listens for messages
- * from it. You implement the Protocol interface to handle the specifics of the communications.
- * To use this, instantiate it, then call start. When the communications are finished,
- * call requestShutdown().
- * Your server's protocol can call sendMessage once communication is started to respond to
- * client's messages.
+ * This launches an application as a separate process then listens for messages from it. You implement the Protocol
+ * interface to handle the specifics of the communications. To use this, instantiate it, then call start. When the
+ * communications are finished, call requestShutdown(). Your server's protocol can call sendMessage once communication
+ * is started to respond to client's messages.
  *
  * @author mhunsicker
  */
-public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol, ProcessLauncherServer.ServerObserver> {
+public class ProcessLauncherServer
+        extends Server<ProcessLauncherServer.Protocol, ProcessLauncherServer.ServerObserver> {
     private volatile ExternalProcess externalProcess;
 
     private final Logger logger = Logging.getLogger(ProcessLauncherServer.class);
 
     /**
-     * Implement this to define the behavior of the communication on the server
-     * side.
+     * Implement this to define the behavior of the communication on the server side.
      */
     public interface Protocol extends Server.Protocol<ProcessLauncherServer> {
         public void aboutToKillProcess();
@@ -46,16 +44,14 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
         /**
          * fill in the information needed to execute the other process.
          *
-         * @param serverPort    the port the server is listening on. The client should
-         *                      send messages here
+         * @param serverPort the port the server is listening on. The client should send messages here
          * @param executionInfo an object continain information about what we execute.
          */
         public void getExecutionInfo(int serverPort, ExecutionInfo executionInfo);
 
         /**
-         * Notification that the client has shutdown. Note: this can occur before
-         * communciations has ever started. You SHOULD get this notification before
-         * receiving serverExited, even if the client fails to launch or locks up.
+         * Notification that the client has shutdown. Note: this can occur before communciations has ever started. You
+         * SHOULD get this notification before receiving serverExited, even if the client fails to launch or locks up.
          *
          * @param result the return code of the client application
          * @param output the standard error and standard output of the client application
@@ -65,15 +61,13 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
 
     public interface ServerObserver extends Server.ServerObserver {
         /**
-         * Notification that the client has shutdown. Note: this can occur before
-         * communciations has ever started. You SHOULD get this notification before
-         * receiving serverExited, even if the client fails to launch or locks up.
+         * Notification that the client has shutdown. Note: this can occur before communciations has ever started. You
+         * SHOULD get this notification before receiving serverExited, even if the client fails to launch or locks up.
          *
          * @param result the return code of the client application
          * @param output the standard error and standard output of the client application
          */
         public void clientExited(int result, String output);
-
     }
 
     public ProcessLauncherServer(Protocol protocol) {
@@ -94,21 +88,21 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                 ExecutionInfo executionInfo = new ExecutionInfo();
                 protocol.getExecutionInfo(getPort(), executionInfo);
 
-                ExternalProcess externalProcess = new ExternalProcess(executionInfo.workingDirectory, executionInfo.commandLineArguments);
+                ExternalProcess externalProcess = new ExternalProcess(executionInfo.workingDirectory,
+                        executionInfo.commandLineArguments);
                 setExternalProcess(externalProcess);
 
                 //set environment variables
                 Iterator<String> iterator = executionInfo.environmentVariables.keySet().iterator();
-                while( iterator.hasNext() ) {
-                   String name = iterator.next();
-                   String value = executionInfo.environmentVariables.get( name );
-                   externalProcess.setEnvironmentVariable( name, value );
+                while (iterator.hasNext()) {
+                    String name = iterator.next();
+                    String value = executionInfo.environmentVariables.get(name);
+                    externalProcess.setEnvironmentVariable(name, value);
                 }
 
-               try {
+                try {
                     externalProcess.start();
-                }
-                catch (Throwable e) {
+                } catch (Throwable e) {
                     logger.error("Starting external process", e);
                     protocol.clientExited(-1, e.getMessage());
                     setExternalProcess(null);
@@ -118,12 +112,12 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                 int result = 0;
                 try {
                     result = externalProcess.waitFor();
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     logger.error("Waiting for external process", e);
                 }
 
-                setExternalProcess(null);   //clear our external process member variable (we're using our local variable below). This is so we know the process has already stopped.
+                setExternalProcess(
+                        null);   //clear our external process member variable (we're using our local variable below). This is so we know the process has already stopped.
 
                 protocol.clientExited(result, externalProcess.getOutput());
             }
@@ -142,9 +136,8 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
     }
 
     /**
-     * Call this to violently kill the external process. This is NOT a good way
-     * to stop it. It is preferrable to ask the thread to stop. However, gradle
-     * has no way to do that, so we'll be killing it.
+     * Call this to violently kill the external process. This is NOT a good way to stop it. It is preferrable to ask the
+     * thread to stop. However, gradle has no way to do that, so we'll be killing it.
      */
     public synchronized void killProcess() {
         if (externalProcess != null) {
@@ -152,8 +145,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
             protocol.aboutToKillProcess();
             try {
                 externalProcess.stop();
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 logger.error("Stopping external process", e);
                 //just keep going. This means something probably went bad with recording the output, but the process should be stopped.
             }

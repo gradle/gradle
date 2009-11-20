@@ -22,8 +22,7 @@ import java.util.List;
 import java.util.Collections;
 
 /**
- * This provides a simple way to hold onto and obtain projects and tasks for
- * testing purposes.
+ * This provides a simple way to hold onto and obtain projects and tasks for testing purposes.
  *
  * @author mhunsicker
  */
@@ -45,15 +44,18 @@ public class BuildInformation {
        @return the project if it exists.
        @author mhunsicker
     */
+
     public ProjectView getRootLevelProject(String name) {
-        if (name == null)
+        if (name == null) {
             return null;
+        }
 
         Iterator<ProjectView> iterator = projects.iterator();
         while (iterator.hasNext()) {
             ProjectView projectView = iterator.next();
-            if (name.equals(projectView.getName()))
+            if (name.equals(projectView.getName())) {
                 return projectView;
+            }
         }
 
         return null;
@@ -65,26 +67,33 @@ public class BuildInformation {
        @return a project or null.
        @author mhunsicker
     */
+
     public ProjectView getProjectFromFullPath(String fullProjectPath) {
-        if (projects.isEmpty())
-            return null;   //we haven't loaded yet
+        if (projects.isEmpty()) {
+            return null;
+        }   //we haven't loaded yet
 
         PathParserPortion pathParserPortion = new PathParserPortion(fullProjectPath);
-        if (pathParserPortion.getFirstPart() == null)
+        if (pathParserPortion.getFirstPart() == null) {
             return null;
-
-        ProjectView rootProject = getRootLevelProject(pathParserPortion.getFirstPart());
-        if (rootProject == null)  //if the root wasn't specified, just go get the first item we have. root' isn't typically specified if a user gives us the path.
-        {
-            if (!projects.isEmpty())
-                rootProject = projects.get(0);
         }
 
-        if (rootProject == null)
-            return null;
+        ProjectView rootProject = getRootLevelProject(pathParserPortion.getFirstPart());
+        if (rootProject
+                == null)  //if the root wasn't specified, just go get the first item we have. root' isn't typically specified if a user gives us the path.
+        {
+            if (!projects.isEmpty()) {
+                rootProject = projects.get(0);
+            }
+        }
 
-        if (!pathParserPortion.hasRemainder())
+        if (rootProject == null) {
+            return null;
+        }
+
+        if (!pathParserPortion.hasRemainder()) {
             return rootProject;
+        }
 
         return rootProject.getSubProjectFromFullPath(pathParserPortion.getRemainder());
     }
@@ -97,23 +106,28 @@ public class BuildInformation {
        @return the task or null if not found.
        @author mhunsicker
     */
+
     public TaskView getTaskFromFullPath(String fullTaskName) {
-        if (projects.isEmpty())
-            return null;   //we haven't loaded yet
+        if (projects.isEmpty()) {
+            return null;
+        }   //we haven't loaded yet
 
         PathParserPortion pathParserPortion = new PathParserPortion(fullTaskName);
-        if (pathParserPortion.getFirstPart() == null)
+        if (pathParserPortion.getFirstPart() == null) {
             return null;
+        }
 
         String remainder = pathParserPortion.getRemainder();
         ProjectView rootProject = null;
         if (pathParserPortion.getFirstPart().equals(""))   //this means it starts with a colon, just get the root
         {
-            if (!projects.isEmpty())
+            if (!projects.isEmpty()) {
                 rootProject = projects.get(0);
+            }
         } else {  //see if they did specify the root.
             rootProject = getRootLevelProject(pathParserPortion.getFirstPart());
-            if (rootProject == null)  //if the root wasn't specified, just go get the first item we have. root' isn't typically specified if a user gives us the path.
+            if (rootProject
+                    == null)  //if the root wasn't specified, just go get the first item we have. root' isn't typically specified if a user gives us the path.
             {
                 if (!projects.isEmpty()) {
                     rootProject = projects.get(0);
@@ -123,8 +137,9 @@ public class BuildInformation {
         }
 
         //we found a match. We only want whatever's left
-        if (rootProject != null)
+        if (rootProject != null) {
             return rootProject.getTaskFromFullPath(remainder);
+        }
 
         //we don't have a full path.
         return null;

@@ -37,16 +37,24 @@ public class JavadocExecHandleBuilder {
     }
 
     public JavadocExecHandleBuilder execDirectory(File directory) {
-        if ( directory == null ) throw new IllegalArgumentException("execDirectory == null!");
-        if ( !directory.exists() ) throw new IllegalArgumentException("execDirectory doesn't exists!");
-        if ( directory.isFile() ) throw new IllegalArgumentException("execDirectory is a file");
+        if (directory == null) {
+            throw new IllegalArgumentException("execDirectory == null!");
+        }
+        if (!directory.exists()) {
+            throw new IllegalArgumentException("execDirectory doesn't exists!");
+        }
+        if (directory.isFile()) {
+            throw new IllegalArgumentException("execDirectory is a file");
+        }
 
         this.execDirectory = directory;
         return this;
     }
 
     public JavadocExecHandleBuilder options(MinimalJavadocOptions options) {
-        if ( options == null ) throw new IllegalArgumentException("options == null!");
+        if (options == null) {
+            throw new IllegalArgumentException("options == null!");
+        }
 
         this.options = options;
         return this;
@@ -58,9 +66,15 @@ public class JavadocExecHandleBuilder {
     }
 
     public JavadocExecHandleBuilder destinationDirectory(File destinationDirectory) {
-        if ( destinationDirectory == null ) throw new IllegalArgumentException("destinationDirectory == null!");
-        if ( !destinationDirectory.exists() ) throw new IllegalArgumentException("destinationDirectory doesn't exists!");
-        if ( destinationDirectory.isFile() ) throw new IllegalArgumentException("destinationDirectory is a file");
+        if (destinationDirectory == null) {
+            throw new IllegalArgumentException("destinationDirectory == null!");
+        }
+        if (!destinationDirectory.exists()) {
+            throw new IllegalArgumentException("destinationDirectory doesn't exists!");
+        }
+        if (destinationDirectory.isFile()) {
+            throw new IllegalArgumentException("destinationDirectory is a file");
+        }
 
         this.destinationDirectory = destinationDirectory;
         return this;
@@ -69,15 +83,14 @@ public class JavadocExecHandleBuilder {
     public ExecHandle getExecHandle() {
         try {
             options.write(optionsFile);
-        }
-        catch ( IOException e ) {
+        } catch (IOException e) {
             throw new GradleException("Faild to store javadoc options.", e);
         }
 
-        final ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder(true)
-            .execDirectory(execDirectory)
-            .execCommand(JavaEnvUtils.getJdkExecutable("javadoc")) // reusing Ant knowledge here would be stupid not to
-            .arguments("@"+ optionsFile.getAbsolutePath());
+        final ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder(true).execDirectory(execDirectory)
+                .execCommand(JavaEnvUtils.getJdkExecutable(
+                        "javadoc")) // reusing Ant knowledge here would be stupid not to
+                .arguments("@" + optionsFile.getAbsolutePath());
 
         options.contributeCommandLineOptions(execHandleBuilder);
 

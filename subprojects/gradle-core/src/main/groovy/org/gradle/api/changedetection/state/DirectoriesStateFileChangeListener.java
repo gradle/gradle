@@ -32,31 +32,26 @@ class DirectoriesStateFileChangeListener implements StateFileChangeListener {
 
     /**
      * Directory created
-     *
-     * @param createdItem
      */
     public void itemCreated(final StateFileItem createdItem) {
-        stateFileChangeListenerUtil.produceCreatedItemEvent(stateFileUtil.getDirsStateFileKeyToFile(createdItem.getKey()), createdItem);
+        stateFileChangeListenerUtil.produceCreatedItemEvent(stateFileUtil.getDirsStateFileKeyToFile(
+                createdItem.getKey()), createdItem);
     }
 
     /**
      * Directory deleted.
-     *
-     * @param deletedItem
      */
     public void itemDeleted(final StateFileItem deletedItem) {
         // directory deleted
-        stateFileChangeListenerUtil.produceDeletedItemEvent(stateFileUtil.getDirsStateFileKeyToFile(deletedItem.getKey()), deletedItem);
+        stateFileChangeListenerUtil.produceDeletedItemEvent(stateFileUtil.getDirsStateFileKeyToFile(
+                deletedItem.getKey()), deletedItem);
     }
 
     public void itemChanged(final StateFileItem oldState, final StateFileItem newState) {
         // directory changed
 
         // check files in directory
-        directoryStateChangeDetecter.submitDirectoryStateDigestComparator(
-                new DirectoryStateDigestComparator(
-                newState,
-                stateFileUtil, 
-                stateFileChangeListenerUtil));
+        directoryStateChangeDetecter.submitDirectoryStateDigestComparator(new DirectoryStateDigestComparator(newState,
+                stateFileUtil, stateFileChangeListenerUtil));
     }
 }

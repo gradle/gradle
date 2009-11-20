@@ -35,8 +35,8 @@ public class ConsoleReportPolicyConfig extends ReportPolicyConfig {
         toShowStates = new ArrayList<TestMethodProcessResultState>();
     }
 
-    public void addShowStates(TestMethodProcessResultState ... states) {
-        if ( states != null && states.length != 0 ) {
+    public void addShowStates(TestMethodProcessResultState... states) {
+        if (states != null && states.length != 0) {
             for (final TestMethodProcessResultState state : states) {
                 addShowState(state);
             }
@@ -44,9 +44,13 @@ public class ConsoleReportPolicyConfig extends ReportPolicyConfig {
     }
 
     public void addShowState(TestMethodProcessResultState state) {
-        if ( state == null ) throw new IllegalArgumentException("state == null!");
-        if ( toShowStates.contains(state) ) throw new IllegalArgumentException("state already added!");
-        
+        if (state == null) {
+            throw new IllegalArgumentException("state == null!");
+        }
+        if (toShowStates.contains(state)) {
+            throw new IllegalArgumentException("state already added!");
+        }
+
         toShowStates.add(state);
     }
 
@@ -59,8 +63,10 @@ public class ConsoleReportPolicyConfig extends ReportPolicyConfig {
     }
 
     public void setAmountOfReportingThreads(int amountOfReportingThreads) {
-        if ( amountOfReportingThreads < 1 ) throw new IllegalArgumentException("amountOfReportingThreads can't be less then 1");
-        
+        if (amountOfReportingThreads < 1) {
+            throw new IllegalArgumentException("amountOfReportingThreads can't be less then 1");
+        }
+
         this.amountOfReportingThreads = amountOfReportingThreads;
     }
 }

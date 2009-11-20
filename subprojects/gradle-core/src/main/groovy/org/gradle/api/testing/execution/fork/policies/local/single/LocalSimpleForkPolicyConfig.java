@@ -36,7 +36,9 @@ public class LocalSimpleForkPolicyConfig extends ForkPolicyConfig {
     }
 
     public void setAmountToStart(int amountToStart) {
-        if (amountToStart <= 0) throw new IllegalArgumentException("amountToStart smaller then zero!");
+        if (amountToStart <= 0) {
+            throw new IllegalArgumentException("amountToStart smaller then zero!");
+        }
 
         this.amountToStart = amountToStart;
     }

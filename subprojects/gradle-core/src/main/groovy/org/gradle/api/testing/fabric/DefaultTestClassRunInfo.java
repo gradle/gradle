@@ -28,7 +28,9 @@ public class DefaultTestClassRunInfo implements TestClassRunInfo {
     private String testClassName;
 
     public DefaultTestClassRunInfo(String testClassName) {
-        if (StringUtils.isEmpty(testClassName)) throw new IllegalArgumentException("testClassName is empty!");
+        if (StringUtils.isEmpty(testClassName)) {
+            throw new IllegalArgumentException("testClassName is empty!");
+        }
 
         this.testClassName = testClassName;
     }

@@ -76,26 +76,37 @@ public class DefaultExternalModuleDependency extends AbstractExternalDependency 
     }
 
     public DefaultExternalModuleDependency copy() {
-        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(), getName(), getVersion(), getConfiguration());
+        DefaultExternalModuleDependency copiedModuleDependency = new DefaultExternalModuleDependency(getGroup(),
+                getName(), getVersion(), getConfiguration());
         copyTo(copiedModuleDependency);
         copiedModuleDependency.setChanging(isChanging());
         return copiedModuleDependency;
     }
 
     public boolean contentEquals(Dependency dependency) {
-        if (this == dependency) return true;
-        if (dependency == null || getClass() != dependency.getClass()) return false;
+        if (this == dependency) {
+            return true;
+        }
+        if (dependency == null || getClass() != dependency.getClass()) {
+            return false;
+        }
 
         DefaultExternalModuleDependency that = (DefaultExternalModuleDependency) dependency;
-        if (!isContentEqualsFor(that)) return false;
+        if (!isContentEqualsFor(that)) {
+            return false;
+        }
 
         return changing == that.isChanging();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DefaultExternalModuleDependency that = (DefaultExternalModuleDependency) o;
 
@@ -104,11 +115,7 @@ public class DefaultExternalModuleDependency extends AbstractExternalDependency 
 
     @Override
     public String toString() {
-        return "DefaultExternalModuleDependency{" +
-                "group='" + group + '\'' +
-                ", name='" + name + '\'' +
-                ", version='" + version + '\'' +
-                ", configuration" + getConfiguration() + '\'' +
-                '}';
+        return "DefaultExternalModuleDependency{" + "group='" + group + '\'' + ", name='" + name + '\'' + ", version='"
+                + version + '\'' + ", configuration" + getConfiguration() + '\'' + '}';
     }
 }

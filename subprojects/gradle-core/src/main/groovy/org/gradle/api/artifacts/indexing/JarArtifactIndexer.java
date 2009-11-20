@@ -35,44 +35,45 @@ public class JarArtifactIndexer {
     }
 
     public File index(File jarFile) {
-        if ( jarFile == null ) throw new IllegalArgumentException("jarFile is null!");
+        if (jarFile == null) {
+            throw new IllegalArgumentException("jarFile is null!");
+        }
 
         final String jarFileAbsolutePath = jarFile.getAbsolutePath();
 
-        if ( !jarFile.exists() ) throw new IllegalArgumentException("jarFile doesn't exists! (" + jarFileAbsolutePath + ")");
-        if ( !jarFile.isFile() ) throw new IllegalArgumentException("jarFile is not a file! (" + jarFileAbsolutePath + ")");
-        if ( !jarFile.getName().endsWith(".jar") ) throw new IllegalArgumentException("jarFile is not a jarFile! (" + jarFileAbsolutePath + ")");
+        if (!jarFile.exists()) {
+            throw new IllegalArgumentException("jarFile doesn't exists! (" + jarFileAbsolutePath + ")");
+        }
+        if (!jarFile.isFile()) {
+            throw new IllegalArgumentException("jarFile is not a file! (" + jarFileAbsolutePath + ")");
+        }
+        if (!jarFile.getName().endsWith(".jar")) {
+            throw new IllegalArgumentException("jarFile is not a jarFile! (" + jarFileAbsolutePath + ")");
+        }
 
         final File packageIndexFile = indexFileUtil.packageIndexFile(jarFile);
-
 
         BufferedWriter indexFileWriter = null;
         try {
             indexFileWriter = new BufferedWriter(new FileWriter(packageIndexFile));
 
             final BufferedWriter writer = indexFileWriter;
-            
-            new JarFilePackageLister().listJarPackages(
-                    jarFile,
-                    new JarFilePackageListener() {
-                        public void receivePackage(String packageName) {
-                            try {
-                                writer.write(packageName);
-                                writer.newLine();
-                            }
-                            catch ( IOException e ) {
-                                throw new GradleException("failed to write to index file", e);
-                            }
-                        }
+
+            new JarFilePackageLister().listJarPackages(jarFile, new JarFilePackageListener() {
+                public void receivePackage(String packageName) {
+                    try {
+                        writer.write(packageName);
+                        writer.newLine();
+                    } catch (IOException e) {
+                        throw new GradleException("failed to write to index file", e);
                     }
-            );
+                }
+            });
 
             indexFileWriter.flush();
-
         } catch (IOException e) {
             throw new GradleException("failed to index jar file (" + jarFileAbsolutePath + ")", e);
-        }
-        finally {
+        } finally {
             IOUtils.closeQuietly(indexFileWriter);
         }
 

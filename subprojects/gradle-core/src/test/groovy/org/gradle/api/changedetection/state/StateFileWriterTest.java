@@ -123,8 +123,9 @@ public class StateFileWriterTest {
             String line = null;
             int lineIndex = 0;
             while ( (line = reader.readLine()) != null ) {
-                if ( !line.equals(lines[lineIndex++]) )
+                if (!line.equals(lines[lineIndex++])) {
                     return false;
+                }
             }
             return true;
         }

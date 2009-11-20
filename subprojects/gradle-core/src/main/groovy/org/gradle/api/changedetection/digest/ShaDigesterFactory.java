@@ -31,14 +31,13 @@ class ShaDigesterFactory implements DigesterFactory {
 
     /**
      * Calls {@see MessageDigest.getInstance} for algorithm 'SHA'.
-     *  
+     *
      * @return The created MessageDigest object.
      */
     public MessageDigest createDigester() {
         try {
             return MessageDigest.getInstance(SHA_ALGORITHM);
-        }
-        catch ( NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new GradleException(SHA_ALGORITHM + " algorithm not supported!", e);
         }
     }

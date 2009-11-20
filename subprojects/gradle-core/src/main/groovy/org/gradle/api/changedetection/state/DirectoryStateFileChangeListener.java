@@ -32,8 +32,6 @@ class DirectoryStateFileChangeListener implements StateFileChangeListener {
 
     /**
      * File created
-     *
-     * @param createdItem
      */
     public void itemCreated(StateFileItem createdItem) {
         stateFileChangeListenerUtil.produceCreatedItemEvent(stateFileItemToFile(createdItem), createdItem);
@@ -41,8 +39,6 @@ class DirectoryStateFileChangeListener implements StateFileChangeListener {
 
     /**
      * File deleted
-     *
-     * @param deletedItem
      */
     public void itemDeleted(StateFileItem deletedItem) {
         stateFileChangeListenerUtil.produceDeletedItemEvent(stateFileItemToFile(deletedItem), deletedItem);
@@ -50,9 +46,6 @@ class DirectoryStateFileChangeListener implements StateFileChangeListener {
 
     /**
      * File changed
-     *
-     * @param oldState
-     * @param newState
      */
     public void itemChanged(StateFileItem oldState, StateFileItem newState) {
         stateFileChangeListenerUtil.produceChangedItemEvent(stateFileItemToFile(oldState), oldState, newState);

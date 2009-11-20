@@ -76,8 +76,9 @@ public class GradleRunnerFactory
          return null;
       }
 
-      if( soughtClass == null )
+      if( soughtClass == null ) {
          return null;
+      }
 
       //instantiate it.
       Constructor constructor = null;

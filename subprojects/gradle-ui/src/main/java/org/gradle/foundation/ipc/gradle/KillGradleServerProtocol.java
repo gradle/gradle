@@ -19,47 +19,40 @@ import org.gradle.foundation.ipc.basic.Server;
 import org.gradle.foundation.ipc.basic.MessageObject;
 
 /**
- This protocol is used by a client that launches its own server.
- See KillGradleClientProtocol.
- @author mhunsicker
-*/
-public class KillGradleServerProtocol implements Server.Protocol<Server>
-{
-   private Server server;
+ * This protocol is used by a client that launches its own server. See KillGradleClientProtocol.
+ *
+ * @author mhunsicker
+ */
+public class KillGradleServerProtocol implements Server.Protocol<Server> {
+    private Server server;
 
-   public void initialize( Server server )
-   {
-      this.server = server;
-   }
+    public void initialize(Server server) {
+        this.server = server;
+    }
 
-   public void connectionAccepted()
-   {
+    public void connectionAccepted() {
 
-   }
+    }
 
-   public boolean continueConnection()
-   {
-      return true;
-   }
+    public boolean continueConnection() {
+        return true;
+    }
 
-   public void messageReceived( MessageObject message )
-   {
-      if( ProtocolConstants.KILL.equals( message.getMessageType() ) )
-         killProcess();
-   }
+    public void messageReceived(MessageObject message) {
+        if (ProtocolConstants.KILL.equals(message.getMessageType())) {
+            killProcess();
+        }
+    }
 
-   private void killProcess()
-   {
-      System.exit( -1 );
-   }
+    private void killProcess() {
+        System.exit(-1);
+    }
 
-   public void clientCommunicationStopped()
-   {
-      killProcess();
-   }
+    public void clientCommunicationStopped() {
+        killProcess();
+    }
 
-   public void readFailureOccurred()
-   {
+    public void readFailureOccurred() {
 
-   }
+    }
 }

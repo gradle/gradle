@@ -24,13 +24,11 @@ public class DefaultTestClassRunInfoFactory implements TestClassRunInfoFactory {
     public TestClassRunInfo createTestClassRunInfo(String testClassName) {
         if (StringUtils.isNotEmpty(testClassName)) {
             // normalize the testClassName
-            final String javaTestClassName = testClassName
-                .replaceAll("/", ".")
-                .replaceAll("\\.class", "");
+            final String javaTestClassName = testClassName.replaceAll("/", ".").replaceAll("\\.class", "");
 
             return new DefaultTestClassRunInfo(javaTestClassName);
-        }
-        else
+        } else {
             return null;
+        }
     }
 }

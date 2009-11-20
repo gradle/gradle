@@ -59,8 +59,10 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public void execute(Project project, AbstractTestTask testTask, Collection<String> includes, Collection<String> excludes) {
-        antJUnitExecute.execute(testTask.getTestClassesDir(), new ArrayList<File>(testTask.getClasspath().getFiles()), testTask.getTestResultsDir(), includes, excludes, options, project.getAnt());
+    public void execute(Project project, AbstractTestTask testTask, Collection<String> includes,
+                        Collection<String> excludes) {
+        antJUnitExecute.execute(testTask.getTestClassesDir(), new ArrayList<File>(testTask.getClasspath().getFiles()),
+                testTask.getTestResultsDir(), includes, excludes, options, project.getAnt());
     }
 
     public void report(Project project, AbstractTestTask testTask) {
@@ -119,13 +121,15 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
         }
 
         final List<String> jvmArgs = forkOptions.getJvmArgs();
-        if (jvmArgs != null && !jvmArgs.isEmpty())
+        if (jvmArgs != null && !jvmArgs.isEmpty()) {
             forkHandleBuilder.arguments(jvmArgs);
+        }
 
         if (forkOptions.isNewEnvironment()) {
             final Map<String, String> environment = forkOptions.getEnvironment();
-            if (environment != null && !environment.isEmpty())
+            if (environment != null && !environment.isEmpty()) {
                 forkHandleBuilder.environment(environment);
+            }
         } else {
             forkHandleBuilder.environment(System.getenv());
         }

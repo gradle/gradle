@@ -30,7 +30,8 @@ class StateChangeEventDispatcher extends AbstractBlockingQueueItemConsumer<State
 
     private final ChangeProcessor changeProcessor;
 
-    StateChangeEventDispatcher(BlockingQueue<StateChangeEvent> toConsumeQueue, long pollTimeout, TimeUnit pollTimeoutTimeUnit, ChangeProcessor changeProcessor) {
+    StateChangeEventDispatcher(BlockingQueue<StateChangeEvent> toConsumeQueue, long pollTimeout,
+                               TimeUnit pollTimeoutTimeUnit, ChangeProcessor changeProcessor) {
         super(toConsumeQueue, pollTimeout, pollTimeoutTimeUnit);
         this.changeProcessor = changeProcessor;
     }
@@ -40,14 +41,14 @@ class StateChangeEventDispatcher extends AbstractBlockingQueueItemConsumer<State
         final StateFileItem newState = queueItem.getNewState();
         final File fileOrDirectory = queueItem.getFileOrDirectory();
 
-        if ( oldState != null && newState != null ) {
+        if (oldState != null && newState != null) {
             changeProcessor.changedFile(fileOrDirectory);
-        }
-        else {
-            if ( oldState == null )
+        } else {
+            if (oldState == null) {
                 changeProcessor.createdFile(fileOrDirectory);
-            else
+            } else {
                 changeProcessor.deletedFile(fileOrDirectory);
+            }
         }
 
         return false;

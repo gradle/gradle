@@ -32,7 +32,8 @@ import java.util.List;
  * @author Tom Eyckmans
  */
 public class ExternalControlServerFactory implements ControlServerFactory {
-    private static List<TestControlMessageHandlerFactory> messageHandlerFactories = new ArrayList<TestControlMessageHandlerFactory>();
+    private static List<TestControlMessageHandlerFactory> messageHandlerFactories
+            = new ArrayList<TestControlMessageHandlerFactory>();
 
     static {
         messageHandlerFactories.add(new ForkStartedMessageHandlerFactory());
@@ -44,7 +45,8 @@ public class ExternalControlServerFactory implements ControlServerFactory {
         final IoAcceptorFactory ioAcceptorFactory = new ExternalIoAcceptorFactory();
 
         for (TestControlMessageHandlerFactory messageHandlerFactory : messageHandlerFactories) {
-            TestControlMessageHandler messageHandler = messageHandlerFactory.createTestControlMessageHandler(pipelineDispatcher);
+            TestControlMessageHandler messageHandler = messageHandlerFactory.createTestControlMessageHandler(
+                    pipelineDispatcher);
 
             pipelineDispatcher.addMessageHandler(messageHandlerFactory.getMessageClasses(), messageHandler);
         }

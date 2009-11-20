@@ -21,13 +21,19 @@
         <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
     </module>
     <module name="TreeWalker">
+        <!-- Imports -->
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
+
         <!--<module name="JavadocMethod">-->
         <!--<property name="scope" value="public"/>-->
         <!--<property name="allowMissingReturnTag" value="true"/>-->
         <!--</module>-->
 
+        <!-- Braces -->
+        <module name="NeedBraces"/>
+
+        <!-- Naming -->
         <module name="ClassTypeParameterName"/>
         <module name="ConstantName"/>
         <module name="LocalFinalVariableName"/>

@@ -46,10 +46,10 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- This displays a tree of projects and tasks.
-
- @author mhunsicker
-  */
+ * This displays a tree of projects and tasks.
+ *
+ * @author mhunsicker
+ */
 public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObserver {
     private final Logger logger = Logging.getLogger(TaskTreeTab.class);
 
@@ -81,12 +81,14 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     private boolean isRefreshing = false;
 
     private Color defaultTreeBackground;
-    private Color workingBackgroundColor = UIManager.getDefaults().getColor("Panel.background"); //just something to provide better feedback that we're working.
+    private Color workingBackgroundColor = UIManager.getDefaults().getColor("Panel.background");
+            //just something to provide better feedback that we're working.
     private JScrollPane treeScrollPane;
 
     private SettingsNode settingsNode;
 
-    public TaskTreeTab(GradlePluginLord gradlePluginLord, SwingGradleExecutionWrapper swingGradleWrapper, SettingsNode settingsNode, AlternateUIInteraction alternateUIInteraction) {
+    public TaskTreeTab(GradlePluginLord gradlePluginLord, SwingGradleExecutionWrapper swingGradleWrapper,
+                       SettingsNode settingsNode, AlternateUIInteraction alternateUIInteraction) {
         this.gradlePluginLord = gradlePluginLord;
         this.swingGradleWrapper = swingGradleWrapper;
         this.settingsNode = settingsNode;
@@ -98,11 +100,10 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     }
 
     /**
-       This initializes our filter editor. We create a filter, serialize in our
-       settings and then use that to create the editor. Lastly, we add an
-       observer to the editor so we can save our changes immediately (useful for
-       IDE integration where we don't control the settings).
-    */
+     * This initializes our filter editor. We create a filter, serialize in our settings and then use that to create the
+     * editor. Lastly, we add an observer to the editor so we can save our changes immediately (useful for IDE
+     * integration where we don't control the settings).
+     */
     private void initializeFilterEditor() {
         BasicProjectAndTaskFilter filter = new BasicProjectAndTaskFilter();
         filter.serializeIn(settingsNode);
@@ -128,19 +129,19 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     }
 
     /**
-       Notification that this component is about to be shown. Do whatever
-       initialization you choose.
-    */
+     * Notification that this component is about to be shown. Do whatever initialization you choose.
+     */
     public void aboutToShow() {
         resetShowDescription(); //make sure that our setting is pushed to the tree's setting.
 
         //when we start up, refresh our list.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                if (gradlePluginLord.isSetupComplete())
+                if (gradlePluginLord.isSetupComplete()) {
                     refresh();
-                else
+                } else {
                     showTextInViewport("Cannot show tasks until configuration is complete. See Setup tab.");
+                }
             }
         });
     }
@@ -158,31 +159,35 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
-        refreshButton = Utility.createButton(getClass(), "refresh.png", "Refreshes the task tree", new AbstractAction("Refresh") {
+        refreshButton = Utility.createButton(getClass(), "refresh.png", "Refreshes the task tree", new AbstractAction(
+                "Refresh") {
             public void actionPerformed(ActionEvent e) {
                 refresh();
             }
         });
 
-        executeButton = Utility.createButton(getClass(), "execute.png", "Execute the selected tasks", new AbstractAction("Execute") {
-            public void actionPerformed(ActionEvent e) {
-                executeSelectedTasks();
-            }
-        });
+        executeButton = Utility.createButton(getClass(), "execute.png", "Execute the selected tasks",
+                new AbstractAction("Execute") {
+                    public void actionPerformed(ActionEvent e) {
+                        executeSelectedTasks();
+                    }
+                });
 
-        toggleFilterButton = Utility.createToggleButton( getClass(), "filter.png", "Toggles the view to show either everything or only the filtered items", new AbstractAction("Filter") {
-            public void actionPerformed(ActionEvent e) {
-                populate();
-            }
-        });
-       
+        toggleFilterButton = Utility.createToggleButton(getClass(), "filter.png",
+                "Toggles the view to show either everything or only the filtered items", new AbstractAction("Filter") {
+                    public void actionPerformed(ActionEvent e) {
+                        populate();
+                    }
+                });
+
         toggleFilterButton.setSelected(true);
 
-        editFilterButton = Utility.createButton(getClass(), "edit-filter.png", "Edits the filter to control what is visible", new AbstractAction("Edit Filter...") {
-            public void actionPerformed(ActionEvent e) {
-                configureFilter();
-            }
-        });
+        editFilterButton = Utility.createButton(getClass(), "edit-filter.png",
+                "Edits the filter to control what is visible", new AbstractAction("Edit Filter...") {
+                    public void actionPerformed(ActionEvent e) {
+                        configureFilter();
+                    }
+                });
 
         showDescriptionCheckBox = new JCheckBox("Description", true);
         showDescriptionCheckBox.addActionListener(new ActionListener() {
@@ -191,7 +196,8 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
             }
         });
 
-        showDescriptionCheckBox.setSelected(settingsNode.getValueOfChildAsBoolean(SHOW_DESCRIPTION, showDescriptionCheckBox.isSelected()));
+        showDescriptionCheckBox.setSelected(settingsNode.getValueOfChildAsBoolean(SHOW_DESCRIPTION,
+                showDescriptionCheckBox.isSelected()));
 
         panel.add(refreshButton);
         panel.add(Box.createHorizontalStrut(10));
@@ -216,10 +222,11 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
             }
 
             public void taskInvoked(TaskView task, boolean isCtrlKeyDown) {
-                if (isCtrlKeyDown)
+                if (isCtrlKeyDown) {
                     swingGradleWrapper.executeTaskInThread(task, false, "-a");
-                else
+                } else {
                     swingGradleWrapper.executeTaskInThread(task, false);
+                }
             }
 
             public void projectInvoked(ProjectView project) {
@@ -244,11 +251,11 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     }
 
     /**
-       Replaces the tree with a label of text. This is used when there's nothing
-       in the tree, but perhaps a 'working' or error message.
-
-       @param  text       the text to display
-    */
+     * Replaces the tree with a label of text. This is used when there's nothing in the tree, but perhaps a 'working' or
+     * error message.
+     *
+     * @param text the text to display
+     */
     private void showTextInViewport(String text) {
         treeScrollPane.getViewport().removeAll();
 
@@ -263,19 +270,18 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     }
 
     /**
-       Puts the tree in the main view. This is used once we've gathered the
-       projects and tasks and want to display them in the tree.
-    */
+     * Puts the tree in the main view. This is used once we've gathered the projects and tasks and want to display them
+     * in the tree.
+     */
     private void showTreeInViewport() {
         treeScrollPane.getViewport().removeAll();
         treeScrollPane.getViewport().add(treeComponent.getTree());
         treeScrollPane.revalidate();
     }
 
-
     /**
-       Call this to repopulate the tree. Useful if new tasks have been created.
-    */
+     * Call this to repopulate the tree. Useful if new tasks have been created.
+     */
     private void refresh() {
         isRefreshing = true;
 
@@ -285,8 +291,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
         showTextInViewport("Refreshing projects and tasks.");
         try {
             swingGradleWrapper.refreshTaskTree();
-        }
-        catch (Exception e) {  //if something bad happens, clear our current state
+        } catch (Exception e) {  //if something bad happens, clear our current state
             logger.error("Refreshing", e);
             isRefreshing = false;
             enableThingsAppropriately();
@@ -294,13 +299,14 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     }
 
     /**
-       This populates (and repopulates) the tree.
-    */
+     * This populates (and repopulates) the tree.
+     */
     private void populate() {
-        if (toggleFilterButton.isSelected())
+        if (toggleFilterButton.isSelected()) {
             treeComponent.populate(editor.createFilter());
-        else
+        } else {
             treeComponent.populate(new AllowAllProjectAndTaskFilter());
+        }
 
         //reset the background to indicate that we're populated
         treeComponent.getTree().setBackground(defaultTreeBackground);
@@ -310,42 +316,42 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
 
     private void executeSelectedTasks(String... additionCommandLineOptions) {
         List<TaskView> taskViews = treeComponent.getSelectedTasks();
-        String singleCommandLine = CommandLineAssistant.combineTasks( taskViews, additionCommandLineOptions  );
-        if( singleCommandLine == null )
-           return;
+        String singleCommandLine = CommandLineAssistant.combineTasks(taskViews, additionCommandLineOptions);
+        if (singleCommandLine == null) {
+            return;
+        }
 
-        swingGradleWrapper.executeTaskInThread( singleCommandLine, singleCommandLine, false, true, true );
+        swingGradleWrapper.executeTaskInThread(singleCommandLine, singleCommandLine, false, true, true);
     }
 
     /**
-    Notification that we're about to reload the projects and tasks.
-
-    */
+     * Notification that we're about to reload the projects and tasks.
+     */
     public void startingProjectsAndTasksReload() {
         treeComponent.getTree().setBackground(workingBackgroundColor);
         showTextInViewport("Building projects/tasks.");
     }
 
     /**
-       Notification that the projects and tasks have been reloaded. You may want
-       to repopulate or update your views.
-       @param wasSuccessful true if they were successfully reloaded. False if an
-                            error occurred so we no longer can show the projects
-                            and tasks (probably an error in a .gradle file).
-    */
+     * Notification that the projects and tasks have been reloaded. You may want to repopulate or update your views.
+     *
+     * @param wasSuccessful true if they were successfully reloaded. False if an error occurred so we no longer can show
+     * the projects and tasks (probably an error in a .gradle file).
+     */
     public void projectsAndTasksReloaded(boolean wasSuccessful) {
         isRefreshing = false;
         enableThingsAppropriately();
 
-        if (!wasSuccessful)
+        if (!wasSuccessful) {
             showTextInViewport("Error");
-        else
+        } else {
             populate();
+        }
     }
 
     /**
-       Builds the popup menu
-    */
+     * Builds the popup menu
+     */
     private void setupPopupMenu() {
         popupMenu = new JPopupMenu();
 
@@ -388,11 +394,12 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     }
 
     /**
-       Enables buttons and menu items based on what is selected.
-    */
+     * Enables buttons and menu items based on what is selected.
+     */
     private void enableThingsAppropriately() {
         boolean hasSelection = treeComponent.getTree().getSelectionPath() != null;
-        boolean canDoThings = !isRefreshing && treeComponent.isPopulated() && hasSelection; //can't be refreshing, is populated, and  hasSelections
+        boolean canDoThings = !isRefreshing && treeComponent.isPopulated()
+                && hasSelection; //can't be refreshing, is populated, and  hasSelections
 
         refreshButton.setEnabled(!isRefreshing);
 
@@ -402,34 +409,36 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
 
         executeButton.setEnabled(canDoThings);
 
-        if (alternateUIInteraction.doesSupportEditingFiles())   //I'll allow this to be dynamic. If we start supporting editing while running (say a user configured a setting to use a specific external tool), then we'll allow it.
+        if (alternateUIInteraction
+                .doesSupportEditingFiles())   //I'll allow this to be dynamic. If we start supporting editing while running (say a user configured a setting to use a specific external tool), then we'll allow it.
         {
             editFileMenuItem.setVisible(true);
             boolean hasProjectsSelected = treeComponent.hasProjectsSelected();
             editFileMenuItem.setEnabled(hasProjectsSelected && canDoThings);
-        } else
-            editFileMenuItem.setVisible(false);  //just hide it if we don't support this
+        } else {
+            editFileMenuItem.setVisible(false);
+        }  //just hide it if we don't support this
     }
 
     /**
-       Adds whatever is selected to the favorites.
-    */
+     * Adds whatever is selected to the favorites.
+     */
     private void addSelectedToFavorites() {
-       List<TaskView> tasks = treeComponent.getSelectedTasks();
+        List<TaskView> tasks = treeComponent.getSelectedTasks();
 
-       gradlePluginLord.getFavoritesEditor().addMutlipleFavorites( tasks, false, new SwingAddMultipleFavoritesInteraction( SwingUtilities.getWindowAncestor(mainPanel) ) );
+        gradlePluginLord.getFavoritesEditor().addMutlipleFavorites(tasks, false,
+                new SwingAddMultipleFavoritesInteraction(SwingUtilities.getWindowAncestor(mainPanel)));
     }
 
     /**
-       This displays a dialog that allows the user to determine what shows up in
-       the tree. We give the filter dialog a filter rather than handing it out
-       editor so teh user can cancel. That is, the dialog uses its own editor
-       which it modifies freely and throws away. This way, if the user cancels,
-       we dodon't have to deal with restoring the previous values in our local
-       editor.
-    */
+     * This displays a dialog that allows the user to determine what shows up in the tree. We give the filter dialog a
+     * filter rather than handing it out editor so teh user can cancel. That is, the dialog uses its own editor which it
+     * modifies freely and throws away. This way, if the user cancels, we dodon't have to deal with restoring the
+     * previous values in our local editor.
+     */
     private void configureFilter() {
-        ProjectAndTaskFilterDialog dialog = new ProjectAndTaskFilterDialog(SwingUtilities.getWindowAncestor(mainPanel), gradlePluginLord);
+        ProjectAndTaskFilterDialog dialog = new ProjectAndTaskFilterDialog(SwingUtilities.getWindowAncestor(mainPanel),
+                gradlePluginLord);
 
         BasicProjectAndTaskFilter newFilter = dialog.show(editor.createFilter());
         if (newFilter != null) //if the user didn't cancel...
@@ -440,8 +449,8 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     }
 
     /**
-       Call this to filter out the currently selected items.
-    */
+     * Call this to filter out the currently selected items.
+     */
     private void hideSelection() {
         TaskTreeComponent.MultipleSelection multipleSelection = treeComponent.getSelectedProjectsAndTasks();
         if (!multipleSelection.projects.isEmpty() || !multipleSelection.tasks.isEmpty()) {
@@ -453,19 +462,19 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     }
 
     /**
-       This resets whether the description is shown or not based on the check
-       box. The tree component does the real work.
-    */
+     * This resets whether the description is shown or not based on the check box. The tree component does the real
+     * work.
+     */
     private void resetShowDescription() {
-        settingsNode.setValueOfChildAsBoolean(SHOW_DESCRIPTION, showDescriptionCheckBox.isSelected());   //save it immediately
+        settingsNode.setValueOfChildAsBoolean(SHOW_DESCRIPTION,
+                showDescriptionCheckBox.isSelected());   //save it immediately
         treeComponent.setShowDescription(showDescriptionCheckBox.isSelected());
     }
 
     /**
-       This opens the selected files. This gets the 'parent' of this to do it
-       for us. This facilitates using this inside an IDE (you get the IDE to
-       open it).
-    */
+     * This opens the selected files. This gets the 'parent' of this to do it for us. This facilitates using this inside
+     * an IDE (you get the IDE to open it).
+     */
     private void editSelectedFiles() {
         TaskTreeComponent.MultipleSelection tasks = treeComponent.getSelectedProjectsAndTasks();
 
@@ -476,16 +485,16 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
             files.add(projectView.getBuildFile());
         }
 
-        if (!files.isEmpty())
+        if (!files.isEmpty()) {
             alternateUIInteraction.editFiles(files);
+        }
     }
 
-
     /**
-       This executes all default tasks in the specified project.
-
-       @param  project    the project to execute.
-    */
+     * This executes all default tasks in the specified project.
+     *
+     * @param project the project to execute.
+     */
     private void executeDefaultTasksInProject(ProjectView project) {
         Iterator<TaskView> iterator = project.getDefaultTasks().iterator();
         while (iterator.hasNext()) {

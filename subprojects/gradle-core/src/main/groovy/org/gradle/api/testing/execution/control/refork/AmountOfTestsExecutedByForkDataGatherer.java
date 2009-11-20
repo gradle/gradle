@@ -26,7 +26,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class AmountOfTestsExecutedByForkDataGatherer implements ReforkReasonDataGatherer {
 
-    private static final List<DataGatherMoment> DATA_GATHER_MOMENTS = Arrays.asList(DataGatherMoment.AFTER_TEST_EXECUTION);
+    private static final List<DataGatherMoment> DATA_GATHER_MOMENTS = Arrays.asList(
+            DataGatherMoment.AFTER_TEST_EXECUTION);
 
     private long reforkEvery = -1;
     private AtomicLong amountOfTestsExecutedByFork;
@@ -48,7 +49,7 @@ public class AmountOfTestsExecutedByForkDataGatherer implements ReforkReasonData
      * @param config Item configuration.
      */
     public void configure(ReforkReasonConfig config) {
-        reforkEvery = ((AmountOfTestsExecutedByForkConfig)config).getReforkEvery();
+        reforkEvery = ((AmountOfTestsExecutedByForkConfig) config).getReforkEvery();
 
         this.amountOfTestsExecutedByFork = new AtomicLong(0);
     }
@@ -65,7 +66,7 @@ public class AmountOfTestsExecutedByForkDataGatherer implements ReforkReasonData
     /**
      * Called after a test is exected.
      *
-     * @param moment     DataGatherMoment.TEST_EXECUTED
+     * @param moment DataGatherMoment.TEST_EXECUTED
      * @param momentData Variable size array of Objects, the amount of data depends on the data gather moment.
      */
     public boolean processDataGatherMoment(DataGatherMoment moment, Object... momentData) {

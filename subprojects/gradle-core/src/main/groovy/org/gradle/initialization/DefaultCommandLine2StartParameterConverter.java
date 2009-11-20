@@ -79,56 +79,74 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     OptionParser parser = new OptionParser() {
         {
             acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS), "Disable usage of default imports for build script files.");
-            acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"),
-                    String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
+            acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"), String.format(
+                    "Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
             acceptsAll(WrapUtil.toList(CACHE, "cache"),
-                    "Specifies how compiled build scripts should be cached. Possible values are: 'rebuild', 'off', 'on'. Default value is 'on'").withRequiredArg().ofType(String.class);
+                    "Specifies how compiled build scripts should be cached. Possible values are: 'rebuild', 'off', 'on'. Default value is 'on'")
+                    .withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(VERSION, "version"), "Print version info.");
             acceptsAll(WrapUtil.toList(DEBUG, "debug"), "Log in debug mode (includes normal stacktrace).");
             acceptsAll(WrapUtil.toList(QUIET, "quiet"), "Log errors only.");
             acceptsAll(WrapUtil.toList(DRY_RUN, "dry-run"), "Runs the builds with all task actions disabled.");
             acceptsAll(WrapUtil.toList(INFO, "info"), "Set log level to info.");
-            acceptsAll(WrapUtil.toList(STACKTRACE, "stacktrace"), "Print out the stacktrace also for user exceptions (e.g. compile error).");
-            acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"), "Print out the full (very verbose) stacktrace for any exceptions.");
+            acceptsAll(WrapUtil.toList(STACKTRACE, "stacktrace"),
+                    "Print out the stacktrace also for user exceptions (e.g. compile error).");
+            acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"),
+                    "Print out the full (very verbose) stacktrace for any exceptions.");
             acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.");
             acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.");
             acceptsAll(WrapUtil.toList(DEPENDENCIES, "dependencies"), "Show list of all project dependencies.");
             acceptsAll(WrapUtil.toList(GUI), "Launches a GUI application");
-            acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"), "Specifies the start directory for Gradle. Defaults to current directory.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"), "Specifies the gradle user home directory.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"), "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(DEFAULT_IMPORT_FILE, "default-import-file"), "Specifies the default import file.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(INIT_SCRIPT, "init-script"), "Specifies an initialization script.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settings-file"), "Specifies the settings file.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(BUILD_FILE, "build-file"), "Specifies the build file.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(SYSTEM_PROP, "system-prop"), "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(PROJECT_PROP, "project-prop"), "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT, "embedded"), "Specify an embedded build script.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks"), "Specify additional tasks for building project dependencies.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild"), "Do not rebuild project dependencies.");
+            acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"),
+                    "Specifies the start directory for Gradle. Defaults to current directory.").withRequiredArg()
+                    .ofType(String.class);
+            acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"),
+                    "Specifies the gradle user home directory.").withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"),
+                    "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(DEFAULT_IMPORT_FILE, "default-import-file"),
+                    "Specifies the default import file.").withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(INIT_SCRIPT, "init-script"), "Specifies an initialization script.")
+                    .withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settings-file"), "Specifies the settings file.")
+                    .withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(BUILD_FILE, "build-file"), "Specifies the build file.").withRequiredArg().ofType(
+                    String.class);
+            acceptsAll(WrapUtil.toList(SYSTEM_PROP, "system-prop"),
+                    "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(PROJECT_PROP, "project-prop"),
+                    "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(
+                    String.class);
+            acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT, "embedded"), "Specify an embedded build script.")
+                    .withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks"),
+                    "Specify additional tasks for building project dependencies.").withRequiredArg().ofType(
+                    String.class);
+            acceptsAll(WrapUtil.toList(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild"),
+                    "Do not rebuild project dependencies.");
             acceptsAll(WrapUtil.toList(NO_OPT), "Ignore any task optimization.");
-            acceptsAll(WrapUtil.toList(EXCLUDE_TASK, "exclude-task"), "Specify a task to be excluded from execution.").withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(EXCLUDE_TASK, "exclude-task"), "Specify a task to be excluded from execution.")
+                    .withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
-        }
-    };
+        }};
 
-   private static BidiMap logLevelMap = new DualHashBidiMap();
-   private static BidiMap showStacktraceMap = new DualHashBidiMap();
+    private static BidiMap logLevelMap = new DualHashBidiMap();
+    private static BidiMap showStacktraceMap = new DualHashBidiMap();
 
-   //Initialize bi-directional maps so you can convert these back and forth from their command line options to their
-   //object representation.
-   static
-   {
-      logLevelMap.put( QUIET, LogLevel.QUIET );
-      logLevelMap.put( INFO, LogLevel.INFO );
-      logLevelMap.put( DEBUG, LogLevel.DEBUG );
-      logLevelMap.put( "", LogLevel.LIFECYCLE );
-      //there are also other log levels that gradle doesn't support command-line-wise.
+    //Initialize bi-directional maps so you can convert these back and forth from their command line options to their
+    //object representation.
 
-      showStacktraceMap.put( FULL_STACKTRACE, StartParameter.ShowStacktrace.ALWAYS_FULL );
-      showStacktraceMap.put( STACKTRACE, StartParameter.ShowStacktrace.ALWAYS );
-      //showStacktraceMap.put( , StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS ); there is no command argument for this. Rather, the lack of an argument means 'default to this'.
-   }
+    static {
+        logLevelMap.put(QUIET, LogLevel.QUIET);
+        logLevelMap.put(INFO, LogLevel.INFO);
+        logLevelMap.put(DEBUG, LogLevel.DEBUG);
+        logLevelMap.put("", LogLevel.LIFECYCLE);
+        //there are also other log levels that gradle doesn't support command-line-wise.
+
+        showStacktraceMap.put(FULL_STACKTRACE, StartParameter.ShowStacktrace.ALWAYS_FULL);
+        showStacktraceMap.put(STACKTRACE, StartParameter.ShowStacktrace.ALWAYS);
+        //showStacktraceMap.put( , StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS ); there is no command argument for this. Rather, the lack of an argument means 'default to this'.
+    }
 
     public StartParameter convert(String[] args) {
         StartParameter startParameter = new StartParameter();
@@ -205,7 +223,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             startParameter.setSettingsFile(new File(options.argumentOf(SETTINGS_FILE)));
         }
 
-        for (String script : (List<String>)options.argumentsOf(INIT_SCRIPT)) {
+        for (String script : (List<String>) options.argumentsOf(INIT_SCRIPT)) {
             startParameter.addInitScript(new File(script));
         }
 
@@ -223,9 +241,11 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
 
         if (options.has(EMBEDDED_SCRIPT)) {
             if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS) || options.has(SETTINGS_FILE)) {
-                System.err.println(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
+                System.err.println(String.format(
+                        "Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
                         EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
-                throw new CommandLineArgumentException(String.format("Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
+                throw new CommandLineArgumentException(String.format(
+                        "Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
                         EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
             }
             startParameter.useEmbeddedBuildFile(options.argumentOf(EMBEDDED_SCRIPT));
@@ -233,8 +253,9 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
 
         if (options.has(FULL_STACKTRACE)) {
             if (options.has(STACKTRACE)) {
-                throw new CommandLineArgumentException(String.format("Error: The -%s option can't be used together with the -%s option.",
-                        FULL_STACKTRACE, STACKTRACE));    
+                throw new CommandLineArgumentException(String.format(
+                        "Error: The -%s option can't be used together with the -%s option.", FULL_STACKTRACE,
+                        STACKTRACE));
             }
             startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS_FULL);
         } else if (options.has(STACKTRACE)) {
@@ -242,11 +263,13 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
 
         if (options.has(TASKS) && options.has(PROPERTIES)) {
-            throw new CommandLineArgumentException(String.format("Error: The -%s and -%s options cannot be used together.", TASKS, PROPERTIES));
+            throw new CommandLineArgumentException(String.format(
+                    "Error: The -%s and -%s options cannot be used together.", TASKS, PROPERTIES));
         }
 
         if (options.has(PROJECT_DEPENDENCY_TASK_NAMES) && options.has(NO_PROJECT_DEPENDENCY_REBUILD)) {
-            throw new CommandLineArgumentException(String.format("Error: The -%s and -%s options cannot be used together.", PROJECT_DEPENDENCY_TASK_NAMES,
+            throw new CommandLineArgumentException(String.format(
+                    "Error: The -%s and -%s options cannot be used together.", PROJECT_DEPENDENCY_TASK_NAMES,
                     NO_PROJECT_DEPENDENCY_REBUILD));
         } else if (options.has(NO_PROJECT_DEPENDENCY_REBUILD)) {
             startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(null));
@@ -257,16 +280,17 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
                 normalizedTaskNames.add(taskName.trim());
             }
             startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(
-                    normalizedTaskNames
-            ));
+                    normalizedTaskNames));
         }
 
         if (options.has(TASKS)) {
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
         } else if (options.has(PROPERTIES)) {
-            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES));
+            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(
+                    BuiltInTasksBuildExecuter.Options.PROPERTIES));
         } else if (options.has(DEPENDENCIES)) {
-            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
+            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(
+                    BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
         } else if (!options.nonOptionArguments().isEmpty()) {
             startParameter.setTaskNames(options.nonOptionArguments());
         }
@@ -313,96 +337,102 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         return logLevel;
     }
 
-   /*
-      This returns the log level object represented by the command line argument
-      @param  commandLineArgument a single command line argument (with no '-')
-      @return the corresponding log level or null if it doesn't match any.
-      @author mhunsicker
-   */
-   public LogLevel getLogLevel( String commandLineArgument )
-   {
-      LogLevel logLevel = (LogLevel) logLevelMap.get( commandLineArgument );
-      if( logLevel == null )
-          return null;
+    /*
+       This returns the log level object represented by the command line argument
+       @param  commandLineArgument a single command line argument (with no '-')
+       @return the corresponding log level or null if it doesn't match any.
+       @author mhunsicker
+    */
 
-      return logLevel;
-   }
+    public LogLevel getLogLevel(String commandLineArgument) {
+        LogLevel logLevel = (LogLevel) logLevelMap.get(commandLineArgument);
+        if (logLevel == null) {
+            return null;
+        }
 
-   /*
-      This returns the command line argument that represents the specified
-      log level.
-      @param  logLevel       the log level.
-      @return the command line argument or null if this level cannot be
-               represented on the command line.
-      @author mhunsicker
-   */
-   public String getLogLevelCommandLine( LogLevel logLevel )
-   {
-      String commandLine = (String) logLevelMap.getKey( logLevel );
-      if( commandLine == null )
-          return null;
+        return logLevel;
+    }
 
-      return commandLine;
-   }
+    /*
+       This returns the command line argument that represents the specified
+       log level.
+       @param  logLevel       the log level.
+       @return the command line argument or null if this level cannot be
+                represented on the command line.
+       @author mhunsicker
+    */
 
-   /*
-      This returns the log levels that are supported on the command line.
-      @return a collection of available log levels
-      @author mhunsicker
-   */
-   public Collection<LogLevel> getLogLevels()
-   {
-      return Collections.unmodifiableCollection( logLevelMap.values() );
-   }
+    public String getLogLevelCommandLine(LogLevel logLevel) {
+        String commandLine = (String) logLevelMap.getKey(logLevel);
+        if (commandLine == null) {
+            return null;
+        }
 
-   /*
-      This returns the stack trace level object represented by the command
-      line argument
-      @param  commandLineArgument a single command line argument (with no '-')
-      @return the corresponding stack trace level or null if it doesn't match any.
-      @author mhunsicker
-   */
-   public StartParameter.ShowStacktrace getShowStacktrace( String commandLineArgument )
-   {
-      StartParameter.ShowStacktrace showStacktrace = (StartParameter.ShowStacktrace) showStacktraceMap.get( commandLineArgument );
-      if( showStacktrace == null )
-         return null;
+        return commandLine;
+    }
 
-      return showStacktrace;
-   }
+    /*
+       This returns the log levels that are supported on the command line.
+       @return a collection of available log levels
+       @author mhunsicker
+    */
 
-   /*
-      This returns the command line argument that represents the specified
-      stack trace level.
-          
-      @param  showStacktrace the stack trace level.
-      @return the command line argument or null if this level cannot be
-               represented on the command line.
-      @author mhunsicker
-   */
-   public String getShowStacktraceCommandLine( StartParameter.ShowStacktrace showStacktrace )
-   {
-      String commandLine = (String) showStacktraceMap.getKey( showStacktrace );
-      if( commandLine == null )
-         return null;
+    public Collection<LogLevel> getLogLevels() {
+        return Collections.unmodifiableCollection(logLevelMap.values());
+    }
 
-      return commandLine;
-   }
+    /*
+       This returns the stack trace level object represented by the command
+       line argument
+       @param  commandLineArgument a single command line argument (with no '-')
+       @return the corresponding stack trace level or null if it doesn't match any.
+       @author mhunsicker
+    */
 
-   /*
-      This returns the ShowStacktrace levels that are supported on the command
-      line.
-      @return a collection of available ShowStacktrace levels
-      @author mhunsicker
-   */
-   public Collection<StartParameter.ShowStacktrace> getShowStacktrace()
-   {
-      return Collections.unmodifiableCollection( showStacktraceMap.values() );
-   }
+    public StartParameter.ShowStacktrace getShowStacktrace(String commandLineArgument) {
+        StartParameter.ShowStacktrace showStacktrace = (StartParameter.ShowStacktrace) showStacktraceMap.get(
+                commandLineArgument);
+        if (showStacktrace == null) {
+            return null;
+        }
+
+        return showStacktrace;
+    }
+
+    /*
+       This returns the command line argument that represents the specified
+       stack trace level.
+
+       @param  showStacktrace the stack trace level.
+       @return the command line argument or null if this level cannot be
+                represented on the command line.
+       @author mhunsicker
+    */
+
+    public String getShowStacktraceCommandLine(StartParameter.ShowStacktrace showStacktrace) {
+        String commandLine = (String) showStacktraceMap.getKey(showStacktrace);
+        if (commandLine == null) {
+            return null;
+        }
+
+        return commandLine;
+    }
+
+    /*
+       This returns the ShowStacktrace levels that are supported on the command
+       line.
+       @return a collection of available ShowStacktrace levels
+       @author mhunsicker
+    */
+
+    public Collection<StartParameter.ShowStacktrace> getShowStacktrace() {
+        return Collections.unmodifiableCollection(showStacktraceMap.values());
+    }
 
     private void quitWithErrorIfLogLevelAlreadyDefined(LogLevel logLevel, String option) {
         if (logLevel != null) {
-            System.err.println(String.format("Error: The log level is already defined by another option. Therefore the option %s is invalid.",
+            System.err.println(String.format(
+                    "Error: The log level is already defined by another option. Therefore the option %s is invalid.",
                     option));
             throw new InvalidUserDataException();
         }

@@ -48,8 +48,12 @@ public class TestOrchestratorFactory {
      * @param testDetectionQueueSize The queue size that needs to be used for the test detection queue.
      */
     public TestOrchestratorFactory(NativeTest testTask, int testDetectionQueueSize) {
-        if ( testTask == null ) throw new IllegalArgumentException("testTask is null!");
-        if ( testDetectionQueueSize < 1 ) throw new IllegalArgumentException("testDetectionQueueSize < 1!");
+        if (testTask == null) {
+            throw new IllegalArgumentException("testTask is null!");
+        }
+        if (testDetectionQueueSize < 1) {
+            throw new IllegalArgumentException("testDetectionQueueSize < 1!");
+        }
 
         this.testTask = testTask;
         testDetectionQueue = new ArrayBlockingQueue<TestClassRunInfo>(testDetectionQueueSize);
@@ -78,8 +82,7 @@ public class TestOrchestratorFactory {
      *
      * @return The test detection orchestator.
      */
-    public TestDetectionOrchestrator createTestDetectionOrchestrator()
-    {
+    public TestDetectionOrchestrator createTestDetectionOrchestrator() {
         return new DefaultTestDetectionOrchestrator(new DefaultTestDetectionOrchestratorFactory(this));
     }
 
@@ -88,8 +91,7 @@ public class TestOrchestratorFactory {
      *
      * @return The pipelines manager.
      */
-    public PipelinesManager createPipelinesManager()
-    {
+    public PipelinesManager createPipelinesManager() {
         return new PipelinesManager(pipelineFactory, forkControl);
     }
 
@@ -98,29 +100,26 @@ public class TestOrchestratorFactory {
      *
      * @return The pipeline split orchestrator.
      */
-    public TestPipelineSplitOrchestrator createTestPipelineSplitOrchestrator()
-    {
+    public TestPipelineSplitOrchestrator createTestPipelineSplitOrchestrator() {
         return new TestPipelineSplitOrchestrator(testDetectionQueue);
     }
 
     /**
      * Creates the test report orchestrator.
-     * 
+     *
      * @return The test report orchestrator.
      */
-    public ReportsManager createTestReportOrchestrator()
-    {
+    public ReportsManager createTestReportOrchestrator() {
         return new DefaultReportsManager();
     }
 
-    public TestOrchestratorContext createContext(final TestOrchestrator testOrchestrator)
-    {
+    public TestOrchestratorContext createContext(final TestOrchestrator testOrchestrator) {
         final TestDetectionOrchestrator detectionOrchestrator = createTestDetectionOrchestrator();
         final TestPipelineSplitOrchestrator pipelineSplitOrchestrator = createTestPipelineSplitOrchestrator();
         final PipelinesManager pipelinesManager = createPipelinesManager();
         final ReportsManager reportOrchestrator = createTestReportOrchestrator();
 
-        return new TestOrchestratorContext(testOrchestrator, detectionOrchestrator, pipelineSplitOrchestrator, pipelinesManager, reportOrchestrator);
+        return new TestOrchestratorContext(testOrchestrator, detectionOrchestrator, pipelineSplitOrchestrator,
+                pipelinesManager, reportOrchestrator);
     }
-
 }

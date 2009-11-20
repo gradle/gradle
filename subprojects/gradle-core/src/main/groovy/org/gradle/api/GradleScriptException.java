@@ -80,8 +80,9 @@ public class GradleScriptException extends GradleException {
      * @return The line number, or null if not known.
      */
     public Integer getLineNumber() {
-        if (lineNumber != null)
+        if (lineNumber != null) {
             return lineNumber;
+        }
 
         // wasn't explicitly set, so search for the line number
         Integer foundLineNumber = null;

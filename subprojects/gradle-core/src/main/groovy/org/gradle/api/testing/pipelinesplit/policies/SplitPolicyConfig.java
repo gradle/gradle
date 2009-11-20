@@ -23,7 +23,9 @@ public class SplitPolicyConfig {
     private final SplitPolicyName policyName;
 
     public SplitPolicyConfig(SplitPolicyName policyName) {
-        if (policyName == null) throw new IllegalArgumentException("policyName == null!");
+        if (policyName == null) {
+            throw new IllegalArgumentException("policyName == null!");
+        }
 
         this.policyName = policyName;
     }

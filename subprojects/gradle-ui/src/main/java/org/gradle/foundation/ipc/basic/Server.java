@@ -26,312 +26,272 @@ import java.io.IOException;
 import java.io.Serializable;
 
 /**
+ * This is a server that talks to a client via sockets (Rudimentary form of Inter-Process Communication (IPC)). This
+ * does the work of locating a free socket and starting the connection. To use this, you really only have to define a
+ * Protocol that handles the actual messages. You'll want to make your client startup a ClientProcess object that
+ * implements a corresponding Protocol.
+ *
+ * @author mhunsicker
+ */
+public class Server<P extends Server.Protocol, O extends Server.ServerObserver> {
+    public static final int STARTING_PORT = 1800;
+    private final Logger logger = Logging.getLogger(Server.class);
 
- This is a server that talks to a client via sockets (Rudimentary form of Inter-Process
- Communication (IPC)). This does the work of locating a free socket and starting the
- connection. To use this, you really only have to define a Protocol that handles the
- actual messages. You'll want to make your client startup a ClientProcess object
- that implements a corresponding Protocol.
+    private ServerSocket serverSocket = null;
+    private boolean isServerRunning = false;
+    private boolean hasRequestedShutdown = false;
 
- @author mhunsicker
-  */
-public class Server<P extends Server.Protocol, O extends Server.ServerObserver>
-{
-   public static final int STARTING_PORT = 1800;
-   private final Logger logger = Logging.getLogger( Server.class );
+    private ObjectSocketWrapper clientSocket;
+    protected P protocol;
+    private Thread communicationThread;
+    private int port;
 
-   private ServerSocket serverSocket = null;
-   private boolean isServerRunning = false;
-   private boolean hasRequestedShutdown = false;
+    protected ObserverLord<O> observerLord = new ObserverLord<O>();
 
-   private ObjectSocketWrapper clientSocket;
-   protected P protocol;
-   private Thread communicationThread;
-   private int port;
+    //
 
-   protected ObserverLord<O> observerLord = new ObserverLord<O>();
+    /**
+     * Implement this to define the behavior of the communication on the server side.
+     */
+    public interface Protocol<S extends Server> {
+        /**
+         * Gives your protocol a chance to store this server so it can access its functions.
+         */
+        public void initialize(S server);
 
-   //
-            /**
-               Implement this to define the behavior of the communication on the server
-               side.
+        /**
+         * Notification that the connection was accepted by the client.
+         */
+        public void connectionAccepted();
 
-            */
-            public interface Protocol<S extends Server>
-            {
-               /**
-                  Gives your protocol a chance to store this server so it can access its
-                  functions.
+        /**
+         * @return true if we should keep the connection alive. False if we should stop communicaiton.
+         */
+        public boolean continueConnection();
 
-               */
-               public void initialize( S server );
+        /**
+         * Notification that a message has been received.
+         *
+         * @param message the message that was received.
+         */
+        public void messageReceived(MessageObject message);
 
-               /**
-                  Notification that the connection was accepted by the client.
+        /**
+         * Notification that the client has stopped all communications.
+         */
+        public void clientCommunicationStopped();
 
-               */
-               public void connectionAccepted();
+        /**
+         * Notification that a read failure occurred. This really only exists for debugging purposes when things
+         * go wrong.
+         */
+        void readFailureOccurred();
+    }
 
-               /**
-                  @return true if we should keep the connection alive. False if we should
-                          stop communicaiton.
+    //
 
-               */
-               public boolean continueConnection();
+    public interface ServerObserver {
+        /**
+         * Notification that the server has shutdown.
+         */
+        public void serverExited();
+    }
 
-               /**
-                  Notification that a message has been received.
+    public Server(P protocol) {
+        this.protocol = protocol;
+        protocol.initialize(this);
+    }
 
-                  @param  message    the message that was received.
+    public int getPort() {
+        return port;
+    }
 
-               */
-               public void messageReceived( MessageObject message );
+    /**
+     * Call this to start the server.
+     *
+     * @return true if we started, false if not.
+     */
+    public boolean start() {
+        port = connect();
+        if (port == -1) {
+            return false;
+        }
 
-               /**
-                  Notification that the client has stopped all communications.
-
-               */
-               public void clientCommunicationStopped();
-
-               /**
-               Notification that a read failure occurred. This really only exists for
-               debugging purposes when things go wrong.
-                */
-               void readFailureOccurred();
+        communicationThread = new Thread(new Runnable() {
+            public void run() {
+                listenForConnections();
             }
+        });
 
-   //
-                           public interface ServerObserver
-                           {
-                              /**
-                                 Notification that the server has shutdown.
+        communicationThread.start();
 
-                              */
-                              public void serverExited();
-                           }
+        communicationsStarted();
 
-   public Server( P protocol )
-   {
-      this.protocol = protocol;
-      protocol.initialize( this );
-   }
+        return true;
+    }
 
-   public int getPort() { return port; }
+    //this exists solely so it can be overridden. Its an internal notification that communcations have started.
+    //You may want to do some extra processing now.
 
-   /**
-      Call this to start the server.
-      @return true if we started, false if not.
+    protected void communicationsStarted() {
 
-   */
-   public boolean start()
-   {
-      port = connect();
-      if( port == -1 )
-         return false;
+    }
 
-      communicationThread = new Thread( new Runnable()
-      {
-         public void run()
-         {
-            listenForConnections();
-         }
-      });
-
-      communicationThread.start();
-
-      communicationsStarted();
-
-      return true;
-   }
-
-   //this exists solely so it can be overridden. Its an internal notification that communcations have started.
-   //You may want to do some extra processing now.
-   protected void communicationsStarted()
-   {
-
-   }
-
-   /**
-      This attempts to open a free port. We'll search for an open port until we
-      find one.
-      @return the port we opened or -1 if we couldn't open one.
-
-   */
-   private int connect()
-   {
-      int port = STARTING_PORT;
-      boolean keepSearching = true;
-      while( keepSearching )
-      {
-         try
-         {
-            isServerRunning = false;
-            serverSocket = new ServerSocket( port );
-            isServerRunning = true;
-            keepSearching = false;
-         }
-         catch( BindException e )
-         {
-            //the port is already in use, go try the next one.
-            port++;
-         }
-         catch( IOException e )
-         {
-            logger.error( "Could not listen on port: " + port, e );
-            keepSearching = false;
-            port = -1;
-         }
-      }
-      return port;
-   }
-
-   /**
-      This sits in a loop and listens for connections. Once a connection has
-      been made, we'll call another function to process it.
-
-   */
-   private void listenForConnections()
-   {
-      int consecutiveFailures = 0;
-      while( !hasRequestedShutdown )
-      {
-         Socket socket = null;
-         try
-         {
-            serverSocket.setSoTimeout( 2000 );  //attempt to connect for a few seconds, then try again (so we'll get any shutdown requests).
-            socket = serverSocket.accept();
-
-            clientSocket = new ObjectSocketWrapper( socket );
-            protocol.connectionAccepted();
-            consecutiveFailures = 0;   //reset our consecutive failures.
-
-            processCommunications();
-
-            clientSocket.close();
-         }
-         catch( IOException e )
-         {
-            consecutiveFailures++;
-            if( consecutiveFailures >= 20 )  //if we fail too many times, we'll request to shutdown. It's obviously not working. This is an arbitrary number.
-               requestShutdown();
-
-            if( consecutiveFailures > 8 )    //the first few usually fail while we're waiting for the process to startup.
-               logger.error( "Accept failed (" + consecutiveFailures + ")." );
-         }
-         catch( Throwable t )
-         {  //something really bad happened, shut down
-            logger.error( "Listening for connections", t );
-            requestShutdown();
-         }
-      }
-
-      isServerRunning = false;
-
-      stop();
-      notifyServerExited();
-   }
-
-   /**
-      This is called once a connection is made. We'll listen for messages from
-      the client, notifying the protocol of them to do whatever it needs.
-
-   */
-   private void processCommunications()
-   {
-      boolean hasClientStopped = false;
-      int failureCount = 0;
-      while( !hasClientStopped && protocol.continueConnection() && !hasRequestedShutdown )
-      {
-         Object object = clientSocket.readObject();
-
-         if( object == null )
-         {
-            if( !hasRequestedShutdown )   //if we're trying to shutdown, we can get errors here. Just ignore them and move on
-            {
-               failureCount++;
-               protocol.readFailureOccurred();
-               if( failureCount == 3 ) //after 3 failures, assume the client went away.
-               {
-                  hasClientStopped = true;
-                  protocol.clientCommunicationStopped();
-               }
+    /**
+     * This attempts to open a free port. We'll search for an open port until we find one.
+     *
+     * @return the port we opened or -1 if we couldn't open one.
+     */
+    private int connect() {
+        int port = STARTING_PORT;
+        boolean keepSearching = true;
+        while (keepSearching) {
+            try {
+                isServerRunning = false;
+                serverSocket = new ServerSocket(port);
+                isServerRunning = true;
+                keepSearching = false;
+            } catch (BindException e) {
+                //the port is already in use, go try the next one.
+                port++;
+            } catch (IOException e) {
+                logger.error("Could not listen on port: " + port, e);
+                keepSearching = false;
+                port = -1;
             }
-         }
-         else
-         {
-            failureCount = 0; //reset our failures
+        }
+        return port;
+    }
 
-            if( object instanceof String )
-               protocol.messageReceived( new MessageObject( "?", object.toString(), null ) );
-            else
-               if( object instanceof MessageObject )
-                  protocol.messageReceived( (MessageObject) object );
-         }
-      }
-   }
+    /**
+     * This sits in a loop and listens for connections. Once a connection has been made, we'll call another function to
+     * process it.
+     */
+    private void listenForConnections() {
+        int consecutiveFailures = 0;
+        while (!hasRequestedShutdown) {
+            Socket socket = null;
+            try {
+                serverSocket.setSoTimeout(
+                        2000);  //attempt to connect for a few seconds, then try again (so we'll get any shutdown requests).
+                socket = serverSocket.accept();
 
-   public void requestShutdown() { hasRequestedShutdown = true; }
+                clientSocket = new ObjectSocketWrapper(socket);
+                protocol.connectionAccepted();
+                consecutiveFailures = 0;   //reset our consecutive failures.
 
-   public boolean isServerRunning() { return isServerRunning; }
+                processCommunications();
 
-   /**
-      Call this to send a message. The protocal and the client must understand
-      the message and message type.
+                clientSocket.close();
+            } catch (IOException e) {
+                consecutiveFailures++;
+                if (consecutiveFailures
+                        >= 20)  //if we fail too many times, we'll request to shutdown. It's obviously not working. This is an arbitrary number.
+                {
+                    requestShutdown();
+                }
 
-      @param  messageType the message type. Whatever the client and server want.
-      @param  message     the message being sent.
+                if (consecutiveFailures
+                        > 8)    //the first few usually fail while we're waiting for the process to startup.
+                {
+                    logger.error("Accept failed (" + consecutiveFailures + ").");
+                }
+            } catch (Throwable t) {  //something really bad happened, shut down
+                logger.error("Listening for connections", t);
+                requestShutdown();
+            }
+        }
 
-   */
-   public void sendMessage( String messageType, String message )
-   {
-      clientSocket.sendObject( new MessageObject( messageType, message, null ) );
-   }
+        isServerRunning = false;
 
-   /**
-      Call this to send a message with some binary data. The protocal and the
-      client must understand the message, message type, and data.
+        stop();
+        notifyServerExited();
+    }
 
-      @param  messageType the message type. Whatever the client and server want.
-      @param  message     the message being sent
-      @param  data        the data being sent. Must be serializable.
+    /**
+     * This is called once a connection is made. We'll listen for messages from the client, notifying the protocol of
+     * them to do whatever it needs.
+     */
+    private void processCommunications() {
+        boolean hasClientStopped = false;
+        int failureCount = 0;
+        while (!hasClientStopped && protocol.continueConnection() && !hasRequestedShutdown) {
+            Object object = clientSocket.readObject();
 
-   */
-   public void sendMessage( String messageType, String message, Serializable data )
-   {
-      clientSocket.sendObject( new MessageObject( messageType, message, data ) );
-   }
+            if (object == null) {
+                if (!hasRequestedShutdown)   //if we're trying to shutdown, we can get errors here. Just ignore them and move on
+                {
+                    failureCount++;
+                    protocol.readFailureOccurred();
+                    if (failureCount == 3) //after 3 failures, assume the client went away.
+                    {
+                        hasClientStopped = true;
+                        protocol.clientCommunicationStopped();
+                    }
+                }
+            } else {
+                failureCount = 0; //reset our failures
 
+                if (object instanceof String) {
+                    protocol.messageReceived(new MessageObject("?", object.toString(), null));
+                } else if (object instanceof MessageObject) {
+                    protocol.messageReceived((MessageObject) object);
+                }
+            }
+        }
+    }
 
-   public void stop()
-   {
-      try
-      {
-         serverSocket.close();
-      }
-      catch( IOException e )
-      {
-         logger.error( "Closing socket", e );
-      }
-   }
+    public void requestShutdown() {
+        hasRequestedShutdown = true;
+    }
 
-   private void notifyServerExited()
-   {
-      observerLord.notifyObservers( new ObserverLord.ObserverNotification<O>()
-      {
-         public void notify( ServerObserver observer )
-         {
-            observer.serverExited();
-         }
-      } );
-   }
+    public boolean isServerRunning() {
+        return isServerRunning;
+    }
 
-   public void addServerObserver( O observer, boolean inEventQueue )
-   {
-      observerLord.addObserver( observer, inEventQueue );
-   }
+    /**
+     * Call this to send a message. The protocal and the client must understand the message and message type.
+     *
+     * @param messageType the message type. Whatever the client and server want.
+     * @param message the message being sent.
+     */
+    public void sendMessage(String messageType, String message) {
+        clientSocket.sendObject(new MessageObject(messageType, message, null));
+    }
 
-   public void removeServerObserver( O observer )
-   {
-      observerLord.removeObserver( observer );
-   }
+    /**
+     * Call this to send a message with some binary data. The protocal and the client must understand the message,
+     * message type, and data.
+     *
+     * @param messageType the message type. Whatever the client and server want.
+     * @param message the message being sent
+     * @param data the data being sent. Must be serializable.
+     */
+    public void sendMessage(String messageType, String message, Serializable data) {
+        clientSocket.sendObject(new MessageObject(messageType, message, data));
+    }
+
+    public void stop() {
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            logger.error("Closing socket", e);
+        }
+    }
+
+    private void notifyServerExited() {
+        observerLord.notifyObservers(new ObserverLord.ObserverNotification<O>() {
+            public void notify(ServerObserver observer) {
+                observer.serverExited();
+            }
+        });
+    }
+
+    public void addServerObserver(O observer, boolean inEventQueue) {
+        observerLord.addObserver(observer, inEventQueue);
+    }
+
+    public void removeServerObserver(O observer) {
+        observerLord.removeObserver(observer);
+    }
 }

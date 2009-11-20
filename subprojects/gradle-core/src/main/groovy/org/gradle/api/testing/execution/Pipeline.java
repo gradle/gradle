@@ -53,7 +53,8 @@ public class Pipeline {
         this.testTask = testTask;
         this.config = config;
         this.runInfoQueue = new ArrayBlockingQueue<TestClassRunInfo>(1000);
-        this.runInfoQueueProducer = new BlockingQueueItemProducer<TestClassRunInfo>(runInfoQueue, 100L, TimeUnit.MILLISECONDS);
+        this.runInfoQueueProducer = new BlockingQueueItemProducer<TestClassRunInfo>(runInfoQueue, 100L,
+                TimeUnit.MILLISECONDS);
         this.reforkController = new ReforkControllerImpl();
         this.reports = new ArrayList<Report>();
         this.listeners = new ArrayList<PipelineListener>();

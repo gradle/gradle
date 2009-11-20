@@ -26,10 +26,9 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * This visits each project and task in a hierarchical manner. This visitor is
- * specifically meant to walk the projects first and tasks second for the
- * purpose of populating a tree where the projects/subprojects are first and
- * the tasks are second.
+ * This visits each project and task in a hierarchical manner. This visitor is specifically meant to walk the projects
+ * first and tasks second for the purpose of populating a tree where the projects/subprojects are first and the tasks
+ * are second.
  *
  * @author mhunsicker
  */
@@ -46,6 +45,7 @@ public class TaskTreePopulationVisitor {
                    project's tasks.
            @author mhunsicker
         */
+
         public P visitProject(ProjectView project, int indexOfProject, P parentProjectObject);
 
         /*
@@ -57,6 +57,7 @@ public class TaskTreePopulationVisitor {
          @param  userProjectObject  whatever you returned from the parent project's visitProject
            @author mhunsicker
         */
+
         public T visitTask(TaskView task, int indexOfTask, ProjectView tasksProject, P userProjectObject);
 
         /*
@@ -71,6 +72,7 @@ public class TaskTreePopulationVisitor {
            @param  taskObjects         a list of whatever you returned from visitTask
            @author mhunsicker
         */
+
         public void completedVisitingProject(P parentProjectObject, List<P> projectObjects, List<T> taskObjects);
     }
 
@@ -84,7 +86,9 @@ public class TaskTreePopulationVisitor {
 
        @author mhunsicker
     */
-    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor, P rootProjectObject) {
+
+    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor,
+                                                   P rootProjectObject) {
         visitProjectAndTasks(projects, visitor, new AllowAllProjectAndTaskFilter(), rootProjectObject);
     }
 
@@ -99,14 +103,17 @@ public class TaskTreePopulationVisitor {
                 root-level projects as parentProjectObject.
        @author mhunsicker
     */
-    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor, ProjectAndTaskFilter filter, P rootProjectObject) {
+
+    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor,
+                                                   ProjectAndTaskFilter filter, P rootProjectObject) {
         List<P> userProjectObjects = visitProjects(visitor, filter, projects, rootProjectObject);
 
         //notify the visitation of the root projects. There are no tasks for this one, but there are projects.
         visitor.completedVisitingProject(rootProjectObject, userProjectObjects, Collections.EMPTY_LIST);
     }
 
-    private static <P, T> List<P> visitProjects(Visitor<P, T> visitor, ProjectAndTaskFilter filter, List<ProjectView> projects, P parentProjectObject) {
+    private static <P, T> List<P> visitProjects(Visitor<P, T> visitor, ProjectAndTaskFilter filter,
+                                                List<ProjectView> projects, P parentProjectObject) {
         List<P> projectObjects = new ArrayList<P>();
 
         Iterator<ProjectView> iterator = projects.iterator();
@@ -137,7 +144,9 @@ public class TaskTreePopulationVisitor {
 
        @author mhunsicker
     */
-    private static <P, T> List<T> visitTasks(Visitor<P, T> visitor, ProjectAndTaskFilter filter, ProjectView project, int startingIndex, P userProjectObject) {
+
+    private static <P, T> List<T> visitTasks(Visitor<P, T> visitor, ProjectAndTaskFilter filter, ProjectView project,
+                                             int startingIndex, P userProjectObject) {
         List<T> taskObjects = new ArrayList<T>();
         Iterator<TaskView> iterator = project.getTasks().iterator();
         int index = startingIndex;

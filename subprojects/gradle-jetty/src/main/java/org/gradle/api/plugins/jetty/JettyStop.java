@@ -36,10 +36,12 @@ public class JettyStop extends ConventionTask {
 
     @TaskAction
     public void stop() {
-        if (getStopPort() == null)
+        if (getStopPort() == null) {
             throw new InvalidUserDataException("Please specify a valid port");
-        if (getStopKey() == null)
+        }
+        if (getStopKey() == null) {
             throw new InvalidUserDataException("Please specify a valid stopKey");
+        }
 
         try {
             Socket s = new Socket(InetAddress.getByName("127.0.0.1"), getStopPort());
@@ -49,11 +51,9 @@ public class JettyStop extends ConventionTask {
             out.write((getStopKey() + "\r\nstop\r\n").getBytes());
             out.flush();
             s.close();
-        }
-        catch (ConnectException e) {
+        } catch (ConnectException e) {
             logger.info("Jetty not running!");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error("Exception during stopping", e);
         }
     }
@@ -82,8 +82,8 @@ public class JettyStop extends ConventionTask {
     }
 
     /**
-     * Sets key to provide when stopping jetty on executing java -DSTOP.KEY=&lt;stopKey&gt;
-     * -DSTOP.PORT=&lt;stopPort&gt; -jar start.jar --stop
+     * Sets key to provide when stopping jetty on executing java -DSTOP.KEY=&lt;stopKey&gt; -DSTOP.PORT=&lt;stopPort&gt;
+     * -jar start.jar --stop
      */
     public void setStopKey(String stopKey) {
         this.stopKey = stopKey;

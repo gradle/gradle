@@ -27,7 +27,9 @@ public abstract class AbstractTestServerControlMessageHandler implements TestCon
     protected final Pipeline pipeline;
 
     protected AbstractTestServerControlMessageHandler(PipelineDispatcher pipelineDispatcher) {
-        if (pipelineDispatcher == null) throw new IllegalArgumentException("pipelineDispatcher == null!");
+        if (pipelineDispatcher == null) {
+            throw new IllegalArgumentException("pipelineDispatcher == null!");
+        }
 
         this.pipelineDispatcher = pipelineDispatcher;
         this.pipeline = pipelineDispatcher.getPipeline();

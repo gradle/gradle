@@ -51,8 +51,9 @@ public class RemoteListenerIntegrationTest {
         RemoteReceiver receiver = new RemoteReceiver(broadcast, exceptionListener);
 
         executeJava(RemoteProcess.class.getName(), receiver.getBoundPort());
-        if (exceptionListener.ex != null)
+        if (exceptionListener.ex != null) {
             throw exceptionListener.ex;
+        }
         context.assertIsSatisfied();
     }
 

@@ -30,7 +30,9 @@ public class ExecHandleRunner implements Runnable {
     private final ExecutorService threadPool;
 
     public ExecHandleRunner(DefaultExecHandle execHandle, ExecutorService threadPool) {
-        if ( execHandle == null ) throw new IllegalArgumentException("execHandle == null!");
+        if (execHandle == null) {
+            throw new IllegalArgumentException("execHandle == null!");
+        }
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
         this.keepWaiting = new AtomicBoolean(true);
@@ -48,8 +50,10 @@ public class ExecHandleRunner implements Runnable {
         try {
             final Process process = processBuilder.start();
 
-            final ExecOutputHandleRunner standardOutputHandleRunner = new ExecOutputHandleRunner(process.getInputStream(), execHandle.getStandardOutputHandle());
-            final ExecOutputHandleRunner errorOutputHandleRunner = new ExecOutputHandleRunner(process.getErrorStream(), execHandle.getErrorOutputHandle());
+            final ExecOutputHandleRunner standardOutputHandleRunner = new ExecOutputHandleRunner(
+                    process.getInputStream(), execHandle.getStandardOutputHandle());
+            final ExecOutputHandleRunner errorOutputHandleRunner = new ExecOutputHandleRunner(process.getErrorStream(),
+                    execHandle.getErrorOutputHandle());
 
             threadPool.execute(standardOutputHandleRunner);
             threadPool.execute(errorOutputHandleRunner);
@@ -61,33 +65,28 @@ public class ExecHandleRunner implements Runnable {
 
             int exitCode = -1;
             boolean processFinishedNormally = false;
-            while ( keepWaiting.get() && !processFinishedNormally ) {
+            while (keepWaiting.get() && !processFinishedNormally) {
                 try {
                     exitCode = process.exitValue();
                     processFinishedNormally = true;
-                }
-                catch (IllegalThreadStateException e) {
+                } catch (IllegalThreadStateException e) {
                     // ignore
                 }
                 try {
                     Thread.sleep(keepWaitingTimeout);
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     // ignore
                 }
             }
 
-            if ( !keepWaiting.get() ) {
+            if (!keepWaiting.get()) {
                 process.destroy();
                 execHandle.aborted();
-            }
-            else {
+            } else {
                 execHandle.finished(exitCode);
             }
-        }
-        catch ( Throwable t ) {
+        } catch (Throwable t) {
             execHandle.failed(t);
         }
-
     }
 }

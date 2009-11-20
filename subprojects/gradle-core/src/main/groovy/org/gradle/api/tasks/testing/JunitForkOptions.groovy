@@ -45,13 +45,11 @@ class JunitForkOptions extends AbstractOptions {
 
     public Map fieldValue2AntMap() {
         [
-            forkMode: { forkMode.toString() }       
+                forkMode: { forkMode.toString() }
         ]
     }
 
     List excludedFieldsFromOptionMap() {
         ['bootstrapClasspath', 'environment', 'jvmArgs']
     }
-
-
 }

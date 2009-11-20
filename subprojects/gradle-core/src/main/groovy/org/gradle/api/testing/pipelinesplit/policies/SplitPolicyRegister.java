@@ -24,26 +24,34 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Tom Eyckmans
  */
 public class SplitPolicyRegister {
-    private static final Map<SplitPolicyName, SplitPolicy> SPLIT_POLICIES = new ConcurrentHashMap<SplitPolicyName, SplitPolicy>();
+    private static final Map<SplitPolicyName, SplitPolicy> SPLIT_POLICIES
+            = new ConcurrentHashMap<SplitPolicyName, SplitPolicy>();
 
     static {
         registerSplitPolicy(new SingleSplitPolicy());
     }
 
     public static void registerSplitPolicy(final SplitPolicy splitPolicy) {
-        if (splitPolicy == null) throw new IllegalArgumentException("splitPolicy == null!");
+        if (splitPolicy == null) {
+            throw new IllegalArgumentException("splitPolicy == null!");
+        }
 
         final SplitPolicyName splitPolicyName = splitPolicy.getName();
 
-        if (splitPolicyName == null) throw new IllegalArgumentException("splitPolicy.name == null!");
-        if (SPLIT_POLICIES.containsKey(splitPolicyName))
+        if (splitPolicyName == null) {
+            throw new IllegalArgumentException("splitPolicy.name == null!");
+        }
+        if (SPLIT_POLICIES.containsKey(splitPolicyName)) {
             throw new IllegalArgumentException("split polciy (" + splitPolicyName + ") already registered!");
+        }
 
         SPLIT_POLICIES.put(splitPolicyName, splitPolicy);
     }
 
     public static SplitPolicy getSplitPolicy(final SplitPolicyName splitPolicyName) {
-        if (splitPolicyName == null) throw new IllegalArgumentException("splitPolicyName == null!");
+        if (splitPolicyName == null) {
+            throw new IllegalArgumentException("splitPolicyName == null!");
+        }
 
         return SPLIT_POLICIES.get(splitPolicyName);
     }

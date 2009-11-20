@@ -39,8 +39,10 @@ public abstract class AbstractIoConnectorFactory<T extends IoConnector> implemen
      * @param port The 'network' port the communication connector needs to connect to.
      */
     protected AbstractIoConnectorFactory(int port) {
-        if (port <= 0)
-            throw new IllegalArgumentException("The 'network' port the communication connector needs to connect to can't be equal to or lower to zero!");
+        if (port <= 0) {
+            throw new IllegalArgumentException(
+                    "The 'network' port the communication connector needs to connect to can't be equal to or lower to zero!");
+        }
         this.port = port;
     }
 
@@ -52,23 +54,24 @@ public abstract class AbstractIoConnectorFactory<T extends IoConnector> implemen
     protected abstract T instanciateIoConnector();
 
     /**
-     * Create and prepare the 'network' communication connector for use. Call {@link #instanciateIoConnector} to create the
-     * 'network' communication connector, hardwire it with an ObjectSerializationCodecFactory and install the handler.
+     * Create and prepare the 'network' communication connector for use. Call {@link #instanciateIoConnector} to create
+     * the 'network' communication connector, hardwire it with an ObjectSerializationCodecFactory and install the
+     * handler.
      *
-     * @param handler The handler that needs to be called when messages are received on the 'network' communication connector.
+     * @param handler The handler that needs to be called when messages are received on the 'network' communication
+     * connector.
      * @return The prepared 'network' communication connector.
      * @throws IOException When the 'network' communication connector could not be created/prepared.
      */
     public final T getIoConnector(IoHandler handler) throws IOException {
-        if (handler == null)
-            throw new IllegalArgumentException("The handler that needs to be called when messages are received on the 'network' communication connector can't be null!");
+        if (handler == null) {
+            throw new IllegalArgumentException(
+                    "The handler that needs to be called when messages are received on the 'network' communication connector can't be null!");
+        }
 
         final T connector = instanciateIoConnector();
 
-        connector.getFilterChain().addLast(
-                "codec",
-                new ProtocolCodecFilter(
-                        new ObjectSerializationCodecFactory()));
+        connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
 
         connector.setHandler(handler);
 

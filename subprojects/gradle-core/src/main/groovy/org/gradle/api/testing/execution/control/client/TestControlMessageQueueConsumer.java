@@ -27,7 +27,8 @@ import java.util.concurrent.TimeUnit;
 public class TestControlMessageQueueConsumer extends AbstractBlockingQueueItemConsumer<TestControlMessage> {
     private final TestControlMessageDispatcher dispatcher;
 
-    public TestControlMessageQueueConsumer(BlockingQueue<TestControlMessage> toConsumeQueue, long pollTimeout, TimeUnit pollTimeoutTimeUnit, TestControlMessageDispatcher dispatcher) {
+    public TestControlMessageQueueConsumer(BlockingQueue<TestControlMessage> toConsumeQueue, long pollTimeout,
+                                           TimeUnit pollTimeoutTimeUnit, TestControlMessageDispatcher dispatcher) {
         super(toConsumeQueue, pollTimeout, pollTimeoutTimeUnit);
         this.dispatcher = dispatcher;
     }
@@ -35,8 +36,7 @@ public class TestControlMessageQueueConsumer extends AbstractBlockingQueueItemCo
     protected boolean consume(TestControlMessage queueItem) {
         try {
             return dispatcher.dispatch(queueItem);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             t.printStackTrace();
             return false;
         }

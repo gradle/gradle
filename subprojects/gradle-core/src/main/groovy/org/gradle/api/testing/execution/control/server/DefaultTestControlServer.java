@@ -34,8 +34,12 @@ public class DefaultTestControlServer implements TestControlServer {
     private int port;
 
     public DefaultTestControlServer(IoAcceptorFactory ioAcceptorFactory, PipelineDispatcher pipelineDispatcher) {
-        if (ioAcceptorFactory == null) throw new IllegalArgumentException("socketAcceptorProvider is null!");
-        if (pipelineDispatcher == null) throw new IllegalArgumentException("pipeline is null!");
+        if (ioAcceptorFactory == null) {
+            throw new IllegalArgumentException("socketAcceptorProvider is null!");
+        }
+        if (pipelineDispatcher == null) {
+            throw new IllegalArgumentException("pipeline is null!");
+        }
 
         this.ioAcceptorFactory = ioAcceptorFactory;
         this.testServerIoHandler = new TestServerIoHandler(pipelineDispatcher);
@@ -45,8 +49,7 @@ public class DefaultTestControlServer implements TestControlServer {
         try {
             ioAcceptor = ioAcceptorFactory.getIoAcceptor(testServerIoHandler);
             port = ioAcceptorFactory.getLocalPort(ioAcceptor);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new GradleException("failed to start test control server", e);
         }
         return port;
@@ -59,6 +62,4 @@ public class DefaultTestControlServer implements TestControlServer {
     public int getPort() {
         return port;
     }
-
-
 }

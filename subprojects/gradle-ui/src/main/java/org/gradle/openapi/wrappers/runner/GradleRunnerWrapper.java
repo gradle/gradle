@@ -22,8 +22,7 @@ import org.gradle.openapi.external.runner.GradleRunnerVersion1;
 import java.io.File;
 
 /**
- * Wrapper to shield version changes in GradleRunner from an external user of
- * gradle open API.
+ * Wrapper to shield version changes in GradleRunner from an external user of gradle open API.
  *
  * @author mhunsicker
  */
@@ -43,13 +42,15 @@ public class GradleRunnerWrapper implements GradleRunnerVersion1 {
     }
 
     public void executeCommand(String commandLine) {
-        gradleRunner.executeCommand(commandLine, interactionWrapper.getLogLevel(), interactionWrapper.getStackTraceLevel(), interactionWrapper);
+        gradleRunner.executeCommand(commandLine, interactionWrapper.getLogLevel(),
+                interactionWrapper.getStackTraceLevel(), interactionWrapper);
     }
 
     /*
        Call this to stop the gradle command. This is killing the process, not
        gracefully exiting.
     */
+
     public void killProcess() {
         gradleRunner.killProcess();
     }

@@ -35,12 +35,18 @@ abstract public class CompositeSpec<T> implements Spec<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CompositeSpec)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof CompositeSpec)) {
+            return false;
+        }
 
         CompositeSpec that = (CompositeSpec) o;
 
-        if (specs != null ? !specs.equals(that.specs) : that.specs != null) return false;
+        if (specs != null ? !specs.equals(that.specs) : that.specs != null) {
+            return false;
+        }
 
         return true;
     }

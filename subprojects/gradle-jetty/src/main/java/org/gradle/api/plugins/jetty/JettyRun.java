@@ -66,8 +66,7 @@ public class JettyRun extends AbstractJettyRunTask {
     private File jettyEnvXml;
 
     /**
-     * The location of the web.xml file. If not
-     * set then it is assumed it is in ${basedir}/src/main/webapp/WEB-INF
+     * The location of the web.xml file. If not set then it is assumed it is in ${basedir}/src/main/webapp/WEB-INF
      */
     private File webXml;
 
@@ -81,11 +80,9 @@ public class JettyRun extends AbstractJettyRunTask {
      */
     private File[] scanTargets;
 
-
     /**
-     * List of directories with ant-style &lt;include&gt; and &lt;exclude&gt; patterns
-     * for extra targets to periodically scan for changes. Can be used instead of,
-     * or in conjunction with &lt;scanTargets&gt;.Optional.
+     * List of directories with ant-style &lt;include&gt; and &lt;exclude&gt; patterns for extra targets to periodically
+     * scan for changes. Can be used instead of, or in conjunction with &lt;scanTargets&gt;.Optional.
      */
     private ScanTargetPattern[] scanTargetPatterns;
 
@@ -109,15 +106,14 @@ public class JettyRun extends AbstractJettyRunTask {
     public void validateConfiguration() {
         // check the location of the static content/jsps etc
         try {
-            if ((getWebAppSourceDirectory() == null) || !getWebAppSourceDirectory().exists())
+            if ((getWebAppSourceDirectory() == null) || !getWebAppSourceDirectory().exists()) {
                 throw new InvalidUserDataException("Webapp source directory "
                         + (getWebAppSourceDirectory() == null ? "null" : getWebAppSourceDirectory().getCanonicalPath())
                         + " does not exist");
-            else
-                logger.info("Webapp source directory = "
-                        + getWebAppSourceDirectory().getCanonicalPath());
-        }
-        catch (IOException e) {
+            } else {
+                logger.info("Webapp source directory = " + getWebAppSourceDirectory().getCanonicalPath());
+            }
+        } catch (IOException e) {
             throw new InvalidUserDataException("Webapp source directory does not exist", e);
         }
 
@@ -133,18 +129,18 @@ public class JettyRun extends AbstractJettyRunTask {
             setWebXml(new File(new File(getWebAppSourceDirectory(), "WEB-INF"), "web.xml"));
         }
         logger.info("web.xml file = " + getWebXml());
-        
+
         //check if a jetty-env.xml location has been provided, if so, it must exist
         if (getJettyEnvXml() != null) {
             setJettyEnvXmlFile(jettyEnvXml);
 
             try {
-                if (!getJettyEnvXmlFile().exists())
+                if (!getJettyEnvXmlFile().exists()) {
                     throw new InvalidUserDataException("jetty-env.xml file does not exist at location " + jettyEnvXml);
-                else
+                } else {
                     logger.info(" jetty-env.xml = " + getJettyEnvXmlFile().getCanonicalPath());
-            }
-            catch (IOException e) {
+                }
+            } catch (IOException e) {
                 throw new InvalidUserDataException("jetty-env.xml does not exist");
             }
         }
@@ -175,14 +171,18 @@ public class JettyRun extends AbstractJettyRunTask {
     public void configureWebApplication() throws Exception {
         super.configureWebApplication();
         setClassPathFiles(setUpClassPath());
-        if (getWebAppConfig().getWebXmlFile() == null)
+        if (getWebAppConfig().getWebXmlFile() == null) {
             getWebAppConfig().setWebXmlFile(getWebXml());
-        if (getWebAppConfig().getJettyEnvXmlFile() == null)
+        }
+        if (getWebAppConfig().getJettyEnvXmlFile() == null) {
             getWebAppConfig().setJettyEnvXmlFile(getJettyEnvXmlFile());
-        if (getWebAppConfig().getClassPathFiles() == null)
+        }
+        if (getWebAppConfig().getClassPathFiles() == null) {
             getWebAppConfig().setClassPathFiles(getClassPathFiles());
-        if (getWebAppConfig().getWar() == null)
+        }
+        if (getWebAppConfig().getWar() == null) {
             getWebAppConfig().setWar(getWebAppSourceDirectory().getCanonicalPath());
+        }
         logger.info("Webapp directory = " + getWebAppSourceDirectory().getCanonicalPath());
 
         getWebAppConfig().configure();
@@ -192,11 +192,13 @@ public class JettyRun extends AbstractJettyRunTask {
         // start the scanner thread (if necessary) on the main webapp
         List<File> scanList = new ArrayList<File>();
         scanList.add(getWebXml());
-        if (getJettyEnvXmlFile() != null)
+        if (getJettyEnvXmlFile() != null) {
             scanList.add(getJettyEnvXmlFile());
+        }
         File jettyWebXmlFile = findJettyWebXmlFile(new File(getWebAppSourceDirectory(), "WEB-INF"));
-        if (jettyWebXmlFile != null)
+        if (jettyWebXmlFile != null) {
             scanList.add(jettyWebXmlFile);
+        }
         scanList.addAll(getExtraScanTargets());
         scanList.add(getProject().getBuildFile());
         scanList.addAll(getClassPathFiles());
@@ -207,13 +209,10 @@ public class JettyRun extends AbstractJettyRunTask {
                 try {
                     boolean reconfigure = changes.contains(getProject().getBuildFile().getCanonicalPath());
                     restartWebApp(reconfigure);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     logger.error("Error reconfiguring/restarting webapp after change in watched files", e);
                 }
             }
-
-
         });
         setScannerListeners(listeners);
     }
@@ -232,8 +231,9 @@ public class JettyRun extends AbstractJettyRunTask {
             logger.info("Reconfiguring scanner ...");
             List<File> scanList = new ArrayList<File>();
             scanList.add(getWebXml());
-            if (getJettyEnvXmlFile() != null)
+            if (getJettyEnvXmlFile() != null) {
                 scanList.add(getJettyEnvXmlFile());
+            }
             scanList.addAll(getExtraScanTargets());
             scanList.add(getProject().getBuildFile());
             scanList.addAll(getClassPathFiles());
@@ -306,14 +306,12 @@ public class JettyRun extends AbstractJettyRunTask {
                     }
                 }
                 getWebAppConfig().setBaseResource(rc);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
         return dependencies;
     }
-
 
     private List<File> setUpClassPath() {
         List<File> classPathFiles = new ArrayList<File>();
@@ -334,18 +332,19 @@ public class JettyRun extends AbstractJettyRunTask {
         Server server = (Server) plugin.getProxiedObject();
 
         HandlerCollection contexts = (HandlerCollection) server.getChildHandlerByClass(ContextHandlerCollection.class);
-        if (contexts == null)
+        if (contexts == null) {
             contexts = (HandlerCollection) server.getChildHandlerByClass(HandlerCollection.class);
+        }
 
         for (int i = 0; (handlers != null) && (i < handlers.length); i++) {
             contexts.addHandler(handlers[i]);
         }
     }
 
-
     public void applyJettyXml() throws Exception {
-        if (getJettyConfig() == null)
+        if (getJettyConfig() == null) {
             return;
+        }
 
         logger.info("Configuring Jetty from xml configuration file = " + getJettyConfig());
         XmlConfiguration xmlConfiguration = new XmlConfiguration(getJettyConfig().toURI().toURL());
@@ -359,7 +358,8 @@ public class JettyRun extends AbstractJettyRunTask {
         return new Jetty6PluginServer();
     }
 
-    @InputFile @Optional
+    @InputFile
+    @Optional
     public File getJettyEnvXml() {
         return jettyEnvXml;
     }
@@ -369,6 +369,7 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
 //    @InputFile @Optional
+
     public File getWebXml() {
         return webXml;
     }
@@ -402,7 +403,8 @@ public class JettyRun extends AbstractJettyRunTask {
         this.extraScanTargets = extraScanTargets;
     }
 
-    @InputFile @Optional
+    @InputFile
+    @Optional
     public File getJettyEnvXmlFile() {
         return jettyEnvXmlFile;
     }

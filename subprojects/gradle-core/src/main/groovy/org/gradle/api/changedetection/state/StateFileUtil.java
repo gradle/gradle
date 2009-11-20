@@ -46,7 +46,8 @@ class StateFileUtil {
 
     private final IoFactory ioFactory;
 
-    StateFileUtil(File projectRootDirectory, File directoryToProcess, File dotGradleStatesDirectory, DigesterFactory shaDigesterFactory, IoFactory ioFactory) {
+    StateFileUtil(File projectRootDirectory, File directoryToProcess, File dotGradleStatesDirectory,
+                  DigesterFactory shaDigesterFactory, IoFactory ioFactory) {
         this.projectRootDirectory = projectRootDirectory;
         this.absoluteProjectRootPath = projectRootDirectory.getAbsolutePath();
         this.ioFactory = ioFactory;
@@ -62,19 +63,19 @@ class StateFileUtil {
         oldDirectoryStateDir = new File(directoryStateDir, "old");
         newDirectoryStateDir = new File(directoryStateDir, "new");
 
-        if ( newDirectoryStateDir.exists() ) {
+        if (newDirectoryStateDir.exists()) {
             try {
                 FileUtils.deleteDirectory(newDirectoryStateDir);
-            }
-            catch ( IOException e ) {
-                throw new GradleException("failed to clear new state directory " + newDirectoryStateDir.getAbsolutePath(), e);
+            } catch (IOException e) {
+                throw new GradleException(
+                        "failed to clear new state directory " + newDirectoryStateDir.getAbsolutePath(), e);
             }
         }
 
-        if ( !GFileUtils.createDirectoriesWhenNotExistent(oldDirectoryStateDir, newDirectoryStateDir) ) {
-            throw new GradleException("failed to create one or more of the state directories [" +
-                    oldDirectoryStateDir.getAbsolutePath() + ", " +
-                    newDirectoryStateDir.getAbsolutePath() + "]" );
+        if (!GFileUtils.createDirectoriesWhenNotExistent(oldDirectoryStateDir, newDirectoryStateDir)) {
+            throw new GradleException(
+                    "failed to create one or more of the state directories [" + oldDirectoryStateDir.getAbsolutePath()
+                            + ", " + newDirectoryStateDir.getAbsolutePath() + "]");
         }
     }
 

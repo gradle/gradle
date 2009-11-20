@@ -68,8 +68,7 @@ public class ForkControl {
         return forkInfo;
     }
 
-    public ForkInfo createForkInfo(Pipeline pipeline)
-    {
+    public ForkInfo createForkInfo(Pipeline pipeline) {
         forkControlLock.lock();
         try {
             final int pipelineId = pipeline.getId();
@@ -77,21 +76,19 @@ public class ForkControl {
             final ForkInfo forkInfo = createForkInfo(forkId, pipeline);
 
             Map<Integer, ForkInfo> pipelineForks = forkHandles.get(pipelineId);
-            if ( pipelineForks == null ) {
+            if (pipelineForks == null) {
                 pipelineForks = new HashMap<Integer, ForkInfo>();
             }
             pipelineForks.put(forkId, forkInfo);
             forkHandles.put(pipelineId, pipelineForks);
 
             return forkInfo;
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
 
-    public void requestForkStart(ForkInfo forkInfo)
-    {
+    public void requestForkStart(ForkInfo forkInfo) {
         requestForkStart(forkInfo.getPipeline().getId(), forkInfo.getId());
     }
 
@@ -104,8 +101,7 @@ public class ForkControl {
             } else {
                 pendingForkStartRequests.add(forkInfo);
             }
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
@@ -127,8 +123,7 @@ public class ForkControl {
             forkPolicyInstance.startFork(forkInfo);
 
             startedForks++;
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
@@ -137,8 +132,7 @@ public class ForkControl {
         forkControlLock.lock();
         try {
             return startedForks < maximumNumberOfForks;
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
@@ -150,8 +144,7 @@ public class ForkControl {
             while (startAllowed() && pending.hasNext()) {
                 startFork(pending.next());
             }
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
@@ -160,8 +153,7 @@ public class ForkControl {
         forkControlLock.lock();
         try {
             forkHandles.get(pipelineId).get(forkId).started();
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
@@ -176,8 +168,7 @@ public class ForkControl {
             if (!forkHandles.get(pipelineId).get(forkId).isRestarting()) {
                 startPending();
             }
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
@@ -190,8 +181,7 @@ public class ForkControl {
             forkHandles.get(pipelineId).get(forkId).aborted();
 
             startPending();
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
@@ -204,8 +194,7 @@ public class ForkControl {
             forkHandles.get(pipelineId).get(forkId).failed(cause);
 
             startPending();
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
@@ -214,8 +203,7 @@ public class ForkControl {
         forkControlLock.lock();
         try {
             return Collections.unmodifiableList(new ArrayList<ForkInfo>(forkHandles.get(pipelineId).values()));
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }
@@ -224,8 +212,7 @@ public class ForkControl {
         forkControlLock.lock();
         try {
             forkHandles.get(pipelineId).get(forkId).setRestarting(restarting);
-        }
-        finally {
+        } finally {
             forkControlLock.unlock();
         }
     }

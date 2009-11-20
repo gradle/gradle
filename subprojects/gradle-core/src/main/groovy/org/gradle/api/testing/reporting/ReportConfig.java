@@ -34,7 +34,9 @@ public class ReportConfig {
     }
 
     public void setName(String name) {
-        if ( StringUtils.isEmpty(name) ) throw new IllegalArgumentException(("name is empty!"));
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException(("name is empty!"));
+        }
 
         this.name = name;
     }
@@ -44,8 +46,10 @@ public class ReportConfig {
     }
 
     public void setPolicyConfig(ReportPolicyConfig policyConfig) {
-        if ( policyConfig == null ) throw new IllegalArgumentException("policyConfig == null!");
-        
+        if (policyConfig == null) {
+            throw new IllegalArgumentException("policyConfig == null!");
+        }
+
         this.policyConfig = policyConfig;
     }
 }

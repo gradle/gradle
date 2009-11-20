@@ -24,26 +24,34 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Tom Eyckmans
  */
 public class ForkPolicyRegister {
-    private static final Map<ForkPolicyName, ForkPolicy> SPLIT_POLICIES = new ConcurrentHashMap<ForkPolicyName, ForkPolicy>();
+    private static final Map<ForkPolicyName, ForkPolicy> SPLIT_POLICIES
+            = new ConcurrentHashMap<ForkPolicyName, ForkPolicy>();
 
     static {
         registerForkPolicy(new LocalSimpleForkPolicy());
     }
 
     public static void registerForkPolicy(final ForkPolicy forkPolicy) {
-        if (forkPolicy == null) throw new IllegalArgumentException("forkPolicy == null!");
+        if (forkPolicy == null) {
+            throw new IllegalArgumentException("forkPolicy == null!");
+        }
 
         final ForkPolicyName forkPolicyName = forkPolicy.getName();
 
-        if (forkPolicyName == null) throw new IllegalArgumentException("forkPolicy.name == null!");
-        if (SPLIT_POLICIES.containsKey(forkPolicyName))
+        if (forkPolicyName == null) {
+            throw new IllegalArgumentException("forkPolicy.name == null!");
+        }
+        if (SPLIT_POLICIES.containsKey(forkPolicyName)) {
             throw new IllegalArgumentException("split polciy (" + forkPolicyName + ") already registered!");
+        }
 
         SPLIT_POLICIES.put(forkPolicyName, forkPolicy);
     }
 
     public static ForkPolicy getForkPolicy(final ForkPolicyName forkPolicyName) {
-        if (forkPolicyName == null) throw new IllegalArgumentException("forkPolicyName == null!");
+        if (forkPolicyName == null) {
+            throw new IllegalArgumentException("forkPolicyName == null!");
+        }
 
         return SPLIT_POLICIES.get(forkPolicyName);
     }

@@ -21,8 +21,7 @@ import org.gradle.api.logging.Logging;
 import javax.swing.SwingUtilities;
 
 /**
- * This is the same as Application, but this version blocks the calling thread
- * until the Application shuts down.
+ * This is the same as Application, but this version blocks the calling thread until the Application shuts down.
  *
  * @author mhunsicker
  */
@@ -30,13 +29,13 @@ public class BlockingApplication {
     private static final Logger LOGGER = Logging.getLogger(BlockingApplication.class);
 
     /**
-       This launches this application and blocks until it closes. Useful for
-       being called from the gradle command line. We launch this in the Event
-       Dispatch Thread and blocck the calling thread.
-    */
+     * This launches this application and blocks until it closes. Useful for being called from the gradle command line.
+     * We launch this in the Event Dispatch Thread and blocck the calling thread.
+     */
     public static void launchAndBlock() {
-        if (SwingUtilities.isEventDispatchThread())
+        if (SwingUtilities.isEventDispatchThread()) {
             throw new RuntimeException("Cannot launch and block from the Event Dispatch Thread!");
+        }
 
         //create a lock to wait on
         final WaitingLock waitingLock = new WaitingLock();
@@ -47,25 +46,24 @@ public class BlockingApplication {
                 public void run() {
                     new Application(new Application.LifecycleListener() {
                         /**
-                        Notification that the application has started successfully. This is
-                        fired within the same thread that instantiates us.
-                        */
+                         Notification that the application has started successfully. This is
+                         fired within the same thread that instantiates us.
+                         */
                         public void hasStarted() {  //only lock if we start
                             waitingLock.lock();
                         }
 
                         /**
-                           Notification that the application has shut down. This is fired from the
-                           Event Dispatch Thread.
-                        */
+                         Notification that the application has shut down. This is fired from the
+                         Event Dispatch Thread.
+                         */
                         public void hasShutDown() {  //when we shutdown we'll unlock
                             waitingLock.unlock();
                         }
                     });
                 }
             });
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             LOGGER.error("Running blocking application.", t);
             return;
         }
@@ -75,8 +73,8 @@ public class BlockingApplication {
     }
 
     /**
-       Lock so the calling thread can wait on the Application to exit.
-    */
+     * Lock so the calling thread can wait on the Application to exit.
+     */
     private static class WaitingLock {
         private boolean isLocked = false;
 
@@ -99,11 +97,9 @@ public class BlockingApplication {
             while (isLocked) {
                 try {
                     wait();
-                }
-                catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                 }
             }
         }
     }
-
 }

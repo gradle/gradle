@@ -51,20 +51,22 @@ class StateFileComparator {
             oldDirectoriesLevelStateReader = stateFileUtil.getStateFileReader(oldStateFile);
             newDirectoriesLevelStateReader = stateFileUtil.getStateFileReader(newStateFile);
 
-            while ( readNextNewItem || readNextOldItem ) { // in general there is higher likelyhood in projects for more new items then old ones
+            while (readNextNewItem
+                    || readNextOldItem) { // in general there is higher likelyhood in projects for more new items then old ones
 
-                if ( readNextOldItem )
+                if (readNextOldItem) {
                     oldItem = oldDirectoriesLevelStateReader.readStateFileItem();
-                if ( readNextNewItem )
+                }
+                if (readNextNewItem) {
                     newItem = newDirectoriesLevelStateReader.readStateFileItem();
+                }
 
-                if ( oldItem == null ) { // no more old items
-                    if ( newItem == null ) { // no more new items
+                if (oldItem == null) { // no more old items
+                    if (newItem == null) { // no more new items
                         // current directory state file comparison is done
                         readNextOldItem = false;
                         readNextNewItem = false;
-                    }
-                    else { // there are new items
+                    } else { // there are new items
                         stateFileChanged = true;
 
                         // item was created
@@ -73,9 +75,8 @@ class StateFileComparator {
                         readNextOldItem = false;
                         readNextNewItem = true;
                     }
-                }
-                else { // there are old items
-                    if ( newItem == null ) { // no more new items
+                } else { // there are old items
+                    if (newItem == null) { // no more new items
                         stateFileChanged = true;
 
                         // item was deleted
@@ -83,17 +84,16 @@ class StateFileComparator {
 
                         readNextOldItem = true;
                         readNextNewItem = false;
-                    }
-                    else { // there is a new item
+                    } else { // there is a new item
                         final String oldItemKey = oldItem.getKey();
                         final String newItemKey = newItem.getKey();
                         final int keyComparisonResult = oldItemKey.compareTo(newItemKey);
 
-                        if ( keyComparisonResult == 0 ) { // same item?
+                        if (keyComparisonResult == 0) { // same item?
                             final String oldItemDigest = oldItem.getDigest();
                             final String newItemDigest = newItem.getDigest();
 
-                            if ( !oldItemDigest.equals(newItemDigest) ) { // item changed?
+                            if (!oldItemDigest.equals(newItemDigest)) { // item changed?
                                 stateFileChanged = true;
 
                                 // item has changed
@@ -103,8 +103,7 @@ class StateFileComparator {
 
                             readNextOldItem = true;
                             readNextNewItem = true;
-                        }
-                        else if ( keyComparisonResult < 0 ) { // old key is before the new key (alphabetically)
+                        } else if (keyComparisonResult < 0) { // old key is before the new key (alphabetically)
                             stateFileChanged = true;
 
                             // old item was deleted
@@ -112,8 +111,7 @@ class StateFileComparator {
 
                             readNextOldItem = true;
                             readNextNewItem = false;
-                        }
-                        else if ( keyComparisonResult > 0 ) { // old key is after the new key (alphabetically)
+                        } else if (keyComparisonResult > 0) { // old key is after the new key (alphabetically)
                             stateFileChanged = true;
 
                             // new item has been created
@@ -125,16 +123,15 @@ class StateFileComparator {
                     }
                 }
             }
-        }
-        finally {
-            if ( oldDirectoriesLevelStateReader != null )
+        } finally {
+            if (oldDirectoriesLevelStateReader != null) {
                 oldDirectoriesLevelStateReader.lastStateFileItemRead();
-            if ( newDirectoriesLevelStateReader != null )
+            }
+            if (newDirectoriesLevelStateReader != null) {
                 newDirectoriesLevelStateReader.lastStateFileItemRead();
+            }
         }
 
         return stateFileChanged;
     }
-
-
 }

@@ -41,7 +41,10 @@ public class PipelineSplitWorker extends AbstractBlockingQueueItemConsumer<TestC
     private final List<SplitPolicyMatcher> splitPolicyMatchers;
     private Map<SplitPolicyMatcher, Pipeline> pipelineMatchers;
 
-    public PipelineSplitWorker(TestPipelineSplitOrchestrator splitOrchestrator, BlockingQueue<TestClassRunInfo> toConsumeQueue, long pollTimeout, TimeUnit pollTimeoutTimeUnit, List<SplitPolicyMatcher> splitPolicyMatchers, Map<SplitPolicyMatcher, Pipeline> pipelineMatchers) {
+    public PipelineSplitWorker(TestPipelineSplitOrchestrator splitOrchestrator,
+                               BlockingQueue<TestClassRunInfo> toConsumeQueue, long pollTimeout,
+                               TimeUnit pollTimeoutTimeUnit, List<SplitPolicyMatcher> splitPolicyMatchers,
+                               Map<SplitPolicyMatcher, Pipeline> pipelineMatchers) {
         super(toConsumeQueue, pollTimeout, pollTimeoutTimeUnit);
         this.splitOrchestrator = splitOrchestrator;
         this.splitPolicyMatchers = splitPolicyMatchers;

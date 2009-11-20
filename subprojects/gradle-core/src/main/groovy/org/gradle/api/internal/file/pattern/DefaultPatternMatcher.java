@@ -37,8 +37,8 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
 
     private void compile(boolean caseSensitive, String[] parts) {
         if (parts.length > 0) {
-            for (int i=0; i<parts.length; i++) {
-                steps.add(PatternStepFactory.getStep(parts[i], i==parts.length-1, caseSensitive));
+            for (int i = 0; i < parts.length; i++) {
+                steps.add(PatternStepFactory.getStep(parts[i], i == parts.length - 1, caseSensitive));
             }
         }
     }
@@ -64,15 +64,17 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
             if (patternStep.isGreedy()) {
                 seenGreedy = true;
                 advancePatternStepToNextNonGreedy(patternIt);
-                if (!patternIt.hasNext())
-                    return true;    // pattern ends in greedy
+                if (!patternIt.hasNext()) {
+                    return true;
+                }    // pattern ends in greedy
                 patternStep = patternIt.next();
 
                 // advance test until match
-                while ( ! (patternStep.matches(nextToTest, !testIt.hasNext()&& pathToTest.isFile()) &&
-                ((patternIt.hasNext() == testIt.hasNext()) || nextPatternIsGreedy(patternIt) )) ) {
+                while (!(patternStep.matches(nextToTest, !testIt.hasNext() && pathToTest.isFile()) && (
+                        (patternIt.hasNext() == testIt.hasNext()) || nextPatternIsGreedy(patternIt)))) {
                     if (!testIt.hasNext()) {
-                        return partialMatchDirs && !pathToTest.isFile(); //isTerminatingMatch(pathToTest, patternIt);  // didn't match, but no more segments to test
+                        return partialMatchDirs && !pathToTest
+                                .isFile(); //isTerminatingMatch(pathToTest, patternIt);  // didn't match, but no more segments to test
                     }
                     nextToTest = testIt.next();
                 }
@@ -99,8 +101,6 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
 
         return isTerminatingMatch(pathToTest, patternIt);
     }
-
-
 
     private boolean nextPatternIsGreedy(ListIterator<PatternStep> patternIt) {
         boolean result = false;
@@ -131,12 +131,14 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
         PatternStep next = null;
         while (patternIt.hasNext()) {
             next = patternIt.next();
-            if (!next.isGreedy())
+            if (!next.isGreedy()) {
                 break;
+            }
         }
         // back up one
-        if (next!=null && !next.isGreedy())
+        if (next != null && !next.isGreedy()) {
             patternIt.previous();
+        }
     }
 
     private void rewindPatternStepToPreviousGreedy(ListIterator<PatternStep> patternIt) {

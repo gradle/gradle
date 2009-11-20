@@ -39,7 +39,9 @@ public abstract class AbstractIoAcceptorFactory<T extends IoAcceptor> implements
      * @param port The 'network' port the communication connector needs to listen on.
      */
     protected AbstractIoAcceptorFactory(int port) {
-        if (port < 0) throw new IllegalArgumentException("port is less then zero!");
+        if (port < 0) {
+            throw new IllegalArgumentException("port is less then zero!");
+        }
 
         this.port = port;
     }
@@ -60,23 +62,23 @@ public abstract class AbstractIoAcceptorFactory<T extends IoAcceptor> implements
     protected abstract void bind(T acceptor) throws IOException;
 
     /**
-     * Create and prepare the 'network' communication acceptor for use. Call {@link #instanciateIoAcceptor} to create the 'network'
-     * communication acceptor, hardwire it with an ObjectSerializationCodecFactory, install the handler and call
-     * {@link #bind} to link the acceptor to the selected port.
+     * Create and prepare the 'network' communication acceptor for use. Call {@link #instanciateIoAcceptor} to create
+     * the 'network' communication acceptor, hardwire it with an ObjectSerializationCodecFactory, install the handler
+     * and call {@link #bind} to link the acceptor to the selected port.
      *
-     * @param handler The handler that needs to be called when messages are received on the 'network' communication acceptor.
+     * @param handler The handler that needs to be called when messages are received on the 'network' communication
+     * acceptor.
      * @return The prepared 'network' communication acceptor.
      * @throws IOException When the 'network' communication acceptor could not be created/prepared.
      */
     public IoAcceptor getIoAcceptor(IoHandler handler) throws IOException {
-        if (handler == null) throw new IllegalArgumentException("handler is null!");
+        if (handler == null) {
+            throw new IllegalArgumentException("handler is null!");
+        }
 
         final T acceptor = instanciateIoAcceptor();
 
-        acceptor.getFilterChain().addLast(
-                "codec",
-                new ProtocolCodecFilter(
-                        new ObjectSerializationCodecFactory()));
+        acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new ObjectSerializationCodecFactory()));
 
         acceptor.setHandler(handler);
 

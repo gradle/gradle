@@ -46,10 +46,8 @@ public class ConsoleReportPolicyInstance implements ReportPolicyInstance {
     private Map<TestMethodProcessResultState, TestMethodProcessResultState> methodProcessResultStateMapping;
     private ConsoleReportPolicyConfig config;
 
-    public ConsoleReportPolicyInstance(TestFrameworkInstance testFrameworkInstance)
-    {
+    public ConsoleReportPolicyInstance(TestFrameworkInstance testFrameworkInstance) {
         methodProcessResultStateMapping = testFrameworkInstance.getTestFramework().getMethodProcessResultStateMapping();
-
     }
 
     public void initialize(Report report) {
@@ -61,19 +59,20 @@ public class ConsoleReportPolicyInstance implements ReportPolicyInstance {
 
         consumers = new ArrayList<ReportInfoQueueItemConsumer>();
 
-        for (int i=0;i<config.getAmountOfReportingThreads();i++) {
-            consumers.add(new ReportInfoQueueItemConsumer(report.getReportInfoQueue(), 100L, TimeUnit.MILLISECONDS, this));
+        for (int i = 0; i < config.getAmountOfReportingThreads(); i++) {
+            consumers.add(new ReportInfoQueueItemConsumer(report.getReportInfoQueue(), 100L, TimeUnit.MILLISECONDS,
+                    this));
         }
     }
 
     public void start() {
-        for ( ReportInfoQueueItemConsumer reportConsumer : consumers ) {
+        for (ReportInfoQueueItemConsumer reportConsumer : consumers) {
             reportThreadPool.submit(reportConsumer);
         }
     }
 
     public void stop() {
-        for ( ReportInfoQueueItemConsumer reportConsumer : consumers ) {
+        for (ReportInfoQueueItemConsumer reportConsumer : consumers) {
             reportConsumer.stopConsuming();
         }
 
@@ -85,36 +84,39 @@ public class ConsoleReportPolicyInstance implements ReportPolicyInstance {
 
         private final ConsoleReportPolicyInstance reportPolicyInstance;
 
-        public ReportInfoQueueItemConsumer(BlockingQueue<ReportInfo> toConsumeQueue, long pollTimeout, TimeUnit pollTimeoutTimeUnit, ConsoleReportPolicyInstance reportPolicyInstance) {
+        public ReportInfoQueueItemConsumer(BlockingQueue<ReportInfo> toConsumeQueue, long pollTimeout,
+                                           TimeUnit pollTimeoutTimeUnit,
+                                           ConsoleReportPolicyInstance reportPolicyInstance) {
             super(toConsumeQueue, pollTimeout, pollTimeoutTimeUnit);
             this.reportPolicyInstance = reportPolicyInstance;
         }
 
         protected boolean consume(ReportInfo queueItem) {
             reportPolicyInstance.process(queueItem);
-            
+
             return false;
         }
     }
 
     public void process(ReportInfo reportInfo) {
         if (TestClassProcessResultReportInfo.class == reportInfo.getClass()) {
-            final TestClassProcessResultReportInfo testClassInfo = (TestClassProcessResultReportInfo)reportInfo;
+            final TestClassProcessResultReportInfo testClassInfo = (TestClassProcessResultReportInfo) reportInfo;
 
             final Pipeline pipeline = testClassInfo.getPipeline();
             final TestClassProcessResult classResult = testClassInfo.getTestClassProcessResult();
             final List<TestMethodProcessResult> methodResults = classResult.getMethodResults();
 
-            final Map<TestMethodProcessResultState, Integer> stateCounts = new HashMap<TestMethodProcessResultState, Integer>();
+            final Map<TestMethodProcessResultState, Integer> stateCounts
+                    = new HashMap<TestMethodProcessResultState, Integer>();
 
-            for ( final TestMethodProcessResult methodResult : methodResults ) {
-                final TestMethodProcessResultState mappedState = methodProcessResultStateMapping.get(methodResult.getState());
+            for (final TestMethodProcessResult methodResult : methodResults) {
+                final TestMethodProcessResultState mappedState = methodProcessResultStateMapping.get(
+                        methodResult.getState());
 
                 Integer stateCount = stateCounts.get(mappedState);
-                if ( stateCount == null ) {
+                if (stateCount == null) {
                     stateCount = 1;
-                }
-                else {
+                } else {
                     stateCount++;
                 }
                 stateCounts.put(mappedState, stateCount);
@@ -122,38 +124,42 @@ public class ConsoleReportPolicyInstance implements ReportPolicyInstance {
 
             final List<TestMethodProcessResultState> noneZeroStates = new ArrayList<TestMethodProcessResultState>();
 
-            for ( final TestMethodProcessResultState state : TestMethodProcessResultStates.values() ) {
+            for (final TestMethodProcessResultState state : TestMethodProcessResultStates.values()) {
                 final Integer stateCount = stateCounts.get(state);
-                if ( stateCount != null )
+                if (stateCount != null) {
                     noneZeroStates.add(state);
+                }
             }
 
             boolean show = false;
             final List<TestMethodProcessResultState> toShowStates = config.getToShowStates();
             final Iterator<TestMethodProcessResultState> toShowStatesIterator = toShowStates.iterator();
-            while ( !show && toShowStatesIterator.hasNext() ) {
+            while (!show && toShowStatesIterator.hasNext()) {
                 show = noneZeroStates.contains(toShowStatesIterator.next());
             }
 
-            if ( show ) {
-                final int failureCount = stateCounts.get(TestMethodProcessResultStates.FAILURE) == null ? 0 : stateCounts.get(TestMethodProcessResultStates.FAILURE);
-                final int errorCount = stateCounts.get(TestMethodProcessResultStates.ERROR) == null ? 0 : stateCounts.get(TestMethodProcessResultStates.ERROR);
-                final int successCount = stateCounts.get(TestMethodProcessResultStates.SUCCESS) == null ? 0 : stateCounts.get(TestMethodProcessResultStates.SUCCESS);
+            if (show) {
+                final int failureCount = stateCounts.get(TestMethodProcessResultStates.FAILURE) == null ? 0
+                        : stateCounts.get(TestMethodProcessResultStates.FAILURE);
+                final int errorCount = stateCounts.get(TestMethodProcessResultStates.ERROR) == null ? 0
+                        : stateCounts.get(TestMethodProcessResultStates.ERROR);
+                final int successCount = stateCounts.get(TestMethodProcessResultStates.SUCCESS) == null ? 0
+                        : stateCounts.get(TestMethodProcessResultStates.SUCCESS);
 
-                logger.info(
-                        "pipeline {}, fork {} : Test {} : success#{}, failure#{}, error#{}",
-                        new Object[]{
-                            pipeline.getConfig().getName(), reportInfo.getForkId(), classResult.getTestClassRunInfo().getTestClassName(),
-                            successCount, failureCount, errorCount
-                        });
+                logger.info("pipeline {}, fork {} : Test {} : success#{}, failure#{}, error#{}", new Object[]{
+                        pipeline.getConfig().getName(), reportInfo.getForkId(),
+                        classResult.getTestClassRunInfo().getTestClassName(), successCount, failureCount, errorCount
+                });
 
-                if ( failureCount > 0 || errorCount > 0 ) {
-                    for ( final TestMethodProcessResult methodResult : methodResults ) {
-                        if ( methodResult.getState() == TestMethodProcessResultStates.ERROR ||
-                            methodResult.getState() == TestMethodProcessResultStates.FAILURE ) {
-                            logger.info("pipeline {}, fork {} : Test {} :",
-                                    new Object[]{pipeline.getConfig().getName(), reportInfo.getForkId(), classResult.getTestClassRunInfo().getTestClassName() + "." + methodResult.getMethodName()
-                                    });
+                if (failureCount > 0 || errorCount > 0) {
+                    for (final TestMethodProcessResult methodResult : methodResults) {
+                        if (methodResult.getState() == TestMethodProcessResultStates.ERROR
+                                || methodResult.getState() == TestMethodProcessResultStates.FAILURE) {
+                            logger.info("pipeline {}, fork {} : Test {} :", new Object[]{
+                                    pipeline.getConfig().getName(), reportInfo.getForkId(),
+                                    classResult.getTestClassRunInfo().getTestClassName() + "." + methodResult
+                                            .getMethodName()
+                            });
                             logger.info("cause", methodResult.getThrownException());
                         }
                     }

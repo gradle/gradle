@@ -25,7 +25,9 @@ public class TestDetectionRunner implements Runnable {
     private final TestClassScanner testClassScanner;
 
     public TestDetectionRunner(final TestClassScanner testClassScanner) {
-        if (testClassScanner == null) throw new IllegalArgumentException("testClassScanner == null!");
+        if (testClassScanner == null) {
+            throw new IllegalArgumentException("testClassScanner == null!");
+        }
 
         this.testClassScanner = testClassScanner;
     }

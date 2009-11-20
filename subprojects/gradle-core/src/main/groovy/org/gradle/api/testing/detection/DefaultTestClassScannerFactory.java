@@ -32,13 +32,14 @@ public class DefaultTestClassScannerFactory implements TestClassScannerFactory {
         final Set<String> includePatterns = testTask.getIncludes();
         final Set<String> excludePatterns = testTask.getExcludes();
 
-        if ( testTask.isScanForTestClasses() ) {
+        if (testTask.isScanForTestClasses()) {
             final TestFrameworkDetector testFrameworkDetector = testTask.getTestFramework().getDetector();
 
-            return new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns, testFrameworkDetector, testClassProcessor);
-        }
-        else {
-            return new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns, null, testClassProcessor);
+            return new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns,
+                    testFrameworkDetector, testClassProcessor);
+        } else {
+            return new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns, null,
+                    testClassProcessor);
         }
     }
 }

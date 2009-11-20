@@ -19,26 +19,25 @@ import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
 
 /**
- * Interface for a filter that weeds out certain projects and tasks. Useful when
- * trying to walk the projects and tasks.
+ * Interface for a filter that weeds out certain projects and tasks. Useful when trying to walk the projects and tasks.
  *
  * @author mhunsicker
  */
 public interface ProjectAndTaskFilter {
     /**
-       Determines if the specified project should be allowed or not.
-       @param  project    the project in question
-       @return true to allow it, false not to.
-    */
+     * Determines if the specified project should be allowed or not.
+     *
+     * @param project the project in question
+     * @return true to allow it, false not to.
+     */
     public boolean doesAllowProject(ProjectView project);
 
     /**
-       Determines if the specified task should be allowed or not.
-       @param  task       the task in question
-       @return true to allow it, false not to.
-       @author mhunsicker
-    */
+     * Determines if the specified task should be allowed or not.
+     *
+     * @param task the task in question
+     * @return true to allow it, false not to.
+     * @author mhunsicker
+     */
     public boolean doesAllowTask(TaskView task);
-
-
 }

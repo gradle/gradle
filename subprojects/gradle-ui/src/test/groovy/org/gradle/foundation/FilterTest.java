@@ -29,8 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Test various aspects of filtering out tasks and projects from the
- * GradlePluginLord.
+ * Test various aspects of filtering out tasks and projects from the GradlePluginLord.
  *
  * @author mhunsicker
  */
@@ -54,26 +53,30 @@ public class FilterTest extends TestCase {
     private TaskView mySubProject2doc;
     private TaskView mySubProject2Compile;
 
-
     protected void setUp() throws Exception {
         JUnit4Mockery context = new JUnit4Mockery();
 
         Task subsubCompileTask = TestUtility.createTask(context, "compile", "compile description");
         Task subsubLibTask = TestUtility.createTask(context, "lib", "lib description");
         Task subsubDocTask = TestUtility.createTask(context, "doc", "doc description");
-        Project subsubProject = TestUtility.createMockProject(context, "mysubsubproject", "filepath3", 2, null, new Task[]{subsubCompileTask, subsubLibTask, subsubDocTask}, null, (Project[]) null);
+        Project subsubProject = TestUtility.createMockProject(context, "mysubsubproject", "filepath3", 2, null,
+                new Task[]{subsubCompileTask, subsubLibTask, subsubDocTask}, null, (Project[]) null);
 
         Task subCompileTask1 = TestUtility.createTask(context, "compile", "compile description");
         Task subLibTask1 = TestUtility.createTask(context, "lib", "lib description");
         Task subDocTask1 = TestUtility.createTask(context, "doc", "doc description");
-        Project subProject1 = TestUtility.createMockProject(context, "mysubproject1", "filepath2a", 1, new Project[]{subsubProject}, new Task[]{subCompileTask1, subLibTask1, subDocTask1}, null, (Project[]) null);
+        Project subProject1 = TestUtility.createMockProject(context, "mysubproject1", "filepath2a", 1,
+                new Project[]{subsubProject}, new Task[]{subCompileTask1, subLibTask1, subDocTask1}, null,
+                (Project[]) null);
 
         Task subCompileTask2 = TestUtility.createTask(context, "compile", "compile description");
         Task subLibTask2 = TestUtility.createTask(context, "lib", "lib description");
         Task subDocTask2 = TestUtility.createTask(context, "doc", "doc description");
-        Project subProject2 = TestUtility.createMockProject(context, "mysubproject2", "filepath2b", 1, null, new Task[]{subCompileTask2, subLibTask2, subDocTask2}, null, (Project[]) null);
+        Project subProject2 = TestUtility.createMockProject(context, "mysubproject2", "filepath2b", 1, null,
+                new Task[]{subCompileTask2, subLibTask2, subDocTask2}, null, (Project[]) null);
 
-        Project rootProject = TestUtility.createMockProject(context, "myrootproject", "filepath1", 0, new Project[]{subProject1, subProject2}, null, null, (Project[]) null);
+        Project rootProject = TestUtility.createMockProject(context, "myrootproject", "filepath1", 0,
+                new Project[]{subProject1, subProject2}, null, null, (Project[]) null);
 
         buildInformation = new BuildInformation(rootProject);
 
@@ -90,7 +93,8 @@ public class FilterTest extends TestCase {
         assertNotNull(mySubProject1Doc);
         mySubSubProject = buildInformation.getProjectFromFullPath("myrootproject:mysubproject1:mysubsubproject");
         assertNotNull(mySubSubProject);
-        mySubSubProjectCompile = buildInformation.getTaskFromFullPath("myrootproject:mysubproject1:mysubsubproject:compile");
+        mySubSubProjectCompile = buildInformation.getTaskFromFullPath(
+                "myrootproject:mysubproject1:mysubsubproject:compile");
         assertNotNull(mySubSubProjectCompile);
         mySubSubProjectLib = buildInformation.getTaskFromFullPath("myrootproject:mysubproject1:mysubsubproject:lib");
         assertNotNull(mySubSubProjectLib);
@@ -107,25 +111,26 @@ public class FilterTest extends TestCase {
     }
 
     /**
-       This tests the 'allow all' filter. We just want to make sure it doesn't
-       filter out anything. This also verifies the project and task visitor works.
-    */
+     * This tests the 'allow all' filter. We just want to make sure it doesn't filter out anything. This also verifies
+     * the project and task visitor works.
+     */
     public void testAllowAllFiltering() {
         TestVisitor testVisitor = new TestVisitor();
 
-        TaskTreePopulationVisitor.visitProjectAndTasks(buildInformation.getProjects(), testVisitor, new AllowAllProjectAndTaskFilter(), null);
+        TaskTreePopulationVisitor.visitProjectAndTasks(buildInformation.getProjects(), testVisitor,
+                new AllowAllProjectAndTaskFilter(), null);
 
         //everything should show up
         testVisitor.setExpectedProjects(myRootProject, mySubProject1, mySubSubProject, mySubProject2);
-        testVisitor.setExpectedTasks(mySubProject1Lib, mySubProject1Doc, mySubSubProjectLib, mySubSubProjectDoc, mySubProject2Lib, mySubProject2doc, mySubProject1Comple, mySubSubProjectCompile, mySubProject2Compile);
+        testVisitor.setExpectedTasks(mySubProject1Lib, mySubProject1Doc, mySubSubProjectLib, mySubSubProjectDoc,
+                mySubProject2Lib, mySubProject2doc, mySubProject1Comple, mySubSubProjectCompile, mySubProject2Compile);
         testVisitor.verifyResults();
     }
 
     /**
-       This tests filtering out a task. We should see all other tasks. We want
-       to also verify that the task is filtered out at all levels (projects and
-       sub projects).
-    */
+     * This tests filtering out a task. We should see all other tasks. We want to also verify that the task is filtered
+     * out at all levels (projects and sub projects).
+     */
     public void testTaskFiltering() {
         //filter out tasks named 'lib'
         BasicFilterEditor editor = new BasicFilterEditor();
@@ -136,14 +141,15 @@ public class FilterTest extends TestCase {
         TaskTreePopulationVisitor.visitProjectAndTasks(buildInformation.getProjects(), testVisitor, filter, null);
 
         testVisitor.setExpectedProjects(myRootProject, mySubProject1, mySubSubProject, mySubProject2);
-        testVisitor.setExpectedTasks(mySubProject1Doc, mySubSubProjectDoc, mySubProject2doc, mySubProject1Comple, mySubSubProjectCompile, mySubProject2Compile);
+        testVisitor.setExpectedTasks(mySubProject1Doc, mySubSubProjectDoc, mySubProject2doc, mySubProject1Comple,
+                mySubSubProjectCompile, mySubProject2Compile);
         testVisitor.verifyResults();
     }
 
     /**
-       This visitor records the task and projects that it finds and upon calling
-       verifyResults() compares it to what was expected.
-    */
+     * This visitor records the task and projects that it finds and upon calling verifyResults() compares it to what was
+     * expected.
+     */
     private class TestVisitor implements TaskTreePopulationVisitor.Visitor<Object, Object> {
         private List<TaskView> expectedTasks;
         private List<ProjectView> expectedProjects;
@@ -171,13 +177,13 @@ public class FilterTest extends TestCase {
             return null;
         }
 
-        public void completedVisitingProject(Object parentProjectObject, List<Object> projectObjects, List<Object> taskObjects) {
+        public void completedVisitingProject(Object parentProjectObject, List<Object> projectObjects,
+                                             List<Object> taskObjects) {
         }
 
         /**
-           Call this after visiting all projects and tasks to verify that we found
-           what we expected.
-        */
+         * Call this after visiting all projects and tasks to verify that we found what we expected.
+         */
         public void verifyResults() {
             TestUtility.assertListContents(foundProjects, expectedProjects);
             TestUtility.assertListContents(foundTasks, expectedTasks);
@@ -185,9 +191,8 @@ public class FilterTest extends TestCase {
     }
 
     /**
-       This tests filtering out a project. We expect all tasks, sub projects and
-       sub project's tasks to be hidden.
-    */
+     * This tests filtering out a project. We expect all tasks, sub projects and sub project's tasks to be hidden.
+     */
     public void testProjectFiltering() {
         BasicFilterEditor editor = new BasicFilterEditor();
         editor.hideProjectsByName("mysubproject1");

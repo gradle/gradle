@@ -35,17 +35,17 @@ import java.util.List;
 
  @author mhunsicker
   */
+
 public class BasicFilterEditor implements ProjectAndTaskFilter {
     private List<String> filteredOutProjectNames = new ArrayList<String>();
     private List<String> filteredOutTaskNames = new ArrayList<String>();
     private boolean filterOutTasksWithNoDescription = false;
     private ObserverLord<FilterEditorObserver> observerLord = new ObserverLord<FilterEditorObserver>();
 
-
     public interface FilterEditorObserver {
         /**
-           A generic notification that the filter has changed.
-        */
+         * A generic notification that the filter has changed.
+         */
         public void filterChanged();
     }
 
@@ -92,8 +92,9 @@ public class BasicFilterEditor implements ProjectAndTaskFilter {
         Iterator<ProjectView> iterator = filteredProjects.iterator();
         while (iterator.hasNext()) {
             ProjectView projectView = iterator.next();
-            if (!filteredOutProjectNames.contains(projectView.getName()))
+            if (!filteredOutProjectNames.contains(projectView.getName())) {
                 filteredOutProjectNames.add(projectView.getName());
+            }
         }
 
         notifyChanges();
@@ -107,8 +108,9 @@ public class BasicFilterEditor implements ProjectAndTaskFilter {
         Iterator<String> iterator = projectNames.iterator();
         while (iterator.hasNext()) {
             String gradleProject = iterator.next();
-            if (!filteredOutProjectNames.contains(gradleProject))
+            if (!filteredOutProjectNames.contains(gradleProject)) {
                 filteredOutProjectNames.add(gradleProject);
+            }
         }
         notifyChanges();
     }
@@ -140,10 +142,11 @@ public class BasicFilterEditor implements ProjectAndTaskFilter {
     }
 
     /**
-    Determines if the specified project should be allowed or not.
-    @param project the project in question
-    @return true to allow it, false not to.
-    */
+     * Determines if the specified project should be allowed or not.
+     *
+     * @param project the project in question
+     * @return true to allow it, false not to.
+     */
     public boolean doesAllowProject(ProjectView project) {
         return !filteredOutProjectNames.contains(project.getName());
     }
@@ -160,8 +163,9 @@ public class BasicFilterEditor implements ProjectAndTaskFilter {
         Iterator<TaskView> iterator = filteredTasks.iterator();
         while (iterator.hasNext()) {
             TaskView taskView = iterator.next();
-            if (!filteredOutTaskNames.contains(taskView.getName()))
+            if (!filteredOutTaskNames.contains(taskView.getName())) {
                 filteredOutTaskNames.add(taskView.getName());
+            }
         }
         notifyChanges();
     }
@@ -174,8 +178,9 @@ public class BasicFilterEditor implements ProjectAndTaskFilter {
         Iterator<String> iterator = taskNames.iterator();
         while (iterator.hasNext()) {
             String gradleTask = iterator.next();
-            if (!filteredOutTaskNames.contains(gradleTask))
+            if (!filteredOutTaskNames.contains(gradleTask)) {
                 filteredOutTaskNames.add(gradleTask);
+            }
         }
         notifyChanges();
     }
@@ -207,11 +212,11 @@ public class BasicFilterEditor implements ProjectAndTaskFilter {
     }
 
     /**
-   Determines if the specified task should be allowed or not.
-
-   @param task the task in question
-   @return true to allow it, false not to.
-    */
+     * Determines if the specified task should be allowed or not.
+     *
+     * @param task the task in question
+     * @return true to allow it, false not to.
+     */
     public boolean doesAllowTask(TaskView task) {
         //since we've got the task here, we can more than just filter it by name. We can
         //filter it out if it has no description.
@@ -223,25 +228,26 @@ public class BasicFilterEditor implements ProjectAndTaskFilter {
     }
 
     public BasicProjectAndTaskFilter createFilter() {
-        return new BasicProjectAndTaskFilter(filteredOutProjectNames, filteredOutTaskNames, filterOutTasksWithNoDescription);
+        return new BasicProjectAndTaskFilter(filteredOutProjectNames, filteredOutTaskNames,
+                filterOutTasksWithNoDescription);
     }
 
     /**
-       Call this to save this filter to a file.
-    */
+     * Call this to save this filter to a file.
+     */
     public void exportToFile(DOM4JSerializer.ExportInteraction exportInteraction) {
         BasicProjectAndTaskFilter basicProjectAndTaskFilter = createFilter();
         DOM4JSerializer.exportToFile("basic-filter", exportInteraction, createFileFilter(), basicProjectAndTaskFilter);
     }
 
-
     /**
-       Call this to read a filter from a file.
-    */
+     * Call this to read a filter from a file.
+     */
     public boolean importFromFile(DOM4JSerializer.ImportInteraction importInteraction) {
         BasicProjectAndTaskFilter basicProjectAndTaskFilter = new BasicProjectAndTaskFilter();
-        if (!DOM4JSerializer.importFromFile(importInteraction, createFileFilter(), basicProjectAndTaskFilter))
+        if (!DOM4JSerializer.importFromFile(importInteraction, createFileFilter(), basicProjectAndTaskFilter)) {
             return false;
+        }
 
         initializeFromFilter(basicProjectAndTaskFilter);
         notifyChanges();
@@ -249,15 +255,15 @@ public class BasicFilterEditor implements ProjectAndTaskFilter {
     }
 
     /**
-       This creates a file filter suitable for storing/reading this filter.
-    */
+     * This creates a file filter suitable for storing/reading this filter.
+     */
     private ExtensionFileFilter createFileFilter() {
         return new ExtensionFileFilter(".task-filter", "Task Filter");
     }
 
     /**
-       Call this whenever you make changes so we can notify any observers.
-    */
+     * Call this whenever you make changes so we can notify any observers.
+     */
     private void notifyChanges() {
         observerLord.notifyObservers(new ObserverLord.ObserverNotification<FilterEditorObserver>() {
             public void notify(FilterEditorObserver observer) {

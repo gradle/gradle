@@ -426,8 +426,12 @@ public abstract class AbstractProject implements ProjectInternal {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         AbstractProject that = (AbstractProject) o;
 

@@ -21,11 +21,10 @@ import org.gradle.gradleplugin.userinterface.swing.generic.tabs.GradleTab;
 import java.awt.Component;
 
 /**
-   Wrapper to shield version changes in GradleTab from an external user of the
-   gradle open API.
-
-   @author mhunsicker
-*/
+ * Wrapper to shield version changes in GradleTab from an external user of the gradle open API.
+ *
+ * @author mhunsicker
+ */
 public class GradleTabVersionWrapper implements GradleTab {
     private GradleTabVersion1 gradleTabVersion1;
 

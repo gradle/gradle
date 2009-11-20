@@ -57,7 +57,8 @@ class HelperUtil {
 
     public static final Closure TEST_CLOSURE = {}
     public static final Spec TEST_SEPC  = new AndSpec()
-    private static final ITaskFactory taskFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new GroovySourceGenerationBackedClassGenerator()));
+    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new GroovySourceGenerationBackedClassGenerator()));
+
 
     static <T extends Task> T createTask(Class<T> type) {
         return createTask(type, createRootProject())
@@ -68,7 +69,7 @@ class HelperUtil {
     }
 
     static <T extends Task> T createTask(Class<T> type, Project project, String name) {
-        return taskFactory.createTask(project, [name: name, type: type])
+        return TASK_FACTORY.createTask(project, [name: name, type: type])
     }
 
     static DefaultProject createRootProject() {

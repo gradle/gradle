@@ -22,5 +22,4 @@ public interface SplitPolicyInstance {
     void prepare();
 
     SplitPolicyMatcher createSplitPolicyMatcher();
-
 }

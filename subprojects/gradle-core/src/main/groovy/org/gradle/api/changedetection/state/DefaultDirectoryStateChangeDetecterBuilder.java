@@ -48,9 +48,15 @@ public class DefaultDirectoryStateChangeDetecterBuilder {
     }
 
     public void setRootProjectDirectory(File rootProjectDirectory) {
-        if ( rootProjectDirectory == null ) throw new IllegalArgumentException("rootProjectDirectory is null!");
-        if ( !rootProjectDirectory.exists() ) throw new IllegalArgumentException("rootProjectDirectory does not exists!");
-        if ( !rootProjectDirectory.isDirectory() ) throw new IllegalArgumentException("rootProjectDirectory is not a directory!");
+        if (rootProjectDirectory == null) {
+            throw new IllegalArgumentException("rootProjectDirectory is null!");
+        }
+        if (!rootProjectDirectory.exists()) {
+            throw new IllegalArgumentException("rootProjectDirectory does not exists!");
+        }
+        if (!rootProjectDirectory.isDirectory()) {
+            throw new IllegalArgumentException("rootProjectDirectory is not a directory!");
+        }
 
         this.rootProjectDirectory = rootProjectDirectory;
     }
@@ -62,9 +68,15 @@ public class DefaultDirectoryStateChangeDetecterBuilder {
     }
 
     public void setDirectoryToProcess(File directoryToProcess) {
-        if ( directoryToProcess == null ) throw new IllegalArgumentException("directoryToProcess is null!");
-        if ( !directoryToProcess.exists() ) throw new IllegalArgumentException("directoryToProcess does not exists!");
-        if ( !directoryToProcess.isDirectory() ) throw new IllegalArgumentException("directoryToProcess is not a directory!");
+        if (directoryToProcess == null) {
+            throw new IllegalArgumentException("directoryToProcess is null!");
+        }
+        if (!directoryToProcess.exists()) {
+            throw new IllegalArgumentException("directoryToProcess does not exists!");
+        }
+        if (!directoryToProcess.isDirectory()) {
+            throw new IllegalArgumentException("directoryToProcess is not a directory!");
+        }
 
         this.directoryToProcess = directoryToProcess;
     }
@@ -85,7 +97,9 @@ public class DefaultDirectoryStateChangeDetecterBuilder {
     }
 
     public void setStateChangeEventQueueSize(int stateChangeEventQueueSize) {
-        if ( stateChangeEventQueueSize < 1 ) throw new IllegalArgumentException("stateChangeEventQueueSize < 1!");
+        if (stateChangeEventQueueSize < 1) {
+            throw new IllegalArgumentException("stateChangeEventQueueSize < 1!");
+        }
         this.stateChangeEventQueueSize = stateChangeEventQueueSize;
     }
 
@@ -95,11 +109,14 @@ public class DefaultDirectoryStateChangeDetecterBuilder {
     }
 
     public void setStateChangeEventQueuePollTimeout(long stateChangeEventQueuePollTimeout) {
-        if ( stateChangeEventQueuePollTimeout <= 0L ) throw new IllegalArgumentException("stateChangeEventQueuePollTimeout <= 0!");
+        if (stateChangeEventQueuePollTimeout <= 0L) {
+            throw new IllegalArgumentException("stateChangeEventQueuePollTimeout <= 0!");
+        }
         this.stateChangeEventQueuePollTimeout = stateChangeEventQueuePollTimeout;
     }
 
-    public DefaultDirectoryStateChangeDetecterBuilder stateChangeEventQueuePollTimeout(long stateChangeEventQueuePollTimeout) {
+    public DefaultDirectoryStateChangeDetecterBuilder stateChangeEventQueuePollTimeout(
+            long stateChangeEventQueuePollTimeout) {
         this.stateChangeEventQueuePollTimeout = stateChangeEventQueuePollTimeout;
         return this;
     }
@@ -125,37 +142,46 @@ public class DefaultDirectoryStateChangeDetecterBuilder {
     }
 
     public DirectoryStateChangeDetecter getDirectoryStateChangeDetecter() {
-        if ( rootProjectDirectory == null ) throw new IllegalArgumentException("rootProjectDirectory is null!");
-        if ( !rootProjectDirectory.exists() ) throw new IllegalArgumentException("rootProjectDirectory does not exists!");
-        if ( !rootProjectDirectory.isDirectory() ) throw new IllegalArgumentException("rootProjectDirectory is not a directory!");
+        if (rootProjectDirectory == null) {
+            throw new IllegalArgumentException("rootProjectDirectory is null!");
+        }
+        if (!rootProjectDirectory.exists()) {
+            throw new IllegalArgumentException("rootProjectDirectory does not exists!");
+        }
+        if (!rootProjectDirectory.isDirectory()) {
+            throw new IllegalArgumentException("rootProjectDirectory is not a directory!");
+        }
 
-        if ( directoryToProcess == null ) throw new IllegalArgumentException("directoryToProcess is null!");
-        if ( !directoryToProcess.exists() ) throw new IllegalArgumentException("directoryToProcess does not exists!");
-        if ( !directoryToProcess.isDirectory() ) throw new IllegalArgumentException("directoryToProcess is not a directory!");
+        if (directoryToProcess == null) {
+            throw new IllegalArgumentException("directoryToProcess is null!");
+        }
+        if (!directoryToProcess.exists()) {
+            throw new IllegalArgumentException("directoryToProcess does not exists!");
+        }
+        if (!directoryToProcess.isDirectory()) {
+            throw new IllegalArgumentException("directoryToProcess is not a directory!");
+        }
 
         final IoFactory ioFactory = new DefaultIoFactory();
         final DigesterCache digesterCache = DigestObjectFactory.createShaDigesterCache();
-        final StateFileUtil stateFileUtil = new StateFileUtil(rootProjectDirectory, directoryToProcess, dotGradleStatesDirectory, digesterCache.getDigesterFactory(), ioFactory);
+        final StateFileUtil stateFileUtil = new StateFileUtil(rootProjectDirectory, directoryToProcess,
+                dotGradleStatesDirectory, digesterCache.getDigesterFactory(), ioFactory);
         final DirectoryStateBuilder directoryStateBuilder = new DirectoryStateBuilder(stateFileUtil);
         final DirectoryListFileCreator directoryListFileCreator = new DirectoryListFileCreator(stateFileUtil);
-        final BlockingQueue<StateChangeEvent> stateChangeEventQueue = new ArrayBlockingQueue<StateChangeEvent>(stateChangeEventQueueSize);
-        final BlockingQueueItemProducer<StateChangeEvent> changeProcessorEventProducer = new BlockingQueueItemProducer<StateChangeEvent>(stateChangeEventQueue, stateChangeEventQueuePollTimeout, TimeUnit.MILLISECONDS);
-        final List<DirectoryStateDigestComparator> directoryStateDigestComparators = new ArrayList<DirectoryStateDigestComparator>();
+        final BlockingQueue<StateChangeEvent> stateChangeEventQueue = new ArrayBlockingQueue<StateChangeEvent>(
+                stateChangeEventQueueSize);
+        final BlockingQueueItemProducer<StateChangeEvent> changeProcessorEventProducer
+                = new BlockingQueueItemProducer<StateChangeEvent>(stateChangeEventQueue,
+                stateChangeEventQueuePollTimeout, TimeUnit.MILLISECONDS);
+        final List<DirectoryStateDigestComparator> directoryStateDigestComparators
+                = new ArrayList<DirectoryStateDigestComparator>();
         final StateChangeEventFactory stateChangeEventFactory = new StateChangeEventFactory();
-        final StateFileChangeListenerUtil stateFileChangeListenerUtil = new StateFileChangeListenerUtil(changeProcessorEventProducer, stateChangeEventFactory);
-        
-        return new DefaultDirectoryStateChangeDetecter(
-                directoryToProcess,
-                ioFactory,
-                directoryStateBuilder,
-                digesterCache,
-                digesterUtil,
-                directoryListFileCreator,
-                stateFileUtil,
-                stateChangeEventQueue,
-                changeProcessorEventProducer,
-                directoryStateDigestComparators,
-                stateFileChangeListenerUtil,
+        final StateFileChangeListenerUtil stateFileChangeListenerUtil = new StateFileChangeListenerUtil(
+                changeProcessorEventProducer, stateChangeEventFactory);
+
+        return new DefaultDirectoryStateChangeDetecter(directoryToProcess, ioFactory, directoryStateBuilder,
+                digesterCache, digesterUtil, directoryListFileCreator, stateFileUtil, stateChangeEventQueue,
+                changeProcessorEventProducer, directoryStateDigestComparators, stateFileChangeListenerUtil,
                 stateComparator);
     }
 }

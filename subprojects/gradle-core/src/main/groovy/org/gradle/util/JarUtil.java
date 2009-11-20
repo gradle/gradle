@@ -37,21 +37,20 @@ public class JarUtil {
 
             boolean classFileExtracted = false;
             boolean zipStreamEndReached = false;
-            while ( !classFileExtracted && !zipStreamEndReached) {
+            while (!classFileExtracted && !zipStreamEndReached) {
                 final ZipEntry candidateZipEntry = zipStream.getNextEntry();
 
-                if ( candidateZipEntry == null )
+                if (candidateZipEntry == null) {
                     zipStreamEndReached = true;
-                else {
-                    if ( candidateZipEntry.getName().equals(entryName) ) {
+                } else {
+                    if (candidateZipEntry.getName().equals(entryName)) {
                         IOUtils.copy(zipStream, extractTargetStream);
                         classFileExtracted = true;
                         entryExtracted = true;
                     }
                 }
             }
-        }
-        finally {
+        } finally {
             IOUtils.closeQuietly(zipStream);
             IOUtils.closeQuietly(extractTargetStream);
         }

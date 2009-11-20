@@ -24,8 +24,12 @@ public class CustomContextClassLoaderRunnableWrapper implements Runnable {
     private final Runnable toWrapRunnable;
 
     public CustomContextClassLoaderRunnableWrapper(ClassLoader customClassLoader, Runnable toWrapRunnable) {
-        if ( customClassLoader == null ) throw new IllegalArgumentException("customClassLoader == null!");
-        if ( toWrapRunnable == null ) throw new IllegalArgumentException("toWrapRunnable == null!");
+        if (customClassLoader == null) {
+            throw new IllegalArgumentException("customClassLoader == null!");
+        }
+        if (toWrapRunnable == null) {
+            throw new IllegalArgumentException("toWrapRunnable == null!");
+        }
         this.customClassLoader = customClassLoader;
         this.toWrapRunnable = toWrapRunnable;
     }
@@ -36,8 +40,7 @@ public class CustomContextClassLoaderRunnableWrapper implements Runnable {
             Thread.currentThread().setContextClassLoader(customClassLoader);
 
             toWrapRunnable.run();
-        }
-        finally {
+        } finally {
             Thread.currentThread().setContextClassLoader(previousContextClassLoader);
         }
     }

@@ -22,7 +22,6 @@ import org.gradle.api.testing.execution.Pipeline;
  */
 public interface ReportInfo {
     int getForkId();
-    
-    Pipeline getPipeline();
 
+    Pipeline getPipeline();
 }

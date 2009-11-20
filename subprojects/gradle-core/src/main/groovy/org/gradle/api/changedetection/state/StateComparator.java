@@ -23,6 +23,6 @@ import java.io.IOException;
  */
 interface StateComparator {
 
-    boolean compareState(DefaultDirectoryStateChangeDetecter directoryStateChangeDetecter, int level) throws IOException;
-
+    boolean compareState(DefaultDirectoryStateChangeDetecter directoryStateChangeDetecter, int level)
+            throws IOException;
 }

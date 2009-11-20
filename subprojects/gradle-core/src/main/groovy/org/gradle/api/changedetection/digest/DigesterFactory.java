@@ -26,7 +26,7 @@ import java.security.MessageDigest;
 public interface DigesterFactory {
     /**
      * Create a MessageDigest object.
-     * 
+     *
      * @return The created MessageDigest object.
      */
     MessageDigest createDigester();

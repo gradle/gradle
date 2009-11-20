@@ -49,10 +49,17 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
 
     private int controlServerPort;
 
-    public LocalSimpleForkPolicyInstance(Pipeline pipeline, ForkControl forkControl, TestServersManager testServersManager) {
-        if (pipeline == null) throw new IllegalArgumentException("pipeline is null!");
-        if (forkControl == null) throw new IllegalArgumentException("forkControl is null!");
-        if (testServersManager == null) throw new IllegalArgumentException("testServersManager is null!");
+    public LocalSimpleForkPolicyInstance(Pipeline pipeline, ForkControl forkControl,
+                                         TestServersManager testServersManager) {
+        if (pipeline == null) {
+            throw new IllegalArgumentException("pipeline is null!");
+        }
+        if (forkControl == null) {
+            throw new IllegalArgumentException("forkControl is null!");
+        }
+        if (testServersManager == null) {
+            throw new IllegalArgumentException("testServersManager is null!");
+        }
 
         this.pipeline = pipeline;
         this.forkControl = forkControl;
@@ -66,18 +73,20 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
     public void initialize() {
 
         final int pipelineId = pipeline.getId();
-        final int amountToStart = ((LocalSimpleForkPolicyConfig)pipeline.getConfig().getForkPolicyConfig()).getAmountToStart();
+        final int amountToStart = ((LocalSimpleForkPolicyConfig) pipeline.getConfig().getForkPolicyConfig())
+                .getAmountToStart();
 
         LOGGER.warn("Setting up test server & fork for pipeline {}", pipelineId);
 
-        final PipelineDispatcher pipelineDispatcher = new PipelineDispatcher(pipeline, new TestServerClientHandleFactory(forkControl));
+        final PipelineDispatcher pipelineDispatcher = new PipelineDispatcher(pipeline,
+                new TestServerClientHandleFactory(forkControl));
         pipeline.setDispatcher(pipelineDispatcher);
 
         // startup the test server
         controlServerPort = testServersManager.addAndStartServer(pipeline, pipelineDispatcher);
-        
+
         // TODO [teyck] I think it would be better to start the forks for a pipeline when a certain amount of tests are found.
-        for (int i=0;i<amountToStart;i++){
+        for (int i = 0; i < amountToStart; i++) {
             final ForkInfo forkInfo = forkControl.createForkInfo(pipeline);
             forkInfo.addListener(new PipelineDispatcherForkInfoListener(pipelineDispatcher));
             pipelineDispatcher.forkAttach(forkInfo.getId());
@@ -110,24 +119,20 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
         final int pipelineId = pipeline.getId();
         final Project project = testTask.getProject();
         final TestFrameworkInstance testFramework = testTask.getTestFramework();
-        final ForkConfigWriter forkConfigWriter = new ForkConfigWriter(testTask, pipelineId, forkInfo.getId(), controlServerPort);
+        final ForkConfigWriter forkConfigWriter = new ForkConfigWriter(testTask, pipelineId, forkInfo.getId(),
+                controlServerPort);
         final File forkConfigFile = forkConfigWriter.writeConfigFile();
 
-        final ExecHandleBuilder forkHandleBuilder = new ExecHandleBuilder(false) // TODO we probably want loggers for each fork
-                .execDirectory(project.getRootDir())
-                .execCommand("java")
-                .errorOutputHandle(new DummyExecOutputHandle())
+        final ExecHandleBuilder forkHandleBuilder = new ExecHandleBuilder(
+                false) // TODO we probably want loggers for each fork
+                .execDirectory(project.getRootDir()).execCommand("java").errorOutputHandle(new DummyExecOutputHandle())
                 .standardOutputHandle(new DummyExecOutputHandle());
 
         testFramework.applyForkJvmArguments(forkHandleBuilder);
 
-        forkHandleBuilder.arguments(
-                "-cp",
-                System.getProperty("gradle.fork.launcher.cp"),
-                "org.gradle.api.testing.execution.fork.ForkLaunchMain",
-                forkConfigFile.getAbsolutePath(),
-                "org.gradle.api.testing.execution.control.client.TestForkExecuter"
-        );
+        forkHandleBuilder.arguments("-cp", System.getProperty("gradle.fork.launcher.cp"),
+                "org.gradle.api.testing.execution.fork.ForkLaunchMain", forkConfigFile.getAbsolutePath(),
+                "org.gradle.api.testing.execution.control.client.TestForkExecuter");
 
         testFramework.applyForkArguments(forkHandleBuilder);
 

@@ -41,11 +41,19 @@ class DirectoryState implements Comparable {
     private Throwable failureCause;
 
     DirectoryState(File directory, String relativePath, String relativePathDigest, int level) {
-        if ( directory == null ) throw new IllegalArgumentException("directory is null!");
-        if ( StringUtils.isEmpty(relativePath) ) throw new IllegalArgumentException("relativePath is empty!");
-        if ( StringUtils.isEmpty(relativePathDigest) ) throw new IllegalArgumentException("relativePathDigest is empty!");
-        if ( level < 0 ) throw new IllegalArgumentException("level is smaller than zero!");
-        
+        if (directory == null) {
+            throw new IllegalArgumentException("directory is null!");
+        }
+        if (StringUtils.isEmpty(relativePath)) {
+            throw new IllegalArgumentException("relativePath is empty!");
+        }
+        if (StringUtils.isEmpty(relativePathDigest)) {
+            throw new IllegalArgumentException("relativePathDigest is empty!");
+        }
+        if (level < 0) {
+            throw new IllegalArgumentException("level is smaller than zero!");
+        }
+
         this.directory = directory;
         this.relativePath = relativePath;
         this.relativePathDigest = relativePathDigest;
@@ -71,7 +79,7 @@ class DirectoryState implements Comparable {
     }
 
     public boolean equals(Object o) {
-        final DirectoryState other = (DirectoryState)o;
+        final DirectoryState other = (DirectoryState) o;
         final EqualsBuilder builder = new EqualsBuilder();
 
         builder.append(other.level, level);
@@ -81,7 +89,7 @@ class DirectoryState implements Comparable {
     }
 
     public int compareTo(Object o) {
-        final DirectoryState other = (DirectoryState)o;
+        final DirectoryState other = (DirectoryState) o;
         final CompareToBuilder builder = new CompareToBuilder();
 
         builder.append(other.level, level);

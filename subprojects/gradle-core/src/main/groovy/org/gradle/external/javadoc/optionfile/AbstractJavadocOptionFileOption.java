@@ -28,7 +28,9 @@ public abstract class AbstractJavadocOptionFileOption<T> implements JavadocOptio
     }
 
     protected AbstractJavadocOptionFileOption(String option, T value) {
-        if ( option == null ) throw new IllegalArgumentException("option == null!");
+        if (option == null) {
+            throw new IllegalArgumentException("option == null!");
+        }
 
         this.option = option;
         this.value = value;

@@ -53,9 +53,9 @@ public class Javadoc extends SourceTask {
     protected void generate() {
         final File destinationDir = getDestinationDir();
 
-        if ( options.getDestinationDirectory() == null )
-            options
-                .destinationDirectory(destinationDir);
+        if (options.getDestinationDirectory() == null) {
+            options.destinationDirectory(destinationDir);
+        }
 
         options.classpath(new ArrayList<File>(getClasspath().getFiles()));
 
@@ -69,17 +69,19 @@ public class Javadoc extends SourceTask {
             }
         }
 
-        if ( maxMemory != null ) {
+        if (maxMemory != null) {
             final List<String> jFlags = options.getJFlags();
             final Iterator<String> jFlagsIt = jFlags.iterator();
             boolean containsXmx = false;
-            while ( !containsXmx && jFlagsIt.hasNext() ) {
+            while (!containsXmx && jFlagsIt.hasNext()) {
                 final String jFlag = jFlagsIt.next();
-                if ( jFlag.startsWith("-Xmx") )
+                if (jFlag.startsWith("-Xmx")) {
                     containsXmx = true;
+                }
             }
-            if ( !containsXmx )
-                options.jFlags("-Xmx"+maxMemory);
+            if (!containsXmx) {
+                options.jFlags("-Xmx" + maxMemory);
+            }
         }
 
         List<String> sourceNames = new ArrayList<String>();
@@ -92,31 +94,32 @@ public class Javadoc extends SourceTask {
     }
 
     private void executeExternalJavadoc() {
-        javadocExecHandleBuilder
-                .execDirectory(getProject().getRootDir())
-                .options(options)
-                .optionsFile(getOptionsFile())
+        javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile())
                 .destinationDirectory(getDestinationDir());
 
         final ExecHandle execHandle = javadocExecHandleBuilder.getExecHandle();
 
-        switch ( execHandle.startAndWaitForFinish() ) {
+        switch (execHandle.startAndWaitForFinish()) {
             case SUCCEEDED:
                 break;
             case ABORTED:
-                throw new GradleException("Javadoc generation ended in aborted state (should not happen)." + execHandle.getState());
+                throw new GradleException(
+                        "Javadoc generation ended in aborted state (should not happen)." + execHandle.getState());
             case FAILED:
-                if ( failOnError )
+                if (failOnError) {
                     throw new GradleException("Javadoc generation failed.", execHandle.getFailureCause());
-                else
+                } else {
                     break;
+                }
             default:
                 throw new GradleException("Javadoc generation ended in an unkown end state." + execHandle.getState());
         }
     }
 
     void setJavadocExecHandleBuilder(JavadocExecHandleBuilder javadocExecHandleBuilder) {
-        if ( javadocExecHandleBuilder == null ) throw new IllegalArgumentException("javadocExecHandleBuilder == null!");
+        if (javadocExecHandleBuilder == null) {
+            throw new IllegalArgumentException("javadocExecHandleBuilder == null!");
+        }
         this.javadocExecHandleBuilder = javadocExecHandleBuilder;
     }
 
@@ -179,14 +182,15 @@ public class Javadoc extends SourceTask {
     }
 
     /**
-     * Sets whether javadoc generation is accompanied by verbose output or not. The verbose output is done via println (by the
-     * underlying ant task). Thus it is not catched by our logging.
+     * Sets whether javadoc generation is accompanied by verbose output or not. The verbose output is done via println
+     * (by the underlying ant task). Thus it is not catched by our logging.
      *
      * @param verbose Whether the output should be verbose.
      */
     public void setVerbose(boolean verbose) {
-        if ( verbose )
+        if (verbose) {
             options.verbose();
+        }
     }
 
     @InputFiles

@@ -30,7 +30,8 @@ public interface IoConnectorFactory<T extends IoConnector> {
     /**
      * Create and prepare the 'network' communication connector for use.
      *
-     * @param handler The handler that needs to be called when messages are received on the 'network' communication connector. Can't be null.
+     * @param handler The handler that needs to be called when messages are received on the 'network' communication
+     * connector. Can't be null.
      * @return The prepared 'network' communication connector.
      * @throws IOException When the 'network' communication connector could not be created/prepared.
      */

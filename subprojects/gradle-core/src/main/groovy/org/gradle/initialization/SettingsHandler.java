@@ -27,26 +27,22 @@ import java.io.File;
 import java.net.URLClassLoader;
 
 /**
- * Handles locating and processing setting.gradle files.  Also deals with the
- * buildSrc module, since that modules is found after settings is located, but
- * needs to be built before settings is processed.
+ * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that modules is
+ * found after settings is located, but needs to be built before settings is processed.
  */
-public class SettingsHandler
-{
+public class SettingsHandler {
     private ISettingsFinder settingsFinder;
     private SettingsProcessor settingsProcessor;
     private BuildSourceBuilder buildSourceBuilder;
 
-    public SettingsHandler(ISettingsFinder settingsFinder,
-                           SettingsProcessor settingsProcessor,
+    public SettingsHandler(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor,
                            BuildSourceBuilder buildSourceBuilder) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle, IGradlePropertiesLoader gradlePropertiesLoader)
-    {
+    public SettingsInternal findAndLoadSettings(GradleInternal gradle, IGradlePropertiesLoader gradlePropertiesLoader) {
         StartParameter startParameter = gradle.getStartParameter();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(startParameter, gradlePropertiesLoader);
         if (!startParameter.getDefaultProjectSelector().containsProject(settings.getProjectRegistry())) {
@@ -56,7 +52,9 @@ public class SettingsHandler
             noSearchParameter.setSettingsScriptSource(new StringScriptSource("empty settings file", ""));
             settings = findSettingsAndLoadIfAppropriate(noSearchParameter, gradlePropertiesLoader);
             if (settings == null) // not using an assert to make sure it is not disabled
+            {
                 throw new InternalError("Empty settings file does not contain expected project.");
+            }
 
             // Set explicit build file, if required
             if (noSearchParameter.getBuildFile() != null) {
@@ -72,19 +70,20 @@ public class SettingsHandler
     }
 
     /**
-     Finds the settings.gradle for the given startParameter, and loads it if contains the project selected by the
-     startParameter, or if the startParameter explicity specifies a settings script.  If the settings file is not
-     loaded (executed), then a null is returned.
+     * Finds the settings.gradle for the given startParameter, and loads it if contains the project selected by the
+     * startParameter, or if the startParameter explicity specifies a settings script.  If the settings file is not
+     * loaded (executed), then a null is returned.
      */
-    private SettingsInternal findSettingsAndLoadIfAppropriate(StartParameter startParameter, IGradlePropertiesLoader gradlePropertiesLoader)
-    {
+    private SettingsInternal findSettingsAndLoadIfAppropriate(StartParameter startParameter,
+                                                              IGradlePropertiesLoader gradlePropertiesLoader) {
         SettingsLocation settingsLocation = findSettings(startParameter);
 
         // We found the desired settings file, now build the associated buildSrc before loading settings.  This allows
         // the settings script to reference classes in the buildSrc.
         StartParameter buildSrcStartParameter = startParameter.newBuild();
-        buildSrcStartParameter.setCurrentDir(new File(settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR));
-        buildSrcStartParameter.setLogLevel(getBuildSourceLogLevel(startParameter.getLogLevel())); 
+        buildSrcStartParameter.setCurrentDir(new File(settingsLocation.getSettingsDir(),
+                BaseSettings.DEFAULT_BUILD_SRC_DIR));
+        buildSrcStartParameter.setLogLevel(getBuildSourceLogLevel(startParameter.getLogLevel()));
         URLClassLoader buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
         return loadSettings(settingsLocation, buildSourceClassLoader, startParameter, gradlePropertiesLoader);
@@ -97,13 +96,15 @@ public class SettingsHandler
         return logLevel;
     }
 
-    private SettingsLocation findSettings(StartParameter startParameter)
-    {
+    private SettingsLocation findSettings(StartParameter startParameter) {
         return settingsFinder.find(startParameter);
     }
 
-    private SettingsInternal loadSettings(SettingsLocation settingsLocation, URLClassLoader buildSourceClassLoader, StartParameter startParameter, IGradlePropertiesLoader gradlePropertiesLoader) {
-        return settingsProcessor.process(settingsLocation, buildSourceClassLoader, startParameter, gradlePropertiesLoader);
+    private SettingsInternal loadSettings(SettingsLocation settingsLocation, URLClassLoader buildSourceClassLoader,
+                                          StartParameter startParameter,
+                                          IGradlePropertiesLoader gradlePropertiesLoader) {
+        return settingsProcessor.process(settingsLocation, buildSourceClassLoader, startParameter,
+                gradlePropertiesLoader);
     }
 }
 

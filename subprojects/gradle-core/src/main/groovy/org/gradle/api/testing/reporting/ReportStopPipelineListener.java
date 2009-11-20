@@ -26,7 +26,9 @@ public class ReportStopPipelineListener implements PipelineListener {
     private final ReportsManager reportsManager;
 
     public ReportStopPipelineListener(ReportsManager reportsManager) {
-        if ( reportsManager == null ) throw new IllegalArgumentException("reportsManager == null!");
+        if (reportsManager == null) {
+            throw new IllegalArgumentException("reportsManager == null!");
+        }
 
         this.reportsManager = reportsManager;
     }

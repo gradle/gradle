@@ -28,7 +28,7 @@ import java.util.HashMap;
 public class ExecutionInfo {
     public String[] commandLineArguments;
     public File workingDirectory;
-    public HashMap<String,String> environmentVariables = new HashMap<String, String>();
+    public HashMap<String, String> environmentVariables = new HashMap<String, String>();
 
     public void setCommandLineArguments(String[] commandLineArguments) {
         this.commandLineArguments = commandLineArguments;
@@ -38,8 +38,8 @@ public class ExecutionInfo {
         this.workingDirectory = workingDirectory;
     }
 
-    public void addEnvironmentVariable( String name, String value ) {
-       this.environmentVariables.put( name, value );
+    public void addEnvironmentVariable(String name, String value) {
+        this.environmentVariables.put(name, value);
     }
 
     public ExecutionInfo() {

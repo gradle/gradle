@@ -103,7 +103,7 @@ public class DefaultExecHandle implements ExecHandle {
     private ExecHandleState state;
 
     /**
-     * When not null, the runnable that is waiting 
+     * When not null, the runnable that is waiting
      */
     private ExecHandleRunner execHandleRunner;
     private ExecutorService threadPool;
@@ -114,13 +114,17 @@ public class DefaultExecHandle implements ExecHandle {
     private final ExecHandleNotifierFactory notifierFactory;
     private final List<ExecHandleListener> listeners = new CopyOnWriteArrayList<ExecHandleListener>();
 
-    DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode, Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle, ExecOutputHandle errorOutputHandle, ExecHandleNotifierFactory notifierFactory, List<ExecHandleListener> listeners) {
+    DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode,
+                      Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle,
+                      ExecOutputHandle errorOutputHandle, ExecHandleNotifierFactory notifierFactory,
+                      List<ExecHandleListener> listeners) {
         this.directory = directory;
         this.command = command;
         this.arguments = new ArrayList<String>();
-        for ( Object objectArgument : arguments ) { // to handle GStrings! otherwise ClassCassExceptions may occur.
-            if ( objectArgument != null )
+        for (Object objectArgument : arguments) { // to handle GStrings! otherwise ClassCassExceptions may occur.
+            if (objectArgument != null) {
                 this.arguments.add(objectArgument.toString());
+            }
         }
         this.normalTerminationExitCode = normalTerminationExitCode;
         this.environment = environment;
@@ -131,8 +135,9 @@ public class DefaultExecHandle implements ExecHandle {
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
         this.notifierFactory = notifierFactory;
-        if ( listeners != null && !listeners.isEmpty() )
+        if (listeners != null && !listeners.isEmpty()) {
             this.listeners.addAll(listeners);
+        }
     }
 
     public File getDirectory() {
@@ -167,8 +172,7 @@ public class DefaultExecHandle implements ExecHandle {
         lock.lock();
         try {
             return state;
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -178,18 +182,16 @@ public class DefaultExecHandle implements ExecHandle {
         try {
             this.state = state;
             stateChange.signalAll();
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
 
-    private boolean stateIn(ExecHandleState ... states) {
+    private boolean stateIn(ExecHandleState... states) {
         lock.lock();
         try {
             return Arrays.asList(states).contains(this.state);
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -201,11 +203,11 @@ public class DefaultExecHandle implements ExecHandle {
     public int getExitCode() {
         lock.lock();
         try {
-            if ( !stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.FAILED) )
+            if (!stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.FAILED)) {
                 throw new IllegalStateException("not in succeeded or failed state!");
+            }
             return exitCode;
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -213,11 +215,11 @@ public class DefaultExecHandle implements ExecHandle {
     public Throwable getFailureCause() {
         lock.lock();
         try {
-            if ( !stateIn(ExecHandleState.FAILED) )
+            if (!stateIn(ExecHandleState.FAILED)) {
                 throw new IllegalStateException("not in failed state!");
+            }
             return failureCause;
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -228,8 +230,7 @@ public class DefaultExecHandle implements ExecHandle {
             setState(state);
             this.exitCode = exitCode;
             this.failureCause = failureCause;
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -237,7 +238,9 @@ public class DefaultExecHandle implements ExecHandle {
     public void start() {
         lock.lock();
         try {
-            if ( !stateIn(ExecHandleState.INIT) ) throw new IllegalStateException("already started!");
+            if (!stateIn(ExecHandleState.INIT)) {
+                throw new IllegalStateException("already started!");
+            }
             setState(ExecHandleState.STARTING);
 
             exitCode = -1;
@@ -248,15 +251,14 @@ public class DefaultExecHandle implements ExecHandle {
 
             threadPool.execute(execHandleRunner);
 
-            while ( getState() == ExecHandleState.STARTING ) {
+            while (getState() == ExecHandleState.STARTING) {
                 try {
                     stateChange.await();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -264,10 +266,11 @@ public class DefaultExecHandle implements ExecHandle {
     public void abort() {
         lock.lock();
         try {
-            if ( !stateIn(ExecHandleState.STARTED) ) throw new IllegalStateException("not in started state!");
+            if (!stateIn(ExecHandleState.STARTED)) {
+                throw new IllegalStateException("not in started state!");
+            }
             this.execHandleRunner.stopWaiting();
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
     }
@@ -278,7 +281,7 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     private void shutdownThreadPool() {
-        ThreadUtils.run(new Runnable(){
+        ThreadUtils.run(new Runnable() {
 
             public void run() {
                 ThreadUtils.shutdown(threadPool);
@@ -298,12 +301,12 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void finished(int exitCode) {
-        if ( exitCode != normalTerminationExitCode ) {
-            setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException("exitCode("+exitCode+") != "+normalTerminationExitCode+"!"));
+        if (exitCode != normalTerminationExitCode) {
+            setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException(
+                    "exitCode(" + exitCode + ") != " + normalTerminationExitCode + "!"));
             shutdownThreadPool();
             ThreadUtils.run(notifierFactory.createFailedNotifier(this));
-        }
-        else {
+        } else {
             setEndStateInfo(ExecHandleState.SUCCEEDED, 0, null);
             shutdownThreadPool();
             ThreadUtils.run(notifierFactory.createSucceededNotifier(this));
@@ -322,18 +325,21 @@ public class DefaultExecHandle implements ExecHandle {
         ThreadUtils.run(notifierFactory.createFailedNotifier(this));
     }
 
-    public void addListeners(ExecHandleListener ... listeners) {
-        if ( listeners == null ) throw new IllegalArgumentException("listeners == null!");
+    public void addListeners(ExecHandleListener... listeners) {
+        if (listeners == null) {
+            throw new IllegalArgumentException("listeners == null!");
+        }
         this.listeners.addAll(Arrays.asList(listeners));
     }
 
-    public void removeListeners(ExecHandleListener ... listeners) {
-        if ( listeners == null ) throw new IllegalArgumentException("listeners == null!");
+    public void removeListeners(ExecHandleListener... listeners) {
+        if (listeners == null) {
+            throw new IllegalArgumentException("listeners == null!");
+        }
         this.listeners.removeAll(Arrays.asList(listeners));
     }
 
-    public List<ExecHandleListener> getListeners()
-    {
+    public List<ExecHandleListener> getListeners() {
         return Collections.unmodifiableList(listeners);
     }
 }

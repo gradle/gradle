@@ -29,8 +29,8 @@ import java.net.SocketAddress;
  */
 public class ExternalIoConnectorFactory extends AbstractIoConnectorFactory<NioSocketConnector> {
     /**
-     * When no host is specified when constructing an instance of this factory, the communication connector defaults
-     * to creating a communication connector that connects to 'localhost'.
+     * When no host is specified when constructing an instance of this factory, the communication connector defaults to
+     * creating a communication connector that connects to 'localhost'.
      */
     private static final String DEFAULT_HOSTNAME = "localhost";
 
@@ -56,12 +56,14 @@ public class ExternalIoConnectorFactory extends AbstractIoConnectorFactory<NioSo
      * Creates a 'network' communication connector with the selected host address and port.
      *
      * @param inetAddress The 'network' host address the communication connector needs to connect to.
-     * @param port        The 'network' port the communication connector needs to connect to.
+     * @param port The 'network' port the communication connector needs to connect to.
      */
     public ExternalIoConnectorFactory(InetAddress inetAddress, int port) {
         super(port);
 
-        if (inetAddress == null) throw new IllegalArgumentException("inetAddress is null!");
+        if (inetAddress == null) {
+            throw new IllegalArgumentException("inetAddress is null!");
+        }
 
         this.inetAddress = inetAddress;
         this.hostname = null;
@@ -71,12 +73,14 @@ public class ExternalIoConnectorFactory extends AbstractIoConnectorFactory<NioSo
      * Creates a 'network' communication connector with the selected port.
      *
      * @param hostname The 'network' hostname the communication connector needs to connect to.
-     * @param port     The 'network' port the communication connector needs to connect to.
+     * @param port The 'network' port the communication connector needs to connect to.
      */
     public ExternalIoConnectorFactory(String hostname, int port) {
         super(port);
 
-        if (StringUtils.isEmpty(hostname)) throw new IllegalArgumentException("hostname is empty!");
+        if (StringUtils.isEmpty(hostname)) {
+            throw new IllegalArgumentException("hostname is empty!");
+        }
 
         this.inetAddress = null;
         this.hostname = hostname;

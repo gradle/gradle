@@ -28,69 +28,58 @@ import org.mortbay.jetty.webapp.WebInfConfiguration;
 
 /**
  * Jetty6PluginWebAppContext
- *
- *
  */
-public class JettyPluginWebAppContext extends WebAppContext
-{
+public class JettyPluginWebAppContext extends WebAppContext {
     private List classpathFiles;
     private File jettyEnvXmlFile;
     private File webXmlFile;
     private WebInfConfiguration webInfConfig = new WebInfConfiguration();
-    private EnvConfiguration envConfig =  new EnvConfiguration();
+    private EnvConfiguration envConfig = new EnvConfiguration();
     private JettyConfiguration mvnConfig = new JettyConfiguration();
     private JettyWebXmlConfiguration jettyWebConfig = new JettyWebXmlConfiguration();
     private TagLibConfiguration tagConfig = new TagLibConfiguration();
-    private Configuration[] configs = new Configuration[]{webInfConfig,envConfig, mvnConfig, jettyWebConfig, tagConfig};
+    private Configuration[] configs = new Configuration[]{
+            webInfConfig, envConfig, mvnConfig, jettyWebConfig, tagConfig
+    };
 
-    public JettyPluginWebAppContext()
-    {
+    public JettyPluginWebAppContext() {
         super();
         setConfigurations(configs);
     }
-    
-    public void setClassPathFiles(List classpathFiles)
-    {
+
+    public void setClassPathFiles(List classpathFiles) {
         this.classpathFiles = classpathFiles;
     }
 
-    public List getClassPathFiles()
-    {
+    public List getClassPathFiles() {
         return this.classpathFiles;
     }
-    
-    public void setWebXmlFile(File webXmlFile)
-    {
+
+    public void setWebXmlFile(File webXmlFile) {
         this.webXmlFile = webXmlFile;
     }
-    
-    public File getWebXmlFile()
-    {
+
+    public File getWebXmlFile() {
         return this.webXmlFile;
     }
-    
-    public void setJettyEnvXmlFile (File jettyEnvXmlFile)
-    {
+
+    public void setJettyEnvXmlFile(File jettyEnvXmlFile) {
         this.jettyEnvXmlFile = jettyEnvXmlFile;
     }
-    
-    public File getJettyEnvXmlFile()
-    {
+
+    public File getJettyEnvXmlFile() {
         return this.jettyEnvXmlFile;
     }
-    
-    public void configure ()
-    {        
+
+    public void configure() {
         setConfigurations(configs);
-        mvnConfig.setClassPathConfiguration (classpathFiles);
-        mvnConfig.setWebXml (webXmlFile);  
-        try
-        {
-            if (this.jettyEnvXmlFile != null)
+        mvnConfig.setClassPathConfiguration(classpathFiles);
+        mvnConfig.setWebXml(webXmlFile);
+        try {
+            if (this.jettyEnvXmlFile != null) {
                 envConfig.setJettyEnvXml(this.jettyEnvXmlFile.toURI().toURL());
-        }
-        catch (Exception e)
-        {
+            }
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         /*
@@ -118,15 +107,12 @@ public class JettyPluginWebAppContext extends WebAppContext
         */
     }
 
-
-    public void doStart () throws Exception
-    {
+    public void doStart() throws Exception {
         setShutdown(false);
         super.doStart();
     }
-     
-    public void doStop () throws Exception
-    {
+
+    public void doStop() throws Exception {
         setShutdown(true);
         //just wait a little while to ensure no requests are still being processed
         Thread.sleep(500L);

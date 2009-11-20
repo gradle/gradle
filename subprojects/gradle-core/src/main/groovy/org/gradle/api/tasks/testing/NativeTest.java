@@ -58,15 +58,16 @@ public class NativeTest extends AbstractTestTask {
         // default pipeline
         defaultPipelineConfig = new PipelineConfig("default");
 
-
         pipelineConfigs.put(defaultPipelineConfig.getName(), defaultPipelineConfig);
 
         reportConfigs = new HashMap<String, ReportConfig>();
 
         // by default we report errors and failures to the console
         consoleReport = new ReportConfig("console");
-        consoleReport.setPolicyConfig(ReportPolicyRegister.getReportPolicy(ReportPolicyNames.CONSOLE).createReportPolicyConfigInstance());
-        final ConsoleReportPolicyConfig reportPolicyConfig = (ConsoleReportPolicyConfig) consoleReport.getPolicyConfig();
+        consoleReport.setPolicyConfig(ReportPolicyRegister.getReportPolicy(
+                ReportPolicyNames.CONSOLE).createReportPolicyConfigInstance());
+        final ConsoleReportPolicyConfig reportPolicyConfig = (ConsoleReportPolicyConfig) consoleReport
+                .getPolicyConfig();
         reportPolicyConfig.addShowStates(TestMethodProcessResultStates.values()); // add all 
 
         reportConfigs.put(consoleReport.getName(), consoleReport);
@@ -75,25 +76,22 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void executeTests() {
-        ((LocalSimpleForkPolicyConfig)defaultPipelineConfig.getForkPolicyConfig()).setAmountToStart(amountOfForksToStart);
+        ((LocalSimpleForkPolicyConfig) defaultPipelineConfig.getForkPolicyConfig()).setAmountToStart(
+                amountOfForksToStart);
 
-        if ( reforkEvery >= 1 ) {
+        if (reforkEvery >= 1) {
             final ReforkItemConfigs reforkItemConfigs = new ReforkItemConfigs();
 
-            final AmountOfTestsExecutedByForkConfig reforkEveryConfig = (AmountOfTestsExecutedByForkConfig) ReforkReasonRegister.getDecisionContextItem(
-                        ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK
-                    ).getConfig();
+            final AmountOfTestsExecutedByForkConfig reforkEveryConfig
+                    = (AmountOfTestsExecutedByForkConfig) ReforkReasonRegister.getDecisionContextItem(
+                    ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK).getConfig();
 
             reforkEveryConfig.setReforkEvery(reforkEvery);
 
-            reforkItemConfigs.addItemConfig(
-                    ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK,
-                    reforkEveryConfig
-            );
+            reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK, reforkEveryConfig);
 
             defaultPipelineConfig.setReforkItemConfigs(reforkItemConfigs);
         }
-
 
         final TestOrchestrator orchestrator = new TestOrchestrator(this);
 
@@ -108,11 +106,13 @@ public class NativeTest extends AbstractTestTask {
         //}
 
         // TODO don't use ant project property?
-        if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
-            if (testReport)
+        if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
+                FAILURES_OR_ERRORS_PROPERTY))) {
+            if (testReport) {
                 throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
-            else
+            } else {
                 throw new GradleException("There were failing tests.");
+            }
         }
     }
 
@@ -121,7 +121,9 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void setReforkEvery(long reforkEvery) {
-        if (reforkEvery <= 0) throw new IllegalArgumentException("reforkEvery is equal to or lower than zero!");
+        if (reforkEvery <= 0) {
+            throw new IllegalArgumentException("reforkEvery is equal to or lower than zero!");
+        }
 
         this.reforkEvery = reforkEvery;
     }
@@ -131,7 +133,9 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void addPipelineConfig(PipelineConfig pipelineConfig) {
-        if (pipelineConfig == null) throw new IllegalArgumentException("pipelineConfig can't be null!");
+        if (pipelineConfig == null) {
+            throw new IllegalArgumentException("pipelineConfig can't be null!");
+        }
 
         pipelineConfigs.put(pipelineConfig.getName(), pipelineConfig);
     }
@@ -145,7 +149,9 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void addReportConfing(ReportConfig reportConfig) {
-        if ( reportConfig == null ) throw new IllegalArgumentException("reportConfig can't be null!");
+        if (reportConfig == null) {
+            throw new IllegalArgumentException("reportConfig can't be null!");
+        }
 
         reportConfigs.put(reportConfig.getName(), reportConfig);
     }
@@ -155,7 +161,9 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void setMaximumNumberOfForks(int maximumNumberOfForks) {
-        if (maximumNumberOfForks < 1) throw new IllegalArgumentException("maximumNumberOfForks can't be lower than 1!");
+        if (maximumNumberOfForks < 1) {
+            throw new IllegalArgumentException("maximumNumberOfForks can't be lower than 1!");
+        }
 
         this.maximumNumberOfForks = maximumNumberOfForks;
     }
@@ -165,7 +173,9 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void setAmountOfForksToStart(int amountOfForksToStart) {
-        if (amountOfForksToStart < 1) throw new IllegalArgumentException("amountOfForksToStart can't be lower than 1!");
+        if (amountOfForksToStart < 1) {
+            throw new IllegalArgumentException("amountOfForksToStart can't be lower than 1!");
+        }
 
         this.amountOfForksToStart = amountOfForksToStart;
     }

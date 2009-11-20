@@ -37,12 +37,13 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
     private JTextField displayNameTextField;
     private JCheckBox alwaysShowOutputCheckBox;
     private boolean saveResults;
-   private boolean synchronizeDisplayNameWithCommand;
+    private boolean synchronizeDisplayNameWithCommand;
 
-   //pass in true to synchronizeDisplayNameWithCommand for new favorites.
-   public SwingEditFavoriteInteraction(Window parent, String title, boolean synchronizeDisplayNameWithCommand) {
-      this.synchronizeDisplayNameWithCommand = synchronizeDisplayNameWithCommand;
-      setupUI(parent, title);
+    //pass in true to synchronizeDisplayNameWithCommand for new favorites.
+
+    public SwingEditFavoriteInteraction(Window parent, String title, boolean synchronizeDisplayNameWithCommand) {
+        this.synchronizeDisplayNameWithCommand = synchronizeDisplayNameWithCommand;
+        setupUI(parent, title);
     }
 
     private void setupUI(Window parent, String title) {
@@ -88,59 +89,49 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
         return panel;
     }
 
-   /**
-    This synchronizes the display name with the command line. This is so when you're
-    adding a new favorite, the display name is automatic. If you type anything in the
-    display name, we'll cancel synchronization.
-    */
-   private void synchronizeDisplayNameWithCommand()
-   {
-      if( !synchronizeDisplayNameWithCommand )
-         return;
+    /**
+     * This synchronizes the display name with the command line. This is so when you're adding a new favorite, the
+     * display name is automatic. If you type anything in the display name, we'll cancel synchronization.
+     */
+    private void synchronizeDisplayNameWithCommand() {
+        if (!synchronizeDisplayNameWithCommand) {
+            return;
+        }
 
-      final DocumentListener documentListener = new DocumentListener()
-      {
-         public void insertUpdate( DocumentEvent documentEvent )
-         {
-            setDisplayNameTextToCommandLineText();
-         }
+        final DocumentListener documentListener = new DocumentListener() {
+            public void insertUpdate(DocumentEvent documentEvent) {
+                setDisplayNameTextToCommandLineText();
+            }
 
-         public void removeUpdate( DocumentEvent documentEvent )
-         {
-            setDisplayNameTextToCommandLineText();
-         }
+            public void removeUpdate(DocumentEvent documentEvent) {
+                setDisplayNameTextToCommandLineText();
+            }
 
-         public void changedUpdate( DocumentEvent documentEvent )
-         {
-            setDisplayNameTextToCommandLineText();
-         }
-      };
+            public void changedUpdate(DocumentEvent documentEvent) {
+                setDisplayNameTextToCommandLineText();
+            }
+        };
 
-      fullCommandLineTextField.getDocument().addDocumentListener( documentListener );
-      displayNameTextField.addKeyListener( new KeyAdapter()
-      {
-         @Override
-         public void keyPressed( KeyEvent keyEvent )
-         {  //the user typed someting. Remove the document listener
-            fullCommandLineTextField.getDocument().removeDocumentListener( documentListener );
-         }
-      } );
-   }
+        fullCommandLineTextField.getDocument().addDocumentListener(documentListener);
+        displayNameTextField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent keyEvent) {  //the user typed someting. Remove the document listener
+                fullCommandLineTextField.getDocument().removeDocumentListener(documentListener);
+            }
+        });
+    }
 
-   private void setDisplayNameTextToCommandLineText()
-   {
-      try
-      {
-         String text = fullCommandLineTextField.getDocument().getText( 0, fullCommandLineTextField.getDocument().getLength() );
-         displayNameTextField.setText( text );
-      }
-      catch( BadLocationException e )
-      {
-         e.printStackTrace();
-      }
-   }
+    private void setDisplayNameTextToCommandLineText() {
+        try {
+            String text = fullCommandLineTextField.getDocument().getText(0,
+                    fullCommandLineTextField.getDocument().getLength());
+            displayNameTextField.setText(text);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+    }
 
-   private Component createButtonPanel() {
+    private Component createButtonPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
@@ -151,7 +142,7 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
         });
 
         //make OK the default button
-        dialog.getRootPane().setDefaultButton( okButton );
+        dialog.getRootPane().setDefaultButton(okButton);
 
         JButton cancelButton = new JButton(new AbstractAction("Cancel") {
             public void actionPerformed(ActionEvent e) {
@@ -160,14 +151,11 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
         });
 
         //equate escape with cancle
-        dialog.getRootPane().registerKeyboardAction( new ActionListener()
-         {
-            public void actionPerformed(ActionEvent actionEvent)
-            {
-               close( false );
+        dialog.getRootPane().registerKeyboardAction(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                close(false);
             }
-         }
-         , KeyStroke.getKeyStroke( KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW );
+        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         panel.add(Box.createHorizontalGlue());
         panel.add(okButton);
@@ -176,7 +164,6 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
         panel.add(Box.createHorizontalGlue());
 
         panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
 
         return panel;
     }
@@ -207,9 +194,10 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
     }
 
     public void reportError(String error) {
-        if (dialog.isVisible())
+        if (dialog.isVisible()) {
             JOptionPane.showMessageDialog(dialog, error);
-        else
+        } else {
             JOptionPane.showMessageDialog(dialog.getParent(), error);
+        }
     }
 }

@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
+
 import static org.apache.ivy.core.module.descriptor.Configuration.*;
+
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.InvalidUserDataException;
@@ -99,7 +101,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         throwExceptionIfNotInUnresolvedState();
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
-                throw new InvalidUserDataException(String.format("Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this, configuration, configuration.getHierarchy()));
+                throw new InvalidUserDataException(String.format(
+                        "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
+                        configuration, configuration.getHierarchy()));
             }
             this.extendsFrom.add(configuration);
         }
@@ -147,7 +151,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<File> resolve() {
-        return getFiles();   
+        return getFiles();
     }
 
     public Set<File> getFiles() {
@@ -225,7 +229,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             public Set<? extends Task> getDependencies(Task task) {
                 DefaultTaskDependency taskDependency = new DefaultTaskDependency();
                 if (useDependedOn) {
-                    addTaskDependenciesFromProjectsIDependOn(taskName,  taskDependency);
+                    addTaskDependenciesFromProjectsIDependOn(taskName, taskDependency);
                 } else {
                     Project thisProject = task.getProject();
                     addTaskDependenciesFromProjectsDependingOnMe(thisProject, taskName, taskDependency);
@@ -235,7 +239,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         };
     }
 
-    private void addTaskDependenciesFromProjectsIDependOn(final String taskName, final DefaultTaskDependency taskDependency)  {
+    private void addTaskDependenciesFromProjectsIDependOn(final String taskName,
+                                                          final DefaultTaskDependency taskDependency) {
         Set<ProjectDependency> projectDependencies = getAllDependencies(ProjectDependency.class);
         for (ProjectDependency projectDependency : projectDependencies) {
             Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
@@ -245,7 +250,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void addTaskDependenciesFromProjectsDependingOnMe(final Project thisProject, final String taskName, final DefaultTaskDependency taskDependency) {
+    private void addTaskDependenciesFromProjectsDependingOnMe(final Project thisProject, final String taskName,
+                                                              final DefaultTaskDependency taskDependency) {
         Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
         for (Task nextTask : tasksWithName) {
             Configuration configuration = nextTask.getProject().getConfigurations().findByName(getName());
@@ -365,12 +371,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DefaultConfiguration that = (DefaultConfiguration) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) {
+            return false;
+        }
 
         return true;
     }
@@ -420,16 +432,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.visibility = visibility;
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
-       
+
         for (PublishArtifact artifact : getAllArtifacts()) {
-           copiedConfiguration.addArtifact(artifact);
+            copiedConfiguration.addArtifact(artifact);
         }
 
         // todo An ExcludeRule is a value object but we don't enforce immutability for DefaultExcludeRule as strong as we
         // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
         // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule. 
         for (ExcludeRule excludeRule : getExcludeRules()) {
-            copiedConfiguration.getExcludeRules().add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));    
+            copiedConfiguration.getExcludeRules().add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
         }
 
         for (Dependency dependency : dependencies) {
@@ -492,7 +504,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public ConfigurationFileCollection(final Set<Dependency> dependencies) {
             this.dependencySpec = new Spec<Dependency>() {
                 public boolean isSatisfiedBy(Dependency element) {
-                    return dependencies.contains(element); 
+                    return dependencies.contains(element);
                 }
             };
         }

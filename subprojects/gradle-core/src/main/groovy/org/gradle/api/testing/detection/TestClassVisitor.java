@@ -29,7 +29,9 @@ public abstract class TestClassVisitor extends EmptyVisitor {
     protected final TestFrameworkDetector detector;
 
     protected TestClassVisitor(TestFrameworkDetector detector) {
-        if ( detector == null ) throw new IllegalArgumentException("detector == null!");
+        if (detector == null) {
+            throw new IllegalArgumentException("detector == null!");
+        }
         this.detector = detector;
     }
 

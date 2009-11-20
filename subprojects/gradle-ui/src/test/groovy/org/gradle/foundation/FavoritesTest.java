@@ -31,10 +31,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- Tests aspects of favorite tasks and the favorites editor.
-
- @author mhunsicker
-  */
+ * Tests aspects of favorite tasks and the favorites editor.
+ *
+ * @author mhunsicker
+ */
 public class FavoritesTest extends TestCase {
     private BuildInformation buildInformation;
 
@@ -63,19 +63,24 @@ public class FavoritesTest extends TestCase {
         Task subsubCompileTask = TestUtility.createTask(context, "compile", "compile description");
         Task subsubLibTask = TestUtility.createTask(context, "lib", "lib description");
         Task subsubDocTask = TestUtility.createTask(context, "doc", "doc description");
-        Project subsubProject = TestUtility.createMockProject(context, "mysubsubproject", "filepath3", 2, null, new Task[]{subsubCompileTask, subsubLibTask, subsubDocTask}, null, (Project[]) null);
+        Project subsubProject = TestUtility.createMockProject(context, "mysubsubproject", "filepath3", 2, null,
+                new Task[]{subsubCompileTask, subsubLibTask, subsubDocTask}, null, (Project[]) null);
 
         Task subCompileTask1 = TestUtility.createTask(context, "compile", "compile description");
         Task subLibTask1 = TestUtility.createTask(context, "lib", "lib description");
         Task subDocTask1 = TestUtility.createTask(context, "doc", "doc description");
-        Project subProject1 = TestUtility.createMockProject(context, "mysubproject1", "filepath2a", 1, new Project[]{subsubProject}, new Task[]{subCompileTask1, subLibTask1, subDocTask1}, null, (Project[]) null);
+        Project subProject1 = TestUtility.createMockProject(context, "mysubproject1", "filepath2a", 1,
+                new Project[]{subsubProject}, new Task[]{subCompileTask1, subLibTask1, subDocTask1}, null,
+                (Project[]) null);
 
         Task subCompileTask2 = TestUtility.createTask(context, "compile", "compile description");
         Task subLibTask2 = TestUtility.createTask(context, "lib", "lib description");
         Task subDocTask2 = TestUtility.createTask(context, "doc", "doc description");
-        Project subProject2 = TestUtility.createMockProject(context, "mysubproject2", "filepath2b", 1, null, new Task[]{subCompileTask2, subLibTask2, subDocTask2}, null, (Project[]) null);
+        Project subProject2 = TestUtility.createMockProject(context, "mysubproject2", "filepath2b", 1, null,
+                new Task[]{subCompileTask2, subLibTask2, subDocTask2}, null, (Project[]) null);
 
-        Project rootProject = TestUtility.createMockProject(context, "myrootproject", "filepath1", 0, new Project[]{subProject1, subProject2}, null, null, (Project[]) null);
+        Project rootProject = TestUtility.createMockProject(context, "myrootproject", "filepath1", 0,
+                new Project[]{subProject1, subProject2}, null, null, (Project[]) null);
 
         buildInformation = new BuildInformation(rootProject);
 
@@ -92,7 +97,8 @@ public class FavoritesTest extends TestCase {
         Assert.assertNotNull(mySubProject1Doc);
         mySubSubProject = buildInformation.getProjectFromFullPath("myrootproject:mysubproject1:mysubsubproject");
         Assert.assertNotNull(mySubSubProject);
-        mySubSubProjectCompile = buildInformation.getTaskFromFullPath("myrootproject:mysubproject1:mysubsubproject:compile");
+        mySubSubProjectCompile = buildInformation.getTaskFromFullPath(
+                "myrootproject:mysubproject1:mysubsubproject:compile");
         Assert.assertNotNull(mySubSubProjectCompile);
         mySubSubProjectLib = buildInformation.getTaskFromFullPath("myrootproject:mysubproject1:mysubsubproject:lib");
         Assert.assertNotNull(mySubSubProjectLib);
@@ -109,16 +115,16 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       This tests adding a favorite task. We'll verify that we get notified and
-       that the task is added properly.
-    */
+     * This tests adding a favorite task. We'll verify that we get notified and that the task is added properly.
+     */
     @Test
     public void testAddingFavorites() {
         FavoritesEditor editor = new FavoritesEditor();
 
         Assert.assertTrue(editor.getFavoriteTasks().isEmpty());
 
-        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(FavoritesEditor.FavoriteTasksObserver.class);
+        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(
+                FavoritesEditor.FavoriteTasksObserver.class);
         context.checking(new Expectations() {{
             one(observer).favoritesChanged();
         }});
@@ -137,7 +143,8 @@ public class FavoritesTest extends TestCase {
 
         //now add another one, this time set alwaysShowOutput to false
         context.checking(new Expectations() {{
-            one(observer).favoritesChanged(); //reset our favorites changed notification so we know we're getting another one (I don't want to just verify that we got 2 messages. I want to make sure they arrived at the correct time.
+            one(observer)
+                    .favoritesChanged(); //reset our favorites changed notification so we know we're getting another one (I don't want to just verify that we got 2 messages. I want to make sure they arrived at the correct time.
         }});
 
         editor.addFavorite(mySubSubProjectDoc, false);
@@ -152,9 +159,9 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       Tests removing a favorite. We add one, make sure its right, then remove
-       it and make sure that it goes away as well as that we're notified.
-    */
+     * Tests removing a favorite. We add one, make sure its right, then remove it and make sure that it goes away as
+     * well as that we're notified.
+     */
     @Test
     public void testRemovingFavorites() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -170,7 +177,8 @@ public class FavoritesTest extends TestCase {
         Assert.assertTrue(favoriteTask.alwaysShowOutput());
 
         //create an observer so we can make sure we're notified of the deletion.
-        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(FavoritesEditor.FavoriteTasksObserver.class);
+        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(
+                FavoritesEditor.FavoriteTasksObserver.class);
         context.checking(new Expectations() {{
             one(observer).favoritesChanged();
         }});
@@ -190,10 +198,9 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       This tests removing a favorite that isn't in our favorites editor. We
-       just want to make sure we're not notified of a change and that this doesn't
-       blow up.
-    */
+     * This tests removing a favorite that isn't in our favorites editor. We just want to make sure we're not notified
+     * of a change and that this doesn't blow up.
+     */
     public void testRemovingNonExistantFavorite() {
         //remove a task that doesn't exist. We should NOT be notified and it should not blow up
 
@@ -209,7 +216,8 @@ public class FavoritesTest extends TestCase {
         FavoritesEditor interestedEditor = new FavoritesEditor();
 
         //create an observer so we can make sure we're NOT notified of the deletion. We won't assign it any expectations.
-        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(FavoritesEditor.FavoriteTasksObserver.class);
+        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(
+                FavoritesEditor.FavoriteTasksObserver.class);
 
         interestedEditor.addFavoriteTasksObserver(observer, false);
 
@@ -226,12 +234,10 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       Here we edit a favorite. We want to make sure that we get notified of
-       the edit and that we the edited values are stored properly. We'll add
-       a favorite, then we perform an edit. Lastly, we verify our values.
-       Notice that we're going to change the task's full name. This should update
-       the task inside the favorite.
-    */
+     * Here we edit a favorite. We want to make sure that we get notified of the edit and that we the edited values are
+     * stored properly. We'll add a favorite, then we perform an edit. Lastly, we verify our values. Notice that we're
+     * going to change the task's full name. This should update the task inside the favorite.
+     */
     @Test
     public void testEditingFavorite() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -247,7 +253,8 @@ public class FavoritesTest extends TestCase {
         Assert.assertTrue(favoriteTask.alwaysShowOutput());
 
         //create an observer so we can make sure we're notified of the edit.
-        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(FavoritesEditor.FavoriteTasksObserver.class);
+        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(
+                FavoritesEditor.FavoriteTasksObserver.class);
         context.checking(new Expectations() {{
             one(observer).favoritesChanged();
         }});
@@ -259,7 +266,8 @@ public class FavoritesTest extends TestCase {
             public boolean editFavorite(FavoritesEditor.EditibleFavoriteTask favoriteTask) {
                 favoriteTask.alwaysShowOutput = false;
                 favoriteTask.displayName = "newname";
-                favoriteTask.fullCommandLine = "myrootproject:mysubproject1:mysubsubproject:lib";   //change the task's full name
+                favoriteTask.fullCommandLine
+                        = "myrootproject:mysubproject1:mysubsubproject:lib";   //change the task's full name
                 return true;
             }
 
@@ -279,12 +287,11 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       This edits a favorite, but specifically, we change the task's full name to
-       something that doesn't exist. We don't want this to be an error. Maybe
-       the task is temporarily unavailable because of a compile error. We
-       shouldn't stop everything or throw it away just because the task isn't
-       present. The UI should provide some indication of this however.
-    */
+     * This edits a favorite, but specifically, we change the task's full name to something that doesn't exist. We don't
+     * want this to be an error. Maybe the task is temporarily unavailable because of a compile error. We shouldn't stop
+     * everything or throw it away just because the task isn't present. The UI should provide some indication of this
+     * however.
+     */
     @Test
     public void testChangingFullNameToNonExistantTask() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -300,7 +307,8 @@ public class FavoritesTest extends TestCase {
         Assert.assertTrue(favoriteTask.alwaysShowOutput());
 
         //create an observer so we can make sure we're notified of the edit.
-        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(FavoritesEditor.FavoriteTasksObserver.class);
+        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(
+                FavoritesEditor.FavoriteTasksObserver.class);
         context.checking(new Expectations() {{
             one(observer).favoritesChanged();
         }});
@@ -328,7 +336,6 @@ public class FavoritesTest extends TestCase {
         Assert.assertEquals("newname", favoriteTask.getDisplayName());
         Assert.assertEquals("nonexistanttask", favoriteTask.getFullCommandLine());
         Assert.assertFalse(!favoriteTask.alwaysShowOutput());
-
 
         //now change the full name back. Make sure the task is changed back.
 
@@ -361,9 +368,8 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       This edits a favorite and cancels. We want to make sure that none of our
-       changes during the editing are saved.
-    */
+     * This edits a favorite and cancels. We want to make sure that none of our changes during the editing are saved.
+     */
     @Test
     public void testCancelingEditingFavorite() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -379,7 +385,8 @@ public class FavoritesTest extends TestCase {
         Assert.assertTrue(favoriteTask.alwaysShowOutput());
 
         //create an observer so we can make sure we're NOT notified of the edit. We'll provide no expectations for this mock object.
-        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(FavoritesEditor.FavoriteTasksObserver.class);
+        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(
+                FavoritesEditor.FavoriteTasksObserver.class);
 
         editor.addFavoriteTasksObserver(observer, false);
 
@@ -405,10 +412,9 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       This edits a favorite so the task is the same as an existing favorite.
-       This doesn't make any sense to have two of these. We're expecting an
-       error from this.
-    */
+     * This edits a favorite so the task is the same as an existing favorite. This doesn't make any sense to have two of
+     * these. We're expecting an error from this.
+     */
     @Test
     public void testEditingFavoriteFullNameAlreadyExists() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -431,21 +437,23 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       This edits the favorite an expects an error. It makes sure the error
-       was recieved and that the original task was not altered.
-
-    */
-    private void editExpectingError(FavoritesEditor editor, FavoriteTask favoriteTaskToEdit, String newName, String newFullName) {
+     * This edits the favorite an expects an error. It makes sure the error was recieved and that the original task was
+     * not altered.
+     */
+    private void editExpectingError(FavoritesEditor editor, FavoriteTask favoriteTaskToEdit, String newName,
+                                    String newFullName) {
         String originalDisplayName = favoriteTaskToEdit.getDisplayName();
         String originalFullName = favoriteTaskToEdit.getFullCommandLine();
 
         //create an observer so we can make sure we're NOT notified of the edit. It's going to generate an error and we'll cancel.
-        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(FavoritesEditor.FavoriteTasksObserver.class);
+        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(
+                FavoritesEditor.FavoriteTasksObserver.class);
 
         editor.addFavoriteTasksObserver(observer, false);
 
         //now perform the edit.
-        ValidationErrorTestEditFavoriteInteraction interaction = new ValidationErrorTestEditFavoriteInteraction(newName, newFullName);
+        ValidationErrorTestEditFavoriteInteraction interaction = new ValidationErrorTestEditFavoriteInteraction(newName,
+                newFullName);
         editor.editFavorite(favoriteTaskToEdit, interaction);
 
         //make sure we did get an error message.
@@ -461,11 +469,9 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       This implementation is very specific. It expects to get an error after it
-       returns from editFavorite. It will then cancel on the second call to
-       editFavorite.
-
-    */
+     * This implementation is very specific. It expects to get an error after it returns from editFavorite. It will then
+     * cancel on the second call to editFavorite.
+     */
     private class ValidationErrorTestEditFavoriteInteraction implements FavoritesEditor.EditFavoriteInteraction {
         boolean receivedErrorMessage = false;
 
@@ -478,8 +484,9 @@ public class FavoritesTest extends TestCase {
         }
 
         public boolean editFavorite(FavoritesEditor.EditibleFavoriteTask favoriteTask) {
-            if (receivedErrorMessage)
-                return false;  //cancel once we've received an error.
+            if (receivedErrorMessage) {
+                return false;
+            }  //cancel once we've received an error.
 
             favoriteTask.alwaysShowOutput = false;
             favoriteTask.displayName = newDisplayName;
@@ -493,9 +500,9 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       This edits a favorite so the display name is the same as an existing favorite.
-       This should not be allowed. We're expecting an error from this.
-    */
+     * This edits a favorite so the display name is the same as an existing favorite. This should not be allowed. We're
+     * expecting an error from this.
+     */
     @Test
     public void testEditingFavoriteDisplayNameAlreadyExists() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -518,9 +525,8 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       Edits a favorite and makes the full name blank. This is not allowed.
-       We're expecting an error.
-    */
+     * Edits a favorite and makes the full name blank. This is not allowed. We're expecting an error.
+     */
     @Test
     public void testEditingFavoriteBlankFullName() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -539,9 +545,8 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       Edits a favorite and makes the display name blank. This is not allowed.
-       We're expecting an error.
-    */
+     * Edits a favorite and makes the display name blank. This is not allowed. We're expecting an error.
+     */
     @Test
     public void testEditingFavoriteBlankDisplayName() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -560,15 +565,12 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       Tests moving favorites up. This mechansim is more advanced than just move
-       the item up one. If you select multiple things with non-selected items
-       between them and then repeatedly move up, this will 'bunch up' the items
-       at the top while keeping the items in relative order between themselves.
-       This seems like most users would actually want to happen (but I'm sure
-       someone won't like it).
-       This moves every other item and keeps moving them until they all wind up
-       at the top.
-    */
+     * Tests moving favorites up. This mechansim is more advanced than just move the item up one. If you select multiple
+     * things with non-selected items between them and then repeatedly move up, this will 'bunch up' the items at the
+     * top while keeping the items in relative order between themselves. This seems like most users would actually want
+     * to happen (but I'm sure someone won't like it). This moves every other item and keeps moving them until they all
+     * wind up at the top.
+     */
     @Test
     public void testMoveUp() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -589,32 +591,38 @@ public class FavoritesTest extends TestCase {
         favoritesToMove.add(mySubSubProjectDocFavorite);
 
         //our observer will make sure the order is correct.
-        TestOrderFavoritesObserver observer = new TestOrderFavoritesObserver(editor, mySubProject1LibFavorite, mySubProject1CompleFavorite, mySubSubProjectCompileFavorite, mySubProject1DocFavorite, mySubSubProjectDocFavorite, mySubSubProjectLibFavorite);
+        TestOrderFavoritesObserver observer = new TestOrderFavoritesObserver(editor, mySubProject1LibFavorite,
+                mySubProject1CompleFavorite, mySubSubProjectCompileFavorite, mySubProject1DocFavorite,
+                mySubSubProjectDocFavorite, mySubSubProjectLibFavorite);
         editor.addFavoriteTasksObserver(observer, false);
 
         editor.moveFavoritesBefore(favoritesToMove);
 
         //we're going to move them again, set the new expected order.
-        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubProject1CompleFavorite, mySubSubProjectDocFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
+        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubProject1CompleFavorite,
+                mySubSubProjectDocFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
 
         editor.moveFavoritesBefore(favoritesToMove);
 
         //move again. Set the new order. Notice that both mySubProject1LibFavorite mySubSubProjectCompileFavorite has stopped moving.
-        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubSubProjectDocFavorite, mySubProject1CompleFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
+        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubSubProjectDocFavorite,
+                mySubProject1CompleFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
 
         editor.moveFavoritesBefore(favoritesToMove);
 
         //one last time. Set the new order. Notice that the items have stopped moving. They're all at the top.
-        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubSubProjectDocFavorite, mySubProject1CompleFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
+        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubSubProjectDocFavorite,
+                mySubProject1CompleFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
 
         editor.moveFavoritesBefore(favoritesToMove);
     }
 
     //
+
     /**
-       Observer that listens for favoritesReordered messages. When it gets them,
-       it compares the new order with an expected order.
-    */
+     * Observer that listens for favoritesReordered messages. When it gets them, it compares the new order with an
+     * expected order.
+     */
     private class TestOrderFavoritesObserver implements FavoritesEditor.FavoriteTasksObserver {
         private FavoritesEditor editor;
         private FavoriteTask[] expectedOrder;
@@ -639,8 +647,8 @@ public class FavoritesTest extends TestCase {
     }
 
     /**
-       Same as testMoveUp, but moving down. See it for more information.
-    */
+     * Same as testMoveUp, but moving down. See it for more information.
+     */
     @Test
     public void testMoveDown() {
         FavoritesEditor editor = new FavoritesEditor();
@@ -661,23 +669,28 @@ public class FavoritesTest extends TestCase {
         favoritesToMove.add(mySubSubProjectLibFavorite);
 
         //our observer will make sure the order is correct.
-        TestOrderFavoritesObserver observer = new TestOrderFavoritesObserver(editor, mySubProject1LibFavorite, mySubProject1CompleFavorite, mySubSubProjectCompileFavorite, mySubProject1DocFavorite, mySubSubProjectDocFavorite, mySubSubProjectLibFavorite);
+        TestOrderFavoritesObserver observer = new TestOrderFavoritesObserver(editor, mySubProject1LibFavorite,
+                mySubProject1CompleFavorite, mySubSubProjectCompileFavorite, mySubProject1DocFavorite,
+                mySubSubProjectDocFavorite, mySubSubProjectLibFavorite);
         editor.addFavoriteTasksObserver(observer, false);
 
         editor.moveFavoritesAfter(favoritesToMove);
 
         //we're going to move them again, set the new expected order.
-        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubProject1CompleFavorite, mySubSubProjectDocFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
+        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubProject1CompleFavorite,
+                mySubSubProjectDocFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
 
         editor.moveFavoritesAfter(favoritesToMove);
 
         //move again. Set the new order. Notice that both mySubProject1DocFavorite and mySubSubProjectLibFavorite has stopped moving.
-        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubSubProjectDocFavorite, mySubProject1CompleFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
+        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubSubProjectDocFavorite,
+                mySubProject1CompleFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
 
         editor.moveFavoritesAfter(favoritesToMove);
 
         //one last time. Set the new order. Notice that the items have stopped moving. They're all at the bottom.
-        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubSubProjectDocFavorite, mySubProject1CompleFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
+        observer.setExpectedOrder(mySubProject1LibFavorite, mySubSubProjectCompileFavorite, mySubSubProjectDocFavorite,
+                mySubProject1CompleFavorite, mySubProject1DocFavorite, mySubSubProjectLibFavorite);
 
         editor.moveFavoritesAfter(favoritesToMove);
     }

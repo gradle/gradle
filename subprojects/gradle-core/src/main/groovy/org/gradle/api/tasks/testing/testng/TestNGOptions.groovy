@@ -194,7 +194,7 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
      * The directory where the ant task should change to before running TestNG.
      */
     //String workingDir
-    
+
     /**
      * A reference to a FileSet structure for the suite definitions to be run.
      */
@@ -243,29 +243,29 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     }
 
     List excludedFieldsFromOptionMap() {
-        List excludedFieldsFromOptionMap = [   'testResources', 'projectDir', 
-            'systemProperties', 'jvmArgs', 'environment',
-            'suiteXmlFiles','suiteXmlWriter','suiteXmlBuilder', 'listeners', 'includeGroups', 'excludeGroups']
+        List excludedFieldsFromOptionMap = ['testResources', 'projectDir',
+                'systemProperties', 'jvmArgs', 'environment',
+                'suiteXmlFiles', 'suiteXmlWriter', 'suiteXmlBuilder', 'listeners', 'includeGroups', 'excludeGroups']
 
-        if ( jvm == null ) excludedFieldsFromOptionMap << 'jvm'
-        if ( skippedProperty == null ) excludedFieldsFromOptionMap << 'skippedProperty'
-        if ( suiteRunnerClass == null ) excludedFieldsFromOptionMap << 'suiteRunnerClass'
-        if ( parallel == null ) {
+        if (jvm == null) excludedFieldsFromOptionMap << 'jvm'
+        if (skippedProperty == null) excludedFieldsFromOptionMap << 'skippedProperty'
+        if (suiteRunnerClass == null) excludedFieldsFromOptionMap << 'suiteRunnerClass'
+        if (parallel == null) {
             excludedFieldsFromOptionMap << 'parallel'
             excludedFieldsFromOptionMap << 'threadCount'
         }
-        if ( timeOut == Long.MAX_VALUE ) excludedFieldsFromOptionMap << 'timeOut'
-        if ( suiteName == null ) excludedFieldsFromOptionMap << 'suiteName'
-        if ( testName == null ) excludedFieldsFromOptionMap << 'testName'
+        if (timeOut == Long.MAX_VALUE) excludedFieldsFromOptionMap << 'timeOut'
+        if (suiteName == null) excludedFieldsFromOptionMap << 'suiteName'
+        if (testName == null) excludedFieldsFromOptionMap << 'testName'
 
         return excludedFieldsFromOptionMap
     }
 
     Map fieldName2AntMap() {
         [
-            outputDir: 'outputdir',
-            suiteName : 'suitename',
-            testName : 'testname'
+                outputDir: 'outputdir',
+                suiteName: 'suitename',
+                testName: 'testname'
         ]
     }
 
@@ -294,13 +294,13 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
      * Add suite files by Strings. Each suiteFile String should be a path relative to the project root.
      */
     void suites(String ... suiteFiles) {
-        suiteFiles.each { it ->
+        suiteFiles.each {it ->
             suiteXmlFiles.add(new File(projectDir, it))
         }
     }
 
     /**
-    * Add suite files by File objects.
+     * Add suite files by File objects.
      */
     void suites(File ... suiteFiles) {
         suiteXmlFiles.addAll(Arrays.asList(suiteFiles))
@@ -310,10 +310,10 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         List<File> suites = []
 
         // Suites need to be in one directory because the suites can only be passed to the testng ant task as an ant fileset.
-        suiteXmlFiles.each { File it ->
+        suiteXmlFiles.each {File it ->
             final File targetSuiteFile = new File(testSuitesDir, it.getName())
 
-            if ( targetSuiteFile.exists() && !targetSuiteFile.delete() ) {
+            if (targetSuiteFile.exists() && !targetSuiteFile.delete()) {
                 throw new GradleException("Failed to delete TestNG suite XML file " + targetSuiteFile.absolutePath);
             }
 
@@ -322,12 +322,12 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
             suites.add(targetSuiteFile)
         }
 
-        if ( suiteXmlBuilder != null ) {
+        if (suiteXmlBuilder != null) {
             final File buildSuiteXml = new File(testSuitesDir.absolutePath, "build-suite.xml");
 
-            if ( buildSuiteXml.exists() ) {
-                if ( !buildSuiteXml.delete() )
-                    throw new RuntimeException("failed to remove already existing build-suite.xml file");
+            if (buildSuiteXml.exists()) {
+                if (!buildSuiteXml.delete())
+                throw new RuntimeException("failed to remove already existing build-suite.xml file");
             }
 
             buildSuiteXml.append('<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">');
@@ -357,19 +357,19 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         return this
     }
 
-    public TestNGOptions includeGroups(String...includeGroups) {
+    public TestNGOptions includeGroups(String ... includeGroups) {
         this.includeGroups.addAll(Arrays.asList(includeGroups))
         return this
     }
 
-    public TestNGOptions excludeGroups(String...excludeGroups) {
+    public TestNGOptions excludeGroups(String ... excludeGroups) {
         this.excludeGroups.addAll(Arrays.asList(excludeGroups))
         return this;
     }
 
     TestNGOptions useDefaultListeners() {
         useDefaultListeners = true;
-        
+
         return this;
     }
 
@@ -380,19 +380,17 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     }
 
     public def propertyMissing(String name) {
-        if ( suiteXmlBuilder != null ) {
+        if (suiteXmlBuilder != null) {
             return suiteXmlBuilder.getMetaClass()."${name}"
-        }
-        else {
+        } else {
             return super.propertyMissing(name)
         }
     }
 
     public def methodMissing(String name, args) {
-        if ( suiteXmlBuilder != null ) {
+        if (suiteXmlBuilder != null) {
             return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args);
-        }
-        else {
+        } else {
             return super.methodMissing(name, args)
         }
     }

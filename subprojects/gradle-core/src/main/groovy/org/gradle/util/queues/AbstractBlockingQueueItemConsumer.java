@@ -32,10 +32,17 @@ public abstract class AbstractBlockingQueueItemConsumer<T> implements Runnable {
     private final AtomicBoolean ended = new AtomicBoolean(false);
     private volatile Throwable endCause = null;
 
-    protected AbstractBlockingQueueItemConsumer(BlockingQueue<T> toConsumeQueue, long pollTimeout, TimeUnit pollTimeoutTimeUnit) {
-        if ( toConsumeQueue == null ) throw new IllegalArgumentException("toConsumeQueue == null!");
-        if ( pollTimeout < 0 ) throw new IllegalArgumentException("pollTimeout < 0!");
-        if ( pollTimeoutTimeUnit == null ) throw new IllegalArgumentException("pollTimeoutTimeUnit == null!");
+    protected AbstractBlockingQueueItemConsumer(BlockingQueue<T> toConsumeQueue, long pollTimeout,
+                                                TimeUnit pollTimeoutTimeUnit) {
+        if (toConsumeQueue == null) {
+            throw new IllegalArgumentException("toConsumeQueue == null!");
+        }
+        if (pollTimeout < 0) {
+            throw new IllegalArgumentException("pollTimeout < 0!");
+        }
+        if (pollTimeoutTimeUnit == null) {
+            throw new IllegalArgumentException("pollTimeoutTimeUnit == null!");
+        }
         this.toConsumeQueue = toConsumeQueue;
         this.pollTimeout = pollTimeout;
         this.pollTimeoutTimeUnit = pollTimeoutTimeUnit;
@@ -58,36 +65,38 @@ public abstract class AbstractBlockingQueueItemConsumer<T> implements Runnable {
             setUp();
 
             boolean stop = false;
-            while ( !stop ) {
+            while (!stop) {
                 try {
                     final T queueItem = toConsumeQueue.poll(pollTimeout, pollTimeoutTimeUnit);
 
-                    if ( queueItem != null ) {
+                    if (queueItem != null) {
                         stop = consume(queueItem);
                     }
-                }
-                catch ( InterruptedException e ) {
+                } catch (InterruptedException e) {
                     // ignore
                 }
 
-                if ( !keepConsuming.get() ) stop = true;
-                if ( !stop ) Thread.yield();
+                if (!keepConsuming.get()) {
+                    stop = true;
+                }
+                if (!stop) {
+                    Thread.yield();
+                }
             }
 
             tearDown();
-        }
-        catch ( Throwable t ) {
+        } catch (Throwable t) {
             endCause = t;
-        }
-        finally {
+        } finally {
             ended.set(true);
         }
     }
 
-    protected void setUp() throws Exception { }
+    protected void setUp() throws Exception {
+    }
 
     protected abstract boolean consume(T queueItem);
 
-    protected void tearDown() throws Exception { }
-
+    protected void tearDown() throws Exception {
+    }
 }

@@ -21,7 +21,6 @@ import org.gradle.util.BootstrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-
 /**
  * @author Hans Dockter
  */
@@ -29,51 +28,51 @@ import org.slf4j.LoggerFactory
 //todo: offer all the power of ant selectors
 //todo: Find a more stable way to find the ant junit jars
 class AntJUnitExecute {
-  private static Logger logger = LoggerFactory.getLogger(AntJUnitExecute)
+    private static Logger logger = LoggerFactory.getLogger(AntJUnitExecute)
 
-  private static final String CLASSPATH_ID = 'runtests.classpath'
+    private static final String CLASSPATH_ID = 'runtests.classpath'
 
-  void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, Collection<String> includes, Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant) {
-    ant.mkdir(dir: testResultsDir.absolutePath)
-    createAntClassPath(ant, classPath + BootstrapUtil.antJunitJarFiles)
-    Map otherArgs = [
-            includeantruntime: 'false',
-            errorproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY,
-            failureproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY
-    ]
-    ant.junit(otherArgs + junitOptions.optionMap()) {
-      junitOptions.forkOptions.jvmArgs.each {
-        jvmarg(value: it)
-      }
-      junitOptions.systemProperties.each {String key, value ->
-        sysproperty(key: key, value: value)
-      }
-      junitOptions.forkOptions.environment.each {String key, value ->
-        env(key: key, value: value)
-      }
-      formatter(junitOptions.formatterOptions.optionMap())
-      batchtest(todir: testResultsDir.absolutePath) {
-        fileset(dir: compiledTestsClassesDir.absolutePath) {
-          includes.each {
-            include(name: it)
-          }
-          excludes.each {
-            exclude(name: it)
-          }
+    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, Collection<String> includes, Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant) {
+        ant.mkdir(dir: testResultsDir.absolutePath)
+        createAntClassPath(ant, classPath + BootstrapUtil.antJunitJarFiles)
+        Map otherArgs = [
+                includeantruntime: 'false',
+                errorproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY,
+                failureproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY
+        ]
+        ant.junit(otherArgs + junitOptions.optionMap()) {
+            junitOptions.forkOptions.jvmArgs.each {
+                jvmarg(value: it)
+            }
+            junitOptions.systemProperties.each {String key, value ->
+                sysproperty(key: key, value: value)
+            }
+            junitOptions.forkOptions.environment.each {String key, value ->
+                env(key: key, value: value)
+            }
+            formatter(junitOptions.formatterOptions.optionMap())
+            batchtest(todir: testResultsDir.absolutePath) {
+                fileset(dir: compiledTestsClassesDir.absolutePath) {
+                    includes.each {
+                        include(name: it)
+                    }
+                    excludes.each {
+                        exclude(name: it)
+                    }
+                }
+            }
+            classpath() {
+                path(refid: CLASSPATH_ID)
+            }
         }
-      }
-      classpath() {
-        path(refid: CLASSPATH_ID)
-      }
     }
-  }
 
-  private void createAntClassPath(AntBuilder ant, List classpath) {
-    ant.path(id: CLASSPATH_ID) {
-      classpath.each {
-        logger.debug("Add {} to Ant classpath!", it)
-        pathelement(location: it)
-      }
+    private void createAntClassPath(AntBuilder ant, List classpath) {
+        ant.path(id: CLASSPATH_ID) {
+            classpath.each {
+                logger.debug("Add {} to Ant classpath!", it)
+                pathelement(location: it)
+            }
+        }
     }
-  }
 }

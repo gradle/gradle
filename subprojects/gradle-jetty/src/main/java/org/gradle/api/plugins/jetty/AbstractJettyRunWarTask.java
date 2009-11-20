@@ -26,8 +26,9 @@ public abstract class AbstractJettyRunWarTask extends AbstractJettyRunTask {
 
     public void applyJettyXml() throws Exception {
 
-        if (getJettyConfig() == null)
+        if (getJettyConfig() == null) {
             return;
+        }
 
         logger.info("Configuring Jetty from xml configuration file = {}", getJettyConfig());
         XmlConfiguration xmlConfiguration = new XmlConfiguration(getJettyConfig().toURI().toURL());

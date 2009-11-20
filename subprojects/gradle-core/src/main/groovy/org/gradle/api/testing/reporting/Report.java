@@ -36,13 +36,18 @@ public class Report {
     private final List<Pipeline> pipelines;
 
     public Report(ReportConfig config, ReportPolicyInstance reportPolicyInstance) {
-        if( config == null ) throw new IllegalArgumentException("config == null!");
-        if( reportPolicyInstance == null ) throw new IllegalArgumentException("reportPolicyInstance == null!");
+        if (config == null) {
+            throw new IllegalArgumentException("config == null!");
+        }
+        if (reportPolicyInstance == null) {
+            throw new IllegalArgumentException("reportPolicyInstance == null!");
+        }
         this.config = config;
         this.reportPolicyInstance = reportPolicyInstance;
 
         reportInfoQueue = new ArrayBlockingQueue<ReportInfo>(1000);
-        reportInfoQueueProducer = new BlockingQueueItemProducer<ReportInfo>(reportInfoQueue, 100L, TimeUnit.MILLISECONDS);
+        reportInfoQueueProducer = new BlockingQueueItemProducer<ReportInfo>(reportInfoQueue, 100L,
+                TimeUnit.MILLISECONDS);
         pipelines = new ArrayList<Pipeline>();
     }
 

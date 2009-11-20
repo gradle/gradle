@@ -16,24 +16,26 @@
  *
 -->
 <html>
-    <body>
-    Classes for detecting tests.
+<body>
+Classes for detecting tests.
 
-    <h1>TestDetectionOrchestrator</h1>
+<h1>TestDetectionOrchestrator</h1>
 
-    <p>Handles all aspects regarding test detection for the TestOrchestrator.</p>
+<p>Handles all aspects regarding test detection for the TestOrchestrator.</p>
 
-    <h1>TestClassProcessor</h1>
+<h1>TestClassProcessor</h1>
 
-    <p>Because we have 2 ways of running tests (through Ant and natively) we have 2 separate ways of how test
+<p>Because we have 2 ways of running tests (through Ant and natively) we have 2 separate ways of how test
     classes need to be treated. </p>
-    <p>When running tests with Ant all tests are collected in a set by the SetBuildingTestClassProcessor.</p>
-    <p>When running tests natively all tests are queued on a queue.</p>
 
-    <h1>ClassFileExtractionManager</h1>
+<p>When running tests with Ant all tests are collected in a set by the SetBuildingTestClassProcessor.</p>
 
-    <p>Used to extract class files from library jars so they can be scanned. All the extracted class files are deleted on
+<p>When running tests natively all tests are queued on a queue.</p>
+
+<h1>ClassFileExtractionManager</h1>
+
+<p>Used to extract class files from library jars so they can be scanned. All the extracted class files are deleted on
     exit of the Gradle process.</p>
 
-    </body>
+</body>
 </html>

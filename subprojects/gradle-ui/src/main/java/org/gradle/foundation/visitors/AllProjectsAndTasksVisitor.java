@@ -25,8 +25,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * This visits all projects and their subprojects and tasks in a hierarchal
- * manner. Useful if you need to do some processing with each one.
+ * This visits all projects and their subprojects and tasks in a hierarchal manner. Useful if you need to do some
+ * processing with each one.
  *
  * @author mhunsicker
  */
@@ -35,6 +35,7 @@ public class AllProjectsAndTasksVisitor {
           Visitor allowing you to do whatever you like with a project or task.
        @author mhunsicker
     */
+
     public interface Visitor<P, T> {
         /*
            This is called for each project.
@@ -46,6 +47,7 @@ public class AllProjectsAndTasksVisitor {
                    project's tasks.
            @author mhunsicker
         */
+
         public P visitProject(ProjectView project, P parentProjectObject);
 
         /*
@@ -56,9 +58,9 @@ public class AllProjectsAndTasksVisitor {
          @param  userProjectObject  whatever you returned from the parent project's visitProject
            @author mhunsicker
         */
+
         public T visitTask(TaskView task, ProjectView tasksProject, P userProjectObject);
     }
-
 
     /*
        This visitor will visit each project, sub-project and task that was discovered
@@ -70,7 +72,9 @@ public class AllProjectsAndTasksVisitor {
 
        @author mhunsicker
     */
-    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor, P rootProjectObject) {
+
+    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor,
+                                                   P rootProjectObject) {
         visitProjectAndTasks(projects, visitor, new AllowAllProjectAndTaskFilter(), rootProjectObject);
     }
 
@@ -85,11 +89,14 @@ public class AllProjectsAndTasksVisitor {
                 root-level projects as parentProjectObject.
        @author mhunsicker
     */
-    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor, ProjectAndTaskFilter filter, P rootProjectObject) {
+
+    public static <P, T> void visitProjectAndTasks(List<ProjectView> projects, Visitor<P, T> visitor,
+                                                   ProjectAndTaskFilter filter, P rootProjectObject) {
         visitProjects(visitor, filter, projects, rootProjectObject);
     }
 
-    public static <P, T> List<P> visitProjects(Visitor<P, T> visitor, ProjectAndTaskFilter filter, List<ProjectView> projects, P parentProjectObject) {
+    public static <P, T> List<P> visitProjects(Visitor<P, T> visitor, ProjectAndTaskFilter filter,
+                                               List<ProjectView> projects, P parentProjectObject) {
         List<P> projectObjects = new ArrayList<P>();
 
         Iterator<ProjectView> iterator = projects.iterator();
@@ -116,7 +123,9 @@ public class AllProjectsAndTasksVisitor {
 
        @author mhunsicker
     */
-    private static <P, T> List<T> visitTasks(Visitor<P, T> visitor, ProjectAndTaskFilter filter, ProjectView project, P userProjectObject) {
+
+    private static <P, T> List<T> visitTasks(Visitor<P, T> visitor, ProjectAndTaskFilter filter, ProjectView project,
+                                             P userProjectObject) {
         List<T> taskObjects = new ArrayList<T>();
         Iterator<TaskView> iterator = project.getTasks().iterator();
         while (iterator.hasNext()) {

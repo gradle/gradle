@@ -39,8 +39,9 @@ public class ReforkItemConfigs implements Serializable {
     }
 
     public void addItem(ReforkReasonKey itemKey) {
-        if (!itemKeys.contains(itemKey))
+        if (!itemKeys.contains(itemKey)) {
             itemKeys.add(itemKey);
+        }
     }
 
     public void addItemConfig(ReforkReasonKey itemKey, ReforkReasonConfig itemConfig) {

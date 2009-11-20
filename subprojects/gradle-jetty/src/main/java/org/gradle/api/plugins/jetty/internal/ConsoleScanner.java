@@ -42,8 +42,7 @@ public class ConsoleScanner extends Thread {
                 checkSystemInput();
                 getSomeSleep();
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.warn("Error when checking console input.", e);
         }
     }
@@ -51,8 +50,7 @@ public class ConsoleScanner extends Thread {
     private void getSomeSleep() {
         try {
             Thread.sleep(500);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             logger.debug("Error while sleeping.", e);
         }
     }
@@ -69,7 +67,6 @@ public class ConsoleScanner extends Thread {
         }
     }
 
-
     /**
      * Skip buffered bytes of system console.
      */
@@ -84,8 +81,7 @@ public class ConsoleScanner extends Thread {
                     }
                 }
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.warn("Error discarding console input buffer", e);
         }
     }
@@ -96,11 +92,8 @@ public class ConsoleScanner extends Thread {
             // Clear input buffer to discard anything entered on the console
             // while the application was being restarted.
             clearInputBuffer();
-        }
-        catch (Exception e) {
-            logger.error(
-                    "Error reconfiguring/restarting webapp after a new line on the console",
-                    e);
+        } catch (Exception e) {
+            logger.error("Error reconfiguring/restarting webapp after a new line on the console", e);
         }
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.api.tasks.util
 
 import org.gradle.api.tasks.AntBuilderAware
 import org.gradle.util.GUtil
-import org.gradle.api.file.RelativePath
+
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory
@@ -41,7 +41,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         }
     }
 
-    private static final Set<String> globalExcludes = new HashSet<String>()
+    private static final Set<String> GLOBAL_EXCLUDES = new HashSet<String>()
 
     private Set includes = [] as LinkedHashSet
     private Set excludes = [] as LinkedHashSet
@@ -50,12 +50,12 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
     def boolean caseSensitive = true
 
     static {
-        globalExcludes.addAll(DirectoryScanner.DEFAULTEXCLUDES as Collection)
+        GLOBAL_EXCLUDES.addAll(DirectoryScanner.DEFAULTEXCLUDES as Collection)
     }
 
     static def setGlobalExcludes(Collection<String> excludes) {
-        globalExcludes.clear()
-        globalExcludes.addAll(excludes)
+        GLOBAL_EXCLUDES.clear()
+        GLOBAL_EXCLUDES.addAll(excludes)
     }
     
     def boolean equals(Object o) {
@@ -100,7 +100,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
             includeSpec = new OrSpec<FileTreeElement>(matchers as Spec[])
         }
 
-        Collection<String> allExcludes = excludes + globalExcludes
+        Collection<String> allExcludes = excludes + GLOBAL_EXCLUDES
         boolean hasExcludes = allExcludes || excludeSpecs
         if (!hasExcludes) {
             return includeSpec

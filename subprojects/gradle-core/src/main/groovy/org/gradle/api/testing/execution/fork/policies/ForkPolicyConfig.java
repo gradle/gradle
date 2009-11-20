@@ -23,7 +23,9 @@ public class ForkPolicyConfig {
     private final ForkPolicyName policyName;
 
     public ForkPolicyConfig(ForkPolicyName policyName) {
-        if (policyName == null) throw new IllegalArgumentException("policyName is null!");
+        if (policyName == null) {
+            throw new IllegalArgumentException("policyName is null!");
+        }
 
         this.policyName = policyName;
     }

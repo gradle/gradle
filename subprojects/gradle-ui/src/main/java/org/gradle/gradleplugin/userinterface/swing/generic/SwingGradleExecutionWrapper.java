@@ -38,14 +38,11 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * This class wraps executing gradle tasks and displays the results in a panel
- * inside a JTabbedPane. It can reuse existing tabs but creates new ones if you
- * run mutliple things concurrently.
- * This exists so other UI components can launch gradle tasks without having to
- * deal directly with gradle or with handling the output.
- * We've decided to launch gradle as a separate process. This eliminates numerous
- * issues related to classloaders and thigns that are already defined in the
- * launching scripts.
+ * This class wraps executing gradle tasks and displays the results in a panel inside a JTabbedPane. It can reuse
+ * existing tabs but creates new ones if you run mutliple things concurrently. This exists so other UI components can
+ * launch gradle tasks without having to deal directly with gradle or with handling the output. We've decided to launch
+ * gradle as a separate process. This eliminates numerous issues related to classloaders and thigns that are already
+ * defined in the launching scripts.
  *
  * @author mhunsicker
  */
@@ -64,7 +61,8 @@ public class SwingGradleExecutionWrapper {
     private JMenuItem closeAllButThisMenuItem;
     private JMenuItem togglePinStateMenuItem;
 
-    public SwingGradleExecutionWrapper(GradlePluginLord gradlePluginLord2, AlternateUIInteraction alternateUIInteraction1) {
+    public SwingGradleExecutionWrapper(GradlePluginLord gradlePluginLord2,
+                                       AlternateUIInteraction alternateUIInteraction1) {
         this.gradlePluginLord = gradlePluginLord2;
         this.alternateUIInteraction = alternateUIInteraction1;
 
@@ -142,44 +140,37 @@ public class SwingGradleExecutionWrapper {
             closeMenuItem.setEnabled(true);
 
             //change the name of this to reflect what is actually happening.
-            if (panel.isPinned())
+            if (panel.isPinned()) {
                 togglePinStateMenuItem.setText("Unpin");
-            else
+            } else {
                 togglePinStateMenuItem.setText("Pin");
+            }
         }
     }
 
     /**
-       This obtains an output panel for executing a task. It will try to reuse
-       an existing tab.
-
-       I don't like how this mechanism works. Its not obvious what you're going
-       to get and how the tabs will be reused (from a user's standpoint). IntelliJ
-       Idea doesn't allow multiple compiles/builds at a time, so they don't have
-       this issue there. They do have it on Find where they have an option to
-       explicitly display in a new tab. I don't think that quite works here
-       as you don't normally think about the output. This is only an issue if
-       you run multiple tasks at once or try to run new tasks while others are
-       still executing. Ultimately, I don't think tabs are the way to go because
-       closing a bunch of tabs is a pain.
-
-       @param  description          the title we'll give to the output.
-       @param  forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors
-                                    so that the output is shown regardless
-       @param selectOutputPanel true to select the output panel after we setup
-                                the tab, false if not. This is really only useful
-                                if you're calling this for multiple tasks one
-                                right after the other. Pass in false for all but
-                                the first (or last) one depending on what you want.
-       @param reuseSelectedOutputPanelFirst true to attempt to reuse the current
-                                output tab. Otherwise, we'll go from left to right
-                                looking for a tab to reuse. This is really only
-                                useful if you're calling this for multiple tasks
-                                one after the other. In that case, you probably
-                                want to pass in false.
-       @return an output panel.
-    */
-    private OutputPanel getOutputPanelForExecution(String description, boolean forceOutputToBeShown, boolean selectOutputPanel, boolean reuseSelectedOutputPanelFirst) {
+     * This obtains an output panel for executing a task. It will try to reuse an existing tab.
+     *
+     * I don't like how this mechanism works. Its not obvious what you're going to get and how the tabs will be reused
+     * (from a user's standpoint). IntelliJ Idea doesn't allow multiple compiles/builds at a time, so they don't have
+     * this issue there. They do have it on Find where they have an option to explicitly display in a new tab. I don't
+     * think that quite works here as you don't normally think about the output. This is only an issue if you run
+     * multiple tasks at once or try to run new tasks while others are still executing. Ultimately, I don't think tabs
+     * are the way to go because closing a bunch of tabs is a pain.
+     *
+     * @param description the title we'll give to the output.
+     * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown
+     * regardless
+     * @param selectOutputPanel true to select the output panel after we setup the tab, false if not. This is really
+     * only useful if you're calling this for multiple tasks one right after the other. Pass in false for all but the
+     * first (or last) one depending on what you want.
+     * @param reuseSelectedOutputPanelFirst true to attempt to reuse the current output tab. Otherwise, we'll go from
+     * left to right looking for a tab to reuse. This is really only useful if you're calling this for multiple tasks
+     * one after the other. In that case, you probably want to pass in false.
+     * @return an output panel.
+     */
+    private OutputPanel getOutputPanelForExecution(String description, boolean forceOutputToBeShown,
+                                                   boolean selectOutputPanel, boolean reuseSelectedOutputPanelFirst) {
         OutputTab outputPanel = findExistingOutputPanelForExecution(reuseSelectedOutputPanelFirst);
         if (outputPanel != null) {
             outputPanel.setTabHeaderText(description);
@@ -187,44 +178,48 @@ public class SwingGradleExecutionWrapper {
         } else {  //we don't have an existing tab. Create a new one.
             outputPanel = new OutputTab(tabbedPane, description);
             tabbedPane.addTab(description, outputPanel);
-            if (selectOutputPanel)
+            if (selectOutputPanel) {
                 tabbedPane.setSelectedComponent(outputPanel);
+            }
 
             Utility.setTabComponent15Compatible(tabbedPane, tabbedPane.getTabCount() - 1, outputPanel.getTabHeader());
         }
 
-        if (forceOutputToBeShown)
+        if (forceOutputToBeShown) {
             outputPanel.setOnlyShowOutputOnErrors(false);
-        else
+        } else {
             outputPanel.setOnlyShowOutputOnErrors(onlyShowOutputOnErrors);
+        }
 
         return outputPanel;
     }
 
     /**
-       This locates an existing panel to reuse.
-    */
+     * This locates an existing panel to reuse.
+     */
     private OutputTab findExistingOutputPanelForExecution(boolean considerSelectedTabFirst) {
         OutputTab outputPanel = null;
         if (considerSelectedTabFirst) {
             outputPanel = (OutputTab) tabbedPane.getSelectedComponent();
-            if (outputPanel != null && outputPanel.canBeReusedNow())
+            if (outputPanel != null && outputPanel.canBeReusedNow()) {
                 return outputPanel;
+            }
         }
 
         Iterator<OutputPanel> iterator = getOutputPanels().iterator();
         while (iterator.hasNext()) {
             outputPanel = (OutputTab) iterator.next();
-            if (outputPanel.canBeReusedNow())
+            if (outputPanel.canBeReusedNow()) {
                 return outputPanel;
+            }
         }
 
         return null;
     }
 
     /**
-       @return a list of all the output panels currenly in the tabbed pane.
-    */
+     * @return a list of all the output panels currenly in the tabbed pane.
+     */
     private List<OutputPanel> getOutputPanels() {
         List<OutputPanel> panels = new ArrayList<OutputPanel>();
         for (int index = 0; index < tabbedPane.getTabCount(); index++) {
@@ -236,108 +231,113 @@ public class SwingGradleExecutionWrapper {
     }
 
     /**
-       Call this to refresh the task list in a background thread. This creates
-       or uses an existing OutputPanel to display the results.
-    */
+     * Call this to refresh the task list in a background thread. This creates or uses an existing OutputPanel to
+     * display the results.
+     */
     public void refreshTaskTree() {
         OutputPanel outputPanel = getOutputPanelForExecution("Refresh", false, true, true);
 
         outputPanel.setPending(true);
-        outputPanel.showProgress(true);   //make sure the progress is shown. It may have been turned off it we're reusing this component
+        outputPanel.showProgress(
+                true);   //make sure the progress is shown. It may have been turned off it we're reusing this component
         Request request = gradlePluginLord.addRefreshRequestToQueue(outputPanel);
-        if (request == null)
+        if (request == null) {
             outputPanel.close();
+        }
 
         outputPanel.setRequest(request);
     }
 
     /**
-       Call this to execute a task in a background thread. This creates or uses
-       an existing OutputPanel to display the results.
-
-       @param  task       the task to execute.
-       @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors
-                            so that the output is shown regardless
-    */
-    public void executeTaskInThread(final TaskView task, boolean forceOutputToBeShown, String... additionCommandLineOptions) {
-        String fullCommandLine = CommandLineAssistant.appendAdditionalCommandLineOptions(task, additionCommandLineOptions);
+     * Call this to execute a task in a background thread. This creates or uses an existing OutputPanel to display the
+     * results.
+     *
+     * @param task the task to execute.
+     * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown
+     * regardless
+     */
+    public void executeTaskInThread(final TaskView task, boolean forceOutputToBeShown,
+                                    String... additionCommandLineOptions) {
+        String fullCommandLine = CommandLineAssistant.appendAdditionalCommandLineOptions(task,
+                additionCommandLineOptions);
         executeTaskInThread(fullCommandLine, task.getFullTaskName(), forceOutputToBeShown, true, true);
     }
 
-    public void executeTasksInThread(final List<TaskView> tasks, boolean forceOutputToBeShown, String... additionCommandLineOptions) {
+    public void executeTasksInThread(final List<TaskView> tasks, boolean forceOutputToBeShown,
+                                     String... additionCommandLineOptions) {
         boolean isFirstTask = true;   //this translates to the selecting only the first output panel.
 
         Iterator<TaskView> iterator = tasks.iterator();
         while (iterator.hasNext()) {
             TaskView task = iterator.next();
 
-            String fullCommandLine = CommandLineAssistant.appendAdditionalCommandLineOptions(task, additionCommandLineOptions);
+            String fullCommandLine = CommandLineAssistant.appendAdditionalCommandLineOptions(task,
+                    additionCommandLineOptions);
             executeTaskInThread(fullCommandLine, task.getFullTaskName(), forceOutputToBeShown, isFirstTask, false);
             isFirstTask = false;
         }
     }
 
-
     /**
-       Call this to execute a task in a background thread. This creates or uses
-       an existing OutputPanel to display the results. This version takes text
-       instead of a task object.
-
-       @param  fullCommandLine the full command line to pass to gradle.
-       @param  displayName     what we show on the tab.
-       @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors
-                            so that the output is shown regardless
-       @param selectOutputPanel true to select the output panel after we setup
-                                the tab, false if not. This is really only useful
-                                if you're calling this for multiple tasks one
-                                right after the other. Pass in false for all but
-                                the first (or last) one depending on what you want.
-       @param reuseSelectedOutputPanelFirst true to attempt to reuse the current
-                                output tab. Otherwise, we'll go from left to right
-                                looking for a tab to reuse. This is really only
-                                useful if you're calling this for multiple tasks
-                                one after the other. In that case, you probably
-                                want to pass in false.
-    */
-    public void executeTaskInThread(String fullCommandLine, String displayName, boolean forceOutputToBeShown, boolean selectOutputPanel, boolean reuseSelectedOutputPanelFirst) {
-        if (fullCommandLine == null)
+     * Call this to execute a task in a background thread. This creates or uses an existing OutputPanel to display the
+     * results. This version takes text instead of a task object.
+     *
+     * @param fullCommandLine the full command line to pass to gradle.
+     * @param displayName what we show on the tab.
+     * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown
+     * regardless
+     * @param selectOutputPanel true to select the output panel after we setup the tab, false if not. This is really
+     * only useful if you're calling this for multiple tasks one right after the other. Pass in false for all but the
+     * first (or last) one depending on what you want.
+     * @param reuseSelectedOutputPanelFirst true to attempt to reuse the current output tab. Otherwise, we'll go from
+     * left to right looking for a tab to reuse. This is really only useful if you're calling this for multiple tasks
+     * one after the other. In that case, you probably want to pass in false.
+     */
+    public void executeTaskInThread(String fullCommandLine, String displayName, boolean forceOutputToBeShown,
+                                    boolean selectOutputPanel, boolean reuseSelectedOutputPanelFirst) {
+        if (fullCommandLine == null) {
             return;
+        }
 
-        displayName = reformatDisplayName( displayName );
+        displayName = reformatDisplayName(displayName);
 
-        OutputPanel outputPanel = getOutputPanelForExecution("Execute '" + displayName + "'", forceOutputToBeShown, selectOutputPanel, reuseSelectedOutputPanelFirst);
+        OutputPanel outputPanel = getOutputPanelForExecution("Execute '" + displayName + "'", forceOutputToBeShown,
+                selectOutputPanel, reuseSelectedOutputPanelFirst);
 
         outputPanel.setPending(true);
-        outputPanel.showProgress(true);   //make sure the progress is shown. It may have been turned off if we're reusing this component
-        outputPanel.setGradleCommand( fullCommandLine );
+        outputPanel.showProgress(
+                true);   //make sure the progress is shown. It may have been turned off if we're reusing this component
+        outputPanel.setGradleCommand(fullCommandLine);
         Request request = gradlePluginLord.addExecutionRequestToQueue(fullCommandLine, outputPanel);
         outputPanel.setRequest(request);
     }
 
-   /**
-    This formats a display name so it isn't too long. The actual size is purely arbitrary.
-    @param displayName the current display name
-    @return a display name that isn't too long to display on tabs.
-    */
-   private String reformatDisplayName( String displayName )
-   {
-      if( displayName.length() <= 20 )
-         return displayName;   //its fine
-      
-      return displayName.substring( 0, 17 ) + "...";
-   }
+    /**
+     * This formats a display name so it isn't too long. The actual size is purely arbitrary.
+     *
+     * @param displayName the current display name
+     * @return a display name that isn't too long to display on tabs.
+     */
+    private String reformatDisplayName(String displayName) {
+        if (displayName.length() <= 20) {
+            return displayName;
+        }   //its fine
 
-   /**
-       Determines if any tasks are currently being run. We check all of our
-       OutputPanels.
-       @return true if we're busy, false if not.
-    */
+        return displayName.substring(0, 17) + "...";
+    }
+
+    /**
+     * Determines if any tasks are currently being run. We check all of our OutputPanels.
+     *
+     * @return true if we're busy, false if not.
+     */
     public boolean isBusy() {
         Iterator<OutputPanel> iterator = getOutputPanels().iterator();
         while (iterator.hasNext()) {
             OutputPanel outputPanel = iterator.next();
-            if (outputPanel.isBusy())
+            if (outputPanel.isBusy()) {
                 return true;
+            }
         }
         return false;
     }
@@ -352,8 +352,9 @@ public class SwingGradleExecutionWrapper {
 
     private void closeSelectedTab() {
         OutputTab component = getSelectedOutputPanel();
-        if (component != null)
+        if (component != null) {
             component.close();
+        }
     }
 
     private void closeAllTabs() {
@@ -369,18 +370,20 @@ public class SwingGradleExecutionWrapper {
         Iterator<OutputPanel> iterator = getOutputPanels().iterator();
         while (iterator.hasNext()) {
             OutputPanel outputPanel = iterator.next();
-            if (outputPanel != component)
+            if (outputPanel != component) {
                 outputPanel.close();
+            }
         }
     }
 
     /**
-       Changes the current pinned status of the selected tab.
-    */
+     * Changes the current pinned status of the selected tab.
+     */
     private void togglePinSelectedTab() {
         OutputTab component = getSelectedOutputPanel();
-        if (component != null)
+        if (component != null) {
             component.setPinned(!component.isPinned());
+        }
     }
 
     private OutputTab getSelectedOutputPanel() {
@@ -388,20 +391,23 @@ public class SwingGradleExecutionWrapper {
     }
 
     //return the output panel for the specified request.
+
     private OutputPanel getOutputPanel(ExecutionQueue.Request request) {
         Iterator<OutputPanel> iterator = getOutputPanels().iterator();
         while (iterator.hasNext()) {
             OutputPanel outputPanel = iterator.next();
-            if (outputPanel.getRequest() == request)
+            if (outputPanel.getRequest() == request) {
                 return outputPanel;
+            }
         }
         return null;
     }
 
     private JTextArea getSelectedOutputTextArea() {
         OutputTab component = getSelectedOutputPanel();
-        if (component == null)
+        if (component == null) {
             return null;
+        }
 
         return component.getSelectedOutputTextArea();
     }

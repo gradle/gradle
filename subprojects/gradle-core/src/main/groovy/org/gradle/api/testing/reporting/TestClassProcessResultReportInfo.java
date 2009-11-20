@@ -26,7 +26,8 @@ public class TestClassProcessResultReportInfo implements ReportInfo {
     private final Pipeline pipeline;
     private final TestClassProcessResult testClassProcessResult;
 
-    public TestClassProcessResultReportInfo(int forkId, Pipeline pipeline, TestClassProcessResult testClassProcessResult) {
+    public TestClassProcessResultReportInfo(int forkId, Pipeline pipeline,
+                                            TestClassProcessResult testClassProcessResult) {
         this.forkId = forkId;
         this.pipeline = pipeline;
         this.testClassProcessResult = testClassProcessResult;

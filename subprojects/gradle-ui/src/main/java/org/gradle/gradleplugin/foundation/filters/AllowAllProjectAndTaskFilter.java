@@ -25,19 +25,21 @@ import org.gradle.foundation.TaskView;
  */
 public class AllowAllProjectAndTaskFilter implements ProjectAndTaskFilter {
     /**
-    Determines if the specified project should be allowed or not.
-    @param project the project in question
-    @return true to allow it, false not to.
-    */
+     * Determines if the specified project should be allowed or not.
+     *
+     * @param project the project in question
+     * @return true to allow it, false not to.
+     */
     public boolean doesAllowProject(ProjectView project) {
         return true;
     }
 
     /**
-    Determines if the specified task should be allowed or not.
-    @param task the task in question
-    @return true to allow it, false not to.
-    */
+     * Determines if the specified task should be allowed or not.
+     *
+     * @param task the task in question
+     * @return true to allow it, false not to.
+     */
     public boolean doesAllowTask(TaskView task) {
         return true;
     }

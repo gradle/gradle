@@ -23,9 +23,12 @@ import java.io.IOException;
  */
 abstract class AbstractStateComparator implements StateComparator {
 
-    boolean compareLevel(DefaultDirectoryStateChangeDetecter directoryStateChangeDetecter, int level) throws IOException {
-        final StateFileComparator stateFileComparator = new StateFileComparator(directoryStateChangeDetecter.getStateFileUtil(), level);
-        final DirectoriesStateFileChangeListener directoriesStateFileChangeListener = new DirectoriesStateFileChangeListener(directoryStateChangeDetecter);
+    boolean compareLevel(DefaultDirectoryStateChangeDetecter directoryStateChangeDetecter, int level)
+            throws IOException {
+        final StateFileComparator stateFileComparator = new StateFileComparator(
+                directoryStateChangeDetecter.getStateFileUtil(), level);
+        final DirectoriesStateFileChangeListener directoriesStateFileChangeListener
+                = new DirectoriesStateFileChangeListener(directoryStateChangeDetecter);
 
         return stateFileComparator.compareStateFiles(directoriesStateFileChangeListener);
     }

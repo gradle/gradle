@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  *
- * DefaultExcludeRule is a value object
+ *         DefaultExcludeRule is a value object
  */
 public class DefaultExcludeRule implements ExcludeRule {
     private Map<String, String> excludeArgs;
@@ -37,12 +37,18 @@ public class DefaultExcludeRule implements ExcludeRule {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DefaultExcludeRule that = (DefaultExcludeRule) o;
 
-        if (excludeArgs != null ? !excludeArgs.equals(that.excludeArgs) : that.excludeArgs != null) return false;
+        if (excludeArgs != null ? !excludeArgs.equals(that.excludeArgs) : that.excludeArgs != null) {
+            return false;
+        }
 
         return true;
     }

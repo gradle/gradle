@@ -48,8 +48,7 @@ public class ForkConfigWriter {
         File forkConfigFile = null;
         try {
             forkConfigFile = File.createTempFile(".gradle", "fork.config");
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
@@ -82,7 +81,8 @@ public class ForkConfigWriter {
             configFileWriter.newLine();
             // TODO testRuntime classpath without test framework spec
             for (File sandboxCpElement : testTask.getClasspath()) {
-                if (!sandboxCpElement.getName().startsWith("junit-") && !sandboxCpElement.getName().startsWith("testng-")) {
+                if (!sandboxCpElement.getName().startsWith("junit-") && !sandboxCpElement.getName().startsWith(
+                        "testng-")) {
                     configFileWriter.write(sandboxCpElement.getAbsolutePath());
                     configFileWriter.newLine();
                 }
@@ -102,11 +102,9 @@ public class ForkConfigWriter {
             configFileWriter.flush();
 
             FileUtils.writeStringToFile(forkConfigFile, strWriter.toString());
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new GradleException("failed to create fork config file", e);
-        }
-        finally {
+        } finally {
             IOUtils.closeQuietly(configFileWriter);
         }
 

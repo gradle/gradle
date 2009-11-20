@@ -38,10 +38,10 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- This panel displays something that is filtered. Its really just a list with
- show/hide buttons. You populate it with whatever you like (in String form).
-
- @author mhunsicker
+ * This panel displays something that is filtered. Its really just a list with show/hide buttons. You populate it with
+ * whatever you like (in String form).
+ *
+ * @author mhunsicker
  */
 public abstract class AbstractFilterEditorPanel {
     private JPanel mainPanel;
@@ -99,8 +99,9 @@ public abstract class AbstractFilterEditorPanel {
 
         list.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting())
+                if (!e.getValueIsAdjusting()) {
                     enableAppropriately();
+                }
             }
         });
 
@@ -114,29 +115,31 @@ public abstract class AbstractFilterEditorPanel {
             defaultForegroundColor = getForeground();
         }
 
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+                                                      boolean cellHasFocus) {
             Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
             setIcon(null);  //just remove the icon entirely
 
             boolean isAllowed = isAllowed((String) value);
 
-            if (isAllowed)
+            if (isAllowed) {
                 setForeground(defaultForegroundColor);
-            else
+            } else {
                 setForeground(Color.red);
+            }
 
             return component;
         }
     }
 
     /**
-       Implement this to determine if this item is filtered or not. This is
-       used by the list to indicate if this item is filtered or not.
-
-       @param  item       the item in question
-       @return true if its filtered, false if not.
-    */
+     * Implement this to determine if this item is filtered or not. This is used by the list to indicate if this item is
+     * filtered or not.
+     *
+     * @param item the item in question
+     * @return true if its filtered, false if not.
+     */
     protected abstract boolean isAllowed(String item);
 
     public void enableAppropriately() {
@@ -161,30 +164,30 @@ public abstract class AbstractFilterEditorPanel {
     }
 
     /**
-       This determines the state of the show hide buttons. We only want to
-       enable one if its appropriate. Because we have to handle multiple selection,
-       we look for both hidden and shown items. We stop as soon as we find both
-       or we're done with the list.
-
-       @param  stateHolder     where we store our state.
-       @param  selectedObjects the objects to search.
-    */
+     * This determines the state of the show hide buttons. We only want to enable one if its appropriate. Because we
+     * have to handle multiple selection, we look for both hidden and shown items. We stop as soon as we find both or
+     * we're done with the list.
+     *
+     * @param stateHolder where we store our state.
+     * @param selectedObjects the objects to search.
+     */
     protected void determineShowHideEnabledState(StateHolder stateHolder, List<String> selectedObjects) {
         Iterator<String> iterator = selectedObjects.iterator();
 
         //iterate through them all or until we've found both a hidden and shown object.
         while (iterator.hasNext() && (!stateHolder.containsHiddenObjects || !stateHolder.containsShownObjects)) {
             String object = iterator.next();
-            if (isAllowed(object))
+            if (isAllowed(object)) {
                 stateHolder.containsShownObjects = true;
-            else
+            } else {
                 stateHolder.containsHiddenObjects = true;
+            }
         }
     }
 
     /**
-       Just a holder for 2 variables.
-    */
+     * Just a holder for 2 variables.
+     */
     protected class StateHolder {
         boolean containsHiddenObjects = false;
         boolean containsShownObjects = false;
@@ -192,8 +195,9 @@ public abstract class AbstractFilterEditorPanel {
 
     protected List<String> getSelectedValues() {
         Object[] objects = list.getSelectedValues();
-        if (objects == null || objects.length == 0)
+        if (objects == null || objects.length == 0) {
             return Collections.emptyList();
+        }
 
         List<String> nodes = new ArrayList<String>();
 

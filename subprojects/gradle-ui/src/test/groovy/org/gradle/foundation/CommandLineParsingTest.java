@@ -25,14 +25,12 @@ import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
  */
 public class CommandLineParsingTest extends TestCase {
     /**
-   This verifies that the user can override the current log level on a command line.
-   The issue here is that the UI defines a default log level that will always be
-   used for all commands, but there are time when you want to override it. This is
-   useful if someone enters something into the command line tab or just wants to
-   make a favorite that always uses a specific log level. All they have to do is
-   specify a log level on their command line and the won't append one. This verifies
-   that the function that does the check if its already defined is working.
-    */
+     * This verifies that the user can override the current log level on a command line. The issue here is that the UI
+     * defines a default log level that will always be used for all commands, but there are time when you want to
+     * override it. This is useful if someone enters something into the command line tab or just wants to make a
+     * favorite that always uses a specific log level. All they have to do is specify a log level on their command line
+     * and the won't append one. This verifies that the function that does the check if its already defined is working.
+     */
     public void testOverridingLogLevel() {
         //first try it with the log level at the end
         String commandLine = ":build:something -" + DefaultCommandLine2StartParameterConverter.DEBUG;
@@ -63,14 +61,13 @@ public class CommandLineParsingTest extends TestCase {
     }
 
     /**
-   This verifies that the user can override the current stack trace level on a command line.
-   The issue here is that the UI defines a default stack trace level that will always be
-   used for all commands, but there are time when you want to override it. This is
-   useful if someone enters something into the command line tab or just wants to
-   make a favorite that always uses a specific stack trace level. All they have to do is
-   specify a stack trace level on their command line and the won't append one. This verifies
-   that the function that does the check if its already defined is working.
-    */
+     * This verifies that the user can override the current stack trace level on a command line. The issue here is that
+     * the UI defines a default stack trace level that will always be used for all commands, but there are time when you
+     * want to override it. This is useful if someone enters something into the command line tab or just wants to make a
+     * favorite that always uses a specific stack trace level. All they have to do is specify a stack trace level on
+     * their command line and the won't append one. This verifies that the function that does the check if its already
+     * defined is working.
+     */
     public void testOverridingStackTraceLevel() {
         //first try it with the stack trace level at the end
         String commandLine = ":build:something -" + DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE;

@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * This visitor builds up a list of unqiuely named projects and tasks. The projects
- * will be their full path, so they're all unique.
+ * This visitor builds up a list of unqiuely named projects and tasks. The projects will be their full path, so they're
+ * all unique.
  *
  * @author mhunsicker
  */
@@ -39,7 +39,6 @@ public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisit
     public List<String> getProjectNames() {
         return projectNames;
     }
-
 
     public List<String> getSortedTaskNames() {
         ArrayList<String> tasks = new ArrayList<String>(taskNames);
@@ -63,10 +62,12 @@ public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisit
     @return always null
     @author mhunsicker
     */
+
     public Object visitProject(ProjectView project, Object parentProjectObject) {
         String name = project.getFullProjectName();
-        if (!projectNames.contains(name))
+        if (!projectNames.contains(name)) {
             projectNames.add(name);
+        }
 
         return null;
     }
@@ -78,10 +79,12 @@ public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisit
     @param userProjectObject always null.
     @author mhunsicker
     */
+
     public Object visitTask(TaskView task, ProjectView tasksProject, Object userProjectObject) {
         String name = task.getName();
-        if (!taskNames.contains(name))
+        if (!taskNames.contains(name)) {
             taskNames.add(name);
+        }
 
         return null;
     }

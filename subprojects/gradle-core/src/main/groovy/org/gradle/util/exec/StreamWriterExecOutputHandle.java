@@ -66,8 +66,9 @@ public class StreamWriterExecOutputHandle implements ExecOutputHandle {
     public void handleOutputLine(String outputLine) throws IOException {
         target.write(outputLine);
         target.newLine();
-        if (directFlush)
+        if (directFlush) {
             target.flush();
+        }
     }
 
     public boolean execOutputHandleError(Throwable t) {

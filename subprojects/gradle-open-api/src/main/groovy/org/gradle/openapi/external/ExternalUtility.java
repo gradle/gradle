@@ -40,87 +40,92 @@ public class ExternalUtility
       @return a classloader that has loaded gradle and all of its dependencies.
       @author mhunsicker
    */
-   public static ClassLoader getGradleClassloader( ClassLoader parentClassLoader, File gradleHomeDirectory, boolean showDebugInfo ) throws Exception
-   {
-      File gradleJarFile = getGradleJar( gradleHomeDirectory );
-      if( gradleJarFile == null )
-         throw new RuntimeException( "Not a valid gradle home directory '" + gradleHomeDirectory.getAbsolutePath() + "'" );
 
-      System.setProperty("gradle.home", gradleHomeDirectory.getAbsolutePath() );
+    public static ClassLoader getGradleClassloader(ClassLoader parentClassLoader, File gradleHomeDirectory,
+                                                   boolean showDebugInfo) throws Exception {
+        File gradleJarFile = getGradleJar(gradleHomeDirectory);
+        if (gradleJarFile == null) {
+            throw new RuntimeException(
+                    "Not a valid gradle home directory '" + gradleHomeDirectory.getAbsolutePath() + "'");
+        }
 
-      //the following code was used when BootstrapLoader was in Gradle-core. It was moved out due
-      //a circular dependency. Hopefully that will be solved and then this probably needs to moved
-      //back (due to duplication of code). When it does, this needs to uncommented out (and the code
-      //below it removed)
-      
-      ////create a class loader that will load our bootloader.
-      //URLClassLoader contextClassLoader = new URLClassLoader(new URL[] { gradleJarFile.toURI().toURL() }, parentClassLoader );
-      //
-      //Class bootstrapClass = contextClassLoader.loadClass("org.gradle.foundation.BootstrapLoader");
-      //
-      //Object loader = bootstrapClass.newInstance();
-      //Method initializeMethod = bootstrapClass.getDeclaredMethod( "initialize", new Class<?>[]{ClassLoader.class, File.class, boolean.class, boolean.class, boolean.class } );
-      //
-      ////get the bootloader to actually load gradle since it requires some very specific steps
-      //initializeMethod.invoke( loader, parentClassLoader, gradleHomeDirectory, true, false, showDebugInfo );
-      //
-      ////get the bootloader's classloader so we can use that to load a specific class from gradle.
-      //Method getClassLoaderMethod = bootstrapClass.getDeclaredMethod( "getClassLoader" );
-      //ClassLoader bootStrapClassLoader = (ClassLoader) getClassLoaderMethod.invoke( loader );
+        System.setProperty("gradle.home", gradleHomeDirectory.getAbsolutePath());
 
-      BootstrapLoader bootstrapLoader = new BootstrapLoader();
-      bootstrapLoader.initialize( parentClassLoader, gradleHomeDirectory, true, false, showDebugInfo );
-      return bootstrapLoader.getClassLoader();
-   }
+        //the following code was used when BootstrapLoader was in Gradle-core. It was moved out due
+        //a circular dependency. Hopefully that will be solved and then this probably needs to moved
+        //back (due to duplication of code). When it does, this needs to uncommented out (and the code
+        //below it removed)
 
-   /*
-      This locates the gradle jar. We do NOT want the gradle-wrapper jar.
+        ////create a class loader that will load our bootloader.
+        //URLClassLoader contextClassLoader = new URLClassLoader(new URL[] { gradleJarFile.toURI().toURL() }, parentClassLoader );
+        //
+        //Class bootstrapClass = contextClassLoader.loadClass("org.gradle.foundation.BootstrapLoader");
+        //
+        //Object loader = bootstrapClass.newInstance();
+        //Method initializeMethod = bootstrapClass.getDeclaredMethod( "initialize", new Class<?>[]{ClassLoader.class, File.class, boolean.class, boolean.class, boolean.class } );
+        //
+        ////get the bootloader to actually load gradle since it requires some very specific steps
+        //initializeMethod.invoke( loader, parentClassLoader, gradleHomeDirectory, true, false, showDebugInfo );
+        //
+        ////get the bootloader's classloader so we can use that to load a specific class from gradle.
+        //Method getClassLoaderMethod = bootstrapClass.getDeclaredMethod( "getClassLoader" );
+        //ClassLoader bootStrapClassLoader = (ClassLoader) getClassLoaderMethod.invoke( loader );
 
-      @param  gradleHomeDirectory the root directory of a gradle installation.
-                                  We're expecting this to have a child directory
-                                  named 'lib'.
-      @return the gradle jar file. Null if we didn't find it.
-      @author mhunsicker
-   */
-   public static File getGradleJar( File gradleHomeDirectory )
-   {
-      File libDirectory = new File( gradleHomeDirectory, "lib" );
-      if( !libDirectory.exists() )
-         return null;
+        BootstrapLoader bootstrapLoader = new BootstrapLoader();
+        bootstrapLoader.initialize(parentClassLoader, gradleHomeDirectory, true, false, showDebugInfo);
+        return bootstrapLoader.getClassLoader();
+    }
 
-      //try to get the gradle.jar. It'll be "gradle-[version].jar"
-      File[] files = libDirectory.listFiles( new FileFilter()
-      {
-         public boolean accept( File file )
-         {
-            String name = file.getName();
-	         if( name.startsWith( "gradle-core-" ) && name.endsWith( ".jar" ) )
-               return true;
-            return false;
-         }
-      } );
+    /*
+       This locates the gradle jar. We do NOT want the gradle-wrapper jar.
 
-      if( files == null || files.length == 0 )
-         return null;
+       @param  gradleHomeDirectory the root directory of a gradle installation.
+                                   We're expecting this to have a child directory
+                                   named 'lib'.
+       @return the gradle jar file. Null if we didn't find it.
+       @author mhunsicker
+    */
 
-      //if they've given us a directory with multiple gradle jars, tell them. We won't know which one to use.
-      if( files.length > 1 )
-           throw new RuntimeException( "Installation has multiple gradle jars. Cannot determine which one to use. Found files: " + files );
+    public static File getGradleJar(File gradleHomeDirectory) {
+        File libDirectory = new File(gradleHomeDirectory, "lib");
+        if (!libDirectory.exists()) {
+            return null;
+        }
 
-      return files[ 0 ];
-   }
+        //try to get the gradle.jar. It'll be "gradle-[version].jar"
+        File[] files = libDirectory.listFiles(new FileFilter() {
+            public boolean accept(File file) {
+                String name = file.getName();
+                if (name.startsWith("gradle-core-") && name.endsWith(".jar")) {
+                    return true;
+                }
+                return false;
+            }
+        });
 
-   //just a function to help debugging. If we can't find the constructor we want, this dumps out what is available.
-   public static String dumpConstructors( Class classInQuestion )
-   {
-      StringBuilder builder = new StringBuilder( );
-      Constructor[] constructors = classInQuestion.getConstructors();
-      for( int index = 0; index < constructors.length; index++ )
-      {
-         Constructor constructor = constructors[index];
-         builder.append( constructor ).append( '\n' );
-      }
+        if (files == null || files.length == 0) {
+            return null;
+        }
 
-      return builder.toString();
-   }
+        //if they've given us a directory with multiple gradle jars, tell them. We won't know which one to use.
+        if (files.length > 1) {
+            throw new RuntimeException(
+                    "Installation has multiple gradle jars. Cannot determine which one to use. Found files: " + files);
+        }
+
+        return files[0];
+    }
+
+    //just a function to help debugging. If we can't find the constructor we want, this dumps out what is available.
+
+    public static String dumpConstructors(Class classInQuestion) {
+        StringBuilder builder = new StringBuilder();
+        Constructor[] constructors = classInQuestion.getConstructors();
+        for (int index = 0; index < constructors.length; index++) {
+            Constructor constructor = constructors[index];
+            builder.append(constructor).append('\n');
+        }
+
+        return builder.toString();
+    }
 }

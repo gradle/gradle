@@ -32,7 +32,9 @@ public class SingleSplitPolicy implements SplitPolicy {
     }
 
     public SplitPolicyInstance getSplitPolicyInstance(PipelineConfig config) {
-        if (config == null) throw new IllegalArgumentException("config == null!");
+        if (config == null) {
+            throw new IllegalArgumentException("config == null!");
+        }
 
         return new SingleSplitPolicyInstance(config);
     }

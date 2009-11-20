@@ -21,7 +21,7 @@ import java.security.MessageDigest;
 
 /**
  * Utility class to calculate the digest of a file or directory based on a requested strategy.
- * 
+ *
  * @author Tom Eyckmans
  */
 public interface DigesterUtil {
@@ -35,7 +35,7 @@ public interface DigesterUtil {
 
     /**
      * Updated the digester for a directory based on the requested strategy.
-     *  
+     *
      * @param digester The digester to update.
      * @param directory The directory that needs it's digest calculated.
      * @param directorySize The size of the directory to use for digest calculation.

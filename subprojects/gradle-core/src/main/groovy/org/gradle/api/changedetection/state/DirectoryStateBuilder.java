@@ -29,15 +29,23 @@ class DirectoryStateBuilder {
     private File directory = null;
 
     DirectoryStateBuilder(StateFileUtil stateFileUtil) {
-        if ( stateFileUtil == null ) throw new IllegalArgumentException("stateFileUtil is null!");
+        if (stateFileUtil == null) {
+            throw new IllegalArgumentException("stateFileUtil is null!");
+        }
 
         this.stateFileUtil = stateFileUtil;
     }
 
     public void setDirectory(File directory) {
-        if ( directory == null ) throw new IllegalArgumentException("directory is null!");
-        if ( !directory.exists() ) throw new IllegalArgumentException("directory doesn't exists!");
-        if ( !directory.isDirectory() ) throw new IllegalArgumentException("directory is not a directory!");
+        if (directory == null) {
+            throw new IllegalArgumentException("directory is null!");
+        }
+        if (!directory.exists()) {
+            throw new IllegalArgumentException("directory doesn't exists!");
+        }
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException("directory is not a directory!");
+        }
 
         this.directory = directory;
     }
@@ -49,7 +57,9 @@ class DirectoryStateBuilder {
     }
 
     public DirectoryState getDirectoryState() {
-        if ( directory == null ) throw new IllegalStateException("directory is null!");
+        if (directory == null) {
+            throw new IllegalStateException("directory is null!");
+        }
 
         final String relativePath = stateFileUtil.getRelativePathToDirectoryToProcess(directory);
         final String relativePathDigest = stateFileUtil.getStringDigest(relativePath);

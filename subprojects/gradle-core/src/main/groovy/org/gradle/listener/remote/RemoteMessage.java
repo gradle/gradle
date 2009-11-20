@@ -21,8 +21,7 @@ import java.io.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 
-class RemoteMessage implements Serializable
-{
+class RemoteMessage implements Serializable {
     private String methodName;
     private Class[] parameters;
     private Object[] arguments;
@@ -39,7 +38,9 @@ class RemoteMessage implements Serializable
             oos = new ObjectOutputStream(outputSteam);
             oos.writeObject(this);
         } finally {
-            if (oos != null) oos.close();
+            if (oos != null) {
+                oos.close();
+            }
         }
     }
 
@@ -49,11 +50,14 @@ class RemoteMessage implements Serializable
             ois = new ObjectInputStream(inputSteam);
             return (RemoteMessage) ois.readObject();
         } finally {
-            if (ois != null) ois.close();
+            if (ois != null) {
+                ois.close();
+            }
         }
     }
 
-    public Object dispatch(ListenerBroadcast<?> broadcaster) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public Object dispatch(ListenerBroadcast<?> broadcaster)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Class<?> listenerClass = broadcaster.getType();
         Method method = listenerClass.getMethod(methodName, parameters);
         return method.invoke(broadcaster.getSource(), arguments);

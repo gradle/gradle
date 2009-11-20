@@ -24,21 +24,20 @@ import java.awt.Component;
  */
 public interface GradleTab {
     /**
-       @return the name of this tab
-       @author mhunsicker
-    */
+     * @return the name of this tab
+     * @author mhunsicker
+     */
     public String getName();
 
     /**
-     This is where we should create the component.
-
-     @return the component
-    */
+     * This is where we should create the component.
+     *
+     * @return the component
+     */
     public Component createComponent();
 
     /**
-       Notification that this component is about to be shown. Do whatever
-       initialization you choose.
-    */
+     * Notification that this component is about to be shown. Do whatever initialization you choose.
+     */
     public void aboutToShow();
 }

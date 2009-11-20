@@ -68,116 +68,114 @@ public class Utility {
     }
 
     /**
-       This creates a dialog. I only created this because I was using JDK 1.6,
-       then realized I needed to use 1.5 and one of the most useful features of
-       1.6 is dialogs taking Windows as parents. This abstracts that so I don't
-       have to make major changes to the code by passing around JFrames and JDialogs
-       explicitly.
-
-       @param  parent     the parent window
-       @param  isModal    true if its modal, false if not.
-       @return a dialog
-    */
+     * This creates a dialog. I only created this because I was using JDK 1.6, then realized I needed to use 1.5 and one
+     * of the most useful features of 1.6 is dialogs taking Windows as parents. This abstracts that so I don't have to
+     * make major changes to the code by passing around JFrames and JDialogs explicitly.
+     *
+     * @param parent the parent window
+     * @param isModal true if its modal, false if not.
+     * @return a dialog
+     */
     public static JDialog createDialog(Window parent, String title, boolean isModal) {
-        if (parent instanceof JDialog)
+        if (parent instanceof JDialog) {
             return new JDialog((JDialog) parent, title, isModal);
-        else if (parent instanceof JFrame)
+        } else if (parent instanceof JFrame) {
             return new JDialog((JFrame) parent, title, isModal);
+        }
 
         throw new RuntimeException("Unknown window type!");
     }
 
     /**
-       This uses reflection to set the tab component if we're running under 1.6.
-       It does nothing if you're running under 1.5. This is so you can run this
-       on java 1.6 and get this benefit, but its not required to compile.
-
-       This is the same as calling JTabbedPane.setTabComponentAt(). It just does
-       so using reflection.
-    */
+     * This uses reflection to set the tab component if we're running under 1.6. It does nothing if you're running under
+     * 1.5. This is so you can run this on java 1.6 and get this benefit, but its not required to compile.
+     *
+     * This is the same as calling JTabbedPane.setTabComponentAt(). It just does so using reflection.
+     */
     public static void setTabComponent15Compatible(JTabbedPane tabbedPane, int index, Component component) {
         try {
-            Method method = tabbedPane.getClass().getMethod("setTabComponentAt", new Class[]{Integer.TYPE, Component.class});
+            Method method = tabbedPane.getClass().getMethod("setTabComponentAt",
+                    new Class[]{Integer.TYPE, Component.class});
             method.invoke(tabbedPane, index, component);
-        }
-        catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             //e.printStackTrace();
             //we're not requiring 1.6, so its not a problem if we don't find the method. We just don't get this feature.
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Setting tab component", e);
         }
     }
 
     /**
-       This creates a button with the specified action, image, and tooltip text.
-       The main issue here is that it doesn't crash if the image is missing
-       (which is just something that happens in real life from time to time).
-       You probably should specify a name on the action just in case.
-
-       @param  imageResourceName the image resource
-       @param  tooltip           the tooltip to display
-       @param  action            the action to perform
-       @return the button that was created.
-    */
+     * This creates a button with the specified action, image, and tooltip text. The main issue here is that it doesn't
+     * crash if the image is missing (which is just something that happens in real life from time to time). You probably
+     * should specify a name on the action just in case.
+     *
+     * @param imageResourceName the image resource
+     * @param tooltip the tooltip to display
+     * @param action the action to perform
+     * @return the button that was created.
+     */
     public static JButton createButton(Class resourceClass, String imageResourceName, String tooltip, Action action) {
 
-       JButton button = null;
-       if (imageResourceName != null) {
+        JButton button = null;
+        if (imageResourceName != null) {
             InputStream inputStream = resourceClass.getResourceAsStream(imageResourceName);
             if (inputStream != null) {
                 try {
                     BufferedImage image = ImageIO.read(inputStream);
 
-                    button = new BorderlessImageButton( action, new ImageIcon(image) );
-                }
-                catch (IOException e) {
+                    button = new BorderlessImageButton(action, new ImageIcon(image));
+                } catch (IOException e) {
                     LOGGER.error("Reading image " + imageResourceName, e);
                 }
             }
         }
 
-       if( button == null )
-          button = new JButton( action );
+        if (button == null) {
+            button = new JButton(action);
+        }
 
-       if (tooltip != null)
-          button.setToolTipText(tooltip);
+        if (tooltip != null) {
+            button.setToolTipText(tooltip);
+        }
 
         return button;
     }
 
-   public static JToggleButton createToggleButton( Class resourceClass, String imageResourceName, String tooltip, Action action ) {
+    public static JToggleButton createToggleButton(Class resourceClass, String imageResourceName, String tooltip,
+                                                   Action action) {
 
-      JToggleButton button = null;
+        JToggleButton button = null;
 
-       if (imageResourceName != null) {
+        if (imageResourceName != null) {
             InputStream inputStream = resourceClass.getResourceAsStream(imageResourceName);
             if (inputStream != null) {
                 try {
                     BufferedImage image = ImageIO.read(inputStream);
 
-                    button = new BorderlessImageToggleButton( action, new ImageIcon(image) );
-                }
-                catch (IOException e) {
+                    button = new BorderlessImageToggleButton(action, new ImageIcon(image));
+                } catch (IOException e) {
                     LOGGER.error("Reading image " + imageResourceName, e);
                 }
             }
         }
 
-       if( button == null )
-          button = new JToggleButton( action );
+        if (button == null) {
+            button = new JToggleButton(action);
+        }
 
-       if (tooltip != null)
-          button.setToolTipText(tooltip);
+        if (tooltip != null) {
+            button.setToolTipText(tooltip);
+        }
 
         return button;
-   }
-   
-   //this determines if the CTRL key is down based on the modifiers from an event.
-   //This actualy needs to be checking for different things. CTRL doesn't meant the
-   //same thing on each platform.
-   public static boolean isCTRLDown( int eventModifiersEx )
-   {
-      return ( eventModifiersEx & InputEvent.CTRL_DOWN_MASK ) == InputEvent.CTRL_DOWN_MASK;
-   }
+    }
+
+    //this determines if the CTRL key is down based on the modifiers from an event.
+    //This actualy needs to be checking for different things. CTRL doesn't meant the
+    //same thing on each platform.
+
+    public static boolean isCTRLDown(int eventModifiersEx) {
+        return (eventModifiersEx & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
+    }
 }

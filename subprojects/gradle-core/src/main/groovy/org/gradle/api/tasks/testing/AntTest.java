@@ -54,7 +54,8 @@ public class AntTest extends AbstractTestTask {
         final Set<String> includes = getIncludes();
         final Set<String> excludes = getExcludes();
 
-        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, testClassProcessor);
+        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this,
+                testClassProcessor);
 
         testClassScanner.executeScan();
 
@@ -72,10 +73,12 @@ public class AntTest extends AbstractTestTask {
 
         GFileUtils.createDirectoriesWhenNotExistent(getTestResultsDir());// needed for JUnit reporting
 
-        if (!(toUseIncludes.isEmpty() && toUseExcludes.isEmpty()))
+        if (!(toUseIncludes.isEmpty() && toUseExcludes.isEmpty())) {
             testFrameworkInstance.execute(getProject(), this, toUseIncludes, toUseExcludes);
-        else // when there are no includes/excludes -> don't execute test framework
+        } else // when there are no includes/excludes -> don't execute test framework
+        {
             LOGGER.debug("skipping test execution, because no tests were found");
+        }
         // TestNG execution fails when there are no tests
         // JUnit execution doesn't fail when there are no tests
 
@@ -83,15 +86,14 @@ public class AntTest extends AbstractTestTask {
             testFrameworkInstance.report(getProject(), this);
         }
 
-        if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(FAILURES_OR_ERRORS_PROPERTY))) {
+        if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
+                FAILURES_OR_ERRORS_PROPERTY))) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
         }
     }
 
     /**
      * only for test purposes
-     * 
-     * @param testClassScannerFactory
      */
     void setTestClassScannerFactory(TestClassScannerFactory testClassScannerFactory) {
         this.testClassScannerFactory = testClassScannerFactory;
@@ -99,8 +101,6 @@ public class AntTest extends AbstractTestTask {
 
     /**
      * only for test purposes
-     *
-     * @param testClassProcessor
      */
     void setTestClassProcessor(SetBuildingTestClassProcessor testClassProcessor) {
         this.testClassProcessor = testClassProcessor;

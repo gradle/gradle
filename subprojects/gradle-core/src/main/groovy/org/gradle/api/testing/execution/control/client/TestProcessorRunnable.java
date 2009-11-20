@@ -34,7 +34,9 @@ public class TestProcessorRunnable implements Runnable {
     private final ReforkDataGatherControl reforkDataGatherControl;
     private final TestProcessResultFactory testProcessResultFactory;
 
-    public TestProcessorRunnable(TestControlMessageDispatcher messageDispatcher, TestProcessor testProcessor, TestClassRunInfo testClassRunInfo, ReforkDataGatherControl reforkDataGatherControl, TestProcessResultFactory testProcessResultFactory) {
+    public TestProcessorRunnable(TestControlMessageDispatcher messageDispatcher, TestProcessor testProcessor,
+                                 TestClassRunInfo testClassRunInfo, ReforkDataGatherControl reforkDataGatherControl,
+                                 TestProcessResultFactory testProcessResultFactory) {
         this.messageDispatcher = messageDispatcher;
         this.testProcessor = testProcessor;
         this.testClassRunInfo = testClassRunInfo;
@@ -49,14 +51,14 @@ public class TestProcessorRunnable implements Runnable {
         // TODO add control listeners
         try {
             testProcessResult = testProcessor.process(testClassRunInfo);
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             testProcessResult = testProcessResultFactory.createEmptyClassResult(testClassRunInfo);
             testProcessResult.setProcessorErrorReason(t);
         }
 
 //        System.out.println("[fork] test " + testClassRunInfo.getTestClassName() + " run, gathering refork data");
-        final ReforkDecisionContext reforkDecisionContext = reforkDataGatherControl.gatherData(DataGatherMoment.AFTER_TEST_EXECUTION, testProcessResult);
+        final ReforkDecisionContext reforkDecisionContext = reforkDataGatherControl.gatherData(
+                DataGatherMoment.AFTER_TEST_EXECUTION, testProcessResult);
 
 //        System.out.println("[fork] requesting next action");
         messageDispatcher.actionExecuted(testProcessResult, reforkDecisionContext);

@@ -18,10 +18,8 @@ package org.gradle.api.testing.execution.control.refork;
 import java.util.List;
 
 /**
- * A decision context item data gatherer operates within the test fork process.
- * <p/>
- * The test fork will call {@link #processDataGatherMoment} for each data gather moment returned by
- * {@link #getDataGatherMoments}.
+ * A decision context item data gatherer operates within the test fork process. <p/> The test fork will call {@link
+ * #processDataGatherMoment} for each data gather moment returned by {@link #getDataGatherMoments}.
  *
  * @author Tom Eyckmans
  */
@@ -36,9 +34,8 @@ public interface ReforkReasonDataGatherer {
     void configure(ReforkReasonConfig config);
 
     /**
-     * Defines the moments when this data gatherer needs to be notified.
-     * <p/>
-     * Note: Only called once at the start of the fork (should always return the same list).
+     * Defines the moments when this data gatherer needs to be notified. <p/> Note: Only called once at the start of the
+     * fork (should always return the same list).
      *
      * @return List of data gather moments.
      */
@@ -48,7 +45,7 @@ public interface ReforkReasonDataGatherer {
      * Called for each data gather moment specified by {@link #getDataGatherMoments}.
      *
      * @param currentMoment The current data gather moment.
-     * @param momentData    Variable size array of Objects, the amount of data depends on the data gather moment.
+     * @param momentData Variable size array of Objects, the amount of data depends on the data gather moment.
      * @return Whether this data gatherer wants to send data back to the test server.
      */
     boolean processDataGatherMoment(DataGatherMoment currentMoment, Object... momentData);

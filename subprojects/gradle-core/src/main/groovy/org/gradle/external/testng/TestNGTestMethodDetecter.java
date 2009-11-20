@@ -29,8 +29,9 @@ class TestNGTestMethodDetecter extends EmptyVisitor {
     }
 
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        if ("Lorg/testng/annotations/Test;".equals(desc))
+        if ("Lorg/testng/annotations/Test;".equals(desc)) {
             testClassDetecter.setTest(true);
+        }
         return new EmptyVisitor();
     }
 
@@ -39,6 +40,6 @@ class TestNGTestMethodDetecter extends EmptyVisitor {
     }
 
     public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-      return new EmptyVisitor();
+        return new EmptyVisitor();
     }
 }

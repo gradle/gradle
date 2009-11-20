@@ -27,5 +27,6 @@ public interface TestControlClient {
 
     void reportStopped();
 
-    void requestNextControlMessage(TestClassProcessResult previousProcessTestResult, ReforkDecisionContext reforkDecisionContext);
+    void requestNextControlMessage(TestClassProcessResult previousProcessTestResult,
+                                   ReforkDecisionContext reforkDecisionContext);
 }

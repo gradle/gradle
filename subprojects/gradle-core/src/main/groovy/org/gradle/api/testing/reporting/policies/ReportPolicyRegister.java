@@ -24,26 +24,34 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Tom Eyckmans
  */
 public class ReportPolicyRegister {
-    private static final Map<ReportPolicyName, ReportPolicy> REPORT_POLICIES = new ConcurrentHashMap<ReportPolicyName, ReportPolicy>();
+    private static final Map<ReportPolicyName, ReportPolicy> REPORT_POLICIES
+            = new ConcurrentHashMap<ReportPolicyName, ReportPolicy>();
 
     static {
         registerReportPolicy(new ConsoleReportPolicy());
     }
 
     public static void registerReportPolicy(final ReportPolicy reportPolicy) {
-        if ( reportPolicy == null ) throw new IllegalArgumentException("reportPolicy == null!");
+        if (reportPolicy == null) {
+            throw new IllegalArgumentException("reportPolicy == null!");
+        }
 
         final ReportPolicyName reportPolicyName = reportPolicy.getName();
 
-        if ( reportPolicyName == null ) throw new IllegalArgumentException("reportPolicy.name == null!");
-        if ( REPORT_POLICIES.containsKey(reportPolicyName) )
+        if (reportPolicyName == null) {
+            throw new IllegalArgumentException("reportPolicy.name == null!");
+        }
+        if (REPORT_POLICIES.containsKey(reportPolicyName)) {
             throw new IllegalArgumentException("report policy (" + reportPolicyName + ") already registered!");
+        }
 
         REPORT_POLICIES.put(reportPolicyName, reportPolicy);
     }
 
     public static ReportPolicy getReportPolicy(final ReportPolicyName reportPolicyName) {
-        if ( reportPolicyName == null ) throw new IllegalArgumentException("reportPolicyName == null!");
+        if (reportPolicyName == null) {
+            throw new IllegalArgumentException("reportPolicyName == null!");
+        }
 
         return REPORT_POLICIES.get(reportPolicyName);
     }

@@ -25,7 +25,9 @@ public class TestServerClientHandleFactory {
     private final ForkControl forkControl;
 
     public TestServerClientHandleFactory(ForkControl forkControl) {
-        if ( forkControl == null ) throw new IllegalArgumentException("forkControl == null!");
+        if (forkControl == null) {
+            throw new IllegalArgumentException("forkControl == null!");
+        }
 
         this.forkControl = forkControl;
     }

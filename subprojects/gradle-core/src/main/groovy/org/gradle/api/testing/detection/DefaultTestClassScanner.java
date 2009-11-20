@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The default test class scanner depending on the availability of a test framework detecter a detection or filename scan is performed
- * to find test classes.
- *  
+ * The default test class scanner depending on the availability of a test framework detecter a detection or filename
+ * scan is performed to find test classes.
+ *
  * @author Tom Eyckmans
  */
 public class DefaultTestClassScanner implements TestClassScanner {
@@ -39,13 +39,20 @@ public class DefaultTestClassScanner implements TestClassScanner {
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
 
-    public DefaultTestClassScanner(File testClassDirectory, Set<String> includePatterns, Set<String> excludePatterns, TestFrameworkDetector testFrameworkDetector, TestClassProcessor testClassProcessor) {
-        if ( testClassDirectory == null ) throw new IllegalArgumentException("testClassDirectory is null!");
-        if ( testClassProcessor == null ) throw new IllegalArgumentException("testClassProcessor is null!");
+    public DefaultTestClassScanner(File testClassDirectory, Set<String> includePatterns, Set<String> excludePatterns,
+                                   TestFrameworkDetector testFrameworkDetector, TestClassProcessor testClassProcessor) {
+        if (testClassDirectory == null) {
+            throw new IllegalArgumentException("testClassDirectory is null!");
+        }
+        if (testClassProcessor == null) {
+            throw new IllegalArgumentException("testClassProcessor is null!");
+        }
 
         this.testClassDirectory = testClassDirectory;
-        this.includePatterns = includePatterns == null ? new ArrayList<String>() : new ArrayList<String>(includePatterns);
-        this.excludePatterns = excludePatterns == null ? new ArrayList<String>() : new ArrayList<String>(excludePatterns);
+        this.includePatterns = includePatterns == null ? new ArrayList<String>() : new ArrayList<String>(
+                includePatterns);
+        this.excludePatterns = excludePatterns == null ? new ArrayList<String>() : new ArrayList<String>(
+                excludePatterns);
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
     }
@@ -53,16 +60,14 @@ public class DefaultTestClassScanner implements TestClassScanner {
     public void executeScan() {
         final FileSet testClassFileSet = new FileSet(testClassDirectory, null);
 
-        if ( testFrameworkDetector == null ) {
+        if (testFrameworkDetector == null) {
             filenameScan(testClassFileSet);
-        }
-        else {
+        } else {
             detectionScan(testClassFileSet);
         }
     }
 
-    private void detectionScan(final FileSet testClassFileSet)
-    {
+    private void detectionScan(final FileSet testClassFileSet) {
         testClassFileSet.include(includePatterns);
         testClassFileSet.exclude(excludePatterns);
 
@@ -75,8 +80,7 @@ public class DefaultTestClassScanner implements TestClassScanner {
         });
     }
 
-    private void filenameScan(final FileSet testClassFileSet)
-    {
+    private void filenameScan(final FileSet testClassFileSet) {
         if (includePatterns.isEmpty()) {
             includePatterns.add("**/*Tests.class");
             includePatterns.add("**/*Test.class");
@@ -89,15 +93,14 @@ public class DefaultTestClassScanner implements TestClassScanner {
 
         testClassFileSet.visit(new ClassFileVisitor() {
             public void visitClassFile(FileVisitDetails fileDetails) {
-                testClassProcessor.processTestClass(fileDetails.getRelativePath().getPathString().replaceAll("\\.class",""));
+                testClassProcessor.processTestClass(fileDetails.getRelativePath().getPathString().replaceAll("\\.class",
+                        ""));
             }
         });
     }
 
-    private abstract class ClassFileVisitor extends EmptyFileVisitor
-    {
-        public void visitFile(FileVisitDetails fileDetails)
-        {
+    private abstract class ClassFileVisitor extends EmptyFileVisitor {
+        public void visitFile(FileVisitDetails fileDetails) {
             final File file = fileDetails.getFile();
 
             if (file.getAbsolutePath().endsWith(".class")) {

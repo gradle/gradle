@@ -43,13 +43,19 @@ public class DefaultTestControlClient implements TestControlClient {
     private IoSession ioSession;
     private final BlockingQueueItemProducer<TestControlMessage> testControlMessageProvider;
 
-    public DefaultTestControlClient(int forkId, IoConnectorFactory ioConnectorFactory, BlockingQueue<TestControlMessage> testControlMessageQueue) {
-        if (ioConnectorFactory == null) throw new IllegalArgumentException("ioConnectorProvider == null!");
-        if (testControlMessageQueue == null) throw new IllegalArgumentException("testControlMessageQueue == null!");
+    public DefaultTestControlClient(int forkId, IoConnectorFactory ioConnectorFactory,
+                                    BlockingQueue<TestControlMessage> testControlMessageQueue) {
+        if (ioConnectorFactory == null) {
+            throw new IllegalArgumentException("ioConnectorProvider == null!");
+        }
+        if (testControlMessageQueue == null) {
+            throw new IllegalArgumentException("testControlMessageQueue == null!");
+        }
 
         this.forkId = forkId;
         this.ioConnectorFactory = ioConnectorFactory;
-        this.testControlMessageProvider = new BlockingQueueItemProducer<TestControlMessage>(testControlMessageQueue, 100L, TimeUnit.MILLISECONDS);
+        this.testControlMessageProvider = new BlockingQueueItemProducer<TestControlMessage>(testControlMessageQueue,
+                100L, TimeUnit.MILLISECONDS);
     }
 
     public void open() {
@@ -61,8 +67,7 @@ public class DefaultTestControlClient implements TestControlClient {
             connectFuture.awaitUninterruptibly();
 
             ioSession = connectFuture.getSession();
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             throw new GradleException("failed to open test run progress client", t);
         }
     }
@@ -73,8 +78,9 @@ public class DefaultTestControlClient implements TestControlClient {
 
             ioSession.getCloseFuture().awaitUninterruptibly();
         }
-        if (ioConnector != null)
+        if (ioConnector != null) {
             ioConnector.dispose();
+        }
     }
 
     public void reportStarted() {
@@ -85,7 +91,8 @@ public class DefaultTestControlClient implements TestControlClient {
         ioSession.write(new ForkStoppedMessage(forkId));
     }
 
-    public void requestNextControlMessage(TestClassProcessResult previousProcessTestResult, ReforkDecisionContext reforkDecisionContext) {
+    public void requestNextControlMessage(TestClassProcessResult previousProcessTestResult,
+                                          ReforkDecisionContext reforkDecisionContext) {
         final NextActionRequestMessage nextActionRequestMessage = new NextActionRequestMessage(forkId);
 
         nextActionRequestMessage.setPreviousProcessedTestResult(previousProcessTestResult);

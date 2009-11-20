@@ -20,14 +20,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(DistributionIntegrationTestRunner.class)
-class SamplesGroovy1_5_6IntegrationTest {
+class SamplesGroovy156IntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
 
     @Test
-    public void groovy1_5_6Sample() {
+    public void groovySample() {
         TestFile groovyProjectDir = dist.samplesDir.file('groovy/groovy-1.5.6')
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 

@@ -34,25 +34,22 @@ public class ChangeDetecter {
         // directory to process
         File mainGroovyDir = new File(new File("."), "src/main/groovy");
 
-        DirectoryStateChangeDetecter cDetecter = new DefaultDirectoryStateChangeDetecterBuilder()
-                .rootProjectDirectory(projectRootDir)
-                .directoryToProcess(mainGroovyDir)
-                .dotGradleStatesDirectory(new File(projectRootDir, ".gradle/states"))
-                .getDirectoryStateChangeDetecter();
+        DirectoryStateChangeDetecter cDetecter = new DefaultDirectoryStateChangeDetecterBuilder().rootProjectDirectory(
+                projectRootDir).directoryToProcess(mainGroovyDir).dotGradleStatesDirectory(new File(projectRootDir,
+                ".gradle/states")).getDirectoryStateChangeDetecter();
 
         cDetecter.detectChanges(new ChangeProcessor() {
             public void createdFile(File changedFile) {
                 System.out.println(changedFile + " [created]");
             }
+
             public void changedFile(File changedFile) {
                 System.out.println(changedFile + " [changed]");
             }
+
             public void deletedFile(File changedFile) {
                 System.out.println(changedFile + " [deleted]");
             }
         });
-
-        
-
     }
 }

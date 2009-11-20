@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.jetty.internal;
 
-
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.RequestLog;
@@ -33,9 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Jetty6PluginServer
- * <p/>
- * Jetty6 version of a wrapper for the Server class.
+ * Jetty6PluginServer <p/> Jetty6 version of a wrapper for the Server class.
  */
 public class Jetty6PluginServer implements JettyPluginServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Jetty6PluginServer.class);
@@ -60,8 +57,9 @@ public class Jetty6PluginServer implements JettyPluginServer {
      * @see Jetty6PluginServer#setConnectors(Object[])
      */
     public void setConnectors(Object[] connectors) {
-        if (connectors == null || connectors.length == 0)
+        if (connectors == null || connectors.length == 0) {
             return;
+        }
 
         for (int i = 0; i < connectors.length; i++) {
             Connector connector = (Connector) connectors[i];
@@ -81,11 +79,13 @@ public class Jetty6PluginServer implements JettyPluginServer {
      * @see Jetty6PluginServer#setUserRealms(Object[])
      */
     public void setUserRealms(Object[] realms) throws Exception {
-        if (realms == null)
+        if (realms == null) {
             return;
+        }
 
-        for (int i = 0; i < realms.length; i++)
+        for (int i = 0; i < realms.length; i++) {
             this.server.addUserRealm((UserRealm) realms[i]);
+        }
     }
 
     /**
@@ -94,7 +94,6 @@ public class Jetty6PluginServer implements JettyPluginServer {
     public Object[] getUserRealms() {
         return this.server.getUserRealms();
     }
-
 
     public void setRequestLog(Object requestLog) {
         this.requestLog = (RequestLog) requestLog;
@@ -126,20 +125,16 @@ public class Jetty6PluginServer implements JettyPluginServer {
         contexts.addHandler(webapp);
     }
 
-
     /**
-     * Set up the handler structure to receive a webapp.
-     * Also put in a DefaultHandler so we get a nice page
-     * than a 404 if we hit the root and the webapp's
-     * context isn't at root.
-     *
-     * @throws Exception
+     * Set up the handler structure to receive a webapp. Also put in a DefaultHandler so we get a nice page than a 404
+     * if we hit the root and the webapp's context isn't at root.
      */
     public void configureHandlers() throws Exception {
         this.defaultHandler = new DefaultHandler();
         this.requestLogHandler = new RequestLogHandler();
-        if (this.requestLog != null)
+        if (this.requestLog != null) {
             this.requestLogHandler.setRequestLog(this.requestLog);
+        }
 
         this.contexts = (ContextHandlerCollection) server.getChildHandlerByClass(ContextHandlerCollection.class);
         if (this.contexts == null) {
@@ -155,7 +150,6 @@ public class Jetty6PluginServer implements JettyPluginServer {
         }
     }
 
-
     public Object createDefaultConnector(int port) throws Exception {
         SelectChannelConnector connector = new SelectChannelConnector();
         connector.setPort(port);
@@ -163,7 +157,6 @@ public class Jetty6PluginServer implements JettyPluginServer {
 
         return connector;
     }
-
 
     public void join() throws Exception {
         this.server.getThreadPool().join();

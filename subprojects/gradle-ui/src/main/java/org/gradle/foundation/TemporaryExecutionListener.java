@@ -33,9 +33,9 @@ import org.gradle.api.logging.StandardOutputListener;
 public class TemporaryExecutionListener {
 
     /**
-     * <p>Adds an {@link ExecutionListener} to this Gradle instance. The listener is notified of events which occur during a
-     * build. This provides more information than a {@link BuildListener} does and is intended to be used by tools
-     * that use gradle (such as continuous integration servers or IDE plugins).</p>
+     * <p>Adds an {@link ExecutionListener} to this Gradle instance. The listener is notified of events which occur
+     * during a build. This provides more information than a {@link BuildListener} does and is intended to be used by
+     * tools that use gradle (such as continuous integration servers or IDE plugins).</p>
      *
      * @param executionListener The listener to add.
      */
@@ -44,17 +44,17 @@ public class TemporaryExecutionListener {
     }
 
     /**
-       This listens to the build so we can provide feedback and progress to our
-       caller. This just delegates the work to ExecutionListener. Since the information
-       for the ExecutionListener isn't readily available, this automatically sets up
-       several other listeners.
-    */
-    private static class DelegatingBuildListener implements BuildListener, StandardOutputListener,
-            TaskExecutionGraphListener {
+     * This listens to the build so we can provide feedback and progress to our caller. This just delegates the work to
+     * ExecutionListener. Since the information for the ExecutionListener isn't readily available, this automatically
+     * sets up several other listeners.
+     */
+    private static class DelegatingBuildListener
+            implements BuildListener, StandardOutputListener, TaskExecutionGraphListener {
         private DelegatingTaskExecutionListener taskProgressListener;
         private TaskExecutionGraph taskExecutionGraph;
         private ExecutionListener executionListener;
-        private StringBuffer allOutputText = new StringBuffer(); //this is potentially threaded, so use StringBuffer instead of StringBuidler
+        private StringBuffer allOutputText = new StringBuffer();
+                //this is potentially threaded, so use StringBuffer instead of StringBuidler
 
         private DelegatingBuildListener(ExecutionListener executionListener) {
             this.executionListener = executionListener;
@@ -80,10 +80,9 @@ public class TemporaryExecutionListener {
         }
 
         /**
-         * <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is
-         * ready to use to load the build projects.</p>
-         * <p/>
-         * <p>Here, we add a Log4J appender so we can capture gradle's (and Ant, etc.) output.</p>
+         * <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and
+         * is ready to use to load the build projects.</p> <p/> <p>Here, we add a Log4J appender so we can capture
+         * gradle's (and Ant, etc.) output.</p>
          *
          * @param settings The settings. Never null.
          */
@@ -98,10 +97,9 @@ public class TemporaryExecutionListener {
         }
 
         /**
-         * <p>Called when the task graph for the build has been populated. The task graph is fully configured and is ready
-         * to use to execute the tasks which make up the build.</p>
-         * <p>Here we add a TaskExecutionListener to the task graph that just delegates the task messages to
-         * the ExecutionListener</p>
+         * <p>Called when the task graph for the build has been populated. The task graph is fully configured and is
+         * ready to use to execute the tasks which make up the build.</p> <p>Here we add a TaskExecutionListener to the
+         * task graph that just delegates the task messages to the ExecutionListener</p>
          */
         public void graphPopulated(TaskExecutionGraph taskExecutionGraph) {
             this.taskExecutionGraph = taskExecutionGraph;
@@ -112,12 +110,12 @@ public class TemporaryExecutionListener {
         }
 
         /**
-         * <p>Called when the build is completed. All selected tasks have been executed.</p>
-         * <p>We remove our Log4JAppender as well as our task execution listener. Lastly,
-         * we report the build results.</p>
+         * <p>Called when the build is completed. All selected tasks have been executed.</p> <p>We remove our
+         * Log4JAppender as well as our task execution listener. Lastly, we report the build results.</p>
          */
         public void buildFinished(BuildResult buildResult) {
-            if (taskExecutionGraph != null) //not sure if this is necessary, but just in case... we'll clean up after ourselves.
+            if (taskExecutionGraph
+                    != null) //not sure if this is necessary, but just in case... we'll clean up after ourselves.
             {
                 taskExecutionGraph.removeTaskExecutionListener(taskProgressListener);
                 taskProgressListener = null;
@@ -129,9 +127,8 @@ public class TemporaryExecutionListener {
     }
 
     /**
-       Listener that allows us to listen for progress while executing a task. We
-       delegate this to another listener
-    */
+     * Listener that allows us to listen for progress while executing a task. We delegate this to another listener
+     */
     private static class DelegatingTaskExecutionListener implements TaskExecutionListener {
         private float totalTasksToExecute;
         private float totalTasksExecuted;

@@ -35,13 +35,17 @@ public class ReforkReasonRegister {
     }
 
     public static void addDecisionContextItem(ReforkReason reforkReason) {
-        if (reforkReason == null) throw new IllegalArgumentException("decisionContextItem == null!");
+        if (reforkReason == null) {
+            throw new IllegalArgumentException("decisionContextItem == null!");
+        }
 
         INSTANCE.decisionContextItems.put(reforkReason.getKey(), reforkReason);
     }
 
     public static ReforkReason getDecisionContextItem(ReforkReasonKey reforkReasonKey) {
-        if (reforkReasonKey == null) throw new IllegalArgumentException("decisionContextItemKey == null!");
+        if (reforkReasonKey == null) {
+            throw new IllegalArgumentException("decisionContextItemKey == null!");
+        }
 
         return INSTANCE.decisionContextItems.get(reforkReasonKey);
     }

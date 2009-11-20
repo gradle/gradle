@@ -62,7 +62,8 @@ public class TestControlMessageDispatcher {
 
             final TestProcessor testProcessor = testProcessorFactory.createProcessor();
 
-            final TestProcessorRunnable testProcessorRunnable = new TestProcessorRunnable(this, testProcessor, testInfo, reforkDataGatherControl, testProcessResultFactory);
+            final TestProcessorRunnable testProcessorRunnable = new TestProcessorRunnable(this, testProcessor, testInfo,
+                    reforkDataGatherControl, testProcessResultFactory);
 
             threadPool.submit(testProcessorRunnable);
         } else if (testControlMessage instanceof WaitActionMesssage) {
@@ -72,8 +73,7 @@ public class TestControlMessageDispatcher {
 
             try {
                 Thread.sleep(waitMessage.getTimeToWait());
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
@@ -104,8 +104,10 @@ public class TestControlMessageDispatcher {
         return exitReceived.get();
     }
 
-    public void actionExecuted(TestClassProcessResult previousProcessTestResult, ReforkDecisionContext reforkDecisionContext) {
-        if (!exitReceived.get())
+    public void actionExecuted(TestClassProcessResult previousProcessTestResult,
+                               ReforkDecisionContext reforkDecisionContext) {
+        if (!exitReceived.get()) {
             testControlClient.requestNextControlMessage(previousProcessTestResult, reforkDecisionContext);
+        }
     }
 }

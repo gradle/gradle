@@ -88,12 +88,14 @@ public class GFileUtils {
         }
     }
 
-    public static File toFile(String...filePathParts) {
+    public static File toFile(String... filePathParts) {
         final StringWriter filePathBuffer = new StringWriter();
-        
-        for ( int i=0;i<filePathParts.length;i++) {
+
+        for (int i = 0; i < filePathParts.length; i++) {
             filePathBuffer.write(filePathParts[i]);
-            if ( i+1 < filePathParts.length ) filePathBuffer.write(FILE_SEPARATOR);
+            if (i + 1 < filePathParts.length) {
+                filePathBuffer.write(FILE_SEPARATOR);
+            }
         }
 
         return new File(filePathBuffer.toString());
@@ -458,9 +460,9 @@ public class GFileUtils {
     public static void addSubDirectories(final File directory, final Collection<File> subDirectories) {
         final File[] subFiles = directory.listFiles();
 
-        if ( subFiles != null && subFiles.length > 0 ) {
-            for ( final File subFile : subFiles ) {
-                if ( subFile.isDirectory() ) {
+        if (subFiles != null && subFiles.length > 0) {
+            for (final File subFile : subFiles) {
+                if (subFile.isDirectory()) {
                     subDirectories.add(subFile);
                     addSubDirectories(subFile, subDirectories);
                 }
@@ -473,9 +475,9 @@ public class GFileUtils {
         final List<File> subFilesList = new ArrayList<File>();
 
         final File[] subFiles = directory.listFiles();
-        if ( subFiles != null && subFiles.length > 0 ) {
-            for ( final File subFile : subFiles ) {
-                if ( subFile.isFile() ) {
+        if (subFiles != null && subFiles.length > 0) {
+            for (final File subFile : subFiles) {
+                if (subFile.isFile()) {
                     subFilesList.add(subFile);
                 }
             }
@@ -484,23 +486,24 @@ public class GFileUtils {
         return subFilesList;
     }
 
-    public static boolean createDirectoriesWhenNotExistent(File ... directories) {
-        if ( directories != null && directories.length > 0 ) {
+    public static boolean createDirectoriesWhenNotExistent(File... directories) {
+        if (directories != null && directories.length > 0) {
             boolean directoriesCreated = true;
             int directoriesIndex = 0;
 
-            while ( directoriesCreated && directoriesIndex < directories.length ) {
+            while (directoriesCreated && directoriesIndex < directories.length) {
                 final File currentDirectory = directories[directoriesIndex];
 
-                if ( !currentDirectory.exists() )
+                if (!currentDirectory.exists()) {
                     directoriesCreated = currentDirectory.mkdirs();
+                }
 
                 directoriesIndex++;
             }
 
             return directoriesCreated;
-        }
-        else
+        } else {
             return true;
+        }
     }
 }

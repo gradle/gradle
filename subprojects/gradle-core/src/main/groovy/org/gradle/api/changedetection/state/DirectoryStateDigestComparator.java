@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * @author Tom Eyckmans
  */
-class DirectoryStateDigestComparator implements Runnable{
+class DirectoryStateDigestComparator implements Runnable {
     private final StateFileItem newState;
     private final File directory;
     private final StateFileUtil stateFileUtil;
@@ -29,7 +29,8 @@ class DirectoryStateDigestComparator implements Runnable{
     private volatile Throwable failureCause = null;
     private final StateFileChangeListenerUtil stateFileChangeListenerUtil;
 
-    DirectoryStateDigestComparator(StateFileItem newState, StateFileUtil stateFileUtil, StateFileChangeListenerUtil stateFileChangeListenerUtil) {
+    DirectoryStateDigestComparator(StateFileItem newState, StateFileUtil stateFileUtil,
+                                   StateFileChangeListenerUtil stateFileChangeListenerUtil) {
         this.newState = newState;
         this.stateFileChangeListenerUtil = stateFileChangeListenerUtil;
         this.directory = stateFileUtil.getDirsStateFileKeyToFile(newState.getKey());
@@ -37,11 +38,12 @@ class DirectoryStateDigestComparator implements Runnable{
     }
 
     public void run() {
-        final StateFileComparator directoryStateFileComparator = new StateFileComparator(stateFileUtil, stateFileUtil.getDirsStateFileKeyToDirStateFile(newState.getKey()));
+        final StateFileComparator directoryStateFileComparator = new StateFileComparator(stateFileUtil,
+                stateFileUtil.getDirsStateFileKeyToDirStateFile(newState.getKey()));
         try {
-            directoryStateFileComparator.compareStateFiles(new DirectoryStateFileChangeListener(stateFileChangeListenerUtil, directory));
-        }
-        catch ( Throwable t ) {
+            directoryStateFileComparator.compareStateFiles(new DirectoryStateFileChangeListener(
+                    stateFileChangeListenerUtil, directory));
+        } catch (Throwable t) {
             failureCause = t;
         }
     }

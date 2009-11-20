@@ -30,10 +30,17 @@ public class BlockingQueueItemProducer<T> {
 
     private final AtomicBoolean keepProducing = new AtomicBoolean(true);
 
-    public BlockingQueueItemProducer(BlockingQueue<T> produceToQueue, long offerTimeout, TimeUnit offerTimeoutTimeUnit) {
-        if ( produceToQueue == null ) throw new IllegalArgumentException("produceToQueue == null!");
-        if ( offerTimeout < 0 ) throw new IllegalArgumentException("offerTimeout < 0!");
-        if ( offerTimeoutTimeUnit == null ) throw new IllegalArgumentException("offerTimeoutTimeUnit == null!");
+    public BlockingQueueItemProducer(BlockingQueue<T> produceToQueue, long offerTimeout,
+                                     TimeUnit offerTimeoutTimeUnit) {
+        if (produceToQueue == null) {
+            throw new IllegalArgumentException("produceToQueue == null!");
+        }
+        if (offerTimeout < 0) {
+            throw new IllegalArgumentException("offerTimeout < 0!");
+        }
+        if (offerTimeoutTimeUnit == null) {
+            throw new IllegalArgumentException("offerTimeoutTimeUnit == null!");
+        }
         this.produceToQueue = produceToQueue;
         this.offerTimeout = offerTimeout;
         this.offerTimeoutTimeUnit = offerTimeoutTimeUnit;
@@ -44,19 +51,21 @@ public class BlockingQueueItemProducer<T> {
     }
 
     public void produce(T queueItem) {
-        if ( queueItem == null ) throw new IllegalArgumentException("queueItem == null!");
+        if (queueItem == null) {
+            throw new IllegalArgumentException("queueItem == null!");
+        }
 
         boolean itemQueued = false;
-        while ( !keepProducing.get() || !itemQueued ) {
+        while (!keepProducing.get() || !itemQueued) {
             try {
                 itemQueued = produceToQueue.offer(queueItem, offerTimeout, offerTimeoutTimeUnit);
-            }
-            catch ( InterruptedException e ) {
+            } catch (InterruptedException e) {
                 // ignore - not acceptable - item must be queued
             }
 
-            if ( !itemQueued && keepProducing.get() )
+            if (!itemQueued && keepProducing.get()) {
                 Thread.yield();
+            }
         }
     }
 }

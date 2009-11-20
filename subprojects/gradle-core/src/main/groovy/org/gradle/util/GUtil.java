@@ -66,7 +66,9 @@ public class GUtil {
         StringBuffer buffer = new StringBuffer();
         boolean first = true;
 
-        if (separator == null) separator = "";
+        if (separator == null) {
+            separator = "";
+        }
 
         for (Object value : self) {
             if (first) {
@@ -172,8 +174,7 @@ public class GUtil {
             if (first) {
                 formatter.format("'%s'", name);
                 first = false;
-            }
-            else {
+            } else {
                 formatter.format(", '%s'", name);
             }
         }
@@ -181,8 +182,8 @@ public class GUtil {
     }
 
     /**
-     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier.
-     * Eg, with_underscores -> withUnderscored
+     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores
+     * -> withUnderscored
      */
     public static String toCamelCase(CharSequence string) {
         if (string == null) {
@@ -200,8 +201,8 @@ public class GUtil {
     }
 
     /**
-     * Converts an arbitrary string to space-separated words.
-     * Eg, camelCase -> camel case, with_underscores -> with underscores
+     * Converts an arbitrary string to space-separated words. Eg, camelCase -> camel case, with_underscores -> with
+     * underscores
      */
     public static String toWords(CharSequence string) {
         if (string == null) {
@@ -218,15 +219,13 @@ public class GUtil {
                 }
                 builder.append(ch);
                 inSeparator = false;
-            }
-            else if (Character.isUpperCase(ch)) {
+            } else if (Character.isUpperCase(ch)) {
                 if (builder.length() > 0) {
                     builder.append(' ');
                 }
                 builder.append(Character.toLowerCase(ch));
                 inSeparator = false;
-            }
-            else {
+            } else {
                 inSeparator = true;
             }
         }

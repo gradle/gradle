@@ -65,19 +65,24 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
         Task subsubCompileTask = TestUtility.createTask(context, "compile", "compile description");
         Task subsubLibTask = TestUtility.createTask(context, "lib", "lib description");
         Task subsubDocTask = TestUtility.createTask(context, "doc", "doc description");
-        Project subsubProject = TestUtility.createMockProject(context, "mysubsubproject", "filepath3", 2, null, new Task[]{subsubCompileTask, subsubLibTask, subsubDocTask}, null, (Project[]) null);
+        Project subsubProject = TestUtility.createMockProject(context, "mysubsubproject", "filepath3", 2, null,
+                new Task[]{subsubCompileTask, subsubLibTask, subsubDocTask}, null, (Project[]) null);
 
         Task subCompileTask1 = TestUtility.createTask(context, "compile", "compile description");
         Task subLibTask1 = TestUtility.createTask(context, "lib", "lib description");
         Task subDocTask1 = TestUtility.createTask(context, "doc", "doc description");
-        Project subProject1 = TestUtility.createMockProject(context, "mysubproject1", "filepath2a", 1, new Project[]{subsubProject}, new Task[]{subCompileTask1, subLibTask1, subDocTask1}, null, (Project[]) null);
+        Project subProject1 = TestUtility.createMockProject(context, "mysubproject1", "filepath2a", 1,
+                new Project[]{subsubProject}, new Task[]{subCompileTask1, subLibTask1, subDocTask1}, null,
+                (Project[]) null);
 
         Task subCompileTask2 = TestUtility.createTask(context, "compile", "compile description");
         Task subLibTask2 = TestUtility.createTask(context, "lib", "lib description");
         Task subDocTask2 = TestUtility.createTask(context, "doc", "doc description");
-        Project subProject2 = TestUtility.createMockProject(context, "mysubproject2", "filepath2b", 1, null, new Task[]{subCompileTask2, subLibTask2, subDocTask2}, null, (Project[]) null);
+        Project subProject2 = TestUtility.createMockProject(context, "mysubproject2", "filepath2b", 1, null,
+                new Task[]{subCompileTask2, subLibTask2, subDocTask2}, null, (Project[]) null);
 
-        Project rootProject = TestUtility.createMockProject(context, "myrootproject", "filepath1", 0, new Project[]{subProject1, subProject2}, null, null, (Project[]) null);
+        Project rootProject = TestUtility.createMockProject(context, "myrootproject", "filepath1", 0,
+                new Project[]{subProject1, subProject2}, null, null, (Project[]) null);
 
         buildInformation = new BuildInformation(rootProject);
 
@@ -94,7 +99,8 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(mySubProject1Doc);
         mySubSubProject = buildInformation.getProjectFromFullPath("myrootproject:mysubproject1:mysubsubproject");
         Assert.assertNotNull(mySubSubProject);
-        mySubSubProjectCompile = buildInformation.getTaskFromFullPath("myrootproject:mysubproject1:mysubsubproject:compile");
+        mySubSubProjectCompile = buildInformation.getTaskFromFullPath(
+                "myrootproject:mysubproject1:mysubsubproject:compile");
         Assert.assertNotNull(mySubSubProjectCompile);
         mySubSubProjectLib = buildInformation.getTaskFromFullPath("myrootproject:mysubproject1:mysubsubproject:lib");
         Assert.assertNotNull(mySubSubProjectLib);
@@ -111,9 +117,8 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
     }
 
     /**
-       This creates favorites, saves them to a file, then reads them from that
-       file.
-    */
+     * This creates favorites, saves them to a file, then reads them from that file.
+     */
     @Test
     public void testSavingRestoringFavorites() {
         FavoritesEditor originalEditor = new FavoritesEditor();
@@ -141,11 +146,13 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
         assertFavorite(originalFavoriteTask1, "mysubproject1:compile", "favorite 1", true);
 
         FavoriteTask originalFavoriteTask2 = originalEditor.getFavoriteTasks().get(1);
-        assertFavorite(originalFavoriteTask2, "mysubproject1:mysubsubproject:lib", "mysubproject1:mysubsubproject:lib", false);
+        assertFavorite(originalFavoriteTask2, "mysubproject1:mysubsubproject:lib", "mysubproject1:mysubsubproject:lib",
+                false);
 
         File file = TestUtility.createTemporaryFile("fred", ".favorite-tasks");
         file.deleteOnExit();
-        originalEditor.exportToFile(new TestUtility.TestExportInteraction(file, true)); //confirm overwrite because the above function actually creates the file.
+        originalEditor.exportToFile(new TestUtility.TestExportInteraction(file,
+                true)); //confirm overwrite because the above function actually creates the file.
 
         FavoritesEditor newEditor = new FavoritesEditor();
         newEditor.importFromFile(new TestUtility.TestImportInteraction(file));
@@ -159,11 +166,10 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
     }
 
     /**
-       This verifies that the serialization mechnanism corrects the extension so
-       that it is correct. We'll save a file with the wrong extension. The save
-       mechanism should save it with the correct extension appended to the end
-       (leaving the wrong extension in tact, just not at the end).
-    */
+     * This verifies that the serialization mechnanism corrects the extension so that it is correct. We'll save a file
+     * with the wrong extension. The save mechanism should save it with the correct extension appended to the end
+     * (leaving the wrong extension in tact, just not at the end).
+     */
     @Test
     public void testEnsureFileHasCorrectExtension() {
         FavoritesEditor originalEditor = new FavoritesEditor();
@@ -173,23 +179,30 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
         //add a favorite
         FavoriteTask favoriteTask1 = originalEditor.addFavorite(mySubProject1Comple, true);
 
-        File incorrectFile = TestUtility.createTemporaryFile("fred", ".wrong");  //specify a wrong extension. It should actually end in ".favorite-tasks"
+        File incorrectFile = TestUtility.createTemporaryFile("fred",
+                ".wrong");  //specify a wrong extension. It should actually end in ".favorite-tasks"
         incorrectFile.deleteOnExit();
         File correctFile = new File(incorrectFile.getParentFile(), incorrectFile.getName() + ".favorite-tasks");
 
         //Make sure the correct file doesn't already exist before we've even done our test. This is highly unlikely, but it might happen.
         //Technically, I should place these in a new temporary directory, but I didn't want the hassle of cleanup.
-        if (correctFile.exists())
-            throw new AssertionFailedError("'correct' file already exists. This means this test WILL succeed but perhaps not for the correct reasons.");
+        if (correctFile.exists()) {
+            throw new AssertionFailedError(
+                    "'correct' file already exists. This means this test WILL succeed but perhaps not for the correct reasons.");
+        }
 
         correctFile.deleteOnExit();
 
         //do the export
-        originalEditor.exportToFile(new TestUtility.TestExportInteraction(incorrectFile, true)); //confirm overwrite because the above function actually creates the file.
+        originalEditor.exportToFile(new TestUtility.TestExportInteraction(incorrectFile,
+                true)); //confirm overwrite because the above function actually creates the file.
 
         //it should have been saved to the correct file
-        if (!correctFile.exists())
-            throw new AssertionFailedError("failed to correct the file name. Expected it to be saved to '" + correctFile.getAbsolutePath() + "'");
+        if (!correctFile.exists()) {
+            throw new AssertionFailedError(
+                    "failed to correct the file name. Expected it to be saved to '" + correctFile.getAbsolutePath()
+                            + "'");
+        }
 
         //now read in the file to verify it actually worked.
         FavoritesEditor newEditor = new FavoritesEditor();
@@ -199,20 +212,22 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
         assertFavorite(readInFavoriteTask, favoriteTask1);
     }
 
-    private void assertFavorite(FavoriteTask favoriteTaskToTest, String expectedFullTaskName, String expectedDisplayName, boolean expectedAlwaysShowOutput) {
+    private void assertFavorite(FavoriteTask favoriteTaskToTest, String expectedFullTaskName,
+                                String expectedDisplayName, boolean expectedAlwaysShowOutput) {
         Assert.assertEquals(expectedFullTaskName, favoriteTaskToTest.getFullCommandLine());
         Assert.assertEquals(expectedDisplayName, favoriteTaskToTest.getDisplayName());
         Assert.assertEquals(expectedAlwaysShowOutput, favoriteTaskToTest.alwaysShowOutput());
     }
 
     private void assertFavorite(FavoriteTask favoriteTaskToTest, FavoriteTask expectedFavoriteTask) {
-        assertFavorite(favoriteTaskToTest, expectedFavoriteTask.getFullCommandLine(), expectedFavoriteTask.getDisplayName(), expectedFavoriteTask.alwaysShowOutput());
+        assertFavorite(favoriteTaskToTest, expectedFavoriteTask.getFullCommandLine(),
+                expectedFavoriteTask.getDisplayName(), expectedFavoriteTask.alwaysShowOutput());
     }
 
     /**
-       This confirms that overwriting a file requires confirmation. We'll create
-       a file (just by creating a temporary file), then try to save to it.
-    */
+     * This confirms that overwriting a file requires confirmation. We'll create a file (just by creating a temporary
+     * file), then try to save to it.
+     */
     @Test
     public void testConfirmOverwrite() {  //we should be prompted to confirm overwriting an existing file.
 
@@ -231,7 +246,8 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
 
         long originalSize = file.length();
 
-        TestOverwriteConfirmExportInteraction exportInteraction = new TestOverwriteConfirmExportInteraction(file, false);
+        TestOverwriteConfirmExportInteraction exportInteraction = new TestOverwriteConfirmExportInteraction(file,
+                false);
 
         //do the export
         originalEditor.exportToFile(exportInteraction);
@@ -244,9 +260,8 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
     }
 
     /**
-       This exists soley so we can track if confirmOverwritingExisingFile was
-       called.
-    */
+     * This exists soley so we can track if confirmOverwritingExisingFile was called.
+     */
     private class TestOverwriteConfirmExportInteraction extends TestUtility.TestExportInteraction {
         public boolean wasConfirmed = false;
 
@@ -256,22 +271,23 @@ public class FavoritesIntegrationTest extends AbstractIntegrationTest {
 
         public File promptForFile(FileFilter fileFilters) {
             if (wasConfirmed)   //once we confirm it, just return null.
+            {
                 return null;
+            }
 
             return super.promptForFile(fileFilters);
         }
 
         /**
-        The file already exists. Confirm whether or not you want to overwrite it.
-
-        @param file the file in question
-        @return true to overwrite it, false not to.
-        */
+         * The file already exists. Confirm whether or not you want to overwrite it.
+         *
+         * @param file the file in question
+         * @return true to overwrite it, false not to.
+         */
         @Override
         public boolean confirmOverwritingExisingFile(File file) {
             wasConfirmed = true;
             return false;
         }
     }
-
 }

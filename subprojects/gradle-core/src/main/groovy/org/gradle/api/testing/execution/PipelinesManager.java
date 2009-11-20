@@ -93,8 +93,7 @@ public class PipelinesManager {
         pipelinesLock.readLock().lock();
         try {
             return pipelinesInfo.get(pipelineId);
-        }
-        finally {
+        } finally {
             pipelinesLock.readLock().unlock();
         }
     }
@@ -103,8 +102,7 @@ public class PipelinesManager {
         pipelinesLock.readLock().lock();
         try {
             return Collections.unmodifiableList(orderedPipelines);
-        }
-        finally {
+        } finally {
             pipelinesLock.readLock().unlock();
         }
     }
@@ -120,17 +118,13 @@ public class PipelinesManager {
             notStopped.add(pipeline);
 
             return pipeline;
-        }
-        finally {
+        } finally {
             pipelinesLock.writeLock().unlock();
         }
     }
 
     public void waitForExecutionEnd() {
-        ThreadUtils.interleavedConditionWait(
-                allStoppedLock,
-                allStoppedCondition,
-                100L, TimeUnit.MILLISECONDS,
+        ThreadUtils.interleavedConditionWait(allStoppedLock, allStoppedCondition, 100L, TimeUnit.MILLISECONDS,
                 new ConditionWaitHandle() {
                     public boolean checkCondition() {
                         return notStopped.isEmpty();
@@ -139,22 +133,21 @@ public class PipelinesManager {
                     public void conditionMatched() {
                         // nothing - just return
                     }
-                }
-        );
+                });
     }
 
     public void stopped(Pipeline pipeline) {
         allStoppedLock.lock();
         try {
-            for ( final PipelineListener listener : pipeline.getListeners() ) {
+            for (final PipelineListener listener : pipeline.getListeners()) {
                 listener.pipelineStopped(pipeline);
             }
 
             notStopped.remove(pipeline);
-            if (notStopped.isEmpty())
+            if (notStopped.isEmpty()) {
                 allStoppedCondition.signal();
-        }
-        finally {
+            }
+        } finally {
             allStoppedLock.unlock();
         }
     }
@@ -165,8 +158,7 @@ public class PipelinesManager {
             for (final Pipeline pipeline : orderedPipelines) {
                 pipeline.pipelineSplittingEnded();
             }
-        }
-        finally {
+        } finally {
             pipelinesLock.readLock().unlock();
         }
     }

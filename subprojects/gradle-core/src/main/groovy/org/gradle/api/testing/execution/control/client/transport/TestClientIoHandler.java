@@ -33,8 +33,9 @@ public class TestClientIoHandler extends IoHandlerAdapter {
     private final BlockingQueueItemProducer<TestControlMessage> testControlMessageProducer;
 
     public TestClientIoHandler(BlockingQueueItemProducer<TestControlMessage> testControlMessageProducer) {
-        if (testControlMessageProducer == null)
+        if (testControlMessageProducer == null) {
             throw new IllegalArgumentException("testControlMessageProducer == null!");
+        }
 
         this.testControlMessageProducer = testControlMessageProducer;
     }

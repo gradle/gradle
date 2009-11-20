@@ -30,8 +30,9 @@ class JUnitTestMethodDetecter extends EmptyVisitor {
     }
 
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        if ("Lorg/junit/Test;".equals(desc))
+        if ("Lorg/junit/Test;".equals(desc)) {
             testClassDetecter.setTest(true);
+        }
         return new EmptyVisitor();
     }
 
@@ -40,7 +41,6 @@ class JUnitTestMethodDetecter extends EmptyVisitor {
     }
 
     public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-      return new EmptyVisitor();
+        return new EmptyVisitor();
     }
-
 }

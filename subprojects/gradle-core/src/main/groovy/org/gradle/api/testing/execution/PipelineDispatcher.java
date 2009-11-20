@@ -78,9 +78,6 @@ public class PipelineDispatcher {
 
     /**
      * Handle messages received from the fork.
-     *
-     * @param ioSession
-     * @param message
      */
     public void messageReceived(IoSession ioSession, Object message) {
         if (message != null) {
@@ -89,19 +86,19 @@ public class PipelineDispatcher {
 
             if (handler != null) {
                 try {
-                    final int forkId = ((TestClientControlMessage)message).getForkId();
+                    final int forkId = ((TestClientControlMessage) message).getForkId();
                     final TestServerClientHandle client = clientHandles.get(forkId);
-                    if ( client == null )
+                    if (client == null) {
                         ioSession.write(new WaitActionMesssage(pipeline.getId(), 1000L));
-                    else
+                    } else {
                         handler.handle(ioSession, message, client);
-                }
-                catch (Throwable t) {
+                    }
+                } catch (Throwable t) {
                     LOGGER.error("failed to handle " + message, t);
                 }
-            }
-            else {
-                LOGGER.error("received unknown message of type {} on pipeline ", messageClass, pipeline.getConfig().getName());
+            } else {
+                LOGGER.error("received unknown message of type {} on pipeline ", messageClass,
+                        pipeline.getConfig().getName());
                 ioSession.write(new StopForkActionMessage(pipeline.getId()));
             }
         }
@@ -125,17 +122,15 @@ public class PipelineDispatcher {
         }
     }
 
-    public void forkAttach(int forkId)
-    {
+    public void forkAttach(int forkId) {
         TestServerClientHandle client = clientHandles.get(forkId);
-        if ( client == null ) {
+        if (client == null) {
             client = clientHandleFactory.createTestServerClientHandle(pipeline, forkId);
             clientHandles.put(forkId, client);
         }
     }
 
-    public void forkStarting(int forkId)
-    {
+    public void forkStarting(int forkId) {
         runningClientsLock.lock();
         try {
             TestServerClientHandle client = clientHandles.get(forkId);
@@ -143,48 +138,42 @@ public class PipelineDispatcher {
             client.starting();
 
             runningClients.add(client);
-        }
-        finally {
+        } finally {
             runningClientsLock.unlock();
         }
     }
 
-    public void forkStopped(int forkId)
-    {
+    public void forkStopped(int forkId) {
         runningClientsLock.lock();
-        
+
         TestServerClientHandle client = null;
         try {
             client = clientHandles.get(forkId);
 
             client.stopped(this);
-        }
-        finally {
+        } finally {
             runningClientsLock.unlock();
         }
 
         client.requestClientStart(this);
     }
 
-    public void forkFailed(int forkId, Throwable cause)
-    {
+    public void forkFailed(int forkId, Throwable cause) {
         runningClientsLock.lock();
-        
+
         TestServerClientHandle client = null;
         try {
             client = clientHandles.get(forkId);
 
             client.failed(this, cause);
-        }
-        finally {
+        } finally {
             runningClientsLock.unlock();
         }
 
         client.requestClientStart(this);
     }
 
-    public void forkAborted(int forkId)
-    {
+    public void forkAborted(int forkId) {
         runningClientsLock.lock();
 
         TestServerClientHandle client = null;
@@ -192,8 +181,7 @@ public class PipelineDispatcher {
             client = clientHandles.get(forkId);
 
             client.aborted(this);
-        }
-        finally {
+        } finally {
             runningClientsLock.unlock();
         }
     }
@@ -207,9 +195,7 @@ public class PipelineDispatcher {
 
         ThreadUtils.run(new Runnable() {
             public void run() {
-                ThreadUtils.interleavedConditionWait(
-                        runningClientsLock, allClientsStopped,
-                        100L, TimeUnit.MILLISECONDS,
+                ThreadUtils.interleavedConditionWait(runningClientsLock, allClientsStopped, 100L, TimeUnit.MILLISECONDS,
                         new ConditionWaitHandle() {
                             public boolean checkCondition() {
                                 return runningClients.isEmpty();
@@ -218,8 +204,7 @@ public class PipelineDispatcher {
                             public void conditionMatched() {
                                 pipeline.stopped();
                             }
-                        }
-                );
+                        });
             }
         });
     }
@@ -233,7 +218,9 @@ public class PipelineDispatcher {
     }
 
     public void allClientsStopped() {
-        if ( ! stopping.get() ) throw new IllegalStateException("pipeline dispatcher is not stopping!");
+        if (!stopping.get()) {
+            throw new IllegalStateException("pipeline dispatcher is not stopping!");
+        }
         allClientsStopped.signal();
     }
 

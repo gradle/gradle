@@ -22,32 +22,28 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-
 /**
- * Analog to gradle's Project but more light-weight and is better suited for
- * using the gradle API from an IDE plugin. It is also easily serializable for
- * passing across a socket.
- * A project is a collection of source files that have tasks associated with them.
- * The tasks build the project. Projects can contain other projects.
- * This is immutable and ultimately comes from gradle files.
+ * Analog to gradle's Project but more light-weight and is better suited for using the gradle API from an IDE plugin. It
+ * is also easily serializable for passing across a socket. A project is a collection of source files that have tasks
+ * associated with them. The tasks build the project. Projects can contain other projects. This is immutable and
+ * ultimately comes from gradle files.
  *
  * @author mhunsicker
  */
 public class ProjectView implements Comparable<ProjectView>, Serializable {
     private String name;
-    private ProjectView parentProject = null;   //will be null for any project until it is added as a sub project to another project. It is null for the root project always.
+    private ProjectView parentProject = null;
+            //will be null for any project until it is added as a sub project to another project. It is null for the root project always.
     private List<ProjectView> subProjects = new ArrayList<ProjectView>();
     private List<TaskView> tasks = new ArrayList<TaskView>();
     private List<ProjectView> dependsOnProjects;
 
     private File buildFile;
 
-
     /**
-       Instantiates an immutable view of a project. This is only meant to be
-       called internally whenever generating a hierachy of projects and tasks.
-
-    */
+     * Instantiates an immutable view of a project. This is only meant to be called internally whenever generating a
+     * hierachy of projects and tasks.
+     */
     /*package*/ ProjectView(String name, File buildFile) {
         this.name = name;
         this.buildFile = buildFile;
@@ -78,30 +74,27 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
     }
 
     /**
-       creates a task for this project. This is only meant to be called
-       internally whenever generating a hierachy of projects and tasks.
-
-    */
+     * creates a task for this project. This is only meant to be called internally whenever generating a hierachy of
+     * projects and tasks.
+     */
     /*package*/ void createTask(String name, String description, boolean isDefault) {
         TaskView taskView = new TaskView(this, name, description, isDefault);
         tasks.add(taskView);
     }
 
     /**
-       Adds the specified project as a sub project of this project. This is only
-       meant to be called internally whenever generating a hierachy of projects
-       and tasks.
-    */
+     * Adds the specified project as a sub project of this project. This is only meant to be called internally whenever
+     * generating a hierachy of projects and tasks.
+     */
     /*package*/ void addSubProject(ProjectView subProject) {
         subProject.setParentProject(this);
         subProjects.add(subProject);
     }
 
     /**
-       Sets the project that this project depends on.
-       This is only meant to be called internally whenever generating a hierachy
-       of projects and tasks.
-    */
+     * Sets the project that this project depends on. This is only meant to be called internally whenever generating a
+     * hierachy of projects and tasks.
+     */
     /*package*/ void setDependsOnProjects(List<ProjectView> dependsOnProjects) {
         this.dependsOnProjects = dependsOnProjects;
     }
@@ -123,8 +116,9 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
         Iterator<ProjectView> iterator = subProjects.iterator();
         while (iterator.hasNext()) {
             ProjectView subProject = iterator.next();
-            if (name.equals(subProject.getName()))
+            if (name.equals(subProject.getName())) {
                 return subProject;
+            }
         }
 
         return null;
@@ -134,67 +128,78 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
         Iterator<TaskView> iterator = tasks.iterator();
         while (iterator.hasNext()) {
             TaskView task = iterator.next();
-            if (name.equals(task.getName()))
+            if (name.equals(task.getName())) {
                 return task;
+            }
         }
 
         return null;
     }
 
     public ProjectView getSubProjectFromFullPath(String fullProjectName) {
-        if (fullProjectName == null)
+        if (fullProjectName == null) {
             return null;
+        }
 
         PathParserPortion portion = new PathParserPortion(fullProjectName);
 
         ProjectView subProject = getSubProject(portion.getFirstPart());
 
-        if (!portion.hasRemainder()) //if we have no remainder, then the path is just a sub project's name. We're done (even if subProject is null).
+        if (!portion
+                .hasRemainder()) //if we have no remainder, then the path is just a sub project's name. We're done (even if subProject is null).
+        {
             return subProject;
+        }
 
-        if (subProject == null)
-            return null;   //the path may be invalid
+        if (subProject == null) {
+            return null;
+        }   //the path may be invalid
 
         return subProject.getSubProjectFromFullPath(portion.getRemainder());
     }
 
     /**
-       This gets the task based on the given full path. This recursively calls
-       this same function with sub projects until it finds the task or no matches
-       are found.
-
-       @param  fullTaskName the full task name (root_project:sub_project:sub_sub_project:task.).
-       @return the task or null if not found.
-    */
+     * This gets the task based on the given full path. This recursively calls this same function with sub projects
+     * until it finds the task or no matches are found.
+     *
+     * @param fullTaskName the full task name (root_project:sub_project:sub_sub_project:task.).
+     * @return the task or null if not found.
+     */
     public TaskView getTaskFromFullPath(String fullTaskName) {
-        if (fullTaskName == null)
+        if (fullTaskName == null) {
             return null;
+        }
 
         PathParserPortion portion = new PathParserPortion(fullTaskName);
         if (!portion.hasRemainder()) //if we have no remainder, then this is for a task.
+        {
             return getTask(portion.getFirstPart());
+        }
 
         ProjectView subProject = getSubProject(portion.getFirstPart());
-        if (subProject == null)
+        if (subProject == null) {
             return null;
+        }
 
         //let the sub project figure it out.
         return subProject.getTaskFromFullPath(portion.getRemainder());
     }
 
     /**
-       This generates this project's full name. This is a colon-separated string of
-       this project and its parent projects.
-
-       Example: root_project:sub_project:sub_sub_project.
-    */
+     * This generates this project's full name. This is a colon-separated string of this project and its parent
+     * projects.
+     *
+     * Example: root_project:sub_project:sub_sub_project.
+     */
     public String getFullProjectName() {
         ProjectView ancestorProject = getParentProject();
-        if (ancestorProject == null)
-            return ""; //if we're the root, our full project name is nothing.
+        if (ancestorProject == null) {
+            return "";
+        } //if we're the root, our full project name is nothing.
 
         StringBuilder builder = new StringBuilder(name);
-        while (ancestorProject != null && ancestorProject.getParentProject() != null)   //we don't want to include the 'root' project
+        while (ancestorProject != null
+                && ancestorProject.getParentProject() != null)   //we don't want to include the 'root' project
         {
             builder.insert(0, ancestorProject.getName() + ':');
             ancestorProject = ancestorProject.getParentProject();
@@ -204,24 +209,24 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
     }
 
     /**
-       Builds a list of default tasks. These are defined by specifying
-
-          defaultTasks 'task name'
-
-       in the gradle file. There can be multiple default tasks.
-       This only returns default tasks directly for this project and does not
-       return them for subprojects.
-
-       @return a list of default tasks or an empty list if none exist
-    */
+     * Builds a list of default tasks. These are defined by specifying
+     *
+     * defaultTasks 'task name'
+     *
+     * in the gradle file. There can be multiple default tasks. This only returns default tasks directly for this
+     * project and does not return them for subprojects.
+     *
+     * @return a list of default tasks or an empty list if none exist
+     */
     public List<TaskView> getDefaultTasks() {
         List<TaskView> defaultTasks = new ArrayList<TaskView>();
 
         Iterator<TaskView> taskIterator = tasks.iterator();
         while (taskIterator.hasNext()) {
             TaskView taskView = taskIterator.next();
-            if (taskView.isDefault())
+            if (taskView.isDefault()) {
                 defaultTasks.add(taskView);
+            }
         }
 
         return defaultTasks;

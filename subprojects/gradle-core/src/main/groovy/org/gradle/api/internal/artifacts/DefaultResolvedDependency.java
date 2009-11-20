@@ -28,7 +28,8 @@ import java.util.*;
 public class DefaultResolvedDependency implements ResolvedDependency {
     private Set<ResolvedDependency> children = new LinkedHashSet<ResolvedDependency>();
     private Set<ResolvedDependency> parents = new LinkedHashSet<ResolvedDependency>();
-    private Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();
+    private Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts
+            = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private String name;
     private String moduleGroup;
     private String moduleName;
@@ -37,10 +38,12 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     private Set<String> configurationHierarchy;
     private Set<ResolvedArtifact> moduleArtifacts = new LinkedHashSet<ResolvedArtifact>();
 
-    public DefaultResolvedDependency(String name, String moduleGroup, String moduleName, String moduleVersion, String configuration, Set<String> configurationHierarchy, Set<ResolvedArtifact> moduleArtifacts) {
+    public DefaultResolvedDependency(String name, String moduleGroup, String moduleName, String moduleVersion,
+                                     String configuration, Set<String> configurationHierarchy,
+                                     Set<ResolvedArtifact> moduleArtifacts) {
         assert name != null;
         assert moduleArtifacts != null;
-        
+
         this.name = name;
         this.moduleGroup = moduleGroup;
         this.moduleName = moduleName;
@@ -50,8 +53,10 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         this.moduleArtifacts = moduleArtifacts;
     }
 
-    public DefaultResolvedDependency(String moduleGroup, String moduleName, String moduleVersion, String configuration, Set<String> configurationHierarchy, Set<ResolvedArtifact> moduleArtifacts) {
-        this(moduleGroup + ":" + moduleName + ":" + moduleVersion, moduleGroup, moduleName, moduleVersion, configuration, configurationHierarchy, moduleArtifacts);
+    public DefaultResolvedDependency(String moduleGroup, String moduleName, String moduleVersion, String configuration,
+                                     Set<String> configurationHierarchy, Set<ResolvedArtifact> moduleArtifacts) {
+        this(moduleGroup + ":" + moduleName + ":" + moduleVersion, moduleGroup, moduleName, moduleVersion,
+                configuration, configurationHierarchy, moduleArtifacts);
     }
 
     public String getName() {
@@ -127,7 +132,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
             throw new InvalidUserDataException("Unknown Parent");
         }
     }
-    
+
     public Set<ResolvedDependency> getParents() {
         return parents;
     }
@@ -142,12 +147,18 @@ public class DefaultResolvedDependency implements ResolvedDependency {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DefaultResolvedDependency that = (DefaultResolvedDependency) o;
 
-        if (!name.equals(that.name)) return false;
+        if (!name.equals(that.name)) {
+            return false;
+        }
 
         return true;
     }

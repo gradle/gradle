@@ -57,10 +57,11 @@ public class DefaultReportsManager implements ReportsManager {
     public void initialize(NativeTest testTask, PipelinesManager pipelinesManager) {
 
         final Map<String, ReportConfig> reportConfigs = testTask.getReportConfigs();
-        for (final ReportConfig reportConfig : reportConfigs.values() ) {
+        for (final ReportConfig reportConfig : reportConfigs.values()) {
             final ReportPolicyConfig reportPolicyConfig = reportConfig.getPolicyConfig();
             final ReportPolicy reportPolicy = ReportPolicyRegister.getReportPolicy(reportPolicyConfig.getPolicyName());
-            final ReportPolicyInstance reportPolicyInstance = reportPolicy.createReportPolicyInstance(testTask.getTestFramework());
+            final ReportPolicyInstance reportPolicyInstance = reportPolicy.createReportPolicyInstance(
+                    testTask.getTestFramework());
 
             final Report report = new Report(reportConfig, reportPolicyInstance);
 
@@ -71,14 +72,15 @@ public class DefaultReportsManager implements ReportsManager {
         }
 
         final List<Pipeline> pipelines = pipelinesManager.getPipelines();
-        for ( final Pipeline pipeline : pipelines ) {
+        for (final Pipeline pipeline : pipelines) {
             final List<ReportConfig> pipelineReportConfigs = pipeline.getConfig().getReports();
 
-            for(final ReportConfig pipelineReportConfig : pipelineReportConfigs ) {
+            for (final ReportConfig pipelineReportConfig : pipelineReportConfigs) {
                 final Report pipelineReport = reports.get(pipelineReportConfig.getName());
 
-                if ( pipelineReport != null )
+                if (pipelineReport != null) {
                     pipeline.addReport(pipelineReport);
+                }
                 // TODO else -> warning or error ? 
             }
 
@@ -87,16 +89,13 @@ public class DefaultReportsManager implements ReportsManager {
     }
 
     public void startReporting() {
-        for ( final Report report : reports.values() ) {
+        for (final Report report : reports.values()) {
             report.getReportPolicyInstance().start();
         }
     }
 
     public void waitForReportEnd() {
-        ThreadUtils.interleavedConditionWait(
-                allStoppedLock,
-                allStoppedCondition,
-                100L, TimeUnit.MILLISECONDS,
+        ThreadUtils.interleavedConditionWait(allStoppedLock, allStoppedCondition, 100L, TimeUnit.MILLISECONDS,
                 new ConditionWaitHandle() {
                     public boolean checkCondition() {
                         return notStopped.isEmpty();
@@ -105,10 +104,9 @@ public class DefaultReportsManager implements ReportsManager {
                     public void conditionMatched() {
                         // nothing - just return
                     }
-                }
-        );
+                });
 
-        for ( final Report report : reports.values() ) {
+        for (final Report report : reports.values()) {
             report.getReportPolicyInstance().stop();
         }
     }
@@ -118,18 +116,18 @@ public class DefaultReportsManager implements ReportsManager {
         try {
             final List<Report> reports = pipeline.getReports();
 
-            for ( final Report report : reports ) {
+            for (final Report report : reports) {
                 report.removePipeline(pipeline);
 
-                if ( report.getPipelines().isEmpty() ) {
+                if (report.getPipelines().isEmpty()) {
                     notStopped.remove(report);
 
-                    if ( notStopped.isEmpty() )
+                    if (notStopped.isEmpty()) {
                         allStoppedCondition.signal();
+                    }
                 }
             }
-        }
-        finally {
+        } finally {
             allStoppedLock.unlock();
         }
     }

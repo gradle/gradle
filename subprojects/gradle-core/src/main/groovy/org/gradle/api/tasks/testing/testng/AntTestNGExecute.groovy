@@ -35,11 +35,11 @@ public class AntTestNGExecute {
         testngTaskDef(classPath as List, ant, options)
 
         Map otherArgs = [
-            failureProperty : AntTest.FAILURES_OR_ERRORS_PROPERTY,
-            outputDir : testReportDir.absolutePath,
-            workingDir : testResultsDir.absolutePath, 
-            haltonfailure : false,
-            haltonskipped : false,
+                failureProperty: AntTest.FAILURES_OR_ERRORS_PROPERTY,
+                outputDir: testReportDir.absolutePath,
+                workingDir: testResultsDir.absolutePath,
+                haltonfailure: false,
+                haltonskipped: false,
         ]
 
         List<File> suites = options.getSuites(testResultsDir)
@@ -58,18 +58,18 @@ public class AntTestNGExecute {
             }
             classpath {
                 classPath.each {
-                    pathelement(location : it)
+                    pathelement(location: it)
                 }
             }
-            if ( 'Javadoc'.equalsIgnoreCase(options.annotations) ) {
+            if ('Javadoc'.equalsIgnoreCase(options.annotations)) {
                 sourcedir {
                     options.testResources.each {
-                        pathelement(location : it)
+                        pathelement(location: it)
                     }
                 }
             }
-            if ( suites.empty ) {
-                classfileset (dir: compiledTestsClassesDir.absolutePath ) {
+            if (suites.empty) {
+                classfileset(dir: compiledTestsClassesDir.absolutePath) {
                     includes.each {
                         include(name: it)
                     }
@@ -77,9 +77,8 @@ public class AntTestNGExecute {
                         exclude(name: it)
                     }
                 }
-            }
-            else {
-                xmlfileset (dir: testResultsDir.absolutePath ){
+            } else {
+                xmlfileset(dir: testResultsDir.absolutePath) {
                     suites.each {
                         include(name: it.name)
                     }
@@ -90,32 +89,31 @@ public class AntTestNGExecute {
         logger.info("testng tests executed.");
     }
 
-    private void testngTaskDef(List classPath, AntBuilder ant, TestNGOptions options)
-    {
+    private void testngTaskDef(List classPath, AntBuilder ant, TestNGOptions options) {
         // @TODO there must be a better way of doing this...
         File testngJarFile = null;
-        if ( classPath != null && classPath.size() > 0 ) {
+        if (classPath != null && classPath.size() > 0) {
             final Iterator<File> classPathIt = classPath.iterator();
-            while ( testngJarFile == null && classPathIt.hasNext() ) {
+            while (testngJarFile == null && classPathIt.hasNext()) {
                 final File classPathFile = classPathIt.next();
                 final String classPathFileName = classPathFile.name;
 
-                if ( classPathFile.isFile() && classPathFileName.startsWith("testng") ) {
+                if (classPathFile.isFile() && classPathFileName.startsWith("testng")) {
                     testngJarFile = classPathFile;
                 }
             }
         }
 
-        if ( testngJarFile == null ) {
+        if (testngJarFile == null) {
             throw new IllegalArgumentException("Failed to resolve TestNG dependency");
         }
 
-        if ( testngJarFile.getName().endsWith("jdk14.jar") ) {
+        if (testngJarFile.getName().endsWith("jdk14.jar")) {
             options.javadocAnnotations()
         }
 
         logger.debug("Using TestNG jar {}", testngJarFile.absolutePath)
 
-        ant.taskdef([resource : "testngtasks", classpath: testngJarFile.absolutePath ])
+        ant.taskdef([resource: "testngtasks", classpath: testngJarFile.absolutePath])
     }
 }

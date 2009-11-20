@@ -27,31 +27,27 @@ import org.mortbay.jetty.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * Monitor
- * <p/>
- * Listens for stop commands eg via mvn jetty:stop and
- * causes jetty to stop either by exiting the jvm, or
- * by stopping the Server instances. The choice of
- * behaviour is controlled by either passing true
- * (exit jvm) or false (stop Servers) in the constructor.
+ * Monitor <p/> Listens for stop commands eg via mvn jetty:stop and causes jetty to stop either by exiting the jvm, or
+ * by stopping the Server instances. The choice of behaviour is controlled by either passing true (exit jvm) or false
+ * (stop Servers) in the constructor.
  */
 public class Monitor extends Thread {
     private static final Logger LOGGER = LoggerFactory.getLogger(Monitor.class);
-    
+
     private String key;
     private Server[] servers;
 
     ServerSocket serverSocket;
     boolean kill;
 
-    public Monitor(int port, String key, Server[] servers, boolean kill)
-            throws IOException {
-        if (port <= 0)
+    public Monitor(int port, String key, Server[] servers, boolean kill) throws IOException {
+        if (port <= 0) {
             throw new IllegalStateException("Bad stop port");
-        if (key == null)
+        }
+        if (key == null) {
             throw new IllegalStateException("Bad stop key");
+        }
 
         this.key = key;
         this.servers = servers;
@@ -71,7 +67,9 @@ public class Monitor extends Thread {
                 LineNumberReader lin = new LineNumberReader(new InputStreamReader(socket.getInputStream()));
 
                 String key = lin.readLine();
-                if (!this.key.equals(key)) continue;
+                if (!this.key.equals(key)) {
+                    continue;
+                }
                 String cmd = lin.readLine();
                 if ("stop".equals(cmd)) {
                     try {
@@ -100,24 +98,21 @@ public class Monitor extends Thread {
                             try {
                                 LOGGER.info("Stopping server " + i);
                                 servers[i].stop();
-                            }
-                            catch (Exception e) {
+                            } catch (Exception e) {
                                 LOGGER.error("Exception when stopping server", e);
                             }
                         }
                     }
-                } else
+                } else {
                     LOGGER.info("Unsupported monitor operation");
-            }
-            catch (Exception e) {
+                }
+            } catch (Exception e) {
                 LOGGER.error("Exception during monitoring Server", e);
-            }
-            finally {
+            } finally {
                 if (socket != null) {
                     try {
                         socket.close();
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         LOGGER.debug("Exception when stopping server", e);
                     }
                 }

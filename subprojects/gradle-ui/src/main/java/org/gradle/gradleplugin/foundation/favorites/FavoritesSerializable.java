@@ -22,14 +22,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
 /**
-Inner class that handles serializing favorites. You can either pass it a
- favorites list and serialize them out or use the default constructor and
- serialize it. This allows you to serialize a favorites list with or without
- an editor.
- @author mhunsicker
-*/
+ * Inner class that handles serializing favorites. You can either pass it a favorites list and serialize them out or use
+ * the default constructor and serialize it. This allows you to serialize a favorites list with or without an editor.
+ *
+ * @author mhunsicker
+ */
 class FavoritesSerializable implements SettingsSerializable {
     private List<FavoriteTask> favorites;
 
@@ -42,24 +40,28 @@ class FavoritesSerializable implements SettingsSerializable {
     private static final String FAVORITE_PREFIX = "favorite_";
 
     //use this constructor if you're serializing OUT
+
     public FavoritesSerializable(List<FavoriteTask> favorites) {
         this.favorites = favorites;
     }
 
     //use this constructor if you're serialzing IN
+
     public FavoritesSerializable() {
         favorites = new ArrayList<FavoriteTask>();
     }
 
     //call this to get the favorites that were serilized in.
+
     public List<FavoriteTask> getFavorites() {
         return favorites;
     }
 
     /**
-       Call this to saves the current settings.
-       @param  settings      where you save the settings.
-    */
+     * Call this to saves the current settings.
+     *
+     * @param settings where you save the settings.
+     */
     public void serializeOut(SettingsNode settings) {
         serializeOut(settings, favorites);
     }
@@ -80,9 +82,10 @@ class FavoritesSerializable implements SettingsSerializable {
     }
 
     /**
-       Call this to read in this object's settings. The reverse of serializeOut.
-       @param  settings      where you read your settings.
-    */
+     * Call this to read in this object's settings. The reverse of serializeOut.
+     *
+     * @param settings where you read your settings.
+     */
     public void serializeIn(SettingsNode settings) {
         serializeIn(settings, favorites);
     }
@@ -91,8 +94,9 @@ class FavoritesSerializable implements SettingsSerializable {
         favorites.clear();  //remove everything already there
 
         SettingsNode rootElement = settings.getChildNode(ROOT_TAG);
-        if (rootElement == null)
+        if (rootElement == null) {
             return;
+        }
 
         Iterator<SettingsNode> iterator = rootElement.getChildNodes(FAVORITE_ELEMENT_TAG).iterator();
         while (iterator.hasNext()) {
@@ -108,9 +112,11 @@ class FavoritesSerializable implements SettingsSerializable {
         }
     }
 
-    private static void addFavoriteTask(List<FavoriteTask> favorites, String fullCommandLine, String displayName, boolean alwaysShowOutput) {
-        if (displayName == null)
+    private static void addFavoriteTask(List<FavoriteTask> favorites, String fullCommandLine, String displayName,
+                                        boolean alwaysShowOutput) {
+        if (displayName == null) {
             displayName = fullCommandLine;
+        }
 
         favorites.add(new FavoriteTask(fullCommandLine, displayName, alwaysShowOutput));
     }

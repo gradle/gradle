@@ -42,8 +42,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 /**
- * This is a panel that displays the results of executing a gradle command.
- * It shows gradle's output as well as progress.
+ * This is a panel that displays the results of executing a gradle command. It shows gradle's output as well as
+ * progress.
  *
  * @author mhunsicker
  */
@@ -72,14 +72,15 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         setupUI();
     }
 
-   /**
-    This sets the gradle command that is being exeucted for this tab.
-    For now, we'll just append the text to the output panel
-    @param command the command that was executed
-    */
-   public void setGradleCommand( String command ) {
-      appendGradleOutput( "Executing command: \"" + command + "\"\n" );
-   }
+    /**
+     * This sets the gradle command that is being exeucted for this tab. For now, we'll just append the text to the
+     * output panel
+     *
+     * @param command the command that was executed
+     */
+    public void setGradleCommand(String command) {
+        appendGradleOutput("Executing command: \"" + command + "\"\n");
+    }
 
     public boolean isPinned() {
         return isPinned;
@@ -103,8 +104,9 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
 
     public void setPending(boolean pending) {
         isPending = pending;
-        if (isPending)
+        if (isPending) {
             statusLabel.setText("Waiting to execute");
+        }
 
         progressBar.setVisible(!isPending);
     }
@@ -201,8 +203,8 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     }
 
     /**
-       Call this if you're going to reuse this. it resets its output.
-    */
+     * Call this if you're going to reuse this. it resets its output.
+     */
     public void reset() {
         statusLabel.setText("");
         statusLabel.setForeground(UIManager.getColor("Label.foreground"));
@@ -211,11 +213,10 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     }
 
     /**
-       Call this to append text to the gradle output field. We'll also move the
-       caret to the end.
-
-       @param  text       the text to add
-    */
+     * Call this to append text to the gradle output field. We'll also move the caret to the end.
+     *
+     * @param text the text to add
+     */
     private void appendGradleOutput(final String text) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -231,14 +232,15 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     }
 
     /**
-       Notification that execution of a task or tasks has been started.
-    */
+     * Notification that execution of a task or tasks has been started.
+     */
     public void reportExecutionStarted() {
         setPending(false);
         setBusy(true);
         setProgress("Starting", 0);
-        if (showProgress)
+        if (showProgress) {
             progressPanel.setVisible(true);
+        }
 
         statusLabel.setText("Executing");
 
@@ -247,33 +249,33 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     }
 
     /**
-     * Notification that execution of all tasks has completed. This is only called
-     * once at the end.
+     * Notification that execution of all tasks has completed. This is only called once at the end.
      *
      * @param wasSuccessful whether or not gradle encountered errors.
-     * @param buildResult   contains more detailed information about the result of a build.
-     * @param output        the text that gradle produced. May contain error
-     *                      information, but is usually just status.
+     * @param buildResult contains more detailed information about the result of a build.
+     * @param output the text that gradle produced. May contain error information, but is usually just status.
      */
     public void reportExecutionFinished(boolean wasSuccessful, BuildResult buildResult, String output) {
         reportExecutionFinished(wasSuccessful, output, buildResult.getFailure());
     }
 
     /**
-     * Notification that execution of a task has completed. This is the task you
-     * initiated and not for each subtask or dependent task.
-     * @param  wasSuccessful whether or not gradle encountered errors.
-     * @param  output        the text that gradle produced. May contain error
-     *                       information, but is usually just status.
-     * @param throwable
-    */
+     * Notification that execution of a task has completed. This is the task you initiated and not for each subtask or
+     * dependent task.
+     *
+     * @param wasSuccessful whether or not gradle encountered errors.
+     * @param output the text that gradle produced. May contain error information, but is usually just status.
+     */
     public void reportExecutionFinished(boolean wasSuccessful, String output, Throwable throwable) {
-        setPending(false); //this can be called before we actually get a start message if it fails early. This clears the pending flag so we know we can reuse it.
+        setPending(
+                false); //this can be called before we actually get a start message if it fails early. This clears the pending flag so we know we can reuse it.
         setBusy(false);
         progressPanel.setVisible(false);
 
         if (gradleOutputTextArea.getDocument().getLength() == 0)   //if its empty,
-            appendGradleOutput(output);                            //add our output. This can happen if execution fails for internal purposes (and we we'll get wasSuccessful because the message wasn't bubbled up to us).
+        {
+            appendGradleOutput(output);
+        }                            //add our output. This can happen if execution fails for internal purposes (and we we'll get wasSuccessful because the message wasn't bubbled up to us).
 
         //show the user the time we finished this.
         SimpleDateFormat formatter = new SimpleDateFormat("h:mm:ss aa");
@@ -298,19 +300,18 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
 
     private void appendThrowable(Throwable throwable) {
         if (throwable != null) {
-            String output = GradlePluginLord.getGradleExceptionMessage(throwable, StartParameter.ShowStacktrace.ALWAYS_FULL);
+            String output = GradlePluginLord.getGradleExceptionMessage(throwable,
+                    StartParameter.ShowStacktrace.ALWAYS_FULL);
             appendGradleOutput(output);
         }
     }
 
     /**
-       Notification that a single task has completed. Note: the task you kicked
-       off probably executes other tasks.
-
-       @param  currentTaskName the task being executed
-       @param  percentComplete the percent complete of all the tasks that make
-                               up the task you requested.
-    */
+     * Notification that a single task has completed. Note: the task you kicked off probably executes other tasks.
+     *
+     * @param currentTaskName the task being executed
+     * @param percentComplete the percent complete of all the tasks that make up the task you requested.
+     */
     public void reportTaskStarted(String currentTaskName, float percentComplete) {
         setProgress(currentTaskName, percentComplete);
     }
@@ -324,36 +325,37 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     }
 
     /**
-    Report real-time output from gradle and its subsystems (such as ant).
-    @param  output     a single line of text to show.
-    @author mhunsicker
-    */
+     * Report real-time output from gradle and its subsystems (such as ant).
+     *
+     * @param output a single line of text to show.
+     * @author mhunsicker
+     */
     public void reportLiveOutput(String output) {
         appendGradleOutput(output);
     }
 
     /**
-       Determines if this panel is ready to be reused. Currently, if its not
-       busy or pinned, it can be reused.
-       @author mhunsicker
-    */
+     * Determines if this panel is ready to be reused. Currently, if its not busy or pinned, it can be reused.
+     *
+     * @author mhunsicker
+     */
     public boolean canBeReusedNow() {
         return !isPending && !isBusy && !isPinned;
     }
 
     /**
-       Call this to show progress. Some tasks have no useful progress, so this
-       allows you to disable it.
-       @param  showProgress true to show a progress bar, false not to.
-    */
+     * Call this to show progress. Some tasks have no useful progress, so this allows you to disable it.
+     *
+     * @param showProgress true to show a progress bar, false not to.
+     */
     public void showProgress(boolean showProgress) {
         this.showProgress = showProgress;
         progressPanel.setVisible(showProgress);
     }
 
     /**
-       This overrides the onlyShowOutputOnErrors
-    */
+     * This overrides the onlyShowOutputOnErrors
+     */
     private void forciblyShowOutput() {
         gradleOutputTextPanel.setVisible(true);
         forceShowOutputButtonLabel.setVisible(false);
@@ -365,12 +367,14 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     }
 
     /**
-       This returns the current text area object.
-       @return the text area or null if there are not text areas (or none visible).
-    */
+     * This returns the current text area object.
+     *
+     * @return the text area or null if there are not text areas (or none visible).
+     */
     public JTextArea getSelectedOutputTextArea() {
-        if (gradleOutputTextArea.isVisible())
+        if (gradleOutputTextArea.isVisible()) {
             return gradleOutputTextArea;
+        }
 
         return null;
     }
@@ -382,8 +386,9 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     public boolean close() {
         if (request != null)   //if we have a request, we can only close if it allows us to.
         {
-            if (!request.cancel())
+            if (!request.cancel()) {
                 return false;
+            }
         }
 
         setPinned(false);  //unpin it when it is removed

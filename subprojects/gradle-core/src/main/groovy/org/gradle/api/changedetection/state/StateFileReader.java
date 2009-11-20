@@ -34,30 +34,37 @@ class StateFileReader {
     private BufferedReader stateFileReader;
 
     StateFileReader(IoFactory ioFactory, File stateFile) {
-        if ( ioFactory == null ) throw new IllegalArgumentException("ioFactory is null!");
-        if ( stateFile == null ) throw new IllegalArgumentException("stateFile is null!");
+        if (ioFactory == null) {
+            throw new IllegalArgumentException("ioFactory is null!");
+        }
+        if (stateFile == null) {
+            throw new IllegalArgumentException("stateFile is null!");
+        }
 
         this.ioFactory = ioFactory;
         this.stateFile = stateFile;
     }
 
     public StateFileItem readStateFileItem() throws IOException {
-        if ( stateFile.exists() ) {
-            if ( stateFileReader == null )
+        if (stateFile.exists()) {
+            if (stateFileReader == null) {
                 stateFileReader = ioFactory.createBufferedReader(stateFile);
+            }
 
             final String key = stateFileReader.readLine();
-            if ( key == null )
+            if (key == null) {
                 return null;
+            }
 
             final String digest = stateFileReader.readLine();
-            if ( digest == null )
-                throw new GradleException("state file invalid key ("+key+") did not have a digest value!");
-            else
+            if (digest == null) {
+                throw new GradleException("state file invalid key (" + key + ") did not have a digest value!");
+            } else {
                 return new StateFileItem(key, digest);
-        }
-        else
+            }
+        } else {
             return null;
+        }
     }
 
     public void lastStateFileItemRead() {

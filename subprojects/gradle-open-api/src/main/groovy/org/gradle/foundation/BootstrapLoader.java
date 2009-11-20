@@ -38,12 +38,11 @@ public class BootstrapLoader
 {
    private URLClassLoader libClassLoader;
 
-   public void initialize( File gradleHome, boolean bootStrapDebug ) throws Exception
-   {
-      initialize( ClassLoader.getSystemClassLoader().getParent(), gradleHome, false, true, bootStrapDebug );
-   }
+    public void initialize(File gradleHome, boolean bootStrapDebug) throws Exception {
+        initialize(ClassLoader.getSystemClassLoader().getParent(), gradleHome, false, true, bootStrapDebug);
+    }
 
-   /*
+    /*
       Call this to initialize gradle.
       @param  parentClassloader    a parent class loader. Probably whatever class loader
                                    is used by the caller.
@@ -62,92 +61,96 @@ public class BootstrapLoader
       @throws Exception            if something goes wrong.
       @author mhunsicker
    */
-   public void initialize( ClassLoader parentClassloader, File gradleHome, boolean useParentLastClassLoader, boolean loadOpenAPI, boolean bootStrapDebug ) throws Exception
-   {
-      if( gradleHome == null || !gradleHome.exists() )
-         throw new RuntimeException( "Gradle home not defined!" );
+   public void initialize(ClassLoader parentClassloader, File gradleHome, boolean useParentLastClassLoader,
+                          boolean loadOpenAPI, boolean bootStrapDebug) throws Exception {
+       if (gradleHome == null || !gradleHome.exists()) {
+           throw new RuntimeException("Gradle home not defined!");
+       }
 
-      if( bootStrapDebug )
-         System.out.println( "Gradle Home is declared by system property gradle.home to: " + gradleHome.getAbsolutePath() );
+       if (bootStrapDebug) {
+           System.out.println(
+                   "Gradle Home is declared by system property gradle.home to: " + gradleHome.getAbsolutePath());
+       }
 
-      System.setProperty( "gradle.home", gradleHome.getAbsolutePath() );
+       System.setProperty("gradle.home", gradleHome.getAbsolutePath());
 
-      List<URL> loggingJars = toUrl( getLoggingJars() );
+       List<URL> loggingJars = toUrl(getLoggingJars());
 
-      List<File> nonLoggingJarFiles = getNonLoggingJars();
-      removeUnwantedJarFiles( nonLoggingJarFiles, loadOpenAPI );
-      List<URL> nonLoggingJars = toUrl( nonLoggingJarFiles );
+       List<File> nonLoggingJarFiles = getNonLoggingJars();
+       removeUnwantedJarFiles(nonLoggingJarFiles, loadOpenAPI);
+       List<URL> nonLoggingJars = toUrl(nonLoggingJarFiles);
 
-      if( bootStrapDebug )
-      {
-         System.out.println( "Parent Classloader of new context classloader is: " + parentClassloader );
-         System.out.println( "Adding the following files to new logging classloader: " + loggingJars );
-         System.out.println( "Adding the following files to new lib classloader: " + nonLoggingJars );
-      }
+       if (bootStrapDebug) {
+           System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
+           System.out.println("Adding the following files to new logging classloader: " + loggingJars);
+           System.out.println("Adding the following files to new lib classloader: " + nonLoggingJars);
+       }
 
-      URLClassLoader loggingClassLoader = new URLClassLoader( loggingJars.toArray( new URL[loggingJars.size()] ), parentClassloader );
+       URLClassLoader loggingClassLoader = new URLClassLoader(loggingJars.toArray(new URL[loggingJars.size()]),
+               parentClassloader);
 
-      if( useParentLastClassLoader )
-         libClassLoader = new ParentLastClassLoader( nonLoggingJars.toArray( new URL[nonLoggingJars.size()] ), loggingClassLoader );
-      else
-         libClassLoader = new URLClassLoader( nonLoggingJars.toArray( new URL[nonLoggingJars.size()] ), loggingClassLoader );
+       if (useParentLastClassLoader) {
+           libClassLoader = new ParentLastClassLoader(nonLoggingJars.toArray(new URL[nonLoggingJars.size()]),
+                   loggingClassLoader);
+       } else {
+           libClassLoader = new URLClassLoader(nonLoggingJars.toArray(new URL[nonLoggingJars.size()]),
+                   loggingClassLoader);
+       }
 
-      if( bootStrapDebug )
-      {
-         System.out.println( "Logging class loader: " + loggingClassLoader );
-         System.out.println( "Lib class loader: " + libClassLoader );
-      }
+       if (bootStrapDebug) {
+           System.out.println("Logging class loader: " + loggingClassLoader);
+           System.out.println("Lib class loader: " + libClassLoader);
+       }
    }
 
-            public static File[] getGradleHomeLibClasspath() {
-                 File gradleHomeLib = new File(System.getProperty("gradle.home") + "/lib");
-                 if (gradleHomeLib.isDirectory()) {
-                     return gradleHomeLib.listFiles();
-                 }
-                 return new File[0];
-             }
+    public static File[] getGradleHomeLibClasspath() {
+        File gradleHomeLib = new File(System.getProperty("gradle.home") + "/lib");
+        if (gradleHomeLib.isDirectory()) {
+            return gradleHomeLib.listFiles();
+        }
+        return new File[0];
+    }
 
-            public static List<File> getNonLoggingJars() {
-           List<File> pathElements = new ArrayList<File>();
-           for (File file : getGradleClasspath()) {
-               if (!isLogLib(file)) {
-                   pathElements.add(file);
-               }
-           }
-           return pathElements;
-       }
+    public static List<File> getNonLoggingJars() {
+        List<File> pathElements = new ArrayList<File>();
+        for (File file : getGradleClasspath()) {
+            if (!isLogLib(file)) {
+                pathElements.add(file);
+            }
+        }
+        return pathElements;
+    }
 
-       public static List<File> getLoggingJars() {
-           List<File> pathElements = new ArrayList<File>();
-           for (File file : getGradleClasspath()) {
-               if (isLogLib(file)) {
-                   pathElements.add(file);
-               }
-           }
-           return pathElements;
-       }
+    public static List<File> getLoggingJars() {
+        List<File> pathElements = new ArrayList<File>();
+        for (File file : getGradleClasspath()) {
+            if (isLogLib(file)) {
+                pathElements.add(file);
+            }
+        }
+        return pathElements;
+    }
 
-       private static boolean isLogLib(File file) {
-           return file.getName().startsWith("logback") || file.getName().startsWith("slf4j");
-       }
+    private static boolean isLogLib(File file) {
+        return file.getName().startsWith("logback") || file.getName().startsWith("slf4j");
+    }
 
-       public static List<File> getGradleClasspath() {
-           File customGradleBin = null;
-           List<File> pathElements = new ArrayList<File>();
-           if (System.getProperty("gradle.bootstrap.gradleBin") != null) {
-               customGradleBin = new File(System.getProperty("gradle.bootstrap.gradleBin"));
-               pathElements.add(customGradleBin);
-           }
-           for (File homeLibFile : getGradleHomeLibClasspath()) {
-               if (homeLibFile.isFile() && !(customGradleBin != null && homeLibFile.getName().startsWith("gradle-"))) {
-                   pathElements.add(homeLibFile);
-               }
-           }
-           return pathElements;
-       }
+    public static List<File> getGradleClasspath() {
+        File customGradleBin = null;
+        List<File> pathElements = new ArrayList<File>();
+        if (System.getProperty("gradle.bootstrap.gradleBin") != null) {
+            customGradleBin = new File(System.getProperty("gradle.bootstrap.gradleBin"));
+            pathElements.add(customGradleBin);
+        }
+        for (File homeLibFile : getGradleHomeLibClasspath()) {
+            if (homeLibFile.isFile() && !(customGradleBin != null && homeLibFile.getName().startsWith("gradle-"))) {
+                pathElements.add(homeLibFile);
+            }
+        }
+        return pathElements;
+    }
 
-
-   /*
+    /*
       This removes unwanted jar files. At the time of this writing, we're only
       interested in the open api jar.
 
@@ -155,39 +158,36 @@ public class BootstrapLoader
       @param  loadOpenAPI        true to keep the open api jar, false to remove it.
       @author mhunsicker
    */
-   private void removeUnwantedJarFiles( List<File> nonLoggingJarFiles, boolean loadOpenAPI )
-   {
-      if( loadOpenAPI )
-         return;
+    private void removeUnwantedJarFiles(List<File> nonLoggingJarFiles, boolean loadOpenAPI) {
+        if (loadOpenAPI) {
+            return;
+        }
 
-      Iterator<File> iterator = nonLoggingJarFiles.iterator();
-      while( iterator.hasNext() )
-      {
-         File file = iterator.next();
-         if( file.getName().startsWith( "gradle-open-api-" ) )
-            iterator.remove();
-      }
-   }
+        Iterator<File> iterator = nonLoggingJarFiles.iterator();
+        while (iterator.hasNext()) {
+            File file = iterator.next();
+            if (file.getName().startsWith("gradle-open-api-")) {
+                iterator.remove();
+            }
+        }
+    }
 
-   /*
+    /*
       Call this to get the class loader you can use to load gradle classes.
       @return a URLClassLoader
       @author mhunsicker
    */
    public URLClassLoader getClassLoader() { return libClassLoader; }
 
-   public Class load( String classPath ) throws Exception
-   {
-      return libClassLoader.loadClass( classPath );
-   }
+    public Class load(String classPath) throws Exception {
+        return libClassLoader.loadClass(classPath);
+    }
 
-   private static List<URL> toUrl( List<File> files ) throws MalformedURLException
-   {
-      List<URL> result = new ArrayList<URL>();
-      for( File file : files )
-      {
-         result.add( file.toURI().toURL() );
-      }
-      return result;
-   }
+    private static List<URL> toUrl(List<File> files) throws MalformedURLException {
+        List<URL> result = new ArrayList<URL>();
+        for (File file : files) {
+            result.add(file.toURI().toURL());
+        }
+        return result;
+    }
 }

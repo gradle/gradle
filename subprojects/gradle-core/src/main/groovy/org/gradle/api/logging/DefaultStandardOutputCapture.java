@@ -80,13 +80,21 @@ public class DefaultStandardOutputCapture implements StandardOutputCapture {
     }
 
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DefaultStandardOutputCapture that = (DefaultStandardOutputCapture) o;
 
-        if (enabled != that.enabled) return false;
-        if (level != that.level) return false;
+        if (enabled != that.enabled) {
+            return false;
+        }
+        if (level != that.level) {
+            return false;
+        }
 
         return true;
     }

@@ -34,8 +34,10 @@ public class DefaultTestDetectionOrchestrator implements TestDetectionOrchestrat
     private Thread detectionThread;
 
     public DefaultTestDetectionOrchestrator(final TestDetectionOrchestratorFactory factory) {
-        if ( factory == null ) throw new IllegalArgumentException("factory == null!");
-        
+        if (factory == null) {
+            throw new IllegalArgumentException("factory == null!");
+        }
+
         this.factory = factory;
         this.detectionRunStateLock = new ReentrantLock();
     }
@@ -43,16 +45,14 @@ public class DefaultTestDetectionOrchestrator implements TestDetectionOrchestrat
     public void startDetection() {
         detectionRunStateLock.lock();
         try {
-            if ( detectionRunner == null && detectionThread == null ) {
+            if (detectionRunner == null && detectionThread == null) {
                 detectionRunner = factory.createDetectionRunner();
                 detectionThread = factory.createDetectionThread(detectionRunner);
                 detectionThread.start();
-            }
-            else {
+            } else {
                 throw new IllegalStateException("detection already started");
             }
-        }
-        finally {
+        } finally {
             detectionRunStateLock.unlock();
         }
     }
@@ -60,13 +60,12 @@ public class DefaultTestDetectionOrchestrator implements TestDetectionOrchestrat
     public void stopDetection() {
         detectionRunStateLock.lock();
         try {
-            if (detectionRunner != null && detectionThread != null ) {
+            if (detectionRunner != null && detectionThread != null) {
                 detectionRunner.stopDetecting();
 
                 waitForDetectionEnd();
             }
-        }
-        finally {
+        } finally {
             detectionRunStateLock.unlock();
         }
     }
@@ -80,10 +79,8 @@ public class DefaultTestDetectionOrchestrator implements TestDetectionOrchestrat
                 detectionThread = null;
                 detectionRunner = null;
             }
-        }
-        finally {
+        } finally {
             detectionRunStateLock.unlock();
         }
-
     }
 }

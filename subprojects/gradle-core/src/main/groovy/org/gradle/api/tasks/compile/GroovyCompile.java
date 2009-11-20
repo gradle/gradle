@@ -38,7 +38,9 @@ public class GroovyCompile extends Compile {
     private GroovyCompileOptions groovyOptions = new GroovyCompileOptions();
 
     protected void compile() {
-        if (getAntGroovyCompile() == null) throw new InvalidUserDataException("The ant groovy compile command must be set!");
+        if (getAntGroovyCompile() == null) {
+            throw new InvalidUserDataException("The ant groovy compile command must be set!");
+        }
         if (getSourceCompatibility() == null || getTargetCompatibility() == null) {
             throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
         }

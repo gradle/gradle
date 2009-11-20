@@ -40,13 +40,11 @@ class DirectoryStateDigestCalculator implements Runnable {
     private final Map<String, DirectoryState> previousLevelDirectoryStates;
     private final IoFactory ioFactory;
 
-    DirectoryStateDigestCalculator(
-            DirectoryState directoryState,
-            DigesterCache digesterCache,
-            DigesterUtil digesterUtil,
-            DefaultDirectoryStateChangeDetecter directoryStateChangeDetecter,
-            Map<String, DirectoryState> currentLevelDirectoryStates,
-            Map<String, DirectoryState> previousLevelDirectoryStates, IoFactory ioFactory) {
+    DirectoryStateDigestCalculator(DirectoryState directoryState, DigesterCache digesterCache,
+                                   DigesterUtil digesterUtil,
+                                   DefaultDirectoryStateChangeDetecter directoryStateChangeDetecter,
+                                   Map<String, DirectoryState> currentLevelDirectoryStates,
+                                   Map<String, DirectoryState> previousLevelDirectoryStates, IoFactory ioFactory) {
         this.directoryState = directoryState;
         this.digesterCache = digesterCache;
         this.digesterUtil = digesterUtil;
@@ -57,21 +55,22 @@ class DirectoryStateDigestCalculator implements Runnable {
     }
 
     public void run() {
-        StateFileWriter stateFileWriter  = null;
+        StateFileWriter stateFileWriter = null;
         try {
             final MessageDigest fileDigester = digesterCache.getDigester(Thread.currentThread().getName() + "_file");
             final MessageDigest dirDigester = digesterCache.getDigester(Thread.currentThread().getName() + "_dir");
             final File directory = directoryState.getDirectory();
             final String relativeDirectoryPath = directoryState.getRelativePath();
             final StateFileUtil stateFileUtil = directoryStateChangeDetecter.getStateFileUtil();
-            final File stateFile = stateFileUtil.getNewDirsStateFile(stateFileUtil.getDirStateFilename(directoryState.getRelativePathDigest())); 
+            final File stateFile = stateFileUtil.getNewDirsStateFile(stateFileUtil.getDirStateFilename(
+                    directoryState.getRelativePathDigest()));
             stateFileWriter = new StateFileWriter(ioFactory, stateFile);
 
             long directorySize = 0;
 
             final List<File> subFiles = GFileUtils.getSubFiles(directory);
 
-            if ( subFiles.size() > 0 ) {
+            if (subFiles.size() > 0) {
                 // Sort alphabetically by filename - this simplifies comparing agains the old state later on.
                 Collections.sort(subFiles, new Comparator<File>() {
                     public int compare(final File firstFile, final File secondFile) {
@@ -79,7 +78,7 @@ class DirectoryStateDigestCalculator implements Runnable {
                     }
                 });
 
-                for ( final File subFile : subFiles ) {
+                for (final File subFile : subFiles) {
                     digesterUtil.digestFile(fileDigester, subFile);
 
                     final String fileDigest = DigestStringUtil.digestToHexString(fileDigester.digest());
@@ -94,7 +93,7 @@ class DirectoryStateDigestCalculator implements Runnable {
             }
 
             final List<DirectoryState> subDirectoryStateItems = getNewSubDirectoryStates(relativeDirectoryPath);
-            for ( final DirectoryState subDirectoryStateItem : subDirectoryStateItems ) {
+            for (final DirectoryState subDirectoryStateItem : subDirectoryStateItems) {
                 dirDigester.update(subDirectoryStateItem.getDigest().getBytes());
                 directorySize += subDirectoryStateItem.getSize();
             }
@@ -105,32 +104,33 @@ class DirectoryStateDigestCalculator implements Runnable {
 
             directoryState.setDigest(dirDigest);
             directoryState.setSize(directorySize);
-        }
-        catch ( Throwable t ) {
+        } catch (Throwable t) {
             directoryState.setFailureCause(t);
-        }
-        finally {
+        } finally {
             addNewDirectoryState(directoryState);
-            if ( stateFileWriter != null ) {
+            if (stateFileWriter != null) {
                 stateFileWriter.close();
             }
         }
     }
 
     public void addNewDirectoryState(DirectoryState directoryState) {
-        if ( directoryState == null ) throw new IllegalArgumentException("leveledDirectoryState is null!");
+        if (directoryState == null) {
+            throw new IllegalArgumentException("leveledDirectoryState is null!");
+        }
 
         currentLevelDirectoryStates.put(directoryState.getRelativePath(), directoryState);
     }
 
     public String getNewDirectoryDigest(String relativeDirectoryPath) {
-        if ( StringUtils.isEmpty(relativeDirectoryPath) ) throw new IllegalArgumentException("relativeDirectoryPath is empty!");
+        if (StringUtils.isEmpty(relativeDirectoryPath)) {
+            throw new IllegalArgumentException("relativeDirectoryPath is empty!");
+        }
 
         final DirectoryState directoryState = previousLevelDirectoryStates.get(relativeDirectoryPath);
-        if ( directoryState == null ) {
+        if (directoryState == null) {
             return null;
-        }
-        else {
+        } else {
             return directoryState.getDigest();
         }
     }
@@ -140,10 +140,12 @@ class DirectoryStateDigestCalculator implements Runnable {
 
         for (final String currentStateItemKey : previousLevelDirectoryStates.keySet()) {
 
-            if (    currentStateItemKey.startsWith(relativeDirectoryPath) ) {
+            if (currentStateItemKey.startsWith(relativeDirectoryPath)) {
                 String belowPath = currentStateItemKey.replaceAll(relativeDirectoryPath, "");
-                if ( "".equals(belowPath) || StringUtils.countMatches(belowPath, System.getProperty("file.separator")) == 1 )
+                if ("".equals(belowPath) || StringUtils.countMatches(belowPath, System.getProperty("file.separator"))
+                        == 1) {
                     subDirectoryStates.add(previousLevelDirectoryStates.get(currentStateItemKey));
+                }
             }
         }
 

@@ -41,9 +41,8 @@ import java.awt.event.WindowEvent;
 import java.util.List;
 
 /**
- * This dialog allows you to edit what tasks and projects are visible when a
- * filter is enabled. Filters are used to weed out rarely-used things to make
- * finding things easier.
+ * This dialog allows you to edit what tasks and projects are visible when a filter is enabled. Filters are used to weed
+ * out rarely-used things to make finding things easier.
  *
  * @author mhunsicker
  */
@@ -68,15 +67,17 @@ public class ProjectAndTaskFilterDialog {
     }
 
     /**
-       Call this to start editing the given filter.
-       @param  filter     the filter to edit
-       @return a filter if the user OKs the changes, null if they cancel
-    */
+     * Call this to start editing the given filter.
+     *
+     * @param filter the filter to edit
+     * @return a filter if the user OKs the changes, null if they cancel
+     */
     public BasicProjectAndTaskFilter show(BasicProjectAndTaskFilter filter) {
         this.editor = new BasicFilterEditor(filter);
 
-        if (mainPanel == null)
+        if (mainPanel == null) {
             setupUI();
+        }
 
         populate();
 
@@ -85,8 +86,9 @@ public class ProjectAndTaskFilterDialog {
 
         dialog.setVisible(true);
 
-        if (this.saveResults)
+        if (this.saveResults) {
             return editor.createFilter();
+        }
 
         return null;
     }
@@ -174,11 +176,10 @@ public class ProjectAndTaskFilterDialog {
     }
 
     /**
-       This creates the two list panels. This may seem odd, but I'm putting each
-       of them into a BoxLayout then inside another BorderLayout. This is to
-       make each of them as large as they can be and divide the space evenly
-       between them.
-    */
+     * This creates the two list panels. This may seem odd, but I'm putting each of them into a BoxLayout then inside
+     * another BorderLayout. This is to make each of them as large as they can be and divide the space evenly between
+     * them.
+     */
     private Component createCenterPanel() {
         JPanel outterPanel = new JPanel();
         outterPanel.setLayout(new BoxLayout(outterPanel, BoxLayout.Y_AXIS));
@@ -217,8 +218,8 @@ public class ProjectAndTaskFilterDialog {
     }
 
     /**
-       This imports a filter from a file.
-    */
+     * This imports a filter from a file.
+     */
     private void importFilter() {
         if (editor.importFromFile(new SwingImportInteraction(dialog))) {
             taskFilterEditorPanel.getComponent().repaint();
@@ -227,17 +228,16 @@ public class ProjectAndTaskFilterDialog {
     }
 
     /**
-       This exports a filter to a file.
-    */
+     * This exports a filter to a file.
+     */
     private void exportFilter() {
         editor.exportToFile(new SwingExportInteraction(dialog));
     }
 
     /**
-       Populates our lists. We'll use a visitor to build up a list of unique
-       names of projects and tasks. Then we'll sort them and add them to each
-       filter editor panel.
-    */
+     * Populates our lists. We'll use a visitor to build up a list of unique names of projects and tasks. Then we'll
+     * sort them and add them to each filter editor panel.
+     */
     private void populate() {
         UniqueNameProjectAndTaskVisitor visitor = new UniqueNameProjectAndTaskVisitor();
 
@@ -251,7 +251,6 @@ public class ProjectAndTaskFilterDialog {
 
         filterOutTasksWithNoDescriptionCheckBox.setSelected(editor.filterOutTasksWithNoDescription());
     }
-
 
     private class TaskFilterEditorPanel extends AbstractFilterEditorPanel {
         protected boolean isAllowed(String item) {
@@ -280,7 +279,6 @@ public class ProjectAndTaskFilterDialog {
             editor.showProjectsByName(selection);
         }
     }
-
 
     private void filterOutTasksWithNoDescription() {
         editor.setFilterOutTasksWithNoDescription(filterOutTasksWithNoDescriptionCheckBox.isSelected());

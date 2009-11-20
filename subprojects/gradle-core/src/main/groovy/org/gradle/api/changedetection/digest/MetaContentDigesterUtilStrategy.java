@@ -28,8 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * The DigesterUtilStrategyNames.META_CONTENT DigesterUtilStrategy implementation.
  *
- * The DigesterUtilStrategyNames.META_CONTENT extends the DigesterUtilStrategyNames.META DigesterUtilStrategy implementation
- * and redefines the digestFile method to include the file content.
+ * The DigesterUtilStrategyNames.META_CONTENT extends the DigesterUtilStrategyNames.META DigesterUtilStrategy
+ * implementation and redefines the digestFile method to include the file content.
  *
  * @author Tom Eyckmans
  */
@@ -51,18 +51,18 @@ class MetaContentDigesterUtilStrategy extends MetaDigesterUtilStrategy {
      * Creates an instance with a custom fileContentBufferSize.
      *
      * @param fileContentBufferSize The custom fileContentBufferSize.
-     * @exception IllegalArgumentException When the fileContentBuffer size provided <= 0.
+     * @throws IllegalArgumentException When the fileContentBuffer size provided <= 0.
      */
     public MetaContentDigesterUtilStrategy(int fileContentBufferSize) {
         setFileContentBufferSize(fileContentBufferSize);
     }
 
     /**
-     * Calls {@see MetaDigesterUtilStrategy.digestFile} and in addition to the DigesterUtilStrategyNames.META
-     * this method also include the byte content of the file in the digest calculation.
+     * Calls {@see MetaDigesterUtilStrategy.digestFile} and in addition to the DigesterUtilStrategyNames.META this
+     * method also include the byte content of the file in the digest calculation.
      *
      * This method uses a byte array to buffer the file content. The size of this buffer can be controlled by the
-     * fileContentBufferSize attribute. 
+     * fileContentBufferSize attribute.
      *
      * @param digester The digester to update.
      * @param file The file that needs it's digest calculated.
@@ -75,14 +75,12 @@ class MetaContentDigesterUtilStrategy extends MetaDigesterUtilStrategy {
             fileStream = new FileInputStream(file);
 
             final byte[] fileContentBuffer = new byte[fileContentBufferSize.get()];
-            while ( fileStream.read(fileContentBuffer) != -1 ) {
+            while (fileStream.read(fileContentBuffer) != -1) {
                 digester.update(fileContentBuffer);
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new GradleException("failed to add content to file digest", e);
-        }
-        finally {
+        } finally {
             IOUtils.closeQuietly(fileStream);
         }
     }
@@ -91,10 +89,12 @@ class MetaContentDigesterUtilStrategy extends MetaDigesterUtilStrategy {
      * Update the fileContentBufferSize.
      *
      * @param fileContentBufferSize The new fileContentBufferSize to use.
-     * @exception IllegalArgumentException When the fileContentBuffer size provided <= 0.
+     * @throws IllegalArgumentException When the fileContentBuffer size provided <= 0.
      */
     public void setFileContentBufferSize(int fileContentBufferSize) {
-        if ( fileContentBufferSize <= 0 ) throw new IllegalArgumentException("fileContentBufferSize <= 0!");
+        if (fileContentBufferSize <= 0) {
+            throw new IllegalArgumentException("fileContentBufferSize <= 0!");
+        }
         this.fileContentBufferSize.set(fileContentBufferSize);
     }
 }

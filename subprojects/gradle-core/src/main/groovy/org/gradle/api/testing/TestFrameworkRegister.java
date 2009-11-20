@@ -26,9 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Keeps a map<TestFramework.id, TestFramework> of all the supported TestFrameworks.
  *
- * The default supported Test frameworks are:
- * - JUnit (id = "junit")
- * - TestNG (id = "testng")
+ * The default supported Test frameworks are: - JUnit (id = "junit") - TestNG (id = "testng")
  *
  * @author Tom Eyckmans
  */
@@ -50,23 +48,27 @@ public class TestFrameworkRegister {
      * In case the test framework id is already used the new test framework replaces the old registered one.
      *
      * @param testFramework The test framework to register.
-     * @throws IllegalArgumentException when the test framework is null or the id of the test framework is empty
      * @return The previously registered test framework for the same test framework id.
+     * @throws IllegalArgumentException when the test framework is null or the id of the test framework is empty
      */
     public static TestFramework registerTestFramework(final TestFramework testFramework) {
-        if (testFramework == null) throw new IllegalArgumentException("testFramework == null!");
+        if (testFramework == null) {
+            throw new IllegalArgumentException("testFramework == null!");
+        }
 
         final String testFrameworkId = testFramework.getId();
 
-        if (StringUtils.isEmpty(testFrameworkId)) throw new IllegalArgumentException("testFramework.id is empty!");
+        if (StringUtils.isEmpty(testFrameworkId)) {
+            throw new IllegalArgumentException("testFramework.id is empty!");
+        }
 
         return TEST_FRAMEWORKS.put(testFrameworkId, testFramework);
     }
 
-    
-
     public static TestFramework getTestFramework(final String testFrameworkId) {
-        if (StringUtils.isEmpty(testFrameworkId)) throw new IllegalArgumentException("testFrameworkId is empty!");
+        if (StringUtils.isEmpty(testFrameworkId)) {
+            throw new IllegalArgumentException("testFrameworkId is empty!");
+        }
 
         return TEST_FRAMEWORKS.get(testFrameworkId);
     }

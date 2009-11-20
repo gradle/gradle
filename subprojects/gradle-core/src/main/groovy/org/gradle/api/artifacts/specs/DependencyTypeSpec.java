@@ -39,12 +39,18 @@ public class DependencyTypeSpec<T extends Dependency> implements Spec<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DependencyTypeSpec typeSpec = (DependencyTypeSpec) o;
 
-        if (type != typeSpec.type) return false;
+        if (type != typeSpec.type) {
+            return false;
+        }
 
         return true;
     }

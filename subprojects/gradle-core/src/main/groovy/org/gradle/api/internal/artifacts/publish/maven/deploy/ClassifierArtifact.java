@@ -19,7 +19,7 @@ import java.io.File;
 
 /**
  * @author Hans Dockter
-*/
+ */
 public class ClassifierArtifact {
     private String classifier;
     private String type;
@@ -45,12 +45,18 @@ public class ClassifierArtifact {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ClassifierArtifact that = (ClassifierArtifact) o;
 
-        if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) return false;
+        if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) {
+            return false;
+        }
 
         return true;
     }

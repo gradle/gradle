@@ -67,7 +67,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         if (StringUtils.isEmpty(superClassName)) {
             throw new IllegalArgumentException("superClassName is empty!");
         }
-        
+
         final Iterator<File> testClassDirectoriesIt = testClassDirectories.iterator();
 
         File superTestClassFile = null;
@@ -99,8 +99,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             for (File file : testClasspath) {
                 if (file.isDirectory()) {
                     testClassDirectories.add(file);
-                }
-                else if (file.isFile() && file.getName().endsWith(".jar")) {
+                } else if (file.isFile() && file.getName().endsWith(".jar")) {
                     classFileExtractionManager.addLibraryJar(file);
                 }
             }
@@ -115,11 +114,9 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             classStream = new BufferedInputStream(new FileInputStream(testClassFile));
             final ClassReader classReader = new ClassReader(classStream);
             classReader.accept(classVisitor, true);
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             throw new GradleException("failed to read class file " + testClassFile.getAbsolutePath(), e);
-        }
-        finally {
+        } finally {
             IOUtils.closeQuietly(classStream);
         }
 
@@ -158,16 +155,14 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     }
 
     /**
-     * In none super class mode a test class is published when the class is a test and it is not abstract.
-     * In super class mode it musn't publish the class otherwise it will get published multiple times
-     * (for each extending class).
-     * @param isTest
-     * @param classVisitor
-     * @param superClass
+     * In none super class mode a test class is published when the class is a test and it is not abstract. In super
+     * class mode it musn't publish the class otherwise it will get published multiple times (for each extending
+     * class).
      */
     protected void publishTestClass(boolean isTest, TestClassVisitor classVisitor, boolean superClass) {
-        if (isTest && !classVisitor.isAbstract() && !superClass)
+        if (isTest && !classVisitor.isAbstract() && !superClass) {
             testClassProcessor.processTestClass(classVisitorToClassFilename(classVisitor));
+        }
     }
 
     public void manualTestClass(String testClassName) {
@@ -178,11 +173,12 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         this.testClassProcessor = testClassProcessor;
     }
 
-    public void addKnownTestCaseClassNames(String ... knownTestCaseClassNames) {
-        if ( knownTestCaseClassNames != null && knownTestCaseClassNames.length != 0 ) {
-            for ( String knownTestCaseClassName : knownTestCaseClassNames ) {
-                if ( StringUtils.isNotEmpty(knownTestCaseClassName) )
+    public void addKnownTestCaseClassNames(String... knownTestCaseClassNames) {
+        if (knownTestCaseClassNames != null && knownTestCaseClassNames.length != 0) {
+            for (String knownTestCaseClassName : knownTestCaseClassNames) {
+                if (StringUtils.isNotEmpty(knownTestCaseClassName)) {
                     this.knownTestCaseClassNames.add(knownTestCaseClassName.replaceAll("\\.", "/"));
+                }
             }
         }
     }
@@ -190,12 +186,13 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     protected boolean isKnownTestCaseClassName(String testCaseClassName) {
         boolean isKnownTestCase = false;
 
-        if ( StringUtils.isNotEmpty(testCaseClassName) ) {
+        if (StringUtils.isNotEmpty(testCaseClassName)) {
             final Iterator<String> knownTestCaseClassNamesIterator = knownTestCaseClassNames.iterator();
-            while ( !isKnownTestCase && knownTestCaseClassNamesIterator.hasNext() ) {
+            while (!isKnownTestCase && knownTestCaseClassNamesIterator.hasNext()) {
                 final String currentKnownTestCaseClassName = knownTestCaseClassNamesIterator.next();
-                if ( currentKnownTestCaseClassName.equals(testCaseClassName) )
+                if (currentKnownTestCaseClassName.equals(testCaseClassName)) {
                     isKnownTestCase = true;
+                }
             }
         }
 

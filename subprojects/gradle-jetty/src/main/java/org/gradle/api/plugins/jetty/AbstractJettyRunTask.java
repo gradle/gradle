@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.jetty;
 
-
 import org.gradle.api.*;
 import org.gradle.api.plugins.jetty.internal.*;
 import org.gradle.api.tasks.*;
@@ -61,72 +60,59 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     private File tmpDirectory;
 
     /**
-     * A webdefault.xml file to use instead
-     * of the default for the webapp. Optional.
+     * A webdefault.xml file to use instead of the default for the webapp. Optional.
      */
     private File webDefaultXml;
 
     /**
-     * A web.xml file to be applied AFTER
-     * the webapp's web.xml file. Useful for
-     * applying different build profiles, eg
+     * A web.xml file to be applied AFTER the webapp's web.xml file. Useful for applying different build profiles, eg
      * test, production etc. Optional.
      */
     private File overrideWebXml;
 
-
     /**
-     * The interval in seconds to scan the webapp for changes
-     * and restart the context if necessary. Ignored if reload
-     * is enabled. Disabled by default.
+     * The interval in seconds to scan the webapp for changes and restart the context if necessary. Ignored if reload is
+     * enabled. Disabled by default.
      */
     private int scanIntervalSeconds;
 
     /**
-     * reload can be set to either 'automatic' or 'manual'
-     * <p/>
-     * if 'manual' then the context can be reloaded by a linefeed in the console
-     * if 'automatic' then traditional reloading on changed files is enabled.
+     * reload can be set to either 'automatic' or 'manual' <p/> if 'manual' then the context can be reloaded by a
+     * linefeed in the console if 'automatic' then traditional reloading on changed files is enabled.
      */
     protected String reload;
 
     /**
-     * Location of a jetty xml configuration file whose contents
-     * will be applied before any plugin configuration. Optional.
+     * Location of a jetty xml configuration file whose contents will be applied before any plugin configuration.
+     * Optional.
      */
     private File jettyConfig;
 
     /**
-     * Port to listen to stop jetty on executing -DSTOP.PORT=&lt;stopPort&gt;
-     * -DSTOP.KEY=&lt;stopKey&gt; -jar start.jar --stop
+     * Port to listen to stop jetty on executing -DSTOP.PORT=&lt;stopPort&gt; -DSTOP.KEY=&lt;stopKey&gt; -jar start.jar
+     * --stop
      */
     private Integer stopPort;
 
     /**
-     * Key to provide when stopping jetty on executing java -DSTOP.KEY=&lt;stopKey&gt;
-     * -DSTOP.PORT=&lt;stopPort&gt; -jar start.jar --stop
+     * Key to provide when stopping jetty on executing java -DSTOP.KEY=&lt;stopKey&gt; -DSTOP.PORT=&lt;stopPort&gt; -jar
+     * start.jar --stop
      */
     private String stopKey;
 
     /**
-     * <p>
-     * Determines whether or not the server blocks when started. The default
-     * behavior (daemon = false) will cause the server to pause other processes
-     * while it continues to handle web requests. This is useful when starting the
-     * server with the intent to work with it interactively.
-     * </p><p>
-     * Often, it is desirable to let the server start and continue running subsequent
-     * processes in an automated build environment. This can be facilitated by setting
-     * daemon to true.
-     * </p>
+     * <p> Determines whether or not the server blocks when started. The default behavior (daemon = false) will cause
+     * the server to pause other processes while it continues to handle web requests. This is useful when starting the
+     * server with the intent to work with it interactively. </p><p> Often, it is desirable to let the server start and
+     * continue running subsequent processes in an automated build environment. This can be facilitated by setting
+     * daemon to true. </p>
      */
     private boolean daemon;
 
     private Integer httpPort;
 
     /**
-     * List of connectors to use. If none are configured
-     * then we use a single SelectChannelConnector at port 8080
+     * List of connectors to use. If none are configured then we use a single SelectChannelConnector at port 8080
      */
     private Connector[] connectors;
 
@@ -136,8 +122,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     private UserRealm[] userRealms;
 
     /**
-     * A RequestLog implementation to use for the webapp at runtime.
-     * Optional.
+     * A RequestLog implementation to use for the webapp at runtime. Optional.
      */
     private RequestLog requestLog;
 
@@ -151,7 +136,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      */
     protected ArrayList scannerListeners;
 
-
     /**
      * A scanner to check ENTER hits on the console
      */
@@ -159,15 +143,11 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     public static final String PORT_SYSPROPERTY = "jetty.port";
 
-
     public abstract void validateConfiguration();
-
 
     public abstract void configureScanner();
 
-
     public abstract void applyJettyXml() throws Exception;
-
 
     /**
      * create a proxy that wraps a particular jetty version Server object
@@ -189,7 +169,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
                 throw new InvalidUserDataException(e);
             }
         }
-        URLClassLoader jettyClassloader = new URLClassLoader(additionalClasspath.toArray(new URL[additionalClasspath.size()]), originalClassloader);
+        URLClassLoader jettyClassloader = new URLClassLoader(additionalClasspath.toArray(
+                new URL[additionalClasspath.size()]), originalClassloader);
         try {
             Thread.currentThread().setContextClassLoader(jettyClassloader);
             startJetty();
@@ -224,7 +205,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         startJettyInternal();
     }
 
-
     public void startJettyInternal() {
         try {
             logger.debug("Starting Jetty Server ...");
@@ -246,8 +226,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             }
 
             //set up a RequestLog if one is provided
-            if (getRequestLog() != null)
+            if (getRequestLog() != null) {
                 getServer().setRequestLog(getRequestLog());
+            }
 
             //set up the webapp and any context provided
             getServer().configureHandlers();
@@ -256,8 +237,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
             // set up security realms
             Object[] configuredRealms = getUserRealms();
-            for (int i = 0; (configuredRealms != null) && i < configuredRealms.length; i++)
+            for (int i = 0; (configuredRealms != null) && i < configuredRealms.length; i++) {
                 logger.debug(configuredRealms[i].getClass().getName() + ": " + configuredRealms[i].toString());
+            }
 
             plugin.setUserRealms(configuredRealms);
 
@@ -271,7 +253,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             logger.info("Started Jetty Server");
 
             if (getStopPort() != null && getStopPort() > 0 && getStopKey() != null) {
-                Monitor monitor = new Monitor(getStopPort(), getStopKey(), new Server[]{(Server) server.getProxiedObject()}, !daemon);
+                Monitor monitor = new Monitor(getStopPort(), getStopKey(),
+                        new Server[]{(Server) server.getProxiedObject()}, !daemon);
                 monitor.start();
             }
 
@@ -286,24 +269,19 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             if (!daemon) {
                 server.join();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new GradleException("An error occurred starting the Jetty server.", e);
-        }
-        finally {
+        } finally {
             if (!daemon) {
                 logger.info("Jetty server exiting.");
             }
         }
-
     }
-
 
     public abstract void restartWebApp(boolean reconfigureScanner) throws Exception;
 
     /**
-     * Subclasses should invoke this to setup basic info
-     * on the webapp
+     * Subclasses should invoke this to setup basic info on the webapp
      */
     public void configureWebApplication() throws Exception {
         //use EITHER a <webAppConfig> element or the now deprecated <contextPath>, <tmpDirectory>, <webDefaultXml>, <overrideWebXml>
@@ -332,26 +310,29 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
         logger.info("Context path = " + webAppConfig.getContextPath());
         logger.info("Tmp directory = " + " determined at runtime");
-        logger.info("Web defaults = " + (webAppConfig.getDefaultsDescriptor() == null ? " jetty default" : webAppConfig.getDefaultsDescriptor()));
-        logger.info("Web overrides = " + (webAppConfig.getOverrideDescriptor() == null ? " none" : webAppConfig.getOverrideDescriptor()));
-
+        logger.info("Web defaults = " + (webAppConfig.getDefaultsDescriptor() == null ? " jetty default"
+                : webAppConfig.getDefaultsDescriptor()));
+        logger.info("Web overrides = " + (webAppConfig.getOverrideDescriptor() == null ? " none"
+                : webAppConfig.getOverrideDescriptor()));
     }
 
     /**
-     * Run a scanner thread on the given list of files and directories, calling
-     * stop/start on the given list of LifeCycle objects if any of the watched
-     * files change.
+     * Run a scanner thread on the given list of files and directories, calling stop/start on the given list of
+     * LifeCycle objects if any of the watched files change.
      */
     private void startScanner() {
 
         // check if scanning is enabled
-        if (getScanIntervalSeconds() <= 0) return;
+        if (getScanIntervalSeconds() <= 0) {
+            return;
+        }
 
         // check if reload is manual. It disables file scanning
         if ("manual".equalsIgnoreCase(reload)) {
             // issue a warning if both scanIntervalSeconds and reload
             // are enabled
-            logger.warn("scanIntervalSeconds is set to " + scanIntervalSeconds + " but will be IGNORED due to manual reloading");
+            logger.warn("scanIntervalSeconds is set to " + scanIntervalSeconds
+                    + " but will be IGNORED due to manual reloading");
             return;
         }
 
@@ -360,8 +341,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         scanner.setRecursive(true);
         List listeners = getScannerListeners();
         Iterator itor = (listeners == null ? null : listeners.iterator());
-        while (itor != null && itor.hasNext())
+        while (itor != null && itor.hasNext()) {
             scanner.addListener((Scanner.Listener) itor.next());
+        }
         logger.info("Starting scanner at interval of " + getScanIntervalSeconds() + " seconds.");
         scanner.start();
     }
@@ -375,38 +357,41 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             consoleScanner = new ConsoleScanner(this);
             consoleScanner.start();
         }
-
     }
 
     /**
-     * Try and find a jetty-web.xml file, using some
-     * historical naming conventions if necessary.
+     * Try and find a jetty-web.xml file, using some historical naming conventions if necessary.
      *
-     * @param webInfDir
      * @return File object to the location of the jetty-web.xml
      */
     public File findJettyWebXmlFile(File webInfDir) {
-        if (webInfDir == null)
+        if (webInfDir == null) {
             return null;
-        if (!webInfDir.exists())
+        }
+        if (!webInfDir.exists()) {
             return null;
+        }
 
         File f = new File(webInfDir, "jetty-web.xml");
-        if (f.exists())
+        if (f.exists()) {
             return f;
+        }
 
         //try some historical alternatives
         f = new File(webInfDir, "web-jetty.xml");
-        if (f.exists())
+        if (f.exists()) {
             return f;
+        }
         f = new File(webInfDir, "jetty6-web.xml");
-        if (f.exists())
+        if (f.exists()) {
             return f;
+        }
 
         return null;
     }
 
-    @OutputDirectory @Optional
+    @OutputDirectory
+    @Optional
     public File getTmpDirectory() {
         return tmpDirectory;
     }
@@ -415,7 +400,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.tmpDirectory = tmpDirectory;
     }
 
-    @InputFile @Optional
+    @InputFile
+    @Optional
     public File getWebDefaultXml() {
         return webDefaultXml;
     }
@@ -424,7 +410,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.webDefaultXml = webDefaultXml;
     }
 
-    @InputFile @Optional
+    @InputFile
+    @Optional
     public File getOverrideWebXml() {
         return overrideWebXml;
     }
@@ -465,7 +452,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.reload = reload;
     }
 
-    @InputFile @Optional
+    @InputFile
+    @Optional
     public File getJettyConfig() {
         return jettyConfig;
     }

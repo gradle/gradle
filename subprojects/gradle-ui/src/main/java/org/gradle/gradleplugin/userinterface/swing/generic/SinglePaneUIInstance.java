@@ -15,7 +15,6 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
-
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
@@ -37,15 +36,13 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 
 /**
- A simple UI for gradle. This is a single panel that can be inserted into a
- stand-alone application or an IDE. This is meant to hide most of the complexities
- of gradle. 'single pane' means that both the tabbed pane and the output pane
- are contained within a single pane that this maintains. Meaning, you add this to
- a UI and its a self-contained gradle UI. This is opposed to a multi-pane concept
- where the output would be separated from the tabbed pane.
-
- @author mhunsicker
-  */
+ * A simple UI for gradle. This is a single panel that can be inserted into a stand-alone application or an IDE. This is
+ * meant to hide most of the complexities of gradle. 'single pane' means that both the tabbed pane and the output pane
+ * are contained within a single pane that this maintains. Meaning, you add this to a UI and its a self-contained gradle
+ * UI. This is opposed to a multi-pane concept where the output would be separated from the tabbed pane.
+ *
+ * @author mhunsicker
+ */
 public class SinglePaneUIInstance {
     private static final String SPLITTER_PREFERENCES_ID = "splitter-id";
 
@@ -90,29 +87,32 @@ public class SinglePaneUIInstance {
         splitter.addHierarchyListener(new HierarchyListener() {
             public void hierarchyChanged(HierarchyEvent e) {
                 if (HierarchyEvent.SHOWING_CHANGED == (e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED)) {
-                    splitter.removeHierarchyListener(this); //we only want the first one of these, so remove ourselves as a listener.
+                    splitter.removeHierarchyListener(
+                            this); //we only want the first one of these, so remove ourselves as a listener.
                     Window window = SwingUtilities.getWindowAncestor(splitter);
                     if (window != null) {
                         Dimension dimension = window.getSize();
                         int halfHeight = dimension.height / 2; //we'll just make ourselves half the height of the window
                         splitter.setDividerLocation(halfHeight);
                     }
-                    PreferencesAssistant.restoreSettings(settings, splitter, SPLITTER_PREFERENCES_ID, SinglePaneUIInstance.class);
-
+                    PreferencesAssistant.restoreSettings(settings, splitter, SPLITTER_PREFERENCES_ID,
+                            SinglePaneUIInstance.class);
 
                     //Now that we're visible, this is so we save the location when the splitter is moved.
                     splitter.addPropertyChangeListener(new PropertyChangeListener() {
                         public void propertyChange(PropertyChangeEvent evt) {
-                            if (JSplitPane.DIVIDER_LOCATION_PROPERTY.equals(evt.getPropertyName()))
-                                PreferencesAssistant.saveSettings(settings, splitter, SPLITTER_PREFERENCES_ID, SinglePaneUIInstance.class);
+                            if (JSplitPane.DIVIDER_LOCATION_PROPERTY.equals(evt.getPropertyName())) {
+                                PreferencesAssistant.saveSettings(settings, splitter, SPLITTER_PREFERENCES_ID,
+                                        SinglePaneUIInstance.class);
+                            }
                         }
                     });
                 }
             }
         });
 
-
-        splitter.setResizeWeight(1);   //this keeps the bottom the same size when resizing the window. Extra space is added/removed from the top.
+        splitter.setResizeWeight(
+                1);   //this keeps the bottom the same size when resizing the window. Extra space is added/removed from the top.
 
         return splitter;
     }
@@ -123,41 +123,39 @@ public class SinglePaneUIInstance {
     }
 
     /**
-       Call this whenever you're about to show this panel. We'll do whatever
-       initialization is necessary.
-    */
+     * Call this whenever you're about to show this panel. We'll do whatever initialization is necessary.
+     */
     public void aboutToShow() {
         gradlePanel.aboutToShow();
     }
 
     public interface CloseInteraction {
         /**
-           This is called if gradle tasks are being executed and you want to know if
-           we can close. Ask the user.
-           @return true if the user confirms cancelling the current tasks. False if not.
-        */
+         * This is called if gradle tasks are being executed and you want to know if we can close. Ask the user.
+         *
+         * @return true if the user confirms cancelling the current tasks. False if not.
+         */
         public boolean promptUserToConfirmClosingWhileBusy();
     }
 
     /**
-       Call this to deteremine if you can close this pane. if we're busy, we'll
-       ask the user if they want to close.
-
-       @param  closeInteraction allows us to interact with the user
-       @return true if we can close, false if not.
-    */
+     * Call this to deteremine if you can close this pane. if we're busy, we'll ask the user if they want to close.
+     *
+     * @param closeInteraction allows us to interact with the user
+     * @return true if we can close, false if not.
+     */
     public boolean canClose(CloseInteraction closeInteraction) {
-        if (!swingGradleWrapper.isBusy())
+        if (!swingGradleWrapper.isBusy()) {
             return true;
+        }
 
         return closeInteraction.promptUserToConfirmClosingWhileBusy();
     }
 
     /**
-       Call this before you close the pane. This gives it an opportunity to do
-       cleanup. You probably should call canClose before this. It gives the
-       app a chance to cancel if its busy.
-    */
+     * Call this before you close the pane. This gives it an opportunity to do cleanup. You probably should call
+     * canClose before this. It gives the app a chance to cancel if its busy.
+     */
     public void close() {
         gradlePanel.aboutToClose();
     }
@@ -171,34 +169,35 @@ public class SinglePaneUIInstance {
     }
 
     /**
-       Call this to add one of your own tabs to this. You can call this at any
-       time.
-       @param  index      where to add the tab
-       @param  gradleTab  the tab to add
-    */
+     * Call this to add one of your own tabs to this. You can call this at any time.
+     *
+     * @param index where to add the tab
+     * @param gradleTab the tab to add
+     */
     public void addGradleTab(int index, GradleTab gradleTab) {
         gradlePanel.addGradleTab(index, gradleTab);
     }
 
     /**
-       Call this to remove one of your own tabs from this.
-       @param  gradleTab  the tab to remove
-    */
+     * Call this to remove one of your own tabs from this.
+     *
+     * @param gradleTab the tab to remove
+     */
     public void removeGradleTab(GradleTab gradleTab) {
         gradlePanel.removeGradleTab(gradleTab);
     }
 
     /**
-       @return the total number of tabs.
-    */
+     * @return the total number of tabs.
+     */
     public int getGradleTabCount() {
         return gradlePanel.getGradleTabCount();
     }
 
     /**
-       @param  index      the index of the tab
-       @return the name of the tab at the specified index.
-    */
+     * @param index the index of the tab
+     * @return the name of the tab at the specified index.
+     */
     public String getGradleTabName(int index) {
         return gradlePanel.getGradleTabName(index);
     }

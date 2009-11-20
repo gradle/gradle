@@ -35,12 +35,25 @@ public class TestOrchestratorContext {
     private final PipelinesManager pipelinesManager;
     private final ReportsManager reportsManager;
 
-    public TestOrchestratorContext(TestOrchestrator testOrchestrator, TestDetectionOrchestrator testDetectionOrchestrator, TestPipelineSplitOrchestrator pipelineSplitOrchestrator, PipelinesManager pipelinesManager, ReportsManager reportsManager) {
-        if ( testOrchestrator == null ) throw new IllegalArgumentException("testOrchestrator == null!");
-        if ( testDetectionOrchestrator == null ) throw new IllegalArgumentException("testDetectionOrchestrator == null!");
-        if ( pipelineSplitOrchestrator == null ) throw new IllegalArgumentException("pipelineSplitOrchestrator == null!");
-        if ( pipelinesManager == null ) throw new IllegalArgumentException("pipelinesManager == null!");
-        if ( reportsManager == null ) throw new IllegalArgumentException("reportOrchestrator == null!");
+    public TestOrchestratorContext(TestOrchestrator testOrchestrator,
+                                   TestDetectionOrchestrator testDetectionOrchestrator,
+                                   TestPipelineSplitOrchestrator pipelineSplitOrchestrator,
+                                   PipelinesManager pipelinesManager, ReportsManager reportsManager) {
+        if (testOrchestrator == null) {
+            throw new IllegalArgumentException("testOrchestrator == null!");
+        }
+        if (testDetectionOrchestrator == null) {
+            throw new IllegalArgumentException("testDetectionOrchestrator == null!");
+        }
+        if (pipelineSplitOrchestrator == null) {
+            throw new IllegalArgumentException("pipelineSplitOrchestrator == null!");
+        }
+        if (pipelinesManager == null) {
+            throw new IllegalArgumentException("pipelinesManager == null!");
+        }
+        if (reportsManager == null) {
+            throw new IllegalArgumentException("reportOrchestrator == null!");
+        }
 
         this.testOrchestrator = testOrchestrator;
         this.testDetectionOrchestrator = testDetectionOrchestrator;

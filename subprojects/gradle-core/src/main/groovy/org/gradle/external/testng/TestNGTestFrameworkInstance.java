@@ -50,18 +50,12 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
         detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public void execute(Project project, AbstractTestTask testTask, Collection<String> includes, Collection<String> excludes) {
+    public void execute(Project project, AbstractTestTask testTask, Collection<String> includes,
+                        Collection<String> excludes) {
         options.setTestResources(testTask.getTestSrcDirs());
 
-        antTestNGExecute.execute(
-                testTask.getTestClassesDir(),
-                testTask.getClasspath(),
-                testTask.getTestResultsDir(),
-                testTask.getTestReportDir(),
-                includes,
-                excludes,
-                options,
-                project.getAnt());
+        antTestNGExecute.execute(testTask.getTestClassesDir(), testTask.getClasspath(), testTask.getTestResultsDir(),
+                testTask.getTestReportDir(), includes, excludes, options, project.getAnt());
     }
 
     public void report(Project project, AbstractTestTask testTask) {
@@ -107,7 +101,8 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
         }
 
         final Map<String, String> environment = options.getEnvironment();
-        if (environment != null && !environment.isEmpty())
+        if (environment != null && !environment.isEmpty()) {
             forkHandleBuilder.environment(environment);
+        }
     }
 }

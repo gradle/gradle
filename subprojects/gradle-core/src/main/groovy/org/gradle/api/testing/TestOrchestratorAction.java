@@ -16,8 +16,8 @@
 package org.gradle.api.testing;
 
 /**
- * Each action that is executed by the test orchestrator is defined by a test orchestrator action. This is done to make it
- * possible to cancel the test execution. After each action a check is performed to make sure that the test execution
+ * Each action that is executed by the test orchestrator is defined by a test orchestrator action. This is done to make
+ * it possible to cancel the test execution. After each action a check is performed to make sure that the test execution
  * needs to keep running.
  *
  * @author Tom Eyckmans

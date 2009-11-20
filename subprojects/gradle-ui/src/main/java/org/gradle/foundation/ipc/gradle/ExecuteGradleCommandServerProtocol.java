@@ -24,10 +24,9 @@ import org.gradle.foundation.ipc.basic.MessageObject;
 import java.io.File;
 
 /**
- * This manages the communication between the UI and an externally-launched copy
- * of Gradle when using socket-based inter-process communication. This is the
- * server side for executing a gradle command. This listens for messages from the
- * gradle client.
+ * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based
+ * inter-process communication. This is the server side for executing a gradle command. This listens for messages from
+ * the gradle client.
  *
  * @author mhunsicker
  */
@@ -40,19 +39,19 @@ public class ExecuteGradleCommandServerProtocol extends AbstractGradleServerProt
 
     public interface ExecutionInteraction {
         /**
-         * Notification that gradle has started execution. This may not get called
-         * if some error occurs that prevents gradle from running.
-        */
+         * Notification that gradle has started execution. This may not get called if some error occurs that prevents
+         * gradle from running.
+         */
         void reportExecutionStarted();
 
         /**
-         * Notification that execution has finished. Note: if the client fails
-         * to launch at all, this should still be called.
+         * Notification that execution has finished. Note: if the client fails to launch at all, this should still be
+         * called.
          *
-         * @param  wasSuccessful true if gradle was successful (returned 0)
-         * @param  message       the output of gradle if it ran. If it didn't, an error message.
-         * @param  throwable     an exception if one occurred
-        */
+         * @param wasSuccessful true if gradle was successful (returned 0)
+         * @param message the output of gradle if it ran. If it didn't, an error message.
+         * @param throwable an exception if one occurred
+         */
         void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable);
 
         void reportTaskStarted(String message, float percentComplete);
@@ -62,15 +61,17 @@ public class ExecuteGradleCommandServerProtocol extends AbstractGradleServerProt
         void reportLiveOutput(String message);
     }
 
-    public ExecuteGradleCommandServerProtocol(File currentDirectory, File gradleHomeDirectory, File customGradleExecutor, String fullCommandLine, LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel, ExecutionInteraction executionInteraction) {
+    public ExecuteGradleCommandServerProtocol(File currentDirectory, File gradleHomeDirectory,
+                                              File customGradleExecutor, String fullCommandLine, LogLevel logLevel,
+                                              StartParameter.ShowStacktrace stackTraceLevel,
+                                              ExecutionInteraction executionInteraction) {
         super(currentDirectory, gradleHomeDirectory, customGradleExecutor, fullCommandLine, logLevel, stackTraceLevel);
         this.executionInteraction = executionInteraction;
     }
 
     /**
-     * Notification that a message was received that we didn't process. Implement
-     * this to handle the specifics of your protocol. Basically, the base class
-     * handles the handshake. The rest of the conversation is up to you.
+     * Notification that a message was received that we didn't process. Implement this to handle the specifics of your
+     * protocol. Basically, the base class handles the handshake. The rest of the conversation is up to you.
      *
      * @param message the message we received.
      */
@@ -110,12 +111,11 @@ public class ExecuteGradleCommandServerProtocol extends AbstractGradleServerProt
     }
 
     /**
-     * This is called if the client exits prematurely. That is, we never connected
-     * to it or it didn't finish. This can happen because of setup issues or
-     * errors that occur in gradle.
+     * This is called if the client exits prematurely. That is, we never connected to it or it didn't finish. This can
+     * happen because of setup issues or errors that occur in gradle.
      *
      * @param returnCode the return code of the client application
-     * @param message    Whatever information we can gleen about what went wrong.
+     * @param message Whatever information we can gleen about what went wrong.
      */
     protected void reportPrematureClientExit(int returnCode, String message) {
         executionInteraction.reportExecutionFinished(returnCode == 0, message, null);
@@ -123,20 +123,20 @@ public class ExecuteGradleCommandServerProtocol extends AbstractGradleServerProt
 
     /**
      * Notification of any status that might be helpful to the user.
-     * @param  status     a status message
-    */
+     *
+     * @param status a status message
+     */
     protected void addStatus(String status) {
         executionInteraction.reportLiveOutput(status);
     }
 
     /**
-     * This is called before we execute a command. Here, return an init script
-     * for this protocol. An init script is a gradle script that gets run before
-     * the other scripts are processed. This is useful here for initiating
-     * the gradle client that talks to the server.
+     * This is called before we execute a command. Here, return an init script for this protocol. An init script is a
+     * gradle script that gets run before the other scripts are processed. This is useful here for initiating the gradle
+     * client that talks to the server.
      *
      * @return The path to an init script. Null if you have no init script.
-    */
+     */
     public File getInitScriptFile() {
         return extractInitScriptFile(ExecuteGradleCommandServerProtocol.class, INIT_SCRIPT_NAME);
     }

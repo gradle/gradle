@@ -49,13 +49,21 @@ public class DefaultMavenExclude implements MavenExclude {
     }
 
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DefaultMavenExclude that = (DefaultMavenExclude) o;
 
-        if (artifactId != null ? !artifactId.equals(that.artifactId) : that.artifactId != null) return false;
-        if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null) return false;
+        if (artifactId != null ? !artifactId.equals(that.artifactId) : that.artifactId != null) {
+            return false;
+        }
+        if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null) {
+            return false;
+        }
 
         return true;
     }

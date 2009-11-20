@@ -48,14 +48,17 @@ public class TestForkExecuter implements ForkExecuter {
             final int testServerPort = Integer.parseInt(arguments.get(2));
 
             final IoConnectorFactory ioConnectorFactory = new ExternalIoConnectorFactory(testServerPort);
-            final DefaultTestControlClient testControlClient = new DefaultTestControlClient(forkId, ioConnectorFactory, testControlMessageQueue);
+            final DefaultTestControlClient testControlClient = new DefaultTestControlClient(forkId, ioConnectorFactory,
+                    testControlMessageQueue);
 
             try {
                 testControlClient.open();
                 testControlClient.reportStarted();
 
-                final TestControlMessageDispatcher testControlMessageDispatcher = new TestControlMessageDispatcher(testControlClient, sandboxClassLoader);
-                final TestControlMessageQueueConsumer controlMessageConsumer = new TestControlMessageQueueConsumer(testControlMessageQueue, 100L, TimeUnit.MILLISECONDS, testControlMessageDispatcher);
+                final TestControlMessageDispatcher testControlMessageDispatcher = new TestControlMessageDispatcher(
+                        testControlClient, sandboxClassLoader);
+                final TestControlMessageQueueConsumer controlMessageConsumer = new TestControlMessageQueueConsumer(
+                        testControlMessageQueue, 100L, TimeUnit.MILLISECONDS, testControlMessageDispatcher);
 
                 Thread controlMessageConsumerThread = new Thread(controlMessageConsumer);
                 controlMessageConsumerThread.start();
@@ -63,12 +66,10 @@ public class TestForkExecuter implements ForkExecuter {
                 ThreadUtils.join(controlMessageConsumerThread);
 
                 testControlClient.reportStopped();
-            }
-            finally {
+            } finally {
                 testControlClient.close();
             }
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             t.printStackTrace();
         }
     }

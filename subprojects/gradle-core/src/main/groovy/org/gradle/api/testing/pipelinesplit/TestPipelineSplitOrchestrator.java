@@ -77,14 +77,9 @@ public class TestPipelineSplitOrchestrator {
         }
 
         for (int i = 0; i < 2; i++) {
-            pipelineSplitThreadPool.submit(
-                    new PipelineSplitWorker(
-                            this,
-                            testDetectionQueue,
-                            100L,
-                            TimeUnit.MILLISECONDS,
-                            Collections.unmodifiableList(splitPolicyMatchers),
-                            Collections.unmodifiableMap(pipelineMatchers)));
+            pipelineSplitThreadPool.submit(new PipelineSplitWorker(this, testDetectionQueue, 100L,
+                    TimeUnit.MILLISECONDS, Collections.unmodifiableList(splitPolicyMatchers),
+                    Collections.unmodifiableMap(pipelineMatchers)));
         }
     }
 
@@ -93,9 +88,7 @@ public class TestPipelineSplitOrchestrator {
             pipelineSplitWorker.stopConsuming();
         }
 
-        ThreadUtils.interleavedConditionWait(
-                runningWorkersLock, allWorkersStopped,
-                100L, TimeUnit.MILLISECONDS,
+        ThreadUtils.interleavedConditionWait(runningWorkersLock, allWorkersStopped, 100L, TimeUnit.MILLISECONDS,
                 new ConditionWaitHandle() {
                     public boolean checkCondition() {
                         return runningWorkers.isEmpty();
@@ -104,16 +97,14 @@ public class TestPipelineSplitOrchestrator {
                     public void conditionMatched() {
                         ThreadUtils.shutdown(pipelineSplitThreadPool);
                     }
-                }
-        );
+                });
     }
 
     void splitWorkerStarted(PipelineSplitWorker worker) {
         runningWorkersLock.lock();
         try {
             runningWorkers.add(worker);
-        }
-        finally {
+        } finally {
             runningWorkersLock.unlock();
         }
     }
@@ -127,10 +118,10 @@ public class TestPipelineSplitOrchestrator {
                 LOGGER.warn("splitWorkerStopped called for an unrelated split worker");
             }
 
-            if (runningWorkers.isEmpty())
+            if (runningWorkers.isEmpty()) {
                 allWorkersStopped.signal();
-        }
-        finally {
+            }
+        } finally {
             runningWorkersLock.unlock();
         }
     }

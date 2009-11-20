@@ -43,9 +43,10 @@ public class LocalSimpleForkPolicy implements ForkPolicy {
     }
 
     public ForkPolicyInstance getForkPolicyInstance(Pipeline pipeline, ForkControl forkControl) {
-        if (forkControl == null) throw new IllegalArgumentException("forkControl is null!");
+        if (forkControl == null) {
+            throw new IllegalArgumentException("forkControl is null!");
+        }
 
         return new LocalSimpleForkPolicyInstance(pipeline, forkControl, testServersManager);
     }
-
 }

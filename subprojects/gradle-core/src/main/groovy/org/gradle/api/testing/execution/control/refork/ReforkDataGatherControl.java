@@ -55,8 +55,7 @@ public class ReforkDataGatherControl {
                         dataGatherers.put(dataGatherMoment, momentDataGatherers);
                     }
                 }
-            }
-            catch ( Throwable t ) {
+            } catch (Throwable t) {
                 t.printStackTrace();
             }
         }
@@ -74,19 +73,17 @@ public class ReforkDataGatherControl {
                     if (dataGatherer.processDataGatherMoment(moment, momentData)) {
                         reforkDecisionContext.addItem(dataGatherer.getItemKey(), dataGatherer.getCurrentData());
                     }
-                }
-                catch (Throwable t) {
+                } catch (Throwable t) {
                     t.printStackTrace();
                 }
             }
-
         }
         // else no data gatherers 
 
-        if (reforkDecisionContext.isEmpty())
+        if (reforkDecisionContext.isEmpty()) {
             return null;
-        else
+        } else {
             return reforkDecisionContext;
+        }
     }
-
 }

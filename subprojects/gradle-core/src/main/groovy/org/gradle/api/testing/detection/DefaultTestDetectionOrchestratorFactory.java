@@ -35,14 +35,17 @@ public class DefaultTestDetectionOrchestratorFactory implements TestDetectionOrc
     private final BlockingQueueItemProducer<TestClassRunInfo> testDetectionQueueProducer;
 
     public DefaultTestDetectionOrchestratorFactory(final TestOrchestratorFactory testOrchestratorFactory) {
-        if ( testOrchestratorFactory == null ) throw new IllegalArgumentException("testOrchestratorFactory == null!");
+        if (testOrchestratorFactory == null) {
+            throw new IllegalArgumentException("testOrchestratorFactory == null!");
+        }
 
         this.testOrchestratorFactory = testOrchestratorFactory;
 
         testClassRunInfoFactory = new DefaultTestClassRunInfoFactory();
         testClassScannerFactory = new DefaultTestClassScannerFactory();
         final BlockingQueue<TestClassRunInfo> testDetectionQueue = testOrchestratorFactory.getTestDetectionQueue();
-        testDetectionQueueProducer = new BlockingQueueItemProducer<TestClassRunInfo>(testDetectionQueue, 100L, TimeUnit.MILLISECONDS);
+        testDetectionQueueProducer = new BlockingQueueItemProducer<TestClassRunInfo>(testDetectionQueue, 100L,
+                TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -51,9 +54,11 @@ public class DefaultTestDetectionOrchestratorFactory implements TestDetectionOrc
      */
     public TestDetectionRunner createDetectionRunner() {
         final NativeTest testTask = testOrchestratorFactory.getTestTask();
-        final TestClassProcessor testClassProcessor = new QueueItemProducingTestClassProcessor(testDetectionQueueProducer, testClassRunInfoFactory);
+        final TestClassProcessor testClassProcessor = new QueueItemProducingTestClassProcessor(
+                testDetectionQueueProducer, testClassRunInfoFactory);
 
-        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(testTask, testClassProcessor);
+        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(testTask,
+                testClassProcessor);
 
         return new TestDetectionRunner(testClassScanner);
     }

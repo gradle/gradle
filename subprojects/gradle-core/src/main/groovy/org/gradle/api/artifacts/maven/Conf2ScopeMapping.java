@@ -18,11 +18,11 @@ package org.gradle.api.artifacts.maven;
 import org.gradle.api.artifacts.Configuration;
 
 /**
- * An immutable mapping to map a dependency configuration to a Maven scope. This class has
- * implemented equality and hashcode based on its values not on object identity.
+ * An immutable mapping to map a dependency configuration to a Maven scope. This class has implemented equality and
+ * hashcode based on its values not on object identity.
  *
- * @see org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
  * @author Hans Dockter
+ * @see org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
  */
 public class Conf2ScopeMapping {
     private Integer priority;
@@ -63,14 +63,24 @@ public class Conf2ScopeMapping {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Conf2ScopeMapping that = (Conf2ScopeMapping) o;
 
-        if (!configuration.equals(that.configuration)) return false;
-        if (priority != null ? !priority.equals(that.priority) : that.priority != null) return false;
-        if (scope != null ? !scope.equals(that.scope) : that.scope != null) return false;
+        if (!configuration.equals(that.configuration)) {
+            return false;
+        }
+        if (priority != null ? !priority.equals(that.priority) : that.priority != null) {
+            return false;
+        }
+        if (scope != null ? !scope.equals(that.scope) : that.scope != null) {
+            return false;
+        }
 
         return true;
     }

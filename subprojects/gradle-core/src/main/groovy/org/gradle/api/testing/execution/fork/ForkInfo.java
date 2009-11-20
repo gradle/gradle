@@ -79,9 +79,8 @@ public class ForkInfo {
         for (final ForkInfoListener currentListener : currentListeners) {
             try {
                 currentListener.starting(id);
-            }
-            catch ( Throwable t ) {
-                LOGGER.warn("failed to notify fork listener of fork "+id+" starting", t);
+            } catch (Throwable t) {
+                LOGGER.warn("failed to notify fork listener of fork " + id + " starting", t);
             }
         }
     }
@@ -91,22 +90,19 @@ public class ForkInfo {
         for (final ForkInfoListener currentListener : currentListeners) {
             try {
                 currentListener.started(id);
-            }
-            catch ( Throwable t ) {
-                LOGGER.warn("failed to notify fork listener of fork "+id+" started", t);
+            } catch (Throwable t) {
+                LOGGER.warn("failed to notify fork listener of fork " + id + " started", t);
             }
         }
     }
 
-    public void finished()
-    {
+    public void finished() {
         final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
         for (final ForkInfoListener currentListener : currentListeners) {
             try {
-                    currentListener.stopped(id);
-            }
-            catch ( Throwable t ) {
-                LOGGER.warn("failed to notify fork listener of fork "+id+" stop", t);
+                currentListener.stopped(id);
+            } catch (Throwable t) {
+                LOGGER.warn("failed to notify fork listener of fork " + id + " stop", t);
             }
         }
     }
@@ -115,23 +111,20 @@ public class ForkInfo {
         final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
         for (final ForkInfoListener currentListener : currentListeners) {
             try {
-                    currentListener.failed(id, cause);
-            }
-            catch ( Throwable t ) {
-                LOGGER.warn("failed to notify fork listener of fork "+id+" failure", t);
+                currentListener.failed(id, cause);
+            } catch (Throwable t) {
+                LOGGER.warn("failed to notify fork listener of fork " + id + " failure", t);
             }
         }
     }
 
-    public void aborted()
-    {
+    public void aborted() {
         final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
         for (final ForkInfoListener currentListener : currentListeners) {
             try {
-                    currentListener.aborted(id);
-            }
-            catch ( Throwable t ) {
-                LOGGER.warn("failed to notify fork aborted of fork " +id+" aborted", t);
+                currentListener.aborted(id);
+            } catch (Throwable t) {
+                LOGGER.warn("failed to notify fork aborted of fork " + id + " aborted", t);
             }
         }
     }

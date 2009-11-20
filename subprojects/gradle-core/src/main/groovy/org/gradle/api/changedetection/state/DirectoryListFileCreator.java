@@ -44,10 +44,9 @@ class DirectoryListFileCreator {
     BufferedWriter getDirListLevelWriter(int levelIndex) throws IOException {
         BufferedWriter dirListLevelWriter = null;
 
-        if ( dirListLevelWriters.size() > levelIndex ) {
+        if (dirListLevelWriters.size() > levelIndex) {
             dirListLevelWriter = dirListLevelWriters.get(levelIndex);
-        }
-        else {
+        } else {
             dirListLevelWriter = new BufferedWriter(new FileWriter(stateFileUtil.getDirsListFile(levelIndex)));
             dirListLevelWriters.add(dirListLevelWriter);
             lowestLevel = levelIndex;
@@ -59,9 +58,8 @@ class DirectoryListFileCreator {
     public int createDirectoryListFiles(final File directory) throws IOException {
         try {
             fillDirectoryListFiles(directory, 0);
-        }
-        finally {
-            for ( final BufferedWriter dirListLevelWriter : dirListLevelWriters ) {
+        } finally {
+            for (final BufferedWriter dirListLevelWriter : dirListLevelWriters) {
                 IOUtils.closeQuietly(dirListLevelWriter);
             }
         }
@@ -77,10 +75,10 @@ class DirectoryListFileCreator {
         dirListLevelWriter.write(directory.getAbsolutePath());
         dirListLevelWriter.newLine();
 
-        if ( subFiles != null && subFiles.length > 0 ) {
+        if (subFiles != null && subFiles.length > 0) {
             final List<File> subDirectories = new ArrayList<File>();
-            for ( final File subFile : subFiles ) {
-                if ( subFile.isDirectory() ) {
+            for (final File subFile : subFiles) {
+                if (subFile.isDirectory()) {
                     subDirectories.add(subFile);
                 }
                 // ignore files
@@ -88,14 +86,16 @@ class DirectoryListFileCreator {
 
             Collections.sort(subDirectories, new Comparator<File>() {
                 public int compare(final File firstDirectory, final File secondDirectory) {
-                    final String relativeFirstDirectoryPath = stateFileUtil.getRelativePathToDirectoryToProcess(firstDirectory);
-                    final String relativeSecondDirectoryPath = stateFileUtil.getRelativePathToDirectoryToProcess(secondDirectory);
+                    final String relativeFirstDirectoryPath = stateFileUtil.getRelativePathToDirectoryToProcess(
+                            firstDirectory);
+                    final String relativeSecondDirectoryPath = stateFileUtil.getRelativePathToDirectoryToProcess(
+                            secondDirectory);
 
                     return relativeFirstDirectoryPath.compareTo(relativeSecondDirectoryPath);
                 }
             });
 
-            for ( final File subDirectory : subDirectories ) {
+            for (final File subDirectory : subDirectories) {
                 fillDirectoryListFiles(subDirectory, level + 1);
             }
         }

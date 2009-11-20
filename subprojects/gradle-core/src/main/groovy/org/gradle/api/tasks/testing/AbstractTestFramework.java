@@ -24,17 +24,20 @@ import org.gradle.api.testing.fabric.TestFramework;
  */
 public abstract class AbstractTestFramework implements TestFramework {
 
-    public static final String USE_OF_CORRECT_TEST_FRAMEWORK =
-        "Make sure the correct TestFramework is in use. \n" +
-        "            - Call useJUnit(), useTestNG() or useTestFramework(<your own TestFramework implementation class>) as first statement in the test { } block. \n" +
-        "            - Set the test.framework.default property in a gradle.properties file ";
+    public static final String USE_OF_CORRECT_TEST_FRAMEWORK = "Make sure the correct TestFramework is in use. \n"
+            + "            - Call useJUnit(), useTestNG() or useTestFramework(<your own TestFramework implementation class>) as first statement in the test { } block. \n"
+            + "            - Set the test.framework.default property in a gradle.properties file ";
 
     protected final String id;
     protected final String name;
 
     protected AbstractTestFramework(final String id, final String name) {
-        if (StringUtils.isEmpty(id)) throw new IllegalArgumentException("id == empty!");
-        if (StringUtils.isEmpty(name)) throw new IllegalArgumentException("name == empty!");
+        if (StringUtils.isEmpty(id)) {
+            throw new IllegalArgumentException("id == empty!");
+        }
+        if (StringUtils.isEmpty(name)) {
+            throw new IllegalArgumentException("name == empty!");
+        }
         this.id = id;
         this.name = name;
     }

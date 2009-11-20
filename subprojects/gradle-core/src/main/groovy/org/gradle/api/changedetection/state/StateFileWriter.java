@@ -27,8 +27,7 @@ import java.io.IOException;
 /**
  * State File Format:
  *
- * ( filename ${newLine}
- *   digest ${newLine} )*
+ * ( filename ${newLine} digest ${newLine} )*
  *
  * @author Tom Eyckmans
  */
@@ -39,9 +38,13 @@ class StateFileWriter {
     private BufferedWriter fileWriter;
 
     StateFileWriter(IoFactory ioFactory, File stateFile) {
-        if ( ioFactory == null ) throw new IllegalArgumentException("ioFactory is null!");
-        if ( stateFile == null ) throw new IllegalArgumentException("stateFile is null!");
-        
+        if (ioFactory == null) {
+            throw new IllegalArgumentException("ioFactory is null!");
+        }
+        if (stateFile == null) {
+            throw new IllegalArgumentException("stateFile is null!");
+        }
+
         this.ioFactory = ioFactory;
         this.stateFile = stateFile;
     }
@@ -51,11 +54,16 @@ class StateFileWriter {
     }
 
     public void addDigest(final String key, final String digest) throws IOException {
-        if ( key == null ) throw new IllegalArgumentException("key is null");
-        if ( StringUtils.isEmpty(digest) ) throw new IllegalArgumentException("digest is empty");
-        
-        if ( fileWriter == null )
+        if (key == null) {
+            throw new IllegalArgumentException("key is null");
+        }
+        if (StringUtils.isEmpty(digest)) {
+            throw new IllegalArgumentException("digest is empty");
+        }
+
+        if (fileWriter == null) {
             fileWriter = ioFactory.createBufferedWriter(stateFile);
+        }
 
         fileWriter.write(key);
         fileWriter.newLine();
@@ -64,8 +72,9 @@ class StateFileWriter {
     }
 
     public void lastFileDigestAdded() throws IOException {
-        if ( fileWriter != null )
+        if (fileWriter != null) {
             fileWriter.flush();
+        }
     }
 
     public void close() {

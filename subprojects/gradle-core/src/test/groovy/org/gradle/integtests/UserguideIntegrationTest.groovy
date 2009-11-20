@@ -33,7 +33,7 @@ import org.gradle.integtests.QuickGradleExecuter.StartParameterModifier
 class UserguideIntegrationTest {
 
     private static Logger logger = LoggerFactory.getLogger(UserguideIntegrationTest)
-    static String NL = System.properties['line.separator']
+    static final String NL = System.properties['line.separator']
 
     // Injected by test runner
     private GradleDistribution dist;

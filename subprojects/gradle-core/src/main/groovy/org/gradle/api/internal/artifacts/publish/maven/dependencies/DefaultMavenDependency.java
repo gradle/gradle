@@ -49,8 +49,10 @@ public class DefaultMavenDependency implements MavenDependency {
         this.classifier = classifier;
     }
 
-    public static DefaultMavenDependency newInstance(String groupId, String artifactId, String version, String type, String scope) {
-        return new DefaultMavenDependency(groupId, artifactId, version, type, scope, new ArrayList<MavenExclude>(), false, null);
+    public static DefaultMavenDependency newInstance(String groupId, String artifactId, String version, String type,
+                                                     String scope) {
+        return new DefaultMavenDependency(groupId, artifactId, version, type, scope, new ArrayList<MavenExclude>(),
+                false, null);
     }
 
     public String getGroupId() {
@@ -114,16 +116,30 @@ public class DefaultMavenDependency implements MavenDependency {
     }
 
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DefaultMavenDependency that = (DefaultMavenDependency) o;
 
-        if (artifactId != null ? !artifactId.equals(that.artifactId) : that.artifactId != null) return false;
-        if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) return false;
-        if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
-        if (version != null ? !version.equals(that.version) : that.version != null) return false;
+        if (artifactId != null ? !artifactId.equals(that.artifactId) : that.artifactId != null) {
+            return false;
+        }
+        if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) {
+            return false;
+        }
+        if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null) {
+            return false;
+        }
+        if (type != null ? !type.equals(that.type) : that.type != null) {
+            return false;
+        }
+        if (version != null ? !version.equals(that.version) : that.version != null) {
+            return false;
+        }
 
         return true;
     }
@@ -140,15 +156,9 @@ public class DefaultMavenDependency implements MavenDependency {
 
     @Override
     public String toString() {
-        return "DefaultMavenDependency{" +
-                "groupId='" + groupId + '\'' +
-                ", artifactId='" + artifactId + '\'' +
-                ", version='" + version + '\'' +
-                ", type='" + type + '\'' +
-                ", scope='" + scope + '\'' +
-                ", mavenExcludes=" + mavenExcludes +
-                ", optional=" + optional +
-                ", classifier='" + classifier + '\'' +
-                '}';
+        return "DefaultMavenDependency{" + "groupId='" + groupId + '\'' + ", artifactId='" + artifactId + '\''
+                + ", version='" + version + '\'' + ", type='" + type + '\'' + ", scope='" + scope + '\''
+                + ", mavenExcludes=" + mavenExcludes + ", optional=" + optional + ", classifier='" + classifier + '\''
+                + '}';
     }
 }

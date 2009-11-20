@@ -27,8 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * This converts Gradle's projects into ProjectView objects. These can be safely
- * reused unlike Gradle's projects.
+ * This converts Gradle's projects into ProjectView objects. These can be safely reused unlike Gradle's projects.
  *
  * @author mhunsicker
  */
@@ -41,10 +40,10 @@ public class ProjectConverter {
     }
 
     /**
-       Call this to convert the projects.
-
-       @param  rootProject the root project.
-    */
+     * Call this to convert the projects.
+     *
+     * @param rootProject the root project.
+     */
     public List<ProjectView> convertProjects(Project rootProject) {
         rootLevelResultingProjects.clear();
         projectMap.clear();
@@ -57,11 +56,11 @@ public class ProjectConverter {
     }
 
     /**
-       This adds the specified poject as a root level projects. It then adds
-       all tasks and recursively adds all sub projects.
-
-       @param  rootLevelProject a root level project.
-    */
+     * This adds the specified poject as a root level projects. It then adds all tasks and recursively adds all sub
+     * projects.
+     *
+     * @param rootLevelProject a root level project.
+     */
     public void addRootLevelProject(Project rootLevelProject) {
         ProjectView rootLevelProjectView = new ProjectView(rootLevelProject.getName(), rootLevelProject.getBuildFile());
         projectMap.put(rootLevelProject, rootLevelProjectView);
@@ -76,18 +75,19 @@ public class ProjectConverter {
     }
 
     /**
-       Adds all sub projects of the specifed GradleProject.
-
-       @param  parentProject        the source parent project. Where we get the sub projects from.
-       @param  parentProjectView  the destination of the sub projects from parentProject.
-    */
+     * Adds all sub projects of the specifed GradleProject.
+     *
+     * @param parentProject the source parent project. Where we get the sub projects from.
+     * @param parentProjectView the destination of the sub projects from parentProject.
+     */
     private void addSubProjects(Project parentProject, ProjectView parentProjectView, int currentDepth) {
         Set<Project> subProjects = parentProject.getSubprojects();
         Iterator<Project> iterator = subProjects.iterator();
         while (iterator.hasNext()) {
             Project subProject = iterator.next();
             int depth = subProject.getDepth();
-            if (depth == currentDepth)   //at the root, we seem to be getting all projects regardless of their depth (that is we'll get root:subproject1:subproject2 as the root's subproject). We'll ignore these and then add them to our hierarchy when we get to the correct depth.
+            if (depth
+                    == currentDepth)   //at the root, we seem to be getting all projects regardless of their depth (that is we'll get root:subproject1:subproject2 as the root's subproject). We'll ignore these and then add them to our hierarchy when we get to the correct depth.
             {
                 ProjectView projectView = new ProjectView(subProject.getName(), subProject.getBuildFile());
                 projectMap.put(subProject, projectView);
@@ -104,11 +104,11 @@ public class ProjectConverter {
     }
 
     /**
-       Adds the tasks from the project to the GradleProject.
-
-       @param  project       the source parent project. Where we get the sub projects from.
-       @param  projectView the destination of the tasks from project.
-    */
+     * Adds the tasks from the project to the GradleProject.
+     *
+     * @param project the source parent project. Where we get the sub projects from.
+     * @param projectView the destination of the tasks from project.
+     */
     private void addTasks(Project project, ProjectView projectView) {
         List<String> defaultTasks = project.getDefaultTasks();
         Set<Task> tasks = project.getTasks().getAll();
@@ -122,10 +122,9 @@ public class ProjectConverter {
     }
 
     /**
-       This sets the dependencies on the ProjectViews. We ask the gradle projects
-       for the dependencies and then convert them to ProjectViews. Obviously,
-       this must be done after converting all Projects to ProjectViews.
-    */
+     * This sets the dependencies on the ProjectViews. We ask the gradle projects for the dependencies and then convert
+     * them to ProjectViews. Obviously, this must be done after converting all Projects to ProjectViews.
+     */
     private void buildDependencies() {
         Iterator<Project> projectIterator = projectMap.keySet().iterator();
         while (projectIterator.hasNext()) {
@@ -140,9 +139,9 @@ public class ProjectConverter {
     }
 
     /**
-       Converts a set of projects to the existing project views. This does not
-       actually instantiate new ProjectView objects.
-    */
+     * Converts a set of projects to the existing project views. This does not actually instantiate new ProjectView
+     * objects.
+     */
     private List<ProjectView> getProjectViews(Set<Project> projects) {
         List<ProjectView> views = new ArrayList<ProjectView>();
 
@@ -150,10 +149,11 @@ public class ProjectConverter {
         while (projectIterator.hasNext()) {
             Project project = projectIterator.next();
             ProjectView projectView = projectMap.get(project);
-            if (projectView == null)
+            if (projectView == null) {
                 logger.error("Missing project: " + project.getName());
-            else
+            } else {
                 views.add(projectView);
+            }
         }
 
         return views;
