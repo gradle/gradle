@@ -83,20 +83,20 @@ public class NativeTest extends AbstractTestTask {
             if ( reforkItemConfigs == null )
                 reforkItemConfigs = new ReforkItemConfigs();
 
-            final AmountOfTestsExecutedByForkConfig reforkEveryConfig
-                    = (AmountOfTestsExecutedByForkConfig) ReforkReasonRegister.getDecisionContextItem(
-                    ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK).getConfig();
+            final AmountOfTestCasesConfig reforkEveryConfig
+                    = (AmountOfTestCasesConfig) ReforkReasonRegister.getReforkReason(
+                    ReforkReasons.AMOUNT_OF_TESTCASES).getConfig();
 
             reforkEveryConfig.setReforkEvery(reforkEvery);
 
-            reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK, reforkEveryConfig);
+            reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TESTCASES, reforkEveryConfig);
         }
 
         if ( lowMemoryThreshold > 0 ) {
             if ( reforkItemConfigs == null )
                 reforkItemConfigs = new ReforkItemConfigs();
 
-            final ForkMemoryLowConfig forkMemoryLowConfig = (ForkMemoryLowConfig)ReforkReasonRegister.getDecisionContextItem(ReforkReasons.FORK_MEMORY_LOW).getConfig();
+            final ForkMemoryLowConfig forkMemoryLowConfig = (ForkMemoryLowConfig)ReforkReasonRegister.getReforkReason(ReforkReasons.FORK_MEMORY_LOW).getConfig();
 
             forkMemoryLowConfig.setMemoryLowThreshold(lowMemoryThreshold);
 

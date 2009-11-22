@@ -18,14 +18,14 @@ package org.gradle.api.testing.execution.control.refork;
 /**
  * @author Tom Eyckmans
  */
-public class AmountOfTestsExecutedByForkConfig implements ReforkReasonConfig {
+public class AmountOfTestCasesConfig implements ReforkReasonConfig {
 
     private long reforkEvery = -1;
 
-    public AmountOfTestsExecutedByForkConfig() {
+    public AmountOfTestCasesConfig() {
     }
 
-    public AmountOfTestsExecutedByForkConfig(long reforkEvery) {
+    public AmountOfTestCasesConfig(long reforkEvery) {
         setReforkEvery(reforkEvery);
     }
 

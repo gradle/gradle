@@ -55,7 +55,7 @@ public class PipelineConfig {
         this.splitPolicyConfig = splitPolicyConfig;
         this.forkPolicyConfig = forkPolicyConfig;
         this.reforkItemConfigs = new ReforkItemConfigs();
-        reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK, null);
+        reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TESTCASES, null); // TODO clean this up
         this.reports = new ArrayList<ReportConfig>();
     }
 

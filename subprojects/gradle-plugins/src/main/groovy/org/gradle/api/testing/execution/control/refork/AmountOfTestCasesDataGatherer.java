@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Tom Eyckmans
  */
-public class AmountOfTestsExecutedByForkDataGatherer implements ReforkReasonDataGatherer {
+public class AmountOfTestCasesDataGatherer implements ReforkReasonDataGatherer {
 
     private static final List<DataGatherMoment> DATA_GATHER_MOMENTS = Arrays.asList(
             DataGatherMoment.AFTER_TEST_EXECUTION);
@@ -35,12 +35,12 @@ public class AmountOfTestsExecutedByForkDataGatherer implements ReforkReasonData
     /**
      * Default constructor.
      */
-    public AmountOfTestsExecutedByForkDataGatherer() {
+    public AmountOfTestCasesDataGatherer() {
         amountOfTestsExecutedByFork = new AtomicLong(0);
     }
 
     public ReforkReasonKey getItemKey() {
-        return ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK;
+        return ReforkReasons.AMOUNT_OF_TESTCASES;
     }
 
     /**
@@ -49,7 +49,7 @@ public class AmountOfTestsExecutedByForkDataGatherer implements ReforkReasonData
      * @param config Item configuration.
      */
     public void configure(ReforkReasonConfig config) {
-        reforkEvery = ((AmountOfTestsExecutedByForkConfig) config).getReforkEvery();
+        reforkEvery = ((AmountOfTestCasesConfig) config).getReforkEvery();
 
         this.amountOfTestsExecutedByFork = new AtomicLong(0);
     }

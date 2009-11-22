@@ -25,28 +25,29 @@ public class ReforkReasonRegister {
     private static final ReforkReasonRegister INSTANCE = new ReforkReasonRegister();
 
     static {
-        addDecisionContextItem(new AmountOfTestsExecutedByForkItem());
+        addReforkReason(new AmountOfTestCasesReforkReason());
+        addReforkReason(new ForkMemoryLowReforkReason());
     }
 
-    private final Map<ReforkReasonKey, ReforkReason> decisionContextItems;
+    private final Map<ReforkReasonKey, ReforkReason> reforkReasons;
 
     private ReforkReasonRegister() {
-        decisionContextItems = new ConcurrentHashMap<ReforkReasonKey, ReforkReason>();
+        reforkReasons = new ConcurrentHashMap<ReforkReasonKey, ReforkReason>();
     }
 
-    public static void addDecisionContextItem(ReforkReason reforkReason) {
+    public static void addReforkReason(ReforkReason reforkReason) {
         if (reforkReason == null) {
-            throw new IllegalArgumentException("decisionContextItem == null!");
+            throw new IllegalArgumentException("reforkReason == null!");
         }
 
-        INSTANCE.decisionContextItems.put(reforkReason.getKey(), reforkReason);
+        INSTANCE.reforkReasons.put(reforkReason.getKey(), reforkReason);
     }
 
-    public static ReforkReason getDecisionContextItem(ReforkReasonKey reforkReasonKey) {
+    public static ReforkReason getReforkReason(ReforkReasonKey reforkReasonKey) {
         if (reforkReasonKey == null) {
-            throw new IllegalArgumentException("decisionContextItemKey == null!");
+            throw new IllegalArgumentException("reforkReasonKey == null!");
         }
 
-        return INSTANCE.decisionContextItems.get(reforkReasonKey);
+        return INSTANCE.reforkReasons.get(reforkReasonKey);
     }
 }

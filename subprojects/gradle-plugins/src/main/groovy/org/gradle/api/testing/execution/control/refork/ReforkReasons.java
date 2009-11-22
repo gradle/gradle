@@ -21,6 +21,6 @@ package org.gradle.api.testing.execution.control.refork;
  * @author Tom Eyckmans
  */
 public enum ReforkReasons implements ReforkReasonKey {
-    AMOUNT_OF_TEST_EXECUTED_BY_FORK,
+    AMOUNT_OF_TESTCASES,
     FORK_MEMORY_LOW
 }

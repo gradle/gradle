@@ -35,7 +35,7 @@ public class ReforkDataGatherControl {
         final Map<ReforkReasonKey, ReforkReasonConfig> itemConfigs = reforkItemConfigs.getItemConfigs();
         for (final ReforkReasonKey itemKey : reforkItemConfigs.getItemKeys()) {
             try {
-                final ReforkReason item = ReforkReasonRegister.getDecisionContextItem(itemKey);
+                final ReforkReason item = ReforkReasonRegister.getReforkReason(itemKey);
 
                 final ReforkReasonDataGatherer dataGatherer = item.getDataGatherer();
 

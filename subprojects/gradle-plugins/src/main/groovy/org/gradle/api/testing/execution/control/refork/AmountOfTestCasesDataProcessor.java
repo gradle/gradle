@@ -24,9 +24,9 @@ import org.slf4j.Logger;
 /**
  * @author Tom Eyckmans
  */
-public class AmountOfTestsExecutedByForkDataProcessor implements ReforkReasonDataProcessor {
+public class AmountOfTestCasesDataProcessor implements ReforkReasonDataProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(AmountOfTestsExecutedByForkDataProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(AmountOfTestCasesDataProcessor.class);
 
     private long reforkEveryThisAmountOfTests = Long.MAX_VALUE; // Long.MAX_VALUE ~ fork once.
 

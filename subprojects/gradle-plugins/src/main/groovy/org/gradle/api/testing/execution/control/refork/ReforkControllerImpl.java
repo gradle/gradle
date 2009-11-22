@@ -38,7 +38,7 @@ public class ReforkControllerImpl implements ReforkController {
         final ReforkItemConfigs reforkItemConfigs = pipelineConfig.getReforkItemConfigs();
 
         for (ReforkReasonKey itemKey : reforkItemConfigs.getItemKeys()) {
-            final ReforkReason item = ReforkReasonRegister.getDecisionContextItem(itemKey);
+            final ReforkReason item = ReforkReasonRegister.getReforkReason(itemKey);
             final ReforkReasonDataProcessor itemDataProcessor = item.getDataProcessor();
 
             itemDataProcessor.configure(testTask.getProject(), testTask);

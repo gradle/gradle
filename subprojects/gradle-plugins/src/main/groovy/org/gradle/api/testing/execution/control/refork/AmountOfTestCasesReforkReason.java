@@ -18,21 +18,21 @@ package org.gradle.api.testing.execution.control.refork;
 /**
  * @author Tom Eyckmans
  */
-public class AmountOfTestsExecutedByForkItem implements ReforkReason {
+public class AmountOfTestCasesReforkReason implements ReforkReason {
 
     public ReforkReasonKey getKey() {
-        return ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK;
+        return ReforkReasons.AMOUNT_OF_TESTCASES;
     }
 
     public ReforkReasonDataGatherer getDataGatherer() {
-        return new AmountOfTestsExecutedByForkDataGatherer();
+        return new AmountOfTestCasesDataGatherer();
     }
 
     public ReforkReasonDataProcessor getDataProcessor() {
-        return new AmountOfTestsExecutedByForkDataProcessor();
+        return new AmountOfTestCasesDataProcessor();
     }
 
     public ReforkReasonConfig getConfig() {
-        return new AmountOfTestsExecutedByForkConfig();
+        return new AmountOfTestCasesConfig();
     }
 }
