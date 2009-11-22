@@ -20,10 +20,7 @@ import org.gradle.api.testing.TestOrchestrator;
 import org.gradle.api.testing.fabric.TestMethodProcessResultStates;
 import org.gradle.api.testing.execution.PipelineConfig;
 import org.gradle.api.testing.execution.fork.policies.local.single.LocalSimpleForkPolicyConfig;
-import org.gradle.api.testing.execution.control.refork.ReforkItemConfigs;
-import org.gradle.api.testing.execution.control.refork.ReforkReasons;
-import org.gradle.api.testing.execution.control.refork.ReforkReasonRegister;
-import org.gradle.api.testing.execution.control.refork.AmountOfTestsExecutedByForkConfig;
+import org.gradle.api.testing.execution.control.refork.*;
 import org.gradle.api.testing.reporting.ReportConfig;
 import org.gradle.api.testing.reporting.policies.ReportPolicyNames;
 import org.gradle.api.testing.reporting.policies.ReportPolicyRegister;
@@ -50,6 +47,7 @@ public class NativeTest extends AbstractTestTask {
 
     private int maximumNumberOfForks = Integer.MAX_VALUE; // +/- no limit
     private int amountOfForksToStart = 1; // default
+    private double lowMemoryThreshold = -1;
 
     public NativeTest() {
         super();
@@ -79,8 +77,11 @@ public class NativeTest extends AbstractTestTask {
         ((LocalSimpleForkPolicyConfig) defaultPipelineConfig.getForkPolicyConfig()).setAmountToStart(
                 amountOfForksToStart);
 
+        ReforkItemConfigs reforkItemConfigs = null;
+
         if (reforkEvery >= 1) {
-            final ReforkItemConfigs reforkItemConfigs = new ReforkItemConfigs();
+            if ( reforkItemConfigs == null )
+                reforkItemConfigs = new ReforkItemConfigs();
 
             final AmountOfTestsExecutedByForkConfig reforkEveryConfig
                     = (AmountOfTestsExecutedByForkConfig) ReforkReasonRegister.getDecisionContextItem(
@@ -89,9 +90,21 @@ public class NativeTest extends AbstractTestTask {
             reforkEveryConfig.setReforkEvery(reforkEvery);
 
             reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TEST_EXECUTED_BY_FORK, reforkEveryConfig);
-
-            defaultPipelineConfig.setReforkItemConfigs(reforkItemConfigs);
         }
+
+        if ( lowMemoryThreshold > 0 ) {
+            if ( reforkItemConfigs == null )
+                reforkItemConfigs = new ReforkItemConfigs();
+
+            final ForkMemoryLowConfig forkMemoryLowConfig = (ForkMemoryLowConfig)ReforkReasonRegister.getDecisionContextItem(ReforkReasons.FORK_MEMORY_LOW).getConfig();
+
+            forkMemoryLowConfig.setMemoryLowThreshold(lowMemoryThreshold);
+
+            reforkItemConfigs.addItemConfig(ReforkReasons.FORK_MEMORY_LOW, forkMemoryLowConfig);
+        }
+
+        if ( reforkItemConfigs != null )
+            defaultPipelineConfig.setReforkItemConfigs(reforkItemConfigs);
 
         final TestOrchestrator orchestrator = new TestOrchestrator(this);
 
@@ -178,5 +191,15 @@ public class NativeTest extends AbstractTestTask {
         }
 
         this.amountOfForksToStart = amountOfForksToStart;
+    }
+
+    public double getLowMemoryThreshold() {
+        return lowMemoryThreshold;
+    }
+
+    public void setLowMemoryThreshold(double lowMemoryThreshold) {
+        if ( lowMemoryThreshold <= 0 ) throw new IllegalArgumentException("lowMemoryThreshold can't be lower or equal to zero!");
+
+        this.lowMemoryThreshold = lowMemoryThreshold;
     }
 }

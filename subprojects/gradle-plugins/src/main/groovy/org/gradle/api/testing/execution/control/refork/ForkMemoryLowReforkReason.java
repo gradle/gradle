@@ -16,11 +16,22 @@
 package org.gradle.api.testing.execution.control.refork;
 
 /**
- * List of built-in decision context items.
- *
  * @author Tom Eyckmans
  */
-public enum ReforkReasons implements ReforkReasonKey {
-    AMOUNT_OF_TEST_EXECUTED_BY_FORK,
-    FORK_MEMORY_LOW
+public class ForkMemoryLowReforkReason implements ReforkReason {
+    public ReforkReasonKey getKey() {
+        return ReforkReasons.FORK_MEMORY_LOW;
+    }
+
+    public ReforkReasonDataGatherer getDataGatherer() {
+        return new ForkMemoryLowDataGatherer();
+    }
+
+    public ReforkReasonDataProcessor getDataProcessor() {
+        return new ForkMemoryLowDataProcessor();
+    }
+
+    public ReforkReasonConfig getConfig() {
+        return new ForkMemoryLowConfig();
+    }
 }
