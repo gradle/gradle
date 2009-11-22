@@ -17,6 +17,7 @@
 package org.gradle.util.exec;
 
 import org.gradle.util.ThreadUtils;
+import org.gradle.util.shutdown.ShutdownHookActionRegister;
 
 import java.io.File;
 import java.util.*;
@@ -113,6 +114,8 @@ public class DefaultExecHandle implements ExecHandle {
 
     private final ExecHandleNotifierFactory notifierFactory;
     private final List<ExecHandleListener> listeners = new CopyOnWriteArrayList<ExecHandleListener>();
+
+    private ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode,
                       Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle,
@@ -296,11 +299,16 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void started() {
+        shutdownHookAction = ExecHandleShutdownHookAction.forHandle(this);
+        ShutdownHookActionRegister.addShutdownHookAction(shutdownHookAction);
+
         setState(ExecHandleState.STARTED);
         ThreadUtils.run(notifierFactory.createStartedNotifier(this));
     }
 
     void finished(int exitCode) {
+        ShutdownHookActionRegister.removeShutdownHookAction(shutdownHookAction);
+
         if (exitCode != normalTerminationExitCode) {
             setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException(
                     "exitCode(" + exitCode + ") != " + normalTerminationExitCode + "!"));
@@ -314,12 +322,16 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void aborted() {
+        ShutdownHookActionRegister.removeShutdownHookAction(shutdownHookAction);
+
         setState(ExecHandleState.ABORTED);
         shutdownThreadPool();
         ThreadUtils.run(notifierFactory.createAbortedNotifier(this));
     }
 
     void failed(Throwable failureCause) {
+        ShutdownHookActionRegister.removeShutdownHookAction(shutdownHookAction);
+
         setEndStateInfo(ExecHandleState.FAILED, -1, failureCause);
         shutdownThreadPool();
         ThreadUtils.run(notifierFactory.createFailedNotifier(this));
