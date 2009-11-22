@@ -16,12 +16,17 @@
 package org.gradle.api.testing.execution.control.refork;
 
 import org.gradle.api.Project;
+import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.tasks.testing.NativeTest;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * @author Tom Eyckmans
  */
 public class AmountOfTestsExecutedByForkDataProcessor implements ReforkReasonDataProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(AmountOfTestsExecutedByForkDataProcessor.class);
 
     private long reforkEveryThisAmountOfTests = Long.MAX_VALUE; // Long.MAX_VALUE ~ fork once.
 
@@ -35,9 +40,20 @@ public class AmountOfTestsExecutedByForkDataProcessor implements ReforkReasonDat
      * @param decisionContextItemData the amount of tests currently executed by the fork.
      * @return true if the fork needs to restart.
      */
-    public boolean determineReforkNeeded(Object decisionContextItemData) {
+    public boolean determineReforkNeeded(Pipeline pipeline, int forkId, Object decisionContextItemData) {
         final Long amountOfTestsExecutedByFork = (Long) decisionContextItemData;
 
-        return amountOfTestsExecutedByFork % reforkEveryThisAmountOfTests == 0;
+        final boolean restartNeeded = amountOfTestsExecutedByFork % reforkEveryThisAmountOfTests == 0;
+
+        if ( restartNeeded ) {
+            logger.info("pipeline {}, fork {} : restart needed, amount of tests executed = {}",
+                    new Object[]{
+                            pipeline.getName(),
+                            forkId,
+                            amountOfTestsExecutedByFork
+                    });
+        }
+
+        return restartNeeded;
     }
 }

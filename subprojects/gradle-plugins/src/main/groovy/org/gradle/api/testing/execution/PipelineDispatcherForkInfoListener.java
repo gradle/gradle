@@ -31,7 +31,7 @@ public class PipelineDispatcherForkInfoListener implements ForkInfoListener {
     }
 
     public void starting(int forkId) {
-        LOGGER.info("pipeline {}, fork {} : started", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
+        LOGGER.info("pipeline {}, fork {} : started", pipelineDispatcher.getPipeline().getName(), forkId);
 
         pipelineDispatcher.forkStarting(forkId);
     }
@@ -41,19 +41,19 @@ public class PipelineDispatcherForkInfoListener implements ForkInfoListener {
     }
 
     public void stopped(int forkId) {
-        LOGGER.info("pipeline {}, fork {} : stopped", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
+        LOGGER.info("pipeline {}, fork {} : stopped", pipelineDispatcher.getPipeline().getName(), forkId);
 
         pipelineDispatcher.forkStopped(forkId);
     }
 
     public void aborted(int forkId) {
-        LOGGER.info("pipeline {}, fork {} : aborted", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
+        LOGGER.info("pipeline {}, fork {} : aborted", pipelineDispatcher.getPipeline().getName(), forkId);
 
         pipelineDispatcher.forkAborted(forkId);
     }
 
     public void failed(int forkId, Throwable cause) {
-        LOGGER.info("pipeline {}, fork {} : failed", pipelineDispatcher.getPipeline().getConfig().getName(), forkId);
+        LOGGER.info("pipeline {}, fork {} : failed", pipelineDispatcher.getPipeline().getName(), forkId);
 
         pipelineDispatcher.forkFailed(forkId, cause);
     }

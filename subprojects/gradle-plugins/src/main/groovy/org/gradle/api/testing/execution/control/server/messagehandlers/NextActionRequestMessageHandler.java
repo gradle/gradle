@@ -96,7 +96,7 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
             final ReforkDecisionContext reforkDecisionContext = message.getReforkDecisionContext();
 
             if (reforkDecisionContext != null) {
-                reforkNeeded = reforkController.reforkNeeded(reforkDecisionContext);
+                reforkNeeded = reforkController.reforkNeeded(pipeline, message.getForkId(), reforkDecisionContext);
             }
         }
 

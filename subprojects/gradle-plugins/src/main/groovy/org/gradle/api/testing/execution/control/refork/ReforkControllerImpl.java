@@ -17,6 +17,7 @@ package org.gradle.api.testing.execution.control.refork;
 
 import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.execution.PipelineConfig;
+import org.gradle.api.testing.execution.Pipeline;
 
 import java.util.*;
 
@@ -47,7 +48,7 @@ public class ReforkControllerImpl implements ReforkController {
         }
     }
 
-    public boolean reforkNeeded(ReforkDecisionContext reforkDecisionContext) {
+    public boolean reforkNeeded(Pipeline pipeline, int forkId, ReforkDecisionContext reforkDecisionContext) {
         boolean reforkNeeded = false;
 
         final Iterator<ReforkReasonKey> itemsIterator = itemProcessorsOrdered.iterator();
@@ -59,7 +60,7 @@ public class ReforkControllerImpl implements ReforkController {
             if (currentItemData != null) {
                 final ReforkReasonDataProcessor currentItemDataProcessor = itemProcessors.get(currentItemKey);
 
-                reforkNeeded = currentItemDataProcessor.determineReforkNeeded(currentItemData);
+                reforkNeeded = currentItemDataProcessor.determineReforkNeeded(pipeline, forkId, currentItemData);
             }
         }
 

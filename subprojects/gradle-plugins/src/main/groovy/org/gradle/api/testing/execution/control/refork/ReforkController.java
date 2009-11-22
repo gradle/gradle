@@ -17,6 +17,7 @@ package org.gradle.api.testing.execution.control.refork;
 
 import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.execution.PipelineConfig;
+import org.gradle.api.testing.execution.Pipeline;
 
 /**
  * @author Tom Eyckmans
@@ -25,5 +26,5 @@ public interface ReforkController {
 
     void initialize(NativeTest testTask, PipelineConfig pipelineConfig);
 
-    boolean reforkNeeded(ReforkDecisionContext reforkDecisionContext);
+    boolean reforkNeeded(Pipeline pipeline, int forkId, ReforkDecisionContext reforkDecisionContext);
 }

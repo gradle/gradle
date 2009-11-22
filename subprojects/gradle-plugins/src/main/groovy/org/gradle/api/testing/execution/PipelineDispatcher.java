@@ -98,7 +98,7 @@ public class PipelineDispatcher {
                 }
             } else {
                 LOGGER.error("received unknown message of type {} on pipeline ", messageClass,
-                        pipeline.getConfig().getName());
+                        pipeline.getName());
                 ioSession.write(new StopForkActionMessage(pipeline.getId()));
             }
         }

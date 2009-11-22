@@ -147,7 +147,7 @@ public class ConsoleReportPolicyInstance implements ReportPolicyInstance {
                         : stateCounts.get(TestMethodProcessResultStates.SUCCESS);
 
                 logger.info("pipeline {}, fork {} : Test {} : success#{}, failure#{}, error#{}", new Object[]{
-                        pipeline.getConfig().getName(), reportInfo.getForkId(),
+                        pipeline.getName(), reportInfo.getForkId(),
                         classResult.getTestClassRunInfo().getTestClassName(), successCount, failureCount, errorCount
                 });
 
@@ -156,7 +156,7 @@ public class ConsoleReportPolicyInstance implements ReportPolicyInstance {
                         if (methodResult.getState() == TestMethodProcessResultStates.ERROR
                                 || methodResult.getState() == TestMethodProcessResultStates.FAILURE) {
                             logger.info("pipeline {}, fork {} : Test {} :", new Object[]{
-                                    pipeline.getConfig().getName(), reportInfo.getForkId(),
+                                    pipeline.getName(), reportInfo.getForkId(),
                                     classResult.getTestClassRunInfo().getTestClassName() + "." + methodResult
                                             .getMethodName()
                             });
