@@ -75,14 +75,9 @@ a:hover {
     color: #a8cc9e;
     margin-left: 220px;
     line-height: 80px;
-    font-size: 22px;
+    font-size: 42px;
+    font-weight: bold;
     font-style: italic;
-}
-
-#header .attrib {
-    color: #a8cc9e;
-    font-size: 12px;
-    font-weight: normal;
 }
 
 #content {
