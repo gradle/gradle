@@ -34,55 +34,45 @@ import java.util.List;
  * @author mhunsicker
  */
 public class RefreshTaskListRequest extends AbstractRequest {
-    private ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction;
     private GradlePluginLord gradlePluginLord;
 
-    public RefreshTaskListRequest(String fullCommandLine, ExecutionQueue executionQueue,
-                                  ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction,
-                                  GradlePluginLord gradlePluginLord) {
-        super(fullCommandLine, executionQueue);
-        this.executionInteraction = executionInteraction;
+    public RefreshTaskListRequest(long requestID, String fullCommandLine, ExecutionQueue executionQueue, GradlePluginLord gradlePluginLord) {
+        super(requestID, fullCommandLine, "Refresh", false, executionQueue);
         this.gradlePluginLord = gradlePluginLord;
     }
 
-    /**
-     * This is called right before this command is executed (because the settings such as log level and stack trace
-     * level can be changed between the time someone initiates a command and it executes). The execution takes place in
-     * another process so this should create the appropriate Protocol suitable for passing the results of the execution
-     * back to us.
-     *
-     * @param logLevel the user's log level.
-     * @param stackTraceLevel the user's stack trace level
-     * @param currentDirectory the current working directory of your gradle project
-     * @param gradleHomeDirectory the gradle home directory
-     * @param customGradleExecutor the path to a custom gradle executable. May be null.
-     * @return a protocol that our server will use to communicate with the launched gradle process.
-     */
-    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel,
-                                                               StartParameter.ShowStacktrace stackTraceLevel,
-                                                               File currentDirectory, File gradleHomeDirectory,
-                                                               File customGradleExecutor) {
-        executionInteraction
-                .reportExecutionStarted();  //go ahead and fire off that the execution has started. It has from the user's standpoint.
+   /**
+    * This is called right before this command is executed (because the settings such as log level and stack trace
+    * level can be changed between the time someone initiates a command and it executes). The execution takes place in
+    * another process so this should create the appropriate Protocol suitable for passing the results of the execution
+    * back to us.
+    *
+    * @param  logLevel             the user's log level.
+    * @param  stackTraceLevel      the user's stack trace level
+    * @param  currentDirectory     the current working directory of your gradle project
+    * @param  gradleHomeDirectory  the gradle home directory
+    * @param  customGradleExecutor the path to a custom gradle executable. May be null.
+    * @return a protocol that our server will use to communicate with the launched gradle process.
+    */
+    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel, File currentDirectory, File gradleHomeDirectory, File customGradleExecutor) {
+        executionInteraction.reportExecutionStarted();  //go ahead and fire off that the execution has started. It has from the user's standpoint.
 
         ExecutionInteractionWrapper wrapper = new ExecutionInteractionWrapper(executionInteraction);
 
-        return new TaskListServerProtocol(currentDirectory, gradleHomeDirectory, customGradleExecutor,
-                getFullCommandLine(), logLevel, stackTraceLevel, wrapper);
+        return new TaskListServerProtocol(currentDirectory, gradleHomeDirectory, customGradleExecutor, getFullCommandLine(), logLevel, stackTraceLevel, wrapper);
     }
 
     private class ExecutionInteractionWrapper implements TaskListServerProtocol.ExecutionInteraction {
         private ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction;
 
-        private ExecutionInteractionWrapper(
-                ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction) {
+        private ExecutionInteractionWrapper(ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction) {
             this.executionInteraction = executionInteraction;
         }
 
         /**
          * Notification that gradle has started execution. This may not get called if some error occurs that prevents
          * gradle from running.
-         */
+        */
         public void reportExecutionStarted() {
             executionInteraction.reportExecutionStarted();
         }
@@ -92,19 +82,26 @@ public class RefreshTaskListRequest extends AbstractRequest {
          * called.
          *
          * @param wasSuccessful true if gradle was successful (returned 0)
-         * @param message the output of gradle if it ran. If it didn't, an error message.
-         * @param throwable an exception if one occurred
-         * @param projects a hierachical list of projects. This is the final result.
+         * @param message       the output of gradle if it ran. If it didn't, an error message.
+         * @param throwable     an exception if one occurred
+         * @param projects      a hierachical list of projects. This is the final result.
          */
-        public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable,
-                                            List<ProjectView> projects) {
+        public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
             executionInteraction.reportExecutionFinished(wasSuccessful, message, throwable);
-
-            gradlePluginLord.setProjects(projects);
         }
 
-        public void reportLiveOutput(String message) {
+       public void projectsPopulated( List<ProjectView> projects )
+       {
+          gradlePluginLord.setProjects(projects);
+       }
+
+       public void reportLiveOutput(String message) {
             executionInteraction.reportLiveOutput(message);
         }
     }
+
+   public void executeAgain( GradlePluginLord gradlePluginLord )
+   {
+      gradlePluginLord.addRefreshRequestToQueue();
+   }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.openapi.external.ui;
 
-import javax.swing.JComponent;
 import java.io.File;
 
 /*
@@ -31,12 +30,6 @@ import java.io.File;
   */
 public interface BasicGradleUIVersion1
 {
-   /*
-      @return the panel for this pane. This can be inserted directly into your UI.
-      @author mhunsicker
-   */
-   public JComponent getComponent();
-
    /*
       Call this whenever you're about to show this panel. We'll do whatever
       initialization is necessary.
@@ -154,4 +147,24 @@ public interface BasicGradleUIVersion1
    */
    public void executeCommand( String commandLineArguments, String displayName );
 
+   /**
+    This refreshes the task tree. Useful if you know you've changed something behind
+    gradle's back or when first displaying this UI.
+    */
+   public void refreshTaskTree();
+
+   public void addOutputObserver( OutputObserverVersion1 outputObserverVersion1 );
+   public void removeOutputObserver( OutputObserverVersion1 outputObserverVersion1 );
+
+   /**
+      Determines if commands are currently being executed or not.
+      @return true if we're busy, false if not.
+   */
+   public boolean isBusy();
+
+   /**
+    Determines whether output is shown only when errors occur or always
+    @return true to only show output if errors occur, false to show it always.
+    */
+   public boolean getOnlyShowOutputOnErrors();
 }

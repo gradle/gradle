@@ -23,6 +23,7 @@ package org.gradle.foundation.ipc.gradle;
 public class ProtocolConstants {
     //these are the message types we'll receive from the client.
     public static final String EXECUTION_COMPLETED_TYPE = "ExecutionCompleted";
+    public static final String NUMBER_OF_TASKS_TO_EXECUTE = "NumberOfTasksToExecute";
     public static final String TASK_STARTED_TYPE = "TaskStarted";
     public static final String TASK_COMPLETE_TYPE = "TaskComplete";
     public static final String LIVE_OUTPUT_TYPE = "LiveOutput";

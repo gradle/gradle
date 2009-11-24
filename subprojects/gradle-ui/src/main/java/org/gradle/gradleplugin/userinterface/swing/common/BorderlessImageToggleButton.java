@@ -22,6 +22,7 @@ import javax.swing.JToggleButton;
 import javax.swing.border.Border;
 import javax.swing.plaf.metal.MetalButtonUI;
 import java.awt.Dimension;
+import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
@@ -35,6 +36,7 @@ import java.awt.geom.Rectangle2D;
  */
 public class BorderlessImageToggleButton extends JToggleButton {
     public Border selectedBorder = BorderFactory.createLoweredBevelBorder();
+    private Color defaultBackground;
 
     public BorderlessImageToggleButton(Action action, Icon icon) {
         super(action);
@@ -52,7 +54,7 @@ public class BorderlessImageToggleButton extends JToggleButton {
 
     private void init(Icon icon) {
         this.setBorder(BorderlessUtility.DEFAULT_BORDER);
-        BorderlessUtility.defaultBackground = this.getBackground();
+        defaultBackground = this.getBackground();
         this.addMouseListener(new HighlightMouseListener());
 
         setText(null);
@@ -118,7 +120,7 @@ public class BorderlessImageToggleButton extends JToggleButton {
         }
 
         public void mouseExited(MouseEvent event) {
-            BorderlessImageToggleButton.this.setBackground(BorderlessUtility.defaultBackground);
+            BorderlessImageToggleButton.this.setBackground(defaultBackground );
 
             if (BorderlessImageToggleButton.this.isSelected()) {
                 BorderlessImageToggleButton.this.setBorder(selectedBorder);

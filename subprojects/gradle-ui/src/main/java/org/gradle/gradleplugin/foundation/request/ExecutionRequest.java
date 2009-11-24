@@ -16,6 +16,7 @@
 package org.gradle.gradleplugin.foundation.request;
 
 import org.gradle.StartParameter;
+import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
@@ -28,14 +29,11 @@ import java.io.File;
  * version is for directly executing commands in gradle (the most common type of request).
  *
  * @author mhunsicker
- */
+*/
 public class ExecutionRequest extends AbstractRequest {
-    private ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction;
 
-    public ExecutionRequest(String fullCommandLine, ExecutionQueue executionQueue,
-                            ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction) {
-        super(fullCommandLine, executionQueue);
-        this.executionInteraction = executionInteraction;
+    public ExecutionRequest(long requestID, String fullCommandLine, String displayName, boolean forceOutputToBeShown, ExecutionQueue executionQueue) {
+        super(requestID, fullCommandLine, displayName, forceOutputToBeShown, executionQueue);
     }
 
     /**
@@ -44,21 +42,21 @@ public class ExecutionRequest extends AbstractRequest {
      * another process so this should create the appropriate Protocol suitable for passing the results of the execution
      * back to us.
      *
-     * @param logLevel the user's log level.
-     * @param stackTraceLevel the user's stack trace level
-     * @param currentDirectory the current working directory of your gradle project
-     * @param gradleHomeDirectory the gradle home directory
-     * @param customGradleExecutor the path to a custom gradle executable. May be null.
+     * @param  logLevel             the user's log level.
+     * @param  stackTraceLevel      the user's stack trace level
+     * @param  currentDirectory     the current working directory of your gradle project
+     * @param  gradleHomeDirectory  the gradle home directory
+     * @param  customGradleExecutor the path to a custom gradle executable. May be null.
      * @return a protocol that our server will use to communicate with the launched gradle process.
-     */
-    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel,
-                                                               StartParameter.ShowStacktrace stackTraceLevel,
-                                                               File currentDirectory, File gradleHomeDirectory,
-                                                               File customGradleExecutor) {
-        executionInteraction
-                .reportExecutionStarted();  //go ahead and fire off that the execution has started. It has from the user's standpoint.
+    */
+    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel, File currentDirectory, File gradleHomeDirectory, File customGradleExecutor) {
+        executionInteraction.reportExecutionStarted();  //go ahead and fire off that the execution has started. It has from the user's standpoint.
 
-        return new ExecuteGradleCommandServerProtocol(currentDirectory, gradleHomeDirectory, customGradleExecutor,
-                getFullCommandLine(), logLevel, stackTraceLevel, executionInteraction);
+        return new ExecuteGradleCommandServerProtocol(currentDirectory, gradleHomeDirectory, customGradleExecutor, getFullCommandLine(), logLevel, stackTraceLevel, executionInteraction);
     }
+
+   public void executeAgain( GradlePluginLord gradlePluginLord )
+   {
+      gradlePluginLord.addExecutionRequestToQueue( getFullCommandLine(), getDisplayName(), forceOutputToBeShown() );
+   }
 }

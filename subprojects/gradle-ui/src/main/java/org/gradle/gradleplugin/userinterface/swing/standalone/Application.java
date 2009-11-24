@@ -107,7 +107,8 @@ public class Application implements AlternateUIInteraction {
             rootSettingsNode = DOM4JSerializer.createBlankSettings();
         }
 
-        singlePaneUIInstance = new SinglePaneUIInstance(rootSettingsNode, this);
+        singlePaneUIInstance = new SinglePaneUIInstance();
+        singlePaneUIInstance.initialize( rootSettingsNode, this);
 
         setupUI();
 

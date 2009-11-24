@@ -23,7 +23,8 @@ import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1;
 import java.io.File;
 
 /**
- * Wrapper to shield version changes in GradleRunnerInteractionVersion1 from an external user of gradle open API.
+ * Wrapper to shield version changes in GradleRunnerInteractionVersion1
+ * from an external user of gradle open API.
  *
  * @author mhunsicker
  */
@@ -35,9 +36,8 @@ public class GradleRunnerInteractionWrapper implements ExecuteGradleCommandServe
     }
 
     /**
-     * @return the log level. This determines the detail level of information reported via reportLiveOutput and
-     *         reportExecutionFinished.
-     */
+    * @return the log level. This determines the detail level of information reported via reportLiveOutput and reportExecutionFinished.
+    */
     public LogLevel getLogLevel() {
         GradleRunnerInteractionVersion1.LogLevel logLevel = interactionVersion1.getLogLevel();
         switch (logLevel) {
@@ -53,8 +53,8 @@ public class GradleRunnerInteractionWrapper implements ExecuteGradleCommandServe
     }
 
     /**
-     * @return the stack trace level. This determines the detail level of any stack traces should an exception occur.
-     */
+    * @return the stack trace level. This determines the detail level of any stack traces should an exception occur.
+    */
     public StartParameter.ShowStacktrace getStackTraceLevel() {
         GradleRunnerInteractionVersion1.StackTraceLevel stackTraceLevel = interactionVersion1.getStackTraceLevel();
         switch (stackTraceLevel) {
@@ -76,12 +76,23 @@ public class GradleRunnerInteractionWrapper implements ExecuteGradleCommandServe
         this.interactionVersion1.reportExecutionStarted();
     }
 
-    /**
-     * Notification that a single task has completed. Note: the task you kicked off probably executes other tasks and
-     * this notifies you of those tasks and provides completion progress.
+   /**
+    * Notification of the total number of tasks that will be executed. This is called after reportExecutionStarted and before any tasks are executed.
+    *
+    * @param size the total number of tasks.
+    */
+   public void reportNumberOfTasksToExecute( int size ) {
+      this.interactionVersion1.reportNumberOfTasksToExecute( size );
+   }
+
+   /**
+     * Notification that a single task has completed. Note: the task you kicked
+     * off probably executes other tasks and this notifies you of those tasks
+     * and provides completion progress.
      *
      * @param currentTaskName the task being executed
-     * @param percentComplete the percent complete of all the tasks that make up the task you requested.
+     * @param percentComplete the percent complete of all the tasks that make
+     *                        up the task you requested.
      */
     public void reportTaskStarted(String currentTaskName, float percentComplete) {
         this.interactionVersion1.reportTaskStarted(currentTaskName, percentComplete);
@@ -105,14 +116,13 @@ public class GradleRunnerInteractionWrapper implements ExecuteGradleCommandServe
     }
 
     /*
-       This is called to get a custom gradle executable file. If you don't run
-       gradle.bat or gradle shell script to run gradle, use this to specify
-       what you do run. Note: we're going to pass it the arguments that we would
-       pass to gradle so if you don't like that, see alterCommandLineArguments.
-       Normaly, this should return null.
-       @return the Executable to run gradle command or null to use the default
+    * This is called to get a custom gradle executable file. If you don't run
+    * gradle.bat or gradle shell script to run gradle, use this to specify
+    * what you do run. Note: we're going to pass it the arguments that we would
+    * pass to gradle so if you don't like that, see alterCommandLineArguments.
+    * Normaly, this should return null.
+    * @return the Executable to run gradle command or null to use the default
     */
-
     public File getCustomGradleExecutable() {
         return interactionVersion1.getCustomGradleExecutable();
     }

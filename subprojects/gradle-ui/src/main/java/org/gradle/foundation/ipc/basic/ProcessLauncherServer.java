@@ -29,8 +29,7 @@ import java.util.Iterator;
  *
  * @author mhunsicker
  */
-public class ProcessLauncherServer
-        extends Server<ProcessLauncherServer.Protocol, ProcessLauncherServer.ServerObserver> {
+public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol, ProcessLauncherServer.ServerObserver> {
     private volatile ExternalProcess externalProcess;
 
     private final Logger logger = Logging.getLogger(ProcessLauncherServer.class);
@@ -88,23 +87,23 @@ public class ProcessLauncherServer
                 ExecutionInfo executionInfo = new ExecutionInfo();
                 protocol.getExecutionInfo(getPort(), executionInfo);
 
-                ExternalProcess externalProcess = new ExternalProcess(executionInfo.workingDirectory,
-                        executionInfo.commandLineArguments);
+                ExternalProcess externalProcess = new ExternalProcess(executionInfo.workingDirectory, executionInfo.commandLineArguments);
                 setExternalProcess(externalProcess);
 
                 //set environment variables
                 Iterator<String> iterator = executionInfo.environmentVariables.keySet().iterator();
-                while (iterator.hasNext()) {
-                    String name = iterator.next();
-                    String value = executionInfo.environmentVariables.get(name);
-                    externalProcess.setEnvironmentVariable(name, value);
+                while( iterator.hasNext() ) {
+                   String name = iterator.next();
+                   String value = executionInfo.environmentVariables.get( name );
+                   externalProcess.setEnvironmentVariable( name, value );
                 }
 
-                try {
+               try {
                     externalProcess.start();
-                } catch (Throwable e) {
+                }
+                catch (Throwable e) {
                     logger.error("Starting external process", e);
-                    protocol.clientExited(-1, e.getMessage());
+                    notifyClientExited( -1, e.getMessage() );
                     setExternalProcess(null);
                     return;
                 }
@@ -112,14 +111,14 @@ public class ProcessLauncherServer
                 int result = 0;
                 try {
                     result = externalProcess.waitFor();
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException e) {
                     logger.error("Waiting for external process", e);
                 }
 
-                setExternalProcess(
-                        null);   //clear our external process member variable (we're using our local variable below). This is so we know the process has already stopped.
+                setExternalProcess(null);   //clear our external process member variable (we're using our local variable below). This is so we know the process has already stopped.
 
-                protocol.clientExited(result, externalProcess.getOutput());
+                notifyClientExited( result, externalProcess.getOutput() );
             }
         });
 
@@ -145,7 +144,8 @@ public class ProcessLauncherServer
             protocol.aboutToKillProcess();
             try {
                 externalProcess.stop();
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 logger.error("Stopping external process", e);
                 //just keep going. This means something probably went bad with recording the output, but the process should be stopped.
             }

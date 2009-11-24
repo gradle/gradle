@@ -77,15 +77,16 @@ public class ClientProcess {
             InetAddress ipAddress = InetAddress.getLocalHost();
             clientSocket = new Socket(ipAddress, port);
             socketWrapper = new ObjectSocketWrapper(clientSocket);
-            socketWrapper.setTimeout(5000);
             if (protocol.serverConnected(clientSocket)) {
                 return true;
             }
 
             logger.error("Failed to connect to server (might not have returned correct connection string): " + port);
-        } catch (ConnectException e) {
+        }
+        catch (ConnectException e) {
             logger.error("Failed to connect to server: " + port);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error("Failed to connect to server: " + port, e);
         }
 
@@ -94,7 +95,8 @@ public class ClientProcess {
                 clientSocket.close();
             }
             socketWrapper = null;
-        } catch (IOException e1) {
+        }
+        catch (IOException e1) {
             logger.error("Failed to close socket", e1);
         }
         return false;
@@ -106,7 +108,7 @@ public class ClientProcess {
     public void stop() {
         if (socketWrapper != null) {
             socketWrapper.close();
-        }
+         }
     }
 
     /**
@@ -114,8 +116,8 @@ public class ClientProcess {
      * message type, and data.
      *
      * @param messageType the message type. Whatever the client and server want.
-     * @param message the message being sent
-     * @param data the data being sent. Must be serializable.
+     * @param message     the message being sent
+     * @param data        the data being sent. Must be serializable.
      * @return true if we sent the message, false if not.
      */
     public boolean sendMessage(String messageType, String message, Serializable data) {
@@ -131,8 +133,8 @@ public class ClientProcess {
      * server must understand the message, message type, and data.
      *
      * @param messageType the message type. Whatever the client and server want.
-     * @param message the message being sent
-     * @param data the data being sent. Must be serializable.
+     * @param message     the message being sent
+     * @param data        the data being sent. Must be serializable.
      * @return the reply from the server
      */
     public MessageObject sendMessageWaitForReply(String messageType, String message, Serializable data) {

@@ -24,6 +24,8 @@ import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.gradleplugin.foundation.DOM4JSerializer;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.request.Request;
+import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
+import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 
@@ -49,10 +51,8 @@ public class TestUtility {
      * Creates a mock project with the specified properties.
      *
      * Note: depth is 0 for a root project. 1 for a root project's subproject, etc.
-     */
-    public static Project createMockProject(JUnit4Mockery context, final String name, final String buildFilePath,
-                                            final int depth, Project[] subProjectArray, Task[] tasks,
-                                            String[] defaultTasks, Project... dependsOnProjects) {
+    */
+    public static Project createMockProject(JUnit4Mockery context, final String name, final String buildFilePath, final int depth, Project[] subProjectArray, Task[] tasks, String[] defaultTasks, Project... dependsOnProjects) {
         final Project project = context.mock(Project.class, "[project]_" + name + '_' + uniqueNameCounter++);
 
         context.checking(new Expectations() {{
@@ -80,11 +80,9 @@ public class TestUtility {
      * @param parentProject where to attach the sub projects. This must be a mock object.
      * @param subProjectArray the sub projects to attach to the parent. These must be mock objects. Pass in null or an
      * empty array to set no sub projects.
-     */
-    public static void attachSubProjects(JUnit4Mockery context, final Project parentProject,
-                                         Project... subProjectArray) {
-        final Set<Project> set
-                = new LinkedHashSet<Project>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
+    */
+    public static void attachSubProjects(JUnit4Mockery context, final Project parentProject, Project... subProjectArray) {
+        final Set<Project> set = new LinkedHashSet<Project>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
 
         if (subProjectArray != null && subProjectArray.length != 0) {
             set.addAll(Arrays.asList(subProjectArray));
@@ -109,7 +107,7 @@ public class TestUtility {
 
     /**
      * Creates a mock task with the specified properites.
-     */
+    */
     public static Task createTask(JUnit4Mockery context, final String name, final String description) {
         final Task task = context.mock(Task.class, "[task]_" + name + '_' + uniqueNameCounter++);
 
@@ -131,19 +129,17 @@ public class TestUtility {
      * @param parentProject where to attach the sub projects. This must be a mock object.
      * @param taskArray the tasks to attach to the parent. these must be mock objects. Pass in null or an empty array to
      * set no tasks.
-     */
+    */
     public static void attachTasks(JUnit4Mockery context, final Project parentProject, Task... taskArray) {
         //first, make our project return our task container
-        final TaskContainer taskContainer = context.mock(TaskContainer.class,
-                "[taskcontainer]_" + parentProject.getName() + '_' + uniqueNameCounter++);
+        final TaskContainer taskContainer = context.mock(TaskContainer.class, "[taskcontainer]_" + parentProject.getName() + '_' + uniqueNameCounter++);
 
         context.checking(new Expectations() {{
             allowing(parentProject).getTasks();
             will(returnValue(taskContainer));
         }});
 
-        final Set<Task> set
-                = new LinkedHashSet<Task>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
+        final Set<Task> set = new LinkedHashSet<Task>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
 
         if (taskArray != null && taskArray.length != 0) {
             set.addAll(Arrays.asList(taskArray));
@@ -166,8 +162,7 @@ public class TestUtility {
         }});
     }
 
-    private static void assignDefaultTasks(JUnit4Mockery context, final Project project,
-                                           final String... defaultTasksArray) {
+    private static void assignDefaultTasks(JUnit4Mockery context, final Project project, final String... defaultTasksArray) {
         final List<String> defaultTaskList = new ArrayList<String>();
 
         if (defaultTasksArray != null && defaultTasksArray.length != 0) {
@@ -180,10 +175,8 @@ public class TestUtility {
         }});
     }
 
-    private static void assignDependsOnProjects(JUnit4Mockery context, final Project project,
-                                                final Project... dependsOnProjects) {
-        final Set<Project> set
-                = new LinkedHashSet<Project>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
+    private static void assignDependsOnProjects(JUnit4Mockery context, final Project project, final Project... dependsOnProjects) {
+        final Set<Project> set = new LinkedHashSet<Project>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
 
         if (dependsOnProjects != null && dependsOnProjects.length != 0) {
             set.addAll(Arrays.asList(dependsOnProjects));
@@ -210,7 +203,7 @@ public class TestUtility {
      *
      * @param actualObjecs the list to check
      * @param expectedObjects what we expect in the list
-     */
+    */
     public static <T> void assertUnorderedListContents(List<T> actualObjecs, List<T> expectedObjects) {
         List<T> expectedObjecsList = new ArrayList<T>(expectedObjects);   //make a copy of it, so we can modify it.
 
@@ -221,14 +214,14 @@ public class TestUtility {
                 throw new AssertionFailedError(
                         "Failed to locate object. Sought object:\n" + expectedObject + "\n\nExpected:\n" + dumpList(
                                 expectedObjects) + "\nActual:\n" + dumpList(actualObjecs));
-            }
+        }
         }
 
         if (actualObjecs.size() != expectedObjects.size()) {
             throw new AssertionFailedError(
                     "Expected " + expectedObjects.size() + " items but found " + actualObjecs.size() + "\nExpected:\n"
                             + dumpList(expectedObjects) + "\nActual:\n" + dumpList(actualObjecs));
-        }
+    }
     }
 
     //function for getting a prettier dump of a list.
@@ -249,7 +242,7 @@ public class TestUtility {
                 builder.append("**** [null object in list] ****\n");
             } else {
                 builder.append(object.toString()).append('\n');
-            }
+        }
         }
 
         return builder.toString();
@@ -261,7 +254,7 @@ public class TestUtility {
      * promptForFile is called repeatedly. This can happen if promptForFile is called and its return value fails some
      * form of validation which makes promptForFile get called again or if you deny overwriting the file. You'll get
      * prompted again.
-     */
+    */
     public static class TestExportInteraction implements DOM4JSerializer.ExportInteraction {
         private File file;
         private boolean confirmOverwrite;
@@ -286,7 +279,7 @@ public class TestUtility {
          *
          * @param file the file in question
          * @return true to overwrite it, false not to.
-         */
+        */
         public boolean confirmOverwritingExisingFile(File file) {
             return confirmOverwrite;
         }
@@ -299,7 +292,7 @@ public class TestUtility {
     /**
      * This is an ImportInteraction implemention meant to be used by tests. See TestExportInteraction for more
      * information.
-     */
+    */
     public static class TestImportInteraction implements DOM4JSerializer.ImportInteraction {
         private File file;
         private int promptCount = 0;
@@ -327,7 +320,8 @@ public class TestUtility {
     public static File createTemporaryFile(String prefix, String suffix) {
         try {
             return File.createTempFile(prefix, suffix);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new AssertionFailedError("Unexpected exception: " + e);
         }
     }
@@ -338,13 +332,22 @@ public class TestUtility {
      * @param gradlePluginLord the plugin lord (will be used to execute the command and store the results).
      * @param executionInteraction provides feedback about the execution.
      * @param maximumWaitSeconds how many seconds to wait before considering this a failure.
-     */
+    */
     public static void refreshProjectsBlocking(GradlePluginLord gradlePluginLord, int maximumWaitSeconds) {
         refreshProjectsBlocking(gradlePluginLord, new ExecuteGradleCommandServerProtocol.ExecutionInteraction() {
             public void reportExecutionStarted() {
             }
 
-            public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
+           /**
+            Notification of the total number of tasks that will be executed. This is
+            called after reportExecutionStarted and before any tasks are executed.
+
+            @param size the total number of tasks.
+            */
+           public void reportNumberOfTasksToExecute( int size ) {
+           }
+
+           public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
             }
 
             public void reportTaskStarted(String message, float percentComplete) {
@@ -358,36 +361,21 @@ public class TestUtility {
         }, maximumWaitSeconds);
     }
 
-    public static void refreshProjectsBlocking(GradlePluginLord gradlePluginLord,
-                                               final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction,
-                                               int maximumWaitSeconds) {
+    public static void refreshProjectsBlocking(GradlePluginLord gradlePluginLord, final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitSeconds) {
         gradlePluginLord.startExecutionQueue();   //make sure its started
 
         final BooleanHolder isComplete = new BooleanHolder();
 
-        Request request = gradlePluginLord.addRefreshRequestToQueue(
-                new ExecuteGradleCommandServerProtocol.ExecutionInteraction() {
-                    public void reportExecutionStarted() {
-                        executionInteraction.reportExecutionStarted();
-                    }
+        Request request = gradlePluginLord.addRefreshRequestToQueue();
+        gradlePluginLord.addRequestObserver( new GradlePluginLord.RequestObserver() {
+           public void executionRequestAdded( ExecutionRequest request ) {}
+           public void refreshRequestAdded( RefreshTaskListRequest request ) { }
+           public void aboutToExecuteRequest( Request request ) { }
 
-                    public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
-                        executionInteraction.reportExecutionFinished(wasSuccessful, message, throwable);
-                        isComplete.value = true;
-                    }
-
-                    public void reportTaskStarted(String message, float percentComplete) {
-                        executionInteraction.reportTaskStarted(message, percentComplete);
-                    }
-
-                    public void reportTaskComplete(String message, float percentComplete) {
-                        executionInteraction.reportTaskComplete(message, percentComplete);
-                    }
-
-                    public void reportLiveOutput(String message) {
-                        executionInteraction.reportLiveOutput(message);
-                    }
-                });
+           public void requestExecutionComplete( Request request, int result, String output ) {
+              isComplete.value = true;
+           }
+        }, false );
 
         //make sure we've got a request
         Assert.assertNotNull(request);
@@ -397,7 +385,8 @@ public class TestUtility {
         while (!isComplete.value && totalWaitTime <= maximumWaitSeconds) {
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
@@ -407,8 +396,7 @@ public class TestUtility {
         if (!isComplete.value) //its still running. Something is wrong.
         {
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
-            throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitSeconds
-                    + " seconds. Considering this failed.");
+            throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
         }
     }
 

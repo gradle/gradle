@@ -22,7 +22,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.ImageIcon;
 import javax.imageio.ImageIO;
 import java.awt.Component;
@@ -47,10 +46,11 @@ public class OutputTab extends OutputPanel {
     private JLabel pinnedLabel;
     private JLabel closeLabel;
 
-    private JTabbedPane ownerTabbedPane;
+   private static ImageIcon closeIcon;
+   private static ImageIcon closeHighlightIcon;
 
-    public OutputTab(JTabbedPane ownerTabbedPane, String header) {
-        this.ownerTabbedPane = ownerTabbedPane;
+   public OutputTab(OutputPanelParent parent, String header) {
+        super( parent );
         mainPanel = new JPanel();
         mainPanel.setOpaque(false);
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
@@ -59,37 +59,62 @@ public class OutputTab extends OutputPanel {
         pinnedLabel = new JLabel("(Pinned) ");
         pinnedLabel.setVisible(isPinned());
 
-        BufferedImage image = getImageResource("close.png");
-        if (image != null) {
-            closeLabel = new JLabel(new ImageIcon(image));
-        } else {
-            closeLabel = new JLabel("X");
-        }   //for now. Ultimately, I need to use an image.
+        setupCloseLabel();
 
         mainPanel.add(mainTextLabel);
         mainPanel.add(Box.createHorizontalStrut(5));
         mainPanel.add(pinnedLabel);
         mainPanel.add(closeLabel);
-
-        closeLabel.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                close();
-            }
-        });
     }
 
-    private BufferedImage getImageResource(String imageResourceName) {
-        InputStream inputStream = getClass().getResourceAsStream(imageResourceName);
-        if (inputStream != null) {
-            try {
-                BufferedImage image = ImageIO.read(inputStream);
-                return image;
-            } catch (IOException e) {
-                LOGGER.error("Reading image " + imageResourceName, e);
-            }
-        }
+   private void setupCloseLabel()
+   {
+      if( closeIcon == null )
+      {
+          BufferedImage closeImage = getImageResource( "close.png" );
+          BufferedImage closeHighlightImage = getImageResource( "close-highlight.png" );
 
-        return null;
+          if( closeImage != null ) {
+             closeIcon = new ImageIcon( closeImage );
+          }
+
+         if( closeHighlightImage != null ) {
+            closeHighlightIcon = new ImageIcon( closeHighlightImage );
+         }
+      }
+
+      closeLabel = new JLabel( closeIcon );
+      closeLabel.addMouseListener( new MouseAdapter() {
+         @Override
+         public void mouseEntered( MouseEvent e ) {
+            closeLabel.setIcon( closeHighlightIcon );
+         }
+
+         @Override
+         public void mouseExited( MouseEvent e ) {
+            closeLabel.setIcon( closeIcon );
+         }
+
+         public void mouseClicked(MouseEvent e) {
+             close();
+         }
+      } );
+   }
+
+   private BufferedImage getImageResource( String imageResourceName )
+    {
+       InputStream inputStream = getClass().getResourceAsStream(imageResourceName);
+       if (inputStream != null) {
+          try {
+              BufferedImage image = ImageIO.read(inputStream);
+             return image;
+          }
+          catch ( IOException e) {
+              LOGGER.error("Reading image " + imageResourceName, e);
+          }
+       }
+
+       return null;
     }
 
     /**
@@ -115,12 +140,11 @@ public class OutputTab extends OutputPanel {
         closeLabel.setEnabled(false); // provide feedback to the user that we received their click
 
         boolean result = super.close();
-        if (result) {
-            ownerTabbedPane.remove(this);
+        if( result ) {
+           closeLabel.setEnabled(true);
         }
 
-        closeLabel.setEnabled(true);
-        return result;
+       return result;
     }
 
     /**
@@ -128,7 +152,7 @@ public class OutputTab extends OutputPanel {
      *
      * @param pinned whether or not we're pinned
      * @author mhunsicker
-     */
+    */
     @Override
     public void setPinned(boolean pinned) {
         pinnedLabel.setVisible(pinned);

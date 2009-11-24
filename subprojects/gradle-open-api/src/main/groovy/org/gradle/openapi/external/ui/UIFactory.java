@@ -57,7 +57,7 @@ public class UIFactory
       @return the UI object.
       @author mhunsicker
    */
-   public static SinglePaneUIVersion1 createUI( ClassLoader parentClassLoader, File gradleHomeDirectory, final SinglePaneUIInteractionVersion1 singlePaneUIArguments, boolean showDebugInfo ) throws Exception
+   public static SinglePaneUIVersion1 createSinglePaneUI( ClassLoader parentClassLoader, File gradleHomeDirectory, final SinglePaneUIInteractionVersion1 singlePaneUIArguments, boolean showDebugInfo ) throws Exception
    {
       ClassLoader bootStrapClassLoader = ExternalUtility.getGradleClassloader( parentClassLoader, gradleHomeDirectory, showDebugInfo );
       Thread.currentThread().setContextClassLoader(bootStrapClassLoader);
@@ -66,7 +66,7 @@ public class UIFactory
       Class soughtClass = null;
       try
       {
-         soughtClass = bootStrapClassLoader.loadClass( "org.gradle.openapi.wrappers.ui.OpenAPIUIWrapper" );
+         soughtClass = bootStrapClassLoader.loadClass( "org.gradle.openapi.wrappers.ui.SinglePaneUIWrapper" );
       }
       catch( NoClassDefFoundError e )
       {  //might be a version mismatch
@@ -77,7 +77,8 @@ public class UIFactory
       {  //might be a version mismatch
          e.printStackTrace();
       }
-      if( soughtClass == null ) {
+      if( soughtClass == null )
+      {
          return null;
       }
 
@@ -85,7 +86,7 @@ public class UIFactory
       Constructor constructor = null;
       try
       {
-         constructor = soughtClass.getDeclaredConstructor( SettingsNodeVersion1.class, AlternateUIInteractionVersion1.class );
+         constructor = soughtClass.getDeclaredConstructor( SinglePaneUIInteractionVersion1.class );
       }
       catch( NoSuchMethodException e )
       {
@@ -94,8 +95,78 @@ public class UIFactory
 
          throw e;
       }
-      Object singlePaneUI = constructor.newInstance( singlePaneUIArguments.instantiateSettings(), singlePaneUIArguments.instantiateAlternateUIInteraction() );
+      Object singlePaneUI = constructor.newInstance( singlePaneUIArguments );
       return (SinglePaneUIVersion1) singlePaneUI;
+   }
+
+   /*
+      Call this to instante a gradle UI that contains the main tab control
+      separate from the output panel. This allows you to position the output
+      however you like. For example: you can place the main pane along the side
+      going vertically and you can place the output pane along the bottom going
+      horizontally.
+      This will load gradle via reflection, instantiate the UI and all required
+      gradle-related classes.
+
+      Note: this function is meant to be backward and forward compatible. So
+      this signature should not change at all, however, it may take and return
+      objects that implement ADDITIONAL interfaces. That is, it will always
+      return SinglePaneUIVersion1, but it may also be an object that implements
+      SinglePaneUIVersion2 (notice the 2). The caller will need to dynamically
+      determine that. The SinglePaneUIInteractionVersion1 may take an object
+      that also implements SinglePaneUIInteractionVersion2. If so, we'll
+      dynamically determine that and handle it. Of course, this all depends on
+      what happens in the future.
+      @param  parentClassLoader    Your classloader. Probably the classloader
+                                   of whatever class is calling this.
+      @param  gradleHomeDirectory  the root directory of a gradle installation
+      @param  interaction          this is how we interact with the caller.
+      @param  showDebugInfo        true to show some additional information that
+                                   may be helpful diagnosing problems is this
+                                   fails
+      @return the UI object.
+      @author mhunsicker
+   */
+   public static DualPaneUIVersion1 createDualPaneUI( ClassLoader parentClassLoader, File gradleHomeDirectory, final DualPaneUIInteractionVersion1 interaction, boolean showDebugInfo ) throws Exception
+   {
+      ClassLoader bootStrapClassLoader = ExternalUtility.getGradleClassloader( parentClassLoader, gradleHomeDirectory, showDebugInfo );
+      Thread.currentThread().setContextClassLoader(bootStrapClassLoader);
+
+      //load the class in gradle that wraps our return interface and handles versioning issues.
+      Class soughtClass = null;
+      try
+      {
+         soughtClass = bootStrapClassLoader.loadClass( "org.gradle.openapi.wrappers.ui.DualPaneUIWrapper" );
+      }
+      catch( NoClassDefFoundError e )
+      {  //might be a version mismatch
+         e.printStackTrace();
+         return null;
+      }
+      catch( ClassNotFoundException e )
+      {  //might be a version mismatch
+         e.printStackTrace();
+      }
+      if( soughtClass == null )
+      {
+         return null;
+      }
+
+      //instantiate it.
+      Constructor constructor = null;
+      try
+      {
+         constructor = soughtClass.getDeclaredConstructor( DualPaneUIInteractionVersion1.class );
+      }
+      catch( NoSuchMethodException e )
+      {
+         e.printStackTrace();
+         System.out.println( "Dumping available constructors on " + soughtClass.getName() + "\n" + ExternalUtility.dumpConstructors( soughtClass ) );
+
+         throw e;
+      }
+      Object gradleUI = constructor.newInstance( interaction );
+      return (DualPaneUIVersion1) gradleUI;
    }
 
 }

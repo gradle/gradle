@@ -16,12 +16,14 @@
 package org.gradle.openapi.external.ui;
 
 /**
- This is a Gradle UI that is meant to be embedded in an IDE. Mainly, it has no output tab of its own.
- Use the IDE's output tab since IDEs typically already have their own output windows that are
- searchable, etc.
- 
- @author mhunsicker
- */
-public interface EmbeddedGradleUIVersion1 extends BasicGradleUIVersion1
+   This interface holds onto our options and allows us to interact with the
+   caller. This is meant to interact with the Gradle UI across class loader
+   and version boundaries. That is, the open API has a single entry point
+   that shouldn't change across versions. New interfaces can be expected, but
+   we'll always allow 'version1'. This is to provide backward/forward compatibility.
+
+   @author mhunsicker
+*/
+public interface DualPaneUIInteractionVersion1 extends GradleUIInteractionVersion1
 {
 }

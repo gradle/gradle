@@ -36,19 +36,19 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
     /**
      * This removes the complexities of managing queued up requests across threads. Implement this to define what to do
      * when a request is made.
-     */
+    */
     public interface ExecutionInteraction<R> {
         /**
-         * When this is called, execute the given request.
-         *
-         * @param request the request to execute.
-         */
+        * When this is called, execute the given request.
+        *
+        * @param  request    the request to execute.
+        */
         void execute(R request);
     }
 
     /**
-     * The contains the command line to execute and some other information.
-     */
+    * The contains the command line to execute and some other information.
+    */
     public interface Request {
     }
 
@@ -63,9 +63,9 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
 
     /**
      * Call this to add a task to the execution queue. It will be executed as soon as the current task has completed.
-     *
-     * @param request the requested task
-     */
+    *
+    * @param  request      the requested task
+    */
     public void addRequestToQueue(R request) {
         requests.offer(request);
     }
@@ -74,15 +74,19 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
         return requests.remove(request);
     }
 
+    public boolean hasRequests() {
+       return !requests.isEmpty();
+    }
+
     /**
-     * This waits until the next request is available.
-     *
-     * @return the next request.
-     */
+    * This waits until the next request is available.
+    * @return the next request.
+    */
     private R getNextAvailableRequest() {
         try {
             return requests.take();
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             logger.error("Getting next available request", e);
             return null;
         }
@@ -90,7 +94,7 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
 
     /**
      * This thread actually launches the gradle commands. It waits until a new request is added, then it executes it.
-     */
+    */
     private class ExecutionThread implements Runnable {
         private ExecutionInteraction<R> executeInteraction;
 

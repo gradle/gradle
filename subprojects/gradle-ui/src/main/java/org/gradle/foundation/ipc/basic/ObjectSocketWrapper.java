@@ -40,7 +40,8 @@ public class ObjectSocketWrapper {
     public void setTimeout(int timeoutMilliseconds) {
         try {
             socket.setSoTimeout(timeoutMilliseconds);
-        } catch (SocketException e) {
+        }
+        catch (SocketException e) {
             logger.error("Failed to set timeout", e);
         }
     }
@@ -54,22 +55,25 @@ public class ObjectSocketWrapper {
         } catch (SocketException e) {
             if (!isIgnorableException(e)) {
                 logger.error("Reading Object", e);
-            }
+        }
             return null;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error("Reading Object", e);
             return null;
         }
 
         try {
             return reader.readObject();
-        } catch (SocketException e) {
+        }
+        catch (SocketException e) {
             //a connection reset is normal if the client quits, so don't dump out this exception and just return null.
             if (!isIgnorableException(e)) {
                 logger.error("Reading Object", e);
             }
             return null;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error("Reading Object", e);
         }
 
@@ -81,11 +85,16 @@ public class ObjectSocketWrapper {
         return "Connection reset".equalsIgnoreCase(e.getMessage());
     }
 
-    public boolean sendObject(Object object) {
+   /**
+    * Synchronizing this prevents multiple threads from sending messages at the same
+    * time which corrupts the socket. 
+     */
+    public synchronized boolean sendObject(Object object) {
         ObjectOutputStream writer = null;
         try {
             writer = new ObjectOutputStream(socket.getOutputStream());
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             logger.error("Exception when creating writer sending object: " + object, e);
             return false;
         }
@@ -97,7 +106,8 @@ public class ObjectSocketWrapper {
             writer.flush();
 
             return true;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error("Exception when sending object: " + object, e);
             return false;
         }
@@ -106,7 +116,8 @@ public class ObjectSocketWrapper {
     public void close() {
         try {
             socket.close();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             logger.error("Closing", e);
         }
     }

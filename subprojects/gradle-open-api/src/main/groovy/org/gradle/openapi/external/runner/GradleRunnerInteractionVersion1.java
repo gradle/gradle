@@ -56,6 +56,13 @@ public interface GradleRunnerInteractionVersion1
    */
    public void reportExecutionStarted();
 
+   /**
+      Notification of the total number of tasks that will be executed. This is
+      called after reportExecutionStarted and before any tasks are executed.
+      @param size the total number of tasks.
+   */
+   public void reportNumberOfTasksToExecute( int size );
+
    /*
       Notification that a single task has completed. Note: the task you kicked
       off probably executes other tasks and this notifies you of those tasks

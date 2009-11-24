@@ -63,7 +63,6 @@ public class BorderlessImageButton extends JButton {
 
     private void init(Icon icon) {
         setBorder(BorderlessUtility.DEFAULT_BORDER);
-        BorderlessUtility.defaultBackground = getBackground();
         addMouseListener(new HighlightMouseListener());
 
         setText(null);

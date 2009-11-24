@@ -46,4 +46,13 @@ public interface AlternateUIInteractionVersion1
       @author mhunsicker
    */
    public boolean doesSupportEditingFiles();
+
+   /**
+    Notification that a command is about to be executed. This is mostly useful
+    for IDE's that may need to save their files.
+
+    @param fullCommandLine the command that's about to be executed.
+    @author mhunsicker
+    */
+   public void aboutToExecuteCommand( String fullCommandLine );
 }

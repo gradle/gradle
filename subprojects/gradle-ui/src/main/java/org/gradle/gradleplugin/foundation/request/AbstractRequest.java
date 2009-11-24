@@ -16,6 +16,7 @@
 package org.gradle.gradleplugin.foundation.request;
 
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
+import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.foundation.queue.ExecutionQueue;
 
 /**
@@ -24,37 +25,119 @@ import org.gradle.foundation.queue.ExecutionQueue;
  * hasn't started yet, or killing the external process.
  *
  * @author mhunsicker
- */
+*/
 public abstract class AbstractRequest implements Request {
-    private String fullCommandLine;
+   private long requestID;
+   private String fullCommandLine;
+    private String displayName;
+    private boolean forceOutputToBeShown;
     private ExecutionQueue executionQueue;
     private ProcessLauncherServer server;
+    protected ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction = new DummyExecutionInteraction();
 
-    public AbstractRequest(String fullCommandLine, ExecutionQueue executionQueue) {
-        this.fullCommandLine = fullCommandLine;
+    public AbstractRequest(long requestID, String fullCommandLine, String displayName, boolean forceOutputToBeShown, ExecutionQueue executionQueue) {
+       this.requestID = requestID;
+       this.fullCommandLine = fullCommandLine;
+        this.displayName = displayName;
+        this.forceOutputToBeShown = forceOutputToBeShown;
         this.executionQueue = executionQueue;
+    }
+
+    public long getRequestID() {
+      return requestID;
     }
 
     public String getFullCommandLine() {
         return fullCommandLine;
     }
 
-    /**
+    public String getDisplayName() {
+      return displayName;
+    }
+
+    public boolean forceOutputToBeShown() {
+      return forceOutputToBeShown;
+    }
+
+   /**
      * Cancels this request.
      *
-     * @return true if you can cancel or it or if it has already ran. This return code is mainly meant to prevent you
-     *         from
+     * @return true if you can cancel or it or if it has already ran. This return
+     *         code is mainly meant to prevent you from
      */
     public synchronized boolean cancel() {
         if (this.server != null) {
-            server.killProcess();
+           server.killProcess();
         }
 
-        executionQueue.removeRequestFromQueue(this);
+      executionQueue.removeRequestFromQueue(this);
         return true;
     }
 
     public synchronized void setProcessLauncherServer(ProcessLauncherServer server) {
         this.server = server;
     }
+
+    public void setExecutionInteraction( ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction ) {
+      this.executionInteraction = executionInteraction;
+    }
+   
+   /**
+    * This is a dummy ExecutionInteraction. It does nothing. It exists because the requests require one,
+    * but there's a timing issue about when the Request and ExecutionInteraction are paired. Actually,
+    * this mechanism needs to allow for multiple listeners instead of just a single interaction.
+    * I was in the middle of refactoring other things and didn't want to get into that, so I'm doing
+    * this instead. Its only meant to be temporary, but we'll see.
+    */
+   public class DummyExecutionInteraction implements ExecuteGradleCommandServerProtocol.ExecutionInteraction
+   {
+      /**
+       Notification that gradle has started execution. This may not get called
+       if some error occurs that prevents gradle from running.
+       */
+      public void reportExecutionStarted()
+      {
+
+      }
+
+      /**
+       * Notification of the total number of tasks that will be executed. This is
+       * called after reportExecutionStarted and before any tasks are executed.
+       *
+       * @param size the total number of tasks.
+       */
+      public void reportNumberOfTasksToExecute( int size )
+      {
+
+      }
+
+      /**
+       * Notification that execution has finished. Note: if the client fails
+       * to launch at all, this should still be called.
+       *
+       * @param wasSuccessful true if gradle was successful (returned 0)
+       * @param message       the output of gradle if it ran. If it didn't, an error message.
+       * @param throwable     an exception if one occurred
+       */
+      public void reportExecutionFinished( boolean wasSuccessful, String message, Throwable throwable )
+      {
+
+      }
+
+      public void reportTaskStarted( String message, float percentComplete )
+      {
+
+      }
+
+      public void reportTaskComplete( String message, float percentComplete )
+      {
+
+      }
+
+      public void reportLiveOutput( String message )
+      {
+
+      }
+   }
+
 }

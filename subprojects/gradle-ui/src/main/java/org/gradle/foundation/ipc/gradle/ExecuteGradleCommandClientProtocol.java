@@ -15,20 +15,27 @@
  */
 package org.gradle.foundation.ipc.gradle;
 
+import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.ExecutionListener;
+import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.foundation.TemporaryExecutionListener;
+import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.foundation.ipc.basic.ClientProcess;
 import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.Server;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 
+import java.net.Socket;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.net.Socket;
 
 /**
  * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based
@@ -55,7 +62,7 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
     public void initialize(ClientProcess client) {
         this.client = client;
 
-        TemporaryExecutionListener.addExecutionListener(gradle, new IPCExecutionListener(client));
+       gradle.addListener( new IPCExecutionListener( client ) );
     }
 
     /**
@@ -95,17 +102,28 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
         continueConnection = false;
     }
 
+
     /**
-     * This converts gradle messages to messages that we send to our server over a socket.
+     * This converts gradle messages to messages that we send to our server over
+     * a socket. It also tracks the live output and periodically sends it to the
+       server.
+      *
      */
-    private class IPCExecutionListener implements ExecutionListener {
+    private class IPCExecutionListener implements BuildListener, StandardOutputListener, TaskExecutionGraphListener, TaskExecutionListener
+    {
         private ClientProcess client;
-        StringBuffer bufferedLiveOutput = new StringBuffer();
-        Timer liveOutputTimer;
+
+        private StringBuffer allOutputText = new StringBuffer(); //this is potentially threaded, so use StringBuffer instead of StringBuilder
+        private StringBuffer bufferedLiveOutput = new StringBuffer();
+        private Timer liveOutputTimer;
+        private float totalTasksToExecute;
+        private float totalTasksExecuted;
+        private float percentComplete;
 
         public IPCExecutionListener(ClientProcess client) {
             this.client = client;
 
+            //start a timer to periodically send our live output to our server
             liveOutputTimer = new Timer();
             liveOutputTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -115,51 +133,106 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
             }, 500, 500);
         }
 
-        public void reportExecutionStarted() {
-            //we'll never get this message because execution has started before we're instantiated
+        public void buildStarted(Gradle build) {
+            //we'll never get this message because execution has started before we were instantiated (and before we were able to add our listener).
         }
 
-        public void reportTaskStarted(String currentTaskName, float percentComplete) {
-            client.sendMessage(ProtocolConstants.TASK_STARTED_TYPE, currentTaskName, new Float(percentComplete));
+        public void graphPopulated( TaskExecutionGraph taskExecutionGraph) {
+           List<Task> taskList = taskExecutionGraph.getAllTasks();
+
+           this.totalTasksToExecute = taskList.size();
+           client.sendMessage( ProtocolConstants.NUMBER_OF_TASKS_TO_EXECUTE, null, new Integer( taskList.size() ) );
+       }
+
+       /**
+        <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is
+        ready to use to load the build projects.</p>
+
+        @param settings The settings. Never null.
+        */
+       public void settingsEvaluated( Settings settings ) {
+          //we don't really care
+       }
+
+       /**
+        <p>Called when the projects for the build have been created from the settings. None of the projects have been
+        evaluated.</p>
+
+        @param gradle The build which has been loaded. Never null.
+        */
+       public void projectsLoaded( Gradle gradle ) {
+          //we don't really care
+       }
+
+       /**
+        <p>Called when all projects for the build have been evaluated. The project objects are fully configured and are
+        ready to use to populate the task graph.</p>
+
+        @param gradle The build which has been evaluated. Never null.
+        */
+       public void projectsEvaluated( Gradle gradle ) {
+          //we don't really care
+       }
+
+       public void beforeExecute(Task task) {
+          String currentTaskName = task.getProject().getName() + ":" + task.getName();
+          client.sendMessage(ProtocolConstants.TASK_STARTED_TYPE, currentTaskName, new Float(percentComplete));
         }
 
-        public void reportTaskComplete(String currentTaskName, float percentComplete) {
-            client.sendMessage(ProtocolConstants.TASK_COMPLETE_TYPE, currentTaskName, new Float(percentComplete));
+       public void afterExecute(Task task, TaskExecutionResult result) {
+          totalTasksExecuted++;
+          percentComplete = (totalTasksExecuted / totalTasksToExecute) * 100;
+          String currentTaskName = task.getProject().getName() + ":" + task.getName();
+          client.sendMessage(ProtocolConstants.TASK_COMPLETE_TYPE, currentTaskName, new Float(percentComplete));
         }
 
-        public synchronized void reportLiveOutput(String output) {
-            //we'll buffer our live output so we're not sending it constantly.
-            this.bufferedLiveOutput.append(output);
+        /**
+        * Called when some output is written by the logging system.
+        *
+        * @param output The text.
+        */
+        public synchronized void onOutput(CharSequence output) {
+            String text = output.toString();
+            this.allOutputText.append( text );
+            this.bufferedLiveOutput.append(text);
         }
 
+       /**
+        Called on a timer to send the live output to the process that started us. We only send whatever
+        is there since we've last sent output. It was causing some socket problems to send the output
+        immediately upon receiving it. I suspect due to numerous threads adding output. So its now only
+        done periodically and in a more thread-safe manner.
+        */
         private synchronized void sendLiveOutput() {
             if (bufferedLiveOutput.length() == 0) {
                 return;  //nothing to send
             }
-
             String text = bufferedLiveOutput.toString();
             bufferedLiveOutput = new StringBuffer();
 
             client.sendMessage(ProtocolConstants.LIVE_OUTPUT_TYPE, text);
         }
 
-        public void reportExecutionFinished(boolean wasSuccessful, BuildResult buildResult, String output) {
+        /**
+         * <p>Called when the build is completed. All selected tasks have been executed.</p>
+         * <p>We remove our Log4JAppender as well as our task execution listener. Lastly,
+         * we report the build results.</p>
+         */
+        public void buildFinished(BuildResult buildResult) {
+
+            boolean wasSuccessful = buildResult.getFailure() == null;
+            String output = allOutputText.toString();
             liveOutputTimer.cancel();  //stop our timer and send whatever live output we have
             sendLiveOutput();
 
-            //because we're going to send two messages in row, we need to wait for the reply or we'll get a broken pipe exception
-            //when the server tries to reply with an acknowedgement.
-
             //we can't send the exception itself because it might not be serializable (it can include anything from anywhere inside gradle
             //or one of its dependencies). So format it as text.
-            String details = GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(),
-                    gradle.getStartParameter().getShowStacktrace());
+            String details = GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(), gradle.getStartParameter().getShowStacktrace());
             output += details;
 
-            client.sendMessageWaitForReply(ProtocolConstants.EXECUTION_COMPLETED_TYPE, output, new Boolean(
-                    wasSuccessful));
+            client.sendMessage(ProtocolConstants.EXECUTION_COMPLETED_TYPE, output, new Boolean(wasSuccessful));
 
-            client.sendMessageWaitForReply(ProtocolConstants.EXITING, null, null);
+            client.sendMessage(ProtocolConstants.EXITING, null, null);
             client.stop();
         }
     }

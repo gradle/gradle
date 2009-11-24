@@ -20,10 +20,13 @@ import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.foundation.CommandLineAssistant;
 import org.gradle.foundation.ProjectView;
+import org.gradle.foundation.TaskView;
 import org.gradle.foundation.common.ObserverLord;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
-import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.foundation.queue.ExecutionQueue;
 import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
@@ -36,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * This class has nothing to do with plugins inside of gradle, but are related to making a plugin that uses gradle, such
@@ -47,61 +51,89 @@ import java.util.List;
  * @author mhunsicker
  */
 public class GradlePluginLord {
+    private final Logger logger = Logging.getLogger(GradlePluginLord.class);
+
     private File gradleHomeDirectory;   //the directory where gradle is installed
     private File currentDirectory;      //the directory of your gradle-based project
-    private File customGradleExecutor;
-            //probably will be null. This allows a user to specify a different batch file or shell script to initiate gradle.
+    private File customGradleExecutor;  //probably will be null. This allows a user to specify a different batch file or shell script to initiate gradle.
 
     private List<ProjectView> projects = new ArrayList<ProjectView>();
 
-    private FavoritesEditor favoritesEditor;
-            //an editor for the current favorites. The user can edit this at any time, hence we're using an editor.
+    private FavoritesEditor favoritesEditor;  //an editor for the current favorites. The user can edit this at any time, hence we're using an editor.
 
     private ExecutionQueue<Request> executionQueue;
+    private LinkedBlockingQueue<Request> currentlyExecutingRequests = new LinkedBlockingQueue<Request>();
 
-    private boolean isStarted = false;
-            //this flag is mostly to prevent initialization from firing off repeated refresh requests.
+    private boolean isStarted = false;  //this flag is mostly to prevent initialization from firing off repeated refresh requests.
 
     private StartParameter.ShowStacktrace stackTraceLevel = StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     private ObserverLord<GeneralPluginObserver> generalObserverLord = new ObserverLord<GeneralPluginObserver>();
+    private ObserverLord<RequestObserver> requestObserverLord = new ObserverLord<RequestObserver>();
 
-    private ObserverLord<CommandLineArgumentAlteringListener> commandLineArgumentObserverLord
-            = new ObserverLord<CommandLineArgumentAlteringListener>();
+    private ObserverLord<CommandLineArgumentAlteringListener> commandLineArgumentObserverLord = new ObserverLord<CommandLineArgumentAlteringListener>();
+
+    private long nextRequestID = 1;  //a unique number assigned to requests
 
     public List<ProjectView> getProjects() {
         return Collections.unmodifiableList(projects);
     }
 
+   /**
+    * Sets the current projects. This is only supposed to be called by internal gradle classes.
+    * @param newProjects
+    */
     public void setProjects(final List<ProjectView> newProjects) {
         projects.clear();
         if (newProjects != null) {
-            projects.addAll(newProjects);
+           projects.addAll(newProjects);
         }
 
-        generalObserverLord.notifyObservers(new ObserverLord.ObserverNotification<GeneralPluginObserver>() {
+      generalObserverLord.notifyObservers(new ObserverLord.ObserverNotification<GeneralPluginObserver>() {
             public void notify(GeneralPluginObserver observer) {
                 observer.projectsAndTasksReloaded(newProjects != null);
             }
         });
     }
 
-    public interface GeneralPluginObserver {
+   public interface GeneralPluginObserver {
         /**
-         * Notification that we're about to reload the projects and tasks.
-         */
+        * Notification that we're about to reload the projects and tasks.
+        */
         public void startingProjectsAndTasksReload();
 
         /**
-         * Notification that the projects and tasks have been reloaded. You may want to repopulate or update your
-         * views.
-         *
-         * @param wasSuccessful true if they were successfully reloaded. False if an error occurred so we no longer can
-         * show the projects and tasks (probably an error in a .gradle file).
-         */
+         * Notification that the projects and tasks have been reloaded. You may want
+         * to repopulate or update your views.
+         * @param wasSuccessful true if they were successfully reloaded. False if an error occurred so we no longer can show the projects and tasks (probably an error in a .gradle file).
+        */
         public void projectsAndTasksReloaded(boolean wasSuccessful);
     }
+
+   public interface RequestObserver
+   {
+      public void executionRequestAdded( ExecutionRequest request );
+
+      public void refreshRequestAdded( RefreshTaskListRequest request );
+
+        /**
+         * Notification that a command is about to be executed. This is mostly useful
+         * for IDE's that may need to save their files.
+         *
+         * @param  fullCommandLine the command that's about to be executed.
+        */
+        public void aboutToExecuteRequest( Request request );
+
+      /**
+       * Notification that the command has completed execution.
+       * @param request the original request containing the command that was executed
+       * @param result the result of the command
+       * @param output the output from gradle executing the command
+       */
+      public void requestExecutionComplete( Request request, int result, String output );
+   }
+
 
     public GradlePluginLord() {
         favoritesEditor = new FavoritesEditor();
@@ -113,34 +145,38 @@ public class GradlePluginLord {
 
         String gradleHomeProperty = System.getProperty("gradle.home");
         if (gradleHomeProperty != null) {
-            gradleHomeDirectory = new File(gradleHomeProperty);
-        } else {
-            gradleHomeDirectory = currentDirectory;
+           gradleHomeDirectory = new File(gradleHomeProperty);
+        }
+        else {
+           gradleHomeDirectory = currentDirectory;
         }
     }
+
 
     public File getGradleHomeDirectory() {
         return gradleHomeDirectory;
     }
 
-    //sets the gradle home directory. You can't just set this here. You must also set the "gradle.home" system property.
-    //This code could do this for you, but at this time, I didn't want this to have side effects and setting "gradle.home"
-    //can affect other things and there may be some timing issues.
-
+   /**
+    * sets the gradle home directory. You can't just set this here. You must also set the "gradle.home" system property.
+    * This code could do this for you, but at this time, I didn't want this to have side effects and setting "gradle.home"
+    * can affect other things and there may be some timing issues.
+    * @param gradleHomeDirectory the new home directory
+    */
     public void setGradleHomeDirectory(File gradleHomeDirectory) {
         this.gradleHomeDirectory = gradleHomeDirectory;
     }
 
     /**
-     * @return the root directory of your gradle project.
-     */
+    * @return the root directory of your gradle project.
+    */
     public File getCurrentDirectory() {
         return currentDirectory;
     }
 
     /**
-     * @param currentDirectory the new root directory of your gradle project.
-     */
+    * @param  currentDirectory the new root directory of your gradle project.
+    */
     public void setCurrentDirectory(File currentDirectory) {
         this.currentDirectory = currentDirectory;
     }
@@ -153,12 +189,14 @@ public class GradlePluginLord {
         this.customGradleExecutor = customGradleExecutor;
     }
 
+
     public FavoritesEditor getFavoritesEditor() {
         return favoritesEditor;
     }
 
-    //this allows you to change how much information is given when an error occurs.
-
+   /**
+    * this allows you to change how much information is given when an error occurs.
+    */
     public void setStackTraceLevel(StartParameter.ShowStacktrace stackTraceLevel) {
         this.stackTraceLevel = stackTraceLevel;
     }
@@ -173,54 +211,107 @@ public class GradlePluginLord {
 
     public void setLogLevel(LogLevel logLevel) {
         if (logLevel == null) {
-            return;
+           return;
         }
 
-        this.logLevel = logLevel;
+       this.logLevel = logLevel;
     }
 
     /**
      * Call this to start execution. This is done after you've initialized everything.
-     */
+    */
     public void startExecutionQueue() {
         isStarted = true;
     }
 
+
     /**
-     * This gives requests of the queue and then executes them by kicking off gradle in a separate process. Most of the
-     * code here is tedious setup code needed to start the server. The server is what starts gradle and opens a socket
-     * for interprocess communication so we can receive messages back from gradle.
-     */
+      * This gives requests of the queue and then executes them by kicking off gradle
+      * in a separate process. Most of the code here is tedious setup code needed to
+      * start the server. The server is what starts gradle and opens a socket for
+      * interprocess communication so we can receive messages back from gradle.
+    */
     private class ExecutionQueueInteraction implements ExecutionQueue.ExecutionInteraction<Request> {
         /**
          * When this is called, execute the given request.
          *
-         * @param request the request to execute.
-         */
-        public void execute(Request request) {
-            //I'm just putting these in temp variables for eaiser debugging
+         * @param  request    the request to execute.
+        */
+        public void execute( final Request request) {
+
+            //mark this request as being currently executed
+            currentlyExecutingRequests.add( request );
+
+            notifyAboutToExecuteRequest( request );
+
+           //I'm just putting these in temp variables for easier debugging
             File currentDirectory = getCurrentDirectory();
             File gradleHomeDirectory = getGradleHomeDirectory();
             File customGradleExecutor = getCustomGradleExecutor();
 
             //the protocol handles the command line to launch gradle and messaging between us and said externally launched gradle.
-            ProcessLauncherServer.Protocol serverProtocol = request.createServerProtocol(logLevel, stackTraceLevel,
-                    currentDirectory, gradleHomeDirectory, customGradleExecutor);
+            ProcessLauncherServer.Protocol serverProtocol = request.createServerProtocol(logLevel, stackTraceLevel, currentDirectory, gradleHomeDirectory, customGradleExecutor);
 
             //the server kicks off gradle as an external process and manages the communication with said process
             ProcessLauncherServer server = new ProcessLauncherServer(serverProtocol);
             request.setProcessLauncherServer(server);
 
+            //we need to know when this command is finished executing so we can mark it as complete and notify any observers.
+            server.addServerObserver( new ProcessLauncherServer.ServerObserver()
+            {
+               public void clientExited( int result, String output )
+               {
+                  currentlyExecutingRequests.remove( request );
+                  notifyRequestExecutionComplete( request, result, output );
+               }
+
+               public void serverExited() { }
+            }, false );
+
             server.start();
         }
     }
 
+    private void notifyAboutToExecuteRequest( final Request request )
+    {
+      requestObserverLord.notifyObservers( new ObserverLord.ObserverNotification<RequestObserver>()
+      {
+          public void notify( RequestObserver observer )
+          {
+             try { //wrap this in a try/catch block so execeptions in the observer doesn't stop everything
+                observer.aboutToExecuteRequest( request );
+             }
+             catch( Exception e )
+             {
+                logger.error( "notifying aboutToExecuteCommand() " + e.getMessage() );
+             }
+          }
+       } );
+    }
+
+   private void notifyRequestExecutionComplete( final Request request, final int result, final String output )
+   {
+      requestObserverLord.notifyObservers( new ObserverLord.ObserverNotification<RequestObserver>()
+      {
+          public void notify( RequestObserver observer )
+          {
+             try { //wrap this in a try/catch block so execeptions in the observer doesn't stop everything
+                observer.requestExecutionComplete( request, result, output );
+             }
+             catch( Exception e )
+             {
+                logger.error( "notifying requestExecutionComplete() " + e.getMessage() );
+             }
+          }
+       } );
+   }
+
     /**
      * Adds an observer for various events. See PluginObserver.
      *
-     * @param observer your observer
-     * @param inEventQueue true if you want to be notified in the Event Dispatch Thread.
-     */
+     * @param  observer     your observer
+     * @param  inEventQueue true if you want to be notified in the Event Dispatch Thread.
+    */
     public void addGeneralPluginObserver(GeneralPluginObserver observer, boolean inEventQueue) {
         generalObserverLord.addObserver(observer, inEventQueue);
     }
@@ -229,38 +320,118 @@ public class GradlePluginLord {
         generalObserverLord.removeObserver(observer);
     }
 
+    public void addRequestObserver( RequestObserver observer, boolean inEventQueue )
+    {
+       requestObserverLord.addObserver( observer, inEventQueue );
+    }
+
+    public void removeRequestObserver( RequestObserver observer )
+    {
+       requestObserverLord.removeObserver( observer );
+    }
+
     /**
      * Determines if all required setup is complete based on the current settings.
      *
      * @return true if a setup is complete, false if not.
-     */
+    */
     public boolean isSetupComplete() {
         //return gradleWrapper.getGradleHomeDirectory() != null &&
         //       gradleWrapper.getGradleHomeDirectory().exists() &&
-        return getCurrentDirectory() != null && getCurrentDirectory().exists();
+        return getCurrentDirectory() != null &&
+                getCurrentDirectory().exists();
     }
 
-    public Request addExecutionRequestToQueue(String fullCommandLine,
-                                              ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction) {
-        if (!isStarted) {
-            return null;
+   public Request addExecutionRequestToQueue( String fullCommandLine, String displayName )
+   {
+      return addExecutionRequestToQueue( fullCommandLine, displayName, false );
+   }
+
+   /**
+     * This executes a task in a background thread. This creates or uses
+     * an existing OutputPanel to display the results.
+     *
+     * @param  task       the task to execute.
+     * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown regardless
+    */
+    public Request addExecutionRequestToQueue(final TaskView task, boolean forceOutputToBeShown, String... additionCommandLineOptions)
+    {
+        if( task == null ) {
+           return null;
         }
 
-        //here we'll give the UI a chance to add things to the command line.
+       String fullCommandLine = CommandLineAssistant.appendAdditionalCommandLineOptions(task, additionCommandLineOptions);
+        return addExecutionRequestToQueue(fullCommandLine, task.getFullTaskName(), forceOutputToBeShown );
+    }
+
+   /**
+    * This executes all the tasks together in a background thread. That is, all tasks
+    * are passed to a single gradle call at once. This creates or uses an existing
+    * OutputPanel to display the results.
+    *
+    * @param tasks the tasks to execute
+    * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown regardless
+    * @param additionCommandLineOptions additional command line options to exeucte.
+    */
+    public Request addExecutionRequestToQueue(final List<TaskView> tasks, boolean forceOutputToBeShown, String... additionCommandLineOptions) {
+
+      if( tasks == null || tasks.isEmpty() ) {
+         return null;
+      }
+
+      if( tasks.size() == 1 ) { //if there's only 1, just treat it as one
+         return addExecutionRequestToQueue( tasks.get( 0 ), forceOutputToBeShown, additionCommandLineOptions );
+      }
+
+      String singleCommandLine = CommandLineAssistant.combineTasks( tasks, additionCommandLineOptions );
+      return addExecutionRequestToQueue(singleCommandLine, tasks.get( 0 ).getName() + "...", forceOutputToBeShown );
+    }
+
+   /**
+    * Call this to execute a task in a background thread. This creates or uses
+    * an existing OutputPanel to display the results. This version takes text
+    * instead of a task object.
+    *
+    * @param  fullCommandLine the full command line to pass to gradle.
+    * @param  displayName     what we show on the tab.
+    * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown regardless
+    * @param executionInteraction this can observe how the command executes
+    */
+    public Request addExecutionRequestToQueue(String fullCommandLine, String displayName, boolean forceOutputToBeShown) {
+        if (!isStarted) {
+           return null;
+        }
+
+      if (fullCommandLine == null){
+           return null;
+        }
+
+      //here we'll give the UI a chance to add things to the command line.
         fullCommandLine = alterCommandLine(fullCommandLine);
 
-        ExecutionRequest request = new ExecutionRequest(fullCommandLine, executionQueue, executionInteraction);
+        final ExecutionRequest request = new ExecutionRequest( getNextRequestID(), fullCommandLine, displayName, forceOutputToBeShown, executionQueue );
         executionQueue.addRequestToQueue(request);
+        requestObserverLord.notifyObservers( new ObserverLord.ObserverNotification<RequestObserver>()
+        {
+           public void notify( RequestObserver observer )
+           {
+              observer.executionRequestAdded( request );
+           }
+        } );
         return request;
     }
 
-    public Request addRefreshRequestToQueue(
-            ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction) {
-        if (!isStarted) {
-            return null;
+    private synchronized long getNextRequestID()
+    {
+       return nextRequestID++;
+    }
+
+    public Request addRefreshRequestToQueue() {
+        if (!isStarted){
+           return null;
         }
 
-        //we'll request a task list since there is no way to do a no op. We're not really interested
+       //we'll request a task list since there is no way to do a no op. We're not really interested
         //in what's being executed, just the ability to get the task list (which must be populated as
         //part of executing anything).
         String fullCommandLine = '-' + DefaultCommandLine2StartParameterConverter.TASKS;
@@ -268,34 +439,40 @@ public class GradlePluginLord {
         //here we'll give the UI a chance to add things to the command line.
         fullCommandLine = alterCommandLine(fullCommandLine);
 
-        RefreshTaskListRequest request = new RefreshTaskListRequest(fullCommandLine, executionQueue,
-                executionInteraction, this);
+        final RefreshTaskListRequest request = new RefreshTaskListRequest( getNextRequestID(), fullCommandLine, executionQueue, this);
         executionQueue.addRequestToQueue(request);
+        requestObserverLord.notifyObservers( new ObserverLord.ObserverNotification<RequestObserver>()
+        {
+           public void notify( RequestObserver observer )
+           {
+              observer.refreshRequestAdded( request );
+           }
+        } );
         return request;
     }
 
     /**
      * This is where we notify listeners and give them a chance to add things to the command line.
      *
-     * @param fullCommandLine the full command line
+     * @param  fullCommandLine the full command line
+     *
      * @return the new command line.
-     */
+    */
     private String alterCommandLine(String fullCommandLine) {
-        CommandLineArgumentAlteringNotification notification = new CommandLineArgumentAlteringNotification(
-                fullCommandLine);
+        CommandLineArgumentAlteringNotification notification = new CommandLineArgumentAlteringNotification(fullCommandLine);
         commandLineArgumentObserverLord.notifyObservers(notification);
 
         return notification.getFullCommandLine();
     }
 
-    //
 
+    //
     /**
-     * This class notifies the listeners and modifies the command line by adding additional commands to it. Each
-     * listener will be given the 'new' full command line, so the order you add things becomes important.
-     */
-    private class CommandLineArgumentAlteringNotification
-            implements ObserverLord.ObserverNotification<CommandLineArgumentAlteringListener> {
+     * This class notifies the listeners and modifies the command line by adding
+     * additional commands to it. Each listener will be given the 'new' full command
+     * line, so the order you add things becomes important.
+    */
+    private class CommandLineArgumentAlteringNotification implements ObserverLord.ObserverNotification<CommandLineArgumentAlteringListener> {
         private StringBuilder fullCommandLineBuilder;
 
         private CommandLineArgumentAlteringNotification(String fullCommandLine) {
@@ -305,7 +482,7 @@ public class GradlePluginLord {
         public void notify(CommandLineArgumentAlteringListener observer) {
             String additions = observer.getAdditionalCommandLineArguments(fullCommandLineBuilder.toString());
             if (additions != null) {
-                fullCommandLineBuilder.append(' ').append(additions);
+               fullCommandLineBuilder.append(' ').append(additions);
             }
         }
 
@@ -314,12 +491,14 @@ public class GradlePluginLord {
         }
     }
 
+
     /**
-     * This allows you to add a listener that can add additional command line arguments whenever gradle is executed.
-     * This is useful if you've customized your gradle build and need to specify, for example, an init script.
+     * This allows you to add a listener that can add additional command line
+     * arguments whenever gradle is executed. This is useful if you've customized
+     * your gradle build and need to specify, for example, an init script.
      *
-     * @param listener the listener that modifies the command line arguments.
-     */
+     * param  listener   the listener that modifies the command line arguments.
+    */
     public void addCommandLineArgumentAlteringListener(CommandLineArgumentAlteringListener listener) {
         commandLineArgumentObserverLord.addObserver(listener, false);
     }
@@ -328,23 +507,24 @@ public class GradlePluginLord {
         commandLineArgumentObserverLord.removeObserver(listener);
     }
 
-    //this code was copied from BuildExceptionReporter.reportBuildFailure in gradle's source, then modified slightly
-    //to compensate for the fact that we're not driven by options or logging things to a logger object.
-
+   /**
+    * This code was copied from BuildExceptionReporter.reportBuildFailure in gradle's source, then modified slightly
+    * to compensate for the fact that we're not driven by options or logging things to a logger object.
+    */
     public static String getGradleExceptionMessage(Throwable failure, StartParameter.ShowStacktrace stackTraceLevel) {
         if (failure == null) {
-            return "";
+           return "";
         }
 
-        Formatter formatter = new Formatter();
+      Formatter formatter = new Formatter();
 
         formatter.format("%nBuild failed.%n");
 
         if (stackTraceLevel == StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS) {
-            formatter.format("Use the stack trace options to get more details.");
+           formatter.format("Use the stack trace options to get more details.");
         }
 
-        if (failure != null) {
+      if (failure != null) {
             formatter.format("%n");
 
             if (failure instanceof GradleScriptException) {
@@ -360,10 +540,10 @@ public class GradlePluginLord {
             if (stackTraceLevel != StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS) {
                 formatter.format("%n%nException is:\n");
                 if (stackTraceLevel == StartParameter.ShowStacktrace.ALWAYS_FULL) {
-                    return formatter.toString() + getStackTraceAsText(failure);
+                   return formatter.toString() + getStackTraceAsText(failure);
                 }
 
-                return formatter.toString() + getStackTraceAsText(StackTraceUtils.deepSanitize(failure));
+               return formatter.toString() + getStackTraceAsText(StackTraceUtils.deepSanitize(failure));
             }
         }
 
@@ -383,17 +563,29 @@ public class GradlePluginLord {
     }
 
     //tries to get a message from a Throwable. Something there's a message and sometimes there's not.
-
     private static String getMessage(Throwable throwable) {
         String message = throwable.getMessage();
-        if (!GUtil.isTrue(message)) {
-            message = String.format("%s (no error message)", throwable.getClass().getName());
+        if (!GUtil.isTrue(message)){
+           message = String.format("%s (no error message)", throwable.getClass().getName());
         }
 
-        if (throwable.getCause() != null) {
-            message += "\nCaused by: " + getMessage(throwable.getCause());
+       if (throwable.getCause() != null){
+           message += "\nCaused by: " + getMessage(throwable.getCause());
         }
 
-        return message;
+       return message;
     }
+
+   /**
+    * Determines if there are tasks executing or waiting to execute.
+    * @return true if this is busy, false if not.
+    */
+   public boolean isBusy()
+   {
+      if( executionQueue.hasRequests() ) {
+         return true;
+      }
+
+      return !currentlyExecutingRequests.isEmpty();
+   }
 }

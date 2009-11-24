@@ -16,25 +16,35 @@
 package org.gradle.openapi.external.ui;
 
 import javax.swing.JComponent;
+import java.awt.Component;
 
-/*
- This is a gradle UI that is entirely within a single panel (and only a panel;
- no dialog or frame). This is meant to simplify how a plugin can interact with
- gradle.
+/**
+This is a gradle UI that is broken into two panels: one contains a tabbed pane
+ of tasks, favorites, command line, etc. The other pane contains the output.
+ This is meant to simplify how an IDE plugin can interact with gradle. Specifically,
+ this allows the 'main' pane to be vertical and the output pane to be horizontal.
 
  To use this, you'll want to get an instance of this from Gradle. Then setup
  your UI and add this to it via getComponent. Then call aboutToShow before
  you display your UI. Call close before you hide your UI. You'll need to set
  the current directory (at any time) so gradle knows where your project is
  located.
-
- @author mhunsicker
-  */
-public interface SinglePaneUIVersion1 extends BasicGradleUIVersion1
+ */
+public interface DualPaneUIVersion1 extends BasicGradleUIVersion1
 {
    /**
-   Returns this panel as a Swing object suitable for inserting in your UI.
-   @return the main component
-      */
-   public JComponent getComponent();
+      Returns a component that shows the task tree tab, favorites tab, etc.
+      suitable for inserting in your UI.
+      @return the main component
+    */
+   public JComponent getMainComponent();
+
+   /**
+      Returns a component that shows the output of the tasks being executed.
+      This is suitable for inserting in your UI.
+      @return the output component
+   */
+   public Component getOutputPanel();
+
+   public int getNumberOfOpenedOutputTabs();
 }
