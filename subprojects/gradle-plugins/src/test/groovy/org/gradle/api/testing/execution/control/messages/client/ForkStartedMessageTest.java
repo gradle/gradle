@@ -15,31 +15,17 @@
  */
 package org.gradle.api.testing.execution.control.messages.client;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 /**
  * @author Tom Eyckmans
  */
-public abstract class AbstractTestClientControlMessage implements TestClientControlMessage {
-    private int forkId;
+public class ForkStartedMessageTest extends AbstractTestClientControlMessageTest<ForkStartedMessage> {
+    @Override
+    protected ForkStartedMessage createMessageObject(int forkId) {
+        return new ForkStartedMessage(forkId);
+    }
 
-    protected AbstractTestClientControlMessage(final int forkId) {
-        if ( forkId <= 0 ) throw new IllegalArgumentException("forkId can't be lower or equal to zero!");
+    @Override
+    protected void assertTestClientControlMessage(ForkStartedMessage originalMessage, ForkStartedMessage deserializedMessage) {
         
-        this.forkId = forkId;
-    }
-
-    public int getForkId() {
-        return forkId;
-    }
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.writeInt(forkId);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        forkId = in.readInt();
     }
 }
