@@ -34,13 +34,15 @@ public class ShutdownHookActionRegister {
 
     public static void addShutdownHookAction(ShutdownHookAction shutdownHookAction)
     {
-        if ( shutdownHookAction != null )
+        if (shutdownHookAction != null) {
             INSTANCE.shutdownHookActions.add(shutdownHookAction);
+        }
     }
 
     public static void removeShutdownHookAction(ShutdownHookAction shutdownHookAction) {
-        if ( shutdownHookAction != null )
+        if (shutdownHookAction != null) {
             INSTANCE.shutdownHookActions.remove(shutdownHookAction);
+        }
     }
 
     static List<ShutdownHookAction> getSHutHookActions()

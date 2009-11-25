@@ -34,7 +34,9 @@ public class ForkMemoryLowConfig implements ReforkReasonConfig {
     }
 
     public void setMemoryLowThreshold(double memoryLowThreshold) {
-        if ( memoryLowThreshold <= 0 ) throw new IllegalArgumentException("memoryLowThreshold can't be smaller than or equal to zero!");
+        if (memoryLowThreshold <= 0) {
+            throw new IllegalArgumentException("memoryLowThreshold can't be smaller than or equal to zero!");
+        }
 
         this.memoryLowThreshold = memoryLowThreshold;
     }

@@ -26,7 +26,7 @@ public abstract class AbstractTestClientControlMessage implements TestClientCont
     private int forkId;
 
     protected AbstractTestClientControlMessage(final int forkId) {
-        if ( forkId <= 0 ) throw new IllegalArgumentException("forkId can't be lower or equal to zero!");
+        if ( forkId <= 0 ) { throw new IllegalArgumentException("forkId can't be lower or equal to zero!"); }
         
         this.forkId = forkId;
     }

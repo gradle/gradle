@@ -48,10 +48,18 @@ public class Pipeline {
     private List<PipelineListener> listeners;
 
     public Pipeline(PipelinesManager manager, int id, NativeTest testTask, PipelineConfig config) {
-        if ( manager == null ) throw new IllegalArgumentException("manager is null!");
-        if ( id <= 0 ) throw new IllegalArgumentException("id <= 0!");
-        if ( testTask == null ) throw new IllegalArgumentException("testTask is null!");
-        if ( config == null ) throw new IllegalArgumentException("config is null!");
+        if (manager == null) {
+            throw new IllegalArgumentException("manager is null!");
+        }
+        if (id <= 0) {
+            throw new IllegalArgumentException("id <= 0!");
+        }
+        if (testTask == null) {
+            throw new IllegalArgumentException("testTask is null!");
+        }
+        if (config == null) {
+            throw new IllegalArgumentException("config is null!");
+        }
 
         this.manager = manager;
         this.id = id;

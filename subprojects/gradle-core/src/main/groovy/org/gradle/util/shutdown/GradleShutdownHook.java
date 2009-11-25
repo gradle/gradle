@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class GradleShutdownHook implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(GradleShutdownHook.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GradleShutdownHook.class);
 
     public static void register()
     {
@@ -40,7 +40,7 @@ public class GradleShutdownHook implements Runnable {
         final List<ShutdownHookAction> shutdownHookActions = new ArrayList<ShutdownHookAction>(ShutdownHookActionRegister.getSHutHookActions());
 
         if ( shutdownHookActions.isEmpty() ) {
-            logger.info("Nothing to do : no shutdhwon actions found in shutdown hook action register.");
+            LOGGER.info("Nothing to do : no shutdhwon actions found in shutdown hook action register.");
         }
         else {
             for ( final ShutdownHookAction shutdownHookAction : shutdownHookActions ) {
@@ -48,7 +48,7 @@ public class GradleShutdownHook implements Runnable {
                     shutdownHookAction.execute();
                 }
                 catch ( Throwable t ) {
-                    logger.error("failed to execute a shutdown action ", t);
+                    LOGGER.error("failed to execute a shutdown action ", t);
                 }
             }
         }

@@ -26,7 +26,7 @@ import org.slf4j.Logger;
  */
 public class ForkMemoryLowDataProcessor implements ReforkReasonDataProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(ForkMemoryLowDataProcessor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ForkMemoryLowDataProcessor.class);
 
     private double lowMemoryThreshold = -1;
 
@@ -43,7 +43,7 @@ public class ForkMemoryLowDataProcessor implements ReforkReasonDataProcessor {
             restartNeeded = currentData.getCurrentUsagePercentage() > lowMemoryThreshold;
 
             if ( restartNeeded ) {
-                logger.debug("pipeline {}, fork {} : totalMemory = {}, maxMemory = {}, freeMemory = {}",
+                LOGGER.debug("pipeline {}, fork {} : totalMemory = {}, maxMemory = {}, freeMemory = {}",
                         new Object[]{
                                 pipeline.getName(),
                                 forkId,
@@ -51,7 +51,7 @@ public class ForkMemoryLowDataProcessor implements ReforkReasonDataProcessor {
                                 currentData.getMaxMemory(),
                                 currentData.getFreeMemory()
                         });
-                logger.info("pipeline {}, fork {} : restart needed, memory usage percentage of fork is {}",
+                LOGGER.info("pipeline {}, fork {} : restart needed, memory usage percentage of fork is {}",
                         new Object[]{
                                 pipeline.getName(),
                                 forkId,

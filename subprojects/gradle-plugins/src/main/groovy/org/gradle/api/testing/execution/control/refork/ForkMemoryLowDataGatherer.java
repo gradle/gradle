@@ -23,7 +23,7 @@ import java.util.Arrays;
  */
 public class ForkMemoryLowDataGatherer implements ReforkReasonDataGatherer{
 
-    private static final List<DataGatherMoment> dataGatherMoments = Arrays.asList(DataGatherMoment.AFTER_TEST_EXECUTION);
+    private static final List<DataGatherMoment> DATA_GATHER_MOMENTS = Arrays.asList(DataGatherMoment.AFTER_TEST_EXECUTION);
 
     private double memoryLowThreshold;
     private ForkMemoryLowData currentData = new ForkMemoryLowData();
@@ -37,7 +37,7 @@ public class ForkMemoryLowDataGatherer implements ReforkReasonDataGatherer{
     }
 
     public List<DataGatherMoment> getDataGatherMoments() {
-        return dataGatherMoments;
+        return DATA_GATHER_MOMENTS;
     }
 
     public boolean processDataGatherMoment(DataGatherMoment currentMoment, Object... momentData) {

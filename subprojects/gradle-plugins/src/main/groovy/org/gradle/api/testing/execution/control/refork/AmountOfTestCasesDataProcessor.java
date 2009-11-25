@@ -26,7 +26,7 @@ import org.slf4j.Logger;
  */
 public class AmountOfTestCasesDataProcessor implements ReforkReasonDataProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(AmountOfTestCasesDataProcessor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AmountOfTestCasesDataProcessor.class);
 
     private long reforkEveryThisAmountOfTests = Long.MAX_VALUE; // Long.MAX_VALUE ~ fork once.
 
@@ -46,7 +46,7 @@ public class AmountOfTestCasesDataProcessor implements ReforkReasonDataProcessor
         final boolean restartNeeded = amountOfTestsExecutedByFork % reforkEveryThisAmountOfTests == 0;
 
         if ( restartNeeded ) {
-            logger.info("pipeline {}, fork {} : restart needed, amount of tests executed = {}",
+            LOGGER.info("pipeline {}, fork {} : restart needed, amount of tests executed = {}",
                     new Object[]{
                             pipeline.getName(),
                             forkId,

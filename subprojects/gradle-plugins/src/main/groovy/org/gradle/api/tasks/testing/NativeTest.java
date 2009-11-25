@@ -80,31 +80,34 @@ public class NativeTest extends AbstractTestTask {
         ReforkItemConfigs reforkItemConfigs = null;
 
         if (reforkEvery >= 1) {
-            if ( reforkItemConfigs == null )
+            if (reforkItemConfigs == null) {
                 reforkItemConfigs = new ReforkItemConfigs();
+            }
 
-            final AmountOfTestCasesConfig reforkEveryConfig
-                    = (AmountOfTestCasesConfig) ReforkReasonRegister.getReforkReason(
-                    ReforkReasons.AMOUNT_OF_TESTCASES).getConfig();
+            final AmountOfTestCasesConfig reforkEveryConfig = (AmountOfTestCasesConfig) ReforkReasonRegister
+                    .getReforkReason(ReforkReasons.AMOUNT_OF_TESTCASES).getConfig();
 
             reforkEveryConfig.setReforkEvery(reforkEvery);
 
             reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TESTCASES, reforkEveryConfig);
         }
 
-        if ( lowMemoryThreshold > 0 ) {
-            if ( reforkItemConfigs == null )
+        if (lowMemoryThreshold > 0) {
+            if (reforkItemConfigs == null) {
                 reforkItemConfigs = new ReforkItemConfigs();
+            }
 
-            final ForkMemoryLowConfig forkMemoryLowConfig = (ForkMemoryLowConfig)ReforkReasonRegister.getReforkReason(ReforkReasons.FORK_MEMORY_LOW).getConfig();
+            final ForkMemoryLowConfig forkMemoryLowConfig = (ForkMemoryLowConfig) ReforkReasonRegister.getReforkReason(
+                    ReforkReasons.FORK_MEMORY_LOW).getConfig();
 
             forkMemoryLowConfig.setMemoryLowThreshold(lowMemoryThreshold);
 
             reforkItemConfigs.addItemConfig(ReforkReasons.FORK_MEMORY_LOW, forkMemoryLowConfig);
         }
 
-        if ( reforkItemConfigs != null )
+        if (reforkItemConfigs != null) {
             defaultPipelineConfig.setReforkItemConfigs(reforkItemConfigs);
+        }
 
         final TestOrchestrator orchestrator = new TestOrchestrator(this);
 
@@ -198,7 +201,9 @@ public class NativeTest extends AbstractTestTask {
     }
 
     public void setLowMemoryThreshold(double lowMemoryThreshold) {
-        if ( lowMemoryThreshold <= 0 ) throw new IllegalArgumentException("lowMemoryThreshold can't be lower or equal to zero!");
+        if (lowMemoryThreshold <= 0) {
+            throw new IllegalArgumentException("lowMemoryThreshold can't be lower or equal to zero!");
+        }
 
         this.lowMemoryThreshold = lowMemoryThreshold;
     }

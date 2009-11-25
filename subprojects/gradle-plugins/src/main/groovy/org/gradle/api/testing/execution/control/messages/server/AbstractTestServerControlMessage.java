@@ -26,7 +26,7 @@ public abstract class AbstractTestServerControlMessage implements TestServerCont
     private int pipelineId;
 
     protected AbstractTestServerControlMessage(int pipelineId) {
-        if ( pipelineId <= 0 ) throw new IllegalArgumentException("pipelineId can't be lower or equal to zero!");
+        if ( pipelineId <= 0 ) { throw new IllegalArgumentException("pipelineId can't be lower or equal to zero!"); }
 
         this.pipelineId = pipelineId;
     }

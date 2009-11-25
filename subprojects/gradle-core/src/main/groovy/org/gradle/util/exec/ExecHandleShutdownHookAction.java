@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ExecHandleShutdownHookAction implements ShutdownHookAction {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExecHandleShutdownHookAction.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExecHandleShutdownHookAction.class);
     private final ExecHandle execHandle;
 
     public static ExecHandleShutdownHookAction forHandle(ExecHandle execHandle) 
@@ -35,7 +35,9 @@ public class ExecHandleShutdownHookAction implements ShutdownHookAction {
     }
 
     private ExecHandleShutdownHookAction(ExecHandle execHandle) {
-        if ( execHandle == null ) throw new IllegalArgumentException("execHandle is null!");
+        if (execHandle == null) {
+            throw new IllegalArgumentException("execHandle is null!");
+        }
 
         this.execHandle = execHandle;
     }
@@ -45,7 +47,7 @@ public class ExecHandleShutdownHookAction implements ShutdownHookAction {
             execHandle.abort();
         }
         catch ( Throwable t ) {
-            logger.error("failed to abort " + execHandle.getCommand(), t);
+            LOGGER.error("failed to abort " + execHandle.getCommand(), t);
         }
     }
 }
