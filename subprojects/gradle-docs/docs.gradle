@@ -33,12 +33,7 @@ userguideSrcDir = new File(srcDocsDir, 'userguide')
 
 docsDir = file("$buildDir/docs")
 userguideDir = new File(docsDir, 'userguide')
-userguidePdfFile = new File(userguideDir, 'userguide.pdf')
-userguideSingleHtmlFile = new File(userguideDir, 'userguide_single.html')
 docbookDir = new File(buildDir, 'docbookStylesheets')
-snippetsDir = new File(buildDir, 'snippets')
-javadocDir = new File(docsDir, 'javadoc')
-groovydocDir = new File(docsDir, 'groovydoc')
 distDocsDir = new File(buildDir, 'distDocs')
 samplesDir = file("$buildDir/samples")
 docbookSrc = new File(project.buildDir, 'docbookSrc')
@@ -48,13 +43,18 @@ tasks.withType(Docbook2Xhtml).allObjects { task->
     task.classpath = configurations.userGuideTask
     task.stylesheetsDir = docbookDir
 }
+tasks.withType(UserGuideTransformTask).allObjects { task->
+    task.classpath = configurations.userGuideTask
+    task.dependsOn samples
+    task.snippetsDir = samples.snippetsDir
+}
 
 task samples(type: ExtractSnippetsTask) {
     source samplesSrcDir
     exclude 'userguideOutput/**'
     exclude 'userguide/tutorial/antChecksumFiles/**'
     destDir = samplesDir
-    snippetsDir = project.snippetsDir
+    snippetsDir = new File(buildDir, 'snippets')
     doLast {
         copy {
             from samplesSrcDir
@@ -64,15 +64,19 @@ task samples(type: ExtractSnippetsTask) {
     }
 }
 
-task userguideSrc(type: UserGuideTransformTask, dependsOn: samples) {
+task userguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
-    snippetsDir = project.snippetsDir
-    classpath = configurations.userGuideTask
-    validator = new SampleElementValidator()
-    doFirst {
-        userguideSrc.javadocUrl = remoteLocations.javadocUrl
-        userguideSrc.groovydocUrl = remoteLocations.groovydocUrl
+    javadocUrl = '../javadoc'
+    groovydocUrl = '../groovydoc'
+}
+
+task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
+    sourceFile = new File(userguideSrcDir, 'userguide.xml')
+    destFile = new File(docbookSrc, 'remoteUserguide.xml')
+    doFirst { task ->
+        task.javadocUrl = remoteLocations.javadocUrl
+        task.groovydocUrl = remoteLocations.groovydocUrl
     }
 }
 
@@ -91,8 +95,8 @@ task userguideStyleSheets(type: Copy) {
     }
 }
 
-task userguideHtml(type: Docbook2Xhtml, dependsOn: [userguideSrc, userguideStyleSheets]) {
-    sourceFile = userguideSrc.destFile
+task userguideHtml(type: Docbook2Xhtml, dependsOn: [userguideDocbook, userguideStyleSheets]) {
+    sourceFile = userguideDocbook.destFile
     destDir = userguideDir
     stylesheetName = 'userGuideHtml.xsl'
     resources = fileTree {
@@ -102,9 +106,9 @@ task userguideHtml(type: Docbook2Xhtml, dependsOn: [userguideSrc, userguideStyle
     }
 }
 
-task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: [userguideSrc, userguideStyleSheets]) {
-    sourceFile = userguideSrc.destFile
-    destFile = userguideSingleHtmlFile
+task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: [userguideDocbook, userguideStyleSheets]) {
+    sourceFile = userguideDocbook.destFile
+    destFile = new File(userguideDir, 'userguide_single.html')
     stylesheetName = 'userGuideSingleHtml.xsl'
     resources = fileTree {
         from userguideSrcDir
@@ -113,8 +117,8 @@ task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: [userguideSrc, userguid
     }
 }
 
-task userguidePdfSrc(type: Docbook2Xhtml, dependsOn: [userguideSrc, userguideStyleSheets]) {
-    sourceFile = userguideSrc.destFile
+task userguideXhtml(type: Docbook2Xhtml, dependsOn: [remoteUserguideDocbook, userguideStyleSheets]) {
+    sourceFile = remoteUserguideDocbook.destFile
     destFile = new File(docbookSrc, 'userguidePdf.html')
     stylesheetName = 'userGuidePdf.xsl'
     resources = fileTree {
@@ -125,15 +129,15 @@ task userguidePdfSrc(type: Docbook2Xhtml, dependsOn: [userguideSrc, userguideSty
     }
 }
 
-task userguidePdf(type: Xhtml2Pdf, dependsOn: userguidePdfSrc) {
-    sourceFile = userguidePdfSrc.destFile
-    destFile = userguidePdfFile
+task userguidePdf(type: Xhtml2Pdf, dependsOn: userguideXhtml) {
+    sourceFile = userguideXhtml.destFile
+    destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask
 }
 
 task javadoc(type: Javadoc) {
     source groovyProjects().collect {project -> project.sourceSets.main.allJava }
-    destinationDir = javadocDir
+    destinationDir = new File(docsDir, 'javadoc')
     classpath = files(groovyProjects().collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.classes] })
     include 'org/gradle/api/**'
     include 'org/gradle/*'
@@ -147,7 +151,7 @@ task javadoc(type: Javadoc) {
 
 task groovydoc(type: Groovydoc) {
     source groovyProjects().collect {project -> project.sourceSets.main.groovy }
-    destinationDir = groovydocDir
+    destinationDir = new File(docsDir, 'groovydoc')
     includes = javadoc.includes
     excludes = javadoc.excludes
     doFirst {
@@ -160,8 +164,6 @@ task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideSty
     standalone = true
     sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
     destFile = new File(docbookSrc, 'gettingStarted.xml')
-    snippetsDir = project.snippetsDir
-    classpath = configurations.userGuideTask
     doFirst {task ->
         task.javadocUrl = remoteLocations.javadocUrl
         task.groovydocUrl = remoteLocations.groovydocUrl
@@ -257,7 +259,7 @@ class Docbook2Xhtml extends DefaultTask {
     @InputFiles @Optional
     FileCollection resources
 
-    @org.gradle.api.tasks.TaskAction
+    @TaskAction
     def transform() {
         if (!((destFile != null) ^ (destDir != null))) {
             throw new InvalidUserDataException("Must specify exactly 1 of output file or dir.")
@@ -306,7 +308,7 @@ class Xhtml2Pdf extends DefaultTask {
         onlyIf { !System.getProperty("os.name").toLowerCase().contains('windows') }
     }
 
-    @org.gradle.api.tasks.TaskAction
+    @TaskAction
     def transform() {
         def uris = classpath.files.collect {it.toURI().toURL()}
         def classloader = new URLClassLoader(uris as URL[], getClass().classLoader)

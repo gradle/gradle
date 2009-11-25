@@ -33,7 +33,7 @@ public class UserGuideTransformTask extends DefaultTask {
     boolean standalone
     @InputFiles
     FileCollection classpath;
-    SampleElementValidator validator;
+    SampleElementValidator validator = new SampleElementValidator();
 
     @TaskAction
     def transform() {

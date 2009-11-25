@@ -267,7 +267,7 @@ task intTestImage(type: Sync) {
     }
 }
 
-task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideSrc']) {
+task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideDocbook']) {
     integTestUserDir = file('intTestHomeDir')
     options.systemProperties['integTest.srcDir'] = file('src').absolutePath
     options.systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
@@ -348,6 +348,7 @@ task developerBuild(dependsOn: [clean, testedDists])
 task ciBuild(dependsOn: [clean, testedDists])
 
 task release(dependsOn: [uploadDists, ':docs:uploadDocs']) << {
+    // Update the version properties in gradle.properties
     Properties props = new Properties()
     File propsFile = file('gradle.properties')
     propsFile.withReader { props.load(it) }
