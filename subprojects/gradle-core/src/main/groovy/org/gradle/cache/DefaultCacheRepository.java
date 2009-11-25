@@ -46,7 +46,7 @@ public class DefaultCacheRepository implements CacheRepository {
     }
 
     public <K, V> PersistentIndexedCache<K, V> getIndexedCacheFor(Object target, String key, Map<String, ?> properties) {
-        return new DefaultPersistentIndexedCache<K, V>(getCacheFor(target, key, properties), new DefaultSerializer<V>());
+        return indexedCache(getCacheFor(target, key, properties), new DefaultSerializer<V>());
     }
 
     public PersistentCache getGlobalCache(String key, Map<String, ?> properties) {
@@ -59,6 +59,13 @@ public class DefaultCacheRepository implements CacheRepository {
 
     public <K, V> PersistentIndexedCache<K, V> getIndexedGlobalCache(String key, Map<String, ?> properties,
                                                                      Serializer<V> serializer) {
-        return new DefaultPersistentIndexedCache<K, V>(getGlobalCache(key, properties), serializer);
+        return indexedCache(getGlobalCache(key, properties), serializer);
+    }
+
+    private <K, V> PersistentIndexedCache<K, V> indexedCache(PersistentCache backingCache, Serializer<V> serializer) {
+        if (System.getProperty("org.gradle.cache.btree") != null) {
+            return new BTreePersistentIndexedCache<K,V>(backingCache, serializer);
+        }
+        return new DefaultPersistentIndexedCache<K, V>(backingCache, serializer);
     }
 }
