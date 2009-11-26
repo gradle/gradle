@@ -22,26 +22,23 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.DefaultPersistentIndexedCache;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.DefaultSerializer;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.integtests.TestFile;
 import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.WrapUtil.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
+
 import static java.util.Collections.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultTaskArtifactStateRepositoryTest {
@@ -51,8 +48,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private final CacheRepository cacheRepository = context.mock(CacheRepository.class);
     private final Gradle gradle = context.mock(Gradle.class);
     private final Project project = context.mock(Project.class);
-    private final PersistentCache cache = context.mock(PersistentCache.class);
-    private final TestFile cacheDir = tmpDir.dir("cache");
     private final TestFile outputFile = tmpDir.file("output-file");
     private final TestFile outputDir = tmpDir.dir("output-dir");
     private final TestFile emptyOutputDir = tmpDir.dir("empty-output-dir");
@@ -334,10 +329,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations(){{
             one(cacheRepository).getIndexedCacheFor(gradle, "taskArtifacts", EMPTY_MAP);
-            will(returnValue(new DefaultPersistentIndexedCache(cache, new DefaultSerializer<File>())));
-            allowing(cache).update();
-            allowing(cache).getBaseDir();
-            will(returnValue(cacheDir));
+            will(returnValue(new TestIndexedCache()));
         }});
     }
 
@@ -413,5 +405,21 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     public interface TaskSubType extends TaskInternal {
+    }
+
+    public static class TestIndexedCache implements PersistentIndexedCache<File, Object> {
+        Map<File, Object> entries = new HashMap<File, Object>();
+
+        public Object get(File key) {
+            return entries.get(key);
+        }
+
+        public void put(File key, Object value) {
+            entries.put(key, value);
+        }
+
+        public void remove(File key) {
+            entries.remove(key);
+        }
     }
 }

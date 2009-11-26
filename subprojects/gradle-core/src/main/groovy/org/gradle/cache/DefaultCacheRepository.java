@@ -63,9 +63,6 @@ public class DefaultCacheRepository implements CacheRepository {
     }
 
     private <K, V> PersistentIndexedCache<K, V> indexedCache(PersistentCache backingCache, Serializer<V> serializer) {
-        if (System.getProperty("org.gradle.cache.btree") != null) {
-            return new BTreePersistentIndexedCache<K,V>(backingCache, serializer);
-        }
-        return new DefaultPersistentIndexedCache<K, V>(backingCache, serializer);
+        return new BTreePersistentIndexedCache<K,V>(backingCache, serializer);
     }
 }

@@ -50,7 +50,7 @@ public class BTreePersistentIndexedCacheTest {
             allowing(backingCache).update();
         }});
 
-        cache = new BTreePersistentIndexedCache<String, Integer>(backingCache, serializer, 4);
+        cache = new BTreePersistentIndexedCache<String, Integer>(backingCache, serializer, (short) 4);
     }
 
     @Test
@@ -117,6 +117,32 @@ public class BTreePersistentIndexedCacheTest {
     }
 
     @Test
+    public void reusesEmptySpaceWhenPuttingEntries() {
+        BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(
+                backingCache, new DefaultSerializer<String>(), (short) 4);
+        TestFile cacheFile = tmpDir.getDir().file("cache.bin");
+
+        cache.put("key_1", "abcd");
+
+        long len = cacheFile.length();
+        assertThat(len, greaterThan(0L));
+
+        cache.put("key_1", "1234");
+        assertThat(cacheFile.length(), equalTo(len));
+
+        cache.remove("key_1");
+        cache.put("key_2", "a1b2");
+        assertThat(cacheFile.length(), equalTo(len));
+
+        cache.put("key_2", "longer value");
+        assertThat(cacheFile.length(), greaterThan(len));
+        len = cacheFile.length();
+
+        cache.put("key_1", "1234");
+        assertThat(cacheFile.length(), equalTo(len));
+    }
+    
+    @Test
     public void canHandleLargeNumberOfEntries() {
 
         int count = 2000;
@@ -126,6 +152,7 @@ public class BTreePersistentIndexedCacheTest {
         }
 
         checkAddsAndRemoves(null, values);
+
         checkAddsAndRemoves(Collections.<Integer>reverseOrder(), values);
     }
 
@@ -225,6 +252,8 @@ public class BTreePersistentIndexedCacheTest {
             String key = String.format("key_%d", value);
             assertThat(cache.get(key), notNullValue());
             cache.remove(key);
+//            cache.verify();
+//            if (value % 20 == 0) { System.out.println("-> " + value); }
             assertThat(cache.get(key), nullValue());
         }
 
