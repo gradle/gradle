@@ -299,7 +299,7 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void started() {
-        shutdownHookAction = ExecHandleShutdownHookAction.forHandle(this);
+        shutdownHookAction = new ExecHandleShutdownHookAction(this);
         ShutdownHookActionRegister.addShutdownHookAction(shutdownHookAction);
 
         setState(ExecHandleState.STARTED);

@@ -15,12 +15,15 @@
  */
 package org.gradle;
 
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,12 +34,26 @@ public class TaskExecutionLoggerTest {
     private final Task task = context.mock(Task.class);
     private final TaskExecutionResult result = context.mock(TaskExecutionResult.class);
     private final TaskExecutionLogger executionLogger = new TaskExecutionLogger(logger);
+    private final Gradle gradle = context.mock(Gradle.class);
+
+    @Before
+    public void setUp() {
+        context.checking(new Expectations() {{
+            Project project = context.mock(Project.class);
+            allowing(task).getProject();
+            will(returnValue(project));
+            allowing(project).getGradle();
+            will(returnValue(gradle));
+        }});
+    }
 
     @Test
-    public void logsTaskExecution() {
+    public void logsExecutionOfTaskInRootBuild() {
         context.checking(new Expectations() {{
+            allowing(gradle).getParent();
+            will(returnValue(null));
             allowing(task).getPath();
-            will(returnValue("path"));
+            will(returnValue(":path"));
             allowing(result).getSkipMessage();
             will(returnValue(null));
         }});
@@ -44,7 +61,35 @@ public class TaskExecutionLoggerTest {
         executionLogger.beforeExecute(task);
 
         context.checking(new Expectations() {{
-            one(logger).lifecycle("path");
+            one(logger).lifecycle(":path");
+        }});
+
+        executionLogger.beforeActions(task);
+        executionLogger.afterActions(task);
+        executionLogger.afterExecute(task, result);
+    }
+
+    @Test
+    public void logsExecutionOfTaskInSubBuild() {
+        context.checking(new Expectations() {{
+            Project rootProject = context.mock(Project.class, "rootProject");
+
+            allowing(gradle).getParent();
+            will(returnValue(context.mock(Gradle.class, "rootBuild")));
+            allowing(gradle).getRootProject();
+            will(returnValue(rootProject));
+            allowing(rootProject).getName();
+            will(returnValue("build"));
+            allowing(task).getPath();
+            will(returnValue(":path"));
+            allowing(result).getSkipMessage();
+            will(returnValue(null));
+        }});
+
+        executionLogger.beforeExecute(task);
+
+        context.checking(new Expectations() {{
+            one(logger).lifecycle(":build:path");
         }});
 
         executionLogger.beforeActions(task);
@@ -55,6 +100,8 @@ public class TaskExecutionLoggerTest {
     @Test
     public void logsSkippedTaskExecution() {
         context.checking(new Expectations() {{
+            allowing(gradle).getParent();
+            will(returnValue(null));
             allowing(task).getPath();
             will(returnValue("path"));
             allowing(result).getSkipMessage();

@@ -42,6 +42,7 @@ public class DefaultGradle implements GradleInternal {
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private TaskGraphExecuter taskGraph;
+    private final Gradle parent;
     private StartParameter startParameter;
     private ClassLoader buildScriptClassLoader;
     private StandardOutputRedirector standardOutputRedirector;
@@ -53,7 +54,8 @@ public class DefaultGradle implements GradleInternal {
     private final DefaultIsolatedAntBuilder isolatedAntBuilder = new DefaultIsolatedAntBuilder();
     private final ServiceRegistryFactory services;
 
-    public DefaultGradle(StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
+    public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
+        this.parent = parent;
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
         this.listenerManager = services.get(ListenerManager.class);
@@ -63,6 +65,10 @@ public class DefaultGradle implements GradleInternal {
         taskGraph = services.get(TaskGraphExecuter.class);
         scriptHandler = services.get(ScriptHandler.class);
         scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
+    }
+
+    public Gradle getParent() {
+        return parent;
     }
 
     public String getGradleVersion() {

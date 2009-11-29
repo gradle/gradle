@@ -138,6 +138,7 @@ public class StartParameter {
         startParameter.pluginPropertiesFile = pluginPropertiesFile;
         startParameter.defaultImportsFile = defaultImportsFile;
         startParameter.cacheUsage = cacheUsage;
+        startParameter.logLevel = logLevel;
         return startParameter;
     }
 

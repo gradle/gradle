@@ -23,7 +23,6 @@ import org.gradle.initialization.CommandLine2StartParameterConverter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.util.Clock;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.shutdown.GradleShutdownHook;
 
 /**
  * @author Hans Dockter
@@ -40,8 +39,6 @@ public class Main {
     }
 
     public static void main(String[] args) throws Throwable {
-        GradleShutdownHook.register();
-        
         new Main(args).execute();
     }
 

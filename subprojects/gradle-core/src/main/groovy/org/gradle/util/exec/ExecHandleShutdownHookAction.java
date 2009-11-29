@@ -15,7 +15,6 @@
  */
 package org.gradle.util.exec;
 
-import org.gradle.util.shutdown.ShutdownHookAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,17 +23,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author Tom Eyckmans
  */
-public class ExecHandleShutdownHookAction implements ShutdownHookAction {
+public class ExecHandleShutdownHookAction implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecHandleShutdownHookAction.class);
     private final ExecHandle execHandle;
 
-    public static ExecHandleShutdownHookAction forHandle(ExecHandle execHandle) 
-    {
-        return new ExecHandleShutdownHookAction(execHandle);
-    }
-
-    private ExecHandleShutdownHookAction(ExecHandle execHandle) {
+    public ExecHandleShutdownHookAction(ExecHandle execHandle) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle is null!");
         }
@@ -42,7 +36,7 @@ public class ExecHandleShutdownHookAction implements ShutdownHookAction {
         this.execHandle = execHandle;
     }
 
-    public void execute() {
+    public void run() {
         try {
             execHandle.abort();
         }

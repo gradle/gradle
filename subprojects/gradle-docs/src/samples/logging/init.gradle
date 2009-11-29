@@ -1,3 +1,4 @@
+
 println 'init quiet out'
 captureStandardOutput(LogLevel.INFO)
 println 'init info out'
@@ -16,7 +17,7 @@ class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluat
     }
 
     public void beforeEvaluate(Project project) {
-        logger.info('LOGGER: evaluating project')
+        logger.lifecycle("LOGGER: evaluating $project.path")
     }
 
     public void afterEvaluate(Project project, Throwable failure) {
@@ -24,7 +25,7 @@ class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluat
     }
 
     public void beforeExecute(Task task) {
-        logger.info('LOGGER: executing task')
+        logger.lifecycle("LOGGER: executing $task.path")
     }
 
     public void afterExecute(Task task, TaskExecutionResult result) {

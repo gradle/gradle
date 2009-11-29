@@ -84,7 +84,7 @@ class HelperUtil {
         serviceRegistryFactory.add(TaskExecuter, new DefaultTaskExecuter({} as TaskActionListener))
         IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
 
-        DefaultGradle build = new DefaultGradle(startParameter, serviceRegistryFactory)
+        DefaultGradle build = new DefaultGradle(null, startParameter, serviceRegistryFactory)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)

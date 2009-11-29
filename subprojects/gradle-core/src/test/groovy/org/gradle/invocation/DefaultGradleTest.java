@@ -25,6 +25,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.internal.project.StandardOutputRedirector;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
@@ -35,6 +36,7 @@ import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +59,7 @@ public class DefaultGradleTest {
     private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
+    private final Gradle parent = context.mock(Gradle.class, "parentBuild");
     private DefaultGradle gradle;
 
     @Before
@@ -79,18 +82,19 @@ public class DefaultGradleTest {
             allowing(gradleServiceRegistryMock).get(ListenerManager.class);
             will(returnValue(listenerManager));
         }});
-        gradle = new DefaultGradle(parameter, serviceRegistryFactoryMock);
+        gradle = new DefaultGradle(parent, parameter, serviceRegistryFactoryMock);
     }
 
     @Test
     public void defaultValues() {
+        assertThat(gradle.getParent(), sameInstance(parent));
         assertThat(gradle.getServiceRegistryFactory(), sameInstance(gradleServiceRegistryMock));
         assertThat(gradle.getStandardOutputRedirector(), sameInstance(standardOutputRedirectorMock));
         assertThat(gradle.getProjectRegistry(), sameInstance(projectRegistry));
         assertThat(gradle.getPluginRegistry(), sameInstance(pluginRegistry));
         assertThat(gradle.getTaskGraph(), sameInstance(taskExecuter));
     }
-
+    
     @Test
     public void usesGradleVersion() {
         assertThat(gradle.getGradleVersion(), equalTo(new GradleVersion().getVersion()));

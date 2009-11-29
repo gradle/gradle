@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.StringScriptSource;
 
@@ -83,17 +82,9 @@ public class SettingsHandler {
         StartParameter buildSrcStartParameter = startParameter.newBuild();
         buildSrcStartParameter.setCurrentDir(new File(settingsLocation.getSettingsDir(),
                 BaseSettings.DEFAULT_BUILD_SRC_DIR));
-        buildSrcStartParameter.setLogLevel(getBuildSourceLogLevel(startParameter.getLogLevel()));
         URLClassLoader buildSourceClassLoader = buildSourceBuilder.buildAndCreateClassLoader(buildSrcStartParameter);
 
         return loadSettings(settingsLocation, buildSourceClassLoader, startParameter, gradlePropertiesLoader);
-    }
-
-    private LogLevel getBuildSourceLogLevel(LogLevel logLevel) {
-        if (logLevel == LogLevel.LIFECYCLE) {
-            return LogLevel.QUIET;
-        }
-        return logLevel;
     }
 
     private SettingsLocation findSettings(StartParameter startParameter) {

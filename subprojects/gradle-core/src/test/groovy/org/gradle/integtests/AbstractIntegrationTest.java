@@ -56,13 +56,19 @@ public class AbstractIntegrationTest {
 
         //todo - this should use the src/toplevel/gradle-imports file
         testFile("gradle-home/gradle-imports").writelns("import static org.junit.Assert.*",
-                "import static org.hamcrest.Matchers.*", "import org.gradle.api.*", "import org.gradle.api.file.*",
-                "import org.gradle.api.logging.*", "import org.gradle.api.tasks.*",
+                "import static org.hamcrest.Matchers.*",
+                "import org.gradle.*",
+                "import org.gradle.api.*",
+                "import org.gradle.api.file.*",
+                "import org.gradle.api.logging.*",
+                "import org.gradle.api.tasks.*",
                 "import org.gradle.api.tasks.bundling.*");
 
         testFile("gradle-home/plugin.properties").writelns("java=org.gradle.api.plugins.JavaPlugin",
-                "groovy=org.gradle.api.plugins.GroovyPlugin", "scala=org.gradle.api.plugins.scala.ScalaPlugin",
-                "war=org.gradle.api.plugins.WarPlugin", "maven=org.gradle.api.plugins.MavenPlugin",
+                "groovy=org.gradle.api.plugins.GroovyPlugin",
+                "scala=org.gradle.api.plugins.scala.ScalaPlugin",
+                "war=org.gradle.api.plugins.WarPlugin",
+                "maven=org.gradle.api.plugins.MavenPlugin",
                 "code-quality=org.gradle.api.plugins.quality.CodeQualityPlugin",
                 "base=org.gradle.api.plugins.BasePlugin");
 

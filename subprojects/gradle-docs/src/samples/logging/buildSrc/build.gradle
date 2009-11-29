@@ -1,0 +1,18 @@
+println 'buildSrc quiet'
+logger.info 'buildSrc info'
+
+task classes
+
+convention.plugins.java = new ProjectInfo(project: project);
+
+class ProjectInfo implements org.gradle.api.internal.plugins.EmbedableJavaProject {
+    def Project project
+
+    Collection<String> getRebuildTasks() {
+        return ['classes']
+    }
+
+    FileCollection getRuntimeClasspath() {
+        return project.files()
+    }
+}

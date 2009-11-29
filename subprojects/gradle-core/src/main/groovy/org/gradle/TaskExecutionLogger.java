@@ -15,10 +15,12 @@
  */
 package org.gradle;
 
+import org.gradle.api.Project;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.Task;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 
 /**
@@ -35,7 +37,7 @@ public class TaskExecutionLogger implements TaskExecutionListener, TaskActionLis
     }
 
     public void beforeActions(Task task) {
-        logger.lifecycle(task.getPath());
+        logger.lifecycle(getDisplayName(task));
     }
 
     public void afterActions(Task task) {
@@ -43,7 +45,17 @@ public class TaskExecutionLogger implements TaskExecutionListener, TaskActionLis
 
     public void afterExecute(Task task, TaskExecutionResult result) {
         if (result.getSkipMessage() != null) {
-            logger.lifecycle("{} {}", task.getPath(), result.getSkipMessage());
+            logger.lifecycle("{} {}", getDisplayName(task), result.getSkipMessage());
         }
+    }
+
+    private String getDisplayName(Task task) {
+        Gradle build = task.getProject().getGradle();
+        if (build.getParent() == null) {
+            // The main build, use the task path
+            return task.getPath();
+        }
+        // A nested build, use a discriminator
+        return Project.PATH_SEPARATOR + build.getRootProject().getName() + task.getPath();
     }
 }

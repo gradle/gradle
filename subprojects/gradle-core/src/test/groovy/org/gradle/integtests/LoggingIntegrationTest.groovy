@@ -41,7 +41,11 @@ class LoggingIntegrationTest {
             'quietProject2CallbackOut',
             'settings quiet out',
             'init quiet out',
-            'init callback quiet out'
+            'init callback quiet out',
+            'buildSrc quiet',
+            'nestedBuild/buildSrc quiet',
+            'nestedBuild quiet',
+            'nestedBuild task quiet'
     ]
     List errorMessages = [
             'An error log message.'
@@ -54,7 +58,16 @@ class LoggingIntegrationTest {
             '[ant:echo] An info message logged from Ant',
             'A task message which is logged at LIFECYCLE level',
             'settings lifecycle log',
-            'init lifecycle log'
+            'init lifecycle log',
+            'LOGGER: evaluating :',
+            'LOGGER: evaluating :project1',
+            'LOGGER: evaluating :project2',
+            'LOGGER: executing :project1:logInfo',
+            'LOGGER: executing :project1:logLifecycle',
+            'LOGGER: executing :project1:nestedBuildLog',
+            'LOGGER: executing :project1:log',
+            ':buildSrc:classes',
+            ':nestedBuild:log'
     ]
     List infoMessages = [
             'An info log message.',
@@ -70,12 +83,13 @@ class LoggingIntegrationTest {
             'init info out',
             'init info log',
             'LOGGER: build finished',
-            'LOGGER: evaluating project',
             'LOGGER: evaluated project',
-            'LOGGER: executing task',
             'LOGGER: executed task',
             'LOGGER: task starting work',
-            'LOGGER: task completed work'
+            'LOGGER: task completed work',
+            'buildSrc info',
+            'nestedBuild/buildSrc info',
+            'nestedBuild info'
     ]
     List debugMessages = [
             'A debug log message.'
@@ -127,9 +141,13 @@ class LoggingIntegrationTest {
     }
 
     void checkOutput(LogLevel level) {
-        File loggingDir = new File(dist.samplesDir, 'logging')
+        TestFile loggingDir = dist.samplesDir.file('logging')
+        loggingDir.file("buildSrc/build").deleteDir()
+        loggingDir.file("nestedBuild/buildSrc/build").deleteDir()
+
         String initScript = new File(loggingDir, 'init.gradle').absolutePath
         String[] allArgs = level.args + ['-I', initScript]
+
         ExecutionResult result = executer.inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
         level.includeMessages.each {List messages ->
             if (messages == errorMessages) {

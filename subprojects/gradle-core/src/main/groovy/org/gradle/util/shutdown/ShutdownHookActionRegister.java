@@ -15,8 +15,10 @@
  */
 package org.gradle.util.shutdown;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
-import java.util.Collections;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -24,29 +26,30 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ShutdownHookActionRegister {
     private static final ShutdownHookActionRegister INSTANCE = new ShutdownHookActionRegister();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShutdownHookActionRegister.class);
+    private final List<Runnable> shutdownHookActions = new CopyOnWriteArrayList<Runnable>();
 
-    private final List<ShutdownHookAction> shutdownHookActions;
-
-    private ShutdownHookActionRegister()
-    {
-        shutdownHookActions = new CopyOnWriteArrayList<ShutdownHookAction>();
+    private ShutdownHookActionRegister() {
+        Runtime.getRuntime().addShutdownHook(new Thread(new GradleShutdownHook(), "gradle-shutdown-hook"));
     }
 
-    public static void addShutdownHookAction(ShutdownHookAction shutdownHookAction)
-    {
-        if (shutdownHookAction != null) {
-            INSTANCE.shutdownHookActions.add(shutdownHookAction);
+    public static void addShutdownHookAction(Runnable shutdownHookAction) {
+        INSTANCE.shutdownHookActions.add(shutdownHookAction);
+    }
+
+    public static void removeShutdownHookAction(Runnable shutdownHookAction) {
+        INSTANCE.shutdownHookActions.remove(shutdownHookAction);
+    }
+
+    private class GradleShutdownHook implements Runnable {
+        public void run() {
+            for (final Runnable shutdownHookAction : shutdownHookActions) {
+                try {
+                    shutdownHookAction.run();
+                } catch (Throwable t) {
+                    LOGGER.error("failed to execute a shutdown action ", t);
+                }
+            }
         }
-    }
-
-    public static void removeShutdownHookAction(ShutdownHookAction shutdownHookAction) {
-        if (shutdownHookAction != null) {
-            INSTANCE.shutdownHookActions.remove(shutdownHookAction);
-        }
-    }
-
-    static List<ShutdownHookAction> getSHutHookActions()
-    {
-        return Collections.unmodifiableList(INSTANCE.shutdownHookActions);
     }
 }

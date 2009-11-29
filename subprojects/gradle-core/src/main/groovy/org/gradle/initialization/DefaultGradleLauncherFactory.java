@@ -33,18 +33,20 @@ import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.WrapUtil;
 
-
-
 /**
  * @author Hans Dockter
  */
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private LoggingConfigurer loggingConfigurer;
-    private CommandLine2StartParameterConverter commandLine2StartParameterConverter;
+    private NestedBuildTracker tracker = new NestedBuildTracker();
+    private CommandLine2StartParameterConverter commandLine2StartParameterConverter = new DefaultCommandLine2StartParameterConverter();
 
-    public DefaultGradleLauncherFactory(LoggingConfigurer loggingConfigurer, CommandLine2StartParameterConverter commandLine2StartParameterConverter) {
+    public DefaultGradleLauncherFactory() {
+        this(new DefaultLoggingConfigurer());
+    }
+
+    DefaultGradleLauncherFactory(LoggingConfigurer loggingConfigurer) {
         this.loggingConfigurer = loggingConfigurer;
-        this.commandLine2StartParameterConverter = commandLine2StartParameterConverter;
     }
 
     public StartParameter createStartParameter(String[] commandLineArgs) {
@@ -60,6 +62,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingConfigurer.configure(startParameter.getLogLevel());
 
         listenerManager.useLogger(new TaskExecutionLogger(Logging.getLogger(TaskExecutionLogger.class)));
+        listenerManager.addListener(tracker);
 
         ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter, listenerManager);
         ISettingsFinder settingsFinder = new EmbeddedScriptSettingsFinder(
@@ -73,6 +76,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         new DefaultInitScriptFinder()),
                 new DefaultInitScriptProcessor(scriptCompilerFactory, serviceRegistryFactory.get(ImportsReader.class)));
         DefaultGradle gradle = new DefaultGradle(
+                tracker.getCurrentBuild(),
                 startParameter,
                 serviceRegistryFactory);
         return new GradleLauncher(
@@ -86,9 +90,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                                         new SettingsFactory(new DefaultProjectDescriptorRegistry()))
                         ),
                         new BuildSourceBuilder(
-                                new DefaultGradleLauncherFactory(
-                                        loggingConfigurer,
-                                        commandLine2StartParameterConverter),
+                                this,
                                 new DefaultCacheInvalidationStrategy()
                         )),
                 new DefaultGradlePropertiesLoader(),
@@ -97,5 +99,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                                 startParameter.getBuildScriptSource())),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()),
                 loggingConfigurer);
+    }
+
+    public void setCommandLine2StartParameterConverter(
+            CommandLine2StartParameterConverter commandLine2StartParameterConverter) {
+        this.commandLine2StartParameterConverter = commandLine2StartParameterConverter;
     }
 }

@@ -223,6 +223,7 @@ class StartParameterTest {
         parameter.cacheUsage = CacheUsage.OFF
         parameter.pluginPropertiesFile = new File("plugins")
         parameter.defaultImportsFile = new File("imports")
+        parameter.logLevel = LogLevel.DEBUG
 
         // Non-copied
         parameter.currentDir = new File("other")
@@ -242,6 +243,7 @@ class StartParameterTest {
         assertThat(newParameter.cacheUsage, equalTo(parameter.cacheUsage));
         assertThat(newParameter.pluginPropertiesFile, equalTo(parameter.pluginPropertiesFile));
         assertThat(newParameter.defaultImportsFile, equalTo(parameter.defaultImportsFile));
+        assertThat(newParameter.logLevel, equalTo(parameter.logLevel));
 
         assertThat(newParameter.buildFile, nullValue())
         assertThat(newParameter.taskNames, isEmpty())

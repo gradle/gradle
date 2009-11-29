@@ -15,21 +15,24 @@
  */
 package org.gradle.initialization;
 
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
-import org.gradle.api.logging.LogLevel;
-import org.hamcrest.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import org.hamcrest.Description;
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 
-import java.net.URLClassLoader;
-import java.net.URL;
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -50,27 +53,12 @@ public class SettingsHandlerTest {
     private SettingsHandler settingsHandler = new SettingsHandler(settingsFinder, settingsProcessor, buildSourceBuilder);
 
     @org.junit.Test
-    public void findAndLoadSettingsWithExistingSettingsAndNonLifecycleLogLevel() {
-        startParameter.setLogLevel(LogLevel.INFO);
+    public void findAndLoadSettingsWithExistingSettings() {
         prepareForExistingSettings();
         context.checking(new Expectations() {{
             allowing(buildSourceBuilder).buildAndCreateClassLoader(with(aBuildSrcStartParameter(
-                    new File(settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR),
-                    startParameter.getLogLevel())));
+                    new File(settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR))));
             will(returnValue(urlClassLoader));    
-        }});
-        assertThat(settingsHandler.findAndLoadSettings(gradle, gradlePropertiesLoader), sameInstance(settings));
-    }
-
-    @org.junit.Test
-    public void findAndLoadSettingsWithExistingSettingsAndLifecycleLogLevel() {
-        startParameter.setLogLevel(LogLevel.LIFECYCLE);
-        prepareForExistingSettings();
-        context.checking(new Expectations() {{
-            allowing(buildSourceBuilder).buildAndCreateClassLoader(with(aBuildSrcStartParameter(
-                    new File(settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR),
-                    LogLevel.QUIET)));
-            will(returnValue(urlClassLoader));
         }});
         assertThat(settingsHandler.findAndLoadSettings(gradle, gradlePropertiesLoader), sameInstance(settings));
     }
@@ -104,27 +92,23 @@ public class SettingsHandlerTest {
     }
 
     @Factory
-    public static Matcher<StartParameter> aBuildSrcStartParameter(File currentDir, LogLevel logLevel) {
-        return new BuildSrcParameterMatcher(currentDir, logLevel);
+    public static Matcher<StartParameter> aBuildSrcStartParameter(File currentDir) {
+        return new BuildSrcParameterMatcher(currentDir);
     }
 
     public static class BuildSrcParameterMatcher extends TypeSafeMatcher<StartParameter> {
         private File currentDir;
-        private LogLevel logLevel;
 
-        public BuildSrcParameterMatcher(File currentDir, LogLevel logLevel) {
+        public BuildSrcParameterMatcher(File currentDir) {
             this.currentDir = currentDir;
-            this.logLevel = logLevel;
         }
 
-
         public boolean matchesSafely(StartParameter startParameter) {
-            return startParameter.getCurrentDir().getAbsoluteFile().equals(currentDir.getAbsoluteFile()) &&
-                    startParameter.getLogLevel().equals(logLevel);
+            return startParameter.getCurrentDir().getAbsoluteFile().equals(currentDir.getAbsoluteFile());
         }
 
         public void describeTo(Description description) {
-            description.appendText("a startparameter with ").appendValue("" + currentDir + " " + logLevel);
+            description.appendText("a startparameter with ").appendValue(currentDir);
         }
     }
 }

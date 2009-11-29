@@ -29,7 +29,14 @@ task logInfo << {
 logInfo.captureStandardOutput(LogLevel.INFO)
 // END SNIPPET task-capture-stdout
 
-task log(dependsOn: [logInfo, logLifecycle]) << {
+task nestedBuildLog << {
+    def startParam = project.gradle.startParameter.newBuild()
+    startParam.currentDir = rootProject.file('nestedBuild')
+    startParam.taskNames = ['log']
+    GradleLauncher.newInstance(startParam).run().rethrowFailure()
+}
+
+task log(dependsOn: [logInfo, logLifecycle, nestedBuildLog]) << {
     println('A task message which is logged at QUIET level')
 }
 

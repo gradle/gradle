@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,13 @@ public interface Gradle {
      * @return The home directory. Never returns null.
      */
     File getGradleHomeDir();
+
+    /**
+     * <p>Returns the parent build of this build, if any.</p>
+     *
+     * @return The parent build. May return null.
+     */
+    Gradle getParent();
 
     /**
      * <p>Returns the root project of this build.</p>

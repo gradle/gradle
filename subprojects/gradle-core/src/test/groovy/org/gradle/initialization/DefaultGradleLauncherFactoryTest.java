@@ -22,6 +22,8 @@ import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
+
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -29,41 +31,45 @@ import org.junit.Test;
  */
 public class DefaultGradleLauncherFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery();
+    private final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
+    private final CommandLine2StartParameterConverter parameterConverter = context.mock(CommandLine2StartParameterConverter.class);
+    private final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(loggingConfigurer);
+
+    @Before
+    public void setUp() {
+        factory.setCommandLine2StartParameterConverter(parameterConverter);
+    }
 
     @Test
     public void newInstanceWithStartParameter() {
         final StartParameter startParameter = HelperUtil.dummyStartParameter();
-        final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
         context.checking(new Expectations() {{
             one(loggingConfigurer).configure(startParameter.getLogLevel());
         }});
-        new DefaultGradleLauncherFactory(loggingConfigurer, context.mock(CommandLine2StartParameterConverter.class)).newInstance(startParameter);
+        assertNotNull(factory.newInstance(startParameter));
     }
 
     @Test
     public void newInstanceWithCommandLineArgs() {
         final StartParameter startParameter = HelperUtil.dummyStartParameter();
-        final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
         final String[] commandLineArgs = WrapUtil.toArray("A", "B");
-        final CommandLine2StartParameterConverter parameterConverterStub = context.mock(CommandLine2StartParameterConverter.class);
         context.checking(new Expectations() {{
             one(loggingConfigurer).configure(startParameter.getLogLevel());
-            allowing(parameterConverterStub).convert(commandLineArgs); will(returnValue(startParameter));
+            allowing(parameterConverter).convert(commandLineArgs); will(returnValue(startParameter));
         }});
-        new DefaultGradleLauncherFactory(loggingConfigurer, parameterConverterStub).newInstance(commandLineArgs);
+        assertNotNull(factory.newInstance(commandLineArgs));
     }
 
     @Test
     public void createStartParameter() {
         final StartParameter startParameter = HelperUtil.dummyStartParameter();
-        final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
         final String[] commandLineArgs = WrapUtil.toArray("A", "B");
-        final CommandLine2StartParameterConverter parameterConverterStub = context.mock(CommandLine2StartParameterConverter.class);
         context.checking(new Expectations() {{
             one(loggingConfigurer).configure(startParameter.getLogLevel());
-            allowing(parameterConverterStub).convert(commandLineArgs); will(returnValue(startParameter));
+            allowing(parameterConverter).convert(commandLineArgs); will(returnValue(startParameter));
         }});
-        assertThat(new DefaultGradleLauncherFactory(loggingConfigurer, parameterConverterStub).createStartParameter(commandLineArgs),
+
+        assertThat(factory.createStartParameter(commandLineArgs),
             Matchers.sameInstance(startParameter));
     }
 }
