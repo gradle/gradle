@@ -1,0 +1,6 @@
+include 'billing'
+include 'identityManagement'
+include 'reporting'
+
+include 'basicEdition'
+include 'enterpriseEdition'
