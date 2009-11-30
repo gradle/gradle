@@ -22,6 +22,7 @@
 
     <xsl:param name="section.autolabel">0</xsl:param>
     <xsl:param name="chapter.autolabel">0</xsl:param>
+    <xsl:param name="appendix.autolabel">0</xsl:param>
 
     <xsl:template name="output.html.stylesheets">
     </xsl:template>

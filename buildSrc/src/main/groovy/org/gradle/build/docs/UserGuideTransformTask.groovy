@@ -2,6 +2,7 @@ package org.gradle.build.docs
 
 import groovy.xml.MarkupBuilder
 import groovy.xml.dom.DOMCategory
+import groovy.xml.dom.DOMUtil
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import org.gradle.api.DefaultTask
@@ -11,7 +12,6 @@ import org.gradle.api.file.FileCollection
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
-import java.lang.*
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
@@ -67,7 +67,7 @@ public class UserGuideTransformTask extends DefaultTask {
 
         destFile.parentFile.mkdirs()
         destFile.withOutputStream {OutputStream stream ->
-            groovy.xml.dom.DOMUtil.serialize(root, stream)
+            DOMUtil.serialize(root, stream)
         }
     }
 

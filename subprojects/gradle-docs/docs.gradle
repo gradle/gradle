@@ -1,6 +1,6 @@
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
-import org.gradle.build.docs.SampleElementValidator
+import org.gradle.build.docs.AssembleSamplesDocTask
 
 usePlugin('base')
 
@@ -33,15 +33,15 @@ userguideSrcDir = new File(srcDocsDir, 'userguide')
 
 docsDir = file("$buildDir/docs")
 userguideDir = new File(docsDir, 'userguide')
-docbookDir = new File(buildDir, 'docbookStylesheets')
 distDocsDir = new File(buildDir, 'distDocs')
 samplesDir = file("$buildDir/samples")
-docbookSrc = new File(project.buildDir, 'docbookSrc')
+docbookSrc = new File(project.buildDir, 'src/docbook')
 samplesSrcDir = file('src/samples')
 
 tasks.withType(Docbook2Xhtml).allObjects { task->
+    task.dependsOn userguideStyleSheets
     task.classpath = configurations.userGuideTask
-    task.stylesheetsDir = docbookDir
+    task.stylesheetsDir = userguideStyleSheets.destinationDir
 }
 tasks.withType(UserGuideTransformTask).allObjects { task->
     task.classpath = configurations.userGuideTask
@@ -53,6 +53,7 @@ task samples(type: ExtractSnippetsTask) {
     source samplesSrcDir
     exclude 'userguideOutput/**'
     exclude 'userguide/tutorial/antChecksumFiles/**'
+    exclude '**/readme.xml'
     destDir = samplesDir
     snippetsDir = new File(buildDir, 'snippets')
     doLast {
@@ -64,7 +65,34 @@ task samples(type: ExtractSnippetsTask) {
     }
 }
 
-task userguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
+task userguideStyleSheets(type: Copy) {
+    File stylesheetsDir = new File(srcDocsDir, 'stylesheets')
+    into new File(buildDir, 'stylesheets')
+    from(stylesheetsDir) {
+        include '*.xsl'
+    }
+    from(userguideSrcDir) {
+        include 'style.css'
+    }
+    from(zipTree(configurations.userGuideStyleSheets.singleFile)) {
+        // Remove the prefix
+        eachFile { fcd -> fcd.path = fcd.path.replaceFirst('^docbook-xsl-[0-9\\.]+/', '') }
+    }
+}
+
+task samplesDocbook(type: AssembleSamplesDocTask) {
+    source samplesSrcDir
+    include '**/readme.xml'
+    destFile = new File(docbookSrc, 'samplesList.xml')
+}
+
+task samplesDocs(type: Docbook2Xhtml, dependsOn: samplesDocbook) {
+    source samplesDocbook.destFile
+    destFile = new File(samples.destDir, 'readme.html')
+    stylesheetName = 'standaloneHtml.xsl'
+}
+
+task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
     javadocUrl = '../javadoc'
@@ -80,23 +108,8 @@ task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     }
 }
 
-task userguideStyleSheets(type: Copy) {
-    File stylesheetsDir = new File(srcDocsDir, 'stylesheets')
-    into docbookDir
-    from(stylesheetsDir) {
-        include '*.xsl'
-    }
-    from(userguideSrcDir) {
-        include 'style.css'
-    }
-    from(zipTree(configurations.userGuideStyleSheets.singleFile)) {
-        // Remove the prefix
-        eachFile { fcd -> fcd.path = fcd.path.replaceFirst('^docbook-xsl-[0-9\\.]+/', '') }
-    }
-}
-
-task userguideHtml(type: Docbook2Xhtml, dependsOn: [userguideDocbook, userguideStyleSheets]) {
-    sourceFile = userguideDocbook.destFile
+task userguideHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
+    source userguideDocbook.destFile
     destDir = userguideDir
     stylesheetName = 'userGuideHtml.xsl'
     resources = fileTree {
@@ -106,8 +119,8 @@ task userguideHtml(type: Docbook2Xhtml, dependsOn: [userguideDocbook, userguideS
     }
 }
 
-task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: [userguideDocbook, userguideStyleSheets]) {
-    sourceFile = userguideDocbook.destFile
+task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
+    source userguideDocbook.destFile
     destFile = new File(userguideDir, 'userguide_single.html')
     stylesheetName = 'userGuideSingleHtml.xsl'
     resources = fileTree {
@@ -117,9 +130,9 @@ task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: [userguideDocbook, user
     }
 }
 
-task userguideXhtml(type: Docbook2Xhtml, dependsOn: [remoteUserguideDocbook, userguideStyleSheets]) {
-    sourceFile = remoteUserguideDocbook.destFile
-    destFile = new File(docbookSrc, 'userguidePdf.html')
+task userguideXhtml(type: Docbook2Xhtml, dependsOn: remoteUserguideDocbook) {
+    source remoteUserguideDocbook.destFile
+    destFile = new File(buildDir, 'tmp/userguidePdf/userguidePdf.html')
     stylesheetName = 'userGuidePdf.xsl'
     resources = fileTree {
         from userguideSrcDir
@@ -170,22 +183,22 @@ task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideSty
     }
 }
 
-task distDocs(type: Docbook2Xhtml, dependsOn: [userguideFragmentSrc, userguideStyleSheets]) {
-    sourceFile = userguideFragmentSrc.destFile
+task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
+    source userguideFragmentSrc.destFile
     destFile = new File(distDocsDir, 'getting-started.html')
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task websiteDocs(type: Docbook2Xhtml, dependsOn: [userguideFragmentSrc, userguideStyleSheets]) {
+task websiteDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
     File websiteDocs = new File(buildDir, 'websiteDocs')
-    sourceFile = userguideFragmentSrc.destFile
+    source userguideFragmentSrc.destFile
     destFile = new File(websiteDocs, 'getting-started.html')
     stylesheetName = 'docFragment.xsl'
 }
 
 task userguide(dependsOn: [userguideHtml, userguideSingleHtml, userguidePdf], description: 'Generates the userguide')
 
-task docs(dependsOn: [javadoc, groovydoc, userguide, distDocs])
+task docs(dependsOn: [javadoc, groovydoc, userguide, distDocs, samplesDocs])
 
 task uploadDocs(dependsOn: docs) << {
     ftp(action: 'mkdir', remotedir: remoteLocations.docsRemoteDir)
@@ -238,12 +251,9 @@ class RemoteLocations {
     }
 }
 
-class Docbook2Xhtml extends DefaultTask {
+class Docbook2Xhtml extends SourceTask {
     @InputFiles
     FileCollection classpath
-
-    @InputFile
-    File sourceFile
 
     @OutputFile @Optional
     File destFile
@@ -264,24 +274,36 @@ class Docbook2Xhtml extends DefaultTask {
         if (!((destFile != null) ^ (destDir != null))) {
             throw new InvalidUserDataException("Must specify exactly 1 of output file or dir.")
         }
-        ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
-            jvmarg(value: '-Xmx256m')
-            arg(value: '-in')
-            arg(value: sourceFile)
-            if (destFile) {
-                arg(value: '-out')
-                arg(value: destFile)
+
+        source.visit { FileVisitDetails fvd ->
+            if (fvd.isDirectory()) {
+                return
             }
-            arg(value: '-xsl')
-            arg(value: new File(stylesheetsDir, stylesheetName))
-            if (destDir) {
-                arg(line: "-param base.dir ${destDir}/")
-            }
-            sysproperty(key: 'xslthl.config', value: new File("$stylesheetsDir/highlighting/xslthl-config.xml").toURI())
-            sysproperty(key: 'org.apache.xerces.xni.parser.XMLParserConfiguration', value: 'org.apache.xerces.parsers.XIncludeParserConfiguration')
-            classpath {
-                path(path: classpath.asPath)
-                path(location: new File(stylesheetsDir, 'extensions/xalan27.jar'))
+
+            ant.java(classname: 'org.apache.xalan.xslt.Process', failonerror: true, fork: true) {
+                jvmarg(value: '-Xmx256m')
+                arg(value: '-in')
+                arg(value: fvd.file)
+                if (destFile) {
+                    arg(value: '-out')
+                    arg(value: destFile)
+                } else {
+                    arg(value: '-out')
+                    File outFile = fvd.relativePath.replaceLastName(fvd.file.name.replaceAll('.xml$', '.html')).getFile(destDir)
+                    outFile.parentFile.mkdirs()
+                    arg(value: outFile)
+                }
+                arg(value: '-xsl')
+                arg(value: new File(stylesheetsDir, stylesheetName))
+                if (destDir) {
+                    arg(line: "-param base.dir ${destDir}/")
+                }
+                sysproperty(key: 'xslthl.config', value: new File("$stylesheetsDir/highlighting/xslthl-config.xml").toURI())
+                sysproperty(key: 'org.apache.xerces.xni.parser.XMLParserConfiguration', value: 'org.apache.xerces.parsers.XIncludeParserConfiguration')
+                classpath {
+                    path(path: classpath.asPath)
+                    path(location: new File(stylesheetsDir, 'extensions/xalan27.jar'))
+                }
             }
         }
 

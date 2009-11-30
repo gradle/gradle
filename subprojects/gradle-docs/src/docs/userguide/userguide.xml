@@ -73,6 +73,8 @@
     <xi:include href='initscripts.xml'/>
     <xi:include href='gradleWrapper.xml'/>
     <xi:include href='embedding.xml'/>
+    <!-- this is generated -->
+    <xi:include href='../../../build/src/docbook/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>
     <xi:include href='commandLine.xml'/>
     <xi:include href='ideSupport.xml'/>

@@ -22,8 +22,7 @@ class ProductPlugin implements Plugin {
             configurations {
                 runtime
             }
-            tasks.add(name: 'dist', type: Zip) {
-            }
+            tasks.add(name: 'dist', type: Zip)
 
             afterEvaluate {
                 ProductDefinition product = pluginConvention.product
