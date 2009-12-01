@@ -44,6 +44,10 @@ class DomBuilder extends BuilderSupport {
     def appendChild(Node node) {
         current.appendChild(document.importNode(node, true))
     }
+
+    def text(String text) {
+        current.appendChild(document.createTextNode(text))
+    }
 }
 
 

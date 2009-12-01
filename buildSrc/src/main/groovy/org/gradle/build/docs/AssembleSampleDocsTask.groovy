@@ -18,66 +18,87 @@ class AssembleSamplesDocTask extends SourceTask {
     @TaskAction
     def generate() {
         List samples = []
+        use(DOMCategory) {
 
-        source.visit {FileVisitDetails fvd ->
-            if (fvd.isDirectory()) {
-                return
-            }
+            // Collect up the source sample.xml files
+            source.visit {FileVisitDetails fvd ->
+                if (fvd.isDirectory()) {
+                    return
+                }
 
-            Element sourceDoc;
-            fvd.file.withReader {Reader reader ->
-                sourceDoc = DOMBuilder.parse(reader).documentElement
-            }
+                Element sourceDoc;
+                fvd.file.withReader {Reader reader ->
+                    sourceDoc = DOMBuilder.parse(reader).documentElement
+                }
 
-            use(DOMCategory) {
-                Element titleElement = sourceDoc.title[0]
+                Element firstPara = sourceDoc.para[0]
+                if (!firstPara) {
+                    throw new RuntimeException("Source file $fvd.file does not contain any <para> elements.")
+                }
                 samples << [
                         dir: fvd.relativePath.parent as String,
-                        title: titleElement.textContent,
+                        firstPara: firstPara,
                         doc: sourceDoc,
                         include: sourceDoc['*'].size() > 1
                 ]
             }
-        }
 
-        samples = samples.sort { it.dir }
+            samples = samples.sort { it.dir }
 
-        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
 
-        DomBuilder builder = new DomBuilder(doc)
-        builder.appendix {
-            title('Gradle Samples')
-            para('Listed below are some of the stand-alone samples which are included in the Gradle distribution.')
-            variablelist {
-                samples.each {sample ->
-                    varlistentry {
-                        term {
-                            if (sample.include) {
-                                link(linkend: sample.hashCode()) { filename(sample.dir) }
-                            } else {
-                                filename(sample.dir)
+            DomBuilder builder = new DomBuilder(doc)
+            builder.appendix(id: 'sample_list') {
+                title('Gradle Samples')
+                para {
+                    text('Listed below are some of the stand-alone samples which are included in the Gradle distribution. ')
+                    text('You can find these samples in the ')
+                    filename {
+                        replaceable('GRADLE_HOME')
+                        text('/samples')
+                    }
+                    text(' directory of the distribution.')
+                }
+                table {
+                    title('Samples included in the distribution')
+                    thead {
+                        td('Sample')
+                        td('Description')
+                    }
+                    samples.each {sample ->
+                        tr {
+                            td {
+                                if (sample.include) {
+                                    link(linkend: sample.hashCode()) { filename(sample.dir) }
+                                } else {
+                                    filename(sample.dir)
+                                }
+                            }
+                            td {
+                                appendChild sample.firstPara
                             }
                         }
-                        listitem {
-                            para(sample.title)
+                    }
+                }
+                samples.each {sample ->
+                    if (!sample.include) {
+                        return
+                    }
+                    section(id: sample.hashCode()) {
+                        title {
+                            text('Sample ')
+                            filename(sample.dir)
+                        }
+                        sample.doc.childNodes.each {n ->
+                            appendChild n
                         }
                     }
                 }
             }
-            samples.each { sample ->
-                if (!sample.include) {
-                    return
-                }
-                section(id: sample.hashCode()) {
-                    sample.doc.childNodes.each { n ->
-                        builder.appendChild(n)
-                    }
-                }
-            }
-        }
 
-        destFile.withOutputStream {OutputStream stream ->
-            DOMUtil.serialize(doc.documentElement, stream)
+            destFile.withOutputStream {OutputStream stream ->
+                DOMUtil.serialize(doc.documentElement, stream)
+            }
         }
     }
 }
