@@ -13,8 +13,6 @@ import org.apache.ivy.plugins.resolver.*
  * Uploading distributions to Gradle's release and snapshot repository at codehaus: codehausUserName, codehausUserPassword
  * Uploading the userguide and the javadoc to Gradle's website: websiteFtpUserName, websiteFtpUserPassword
  * Using the build to create a new distribution and install it on the local machine: gradle_installPath
- * Creating a JDK-1.4 compatible distribution with retro-translator: gradle_retroLibsDir (This dir should contain rt.jar, jce.jar and jsse.jar from
- * a JDK 1.4).
  */
 
 version = new Version(project)
@@ -116,7 +114,6 @@ configurations {
     runtime {
         visible = false
     }
-    retrotranslatorAntTask
     testRuntime {
         extendsFrom runtime
     }
@@ -126,9 +123,6 @@ dependencies {
     groovyProjects().each {
         runtime project(path: it.path)
     }
-
-    retrotranslatorAntTask 'net.sf.retrotranslator:retrotranslator-runtime:1.2.7@jar', 'net.sf.retrotranslator:retrotranslator-transformer:1.2.7@jar',
-            'backport-util-concurrent:backport-util-concurrent:3.1@jar'
 }
 
 evaluationDependsOn(':docs')
@@ -206,46 +200,6 @@ task srcZip(type: Zip) {
             include 'gradle.properties'
             include 'wrapper/'
             include 'gradlew.bat'
-        }
-    }
-}
-
-task translateLibsTo14(type: TranslateLibsTo14) {
-    if (project.hasProperty('gradle_retroLibsDir')) {
-        toolClasspath = file(project.gradle_retroLibsDir)
-    } else {
-        onlyIf { false }
-    }
-    translatedLibsDir = new File(distsDir, 'retroLibs')
-    libs = configurations.runtime
-    libsToTranslate = ['logback-core', 'logback-classic', 'gradle-', 'gradle-wrapper']
-
-}
-
-task jdk14AllZip(type: Zip, dependsOn: [translateLibsTo14, 'launcher:startScripts']) {
-    onlyIf { project.hasProperty('gradle_retroLibsDir') }
-    classifier = 'all-jdk14'
-    into(zipRootFolder) {
-        from 'src/toplevel'
-        from project(':docs').distDocs.destFile
-        into('bin') {
-            from startScriptsDir
-            fileMode = 0755
-        }
-        into('lib') {
-            from translateLibsTo14.translatedLibsDir
-            from configurations.retrotranslatorAntTask
-        }
-        into('src') {
-            groovyProjects().each {project ->
-                from project.sourceSets.main.allSource
-            }
-        }
-        into('docs') {
-            from project(':docs').docsDir
-        }
-        into('samples') {
-            from project(':docs').samplesDir
         }
     }
 }
@@ -431,55 +385,6 @@ class Version {
             'https://dav.codehaus.org/dist/gradle'
         } else {
             'https://dav.codehaus.org/snapshots.dist/gradle'
-        }
-    }
-}
-
-class TranslateLibsTo14 extends DefaultTask {
-    @OutputDirectory
-    File translatedLibsDir
-
-    @InputFiles
-    FileCollection libs
-
-    File toolClasspath
-
-    List libsToTranslate = []
-
-    @org.gradle.api.tasks.TaskAction
-    void retroTranslate() {
-        translatedLibsDir.mkdirs()
-        project.ant {
-            taskdef(name: "retrotranslator", classname: "net.sf.retrotranslator.transformer.RetrotranslatorTask",
-                    classpath: this.project.configurations.retrotranslatorAntTask.asPath)
-            List libFiles = libs as List
-            List retroFiles = libsToTranslate.collect {String fileName ->
-                libFiles.find { it.name.startsWith(fileName) }
-            }
-            retroFiles.each {File file ->
-                retroExe(file) {
-                    fileset(dir: translatedLibsDir)
-                    libs.addToAntBuilder(delegate)
-                    fileset(dir: toolClasspath)
-                }
-            }
-            copy {
-                from libFiles - retroFiles
-                into translatedLibsDir
-            }
-        }
-    }
-
-    void retroExe(File file, Closure fileSet) {
-        project.ant {
-            retrotranslator(target: "1.4", destjar: new File(translatedLibsDir, file.name), smart: true, verify: false, failonwarning: false) {
-                jarfileset(dir: file.parentFile, includes: file.name)
-                classpath() {
-                    fileset(dir: toolClasspath)
-                    fileSet.delegate = delegate
-                    fileSet()
-                }
-            }
         }
     }
 }
