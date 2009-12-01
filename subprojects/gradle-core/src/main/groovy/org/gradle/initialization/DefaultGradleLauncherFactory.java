@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
@@ -60,6 +61,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     public GradleLauncher newInstance(StartParameter startParameter) {
         ListenerManager listenerManager = new DefaultListenerManager();
         loggingConfigurer.configure(startParameter.getLogLevel());
+
+        //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.
+        loggingConfigurer.addStandardOutputListener( listenerManager.getBroadcaster( StandardOutputListener.class ) );
+        loggingConfigurer.addStandardErrorListener( listenerManager.getBroadcaster( StandardOutputListener.class ) );
 
         listenerManager.useLogger(new TaskExecutionLogger(Logging.getLogger(TaskExecutionLogger.class)));
         listenerManager.addListener(tracker);
