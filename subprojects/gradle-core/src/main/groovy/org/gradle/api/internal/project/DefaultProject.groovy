@@ -77,7 +77,8 @@ class DefaultProject extends AbstractProject {
 
     public Iterable configure(Iterable objects, Closure configureClosure) {
         objects.each {
-            ConfigureUtil.configure(configureClosure, it)
+            Closure closureCopy = configureClosure.clone()
+            ConfigureUtil.configure(closureCopy, it)
         }
         objects
     }

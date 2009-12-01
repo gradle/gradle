@@ -376,8 +376,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private Action<Task> convertClosureToAction(Closure actionClosure) {
-        actionClosure.setDelegate(getProject());
-        actionClosure.setResolveStrategy(Closure.OWNER_FIRST);
+        actionClosure.setDelegate(this);
+        actionClosure.setResolveStrategy(Closure.DELEGATE_FIRST);
         return new ClosureTaskAction(actionClosure);
     }
 
