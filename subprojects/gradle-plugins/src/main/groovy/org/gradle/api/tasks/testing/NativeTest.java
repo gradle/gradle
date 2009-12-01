@@ -77,11 +77,11 @@ public class NativeTest extends AbstractTestTask {
         ((LocalSimpleForkPolicyConfig) defaultPipelineConfig.getForkPolicyConfig()).setAmountToStart(
                 amountOfForksToStart);
 
-        ReforkItemConfigs reforkItemConfigs = null;
+        ReforkReasonConfigs reforkReasonConfigs = null;
 
         if (reforkEvery >= 1) {
-            if (reforkItemConfigs == null) {
-                reforkItemConfigs = new ReforkItemConfigs();
+            if (reforkReasonConfigs == null) {
+                reforkReasonConfigs = new ReforkReasonConfigs();
             }
 
             final AmountOfTestCasesConfig reforkEveryConfig = (AmountOfTestCasesConfig) ReforkReasonRegister
@@ -89,12 +89,12 @@ public class NativeTest extends AbstractTestTask {
 
             reforkEveryConfig.setReforkEvery(reforkEvery);
 
-            reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TESTCASES, reforkEveryConfig);
+            reforkReasonConfigs.addOrUpdateReforkReasonConfig(reforkEveryConfig);
         }
 
         if (lowMemoryThreshold > 0) {
-            if (reforkItemConfigs == null) {
-                reforkItemConfigs = new ReforkItemConfigs();
+            if (reforkReasonConfigs == null) {
+                reforkReasonConfigs = new ReforkReasonConfigs();
             }
 
             final ForkMemoryLowConfig forkMemoryLowConfig = (ForkMemoryLowConfig) ReforkReasonRegister.getReforkReason(
@@ -102,11 +102,11 @@ public class NativeTest extends AbstractTestTask {
 
             forkMemoryLowConfig.setMemoryLowThreshold(lowMemoryThreshold);
 
-            reforkItemConfigs.addItemConfig(ReforkReasons.FORK_MEMORY_LOW, forkMemoryLowConfig);
+            reforkReasonConfigs.addOrUpdateReforkReasonConfig(forkMemoryLowConfig);
         }
 
-        if (reforkItemConfigs != null) {
-            defaultPipelineConfig.setReforkItemConfigs(reforkItemConfigs);
+        if (reforkReasonConfigs != null) {
+            defaultPipelineConfig.setReforkReasonConfigs(reforkReasonConfigs);
         }
 
         final TestOrchestrator orchestrator = new TestOrchestrator(this);

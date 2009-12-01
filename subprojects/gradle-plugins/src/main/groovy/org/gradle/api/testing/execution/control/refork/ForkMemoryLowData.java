@@ -36,6 +36,10 @@ public class ForkMemoryLowData implements Serializable {
     }
 
     public void setTotalMemory(long totalMemory) {
+        if ( totalMemory <= 0 ) {
+            throw new IllegalArgumentException("totalMemory can't be lower or equal to zero!");
+        }
+
         this.totalMemory = totalMemory;
     }
 
@@ -44,6 +48,10 @@ public class ForkMemoryLowData implements Serializable {
     }
 
     public void setMaxMemory(long maxMemory) {
+        if ( maxMemory <= 0 ) {
+            throw new IllegalArgumentException("maxMemory can't be lower or equal to zero!");
+        }
+
         this.maxMemory = maxMemory;
     }
 
@@ -52,6 +60,10 @@ public class ForkMemoryLowData implements Serializable {
     }
 
     public void setFreeMemory(long freeMemory) {
+        if ( freeMemory < 0 ) {
+            throw new IllegalArgumentException("freeMemory can't be lower than zero!");
+        }
+
         this.freeMemory = freeMemory;
     }
 
@@ -61,7 +73,7 @@ public class ForkMemoryLowData implements Serializable {
             return 0;
         }
         else {
-            return ((double) freeMemory / maxMemory) * 100;
+            return ((double) (maxMemory-freeMemory) / maxMemory) * 100;
         }
     }
 

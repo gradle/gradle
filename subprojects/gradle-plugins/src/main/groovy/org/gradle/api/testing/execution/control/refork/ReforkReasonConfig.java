@@ -22,6 +22,8 @@ import java.io.Serializable;
  */
 public interface ReforkReasonConfig extends Serializable {
 
+    ReforkReasonKey getKey();
+
     /**
      *
      * Each implementation of this interface should have the following methods to control serialization: 

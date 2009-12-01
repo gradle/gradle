@@ -15,23 +15,30 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
-import org.gradle.api.Project;
 import org.gradle.api.testing.execution.Pipeline;
-import org.gradle.api.tasks.testing.NativeTest;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 /**
  * @author Tom Eyckmans
  */
-public class ForkMemoryLowDataProcessor implements ReforkReasonDataProcessor {
+public class ForkMemoryLowDataProcessor extends ReforkReasonKeyLink implements ReforkReasonDataProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ForkMemoryLowDataProcessor.class);
 
-    private double lowMemoryThreshold = -1;
+    private double memoryLowThreshold = -1;
 
-    public void configure(Project project, NativeTest testTask) {
-        lowMemoryThreshold = testTask.getLowMemoryThreshold();
+    public ForkMemoryLowDataProcessor(ReforkReasonKey key) {
+        super(key);
+    }
+
+    public void configure(ReforkReasonConfig config) {
+        if ( config == null ) {
+            throw new IllegalArgumentException("config can't be null!");
+        }
+        final ForkMemoryLowConfig typedConfig = (ForkMemoryLowConfig) config;
+
+        memoryLowThreshold = typedConfig.getMemoryLowThreshold();
     }
 
     public boolean determineReforkNeeded(Pipeline pipeline, int forkId, Object decisionContextItemData) {
@@ -39,13 +46,17 @@ public class ForkMemoryLowDataProcessor implements ReforkReasonDataProcessor {
 
         boolean restartNeeded = false;
 
-        if ( lowMemoryThreshold > 0 ) {
-            restartNeeded = currentData.getCurrentUsagePercentage() > lowMemoryThreshold;
+        if ( memoryLowThreshold > 0 ) {
+            final double currentUsagePercentage = currentData.getCurrentUsagePercentage();
+
+            restartNeeded = currentUsagePercentage > memoryLowThreshold;
 
             if ( restartNeeded ) {
+                final String pipelineName = pipeline.getName();
+
                 LOGGER.debug("pipeline {}, fork {} : totalMemory = {}, maxMemory = {}, freeMemory = {}",
                         new Object[]{
-                                pipeline.getName(),
+                                pipelineName,
                                 forkId,
                                 currentData.getTotalMemory(),
                                 currentData.getMaxMemory(),
@@ -53,13 +64,20 @@ public class ForkMemoryLowDataProcessor implements ReforkReasonDataProcessor {
                         });
                 LOGGER.info("pipeline {}, fork {} : restart needed, memory usage percentage of fork is {}",
                         new Object[]{
-                                pipeline.getName(),
+                                pipelineName,
                                 forkId,
-                                currentData.getCurrentUsagePercentage()
+                                currentUsagePercentage
                         });
             }
         }
 
         return restartNeeded;
+    }
+
+    /*
+    From this point on methods are for test purposes only.
+     */
+    double getMemoryLowThreshold() {
+        return memoryLowThreshold;
     }
 }

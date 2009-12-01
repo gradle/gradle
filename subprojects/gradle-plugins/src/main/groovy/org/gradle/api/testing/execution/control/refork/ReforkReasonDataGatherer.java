@@ -24,7 +24,7 @@ import java.util.List;
  * @author Tom Eyckmans
  */
 public interface ReforkReasonDataGatherer {
-    ReforkReasonKey getItemKey();
+    ReforkReasonKey getKey();
 
     /**
      * Allows the data gatherer to initialize itself.

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.execution.control.messages.server;
 
-import org.gradle.api.testing.execution.control.refork.ReforkItemConfigs;
+import org.gradle.api.testing.execution.control.refork.ReforkReasonConfigs;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -27,7 +27,7 @@ import java.io.ObjectOutputStream;
 public class InitializeActionMessage extends AbstractTestServerControlMessage {
 
     private String testFrameworkId;
-    private ReforkItemConfigs reforkItemConfigs;
+    private ReforkReasonConfigs reforkReasonConfigs;
 
     public InitializeActionMessage(int pipelineId) {
         super(pipelineId);
@@ -41,21 +41,21 @@ public class InitializeActionMessage extends AbstractTestServerControlMessage {
         this.testFrameworkId = testFrameworkId;
     }
 
-    public ReforkItemConfigs getReforkItemConfigs() {
-        return reforkItemConfigs;
+    public ReforkReasonConfigs getReforkItemConfigs() {
+        return reforkReasonConfigs;
     }
 
-    public void setReforkItemConfigs(ReforkItemConfigs reforkItemConfigs) {
-        this.reforkItemConfigs = reforkItemConfigs;
+    public void setReforkItemConfigs(ReforkReasonConfigs reforkReasonConfigs) {
+        this.reforkReasonConfigs = reforkReasonConfigs;
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeUTF(testFrameworkId);
-        out.writeObject(reforkItemConfigs);
+        out.writeObject(reforkReasonConfigs);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         testFrameworkId = in.readUTF();
-        reforkItemConfigs = (ReforkItemConfigs) in.readObject();
+        reforkReasonConfigs = (ReforkReasonConfigs) in.readObject();
     }
 }

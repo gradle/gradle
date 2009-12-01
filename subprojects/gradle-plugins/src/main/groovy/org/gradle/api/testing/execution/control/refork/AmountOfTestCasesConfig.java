@@ -15,18 +15,21 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+
 /**
  * @author Tom Eyckmans
  */
-public class AmountOfTestCasesConfig implements ReforkReasonConfig {
+public class AmountOfTestCasesConfig extends ReforkReasonKeyLink implements ReforkReasonConfig {
 
-    private long reforkEvery = -1;
+    static final long DEFAULT_REFORK_EVERY = -1;
 
-    public AmountOfTestCasesConfig() {
-    }
+    private long reforkEvery = DEFAULT_REFORK_EVERY;
 
-    public AmountOfTestCasesConfig(long reforkEvery) {
-        setReforkEvery(reforkEvery);
+    public AmountOfTestCasesConfig(ReforkReasonKey reforkReasonKey) {
+        super(reforkReasonKey);
     }
 
     public long getReforkEvery() {
@@ -39,5 +42,13 @@ public class AmountOfTestCasesConfig implements ReforkReasonConfig {
         }
 
         this.reforkEvery = reforkEvery;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeLong(reforkEvery);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        reforkEvery = in.readLong();
     }
 }

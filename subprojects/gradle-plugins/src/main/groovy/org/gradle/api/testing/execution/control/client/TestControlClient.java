@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.execution.control.client;
 
-import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
+import org.gradle.api.testing.execution.control.refork.ReforkContextData;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
 
 /**
@@ -28,5 +28,5 @@ public interface TestControlClient {
     void reportStopped();
 
     void requestNextControlMessage(TestClassProcessResult previousProcessTestResult,
-                                   ReforkDecisionContext reforkDecisionContext);
+                                   ReforkContextData reforkContextData);
 }

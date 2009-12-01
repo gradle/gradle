@@ -81,7 +81,7 @@ public class PipelinesManager {
             pipeline.getForkPolicyInstance().initialize();
 
             // initialize refork controller
-            pipeline.getReforkController().initialize(testTask, pipelineConfig);
+            pipeline.getReforkController().initialize(pipeline);
         }
     }
 

@@ -21,9 +21,10 @@ import org.gradle.api.testing.execution.control.messages.server.ExecuteTestActio
 import org.gradle.api.testing.execution.control.messages.server.InitializeActionMessage;
 import org.gradle.api.testing.execution.control.messages.server.StopForkActionMessage;
 import org.gradle.api.testing.execution.control.messages.server.WaitActionMesssage;
-import org.gradle.api.testing.execution.control.refork.ReforkDataGatherControl;
-import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
-import org.gradle.api.testing.execution.control.refork.ReforkItemConfigs;
+import org.gradle.api.testing.execution.control.refork.DefaultDataGatherControl;
+import org.gradle.api.testing.execution.control.refork.ReforkContextData;
+import org.gradle.api.testing.execution.control.refork.ReforkReasonConfigs;
+import org.gradle.api.testing.execution.control.refork.DataGatherControl;
 import org.gradle.api.testing.fabric.*;
 import org.gradle.util.ThreadUtils;
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public class TestControlMessageDispatcher {
 
     private final ExecutorService threadPool;
     private TestProcessorFactory testProcessorFactory;
-    private ReforkDataGatherControl reforkDataGatherControl;
+    private DataGatherControl dataGatherControl;
     private TestProcessResultFactory testProcessResultFactory;
 
     public TestControlMessageDispatcher(TestControlClient testControlClient, ClassLoader sandboxClassLoader) {
@@ -63,7 +64,7 @@ public class TestControlMessageDispatcher {
             final TestProcessor testProcessor = testProcessorFactory.createProcessor();
 
             final TestProcessorRunnable testProcessorRunnable = new TestProcessorRunnable(this, testProcessor, testInfo,
-                    reforkDataGatherControl, testProcessResultFactory);
+                    dataGatherControl, testProcessResultFactory);
 
             threadPool.submit(testProcessorRunnable);
         } else if (testControlMessage instanceof WaitActionMesssage) {
@@ -86,11 +87,11 @@ public class TestControlMessageDispatcher {
             final InitializeActionMessage initMessage = (InitializeActionMessage) testControlMessage;
 
             final String testFrameworkId = initMessage.getTestFrameworkId();
-            final ReforkItemConfigs reforkItemConfigs = initMessage.getReforkItemConfigs();
+            final ReforkReasonConfigs reforkReasonConfigs = initMessage.getReforkItemConfigs();
 
-            reforkDataGatherControl = new ReforkDataGatherControl();
+            dataGatherControl = new DefaultDataGatherControl();
 
-            reforkDataGatherControl.initialize(reforkItemConfigs);
+            dataGatherControl.initialize(reforkReasonConfigs);
 
             final TestFramework testFramework = TestFrameworkRegister.getTestFramework(testFrameworkId);
             testProcessorFactory = testFramework.getProcessorFactory();
@@ -105,9 +106,9 @@ public class TestControlMessageDispatcher {
     }
 
     public void actionExecuted(TestClassProcessResult previousProcessTestResult,
-                               ReforkDecisionContext reforkDecisionContext) {
+                               ReforkContextData reforkContextData) {
         if (!exitReceived.get()) {
-            testControlClient.requestNextControlMessage(previousProcessTestResult, reforkDecisionContext);
+            testControlClient.requestNextControlMessage(previousProcessTestResult, reforkContextData);
         }
     }
 }

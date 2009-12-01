@@ -17,30 +17,22 @@ package org.gradle.api.testing.execution.control.refork;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Data gatherer that counts the amount of tests that have been executed by the fork it is instanciated in.
  *
  * @author Tom Eyckmans
  */
-public class AmountOfTestCasesDataGatherer implements ReforkReasonDataGatherer {
+public class AmountOfTestCasesDataGatherer extends ReforkReasonKeyLink implements ReforkReasonDataGatherer {
 
     private static final List<DataGatherMoment> DATA_GATHER_MOMENTS = Arrays.asList(
             DataGatherMoment.AFTER_TEST_EXECUTION);
 
     private long reforkEvery = -1;
-    private AtomicLong amountOfTestsExecutedByFork;
+    private long amountOfTestsExecutedByFork = 0;
 
-    /**
-     * Default constructor.
-     */
-    public AmountOfTestCasesDataGatherer() {
-        amountOfTestsExecutedByFork = new AtomicLong(0);
-    }
-
-    public ReforkReasonKey getItemKey() {
-        return ReforkReasons.AMOUNT_OF_TESTCASES;
+    public AmountOfTestCasesDataGatherer(ReforkReasonKey reforkReasonKey) {
+        super(reforkReasonKey);
     }
 
     /**
@@ -49,9 +41,15 @@ public class AmountOfTestCasesDataGatherer implements ReforkReasonDataGatherer {
      * @param config Item configuration.
      */
     public void configure(ReforkReasonConfig config) {
-        reforkEvery = ((AmountOfTestCasesConfig) config).getReforkEvery();
+        if ( config == null ) {
+            throw new IllegalArgumentException("config can't be null!");
+        }
 
-        this.amountOfTestsExecutedByFork = new AtomicLong(0);
+        final AmountOfTestCasesConfig typedConfig = (AmountOfTestCasesConfig) config;
+
+        reforkEvery = typedConfig.getReforkEvery();
+
+        this.amountOfTestsExecutedByFork = 0;
     }
 
     /**
@@ -70,13 +68,27 @@ public class AmountOfTestCasesDataGatherer implements ReforkReasonDataGatherer {
      * @param momentData Variable size array of Objects, the amount of data depends on the data gather moment.
      */
     public boolean processDataGatherMoment(DataGatherMoment moment, Object... momentData) {
-        return reforkEvery >= 1 && amountOfTestsExecutedByFork.incrementAndGet() % reforkEvery == 0;
+        boolean dataSendNeeded = false;
+
+        amountOfTestsExecutedByFork++;
+
+        if ( reforkEvery >= 1 ) {
+            final int dataSendNeededCheck = Math.round(amountOfTestsExecutedByFork % reforkEvery);
+
+            dataSendNeeded = (dataSendNeededCheck == 0);
+        }
+
+        return dataSendNeeded;
     }
 
     /**
      * @return The current data value.
      */
     public Long getCurrentData() {
-        return amountOfTestsExecutedByFork.get();
+        return amountOfTestsExecutedByFork;
+    }
+
+    long getReforkEvery() {
+        return reforkEvery;
     }
 }

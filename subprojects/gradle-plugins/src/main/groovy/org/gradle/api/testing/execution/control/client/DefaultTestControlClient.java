@@ -25,7 +25,7 @@ import org.gradle.api.testing.execution.control.messages.TestControlMessage;
 import org.gradle.api.testing.execution.control.messages.client.ForkStartedMessage;
 import org.gradle.api.testing.execution.control.messages.client.ForkStoppedMessage;
 import org.gradle.api.testing.execution.control.messages.client.NextActionRequestMessage;
-import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
+import org.gradle.api.testing.execution.control.refork.ReforkContextData;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
 import org.gradle.util.queues.BlockingQueueItemProducer;
 
@@ -92,11 +92,14 @@ public class DefaultTestControlClient implements TestControlClient {
     }
 
     public void requestNextControlMessage(TestClassProcessResult previousProcessTestResult,
-                                          ReforkDecisionContext reforkDecisionContext) {
+                                          ReforkContextData reforkContextData) {
         final NextActionRequestMessage nextActionRequestMessage = new NextActionRequestMessage(forkId);
 
         nextActionRequestMessage.setPreviousProcessedTestResult(previousProcessTestResult);
-        nextActionRequestMessage.setReforkDecisionContext(reforkDecisionContext);
+        
+        if ( !reforkContextData.isEmpty() ) {
+            nextActionRequestMessage.setReforkDecisionContext(reforkContextData);
+        }
 
         ioSession.write(nextActionRequestMessage);
     }

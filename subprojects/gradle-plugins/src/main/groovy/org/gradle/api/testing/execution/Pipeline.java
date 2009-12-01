@@ -16,8 +16,8 @@
 package org.gradle.api.testing.execution;
 
 import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.api.testing.execution.control.refork.ReforkController;
-import org.gradle.api.testing.execution.control.refork.ReforkControllerImpl;
+import org.gradle.api.testing.execution.control.refork.ReforkControl;
+import org.gradle.api.testing.execution.control.refork.DefaultReforkControl;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.reporting.Report;
@@ -42,7 +42,7 @@ public class Pipeline {
     private final PipelineConfig config;
     private ForkPolicyInstance forkPolicyInstance;
     private PipelineDispatcher dispatcher;
-    private final ReforkController reforkController;
+    private final ReforkControl reforkControl;
     private final AtomicBoolean pipelineSplittingEnded = new AtomicBoolean(Boolean.FALSE);
     private List<Report> reports;
     private List<PipelineListener> listeners;
@@ -68,7 +68,7 @@ public class Pipeline {
         this.runInfoQueue = new ArrayBlockingQueue<TestClassRunInfo>(1000);
         this.runInfoQueueProducer = new BlockingQueueItemProducer<TestClassRunInfo>(runInfoQueue, 100L,
                 TimeUnit.MILLISECONDS);
-        this.reforkController = new ReforkControllerImpl();
+        this.reforkControl = new DefaultReforkControl();
         this.reports = new ArrayList<Report>();
         this.listeners = new ArrayList<PipelineListener>();
     }
@@ -107,8 +107,8 @@ public class Pipeline {
         return dispatcher;
     }
 
-    public ReforkController getReforkController() {
-        return reforkController;
+    public ReforkControl getReforkController() {
+        return reforkControl;
     }
 
     public ForkPolicyInstance getForkPolicyInstance() {

@@ -16,21 +16,32 @@
 package org.gradle.api.testing.execution.control.refork;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 /**
  * @author Tom Eyckmans
  */
-public interface ReforkDecisionContext extends Serializable {
+public abstract class ReforkReasonKeyLink implements Serializable {
 
-    List<ReforkReasonKey> getItemKeys();
+    private ReforkReasonKey key;
 
-    Map<ReforkReasonKey, Object> getItemData();
+    protected ReforkReasonKeyLink(ReforkReasonKey key) {
+        if ( key == null ) { throw new IllegalArgumentException("key can't be null!"); }
 
-    void addItem(ReforkReasonKey itemKey, Object itemData);
+        this.key = key;
+    }
 
-    Object getData(ReforkReasonKey itemKey);
+    public ReforkReasonKey getKey() {
+        return key;
+    }
 
-    boolean isEmpty();
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeObject(key);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        key = (ReforkReasonKey) in.readObject();
+    }
 }

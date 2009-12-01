@@ -15,16 +15,18 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
-import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.api.testing.execution.PipelineConfig;
-import org.gradle.api.testing.execution.Pipeline;
+import org.junit.Before;
 
 /**
  * @author Tom Eyckmans
  */
-public interface ReforkController {
+public class ForkMemoryLowReforkReasonTest extends AbstractReforkReasonTest {
 
-    void initialize(NativeTest testTask, PipelineConfig pipelineConfig);
+    @Before
+    public void setUp() throws Exception
+    {
+        key = ReforkReasons.FORK_MEMORY_LOW;
+        reforkReason = new ForkMemoryLowReforkReason();
+    }
 
-    boolean reforkNeeded(Pipeline pipeline, int forkId, ReforkDecisionContext reforkDecisionContext);
 }

@@ -15,23 +15,31 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
-import org.gradle.api.Project;
 import org.gradle.api.testing.execution.Pipeline;
-import org.gradle.api.tasks.testing.NativeTest;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 /**
  * @author Tom Eyckmans
  */
-public class AmountOfTestCasesDataProcessor implements ReforkReasonDataProcessor {
+public class AmountOfTestCasesDataProcessor extends ReforkReasonKeyLink implements ReforkReasonDataProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AmountOfTestCasesDataProcessor.class);
 
-    private long reforkEveryThisAmountOfTests = Long.MAX_VALUE; // Long.MAX_VALUE ~ fork once.
+    private long reforkEvery = Long.MAX_VALUE; // Long.MAX_VALUE ~ fork once.
 
-    public void configure(Project project, NativeTest testTask) {
-        reforkEveryThisAmountOfTests = testTask.getReforkEvery();
+    public AmountOfTestCasesDataProcessor(ReforkReasonKey key) {
+        super(key);
+    }
+
+    public void configure(ReforkReasonConfig config) {
+        if ( config == null ) {
+            throw new IllegalArgumentException("config can't be null!");
+        }
+
+        final AmountOfTestCasesConfig typedConfig = (AmountOfTestCasesConfig) config;
+
+        reforkEvery = typedConfig.getReforkEvery();
     }
 
     /**
@@ -43,7 +51,7 @@ public class AmountOfTestCasesDataProcessor implements ReforkReasonDataProcessor
     public boolean determineReforkNeeded(Pipeline pipeline, int forkId, Object decisionContextItemData) {
         final Long amountOfTestsExecutedByFork = (Long) decisionContextItemData;
 
-        final boolean restartNeeded = amountOfTestsExecutedByFork % reforkEveryThisAmountOfTests == 0;
+        final boolean restartNeeded = amountOfTestsExecutedByFork % reforkEvery == 0;
 
         if ( restartNeeded ) {
             LOGGER.info("pipeline {}, fork {} : restart needed, amount of tests executed = {}",
@@ -55,5 +63,10 @@ public class AmountOfTestCasesDataProcessor implements ReforkReasonDataProcessor
         }
 
         return restartNeeded;
+    }
+
+    long getReforkEvery()
+    {
+        return reforkEvery;
     }
 }

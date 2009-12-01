@@ -15,12 +15,14 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
+import java.io.Serializable;
+
 /**
  * Defines a criteria that can be used to determine when a test fork should be restarted.
  *
  * @author Tom Eyckmans
  */
-public interface ReforkReason {
+public interface ReforkReason extends Serializable {
     /**
      * Defines a unique id to identify the criteria.
      *

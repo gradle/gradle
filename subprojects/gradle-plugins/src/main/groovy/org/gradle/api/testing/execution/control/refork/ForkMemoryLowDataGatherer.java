@@ -15,25 +15,36 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
+import org.gradle.util.JavaLangRuntimeAdapter;
+import org.gradle.util.DefaultJavaLangRuntimeAdapter;
+
 import java.util.List;
 import java.util.Arrays;
 
 /**
  * @author Tom Eyckmans
  */
-public class ForkMemoryLowDataGatherer implements ReforkReasonDataGatherer{
+public class ForkMemoryLowDataGatherer extends ReforkReasonKeyLink implements ReforkReasonDataGatherer{
 
     private static final List<DataGatherMoment> DATA_GATHER_MOMENTS = Arrays.asList(DataGatherMoment.AFTER_TEST_EXECUTION);
 
     private double memoryLowThreshold;
-    private ForkMemoryLowData currentData = new ForkMemoryLowData();
+    private ForkMemoryLowData currentData;
+    private JavaLangRuntimeAdapter runtimeAdapter;
 
-    public ReforkReasonKey getItemKey() {
-        return ReforkReasons.FORK_MEMORY_LOW;
+    protected ForkMemoryLowDataGatherer(ReforkReasonKey reforkReasonKey) {
+        super(reforkReasonKey);
+        currentData = new ForkMemoryLowData();
+        runtimeAdapter = new DefaultJavaLangRuntimeAdapter();
     }
 
     public void configure(ReforkReasonConfig config) {
-        memoryLowThreshold = ((ForkMemoryLowConfig)config).getMemoryLowThreshold();
+        if ( config == null ) {
+            throw new IllegalArgumentException("config can't be null!");
+        }
+        final ForkMemoryLowConfig typedConfig = (ForkMemoryLowConfig) config;
+
+        memoryLowThreshold = typedConfig.getMemoryLowThreshold();
     }
 
     public List<DataGatherMoment> getDataGatherMoments() {
@@ -44,9 +55,9 @@ public class ForkMemoryLowDataGatherer implements ReforkReasonDataGatherer{
         boolean dataSendNeeded = false;
 
         if ( memoryLowThreshold > 0 ) {
-            currentData.setFreeMemory(Runtime.getRuntime().freeMemory());
-            currentData.setMaxMemory(Runtime.getRuntime().maxMemory());
-            currentData.setTotalMemory(Runtime.getRuntime().totalMemory());
+            currentData.setFreeMemory(runtimeAdapter.getFreeMemory());
+            currentData.setMaxMemory(runtimeAdapter.getMaxMemory());
+            currentData.setTotalMemory(runtimeAdapter.getTotalMemory());
 
             dataSendNeeded = currentData.getCurrentUsagePercentage() > memoryLowThreshold;
         }
@@ -56,5 +67,16 @@ public class ForkMemoryLowDataGatherer implements ReforkReasonDataGatherer{
 
     public Object getCurrentData() {
         return currentData;
+    }
+
+    /*
+    From this point on methods are for test purposes only.
+     */
+    double getMemoryLowThreshold() {
+        return memoryLowThreshold;
+    }
+
+    void setRuntimeAdapter(JavaLangRuntimeAdapter runtimeAdapter) {
+        this.runtimeAdapter = runtimeAdapter;
     }
 }

@@ -15,8 +15,7 @@
  */
 package org.gradle.api.testing.execution;
 
-import org.gradle.api.testing.execution.control.refork.ReforkReasons;
-import org.gradle.api.testing.execution.control.refork.ReforkItemConfigs;
+import org.gradle.api.testing.execution.control.refork.ReforkReasonConfigs;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyConfig;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyNames;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyRegister;
@@ -35,7 +34,7 @@ public class PipelineConfig {
     private String name;
     private SplitPolicyConfig splitPolicyConfig;
     private ForkPolicyConfig forkPolicyConfig;
-    private ReforkItemConfigs reforkItemConfigs;
+    private ReforkReasonConfigs reforkReasonConfigs;
     private List<ReportConfig> reports;
 
     public PipelineConfig(String name) {
@@ -54,8 +53,7 @@ public class PipelineConfig {
         this.name = name;
         this.splitPolicyConfig = splitPolicyConfig;
         this.forkPolicyConfig = forkPolicyConfig;
-        this.reforkItemConfigs = new ReforkItemConfigs();
-        reforkItemConfigs.addItemConfig(ReforkReasons.AMOUNT_OF_TESTCASES, null); // TODO clean this up
+        this.reforkReasonConfigs = new ReforkReasonConfigs();
         this.reports = new ArrayList<ReportConfig>();
     }
 
@@ -87,12 +85,12 @@ public class PipelineConfig {
         this.forkPolicyConfig = forkPolicyConfig;
     }
 
-    public ReforkItemConfigs getReforkItemConfigs() {
-        return reforkItemConfigs;
+    public ReforkReasonConfigs getReforkReasonConfigs() {
+        return reforkReasonConfigs;
     }
 
-    public void setReforkItemConfigs(ReforkItemConfigs reforkItemConfigs) {
-        this.reforkItemConfigs = reforkItemConfigs;
+    public void setReforkReasonConfigs(ReforkReasonConfigs reforkReasonConfigs) {
+        this.reforkReasonConfigs = reforkReasonConfigs;
     }
 
     public List<ReportConfig> getReports() {

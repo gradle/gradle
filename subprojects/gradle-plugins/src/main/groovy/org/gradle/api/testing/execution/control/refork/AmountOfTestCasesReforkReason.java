@@ -20,19 +20,21 @@ package org.gradle.api.testing.execution.control.refork;
  */
 public class AmountOfTestCasesReforkReason implements ReforkReason {
 
+    private static final ReforkReasonKey KEY = ReforkReasons.AMOUNT_OF_TESTCASES;
+
     public ReforkReasonKey getKey() {
-        return ReforkReasons.AMOUNT_OF_TESTCASES;
+        return KEY;
     }
 
     public ReforkReasonDataGatherer getDataGatherer() {
-        return new AmountOfTestCasesDataGatherer();
+        return new AmountOfTestCasesDataGatherer(KEY);
     }
 
     public ReforkReasonDataProcessor getDataProcessor() {
-        return new AmountOfTestCasesDataProcessor();
+        return new AmountOfTestCasesDataProcessor(KEY);
     }
 
     public ReforkReasonConfig getConfig() {
-        return new AmountOfTestCasesConfig();
+        return new AmountOfTestCasesConfig(KEY);
     }
 }

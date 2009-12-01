@@ -21,8 +21,8 @@ import org.gradle.api.testing.execution.control.messages.client.NextActionReques
 import org.gradle.api.testing.execution.control.messages.server.ExecuteTestActionMessage;
 import org.gradle.api.testing.execution.control.messages.server.StopForkActionMessage;
 import org.gradle.api.testing.execution.control.messages.server.WaitActionMesssage;
-import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
-import org.gradle.api.testing.execution.control.refork.ReforkController;
+import org.gradle.api.testing.execution.control.refork.ReforkContextData;
+import org.gradle.api.testing.execution.control.refork.ReforkControl;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
@@ -91,12 +91,15 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
     boolean isReforkNeeded(NextActionRequestMessage message) {
         boolean reforkNeeded = false;
 
-        final ReforkController reforkController = pipeline.getReforkController();
-        if (reforkController != null) {
-            final ReforkDecisionContext reforkDecisionContext = message.getReforkDecisionContext();
+        final ReforkControl reforkControl = pipeline.getReforkController();
+        if (reforkControl != null) {
+            final ReforkContextData reforkContextData = message.getReforkDecisionContext();
 
-            if (reforkDecisionContext != null) {
-                reforkNeeded = reforkController.reforkNeeded(pipeline, message.getForkId(), reforkDecisionContext);
+            if (reforkContextData != null) {
+                reforkContextData.setPipeline(pipeline);
+                reforkContextData.setForkId(message.getForkId());
+                
+                reforkNeeded = reforkControl.reforkNeeded(reforkContextData);
             }
         }
 

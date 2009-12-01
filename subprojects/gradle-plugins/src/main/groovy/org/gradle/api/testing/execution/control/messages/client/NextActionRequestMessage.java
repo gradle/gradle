@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.execution.control.messages.client;
 
-import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
+import org.gradle.api.testing.execution.control.refork.ReforkContextData;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
 
 import java.io.IOException;
@@ -28,7 +28,7 @@ import java.io.ObjectOutputStream;
 public class NextActionRequestMessage extends AbstractTestClientControlMessage {
 
     private TestClassProcessResult previousProcessedTestResult = null;
-    private ReforkDecisionContext reforkDecisionContext = null;
+    private ReforkContextData reforkContextData = null;
 
     public NextActionRequestMessage(final int forkId) {
         super(forkId);
@@ -38,25 +38,25 @@ public class NextActionRequestMessage extends AbstractTestClientControlMessage {
         return previousProcessedTestResult;
     }
 
-    public ReforkDecisionContext getReforkDecisionContext() {
-        return reforkDecisionContext;
+    public ReforkContextData getReforkDecisionContext() {
+        return reforkContextData;
     }
 
     public void setPreviousProcessedTestResult(TestClassProcessResult previousProcessedTestResult) {
         this.previousProcessedTestResult = previousProcessedTestResult;
     }
 
-    public void setReforkDecisionContext(ReforkDecisionContext reforkDecisionContext) {
-        this.reforkDecisionContext = reforkDecisionContext;
+    public void setReforkDecisionContext(ReforkContextData reforkContextData) {
+        this.reforkContextData = reforkContextData;
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeObject(previousProcessedTestResult);
-        out.writeObject(reforkDecisionContext);
+        out.writeObject(reforkContextData);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         previousProcessedTestResult = (TestClassProcessResult) in.readObject();
-        reforkDecisionContext = (ReforkDecisionContext) in.readObject();
+        reforkContextData = (ReforkContextData) in.readObject();
     }
 }

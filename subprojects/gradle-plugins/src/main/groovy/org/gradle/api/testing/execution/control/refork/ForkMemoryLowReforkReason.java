@@ -19,19 +19,22 @@ package org.gradle.api.testing.execution.control.refork;
  * @author Tom Eyckmans
  */
 public class ForkMemoryLowReforkReason implements ReforkReason {
+
+    private static final ReforkReasonKey KEY = ReforkReasons.FORK_MEMORY_LOW;
+
     public ReforkReasonKey getKey() {
-        return ReforkReasons.FORK_MEMORY_LOW;
+        return KEY;
     }
 
     public ReforkReasonDataGatherer getDataGatherer() {
-        return new ForkMemoryLowDataGatherer();
+        return new ForkMemoryLowDataGatherer(KEY);
     }
 
     public ReforkReasonDataProcessor getDataProcessor() {
-        return new ForkMemoryLowDataProcessor();
+        return new ForkMemoryLowDataProcessor(KEY);
     }
 
     public ReforkReasonConfig getConfig() {
-        return new ForkMemoryLowConfig();
+        return new ForkMemoryLowConfig(KEY);
     }
 }

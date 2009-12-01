@@ -15,9 +15,7 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
-import org.gradle.api.Project;
 import org.gradle.api.testing.execution.Pipeline;
-import org.gradle.api.tasks.testing.NativeTest;
 
 /**
  * Data processor that determines wether the fork process reporting the data needs to be restarted. <p/> A data
@@ -27,19 +25,22 @@ import org.gradle.api.tasks.testing.NativeTest;
  */
 public interface ReforkReasonDataProcessor {
 
+    ReforkReasonKey getKey();
+
     /**
      * Allow the data processor to perform initialization.
      *
-     * @param project The project the tests are running for.
-     * @param testTask The test task that is being executed.
+     * @param config context item configuration.
      */
-    void configure(Project project, NativeTest testTask);
+    void configure(ReforkReasonConfig config);
 
     /**
      * Process the data and decide wether the fork process needs to be restarted.
      *
-     * @param decisionContextItemData The data that needs to be examined.
+     * @param pipeline The pipeline refork needed is being checked for.
+     * @param forkId The fork id refork needed is being checked for.
+     * @param reforkReasonData The data that needs to be examined.
      * @return Wether or not the fork needs to be restarted. (true = restart needed).
      */
-    boolean determineReforkNeeded(Pipeline pipeline, int forkId, Object decisionContextItemData);
+    boolean determineReforkNeeded(Pipeline pipeline, int forkId, Object reforkReasonData);
 }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.execution.control.messages;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.SerializationUtils;
 import org.junit.Test;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -36,59 +36,15 @@ public abstract class TestControlMessageTest<T extends TestControlMessage> {
     {
         final T originalMessage = createMessageObject(1);
 
-        final byte[] objectBytes = serialize(originalMessage);
+        final byte[] objectBytes = SerializationUtils.serialize(originalMessage);
 
         assertNotNull(objectBytes);
         assertTrue(objectBytes.length > 0);
 
-        final T deserializedMessage = deserialize(objectBytes);
+        final T deserializedMessage = (T)SerializationUtils.deserialize(objectBytes);
 
         assertTestControlMessage(originalMessage, deserializedMessage);
     }
 
-    protected byte[] serialize(Object obj) throws IOException
-    {
-        byte[] serializedBytes = null;
-
-        ByteArrayOutputStream out = null;
-        ObjectOutputStream objOut = null;
-
-        try {
-            out = new ByteArrayOutputStream();
-            objOut = new ObjectOutputStream(out);
-
-            objOut.writeObject(obj);
-            objOut.flush();
-            out.flush();
-
-            serializedBytes = out.toByteArray();
-        }
-        finally {
-            IOUtils.closeQuietly(objOut);
-            IOUtils.closeQuietly(out);
-        }
-
-        return serializedBytes;
-    }
-
-    protected T deserialize(byte[] serialBytes) throws IOException, ClassNotFoundException
-    {
-        T deserializedObject = null;
-
-        ByteArrayInputStream in = null;
-        ObjectInputStream objIn = null;
-
-        try {
-            in = new ByteArrayInputStream(serialBytes);
-            objIn = new ObjectInputStream(in);
-
-            deserializedObject = (T)objIn.readObject();
-        }
-        finally {
-            IOUtils.closeQuietly(objIn);
-            IOUtils.closeQuietly(in);
-        }
-
-        return deserializedObject;
-    }
+    
 }

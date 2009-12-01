@@ -22,11 +22,14 @@ import java.io.ObjectInputStream;
 /**
  * @author Tom Eyckmans
  */
-public class ForkMemoryLowConfig implements ReforkReasonConfig {
+public class ForkMemoryLowConfig extends ReforkReasonKeyLink implements ReforkReasonConfig {
 
-    private double memoryLowThreshold = 100;
+    static final double DEFAULT_MEMORY_LOW_THRESHOLD = 100;
+    
+    private double memoryLowThreshold = DEFAULT_MEMORY_LOW_THRESHOLD;
 
-    public ForkMemoryLowConfig() {
+    public ForkMemoryLowConfig(ReforkReasonKey reforkReasonKey) {
+        super(reforkReasonKey);
     }
 
     public double getMemoryLowThreshold() {

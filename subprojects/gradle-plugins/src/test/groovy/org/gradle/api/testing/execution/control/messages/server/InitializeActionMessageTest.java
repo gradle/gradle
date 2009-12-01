@@ -17,7 +17,7 @@ package org.gradle.api.testing.execution.control.messages.server;
 
 import static org.junit.Assert.*;
 import org.junit.Before;
-import org.gradle.api.testing.execution.control.refork.ReforkItemConfigs;
+import org.gradle.api.testing.execution.control.refork.ReforkReasonConfigs;
 
 /**
  * @author Tom Eyckmans
@@ -25,25 +25,25 @@ import org.gradle.api.testing.execution.control.refork.ReforkItemConfigs;
 public class InitializeActionMessageTest extends AbstractTestServerControlMessageTest<InitializeActionMessage> {
 
     private final String testFrameworkId = "testng";
-    private ReforkItemConfigs reforkItemConfigs;
+    private ReforkReasonConfigs reforkReasonConfigs;
 
     @Before
     public void setUp() throws Exception
     {
-        reforkItemConfigs = new ReforkItemConfigs();
+        reforkReasonConfigs = new ReforkReasonConfigs();
     }
 
     protected InitializeActionMessage createMessageObject(int pipelineId) {
         final InitializeActionMessage messageObject = new InitializeActionMessage(pipelineId);
 
         messageObject.setTestFrameworkId(testFrameworkId);
-        messageObject.setReforkItemConfigs(reforkItemConfigs);
+        messageObject.setReforkItemConfigs(reforkReasonConfigs);
 
         return messageObject;
     }
 
     protected void assertTestServerControlMessage(InitializeActionMessage originalMessage, InitializeActionMessage deserializedMessage) {
         assertEquals(originalMessage.getTestFrameworkId(), deserializedMessage.getTestFrameworkId());
-        assertEquals(originalMessage.getReforkItemConfigs().getItemKeys().isEmpty(), deserializedMessage.getReforkItemConfigs().getItemKeys().isEmpty());
+        assertEquals(originalMessage.getReforkItemConfigs().getKeys().isEmpty(), deserializedMessage.getReforkItemConfigs().getKeys().isEmpty());
     }
 }

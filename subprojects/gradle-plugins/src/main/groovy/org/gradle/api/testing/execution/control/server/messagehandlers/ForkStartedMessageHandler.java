@@ -37,7 +37,7 @@ public class ForkStartedMessageHandler extends AbstractTestServerControlMessageH
         final NativeTest testTask = pipeline.getTestTask();
 
         initializeForkMessage.setTestFrameworkId(testTask.getTestFramework().getTestFramework().getId());
-        initializeForkMessage.setReforkItemConfigs(pipeline.getConfig().getReforkItemConfigs());
+        initializeForkMessage.setReforkItemConfigs(pipeline.getConfig().getReforkReasonConfigs());
         // TODO add sandbox classpath ?
 
         ioSession.write(initializeForkMessage);

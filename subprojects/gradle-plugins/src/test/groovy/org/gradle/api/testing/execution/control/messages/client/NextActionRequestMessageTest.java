@@ -17,28 +17,28 @@ package org.gradle.api.testing.execution.control.messages.client;
 
 import org.junit.Before;
 import static org.junit.Assert.assertEquals;
-import org.gradle.api.testing.execution.control.refork.ReforkDecisionContext;
-import org.gradle.api.testing.execution.control.refork.ReforkDecisionContextImpl;
+import org.gradle.api.testing.execution.control.refork.ReforkContextData;
+import org.gradle.api.testing.execution.control.refork.DefaultReforkContextData;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
 
 /**
  * @author Tom Eyckmans
  */
 public class NextActionRequestMessageTest extends AbstractTestClientControlMessageTest<NextActionRequestMessage> {
-    private ReforkDecisionContext reforkDecisionContext;
+    private ReforkContextData reforkContextData;
     private TestClassProcessResult previousProcessedTestResult;
 
     @Before
     public void setUp() throws Exception
     {
-        reforkDecisionContext = new ReforkDecisionContextImpl();
+        reforkContextData = new DefaultReforkContextData();
         previousProcessedTestResult = new TestClassProcessResult(null);
     }
 
     protected NextActionRequestMessage createMessageObject(int forkId) {
         final NextActionRequestMessage message = new NextActionRequestMessage(forkId);
 
-        message.setReforkDecisionContext(reforkDecisionContext);
+        message.setReforkDecisionContext(reforkContextData);
         message.setPreviousProcessedTestResult(previousProcessedTestResult);
 
         return message;
