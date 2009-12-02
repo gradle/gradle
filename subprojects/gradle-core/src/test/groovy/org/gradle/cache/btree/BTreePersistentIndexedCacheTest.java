@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache;
+package org.gradle.cache.btree;
 
+import org.gradle.cache.DefaultSerializer;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.Serializer;
 import org.gradle.integtests.TestFile;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
@@ -50,7 +53,7 @@ public class BTreePersistentIndexedCacheTest {
             allowing(backingCache).update();
         }});
 
-        cache = new BTreePersistentIndexedCache<String, Integer>(backingCache, serializer, (short) 4);
+        cache = new BTreePersistentIndexedCache<String, Integer>(backingCache, serializer, (short) 4, 100);
     }
 
     @Test
@@ -119,10 +122,14 @@ public class BTreePersistentIndexedCacheTest {
     @Test
     public void reusesEmptySpaceWhenPuttingEntries() {
         BTreePersistentIndexedCache<String, String> cache = new BTreePersistentIndexedCache<String, String>(
-                backingCache, new DefaultSerializer<String>(), (short) 4);
+                backingCache, new DefaultSerializer<String>(), (short) 4, 100);
         TestFile cacheFile = tmpDir.getDir().file("cache.bin");
 
         cache.put("key_1", "abcd");
+        cache.put("key_2", "abcd");
+        cache.put("key_3", "abcd");
+        cache.put("key_4", "abcd");
+        cache.put("key_5", "abcd");
 
         long len = cacheFile.length();
         assertThat(len, greaterThan(0L));
@@ -131,10 +138,10 @@ public class BTreePersistentIndexedCacheTest {
         assertThat(cacheFile.length(), equalTo(len));
 
         cache.remove("key_1");
-        cache.put("key_2", "a1b2");
+        cache.put("key_new", "a1b2");
         assertThat(cacheFile.length(), equalTo(len));
 
-        cache.put("key_2", "longer value");
+        cache.put("key_new", "longer value");
         assertThat(cacheFile.length(), greaterThan(len));
         len = cacheFile.length();
 
@@ -153,7 +160,16 @@ public class BTreePersistentIndexedCacheTest {
 
         checkAddsAndRemoves(null, values);
 
+        TestFile testFile = tmpDir.getDir().file("cache.bin");
+        long len = testFile.length();
+
         checkAddsAndRemoves(Collections.<Integer>reverseOrder(), values);
+
+//        assertThat(testFile.length(), equalTo(len));
+
+        checkAdds(values);
+        
+//        assertThat(testFile.length(), equalTo(len));
     }
 
     @Test
@@ -252,8 +268,6 @@ public class BTreePersistentIndexedCacheTest {
             String key = String.format("key_%d", value);
             assertThat(cache.get(key), notNullValue());
             cache.remove(key);
-//            cache.verify();
-//            if (value % 20 == 0) { System.out.println("-> " + value); }
             assertThat(cache.get(key), nullValue());
         }
 

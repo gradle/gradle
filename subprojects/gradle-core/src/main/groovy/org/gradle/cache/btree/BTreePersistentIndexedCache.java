@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache;
+package org.gradle.cache.btree;
 
-import org.apache.commons.collections.map.LRUMap;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
-import java.util.zip.CRC32;
 
-// todo - reuse existing data block in put() if there is space
-// todo - reuse empty blocks
 // todo - stream serialised value to file
 // todo - handle hash collisions
 // todo - don't store null links to child blocks in leaf index blocks
@@ -33,40 +32,34 @@ import java.util.zip.CRC32;
 // todo - concurrency control
 // todo - remove the check-sum from each block
 // todo - merge small values into a single data block
-// todo - discard while file corrupt
+// todo - discard when file corrupt
 // todo - include data directly in index entry when serializer can guarantee small fixed sized data
-// todo - free list should not ignore multiple free blocks with same size
-// todo - add index blocks to the free list
+// todo - free list leaks disk space
 // todo - merge adjacent free blocks
-// todo - free list ends up with small fragments which are never usable
+// todo - use more efficient lookup for free block with nearest size
 public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
-    private static final int LONG_SIZE = 8;
-    private static final int INT_SIZE = 4;
-    private static final int SHORT_SIZE = 2;
-    private static final int BLOCK_MARKER = 0xCC;
     private final File cacheFile;
     private final PersistentCache backingCache;
     private final Serializer<V> serializer;
     private final short maxChildIndexEntries;
     private final int minIndexChildNodes;
-    private final Set<Block> dirty = new LinkedHashSet<Block>();
-    private final Map<Long, IndexBlock> indexBlockCache = new LRUMap(100);
-    private RandomAccessFile file;
+    private final BlockStore store;
     private HeaderBlock header;
-    private long nextBlock;
 
     public BTreePersistentIndexedCache(PersistentCache backingCache, Serializer<V> serializer) {
-        this(backingCache, serializer, (short) 512);
+        this(backingCache, serializer, (short) 512, 512);
     }
 
     public BTreePersistentIndexedCache(PersistentCache backingCache, Serializer<V> serializer,
-                                       short maxChildIndexEntries) {
+                                       short maxChildIndexEntries, int maxFreeListEntries) {
         this.backingCache = backingCache;
         this.serializer = serializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
         cacheFile = new File(backingCache.getBaseDir(), "cache.bin");
+        BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
+        store = new FreeListBlockStore(cachingStore, maxFreeListEntries);
         try {
             open();
         } catch (Exception e) {
@@ -88,16 +81,32 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     }
 
     private void doOpen() throws Exception {
-        file = new RandomAccessFile(cacheFile, "rw");
-        header = new HeaderBlock();
-        if (file.length() == 0) {
-            header.init();
-            flush();
-            backingCache.update();
-        } else {
-            nextBlock = file.length();
-        }
-        header.read();
+        BlockStore.Factory factory = new BlockStore.Factory() {
+            public Object create(Class<? extends BlockPayload> type) {
+                if (type == HeaderBlock.class) {
+                    return new HeaderBlock();
+                }
+                if (type == IndexBlock.class) {
+                    return new IndexBlock();
+                }
+                if (type == DataBlock.class) {
+                    return new DataBlock();
+                }
+                throw new UnsupportedOperationException();
+            }
+        };
+        Runnable initAction = new Runnable() {
+            public void run() {
+                header = new HeaderBlock();
+                store.write(header);
+                header.index.newRoot();
+                store.flush();
+                backingCache.update();
+            }
+        };
+
+        store.open(initAction, factory);
+        header = store.readFirst(HeaderBlock.class);
     }
 
     public V get(K key) {
@@ -124,18 +133,18 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             Lookup lookup = header.getRoot().find(hashCode);
             boolean needNewBlock = true;
             if (lookup.entry != null) {
-                DataBlock block = new DataBlock(lookup.entry.pos);
-                block.read();
+                DataBlock block = store.read(lookup.entry.dataBlock, DataBlock.class);
                 needNewBlock = !block.useNewValue(value);
                 if (needNewBlock) {
-                    free(block);
+                    store.remove(block);
                 }
             }
             if (needNewBlock) {
                 DataBlock block = new DataBlock(keyString, value);
+                store.write(block);
                 lookup.indexBlock.put(hashCode, block.getPos());
             }
-            flush();
+            store.flush();
         } catch (Exception e) {
             throw new UncheckedIOException(String.format("Could not add entry '%s' to %s.", key, this), e);
         }
@@ -148,65 +157,16 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 return;
             }
             lookup.indexBlock.remove(lookup.entry);
-            DataBlock block = new DataBlock(lookup.entry.pos);
-            block.read();
-            free(block);
-            flush();
+            DataBlock block = store.read(lookup.entry.dataBlock, DataBlock.class);
+            store.remove(block);
+            store.flush();
         } catch (Exception e) {
             throw new UncheckedIOException(String.format("Could not remove entry '%s' from %s.", key, this), e);
         }
     }
 
-    private void free(Block block) throws Exception {
-        dirty.remove(block);
-        if (block.getClass().equals(IndexBlock.class)) {
-            return;
-        }
-        free(block.getPos(), block.getActualSize());
-    }
-
-    private void free(long pos, long size) throws Exception {
-        if (size == 0) {
-            return;
-        }
-        // this only keeps the most recent, need to make this better
-        header.getFreeListRoot().find(size).indexBlock.put(size, pos);
-    }
-
-    private long alloc(int size) throws Exception {
-        IndexBlock block = header.getFreeListRoot().findHighestLeaf();
-        if (block.entries.size() > 0) {
-            IndexEntry entry = block.entries.get(block.entries.size() - 1);
-            if (entry.hashCode >= size) {
-                block.remove(entry);
-                long pos = entry.pos;
-                long leftOver = entry.hashCode - size;
-                free(pos + size, leftOver);
-                return pos;
-            }
-        }
-
-        long pos = nextBlock;
-        nextBlock += size;
-        return pos;
-    }
-
-    private void flush() throws Exception {
-        Iterator<Block> iterator = dirty.iterator();
-        while (iterator.hasNext()) {
-            Block block = iterator.next();
-            iterator.remove();
-            block.write();
-        }
-    }
-
-    private IndexBlock load(long pos, IndexRoot root, IndexBlock parent, int index) throws Exception {
-        IndexBlock block = indexBlockCache.get(pos);
-        if (block == null) {
-            block = new IndexBlock(pos);
-            block.read();
-            indexBlockCache.put(pos, block);
-        }
+    private IndexBlock load(BlockPointer pos, IndexRoot root, IndexBlock parent, int index) {
+        IndexBlock block = store.read(pos, IndexBlock.class);
         block.root = root;
         block.parent = parent;
         block.parentEntryIndex = index;
@@ -223,13 +183,12 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     }
 
     private void close() throws IOException {
-        file.close();
-        indexBlockCache.clear();
+        store.close();
     }
 
     private void rebuild() throws Exception {
         LOGGER.warn(String.format("%s is corrupt. Discarding.", this));
-        file.setLength(0);
+        store.clear();
         close();
         doOpen();
     }
@@ -244,38 +203,29 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     }
 
     private void doVerify() throws Exception {
-        List<Block> blocks = new ArrayList<Block>();
+        List<BlockPayload> blocks = new ArrayList<BlockPayload>();
 
-        HeaderBlock header = new HeaderBlock();
-        header.read();
+        HeaderBlock header = store.readFirst(HeaderBlock.class);
         blocks.add(header);
         verifyTree(header.getRoot(), "", blocks, Long.MAX_VALUE, true);
-        verifyTree(header.getFreeListRoot(), "", blocks, Long.MAX_VALUE, false);
 
-        Collections.sort(blocks, new Comparator<Block>() {
-            public int compare(Block block, Block block1) {
-                if (block.pos > block1.pos) {
-                    return 1;
-                }
-                if (block.pos < block1.pos) {
-                    return -1;
-                }
-                return 0;
+        Collections.sort(blocks, new Comparator<BlockPayload>() {
+            public int compare(BlockPayload block, BlockPayload block1) {
+                return block.getPos().compareTo(block1.getPos());
             }
         });
 
         for (int i = 0; i < blocks.size() - 1; i++) {
-            Block b1 = blocks.get(i);
-            Block b2 = blocks.get(i + 1);
-            if (b1.getPos() + b1.getActualSize() > b2.getPos()) {
+            Block b1 = blocks.get(i).getBlock();
+            Block b2 = blocks.get(i + 1).getBlock();
+            if (b1.getPos().getPos() + b1.getSize() > b2.getPos().getPos()) {
                 throw new IOException(String.format("%s overlaps with %s", b1, b2));
             }
         }
     }
 
-    private void verifyTree(IndexBlock current, String prefix, Collection<Block> blocks, long maxValue, boolean loadData)
-            throws Exception {
-        current.read();
+    private void verifyTree(IndexBlock current, String prefix, Collection<BlockPayload> blocks, long maxValue,
+                            boolean loadData) throws Exception {
         blocks.add(current);
 
         if (!prefix.equals("") && current.entries.size() < maxChildIndexEntries / 2) {
@@ -285,176 +235,65 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             throw new IOException(String.format("Too many entries found in %s", current));
         }
 
-        boolean isLeaf = current.entries.size() == 0 || current.entries.get(0).childPos == 0;
-        if (isLeaf ^ current.tailPos == 0) {
+        boolean isLeaf = current.entries.size() == 0 || current.entries.get(0).childIndexBlock.isNull();
+        if (isLeaf ^ current.tailPos.isNull()) {
             throw new IOException(String.format("Mismatched leaf/tail-node in %s", current));
         }
 
         long min = Long.MIN_VALUE;
         for (IndexEntry entry : current.entries) {
-            if (isLeaf ^ entry.childPos == 0) {
+            if (isLeaf ^ entry.childIndexBlock.isNull()) {
                 throw new IOException(String.format("Mismatched leaf/non-leaf entry in %s", current));
             }
             if (entry.hashCode >= maxValue || entry.hashCode <= min) {
                 throw new IOException(String.format("Out-of-order key in %s", current));
             }
             min = entry.hashCode;
-            if (entry.childPos != 0) {
-                IndexBlock child = new IndexBlock(entry.childPos);
+            if (!entry.childIndexBlock.isNull()) {
+                IndexBlock child = store.read(entry.childIndexBlock, IndexBlock.class);
                 verifyTree(child, "   " + prefix, blocks, entry.hashCode, loadData);
             }
             if (loadData) {
-                DataBlock block = new DataBlock(entry.pos);
-                block.read();
+                DataBlock block = store.read(entry.dataBlock, DataBlock.class);
                 blocks.add(block);
             }
         }
-        if (current.tailPos != 0) {
-            IndexBlock tail = new IndexBlock(current.tailPos);
+        if (!current.tailPos.isNull()) {
+            IndexBlock tail = store.read(current.tailPos, IndexBlock.class);
             verifyTree(tail, "   " + prefix, blocks, maxValue, loadData);
         }
     }
 
-    private abstract class Block {
-        private static final int HEADER_SIZE = 2 + INT_SIZE;
-        private static final int TAIL_SIZE = LONG_SIZE;
-        long pos = -1;
-
-        protected Block(long pos) {
-            this.pos = pos;
-        }
-
-        protected Block() {
-            dirty.add(this);
-        }
-
-        public long getPos() throws Exception {
-            if (pos < 0) {
-                pos = alloc(getActualSize());
-            }
-            return pos;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s %d", getClass().getSimpleName(), pos);
-        }
-
-        protected int getActualSize() {
-            return getSize() + HEADER_SIZE + TAIL_SIZE;
-        }
-
-        protected abstract int getSize();
-
-        protected abstract int getType();
-
-        void read() throws Exception {
-            assert pos >= 0;
-            if (pos + HEADER_SIZE >= file.length()) {
-                throw corruptedException();
-            }
-            file.seek(pos);
-
-            Crc32InputStream checksumInputStream = new Crc32InputStream(new BufferedInputStream(
-                    new RandomAccessFileInputStream(file)));
-            DataInputStream instr = new DataInputStream(checksumInputStream);
-
-            // Read header
-            byte type = instr.readByte();
-            if (type != (byte) BLOCK_MARKER) {
-                throw corruptedException();
-            }
-            type = instr.readByte();
-            if (type != (byte) getType()) {
-                throw corruptedException();
-            }
-
-            // Read body
-            int size = instr.readInt();
-            if (pos + HEADER_SIZE + TAIL_SIZE + size > file.length()) {
-                throw corruptedException();
-            }
-            doRead(instr);
-
-            // Read and verify checksum
-            long actualChecksum = checksumInputStream.checksum.getValue();
-            long checksum = instr.readLong();
-            if (actualChecksum != checksum) {
-                throw corruptedException();
-            }
-            instr.close();
-        }
-
-        protected RuntimeException corruptedException() {
-            return new CorruptedCacheException(String.format("Corrupted %s found in %s.", this,
-                    BTreePersistentIndexedCache.this));
-        }
-
-        protected abstract void doRead(DataInputStream inputStream) throws Exception;
-
-        void write() throws Exception {
-            long pos = getPos();
-            file.seek(pos);
-
-            Crc32OutputStream checksumOutputStream = new Crc32OutputStream(new BufferedOutputStream(
-                    new RandomAccessFileOutputStream(file)));
-            DataOutputStream outstr = new DataOutputStream(checksumOutputStream);
-
-            // Write header
-            outstr.writeByte(BLOCK_MARKER);
-            outstr.writeByte(getType());
-            int size = getSize();
-            outstr.writeInt(size);
-            long finalSize = pos + HEADER_SIZE + TAIL_SIZE + size;
-
-            // Write body
-            doWrite(outstr);
-
-            // Write checksum
-            outstr.writeLong(checksumOutputStream.checksum.getValue());
-            outstr.close();
-
-            // Pad
-            if (file.length() < finalSize) {
-                file.setLength(finalSize);
-            }
-        }
-
-        protected abstract void doWrite(DataOutputStream outputStream) throws Exception;
-    }
-
     private class IndexRoot {
-        private long rootPos = -1;
+        private BlockPointer rootPos = new BlockPointer();
         private HeaderBlock owner;
 
         private IndexRoot(HeaderBlock owner) {
             this.owner = owner;
         }
 
-        public void setRootPos(long rootPos) {
+        public void setRootPos(BlockPointer rootPos) {
             this.rootPos = rootPos;
-            dirty.add(owner);
+            store.write(owner);
         }
 
-        public IndexBlock getRoot() throws Exception {
+        public IndexBlock getRoot() {
             return load(rootPos, this, null, 0);
         }
 
-        public IndexBlock newRoot() throws Exception {
+        public IndexBlock newRoot() {
             IndexBlock block = new IndexBlock();
+            store.write(block);
             setRootPos(block.getPos());
             return block;
         }
     }
-    
-    private class HeaderBlock extends Block {
+
+    private class HeaderBlock extends BlockPayload {
         private IndexRoot index;
-        private IndexRoot freeList;
 
         private HeaderBlock() {
-            super(0);
             index = new IndexRoot(this);
-            freeList = new IndexRoot(this);
         }
 
         @Override
@@ -464,58 +303,37 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
         @Override
         protected int getSize() {
-            return 2 * LONG_SIZE + SHORT_SIZE;
+            return Block.LONG_SIZE + Block.SHORT_SIZE;
         }
 
         @Override
-        protected void doRead(DataInputStream instr) throws Exception {
-            index.rootPos = instr.readLong();
-            freeList.rootPos = instr.readLong();
+        protected void read(DataInputStream instr) throws Exception {
+            index.rootPos = new BlockPointer(instr.readLong());
 
             short actualChildIndexEntries = instr.readShort();
             if (actualChildIndexEntries != maxChildIndexEntries) {
-                throw corruptedException();
+                throw blockCorruptedException();
             }
         }
 
         @Override
-        protected void doWrite(DataOutputStream outstr) throws Exception {
-            outstr.writeLong(index.rootPos);
-            outstr.writeLong(freeList.rootPos);
+        protected void write(DataOutputStream outstr) throws Exception {
+            outstr.writeLong(index.rootPos.getPos());
             outstr.writeShort(maxChildIndexEntries);
         }
 
         public IndexBlock getRoot() throws Exception {
             return index.getRoot();
         }
-
-        public IndexBlock getFreeListRoot() throws Exception {
-            return freeList.getRoot();
-        }
-
-        public void init() throws Exception {
-            IndexBlock block = new IndexBlock(getPos() + getActualSize());
-            block.write();
-            freeList.setRootPos(block.getPos());
-            nextBlock = block.getPos() + block.getActualSize();
-            index.newRoot();
-        }
     }
 
-    private class IndexBlock extends Block {
+    private class IndexBlock extends BlockPayload {
         private final List<IndexEntry> entries = new ArrayList<IndexEntry>();
-        private long tailPos;
+        private BlockPointer tailPos = new BlockPointer();
         // Transient fields
         private IndexBlock parent;
         private int parentEntryIndex;
         private IndexRoot root;
-
-        public IndexBlock() {
-        }
-
-        public IndexBlock(long pos) {
-            super(pos);
-        }
 
         @Override
         protected int getType() {
@@ -524,47 +342,48 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
         @Override
         protected int getSize() {
-            return INT_SIZE + LONG_SIZE + (3 * LONG_SIZE) * maxChildIndexEntries;
+            return Block.INT_SIZE + Block.LONG_SIZE + (3 * Block.LONG_SIZE) * maxChildIndexEntries;
         }
 
-        public void doRead(DataInputStream instr) throws IOException {
+        public void read(DataInputStream instr) throws IOException {
             int count = instr.readInt();
             entries.clear();
             for (int i = 0; i < count; i++) {
                 IndexEntry entry = new IndexEntry();
                 entry.hashCode = instr.readLong();
-                entry.pos = instr.readLong();
-                entry.childPos = instr.readLong();
+                entry.dataBlock = new BlockPointer(instr.readLong());
+                entry.childIndexBlock = new BlockPointer(instr.readLong());
                 entries.add(entry);
             }
-            tailPos = instr.readLong();
+            tailPos = new BlockPointer(instr.readLong());
         }
 
-        public void doWrite(DataOutputStream outstr) throws IOException {
+        public void write(DataOutputStream outstr) throws IOException {
             outstr.writeInt(entries.size());
             for (IndexEntry entry : entries) {
                 outstr.writeLong(entry.hashCode);
-                outstr.writeLong(entry.pos);
-                outstr.writeLong(entry.childPos);
+                outstr.writeLong(entry.dataBlock.getPos());
+                outstr.writeLong(entry.childIndexBlock.getPos());
             }
-            outstr.writeLong(tailPos);
+            outstr.writeLong(tailPos.getPos());
         }
 
-        public void put(long hashCode, long pos) throws Exception {
+        public void put(long hashCode, BlockPointer pos) throws Exception {
             int index = Collections.binarySearch(entries, new IndexEntry(hashCode));
             IndexEntry entry;
             if (index >= 0) {
                 entry = entries.get(index);
             } else {
-                assert tailPos == 0;
+                assert tailPos.isNull();
                 entry = new IndexEntry();
                 entry.hashCode = hashCode;
+                entry.childIndexBlock = new BlockPointer();
                 index = -index - 1;
                 entries.add(index, entry);
             }
 
-            entry.pos = pos;
-            dirty.add(this);
+            entry.dataBlock = pos;
+            store.write(this);
 
             maybeSplit();
         }
@@ -577,12 +396,13 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                     parent = root.newRoot();
                 }
                 IndexBlock sibling = new IndexBlock();
+                store.write(sibling);
                 List<IndexEntry> siblingEntries = entries.subList(splitPos, entries.size());
                 sibling.entries.addAll(siblingEntries);
                 siblingEntries.clear();
                 sibling.tailPos = tailPos;
-                tailPos = splitEntry.childPos;
-                splitEntry.childPos = 0;
+                tailPos = splitEntry.childIndexBlock;
+                splitEntry.childIndexBlock = new BlockPointer();
                 parent.add(this, splitEntry, sibling);
             }
         }
@@ -591,15 +411,15 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             int index = left.parentEntryIndex;
             if (index < entries.size()) {
                 IndexEntry parentEntry = entries.get(index);
-                assert parentEntry.childPos == left.getPos();
-                parentEntry.childPos = right.getPos();
+                assert parentEntry.childIndexBlock.equals(left.getPos());
+                parentEntry.childIndexBlock = right.getPos();
             } else {
-                assert index == entries.size() && (tailPos == 0 || tailPos == left.getPos());
+                assert index == entries.size() && (tailPos.isNull() || tailPos.equals(left.getPos()));
                 tailPos = right.getPos();
             }
             entries.add(index, entry);
-            entry.childPos = left.getPos();
-            dirty.add(this);
+            entry.childIndexBlock = left.getPos();
+            store.write(this);
 
             maybeSplit();
         }
@@ -610,9 +430,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 return null;
             }
 
-            DataBlock block = new DataBlock(lookup.entry.pos);
-            block.read();
-            return block;
+            return store.read(lookup.entry.dataBlock, DataBlock.class);
         }
 
         public Lookup find(String keyString) throws Exception {
@@ -626,13 +444,13 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             }
 
             index = -index - 1;
-            long childBlockPos;
+            BlockPointer childBlockPos;
             if (index == entries.size()) {
                 childBlockPos = tailPos;
             } else {
-                childBlockPos = entries.get(index).childPos;
+                childBlockPos = entries.get(index).childIndexBlock;
             }
-            if (childBlockPos == 0) {
+            if (childBlockPos.isNull()) {
                 return new Lookup(this, null);
             }
 
@@ -644,28 +462,28 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             int index = entries.indexOf(entry);
             assert index >= 0;
             entries.remove(index);
-            dirty.add(this);
+            store.write(this);
 
-            if (entry.childPos == 0) {
+            if (entry.childIndexBlock.isNull()) {
                 maybeMerge();
             } else {
                 // Not a leaf node. Move up an entry from a leaf node, then possibly merge the leaf node
-                IndexBlock leafBlock = load(entry.childPos, root, this, index);
+                IndexBlock leafBlock = load(entry.childIndexBlock, root, this, index);
                 leafBlock = leafBlock.findHighestLeaf();
                 IndexEntry highestEntry = leafBlock.entries.remove(leafBlock.entries.size() - 1);
-                highestEntry.childPos = entry.childPos;
+                highestEntry.childIndexBlock = entry.childIndexBlock;
                 entries.add(index, highestEntry);
-                dirty.add(leafBlock);
+                store.write(leafBlock);
                 leafBlock.maybeMerge();
             }
         }
 
         private void maybeMerge() throws Exception {
             if (parent == null) {
-                if (entries.size() == 0 && tailPos != 0) {
+                if (entries.size() == 0 && !tailPos.isNull()) {
                     // This is an empty root block, discard it
                     header.index.setRootPos(tailPos);
-                    free(this);
+                    store.remove(this);
                 }
                 return;
             }
@@ -704,20 +522,20 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
         private void mergeFrom(IndexBlock right) throws Exception {
             IndexEntry newChildEntry = parent.entries.remove(parentEntryIndex);
-            if (right.pos == parent.tailPos) {
-                parent.tailPos = pos;
+            if (right.getPos().equals(parent.tailPos)) {
+                parent.tailPos = getPos();
             } else {
                 IndexEntry newParentEntry = parent.entries.get(parentEntryIndex);
-                assert newParentEntry.childPos == right.pos;
-                newParentEntry.childPos = pos;
+                assert newParentEntry.childIndexBlock.equals(right.getPos());
+                newParentEntry.childIndexBlock = getPos();
             }
             entries.add(newChildEntry);
             entries.addAll(right.entries);
-            newChildEntry.childPos = tailPos;
+            newChildEntry.childIndexBlock = tailPos;
             tailPos = right.tailPos;
-            dirty.add(parent);
-            dirty.add(this);
-            free(right);
+            store.write(parent);
+            store.write(this);
+            store.remove(right);
         }
 
         private IndexBlock getNext(IndexBlock indexBlock) throws Exception {
@@ -728,7 +546,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             if (index == entries.size()) {
                 return load(tailPos, root, this, index);
             }
-            return load(entries.get(index).childPos, root, this, index);
+            return load(entries.get(index).childIndexBlock, root, this, index);
         }
 
         private IndexBlock getPrevious(IndexBlock indexBlock) throws Exception {
@@ -736,11 +554,11 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             if (index < 0) {
                 return null;
             }
-            return load(entries.get(index).childPos, root, this, index);
+            return load(entries.get(index).childIndexBlock, root, this, index);
         }
 
         private IndexBlock findHighestLeaf() throws Exception {
-            if (tailPos == 0) {
+            if (tailPos.isNull()) {
                 return this;
             }
             return load(tailPos, root, this, entries.size()).findHighestLeaf();
@@ -749,8 +567,8 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     private static class IndexEntry implements Comparable<IndexEntry> {
         long hashCode;
-        long pos;
-        long childPos;
+        BlockPointer dataBlock;
+        BlockPointer childIndexBlock;
 
         private IndexEntry() {
         }
@@ -780,13 +598,12 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         }
     }
 
-    private class DataBlock extends Block {
+    private class DataBlock extends BlockPayload {
         private int size;
         private byte[] serialisedValue;
         private V value;
 
-        public DataBlock(long pos) {
-            super(pos);
+        private DataBlock() {
         }
 
         public DataBlock(String key, V value) throws Exception {
@@ -815,17 +632,17 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
         @Override
         protected int getSize() {
-            return 2 * INT_SIZE + size;
+            return 2 * Block.INT_SIZE + size;
         }
 
-        public void doRead(DataInputStream instr) throws Exception {
+        public void read(DataInputStream instr) throws Exception {
             size = instr.readInt();
             int bytes = instr.readInt();
             serialisedValue = new byte[bytes];
             instr.readFully(serialisedValue);
         }
 
-        public void doWrite(DataOutputStream outstr) throws Exception {
+        public void write(DataOutputStream outstr) throws Exception {
             outstr.writeInt(size);
             outstr.writeInt(serialisedValue.length);
             outstr.write(serialisedValue);
@@ -835,124 +652,9 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
             setValue(value);
             boolean ok = serialisedValue.length <= size;
             if (ok) {
-                dirty.add(this);
+                store.write(this);
             }
             return ok;
-        }
-    }
-
-    private static class RandomAccessFileInputStream extends InputStream {
-        private final RandomAccessFile file;
-
-        private RandomAccessFileInputStream(RandomAccessFile file) {
-            this.file = file;
-        }
-
-        @Override
-        public int read(byte[] bytes) throws IOException {
-            return file.read(bytes);
-        }
-
-        @Override
-        public int read() throws IOException {
-            return file.read();
-        }
-
-        @Override
-        public int read(byte[] bytes, int offset, int length) throws IOException {
-            return file.read(bytes, offset, length);
-        }
-    }
-
-    private static class RandomAccessFileOutputStream extends OutputStream {
-        private final RandomAccessFile file;
-
-        private RandomAccessFileOutputStream(RandomAccessFile file) {
-            this.file = file;
-        }
-
-        @Override
-        public void write(int i) throws IOException {
-            file.write(i);
-        }
-
-        @Override
-        public void write(byte[] bytes) throws IOException {
-            file.write(bytes);
-        }
-
-        @Override
-        public void write(byte[] bytes, int offset, int length) throws IOException {
-            file.write(bytes, offset, length);
-        }
-    }
-
-    private static class Crc32InputStream extends FilterInputStream {
-        private final CRC32 checksum;
-
-        private Crc32InputStream(InputStream inputStream) {
-            super(inputStream);
-            checksum = new CRC32();
-        }
-
-        @Override
-        public int read() throws IOException {
-            int b = in.read();
-            if (b >= 0) {
-                checksum.update(b);
-            }
-            return b;
-        }
-
-        @Override
-        public int read(byte[] bytes) throws IOException {
-            int count = in.read(bytes);
-            if (count > 0) {
-                checksum.update(bytes, 0, count);
-            }
-            return count;
-        }
-
-        @Override
-        public int read(byte[] bytes, int offset, int max) throws IOException {
-            int count = in.read(bytes, offset, max);
-            if (count > 0) {
-                checksum.update(bytes, offset, count);
-            }
-            return count;
-        }
-    }
-
-    private static class Crc32OutputStream extends FilterOutputStream {
-        private final CRC32 checksum;
-
-        private Crc32OutputStream(OutputStream outputStream) {
-            super(outputStream);
-            this.checksum = new CRC32();
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            checksum.update(b);
-            out.write(b);
-        }
-
-        @Override
-        public void write(byte[] bytes) throws IOException {
-            checksum.update(bytes);
-            out.write(bytes);
-        }
-
-        @Override
-        public void write(byte[] bytes, int offset, int count) throws IOException {
-            checksum.update(bytes, offset, count);
-            out.write(bytes, offset, count);
-        }
-    }
-
-    private static class CorruptedCacheException extends RuntimeException {
-        private CorruptedCacheException(String message) {
-            super(message);
         }
     }
 }

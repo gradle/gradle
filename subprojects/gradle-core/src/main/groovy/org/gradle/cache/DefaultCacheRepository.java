@@ -18,6 +18,7 @@ package org.gradle.cache;
 import org.gradle.CacheUsage;
 import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.btree.BTreePersistentIndexedCache;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
