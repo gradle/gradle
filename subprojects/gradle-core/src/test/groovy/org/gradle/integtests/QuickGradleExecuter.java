@@ -66,7 +66,9 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setGradleHomeDir(dist.getGradleHomeDir());
-        parameter.setGradleUserHomeDir(dist.getUserHomeDir());
+        if (!isDisableTestGradleUserHome()) {
+            parameter.setGradleUserHomeDir(dist.getUserHomeDir());
+        }
 
         InProcessGradleExecuter inProcessGradleExecuter = new InProcessGradleExecuter(parameter);
         copyTo(inProcessGradleExecuter);
@@ -76,6 +78,7 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
         if (fork || inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty() || script != null) {
             ForkingGradleExecuter forkingGradleExecuter = new ForkingGradleExecuter(dist);
             copyTo(forkingGradleExecuter);
+            forkingGradleExecuter.setDisableTestGradleUserHome(isDisableTestGradleUserHome());
             forkingGradleExecuter.withEnvironmentVars(environmentVars);
             forkingGradleExecuter.usingExecutable(script);
             returnedExecuter = forkingGradleExecuter;

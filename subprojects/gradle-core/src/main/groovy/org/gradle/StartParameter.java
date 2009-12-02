@@ -25,10 +25,7 @@ import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StrictScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.initialization.BuildFileProjectSpec;
-import org.gradle.initialization.DefaultProjectSpec;
-import org.gradle.initialization.ProjectDirectoryProjectSpec;
-import org.gradle.initialization.ProjectSpec;
+import org.gradle.initialization.*;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
@@ -63,8 +60,9 @@ public class StartParameter {
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
+    public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
-    private File gradleUserHomeDir = new File(DEFAULT_GRADLE_USER_HOME);
+    private File gradleUserHomeDir = new File(GUtil.elvis(System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY), DEFAULT_GRADLE_USER_HOME));
     private File defaultImportsFile;
     private File pluginPropertiesFile;
     private File gradleHomeDir;

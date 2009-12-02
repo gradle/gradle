@@ -28,6 +28,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean quiet;
     private boolean taskList;
     private boolean searchUpwards = false;
+    private boolean disableTestGradleUserHome = false;
 
     public GradleExecuter inDirectory(File directory) {
         workingDir = directory;
@@ -50,6 +51,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (taskList) {
             executer.withTaskList();
         }
+    }
+
+    public boolean isDisableTestGradleUserHome() {
+        return disableTestGradleUserHome;
+    }
+
+    public void setDisableTestGradleUserHome(boolean disableTestGradleUserHome) {
+        this.disableTestGradleUserHome = disableTestGradleUserHome;
     }
 
     public GradleExecuter usingBuildScript(String script) {

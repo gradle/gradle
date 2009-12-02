@@ -36,6 +36,7 @@ public class GradleMain {
         boolean bootStrapDebug = bootStrapDebugValue != null && !bootStrapDebugValue.toUpperCase().equals("FALSE");
 
         processGradleHome(bootStrapDebug);
+        processGradleUserHome(bootStrapDebug);
 
         List<URL> classpath = toUrl(BootstrapUtil.getGradleClasspath());
         ClassLoader parentClassloader = ClassLoader.getSystemClassLoader().getParent();
@@ -67,7 +68,20 @@ public class GradleMain {
         }
         System.setProperty("gradle.home", new File(gradleHome).getAbsolutePath());
     }
-    
+
+    private static void processGradleUserHome(boolean bootStrapDebug) {
+        String gradleUserHome = System.getProperty("gradle.user.home");
+        if (gradleUserHome == null) {
+            gradleUserHome = System.getenv("GRADLE_USER_HOME");
+            if (gradleUserHome != null) {
+                System.setProperty("gradle.user.home", gradleUserHome);
+                if (bootStrapDebug) {
+                    System.out.println("Gradle User Home is declared by environment variable GRADLE_USER_HOME to: " + gradleUserHome);
+                }
+            }
+        }
+    }
+
     private static List<URL> toUrl(List<File> files) throws MalformedURLException {
         List<URL> result = new ArrayList<URL>();
         for (File file : files) {

@@ -88,8 +88,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private List<String> getExtraArgs() {
         List<String> args = new ArrayList<String>();
 
-        args.add("--gradle-user-home");
-        args.add(distribution.getUserHomeDir().getAbsolutePath());
+        if (!isDisableTestGradleUserHome()) {
+            args.add("--gradle-user-home");
+            args.add(distribution.getUserHomeDir().getAbsolutePath());
+        }
 
         return args;
     }
