@@ -157,7 +157,7 @@ public class DefaultGradleTest {
     public void testScriptClasspath() {
         final TestClosure testClosure = context.mock(TestClosure.class);
         context.checking(new Expectations(){{
-            one(testClosure).call(null);
+            one(testClosure).call(scriptHandlerMock);
             one(scriptHandlerMock).getRepositories();
         }});
 

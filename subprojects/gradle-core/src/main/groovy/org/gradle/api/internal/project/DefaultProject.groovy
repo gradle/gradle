@@ -68,7 +68,7 @@ class DefaultProject extends AbstractProject {
     }
 
     public Project project(String path, Closure configureClosure) {
-        return (Project) ConfigureUtil.configure(configureClosure, project(path));
+        return ConfigureUtil.configure(configureClosure, project(path));
     }
 
     public Object configure(Object object, Closure configureClosure) {

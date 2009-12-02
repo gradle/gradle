@@ -76,8 +76,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     public DependencyArtifact artifact(Closure configureClosure) {
-        DependencyArtifact artifact = (DependencyArtifact) ConfigureUtil.configure(configureClosure,
-                new DefaultDependencyArtifact());
+        DependencyArtifact artifact = ConfigureUtil.configure(configureClosure, new DefaultDependencyArtifact());
         artifacts.add(artifact);
         return artifact;
     }

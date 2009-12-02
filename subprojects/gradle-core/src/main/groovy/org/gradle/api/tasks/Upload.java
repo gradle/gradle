@@ -90,7 +90,7 @@ public class Upload extends ConventionTask {
     }
 
     public RepositoryHandler repositories(Closure configureClosure) {
-        return (RepositoryHandler) ConfigureUtil.configure(configureClosure, repositories);
+        return ConfigureUtil.configure(configureClosure, repositories);
     }
 
     /**

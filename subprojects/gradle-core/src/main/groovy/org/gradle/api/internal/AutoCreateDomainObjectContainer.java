@@ -42,6 +42,6 @@ public abstract class AutoCreateDomainObjectContainer<T> extends DefaultDomainOb
     }
 
     public void configure(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, new AutoCreateDomainObjectContainerDelegate(configureClosure.getOwner(), this), Closure.DELEGATE_FIRST);
+        ConfigureUtil.configure(configureClosure, new AutoCreateDomainObjectContainerDelegate(configureClosure.getOwner(), this));
     }
 }

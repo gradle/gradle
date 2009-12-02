@@ -372,7 +372,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task configure(Closure closure) {
-        return (Task) ConfigureUtil.configure(closure, this);
+        return ConfigureUtil.configure(closure, this);
     }
 
     private Action<Task> convertClosureToAction(Closure actionClosure) {

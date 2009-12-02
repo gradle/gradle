@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.util;
 
 import groovy.lang.Closure;
@@ -22,24 +22,22 @@ import groovy.lang.Closure;
  * @author Hans Dockter
  */
 public class ConfigureUtil {
-    public static Closure extractClosure(Object[] args) {
-        if (args.length > 0 && args[args.length - 1] instanceof Closure) {
-            return (Closure) args[args.length - 1];
-        }
-        return null;
-    }
 
-    public static Object configure(Closure configureClosure, Object delegate) {
+    public static <T> T configure(Closure configureClosure, T delegate) {
         return configure(configureClosure, delegate, Closure.DELEGATE_FIRST);
     }
 
-    public static Object configure(Closure configureClosure, Object delegate, int resolveStrategy) {
+    private static <T> T configure(Closure configureClosure, T delegate, int resolveStrategy) {
         if (configureClosure == null) {
             return delegate;
         }
         configureClosure.setResolveStrategy(resolveStrategy);
         configureClosure.setDelegate(delegate);
-        configureClosure.call();
+        if (configureClosure.getMaximumNumberOfParameters() == 0) {
+            configureClosure.call();
+        } else {
+            configureClosure.call(delegate);
+        }
         return delegate;
     }
 }

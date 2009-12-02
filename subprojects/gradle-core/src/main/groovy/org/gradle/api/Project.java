@@ -1039,8 +1039,8 @@ public interface Project extends Comparable<Project> {
     void captureStandardOutput(LogLevel level);
 
     /**
-     * Configures an object via a closure, with the closure's delegate set to the supplied object. This way you don't
-     * have to specify the context of a configuration statement multiple times. <p/> Instead of:
+     * <p>Configures an object via a closure, with the closure's delegate set to the supplied object. This way you don't
+     * have to specify the context of a configuration statement multiple times. <p/> Instead of:</p>
      * <pre>
      * MyType myType = new MyType()
      * myType.doThis()
@@ -1052,6 +1052,12 @@ public interface Project extends Comparable<Project> {
      *     doThis()
      *     doThat()
      * }
+     * </pre>
+     *
+     * <p>The object being configured is also passed to the closure as a parameter, so you can access it explicitly
+     * if required:</p>
+     * <pre>
+     * configure(someObj) { obj -> obj.doThis() }
      * </pre>
      *
      * @param object The object to configure

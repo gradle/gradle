@@ -721,8 +721,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public ConfigurableFileCollection files(Object paths, Closure closure) {
         PathResolvingFileCollection result = new PathResolvingFileCollection(fileResolver, taskContainer, paths);
-        ConfigureUtil.configure(closure, result);
-        return result;
+        return ConfigureUtil.configure(closure, result);
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
@@ -735,8 +734,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public FileSet fileTree(Closure closure) {
         FileSet result = new FileSet(Collections.emptyMap(), fileResolver);
-        ConfigureUtil.configure(closure, result);
-        return result;
+        return ConfigureUtil.configure(closure, result);
     }
 
     public FileTree zipTree(Object zipPath) {

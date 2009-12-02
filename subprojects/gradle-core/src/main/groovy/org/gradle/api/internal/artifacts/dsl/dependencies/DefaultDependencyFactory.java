@@ -45,7 +45,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
 
     public Dependency createDependency(Object dependencyNotation, Closure configureClosure) {
         Dependency dependency = createDependency(dependencyNotation);
-        return (Dependency) ConfigureUtil.configure(configureClosure, dependency);
+        return ConfigureUtil.configure(configureClosure, dependency);
     }
 
     public Dependency createDependency(Object dependencyNotation) {
@@ -85,6 +85,6 @@ public class DefaultDependencyFactory implements DependencyFactory {
 
     public ProjectDependency createProject(ProjectFinder projectFinder, Object dependencyNotation, Closure configureClosure) {
         ProjectDependency projectDependency = projectDependencyFactory.createProject(projectFinder, dependencyNotation);
-        return (ProjectDependency) ConfigureUtil.configure(configureClosure, projectDependency);
+        return ConfigureUtil.configure(configureClosure, projectDependency);
     }
 }
