@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.artifacts.*;
 
@@ -32,6 +33,8 @@ import java.util.Set;
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependency {
     private Project dependencyProject;
     private final ProjectDependenciesBuildInstruction instruction;
+    private Set<File> transitiveCache = null;
+    private Set<File> nonTransitiveCache = null;
 
     public DefaultProjectDependency(Project dependencyProject, ProjectDependenciesBuildInstruction instruction) {
         this(dependencyProject, null, instruction);
@@ -76,14 +79,28 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public Set<File> resolve(boolean transitive) {
-        Set<File> files = new LinkedHashSet<File>();
-        for (SelfResolvingDependency selfResolvingDependency : getProjectConfiguration().getAllDependencies(
-                SelfResolvingDependency.class)) {
-            if ((transitive && isTransitive()) || !(selfResolvingDependency instanceof ProjectDependency)) {
-                files.addAll(selfResolvingDependency.resolve());
+        if ((transitiveCache == null && transitive) || (nonTransitiveCache == null && !transitive)) {
+            Set<File> files = new LinkedHashSet<File>();
+            if (!transitive || !isTransitive()) {
+                files.addAll(getProjectConfiguration().files(new Spec<Dependency>() {
+                    public boolean isSatisfiedBy(Dependency dependency) {
+                        return (dependency instanceof SelfResolvingDependency) &&
+                                !(dependency instanceof ProjectDependency);
+                    }
+                }));
+            } else {
+                for (SelfResolvingDependency selfResolvingDependency : getProjectConfiguration().getAllDependencies(
+                        SelfResolvingDependency.class)) {
+                    files.addAll(selfResolvingDependency.resolve());
+                }
+            }
+            if (transitive) {
+                transitiveCache = files;
+            } else {
+                nonTransitiveCache = files;
             }
         }
-        return files;
+        return transitive ? transitiveCache : nonTransitiveCache;
     }
 
     public TaskDependency getBuildDependencies() {
