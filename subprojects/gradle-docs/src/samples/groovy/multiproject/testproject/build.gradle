@@ -9,12 +9,18 @@ dependencies {
     testCompile 'junit:junit:4.7'
 }
 
-compileJava {
-    exclude '**/ExcludeJava.java'
+sourceSets {
+    main {
+        java {
+            exclude '**/ExcludeJava.java'
+        }
+        groovy {
+            exclude '**/ExcludeGroovy.groovy', '**/ExcludeGroovyJava.java'
+        }
+    }
 }
 
 compileGroovy {
-    exclude '**/ExcludeGroovy.groovy', '**/ExcludeGroovyJava.java'
     groovyOptions.fork(memoryMaximumSize: '128M')
 }
 

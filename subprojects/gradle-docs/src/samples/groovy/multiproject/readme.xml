@@ -14,5 +14,7 @@
   ~ limitations under the License.
   -->
 <sample>
-    <para>Build made up of multiple Groovy projects</para>
+    <para>Build made up of multiple Groovy projects. Also demonstrates how to exclude certain source files, and the use
+        of a custom Groovy AST transformation.
+    </para>
 </sample>
