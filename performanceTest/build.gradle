@@ -25,6 +25,7 @@ task largeSrc(type: GeneratorTask, description: 'Generates a single project with
 task multi(type: GeneratorTask, description: 'Genetates a multi-project build') {
     destDir = new File(buildDir, 'multi')
     projects = 25
+    sourceFiles = 1000
 }
 
 task multiGroovy(type: GeneratorTask, description: 'Genetates a multi-project groovy build') {
@@ -81,6 +82,7 @@ class GeneratorTask extends DefaultTask {
 
     def generateProject(Map args) {
         File projectDir = args.projectDir
+        println "Generating $args.projectName"
 
         List files = args.files + [
                 'build.gradle',
@@ -106,14 +108,14 @@ class GeneratorTask extends DefaultTask {
 
         if (args.includeSource) {
             sourceFiles.times {
-                String packageName = "org.gradle.test.performance${(int)(it / 100) + 1}"
+                String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
                 Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
                 generate("src/main/java/${packageName.replace('.', '/')}/${classArgs.productionClassName}.java", 'Production.java', classArgs)
                 generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", 'Test.java', classArgs)
             }
             if (groovyProject) {
                 sourceFiles.times {
-                    String packageName = "org.gradle.test.performance${(int)(it / 100) + 1}"
+                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
                     Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}", testClassName: "TestGroovy${it + 1}"]
                     generate("src/main/groovy/${packageName.replace('.', '/')}/${classArgs.productionClassName}.groovy", 'Production.groovy', classArgs)
                     generate("src/test/groovy/${packageName.replace('.', '/')}/${classArgs.testClassName}.groovy", 'Test.groovy', classArgs)

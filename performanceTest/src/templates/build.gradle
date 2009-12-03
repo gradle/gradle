@@ -18,6 +18,5 @@ dependencies {
 
 test {
     options.forkOptions.forkMode = ForkMode.ONCE
-    testReport = false
 }
 <% } %>

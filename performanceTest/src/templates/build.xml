@@ -53,7 +53,6 @@
                 <fileset dir="\${test.classes.dir}" includes="**/*Test*.class"/>
             </batchtest>
             <formatter type="xml"/>
-            <formatter type="plain" usefile="false"/>
         </junit>
         <junitreport toDir="\${build.dir}">
             <fileset dir="\${test.reports.dir}" includes="*.xml"/>
@@ -61,10 +60,12 @@
         </junitreport>
     </target>
 
-    <target name="jar" depends="compile, test">
+    <target name="jar" depends="compile">
         <jar destfile="\${build.dir}/production.jar">
             <fileset dir="\${classes.dir}"/>
         </jar>
     </target>
+
+    <target name="build" depends="jar, test"/>
 <% } %>
 </project>
