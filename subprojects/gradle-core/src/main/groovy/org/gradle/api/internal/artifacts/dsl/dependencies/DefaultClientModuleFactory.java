@@ -17,7 +17,8 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.GString;
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 
 import java.util.Map;
@@ -25,29 +26,30 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class DefaultClientModuleFactory implements ClientModuleFactory {
-    private StringNotationParser stringNotationParser = new StringNotationParser();
-    private MapModuleNotationParser mapNotationParser = new MapModuleNotationParser();
+public class DefaultClientModuleFactory implements IDependencyImplementationFactory {
+    private final MapModuleNotationParser mapNotationParser;
+    private final ClassGenerator classGenerator;
 
-    public ClientModule createClientModule(Object notation) {
+    public DefaultClientModuleFactory(ClassGenerator classGenerator) {
+        this.classGenerator = classGenerator;
+        mapNotationParser = new MapModuleNotationParser(classGenerator);
+    }
+
+    public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
         assert notation != null;
         if (notation instanceof String || notation instanceof GString) {
-            return stringNotationParser.createDependency(notation.toString());
+            return type.cast(createDependencyFromString(notation.toString()));
         } else if (notation instanceof Map) {
-            return (ClientModule) mapNotationParser.createDependency(DefaultClientModule.class, (Map) notation);
+            return type.cast(mapNotationParser.createDependency(DefaultClientModule.class, notation));
         }
         throw new IllegalDependencyNotation();
     }
 
-    private static class StringNotationParser {
-        public DefaultClientModule createDependency(String notation) {
-            ParsedModuleStringNotation parsedNotation = new ParsedModuleStringNotation(notation, null);
-            DefaultClientModule clientModule = new DefaultClientModule(
-                    parsedNotation.getGroup(),
-                    parsedNotation.getName(),
-                    parsedNotation.getVersion());
-            ModuleFactoryHelper.addExplicitArtifactsIfDefined(clientModule, null, parsedNotation.getClassifier());
-            return clientModule;
-        }
+    private DefaultClientModule createDependencyFromString(String notation) {
+        ParsedModuleStringNotation parsedNotation = new ParsedModuleStringNotation(notation, null);
+        DefaultClientModule clientModule = classGenerator.newInstance(DefaultClientModule.class,
+                parsedNotation.getGroup(), parsedNotation.getName(), parsedNotation.getVersion());
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(clientModule, null, parsedNotation.getClassifier());
+        return clientModule;
     }
 }

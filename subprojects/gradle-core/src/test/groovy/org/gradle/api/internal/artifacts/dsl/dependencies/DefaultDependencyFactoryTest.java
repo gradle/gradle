@@ -52,7 +52,7 @@ public class DefaultDependencyFactoryTest {
         final Point point = createAnonymousPoint();
         final Dependency pointDependencyDummy = context.mock(Dependency.class, "PointDependency");
         context.checking(new Expectations() {{
-            allowing(testImplPointFactoryStub).createDependency(point);
+            allowing(testImplPointFactoryStub).createDependency(Dependency.class, point);
             will(returnValue(pointDependencyDummy));
         }});
         assertSame(pointDependencyDummy, dependencyFactory.createDependency(point));
@@ -69,7 +69,7 @@ public class DefaultDependencyFactoryTest {
         final Point point = createAnonymousPoint();
         final Dependency pointDependencyMock = context.mock(Dependency.class, "PointDependency");
         context.checking(new Expectations() {{
-            allowing(testImplPointFactoryStub).createDependency(point);
+            allowing(testImplPointFactoryStub).createDependency(Dependency.class, point);
             will(returnValue(pointDependencyMock));
         }});
         Closure configureClosure = HelperUtil.toClosure("{ transitive = true }");
@@ -84,9 +84,9 @@ public class DefaultDependencyFactoryTest {
     public void testCreateDependencyWithInvalidDescriptionShouldThrowInvalidUserDataEx() {
         final IDependencyImplementationFactory testImplStringFactoryStub = context.mock(IDependencyImplementationFactory.class, "String");
         context.checking(new Expectations() {{
-            allowing(testImplPointFactoryStub).createDependency(with(not(instanceOf(Point.class))));
+            allowing(testImplPointFactoryStub).createDependency(with(equalTo(Dependency.class)), with(not(instanceOf(Point.class))));
             will(throwException(new IllegalDependencyNotation()));
-            allowing(testImplStringFactoryStub).createDependency(with(not(instanceOf(String.class))));
+            allowing(testImplStringFactoryStub).createDependency(with(equalTo(Dependency.class)), with(not(instanceOf(String.class))));
             will(throwException(new IllegalDependencyNotation()));
         }});
         dependencyFactory.createDependency(createAnonymousInteger());
@@ -114,7 +114,7 @@ public class DefaultDependencyFactoryTest {
     @Test
     public void createModule() {
         final IDependencyImplementationFactory testImplStringFactoryStub = context.mock(IDependencyImplementationFactory.class, "String");
-        final ClientModuleFactory clientModuleFactoryStub = context.mock(ClientModuleFactory.class);
+        final IDependencyImplementationFactory clientModuleFactoryStub = context.mock(IDependencyImplementationFactory.class);
         final ClientModule clientModuleMock = context.mock(ClientModule.class);
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(WrapUtil.toSet(testImplStringFactoryStub), clientModuleFactoryStub, null);
         final String someNotation1 = "someNotation1";
@@ -127,15 +127,15 @@ public class DefaultDependencyFactoryTest {
         final ModuleDependency dependencyDummy3 = context.mock(ModuleDependency.class, "dep3");
         final ModuleDependency dependencyMock = context.mock(ModuleDependency.class, "dep4");
         context.checking(new Expectations() {{
-            allowing(clientModuleFactoryStub).createClientModule(someModuleNotation);
+            allowing(clientModuleFactoryStub).createDependency(ClientModule.class, someModuleNotation);
             will(returnValue(clientModuleMock));
-            allowing(testImplStringFactoryStub).createDependency(someNotation1);
+            allowing(testImplStringFactoryStub).createDependency(Dependency.class, someNotation1);
             will(returnValue(dependencyDummy1));
-            allowing(testImplStringFactoryStub).createDependency(someNotation2);
+            allowing(testImplStringFactoryStub).createDependency(Dependency.class, someNotation2);
             will(returnValue(dependencyDummy2));
-            allowing(testImplStringFactoryStub).createDependency(someNotation3);
+            allowing(testImplStringFactoryStub).createDependency(Dependency.class, someNotation3);
             will(returnValue(dependencyDummy3));
-            allowing(testImplStringFactoryStub).createDependency(with(equal(someNotation4)));
+            allowing(testImplStringFactoryStub).createDependency(Dependency.class, someNotation4);
             will(returnValue(dependencyMock));
             one(dependencyMock).setTransitive(true);
             one(clientModuleMock).addDependency(dependencyDummy1);
@@ -152,13 +152,13 @@ public class DefaultDependencyFactoryTest {
     @Test
     public void createModuleWithNullClosure() {
         final IDependencyImplementationFactory testImplStringFactoryStub = context.mock(IDependencyImplementationFactory.class, "String");
-        final ClientModuleFactory clientModuleFactoryStub = context.mock(ClientModuleFactory.class);
+        final IDependencyImplementationFactory clientModuleFactoryStub = context.mock(IDependencyImplementationFactory.class);
         final ClientModule clientModuleMock = context.mock(ClientModule.class);
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(WrapUtil.toSet(testImplStringFactoryStub), clientModuleFactoryStub, null);
 
         final String someModuleNotation = "junit:junit:4.4";
         context.checking(new Expectations() {{
-            allowing(clientModuleFactoryStub).createClientModule(someModuleNotation);
+            allowing(clientModuleFactoryStub).createDependency(ClientModule.class, someModuleNotation);
             will(returnValue(clientModuleMock));
         }});
         assertThat(dependencyFactory.createModule(someModuleNotation, null), equalTo(clientModuleMock));

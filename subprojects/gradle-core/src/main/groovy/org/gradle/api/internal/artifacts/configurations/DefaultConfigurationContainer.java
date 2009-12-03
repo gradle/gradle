@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.AutoCreateDomainObjectContainer;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.IvyService;
 
 /**
@@ -27,18 +28,20 @@ public class DefaultConfigurationContainer extends AutoCreateDomainObjectContain
         implements ConfigurationContainer, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     
-    private IvyService ivyService;
+    private final IvyService ivyService;
+    private final ClassGenerator classGenerator;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyService ivyService) {
+    public DefaultConfigurationContainer(IvyService ivyService, ClassGenerator classGenerator) {
         super(Configuration.class);
         this.ivyService = ivyService;
+        this.classGenerator = classGenerator;
     }
 
     @Override
     protected Configuration create(String name) {
-        return new DefaultConfiguration(name, this, ivyService);
+        return classGenerator.newInstance(DefaultConfiguration.class, name, this, ivyService);
     }
 
     @Override

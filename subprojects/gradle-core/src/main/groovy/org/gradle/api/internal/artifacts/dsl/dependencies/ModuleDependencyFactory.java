@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 
 import java.util.regex.Matcher;
@@ -28,44 +30,45 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class ModuleDependencyFactory implements IDependencyImplementationFactory {
-    private StringNotationParser stringNotationParser = new StringNotationParser();
-    private MapModuleNotationParser mapNotationParser = new MapModuleNotationParser();
+    private final MapModuleNotationParser mapNotationParser;
+    private final ClassGenerator classGenerator;
 
-    public DefaultExternalModuleDependency createDependency(Object notation) {
+    public ModuleDependencyFactory(ClassGenerator classGenerator) {
+        this.classGenerator = classGenerator;
+        mapNotationParser = new MapModuleNotationParser(classGenerator);
+    }
+
+    public <T extends Dependency> T createDependency(Class<T> type, Object notation) throws IllegalDependencyNotation {
         assert notation != null;
         if (notation instanceof String || notation instanceof GString) {
-            return stringNotationParser.createDependency(notation.toString());
+            return type.cast(createDependencyFromString(notation.toString()));
         } else if (notation instanceof Map) {
-            return (DefaultExternalModuleDependency) mapNotationParser.createDependency(DefaultExternalModuleDependency.class, (Map) notation);
+            return type.cast(mapNotationParser.createDependency(DefaultExternalModuleDependency.class, notation));
         }
         throw new IllegalDependencyNotation();
     }
 
-    private static class StringNotationParser {
-        private static final Pattern EXTENSION_SPLITTER = Pattern.compile("^(.+)\\@([^:]+$)");
+    private static final Pattern EXTENSION_SPLITTER = Pattern.compile("^(.+)\\@([^:]+$)");
 
-        public DefaultExternalModuleDependency createDependency(String notation) {
-            ParsedModuleStringNotation parsedNotation = splitDescriptionIntoModuleNotationAndArtifactType(notation);
-            DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency(
-                    parsedNotation.getGroup(),
-                    parsedNotation.getName(),
-                    parsedNotation.getVersion());
-            ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
-            return moduleDependency;
-        }
-
-        public ParsedModuleStringNotation splitDescriptionIntoModuleNotationAndArtifactType(String notation) {
-            Matcher matcher = EXTENSION_SPLITTER.matcher(notation);
-            boolean hasArtifactType = matcher.matches();
-            if (hasArtifactType) {
-                if (matcher.groupCount() != 2) {
-                    throw new InvalidUserDataException("The description " + notation + " is invalid");
-                }
-                return new ParsedModuleStringNotation(matcher.group(1), matcher.group(2));
-            }
-            return new ParsedModuleStringNotation(notation, null);
-        }
-
+    private DefaultExternalModuleDependency createDependencyFromString(String notation) {
+        ParsedModuleStringNotation parsedNotation = splitDescriptionIntoModuleNotationAndArtifactType(notation);
+        DefaultExternalModuleDependency moduleDependency = classGenerator.newInstance(
+                DefaultExternalModuleDependency.class, parsedNotation.getGroup(), parsedNotation.getName(),
+                parsedNotation.getVersion());
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(),
+                parsedNotation.getClassifier());
+        return moduleDependency;
     }
 
+    private ParsedModuleStringNotation splitDescriptionIntoModuleNotationAndArtifactType(String notation) {
+        Matcher matcher = EXTENSION_SPLITTER.matcher(notation);
+        boolean hasArtifactType = matcher.matches();
+        if (hasArtifactType) {
+            if (matcher.groupCount() != 2) {
+                throw new InvalidUserDataException("The description " + notation + " is invalid");
+            }
+            return new ParsedModuleStringNotation(matcher.group(1), matcher.group(2));
+        }
+        return new ParsedModuleStringNotation(notation, null);
+    }
 }

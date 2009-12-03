@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import static org.hamcrest.Matchers.*;
 import org.jmock.integration.junit4.JMock;
@@ -29,13 +30,13 @@ import org.junit.runner.RunWith;
 @RunWith(JMock.class)
 public class SelfResolvingDependencyFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final SelfResolvingDependencyFactory factory = new SelfResolvingDependencyFactory();
+    private final SelfResolvingDependencyFactory factory = new SelfResolvingDependencyFactory(new AsmBackedClassGenerator());
 
     @Test
     public void createsADependencyFromAFileCollectionNotation() {
         FileCollection collection = context.mock(FileCollection.class);
 
-        Dependency dependency = factory.createDependency(collection);
+        Dependency dependency = factory.createDependency(Dependency.class, collection);
         assertThat(dependency, instanceOf(DefaultSelfResolvingDependency.class));
         DefaultSelfResolvingDependency selfResolvingDependency = (DefaultSelfResolvingDependency) dependency;
         assertThat(selfResolvingDependency.getSource(), sameInstance(collection));
@@ -43,6 +44,6 @@ public class SelfResolvingDependencyFactoryTest {
 
     @Test(expected = IllegalDependencyNotation.class)
     public void throwsExceptionForOtherNotation() {
-        factory.createDependency("something else");
+        factory.createDependency(Dependency.class, "something else");
     }
 }

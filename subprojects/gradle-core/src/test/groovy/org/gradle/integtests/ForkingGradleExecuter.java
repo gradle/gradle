@@ -106,6 +106,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.errorOutput(errStream);
         builder.inheritEnvironment();
         builder.environment("GRADLE_HOME", "");
+        builder.environment("JAVA_HOME", System.getProperty("java.home"));
         builder.environment(environmentVars);
         builder.execDirectory(getWorkingDir());
 

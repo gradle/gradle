@@ -16,14 +16,15 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.internal.AsmBackedClassGenerator;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultClientModuleFactoryTest extends AbstractModuleFactoryTest {
-    private DefaultClientModuleFactory clientModuleFactory = new DefaultClientModuleFactory();
+    private DefaultClientModuleFactory clientModuleFactory = new DefaultClientModuleFactory(new AsmBackedClassGenerator());
 
     protected ExternalDependency createDependency(Object notation) {
-        return clientModuleFactory.createClientModule(notation);
+        return clientModuleFactory.createDependency(ExternalDependency.class, notation);
     }
 }

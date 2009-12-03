@@ -56,14 +56,14 @@ public class DefaultConfigurationTest {
     }};
 
     private IvyService ivyServiceStub = context.mock(IvyService.class);
-    private DefaultConfigurationContainer configurationContainer;
+    private ConfigurationsProvider configurationContainer;
 
     private DefaultConfiguration configuration;
 
     @Before
     public void setUp() {
-        configurationContainer = new DefaultConfigurationContainer(ivyServiceStub);
-        configuration = (DefaultConfiguration) configurationContainer.add(CONF_NAME);
+        configurationContainer = context.mock(ConfigurationsProvider.class);
+        configuration = createNamedConfiguration(CONF_NAME);
     }
 
     @Test
@@ -114,38 +114,38 @@ public class DefaultConfigurationTest {
 
     @Test
     public void extendsOtherConfigurations() {
-        Configuration configuration1 = configurationContainer.add("otherConf1");
+        Configuration configuration1 = createNamedConfiguration("otherConf1");
         configuration.extendsFrom(configuration1);
         assertThat(configuration.getExtendsFrom(), equalTo(toSet(configuration1)));
 
-        Configuration configuration2 = configurationContainer.add("otherConf2");
+        Configuration configuration2 = createNamedConfiguration("otherConf2");
         configuration.extendsFrom(configuration2);
         assertThat(configuration.getExtendsFrom(), equalTo(toSet(configuration1, configuration2)));
     }
 
     @Test
     public void setExtendsFrom() {
-        Configuration configuration1 = configurationContainer.add("otherConf1");
+        Configuration configuration1 = createNamedConfiguration("otherConf1");
 
         configuration.setExtendsFrom(toSet(configuration1));
         assertThat(configuration.getExtendsFrom(), equalTo(toSet(configuration1)));
 
-        Configuration configuration2 = configurationContainer.add("otherConf2");
+        Configuration configuration2 = createNamedConfiguration("otherConf2");
         configuration.setExtendsFrom(toSet(configuration2));
         assertThat(configuration.getExtendsFrom(), equalTo(toSet(configuration2)));
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void extendsFromWithDirectCycleShouldThrowInvalidUserDataEx() {
-        Configuration otherConfiguration = configurationContainer.add("otherConf");
+        Configuration otherConfiguration = createNamedConfiguration("otherConf");
         otherConfiguration.extendsFrom(configuration);
         configuration.extendsFrom(otherConfiguration);
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void extendsFromWithIndirectCycleShouldThrowInvalidUserDataEx() {
-        Configuration otherConfiguration1 = configurationContainer.add("otherConf1");
-        Configuration otherConfiguration2 = configurationContainer.add("otherConf2");
+        Configuration otherConfiguration1 = createNamedConfiguration("otherConf1");
+        Configuration otherConfiguration2 = createNamedConfiguration("otherConf2");
         configuration.extendsFrom(otherConfiguration1);
         otherConfiguration1.extendsFrom(otherConfiguration2);
         otherConfiguration2.extendsFrom(configuration);
@@ -153,19 +153,19 @@ public class DefaultConfigurationTest {
 
     @Test(expected = InvalidUserDataException.class)
     public void setExtendsFromWithCycleShouldThrowInvalidUserDataEx() {
-        Configuration otherConfiguration = configurationContainer.add("otherConf");
+        Configuration otherConfiguration = createNamedConfiguration("otherConf");
         otherConfiguration.extendsFrom(configuration);
         configuration.setExtendsFrom(toSet(otherConfiguration));
     }
 
     @Test
     public void getHierarchy() {
-        Configuration root1 = configurationContainer.add("root1");
-        Configuration middle1 = configurationContainer.add("middle1").extendsFrom(root1);
-        Configuration root2 = configurationContainer.add("root2");
-        Configuration middle2 = configurationContainer.add("middle2").extendsFrom(root1, root2);
-        configurationContainer.add("root3");
-        Configuration leaf = configurationContainer.add("leaf1").extendsFrom(middle1, middle2);
+        Configuration root1 = createNamedConfiguration("root1");
+        Configuration middle1 = createNamedConfiguration("middle1").extendsFrom(root1);
+        Configuration root2 = createNamedConfiguration("root2");
+        Configuration middle2 = createNamedConfiguration("middle2").extendsFrom(root1, root2);
+        createNamedConfiguration("root3");
+        Configuration leaf = createNamedConfiguration("leaf1").extendsFrom(middle1, middle2);
         Set<Configuration> hierarchy = leaf.getHierarchy();
         assertThat(hierarchy.size(), equalTo(5));
         assertThat(hierarchy.iterator().next(), equalTo(leaf));
@@ -190,11 +190,13 @@ public class DefaultConfigurationTest {
 
     @Test
     public void getAll() {
-        String testConf1 = "testConf1";
-        String testConf2 = "testConf2";
-        configurationContainer.add(testConf1);
-        configurationContainer.add(testConf2);
-        assertThat(Configurations.getNames(configuration.getAll()), equalTo(toSet(CONF_NAME, testConf1, testConf2)));
+        final Configuration conf1 = createNamedConfiguration("testConf1");
+        final Configuration conf2 = createNamedConfiguration("testConf2");
+        context.checking(new Expectations(){{
+            one(configurationContainer).getAll();
+            will(returnValue(toSet(conf1, conf2)));
+        }});
+        assertThat(configuration.getAll(), equalTo(toSet(conf1, conf2)));
     }
 
     @Test(expected = GradleException.class)
@@ -330,7 +332,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void publish() {
-        final Configuration otherConfiguration = configurationContainer.add("testConf").extendsFrom(configuration);
+        final Configuration otherConfiguration = createNamedConfiguration("testConf").extendsFrom(configuration);
         final File someDescriptorDestination = new File("somePath");
         final List<DependencyResolver> dependencyResolvers = toList(context.mock(DependencyResolver.class, "publish"));
         context.checking(new Expectations() {{
@@ -346,7 +348,7 @@ public class DefaultConfigurationTest {
 
     @Test
     public void equality() {
-        Configuration differentConf = configurationContainer.add(CONF_NAME + "delta");
+        Configuration differentConf = createNamedConfiguration(CONF_NAME + "delta");
         assertThat(configuration.equals(differentConf), equalTo(false));
 
         assertThat(configuration.equals(createNamedConfiguration(CONF_NAME)), equalTo(true));
@@ -493,7 +495,7 @@ public class DefaultConfigurationTest {
 
     @SuppressWarnings("unchecked")
     @Test public void taskDependencyFromProjectDependencyUsingNeeded() {
-        Configuration superConfig = configurationContainer.add("superConf");
+        Configuration superConfig = createNamedConfiguration("superConf");
         configuration.extendsFrom(superConfig);
 
         final ProjectDependency projectDependencyStub = context.mock(ProjectDependency.class);
@@ -606,7 +608,7 @@ public class DefaultConfigurationTest {
         Dependency dependencyConf = HelperUtil.createDependency("group1", "name1", "version1");
         Dependency dependencyOtherConf1 = HelperUtil.createDependency("group1", "name1", "version1");
         Dependency dependencyOtherConf2 = context.mock(Dependency.class, "dep2");
-        Configuration otherConf = configurationContainer.add("otherConf");
+        Configuration otherConf = createNamedConfiguration("otherConf");
         configuration.addDependency(dependencyConf);
         configuration.extendsFrom(otherConf);
         otherConf.addDependency(dependencyOtherConf1);
@@ -621,7 +623,7 @@ public class DefaultConfigurationTest {
         ProjectDependency projectDependencyCurrentConf = context.mock(ProjectDependency.class, "projectDepCurrentConf");
         configuration.addDependency(context.mock(Dependency.class, "depCurrentConf"));
         configuration.addDependency(projectDependencyCurrentConf);
-        Configuration otherConf = configurationContainer.add("otherConf");
+        Configuration otherConf = createNamedConfiguration("otherConf");
         configuration.extendsFrom(otherConf);
         ProjectDependency projectDependencyExtendedConf = context.mock(ProjectDependency.class, "projectDepExtendedConf");
         otherConf.addDependency(context.mock(Dependency.class, "depExtendedConf"));
@@ -633,7 +635,7 @@ public class DefaultConfigurationTest {
     @Test
     public void getAllTypedDependenciesReturnsEmptySetWhenNoMatches() {
         configuration.addDependency(context.mock(Dependency.class, "depCurrentConf"));
-        Configuration otherConf = configurationContainer.add("otherConf");
+        Configuration otherConf = createNamedConfiguration("otherConf");
         configuration.extendsFrom(otherConf);
         otherConf.addDependency(context.mock(Dependency.class, "depExtendedConf"));
 
@@ -644,7 +646,7 @@ public class DefaultConfigurationTest {
     public void getAllArtifacts() {
         PublishArtifact artifactConf = HelperUtil.createPublishArtifact("name1", "ext1", "type1", "classifier1");
         PublishArtifact artifactOtherConf2 = HelperUtil.createPublishArtifact("name2", "ext2", "type2", "classifier2");
-        Configuration otherConf = configurationContainer.add("otherConf");
+        Configuration otherConf = createNamedConfiguration("otherConf");
         configuration.addArtifact(artifactConf);
         configuration.extendsFrom(otherConf);
         otherConf.addArtifact(artifactOtherConf2);
@@ -681,7 +683,7 @@ public class DefaultConfigurationTest {
         Dependency configurationDependency = HelperUtil.createDependency("group1", "name1", "version1");
         Dependency otherConfSimilarDependency = HelperUtil.createDependency("group1", "name1", "version1");
         Dependency otherConfDependency = HelperUtil.createDependency("group2", "name2", "version2");
-        Configuration otherConf = configurationContainer.add("otherConf");
+        Configuration otherConf = createNamedConfiguration("otherConf");
         configuration.extendsFrom(otherConf);
         otherConf.addDependency(otherConfDependency);
         otherConf.addDependency(otherConfSimilarDependency);
@@ -797,7 +799,7 @@ public class DefaultConfigurationTest {
         prepareConfigurationForCopyTest();
         Dependency similarDependency2InOtherConf = HelperUtil.createDependency("group2", "name2", "version2");
         Dependency otherConfDependency = HelperUtil.createDependency("group4", "name4", "version4");
-        Configuration otherConf = configurationContainer.add("otherConf");
+        Configuration otherConf = createNamedConfiguration("otherConf");
         otherConf.addDependency(similarDependency2InOtherConf);
         otherConf.addDependency(otherConfDependency);
         configuration.extendsFrom(otherConf);

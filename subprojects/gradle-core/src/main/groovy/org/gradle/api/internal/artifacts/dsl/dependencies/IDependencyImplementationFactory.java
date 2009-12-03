@@ -15,11 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
 
 /**
  * @author Hans Dockter
  */
 public interface IDependencyImplementationFactory {
-    Dependency createDependency(Object userDependencyDescription);
+    <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription) throws IllegalDependencyNotation;
 }

@@ -19,6 +19,7 @@ import groovy.lang.GString;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.util.ReflectionUtil;
 
@@ -30,15 +31,18 @@ import java.util.Map;
  */
 public class DefaultProjectDependencyFactory implements ProjectDependencyFactory {
     private final ProjectDependenciesBuildInstruction instruction;
+    private final ClassGenerator classGenerator;
 
-    public DefaultProjectDependencyFactory(ProjectDependenciesBuildInstruction instruction) {
+    public DefaultProjectDependencyFactory(ProjectDependenciesBuildInstruction instruction, ClassGenerator classGenerator) {
         this.instruction = instruction;
+        this.classGenerator = classGenerator;
     }
 
     public ProjectDependency createProject(ProjectFinder projectFinder, Object notation) {
         assert notation != null;
         if (notation instanceof String || notation instanceof GString) {
-            return new DefaultProjectDependency(projectFinder.getProject(notation.toString()), instruction);
+            return classGenerator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(
+                    notation.toString()), instruction);
         } else if (notation instanceof Map) {
             return createProjectFromMap(projectFinder, (Map<? extends String, ? extends Object>) notation);
         }
@@ -50,7 +54,7 @@ public class DefaultProjectDependencyFactory implements ProjectDependencyFactory
         Map<String, Object> args = new HashMap<String, Object>(map);
         String path = getAndRemove(args, "path");
         String configuration = getAndRemove(args, "configuration");
-        ProjectDependency dependency = new DefaultProjectDependency(projectFinder.getProject(path), configuration, instruction);
+        ProjectDependency dependency = classGenerator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(path), configuration, instruction);
         ReflectionUtil.setFromMap(dependency, args);
         return dependency;
     }

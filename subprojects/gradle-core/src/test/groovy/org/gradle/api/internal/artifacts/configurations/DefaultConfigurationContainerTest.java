@@ -19,11 +19,14 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import static org.hamcrest.Matchers.*;
+
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -40,8 +43,9 @@ public class DefaultConfigurationContainerTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    IvyService ivyServiceDummy = context.mock(IvyService.class);
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy);
+    private IvyService ivyServiceDummy = context.mock(IvyService.class);
+    private ClassGenerator classGenerator = context.mock(ClassGenerator.class);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy, classGenerator);
 
     @Test
     public void init() {
@@ -50,30 +54,31 @@ public class DefaultConfigurationContainerTest {
 
     @Test
     public void testAdd() {
+        expectConfigurationCreated(TEST_NAME);
         checkAddGetWithName((DefaultConfiguration) configurationContainer.add(TEST_NAME));
     }
 
     @Test
     public void testAddWithNullClosure() {
+        expectConfigurationCreated(TEST_NAME);
         checkAddGetWithName((DefaultConfiguration) configurationContainer.add(TEST_NAME, null));
     }
 
     @Test
     public void testAddWithClosure() {
+        expectConfigurationCreated(TEST_NAME);
         Configuration configuration = checkAddGetWithName((DefaultConfiguration) configurationContainer.add(TEST_NAME, TEST_CLOSURE));
         assertThat(configuration.getDescription(), equalTo(TEST_DESCRIPTION));
     }
 
     private Configuration checkAddGetWithName(DefaultConfiguration configuration) {
         assertThat(configuration, equalTo(configurationContainer.getByName(TEST_NAME)));
-        assertThat(configuration.getIvyService(), sameInstance(ivyServiceDummy));
-        assertThat((DefaultConfigurationContainer) configuration.getConfigurationsProvider(),
-                sameInstance(configurationContainer));
         return configuration;
     }
 
     @Test
     public void testFind() {
+        expectConfigurationCreated(TEST_NAME);
         Configuration configuration = configurationContainer.add(TEST_NAME);
         assertThat(configuration, sameInstance(configurationContainer.findByName(TEST_NAME)));
     }
@@ -90,6 +95,7 @@ public class DefaultConfigurationContainerTest {
 
     @Test
     public void testGetWithClosure() {
+        expectConfigurationCreated(TEST_NAME);
         configurationContainer.add(TEST_NAME);
         Configuration configuration = configurationContainer.getByName(TEST_NAME, TEST_CLOSURE);
         assertThat(configuration.getDescription(), equalTo(TEST_DESCRIPTION));
@@ -97,6 +103,8 @@ public class DefaultConfigurationContainerTest {
 
     @Test
     public void testGetWithFilter() {
+        expectConfigurationCreated(TEST_NAME);
+        expectConfigurationCreated(TEST_NAME + "delta");
         Configuration configuration = configurationContainer.add(TEST_NAME);
         configurationContainer.add(TEST_NAME + "delta");
         Set<Configuration> result = configurationContainer.findAll(new Spec<Configuration>() {
@@ -109,6 +117,8 @@ public class DefaultConfigurationContainerTest {
 
     @Test
     public void testGetAll() {
+        expectConfigurationCreated(TEST_NAME);
+        expectConfigurationCreated(TEST_NAME + "delta");
         Configuration configuration1 = configurationContainer.add(TEST_NAME);
         Configuration configuration2 = configurationContainer.add(TEST_NAME + "delta");
         assertThat(configurationContainer.getAll(), equalTo(WrapUtil.toSet(configuration1, configuration2)));
@@ -125,6 +135,14 @@ public class DefaultConfigurationContainerTest {
         assertThat(detachedConf.getHierarchy(), equalTo(WrapUtil.<Configuration>toSet(detachedConf)));
         assertThat(detachedConf.getDependencies(), equalTo(WrapUtil.toSet(dependency1, dependency2)));
         assertNotSameInstances(detachedConf.getDependencies(), WrapUtil.toSet(dependency1, dependency2));
+    }
+
+    private void expectConfigurationCreated(final String name) {
+        context.checking(new Expectations(){{
+            one(classGenerator).newInstance(DefaultConfiguration.class, name, configurationContainer,
+                    ivyServiceDummy);
+            will(returnValue(new DefaultConfiguration(name, configurationContainer, ivyServiceDummy)));
+        }});
     }
 
     private void assertNotSameInstances(Set<Dependency> dependencies, Set<Dependency> otherDependencies) {

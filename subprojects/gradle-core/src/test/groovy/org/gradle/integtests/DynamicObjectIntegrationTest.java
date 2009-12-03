@@ -37,15 +37,6 @@ public class DynamicObjectIntegrationTest {
                 "class ConventionBean { def getConventionProperty() { 'convention' } }"
         );
         testDir.file("child/build.gradle").writelns(
-                "import static org.junit.Assert.*",
-                "buildscript {",
-                "   repositories {",
-                "      mavenCentral()",
-                "   }",
-                "   dependencies {",
-                "       classpath 'junit:junit:4.7'",
-                "   }",
-                "}",
                 "childProperty = 'child'",
                 "sharedProperty = 'shared'",
                 "task testTask << {",
@@ -54,11 +45,11 @@ public class DynamicObjectIntegrationTest {
                 // Use a separate class, to isolate Project from the script
                 "class Reporter {",
                 "  def checkProperties(object) {",
-                "    assertEquals('root', object.rootProperty)",
-                "    assertEquals('child', object.childProperty)",
-                "    assertEquals('shared', object.sharedProperty)",
-                "    assertEquals('convention', object.conventionProperty)",
-                "    assertEquals(':child:testTask', object.testTask.path)",
+                "    assert 'root' == object.rootProperty",
+                "    assert 'child' == object.childProperty",
+                "    assert 'shared' == object.sharedProperty",
+                "    assert 'convention' == object.conventionProperty",
+                "    assert ':child:testTask' == object.testTask.path",
                 "    try { object.rootTask; fail() } catch (MissingPropertyException e) { }",
                 "  }",
                 "}"
@@ -80,15 +71,6 @@ public class DynamicObjectIntegrationTest {
                 "class ConventionBean { def conventionMethod(name) { 'convention' + name } }"
         );
         testDir.file("child/build.gradle").writelns(
-                "import static org.junit.Assert.*",
-                "buildscript {",
-                "   repositories {",
-                "      mavenCentral()",
-                "   }",
-                "   dependencies {",
-                "       classpath 'junit:junit:4.7'",
-                "   }",
-                "}",
                 "def childMethod(p) { 'child' + p }",
                 "def sharedMethod(p) { 'shared' + p }",
                 "task testTask << {",
@@ -97,11 +79,11 @@ public class DynamicObjectIntegrationTest {
                 // Use a separate class, to isolate Project from the script
                 "class Reporter {",
                 "  def checkMethods(object) {",
-                "    assertEquals('rootMethod', object.rootMethod('Method'))",
-                "    assertEquals('childMethod', object.childMethod('Method'))",
-                "    assertEquals('sharedMethod', object.sharedMethod('Method'))",
-                "    assertEquals('conventionMethod', object.conventionMethod('Method'))",
-                "    object.testTask { assertEquals(':child:testTask', delegate.path) }",
+                "    assert 'rootMethod' == object.rootMethod('Method')",
+                "    assert 'childMethod' == object.childMethod('Method')",
+                "    assert 'sharedMethod'== object.sharedMethod('Method')",
+                "    assert 'conventionMethod' == object.conventionMethod('Method')",
+                "    object.testTask { assert ':child:testTask' == delegate.path }",
                 "    try { object.rootTask { }; fail() } catch (MissingMethodException e) { }",
                 "  }",
                 "}"
@@ -111,7 +93,7 @@ public class DynamicObjectIntegrationTest {
     }
 
     @Test
-    public void canAddDynamicPropertiesToTasks() {
+    public void canAddDynamicPropertiesToCoreDomainObjects() {
         TestFile testDir = dist.getTestDir();
         testDir.file("build.gradle").writelns(
                 "task defaultTask {",
@@ -120,12 +102,25 @@ public class DynamicObjectIntegrationTest {
                 "task javaTask(type: Copy) {",
                 "    custom = 'value'",
                 "}",
-                "task groovyTask(type: Zip) {",
+                "task groovyTask(type: Jar) {",
                 "    custom = 'value'",
+                "}",
+                "configurations {",
+                "    test { custom = 'value' }",
+                "}",
+                "dependencies {",
+                "    test('::name:') { custom = 'value' } ",
+                "    test(module('::other')) { custom = 'value' } ",
+                "    test(project(':')) { custom = 'value' } ",
+                "    test(files('src')) { custom = 'value' } ",
                 "}",
                 "defaultTask.custom = 'another value'",
                 "javaTask.custom = 'another value'",
-                "groovyTask.custom = 'another value'"
+                "groovyTask.custom = 'another value'",
+                "assert !project.hasProperty('custom')",
+                "assert defaultTask.custom == 'another value'",
+                "assert configurations.test.custom == 'value'",
+                "configurations.test.dependencies.each { assert it.custom == 'value' }"
         );
 
         executer.inDirectory(testDir).withTasks("defaultTask").run();
@@ -141,17 +136,8 @@ public class DynamicObjectIntegrationTest {
                 "}"
         );
         testDir.file("child/build.gradle").writelns(
-                "import static org.junit.Assert.*",
-                "buildscript {",
-                "   repositories {",
-                "      mavenCentral()",
-                "   }",
-                "   dependencies {",
-                "       classpath 'junit:junit:4.7'",
-                "   }",
-                "}",
                 "task testTask << {",
-                "   assertEquals('child', injectedMethod())",
+                "   assert injectedMethod() == 'child'",
                 "}"
         );
 

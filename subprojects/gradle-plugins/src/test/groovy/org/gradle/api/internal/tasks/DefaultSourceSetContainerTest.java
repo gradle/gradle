@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.SourceSet;
 import static org.hamcrest.Matchers.*;
@@ -22,7 +23,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class DefaultSourceSetContainerTest {
-    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(null, null);
+    private final DefaultSourceSetContainer container = new DefaultSourceSetContainer(null, null, new AsmBackedClassGenerator());
 
     @Test
     public void createsASourceSet() {

@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.GradleManifest
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
+import org.gradle.api.internal.ClassGenerator
 
 /**
  * @author Hans Dockter
@@ -42,7 +43,7 @@ class JavaPluginConvention {
 
     JavaPluginConvention(Project project) {
         this.project = project
-        sourceSets = new DefaultSourceSetContainer(project.fileResolver, project.tasks)
+        sourceSets = new DefaultSourceSetContainer(project.fileResolver, project.tasks, project.serviceRegistryFactory.get(ClassGenerator))
         manifest = new GradleManifest()
         metaInf = []
         dependencyCacheDirName = 'dependency-cache'

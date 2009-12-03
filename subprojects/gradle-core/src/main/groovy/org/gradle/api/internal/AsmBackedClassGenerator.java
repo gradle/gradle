@@ -451,10 +451,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void addSetter(MetaBeanProperty property) throws Exception {
             MetaMethod setter = property.getSetter();
 
-            // GENERATE public void <setter>(<type> v) { super.<setter>(v); <prop>Set = true; }
+            // GENERATE public <return-type> <setter>(<type> v) { <return-type> v = super.<setter>(v); <prop>Set = true; return v; }
 
             Type paramType = Type.getType(setter.getParameterTypes()[0].getTheClass());
-            String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, new Type[]{paramType});
+            Type returnType = Type.getType(setter.getReturnType());
+            boolean isVoid = setter.getReturnType().equals(Void.TYPE);
+            String methodDescriptor = Type.getMethodDescriptor(returnType, new Type[]{paramType});
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, setter.getName(),
                     methodDescriptor, null, new String[0]);
             methodVisitor.visitCode();
@@ -478,7 +480,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // END
 
-            methodVisitor.visitInsn(Opcodes.RETURN);
+            methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }

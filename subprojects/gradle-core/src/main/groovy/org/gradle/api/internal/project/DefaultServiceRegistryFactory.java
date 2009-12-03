@@ -187,17 +187,28 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
                         get(PublishModuleDescriptorConverter.class),
                         get(IvyFileConverter.class),
                         new DefaultIvyFactory(),
-                        new SelfResolvingDependencyResolver(new DefaultIvyDependencyResolver(
-                                new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))), new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()));
+                        new SelfResolvingDependencyResolver(
+                                new DefaultIvyDependencyResolver(
+                                        new DefaultIvyReportConverter(dependencyDescriptorFactoryDelegate))),
+                        new DefaultIvyDependencyPublisher(new DefaultPublishOptionsFactory()),
+                        get(ClassGenerator.class));
             }
         });
 
         add(new Service(DependencyFactory.class) {
             protected Object create() {
-                return new DefaultDependencyFactory(WrapUtil.<IDependencyImplementationFactory>toSet(
-                        new ModuleDependencyFactory(), new SelfResolvingDependencyFactory()),
-                        new DefaultClientModuleFactory(), new DefaultProjectDependencyFactory(
-                                startParameter.getProjectDependenciesBuildInstruction()));
+                ClassGenerator classGenerator = get(ClassGenerator.class);
+                return new DefaultDependencyFactory(
+                        WrapUtil.<IDependencyImplementationFactory>toSet(
+                                new ModuleDependencyFactory(
+                                        classGenerator),
+                                new SelfResolvingDependencyFactory(
+                                        classGenerator)),
+                        new DefaultClientModuleFactory(
+                                classGenerator),
+                        new DefaultProjectDependencyFactory(
+                                startParameter.getProjectDependenciesBuildInstruction(),
+                                classGenerator));
             }
         });
 

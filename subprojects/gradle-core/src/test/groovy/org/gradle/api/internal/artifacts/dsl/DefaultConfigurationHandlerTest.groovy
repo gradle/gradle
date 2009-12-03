@@ -24,6 +24,8 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.AsmBackedClassGenerator
 
 /**
  * @author Hans Dockter
@@ -33,8 +35,9 @@ class DefaultConfigurationHandlerTest {
     private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     private IvyService ivyService = context.mock(IvyService)
+    private ClassGenerator classGenerator = context.mock(ClassGenerator)
 
-    private DefaultConfigurationContainer configurationHandler = new DefaultConfigurationContainer(ivyService)
+    private DefaultConfigurationContainer configurationHandler = new DefaultConfigurationContainer(ivyService, new AsmBackedClassGenerator())
 
     @Test void addsNewConfigurationWhenConfiguringSelf() {
         configurationHandler.configure {

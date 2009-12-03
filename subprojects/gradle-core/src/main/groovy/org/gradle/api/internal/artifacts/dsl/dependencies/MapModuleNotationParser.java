@@ -15,39 +15,37 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.GradleException;
+import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.util.ReflectionUtil;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-class MapModuleNotationParser {
-    public ExternalDependency createDependency(Class<? extends ExternalDependency> dependencyType, Map<String, Object> map) {
-        Map<String, Object> args = new HashMap<String, Object>(map);
+class MapModuleNotationParser implements IDependencyImplementationFactory {
+    private final ClassGenerator classGenerator;
+
+    MapModuleNotationParser(ClassGenerator classGenerator) {
+        this.classGenerator = classGenerator;
+    }
+
+    public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription)
+            throws IllegalDependencyNotation {
+        Map<String, Object> args = new HashMap<String, Object>((Map<String, ?>) userDependencyDescription);
         String group = getAndRemove(args, "group");
         String name = getAndRemove(args, "name");
         String version = getAndRemove(args, "version");
         String configuration = getAndRemove(args, "configuration");
-        try {
-            ExternalDependency dependency = dependencyType.getConstructor(String.class, String.class, String.class, String.class).
-                    newInstance(group, name, version, configuration);
-            ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args, "classifier"));
-            ReflectionUtil.setFromMap(dependency, args);
-            return dependency;
-        } catch (InstantiationException e) {
-            throw new GradleException(e);
-        } catch (IllegalAccessException e) {
-            throw new GradleException(e);
-        } catch (InvocationTargetException e) {
-            throw new GradleException(e);
-        } catch (NoSuchMethodException e) {
-            throw new GradleException(e);
-        }
+        ExternalDependency dependency = (ExternalDependency) classGenerator.newInstance(type, group, name, version, configuration);
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args,
+                "classifier"));
+        ReflectionUtil.setFromMap(dependency, args);
+        return type.cast(dependency);
     }
 
     private String getAndRemove(Map<String, Object> args, String key) {

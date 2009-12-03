@@ -108,9 +108,16 @@ public class GroovySourceGenerationBackedClassGenerator extends AbstractClassGen
 
         public void addSetter(MetaBeanProperty property) throws Exception {
             MetaMethod setter = property.getSetter();
-            src.format("public void %s(%s v) { super.%s(v); %sSet = true; }%n", setter.getName(),
-                    setter.getParameterTypes()[0].getTheClass().getCanonicalName(), setter.getName(),
-                    property.getName());
+            if (setter.getReturnType().equals(Void.TYPE)) {
+                src.format("public void %s(%s v) { super.%s(v); %sSet = true; }%n", setter.getName(),
+                        setter.getParameterTypes()[0].getTheClass().getCanonicalName(), setter.getName(),
+                        property.getName());
+            } else {
+                String returnTypeName = setter.getReturnType().getCanonicalName();
+                src.format("public %s %s(%s v) { %s r = super.%s(v); %sSet = true; return r; }%n", returnTypeName,
+                        setter.getName(), setter.getParameterTypes()[0].getTheClass().getCanonicalName(),
+                        returnTypeName, setter.getName(), property.getName());
+            }
         }
 
         public Class<? extends T> generate() {

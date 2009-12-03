@@ -32,11 +32,11 @@ import java.util.Set;
  */
 public class DefaultDependencyFactory implements DependencyFactory {
     private Set<IDependencyImplementationFactory> dependencyFactories;
-    private ClientModuleFactory clientModuleFactory;
+    private IDependencyImplementationFactory clientModuleFactory;
     private ProjectDependencyFactory projectDependencyFactory;
 
     public DefaultDependencyFactory(Set<IDependencyImplementationFactory> dependencyFactories,
-                                    ClientModuleFactory clientModuleFactory,
+                                    IDependencyImplementationFactory clientModuleFactory,
                                     ProjectDependencyFactory projectDependencyFactory) {
         this.dependencyFactories = dependencyFactories;
         this.clientModuleFactory = clientModuleFactory;
@@ -56,7 +56,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
         Dependency dependency = null;
         for (IDependencyImplementationFactory factory : dependencyFactories) {
             try {
-                dependency = factory.createDependency(dependencyNotation);
+                dependency = factory.createDependency(Dependency.class, dependencyNotation);
                 break;
             }
             catch (IllegalDependencyNotation e) {
@@ -74,7 +74,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
     }
 
     public ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
-        ClientModule clientModule = clientModuleFactory.createClientModule(dependencyNotation);
+        ClientModule clientModule = clientModuleFactory.createDependency(ClientModule.class, dependencyNotation);
         ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, this);
         moduleFactoryDelegate.prepareDelegation(configureClosure);
         if (configureClosure != null) {

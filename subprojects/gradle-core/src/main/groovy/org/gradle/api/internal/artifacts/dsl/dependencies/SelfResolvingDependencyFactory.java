@@ -18,15 +18,23 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 
 public class SelfResolvingDependencyFactory implements IDependencyImplementationFactory {
-    public Dependency createDependency(Object userDependencyDescription) {
+    private final ClassGenerator classGenerator;
+
+    public SelfResolvingDependencyFactory(ClassGenerator classGenerator) {
+        this.classGenerator = classGenerator;
+    }
+
+    public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription)
+            throws IllegalDependencyNotation {
         if (!(userDependencyDescription instanceof FileCollection)) {
             throw new IllegalDependencyNotation();
         }
 
         FileCollection fileCollection = (FileCollection) userDependencyDescription;
-        return new DefaultSelfResolvingDependency(fileCollection);
+        return type.cast(classGenerator.newInstance(DefaultSelfResolvingDependency.class, fileCollection));
     }
 }

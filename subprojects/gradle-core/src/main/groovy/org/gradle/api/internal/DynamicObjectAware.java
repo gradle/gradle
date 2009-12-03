@@ -18,11 +18,11 @@ package org.gradle.api.internal;
 import org.gradle.api.plugins.Convention;
 
 /**
- * <p>Allows properties and method to be added to an object at runt-ime. Most implementations are generated at run-time
+ * <p>Allows properties and method to be added to an object at run-time. Most implementations are generated at run-time
  * from existing classes, by a {@link org.gradle.api.internal.ClassGenerator} implementation.</p>
  *
- * <p>A {@code DynamicObjectAware} object should add MOP methods which provide the properties and methods returned by
- * {@link #getAsDynamicObject()}.</p>
+ * <p>A {@code DynamicObjectAware} implementation should add meta-object methods which provide the properties and
+ * methods returned by {@link #getAsDynamicObject()}.</p>
  */
 public interface DynamicObjectAware {
     /**

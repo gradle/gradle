@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -30,10 +31,10 @@ public class ModuleDependencyFactoryTest extends AbstractModuleFactoryTest {
     private static final String TEST_ARTIFACT_DESCRIPTOR = TEST_MODULE_DESCRIPTOR + "@" + TEST_TYPE;
     private static final String TEST_ARTIFACT_DESCRIPTOR_WITH_CLASSIFIER = TEST_MODULE_DESCRIPTOR + String.format(":%s@%s", TEST_CLASSIFIER, TEST_TYPE);
     
-    private ModuleDependencyFactory moduleDependencyFactory = new ModuleDependencyFactory();
+    private ModuleDependencyFactory moduleDependencyFactory = new ModuleDependencyFactory(new AsmBackedClassGenerator());
 
     protected ExternalDependency createDependency(Object notation) {
-        return moduleDependencyFactory.createDependency(notation);
+        return moduleDependencyFactory.createDependency(ExternalDependency.class, notation);
     }
 
     protected void checkOtherProperties(ExternalDependency moduleDependency) {

@@ -23,6 +23,9 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 
+/**
+ * A JUnit rule which provides a temporary folder for the test.
+ */
 public class TemporaryFolder implements MethodRule {
     private TestFile dir;
     private String prefix;

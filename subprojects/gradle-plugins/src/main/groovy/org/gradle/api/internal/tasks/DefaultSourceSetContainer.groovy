@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.AutoCreateDomainObjectContainer
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.file.FileResolver
@@ -25,12 +24,13 @@ import org.gradle.api.tasks.SourceSetContainer
 class DefaultSourceSetContainer extends AutoCreateDomainObjectContainer<SourceSet> implements SourceSetContainer {
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
-    private final ClassGenerator generator = new AsmBackedClassGenerator();
+    private final ClassGenerator generator;
 
-    def DefaultSourceSetContainer(FileResolver fileResolver, TaskResolver taskResolver) {
+    def DefaultSourceSetContainer(FileResolver fileResolver, TaskResolver taskResolver, ClassGenerator classGenerator) {
         super(SourceSet.class);
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
+        this.generator = classGenerator;
     }
 
     @Override

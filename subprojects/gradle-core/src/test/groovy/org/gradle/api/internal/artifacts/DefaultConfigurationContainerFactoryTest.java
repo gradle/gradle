@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
@@ -50,11 +51,12 @@ public class DefaultConfigurationContainerFactoryTest {
         IvyFactory ivyFactory = context.mock(IvyFactory.class);
         IvyDependencyResolver ivyDependencyResolver = context.mock(IvyDependencyResolver.class);
         IvyDependencyPublisher ivyDependencyPublisher = context.mock(IvyDependencyPublisher.class);
+        ClassGenerator classGenerator = context.mock(ClassGenerator.class);
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
                 new DefaultConfigurationContainerFactory(clientModuleRegistry, settingsConverter,
                         resolveModuleDescriptorConverter, publishModuleDescriptorConverter,
                         ivyFileConverter, ivyFactory,
-                        ivyDependencyResolver, ivyDependencyPublisher).createConfigurationContainer(resolverProviderDummy,
+                        ivyDependencyResolver, ivyDependencyPublisher, classGenerator).createConfigurationContainer(resolverProviderDummy,
                         dependencyMetaDataProviderStub);
 
         assertThat(configurationContainer.getIvyService(), instanceOf(ErrorHandlingIvyService.class));

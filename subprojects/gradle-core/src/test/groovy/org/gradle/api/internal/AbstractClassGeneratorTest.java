@@ -181,6 +181,7 @@ public abstract class AbstractClassGeneratorTest {
         assertThat(bean.getArrayProperty(), notNullValue());
         assertThat(bean.getBooleanProperty(), equalTo(false));
         assertThat(bean.getLongProperty(), equalTo(12L));
+        assertThat(bean.setReturnValueProperty("p"), sameInstance(bean));
     }
 
     @Test
@@ -411,6 +412,14 @@ public abstract class AbstractClassGeneratorTest {
 
         public long getLongProperty() {
             return 12L;
+        }
+
+        public String getReturnValueProperty() {
+            return "value";
+        }
+        
+        public BeanWithVariousPropertyTypes setReturnValueProperty(String val) {
+            return this;
         }
     }
 
