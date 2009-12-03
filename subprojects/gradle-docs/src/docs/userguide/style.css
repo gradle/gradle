@@ -205,6 +205,7 @@ pre {
     margin-top: 1em;
     margin-bottom: 1em;
     max-width: 30%;
+    width: 30%;
 }
 
 .tip .title {
@@ -282,7 +283,7 @@ pre {
     margin-bottom: 2em;
 }
 
-.book > .titlepage > .title {
+.book .titlepage div.title {
     border: solid #d0d0d0 1px;
     background-color: #f5f5f5;
     margin-left: -1.8em;
