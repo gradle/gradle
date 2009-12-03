@@ -23,11 +23,13 @@ import java.util.List;
 
 public class FreeListBlockStore implements BlockStore {
     private final BlockStore store;
+    private final BlockStore freeListStore;
     private final int maxBlockEntries;
     private FreeListBlock freeListBlock;
 
     public FreeListBlockStore(BlockStore store, int maxBlockEntries) {
         this.store = store;
+        freeListStore = this;
         this.maxBlockEntries = maxBlockEntries;
     }
 
@@ -122,7 +124,8 @@ public class FreeListBlockStore implements BlockStore {
         private int largestInNextBlock;
         private BlockPointer nextBlock = new BlockPointer();
         // Transient fields
-        private FreeListBlock prevBlock;
+        private FreeListBlock prev;
+        private FreeListBlock next;
 
         @Override
         protected int getSize() {
@@ -181,20 +184,26 @@ public class FreeListBlockStore implements BlockStore {
                 FreeListBlock newBlock = new FreeListBlock();
                 newBlock.largestInNextBlock = largestInNextBlock;
                 newBlock.nextBlock = nextBlock;
+                newBlock.prev = this;
+                newBlock.next = next;
+                next = newBlock;
+
                 List<FreeListEntry> newBlockEntries = entries.subList(0, entries.size() / 2);
                 newBlock.entries.addAll(newBlockEntries);
                 newBlockEntries.clear();
-                store.write(newBlock);
-                nextBlock = newBlock.getPos();
                 largestInNextBlock = newBlock.entries.get(newBlock.entries.size() - 1).size;
+                freeListStore.write(newBlock);
+                nextBlock = newBlock.getPos();
             }
 
-            store.write(this);
+            freeListStore.write(this);
         }
 
         private FreeListBlock getNextBlock() {
-            FreeListBlock next = store.read(nextBlock, FreeListBlock.class);
-            next.prevBlock = this;
+            if (next == null) {
+                next = freeListStore.read(nextBlock, FreeListBlock.class);
+                next.prev = this;
+            }
             return next;
         }
 
@@ -225,13 +234,17 @@ public class FreeListBlockStore implements BlockStore {
             FreeListEntry entry = entries.remove(index);
             block.setPos(entry.pos);
             block.setSize(entry.size);
-            store.write(this);
+            freeListStore.write(this);
 
-            if (entries.size() == 0 && prevBlock != null) {
-                prevBlock.nextBlock = nextBlock;
-                prevBlock.largestInNextBlock = largestInNextBlock;
-                store.remove(this);
-                store.write(prevBlock);
+            if (entries.size() == 0 && prev != null) {
+                prev.nextBlock = nextBlock;
+                prev.largestInNextBlock = largestInNextBlock;
+                prev.next = next;
+                if (next != null) {
+                    next.prev = prev;
+                }
+                freeListStore.write(prev);
+                freeListStore.remove(this);
             }
         }
     }

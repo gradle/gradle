@@ -165,11 +165,13 @@ public class BTreePersistentIndexedCacheTest {
 
         checkAddsAndRemoves(Collections.<Integer>reverseOrder(), values);
 
-//        assertThat(testFile.length(), equalTo(len));
+        // need to make this better
+        assertThat(testFile.length(), lessThan((long)(1.4 * len)));
 
         checkAdds(values);
         
-//        assertThat(testFile.length(), equalTo(len));
+        // need to make this better
+        assertThat(testFile.length(), lessThan((long)(1.4 * 1.4 * len)));
     }
 
     @Test
