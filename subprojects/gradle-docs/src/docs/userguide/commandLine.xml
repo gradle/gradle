@@ -144,7 +144,7 @@
         </varlistentry>
         <varlistentry>
             <term><option>-u</option>, <option>--no-search-upwards</option></term>
-            <listitem><para>Don't search in parent folders for a <filename>settings.gradle</filename> file.
+            <listitem><para>Don't search in parent directories for a <filename>settings.gradle</filename> file.
             </para></listitem>
         </varlistentry>
         <varlistentry>

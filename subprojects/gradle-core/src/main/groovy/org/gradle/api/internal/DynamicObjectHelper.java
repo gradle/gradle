@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.plugins.Convention;
 
@@ -196,6 +197,13 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         }
         if (parent != null && parent.hasMethod(name, arguments)) {
             return parent.invokeMethod(name, arguments);
+        }
+        if (hasProperty(name)) {
+            Object property = getProperty(name);
+            if (property instanceof Closure) {
+                Closure closure = (Closure) property;
+                return closure.call(arguments);
+            }
         }
         throw methodMissingException(name, arguments);
     }

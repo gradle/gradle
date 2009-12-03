@@ -1,0 +1,18 @@
+subprojects {
+    // Inject a property and method
+    srcDirName = 'src/java'
+    srcDir = { file(srcDirName) }
+
+    // Inject a task
+    task show << {
+        println 'project: ' + project.path
+        println 'srcDirName: ' + srcDirName
+        File srcDir = srcDir()
+        println 'srcDir:' + rootProject.relativePath(srcDir)
+    }
+}
+
+// Inject special case configuration into a particular project
+project(':child2') {
+    srcDirName = "$srcDirName/legacy"
+}

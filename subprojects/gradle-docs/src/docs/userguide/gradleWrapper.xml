@@ -39,7 +39,7 @@
         <sourcefile file="build.gradle" snippet="wrapper-simple"/>
     </sample>
     <para>The build master usually explicitly executes this task. After such
-        an execution you find the following new or updated files in your project folder (in case the default configuration of the wrapper task is
+        an execution you find the following new or updated files in your project directory (in case the default configuration of the wrapper task is
         used).
     </para>
     <screen><![CDATA[

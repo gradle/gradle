@@ -248,7 +248,7 @@ public class DynamicObjectHelperTest {
     }
 
     @Test
-    public void canGetAndSetAddtionalProperty() {
+    public void canGetAndSetAdditionalProperty() {
         Bean bean = new Bean();
 
         bean.setProperty("additional", "value");
@@ -480,6 +480,13 @@ public class DynamicObjectHelperTest {
         DynamicObjectHelperTestHelper.assertCanCallMethods(bean);
     }
 
+    @Test
+    public void canInvokeClosurePropertyAsAMethod() {
+        Bean bean = new Bean();
+        bean.setProperty("someMethod", HelperUtil.toClosure("{ param -> param.toLowerCase() }"));
+        assertThat(bean.invokeMethod("someMethod", "Param"), equalTo((Object) "param"));
+    }
+    
     @Test
     public void invokeMethodFailsForUnknownMethod() {
         Bean bean = new Bean();

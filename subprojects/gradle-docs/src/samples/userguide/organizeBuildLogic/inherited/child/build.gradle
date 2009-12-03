@@ -1,0 +1,8 @@
+task show << {
+    // Use inherited property
+    println 'srcDirName: ' + srcDirName
+
+    // Use inherited method
+    File srcDir = getSrcDir(project)
+    println 'srcDir: ' + rootProject.relativePath(srcDir)
+}

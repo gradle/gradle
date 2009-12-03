@@ -130,4 +130,31 @@ public class DynamicObjectIntegrationTest {
 
         executer.inDirectory(testDir).withTasks("defaultTask").run();
     }
+
+    @Test
+    public void canInjectMethodsFromParentProject() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("settings.gradle").writelns("include 'child'");
+        testDir.file("build.gradle").writelns(
+                "subprojects {",
+                "  injectedMethod = { project.name }",
+                "}"
+        );
+        testDir.file("child/build.gradle").writelns(
+                "import static org.junit.Assert.*",
+                "buildscript {",
+                "   repositories {",
+                "      mavenCentral()",
+                "   }",
+                "   dependencies {",
+                "       classpath 'junit:junit:4.7'",
+                "   }",
+                "}",
+                "task testTask << {",
+                "   assertEquals('child', injectedMethod())",
+                "}"
+        );
+
+        executer.inDirectory(testDir).withTasks("testTask").run();
+    }
 }

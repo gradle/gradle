@@ -1,0 +1,5 @@
+srcDirName = 'src/java'
+
+def getSrcDir(project) {
+    return project.file(srcDirName)
+}

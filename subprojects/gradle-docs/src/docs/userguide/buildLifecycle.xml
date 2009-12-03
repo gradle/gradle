@@ -207,7 +207,7 @@
             parameter. Gradle creates Project objects for every project taking part in the build. For a single
             project build this is only one project. For a multi-project build these are the projects specified in
             Settings object (plus the root project). Each project object has by default a name equals to the name of its
-            top level folder. Every project except the root project has a parent project and might have child projects.
+            top level directory. Every project except the root project has a parent project and might have child projects.
         </para>
     </section>
     <section id='sec:configuration_and_execution_of_a_single_project_build'>

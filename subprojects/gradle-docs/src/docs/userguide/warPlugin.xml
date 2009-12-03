@@ -148,7 +148,7 @@
         <title>War</title>
 
         <para>The default behavior of the War task is to copy the content of <literal>src/main/webapp</literal>
-            to the root of the archive. Your <literal>webapp</literal> folder may of course contain a
+            to the root of the archive. Your <literal>webapp</literal> directory may of course contain a
             <literal>WEB-INF</literal> sub-directory, which again may contain a <literal>web.xml</literal> file.
             Your compiled classes are compiled to <literal>WEB-INF/classes</literal>. All the dependencies of the
             <literal>runtime</literal>
