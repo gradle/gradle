@@ -24,6 +24,6 @@ import java.lang.annotation.Target;
  * Marks a property as specifying the input files for a task.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface InputFiles {
 }

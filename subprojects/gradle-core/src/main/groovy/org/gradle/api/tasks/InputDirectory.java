@@ -24,6 +24,6 @@ import java.lang.annotation.Target;
  * <p>Marks a property as specifying an input directory for a task.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface InputDirectory {
 }

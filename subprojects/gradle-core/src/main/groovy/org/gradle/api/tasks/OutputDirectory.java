@@ -24,6 +24,6 @@ import java.lang.annotation.ElementType;
  * Marks a property as specifying an output directory for a task.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface OutputDirectory {
 }
