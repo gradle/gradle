@@ -21,6 +21,7 @@ import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.util.ReflectionUtil;
 
 import java.util.*;
 
@@ -53,6 +54,8 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
     protected void addObject(String name, T object) {
         assert object != null && name != null;
         store.put(name, object);
+        ReflectionUtil.installGetter(this, name);
+        ReflectionUtil.installConfigureMethod(this, name);
     }
 
     public String getDisplayName() {
@@ -72,11 +75,11 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
         return store.find(name);
     }
 
-    public DomainObjectCollection<T> matching(final Spec<? super T> spec) {
+    public NamedDomainObjectCollection<T> matching(final Spec<? super T> spec) {
         return new DefaultDomainObjectContainer<T>(type, storeWithSpec(spec));
     }
 
-    public <S extends T> DomainObjectCollection<S> withType(final Class<S> type) {
+    public <S extends T> NamedDomainObjectCollection<S> withType(final Class<S> type) {
         return new DefaultDomainObjectContainer<S>(type, storeWithType(type));
     }
 

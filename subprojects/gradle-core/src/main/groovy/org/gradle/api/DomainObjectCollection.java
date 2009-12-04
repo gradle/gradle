@@ -18,36 +18,13 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import org.gradle.api.specs.Spec;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
- * A {@code DomainObjectCollection} represents a read-only set of domain objects of type {@code T}.
+ * <p>A {@code DomainObjectCollection} represents a read-only set of domain objects of type {@code T}.</p>
  *
- * <p>The object in a collection are accessable as read-only properties of the collection, using the name of the object
- * as the property name. For example:</p>
- *
- * <pre>
- * tasks.add('myTask')
- * tasks.myTask.dependsOn someOtherTask
- * </pre>
- *
- * <p>A dynamic method is added for each object which takes a configuration closure. This is equivalent to calling
- * {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
- *
- * <pre>
- * tasks.add('myTask')
- * tasks.myTask {
- *     dependsOn someOtherTask
- * }
- * </pre>
- *
- * <p>You can also use the {@code []} operator to access the objects of a collection by name. For example:</p>
- *
- * <pre>
- * tasks.add('myTask')
- * tasks['myTask'].dependsOn someOtherTask
- * </pre>
+ * <p>You can use the methods of this interface to query the elements of the collection. You can also add actions
+ * which are executed as elements are added to this collection.</p>
  *
  * @param <T> The type of domain objects in this collection.
  */
@@ -58,51 +35,6 @@ public interface DomainObjectCollection<T> extends Iterable<T> {
      * @return The objects. Returns an empty set if this collection is empty.
      */
     Set<T> getAll();
-
-    /**
-     * Returns the objects in this collection, as a map from object name to object instance.
-     *
-     * @return The objects. Returns an empty map if this collection is empty.
-     */
-    Map<String, T> getAsMap();
-
-    /**
-     * Locates an object by name, returning null if there is no such object.
-     *
-     * @param name The object name
-     * @return The object with the given name, or null if there is no such object in this collection.
-     */
-    T findByName(String name);
-
-    /**
-     * Locates an object by name, failing if there is no such object.
-     *
-     * @param name The object name
-     * @return The object with the given name. Never returns null.
-     * @throws UnknownDomainObjectException when there is no such object in this collection.
-     */
-    T getByName(String name) throws UnknownDomainObjectException;
-
-    /**
-     * Locates an object by name, failing if there is no such object. The given configure closure is executed against
-     * the object before it is returned from this method. The object is passed to the closure as it's delegate.
-     *
-     * @param name The object name
-     * @param configureClosure The closure to use to configure the object.
-     * @return The object with the given name, after the configure closure has been applied to it. Never returns null.
-     * @throws UnknownDomainObjectException when there is no such object in this collection.
-     */
-    T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException;
-
-    /**
-     * Locates an object by name, failing if there is no such task. This method is identical to {@link
-     * #getByName(String)}. You can call this method in your build script by using the groovy {@code []} operator.
-     *
-     * @param name The object name
-     * @return The object with the given name. Never returns null.
-     * @throws UnknownDomainObjectException when there is no such object in this collection.
-     */
-    T getAt(String name) throws UnknownDomainObjectException;
 
     /**
      * Returns the objects in this collection which meet the given specification.

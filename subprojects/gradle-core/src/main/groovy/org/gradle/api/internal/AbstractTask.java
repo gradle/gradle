@@ -289,10 +289,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return dynamicObjectHelper.getAdditionalProperties();
     }
 
-    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
-        dynamicObjectHelper.setAdditionalProperties(additionalProperties);
-    }
-
     public DynamicObjectHelper getDynamicObjectHelper() {
         return dynamicObjectHelper;
     }

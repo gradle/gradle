@@ -336,10 +336,6 @@ public abstract class AbstractProject implements ProjectInternal {
         return dynamicObjectHelper.getAdditionalProperties();
     }
 
-    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
-        dynamicObjectHelper.setAdditionalProperties(additionalProperties);
-    }
-
     public State getState() {
         return state;
     }

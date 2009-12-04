@@ -15,6 +15,8 @@
  */
 package org.gradle.api;
 
+import groovy.lang.Closure;
+
 import java.util.List;
 
 /**
@@ -31,6 +33,16 @@ public interface DomainObjectContainer<T> extends DomainObjectCollection<T> {
      * @return The added rule.
      */
     Rule addRule(Rule rule);
+
+    /**
+     * Adds a rule to this container. The given closure is executed when an unknown object is requested by name. The
+     * requested name is passed to the closure as a parameter.
+     *
+     * @param description The description of the rule.
+     * @param ruleAction The closure to execute to apply the rule.
+     * @return The added rule.
+     */
+    Rule addRule(String description, Closure ruleAction);
 
     /**
      * Returns the rules used by this container.

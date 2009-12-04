@@ -15,24 +15,24 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.plugins.Convention;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-public class DynamicObjectHelper extends AbstractDynamicObject {
+public class DynamicObjectHelper extends CompositeDynamicObject {
     public enum Location {
         BeforeConvention, AfterConvention
     }
 
     private final AbstractDynamicObject delegateObject;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private DynamicObject parent;
     private Convention convention;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
+    private MapBackedDynamicObject additionalProperties;
 
     public DynamicObjectHelper(Object delegateObject) {
         this(new BeanDynamicObject(delegateObject));
@@ -45,6 +45,31 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
 
     DynamicObjectHelper(AbstractDynamicObject delegateObject) {
         this.delegateObject = delegateObject;
+        additionalProperties = new MapBackedDynamicObject(delegateObject);
+        updateDelegates();
+    }
+
+    private void updateDelegates() {
+        List<DynamicObject> delegates = new ArrayList<DynamicObject>();
+        delegates.add(delegateObject);
+        delegates.add(additionalProperties);
+        if (beforeConvention != null) {
+            delegates.add(beforeConvention);
+        }
+        if (convention != null) {
+            delegates.add(convention);
+        }
+        if (afterConvention != null) {
+            delegates.add(afterConvention);
+        }
+        if (parent != null) {
+            delegates.add(parent);
+        }
+        setObjects(delegates.toArray(new DynamicObject[delegates.size()]));
+
+        delegates.remove(parent);
+        delegates.add(additionalProperties);
+        setObjectsForUpdate(delegates.toArray(new DynamicObject[delegates.size()]));
     }
 
     protected String getDisplayName() {
@@ -52,11 +77,7 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
     }
 
     public Map<String, Object> getAdditionalProperties() {
-        return additionalProperties;
-    }
-
-    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
-        this.additionalProperties = additionalProperties;
+        return additionalProperties.getProperties();
     }
 
     public DynamicObject getParent() {
@@ -65,6 +86,7 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
 
     public void setParent(DynamicObject parent) {
         this.parent = parent;
+        updateDelegates();
     }
 
     public Convention getConvention() {
@@ -73,6 +95,7 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
 
     public void setConvention(Convention convention) {
         this.convention = convention;
+        updateDelegates();
     }
 
     public void addObject(DynamicObject object, Location location) {
@@ -83,129 +106,7 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
             case AfterConvention:
                 afterConvention = object;
         }
-    }
-
-    public boolean hasProperty(String name) {
-        if (delegateObject.hasProperty(name)) {
-            return true;
-        }
-        if (beforeConvention != null && beforeConvention.hasProperty(name)) {
-            return true;
-        }
-        if (convention != null && convention.hasProperty(name)) {
-            return true;
-        }
-        if (afterConvention != null && afterConvention.hasProperty(name)) {
-            return true;
-        }
-        if (parent != null && parent.hasProperty(name)) {
-            return true;
-        }
-        return additionalProperties.containsKey(name);
-    }
-
-    public Object getProperty(String name) {
-        if (delegateObject.hasProperty(name)) {
-            return delegateObject.getProperty(name);
-        }
-        if (additionalProperties.containsKey(name)) {
-            return additionalProperties.get(name);
-        }
-        if (beforeConvention != null && beforeConvention.hasProperty(name)) {
-            return beforeConvention.getProperty(name);
-        }
-        if (convention != null && convention.hasProperty(name)) {
-            return convention.getProperty(name);
-        }
-        if (afterConvention != null && afterConvention.hasProperty(name)) {
-            return afterConvention.getProperty(name);
-        }
-        if (parent != null && parent.hasProperty(name)) {
-            return parent.getProperty(name);
-        }
-        throw propertyMissingException(name);
-    }
-
-    public void setProperty(String name, Object value) {
-        if (delegateObject.hasProperty(name)) {
-            delegateObject.setProperty(name, value);
-        } else if (additionalProperties.containsKey(name)) {
-            additionalProperties.put(name, value);
-        } else if (beforeConvention != null && beforeConvention.hasProperty(name)) {
-            beforeConvention.setProperty(name, value);
-        } else if (convention != null && convention.hasProperty(name)) {
-            convention.setProperty(name, value);
-        } else if (afterConvention != null && afterConvention.hasProperty(name)) {
-            afterConvention.setProperty(name, value);
-        } else {
-            additionalProperties.put(name, value);
-        }
-    }
-
-    public Map<String, Object> getProperties() {
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.putAll(additionalProperties);
-        if (parent != null) {
-            properties.putAll(parent.getProperties());
-        }
-        if (afterConvention != null) {
-            properties.putAll(afterConvention.getProperties());
-        }
-        if (convention != null) {
-            properties.putAll(convention.getProperties());
-        }
-        if (beforeConvention != null) {
-            properties.putAll(beforeConvention.getProperties());
-        }
-
-        properties.putAll(delegateObject.getProperties());
-        properties.put("properties", properties);
-        return properties;
-    }
-
-    public boolean hasMethod(String name, Object... arguments) {
-        if (delegateObject.hasMethod(name, arguments)) {
-            return true;
-        }
-        if (beforeConvention != null && beforeConvention.hasMethod(name, arguments)) {
-            return true;
-        }
-        if (convention != null && convention.hasMethod(name, arguments)) {
-            return true;
-        }
-        if (afterConvention != null && afterConvention.hasMethod(name, arguments)) {
-            return true;
-        }
-        if (parent != null && parent.hasMethod(name, arguments)) {
-            return true;
-        }
-        return false;
-    }
-
-    public Object invokeMethod(String name, Object... arguments) {
-        if (delegateObject.hasMethod(name, arguments)) {
-            return delegateObject.invokeMethod(name, arguments);
-        }
-        if (beforeConvention != null && beforeConvention.hasMethod(name, arguments)) {
-            return beforeConvention.invokeMethod(name, arguments);
-        }
-        if (convention != null && convention.hasMethod(name, arguments)) {
-            return convention.invokeMethod(name, arguments);
-        }
-        if (afterConvention != null && afterConvention.hasMethod(name, arguments)) {
-            return afterConvention.invokeMethod(name, arguments);
-        }
-        if (parent != null && parent.hasMethod(name, arguments)) {
-            return parent.invokeMethod(name, arguments);
-        }
-        if (hasProperty(name)) {
-            Object property = getProperty(name);
-            if (property instanceof Closure) {
-                Closure closure = (Closure) property;
-                return closure.call(arguments);
-            }
-        }
-        throw methodMissingException(name, arguments);
+        updateDelegates();
     }
 
     /**
@@ -233,6 +134,7 @@ public class DynamicObjectHelper extends AbstractDynamicObject {
         if (beforeConvention != null) {
             helper.beforeConvention = beforeConvention;
         }
+        helper.updateDelegates();
         return helper;
     }
 

@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.Set;
@@ -30,7 +30,7 @@ import java.util.Map;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Closure;
 
-public abstract class AbstractDomainObjectCollection<T> implements DomainObjectCollection<T> {
+public abstract class AbstractDomainObjectCollection<T> implements NamedDomainObjectCollection<T> {
     private final DynamicObject dynamicObject = new ContainerDynamicObject();
 
     public Set<T> getAll() {
@@ -87,14 +87,6 @@ public abstract class AbstractDomainObjectCollection<T> implements DomainObjectC
         return dynamicObject;
     }
 
-    public Object propertyMissing(String name) {
-        return getAsDynamicObject().getProperty(name);
-    }
-
-    public Object methodMissing(String name, Object args) {
-        return getAsDynamicObject().invokeMethod(name, (Object[]) args);
-    }
-
     /**
      * Called when an unknown domain object is requested.
      *
@@ -110,7 +102,18 @@ public abstract class AbstractDomainObjectCollection<T> implements DomainObjectC
      */
     public abstract String getDisplayName();
 
-    private class ContainerDynamicObject extends AbstractDynamicObject {
+    private class ContainerDynamicObject extends CompositeDynamicObject {
+        private ContainerDynamicObject() {
+            setObjects(new BeanDynamicObject(AbstractDomainObjectCollection.this), new ContainerElementsDynamicObject());
+        }
+
+        @Override
+        protected String getDisplayName() {
+            return AbstractDomainObjectCollection.this.getDisplayName();
+        }
+    }
+
+    private class ContainerElementsDynamicObject extends AbstractDynamicObject {
         @Override
         protected String getDisplayName() {
             return AbstractDomainObjectCollection.this.getDisplayName();

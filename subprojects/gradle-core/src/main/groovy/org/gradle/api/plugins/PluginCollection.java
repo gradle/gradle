@@ -15,10 +15,10 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.DomainObjectCollection;
 
 import groovy.lang.Closure;
 
@@ -27,7 +27,7 @@ import groovy.lang.Closure;
  * 
  * @author Hans Dockter
  */
-public interface PluginCollection<T extends Plugin> extends DomainObjectCollection<T> {
+public interface PluginCollection<T extends Plugin> extends NamedDomainObjectCollection<T> {
     /**
      * {@inheritDoc}
      */

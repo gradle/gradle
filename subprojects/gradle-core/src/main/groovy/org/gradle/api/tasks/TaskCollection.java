@@ -16,16 +16,13 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.Task;
-import org.gradle.api.UnknownTaskException;
+import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 
 /**
  * A {@code TaskCollection} contains a set of {@link Task} instances, and provides a number of query methods.
  */
-public interface TaskCollection<T extends Task> extends DomainObjectCollection<T> {
+public interface TaskCollection<T extends Task> extends NamedDomainObjectCollection<T> {
 
     /**
      * {@inheritDoc}

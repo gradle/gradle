@@ -17,40 +17,37 @@ package org.gradle.api.internal
 
 class AutoCreateDomainObjectContainerDelegate {
     private final Object owner;
-    private final AutoCreateDomainObjectContainer delegate;
+    private final AutoCreateDomainObjectContainer container;
+    private final DynamicObject delegate;
     private final ThreadLocal<Boolean> configuring = new ThreadLocal<Boolean>()
 
-    public AutoCreateDomainObjectContainerDelegate(Object owner, AutoCreateDomainObjectContainer delegate) {
-        this.delegate = delegate;
-        this.owner = owner;
+    public AutoCreateDomainObjectContainerDelegate(Object owner, AutoCreateDomainObjectContainer container) {
+        this.container = container
+        delegate = container.asDynamicObject
+        this.owner = owner
     }
 
     public Object invokeMethod(String name, Object params) {
         boolean isTopLevelCall = !configuring.get()
         configuring.set(true)
         try {
-            groovy.lang.MissingMethodException failure
-            try {
+            if (delegate.hasMethod(name, params)) {
                 return delegate.invokeMethod(name, params)
-            } catch (groovy.lang.MissingMethodException e) {
-                failure = e
             }
 
             // try the owner
             try {
-                owner.invokeMethod(name, params)
+                return owner.invokeMethod(name, params)
             } catch (groovy.lang.MissingMethodException e) {
                 // ignore
             }
 
             boolean isConfigureMethod = params.length == 1 && params[0] instanceof Closure
-            boolean failureIsThis = failure instanceof MissingMethodException && failure.target == delegate.asDynamicObject && failure.method == name
-            if (!isTopLevelCall || !isConfigureMethod || !failureIsThis) {
-                throw failure
+            if (isTopLevelCall && isConfigureMethod) {
+                // looks like a configure method - add the object and try the delegate again
+                container.add(name)
             }
 
-            // looks like a configure method - try the delegate again
-            delegate.add(name)
             return delegate.invokeMethod(name, params);
         } finally {
             configuring.set(!isTopLevelCall)
@@ -58,10 +55,8 @@ class AutoCreateDomainObjectContainerDelegate {
     }
 
     public Object get(String name) {
-        try {
-            return delegate."$name"
-        } catch (groovy.lang.MissingPropertyException e) {
-            // Ignore
+        if (delegate.hasProperty(name)) {
+            return delegate.getProperty(name)
         }
 
         // try the owner
@@ -72,7 +67,7 @@ class AutoCreateDomainObjectContainerDelegate {
         }
 
         // try the delegate again
-        delegate.add(name)
-        return delegate."$name"
+        container.add(name)
+        return delegate.getProperty(name)
     }
 }

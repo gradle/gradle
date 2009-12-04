@@ -22,6 +22,7 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.HelperUtil.*;
@@ -479,8 +480,40 @@ public class DefaultDomainObjectContainerTest {
         container.getAsDynamicObject().invokeMethod("child", closure);
         assertThat(bean.getBeanProperty(), equalTo("value"));
 
-        call("{ it.child { beanProperty = 'new value' } }", container);
-        assertThat(bean.getBeanProperty(), equalTo("new value"));
+        call("{ it.child { beanProperty = 'value 2' } }", container);
+        assertThat(bean.getBeanProperty(), equalTo("value 2"));
+
+        call("{ it.invokeMethod('child') { beanProperty = 'value 3' } }", container);
+        assertThat(bean.getBeanProperty(), equalTo("value 3"));
+    }
+
+    @Test
+    public void canUseDynamicPropertiesAndMethodsInsideConfigureClosures() {
+        Bean bean = new Bean();
+        container.addObject("child", bean);
+        container.addObject("aProp", bean);
+        container.addObject("a", bean);
+        container.addObject("withType", bean);
+        container.addObject("allObjects", bean);
+
+        ConfigureUtil.configure(toClosure("{ child.beanProperty = 'value 1' }"), container);
+        assertThat(bean.getBeanProperty(), equalTo("value 1"));
+
+        ConfigureUtil.configure(toClosure("{ child { beanProperty = 'value 2' } }"), container);
+        assertThat(bean.getBeanProperty(), equalTo("value 2"));
+
+        ConfigureUtil.configure(toClosure("{ aProp.beanProperty = 'value 3' }"), container);
+        assertThat(bean.getBeanProperty(), equalTo("value 3"));
+
+        ConfigureUtil.configure(toClosure("{ a.beanProperty = 'value 4' }"), container);
+        assertThat(bean.getBeanProperty(), equalTo("value 4"));
+
+        // Try with an element with the same name as a method
+        ConfigureUtil.configure(toClosure("{ withType.beanProperty = 'value 6' }"), container);
+        assertThat(bean.getBeanProperty(), equalTo("value 6"));
+
+        ConfigureUtil.configure(toClosure("{ withType { beanProperty = 'value 6' } }"), container);
+        assertThat(bean.getBeanProperty(), equalTo("value 6"));
     }
 
     @Test

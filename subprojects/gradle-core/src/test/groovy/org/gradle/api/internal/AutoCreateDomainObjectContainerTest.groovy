@@ -45,10 +45,10 @@ class AutoCreateDomainObjectContainerTest {
             container.add('obj')
             fail()
         } catch (org.gradle.api.InvalidUserDataException e) {
-            assertThat(e.message, equalTo('Cannot add List \'obj\' as a List with that name already exists.'))
+            assertThat(e.message, equalTo('Cannot add TestObject \'obj\' as a TestObject with that name already exists.'))
         }
     }
-    
+
     @Test
     public void canConfigureExistingObject() {
         container.add('list1')
@@ -59,7 +59,7 @@ class AutoCreateDomainObjectContainerTest {
     }
 
     @Test
-    public void propogatesNestedMissingMethodException() {
+    public void propagatesNestedMissingMethodException() {
         container.add('list1')
         try {
             container.configure {
@@ -72,7 +72,7 @@ class AutoCreateDomainObjectContainerTest {
     }
 
     @Test
-    public void propogatesMethodInvocationException() {
+    public void propagatesMethodInvocationException() {
         RuntimeException failure = new RuntimeException()
         try {
             container.configure {
@@ -100,6 +100,22 @@ class AutoCreateDomainObjectContainerTest {
         assertThat(container.list1, equalTo(['list1', 'dynamicProp', 'ownerProp', 'ownerMethod', 'dynamicMethod', 'dynamicMethod', 1, 'prop', 'testObjectDynamicMethod']))
         assertThat(container.list1.prop, equalTo('prop'))
         assertThat(container.list2, equalTo(['list2', container.list1]))
+    }
+
+    @Test
+    public void canUseAnItemCalledMainInAScript() {
+        Script script = new GroovyShell().parse("""import org.gradle.util.ConfigureUtil
+            c.configure {
+                run
+                main { add(1) }
+            }
+
+""")
+        script.getBinding().setProperty("c", container)
+        script.run()
+
+        assertThat(container.run, equalTo(['run']))
+        assertThat(container.main, equalTo(['main', 1]))
     }
 }
 
@@ -159,7 +175,7 @@ class DynamicOwner {
     }
 }
 
-class TestObject extends ArrayList {
+class TestObject extends ArrayList<String> {
     def String prop
 
     def methodMissing(String name, Object params) {
@@ -168,16 +184,5 @@ class TestObject extends ArrayList {
             return name
         }
         throw new groovy.lang.MissingMethodException(name, getClass(), params)
-    }
-}
-
-class TestContainer extends AutoCreateDomainObjectContainer<TestObject> {
-
-    def TestContainer() {
-        super(List);
-    }
-
-    TestObject create(String name) {
-        return new TestObject() << name
     }
 }
