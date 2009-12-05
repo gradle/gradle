@@ -93,9 +93,12 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
                     "Print out the stacktrace also for user exceptions (e.g. compile error).");
             acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"),
                     "Print out the full (very verbose) stacktrace for any exceptions.");
-            acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.");
-            acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.");
-            acceptsAll(WrapUtil.toList(DEPENDENCIES, "dependencies"), "Show list of all project dependencies.");
+            acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.").
+                    withOptionalArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.").
+                    withOptionalArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(DEPENDENCIES, "dependencies"), "Show list of all project dependencies.").
+                    withOptionalArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(GUI), "Launches a GUI application");
             acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"),
                     "Specifies the start directory for Gradle. Defaults to current directory.").withRequiredArg()
@@ -284,13 +287,14 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
 
         if (options.has(TASKS)) {
-            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
+            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(
+                    BuiltInTasksBuildExecuter.Options.TASKS, options.argumentOf(TASKS)));
         } else if (options.has(PROPERTIES)) {
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(
-                    BuiltInTasksBuildExecuter.Options.PROPERTIES));
+                    BuiltInTasksBuildExecuter.Options.PROPERTIES, options.argumentOf(PROPERTIES)));
         } else if (options.has(DEPENDENCIES)) {
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(
-                    BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
+                    BuiltInTasksBuildExecuter.Options.DEPENDENCIES, options.argumentOf(DEPENDENCIES)));
         } else if (!options.nonOptionArguments().isEmpty()) {
             startParameter.setTaskNames(options.nonOptionArguments());
         }
@@ -308,6 +312,10 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
 
         startParameter.setLogLevel(getLogLevel(options));
+    }
+
+    private BuiltInTasksBuildExecuter createBuildInTasksExecuter(BuiltInTasksBuildExecuter.Options options, String path) {
+        return new BuiltInTasksBuildExecuter(options, path);
     }
 
     public void showHelp(OutputStream out) {

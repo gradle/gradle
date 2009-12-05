@@ -32,6 +32,9 @@ import java.util.TreeSet;
 public abstract class AbstractReportTask extends ConventionTask {
     private File outputFile;
 
+    // todo annotate as required 
+    private Set<Project> projects;
+    
     @TaskAction
     public void generate() {
         try {
@@ -41,7 +44,7 @@ public abstract class AbstractReportTask extends ConventionTask {
                 outputFile.getParentFile().mkdirs();
                 renderer.setOutputFile(outputFile);
             }
-            Set<Project> projects = new TreeSet<Project>(getProject().getAllprojects());
+            Set<Project> projects = new TreeSet<Project>(this.projects);
             for (Project project : projects) {
                 renderer.startProject(project);
                 generate(project);
@@ -74,5 +77,13 @@ public abstract class AbstractReportTask extends ConventionTask {
      */
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
+    }
+
+    public Set<Project> getProjects() {
+        return projects;
+    }
+
+    public void setProjects(Set<Project> projects) {
+        this.projects = projects;
     }
 }

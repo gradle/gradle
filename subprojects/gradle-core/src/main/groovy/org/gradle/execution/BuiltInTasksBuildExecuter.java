@@ -16,6 +16,7 @@
 package org.gradle.execution;
 
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.AbstractTask;
@@ -23,8 +24,10 @@ import org.gradle.api.tasks.diagnostics.AbstractReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import org.gradle.util.WrapUtil;
 
 import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -32,6 +35,7 @@ import java.util.concurrent.Callable;
  */
 public class BuiltInTasksBuildExecuter implements BuildExecuter {
     private GradleInternal gradle;
+    public static final String ALL_PROJECTS_WILDCARD = "?";
 
     public enum Options {
         TASKS {
@@ -64,11 +68,13 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
 
     private Options options;
     private AbstractReportTask task;
+    private String path;
 
-    public BuiltInTasksBuildExecuter(Options options) {
+    public BuiltInTasksBuildExecuter(Options options, String path) {
         this.options = options;
+        this.path = path;
     }
-
+    
     public void setOptions(Options options) {
         this.options = options;
     }
@@ -81,11 +87,20 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
             }
         });
         task.setProject(gradle.getDefaultProject());
+        task.setProjects(getProjectsForReport(path));
+
         task.doFirst(new Action<Task>() {
             public void execute(Task x) {
                 task.generate();
             }
         });
+    }
+
+    private Set<Project> getProjectsForReport(String path) {
+        if (path != null) {
+            return path.equals(ALL_PROJECTS_WILDCARD) ? gradle.getRootProject().getAllprojects() : WrapUtil.toSet(gradle.getRootProject().project(path));
+        }
+        return WrapUtil.<Project>toSet(gradle.getDefaultProject());
     }
 
     public String getDisplayName() {

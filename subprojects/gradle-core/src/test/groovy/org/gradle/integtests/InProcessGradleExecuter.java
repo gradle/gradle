@@ -71,13 +71,15 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public InProcessGradleExecuter withTaskList() {
-        parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS));
+        parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS,
+                BuiltInTasksBuildExecuter.ALL_PROJECTS_WILDCARD));
         return this;
     }
 
     @Override
     public InProcessGradleExecuter withDependencyList() {
-        parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES));
+        parameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES,
+                BuiltInTasksBuildExecuter.ALL_PROJECTS_WILDCARD));
         return this;
     }
 

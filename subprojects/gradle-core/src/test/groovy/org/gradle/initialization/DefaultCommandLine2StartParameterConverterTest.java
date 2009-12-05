@@ -345,7 +345,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test
     public void withShowTasks() {
         checkConversion(false, true, "-t");
-        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS);
+        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS, null);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
@@ -356,16 +356,40 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     @Test
+    public void withShowTasksAndPath() {
+        String somePath = ":SomeProject";
+        checkConversion(false, true, "-t" + somePath);
+        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS, somePath);
+        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
+    }
+
+    @Test
     public void withShowProperties() {
         checkConversion(false, true, "-r");
-        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES);
+        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES, null);
+        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
+    }
+
+    @Test
+    public void withShowPropertiesAndPath() {
+        String somePath = ":SomeProject";
+        checkConversion(false, true, "-r" + somePath);
+        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES, somePath);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
     @Test
     public void withShowDependencies() {
         checkConversion(false, true, "-n");
-        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
+        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES, null);
+        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
+    }
+
+    @Test
+    public void withShowDependenciesAndPath() {
+        String somePath = ":SomeProject";
+        checkConversion(false, true, "-n" + somePath);
+        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES, somePath);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 

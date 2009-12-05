@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.DefaultProject;
 import static org.gradle.util.HelperUtil.*;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -50,6 +51,7 @@ public class AbstractReportTaskTest {
         task = HelperUtil.createTask(TestReportTask.class, project);
         task.setGenerator(generator);
         task.setRenderer(renderer);
+        task.setProjects(WrapUtil.<Project>toSet(project));
     }
 
     @Test
@@ -95,7 +97,7 @@ public class AbstractReportTaskTest {
     public void passesEachProjectToRenderer() throws IOException {
         final Project child1 = createChildProject(project, "child1");
         final Project child2 = createChildProject(project, "child2");
-
+        task.setProjects(project.getAllprojects());
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
 
