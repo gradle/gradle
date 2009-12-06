@@ -74,6 +74,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private TaskExecuter executer;
 
+    private final ServiceRegistry services;
+
     private final TaskState state = new TaskState();
 
     protected AbstractTask() {
@@ -94,7 +96,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         path = project.absolutePath(name);
         dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention());
         dependencies = new DefaultTaskDependency(project.getTasks());
-        ServiceRegistry services = project.getServiceRegistryFactory().createFor(this);
+        services = project.getServiceRegistryFactory().createFor(this);
         outputs = services.get(TaskOutputs.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
@@ -335,6 +337,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public TaskOutputs getOutputs() {
         return outputs;
+    }
+
+    protected ServiceRegistry getServices() {
+        return services;
     }
 
     public boolean dependsOnTaskDidWork() {

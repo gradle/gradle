@@ -25,6 +25,7 @@ import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import java.util.concurrent.Callable
+import org.gradle.listener.ListenerManager
 
 /**
  * @author Hans Dockter
@@ -34,7 +35,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     Object testCustomPropValue;
 
-    @Before public void setUp()  {
+    @Before public void setUp() {
         super.setUp()
         testCustomPropValue = new Object()
         defaultTask = createTask(DefaultTask.class)
@@ -58,7 +59,7 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertThat(task.project, sameInstance(project))
         assertThat(task.name, equalTo(TEST_TASK_NAME))
     }
-    
+
     @Test public void testDoFirstWithClosureDelegatesToTask() {
         Closure testAction = {}
         defaultTask.doFirst(testAction)
@@ -69,8 +70,8 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Test public void testDoFirstWithClosure() {
         List<Integer> executed = new ArrayList<Integer>();
         Closure testAction1 = { executed.add(1) }
-        Closure testAction2 = { -> executed.add(2) }
-        Closure testAction3 = { task -> executed.add(3) }
+        Closure testAction2 = {-> executed.add(2) }
+        Closure testAction3 = {task -> executed.add(3) }
         defaultTask.doFirst(testAction1)
         defaultTask.doFirst(testAction2)
         defaultTask.doFirst(testAction3)
@@ -116,6 +117,11 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Test(expected = MissingPropertyException)
     void accessNonExistingProperty() {
         defaultTask."unknownProp"
+    }
+
+    @Test
+    void canAccessServices() {
+        assertNotNull(defaultTask.services.get(ListenerManager))
     }
 }
 
