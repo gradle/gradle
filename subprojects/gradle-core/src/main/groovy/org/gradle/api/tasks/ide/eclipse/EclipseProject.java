@@ -27,6 +27,8 @@ import org.gradle.api.tasks.TaskAction;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Set;
+import java.util.LinkedHashSet;
 
 /**
  * Generates an eclipse <i>.project</i> file.
@@ -39,6 +41,8 @@ public class EclipseProject extends ConventionTask {
     private String projectName;
 
     private ProjectType projectType = ProjectType.SIMPLE;
+    private Set<String> natureNames = new LinkedHashSet<String>();
+    private Set<String> buildCommandNames = new LinkedHashSet<String>();
 
     @TaskAction
     protected void generateProject() {
@@ -59,25 +63,25 @@ public class EclipseProject extends ConventionTask {
         root.addElement("name").setText(projectName);
         root.addElement("comment");
         root.addElement("projects");
-        addBuildSpec(root);
         addNatures(root);
+        addBuildSpec(root);
         return document;
     }
 
     private void addBuildSpec(Element root) {
-        Element natures = root.addElement("natures");
-        for (String natureName : projectType.natureNames()) {
-            natures.addElement("nature").setText(natureName);
+        Element buildRoot = root.addElement("buildSpec");
+
+        for (String buildCommandName : this.buildCommandNames) {
+            Element buildCommand = buildRoot.addElement("buildCommand");
+            buildCommand.addElement("name").setText(buildCommandName);
+            buildCommand.addElement("arguments");
         }
     }
 
     private void addNatures(Element root) {
-        Element buildRoot = root.addElement("buildSpec");
-
-        for (String buildCommandName : projectType.buildCommandNames()) {
-            Element buildCommand = buildRoot.addElement("buildCommand");
-            buildCommand.addElement("name").setText(buildCommandName);
-            buildCommand.addElement("arguments");
+        Element natures = root.addElement("natures");
+        for (String natureName : this.natureNames) {
+            natures.addElement("nature").setText(natureName);
         }
     }
 
@@ -111,5 +115,43 @@ public class EclipseProject extends ConventionTask {
      */
     public void setProjectType(ProjectType projectType) {
         this.projectType = projectType;
+
+        this.natureNames.clear();
+        this.natureNames.addAll(projectType.natureNames());
+
+        this.buildCommandNames.clear();
+        this.buildCommandNames.addAll(projectType.buildCommandNames());
+    }
+
+    /**
+     * Returns the natures to be added to this Eclipse project.
+     */
+    public Set<String> getNatureNames() {
+        return this.natureNames;
+    }
+
+    /**
+     * Sets the natures to be added to this Eclipse project.
+     *
+     * @param natureNames The natures to add.
+     */
+    public void setNatureNames(Set<String> natureNames) {
+        this.natureNames = natureNames;
+    }
+
+    /**
+     * Returns the build commands to be added to this Eclipse project.
+     */
+    public Set<String> getBuildCommandNames() {
+        return this.buildCommandNames;
+    }
+
+    /**
+     * Sets the build commands to be added to this Eclipse project.
+     *
+     * @param buildCommandNames The build commands to add.
+     */
+    public void setBuildCommandNames(Set<String> buildCommandNames) {
+        this.buildCommandNames = buildCommandNames;
     }
 }

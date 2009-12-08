@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<projectDescription>
+  <name>myProject</name>
+  <comment/>
+  <projects/>
+  <natures>
+    <nature>org.gradle.test.natures.CustomNature</nature>
+  </natures>
+  <buildSpec/>
+</projectDescription>

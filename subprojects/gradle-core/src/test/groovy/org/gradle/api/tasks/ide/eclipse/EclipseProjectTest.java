@@ -52,10 +52,35 @@ public class EclipseProjectTest extends AbstractTaskTest {
     }
 
     @Test
+    public void generateJavaProjectWithDuplicateNature() throws IOException {
+        eclipseProject.setProjectType(ProjectType.JAVA);
+        eclipseProject.getNatureNames().add("org.eclipse.jdt.core.javanature");
+        eclipseProject.execute();
+        checkProjectFile("expectedJavaProjectFile.txt");
+    }
+
+    @Test
+    public void generateJavaProjectWithCustomBuilder() throws IOException {
+        eclipseProject.setProjectType(ProjectType.JAVA);
+		eclipseProject.getBuildCommandNames().add("org.gradle.test.custom.custombuilder");
+        eclipseProject.execute();
+        checkProjectFile("expectedJavaProjectFileWithCustomBuilder.txt");
+    }
+
+    @Test
     public void generateSimpleProject() throws IOException {
         eclipseProject.setProjectType(ProjectType.SIMPLE);
         eclipseProject.execute();
         checkProjectFile("expectedSimpleProjectFile.txt");
+    }
+
+    @Test
+    public void generateSimpleProjectWithCustomNature() throws IOException {
+        eclipseProject.setProjectType(ProjectType.SIMPLE);
+        eclipseProject.getNatureNames().add("org.gradle.test.natures.CustomNature");
+        eclipseProject.execute();
+
+        checkProjectFile("expectedSimpleProjectFileWithCustomNature.txt");
     }
 
     private void checkProjectFile(String expectedResourcePath) throws IOException {
