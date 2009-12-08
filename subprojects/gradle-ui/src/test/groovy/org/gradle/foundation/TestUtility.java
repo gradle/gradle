@@ -366,16 +366,21 @@ public class TestUtility {
 
         final BooleanHolder isComplete = new BooleanHolder();
 
-        Request request = gradlePluginLord.addRefreshRequestToQueue();
-        gradlePluginLord.addRequestObserver( new GradlePluginLord.RequestObserver() {
+        GradlePluginLord.RequestObserver observer = new GradlePluginLord.RequestObserver() {
            public void executionRequestAdded( ExecutionRequest request ) {}
-           public void refreshRequestAdded( RefreshTaskListRequest request ) { }
+           public void refreshRequestAdded( RefreshTaskListRequest request )
+           {
+              request.setExecutionInteraction( executionInteraction );
+           }
            public void aboutToExecuteRequest( Request request ) { }
 
            public void requestExecutionComplete( Request request, int result, String output ) {
               isComplete.value = true;
            }
-        }, false );
+        };
+
+        gradlePluginLord.addRequestObserver( observer, false );   //add the observer before we add the request due to timing issues. It's possible for it to completely execute before we return from addRefreshRequestToQueue.
+        Request request = gradlePluginLord.addRefreshRequestToQueue();
 
         //make sure we've got a request
         Assert.assertNotNull(request);
@@ -393,10 +398,67 @@ public class TestUtility {
             totalWaitTime += 1;
         }
 
+        gradlePluginLord.removeRequestObserver( observer );
+
         if (!isComplete.value) //its still running. Something is wrong.
         {
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
             throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
+        }
+    }
+
+   /**
+    This executes a command and waits until it is finished.
+
+    @param gradlePluginLord the plugin lord
+    @param fullCommandLine the command to execute
+    @param displayName the display name of the command. It doesn't usuall matter.
+    @param executionInteraction this gets the results of the execution
+    @param maximumWaitSeconds the maximum time to wait before considering it failed.
+    */
+    public static void executeBlocking(GradlePluginLord gradlePluginLord, String fullCommandLine, String displayName, final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitSeconds) {
+        gradlePluginLord.startExecutionQueue();   //make sure its started
+
+        final BooleanHolder isComplete = new BooleanHolder();
+
+        GradlePluginLord.RequestObserver observer = new GradlePluginLord.RequestObserver() {
+           public void executionRequestAdded( ExecutionRequest request )
+           {
+              request.setExecutionInteraction( executionInteraction );
+           }
+           public void refreshRequestAdded( RefreshTaskListRequest request ) { }
+           public void aboutToExecuteRequest( Request request ) { }
+
+           public void requestExecutionComplete( Request request, int result, String output ) {
+              isComplete.value = true;
+           }
+        };
+
+        gradlePluginLord.addRequestObserver( observer, false );   //add the observer before we add the request due to timing issues. It's possible for it to completely execute before we return from addExecutionRequestToQueue.
+        Request request = gradlePluginLord.addExecutionRequestToQueue( fullCommandLine, displayName );
+
+        //make sure we've got a request
+        Assert.assertNotNull(request);
+
+        //now sleep until we're complete, but bail if we wait too long
+        int totalWaitTime = 0;
+        while (!isComplete.value && totalWaitTime <= maximumWaitSeconds) {
+            try {
+                Thread.sleep(1000);
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            totalWaitTime += 1;
+        }
+
+        gradlePluginLord.removeRequestObserver( observer );
+
+        if (!isComplete.value) //its still running. Something is wrong.
+        {
+            request.cancel(); //just to clean up after ourselves a little, cancel the request.
+            throw new AssertionFailedError("Failed to comlete execution in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
         }
     }
 
