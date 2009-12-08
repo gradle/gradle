@@ -30,6 +30,14 @@ public abstract class ProjectType {
             return WrapUtil.toList("org.eclipse.jdt.core.javanature");
         }
 	};
+    public static final ProjectType GROOVY = new ProjectType() {
+        public List<String> buildCommandNames() {
+            return WrapUtil.toList("org.eclipse.jdt.core.javabuilder");
+        }
+        public List<String> natureNames() {
+            return WrapUtil.toList("org.eclipse.jdt.groovy.core.groovyNature", "org.eclipse.jdt.core.javanature");
+        }
+    };
     public static final ProjectType SIMPLE = new ProjectType() {
         public List<String> buildCommandNames() {
             return new ArrayList<String>();

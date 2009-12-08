@@ -94,9 +94,11 @@ class DefaultConventionTest {
     @Test public void testCanLocateConventionObjectByType() {
         assertSame(convention1, convention.getPlugin(TestPluginConvention1))
         assertSame(convention2, convention.getPlugin(TestPluginConvention2))
+        assertSame(convention1, convention.findPlugin(TestPluginConvention1))
+        assertSame(convention2, convention.findPlugin(TestPluginConvention2))
     }
     
-    @Test public void testFailsWhenMultipleConventionObjectsWithCompatibleType() {
+    @Test public void testGetPluginFailsWhenMultipleConventionObjectsWithCompatibleType() {
         try {
             convention.getPlugin(Object)
             fail()
@@ -105,12 +107,25 @@ class DefaultConventionTest {
         }
     }
 
-    @Test public void testFailsWhenNoConventionObjectsWithCompatibleType() {
+    @Test public void testFindPluginFailsWhenMultipleConventionObjectsWithCompatibleType() {
+        try {
+            convention.getPlugin(Object)
+            fail()
+        } catch (java.lang.IllegalStateException e) {
+            assertThat(e.message, equalTo('Found multiple convention objects of type Object.'))
+        }
+    }
+
+    @Test public void testGetPluginFailsWhenNoConventionObjectsWithCompatibleType() {
         try {
             convention.getPlugin(String)
             fail()
         } catch (java.lang.IllegalStateException e) {
             assertThat(e.message, equalTo('Could not find any convention object of type String.'))
         }
+    }
+    
+    @Test public void testFindPluginReturnsNullWhenNoConventionObjectsWithCompatibleType() {
+        assertNull(convention.findPlugin(String))
     }
 }

@@ -100,6 +100,15 @@ public class AbstractConvention implements Convention {
     }
 
     public <T> T getPlugin(Class<T> type) {
+        T value = findPlugin(type);
+        if (value == null) {
+            throw new IllegalStateException(String.format("Could not find any convention object of type %s.",
+                    type.getSimpleName()));
+        }
+        return value;
+    }
+
+    public <T> T findPlugin(Class<T> type) throws IllegalStateException {
         List<T> values = new ArrayList<T>();
         for (Object object : plugins.values()) {
             if (type.isInstance(object)) {
@@ -107,8 +116,7 @@ public class AbstractConvention implements Convention {
             }
         }
         if (values.isEmpty()) {
-            throw new IllegalStateException(String.format("Could not find any convention object of type %s.",
-                    type.getSimpleName()));
+            return null;
         }
         if (values.size() > 1) {
             throw new IllegalStateException(String.format("Found multiple convention objects of type %s.",

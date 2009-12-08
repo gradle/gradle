@@ -71,6 +71,7 @@ def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:ham
 configure(groovyProjects()) {
     usePlugin 'groovy'
     usePlugin 'code-quality'
+    usePlugin 'eclipse'
 
     archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
     dependencies {

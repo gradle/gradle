@@ -24,11 +24,13 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.api.tasks.ide.eclipse.*;
 import org.gradle.util.GUtil;
@@ -39,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which generates Eclipse project files for projects that use the {@link
@@ -80,9 +83,17 @@ public class EclipsePlugin implements Plugin {
     private EclipseProject configureEclipseProject(Project project) {
         EclipseProject eclipseProject = project.getTasks().add(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
         eclipseProject.setProjectName(project.getName());
-        eclipseProject.setProjectType(ProjectType.JAVA);
+        eclipseProject.setProjectType(selectEclipseProjectType(project));
         eclipseProject.setDescription("Generates an Eclipse .project file.");
         return eclipseProject;
+    }
+
+    private ProjectType selectEclipseProjectType(Project project) {
+        if (project.getPlugins().hasPlugin(GroovyPlugin.class)) {
+            return ProjectType.GROOVY;
+        }
+
+        return ProjectType.JAVA;
     }
 
     private EclipseClasspath configureEclipseClasspath(final Project project) {
@@ -90,14 +101,12 @@ public class EclipsePlugin implements Plugin {
         eclipseClasspath.getConventionMapping().map(GUtil.map(
                 "srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        SourceSet sourceSet = java(convention).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                        return GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
+                        return allLanguageSrcDirs(convention, SourceSet.MAIN_SOURCE_SET_NAME);
                     }
                 },
                 "testSrcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        SourceSet sourceSet = java(convention).getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
-                        return GUtil.addLists(sourceSet.getJava().getSrcDirs(), sourceSet.getResources().getSrcDirs());
+                        return allLanguageSrcDirs(convention, SourceSet.TEST_SOURCE_SET_NAME);
                     }
                 },
                 "outputDirectory", new ConventionValue() {
@@ -218,5 +227,28 @@ public class EclipsePlugin implements Plugin {
 
     private WarPluginConvention war(Convention convention) {
         return convention.getPlugin(WarPluginConvention.class);
+    }
+
+    private SourceSet sourceSet(Convention convention, String name) {
+        return java(convention).getSourceSets().getByName(name);
+    }
+
+    private GroovySourceSet groovySourceSet(Convention convention, String name) {
+        return ((DynamicObjectAware) sourceSet(convention, name)).getConvention().findPlugin(GroovySourceSet.class);
+    }
+
+    private Object allLanguageSrcDirs(Convention convention, String name) {
+        SourceSet sourceSet = sourceSet(convention, name);
+
+        Set<Object> extraDirs = new TreeSet<Object>();
+        GroovySourceSet groovySourceSet = groovySourceSet(convention, name);
+        if (groovySourceSet != null) {
+            extraDirs.addAll(groovySourceSet.getGroovy().getSrcDirs());
+        }
+
+        return GUtil.addLists(
+            sourceSet.getJava().getSrcDirs(),
+            sourceSet.getResources().getSrcDirs(),
+            extraDirs);
     }
 }

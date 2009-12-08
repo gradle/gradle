@@ -45,6 +45,13 @@ public class EclipseProjectTest extends AbstractTaskTest {
     }
 
     @Test
+    public void generateGroovyProject() throws IOException {
+        eclipseProject.setProjectType(ProjectType.GROOVY);
+        eclipseProject.execute();
+        checkProjectFile("expectedGroovyProjectFile.txt");
+    }
+
+    @Test
     public void generateJavaProject() throws IOException {
         eclipseProject.setProjectType(ProjectType.JAVA);
         eclipseProject.execute();
