@@ -18,7 +18,9 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 
 /**
- * A {@code TaskOutputs} represents the outputs of a task.
+ * <p>A {@code TaskOutputs} represents the outputs of a task.</p>
+ *
+ * <p>You can obtain a {@code TaskOutputs} instance using {@link org.gradle.api.Task#getOutputs()}.</p>
  */
 public interface TaskOutputs {
     /**

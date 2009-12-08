@@ -18,7 +18,9 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 
 /**
- * A {@code TaskInputs} represents the inputs for a task.
+ * <p>A {@code TaskInputs} represents the inputs for a task.</p>
+ *
+ * <p>You can obtain a {@code TaskInputs} instance using {@link org.gradle.api.Task#getInputs()}.</p>
  */
 public interface TaskInputs {
     /**
@@ -45,7 +47,7 @@ public interface TaskInputs {
     TaskInputs files(Object... paths);
 
     /**
-     * Registers an input directory heirarchy. All files found under the given directory are treated as input files for
+     * Registers an input directory hierarchy. All files found under the given directory are treated as input files for
      * this task.
      *
      * @param dirPath The directory. The path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
