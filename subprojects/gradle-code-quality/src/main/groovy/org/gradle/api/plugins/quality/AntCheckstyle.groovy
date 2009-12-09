@@ -21,7 +21,7 @@ import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 
 class AntCheckstyle {
-    def checkstyle(AntBuilder ant, FileCollection source, File configFile, File resultFile, AntBuilderAware classpath, Map<String, ?> properties) {
+    def checkstyle(AntBuilder ant, FileCollection source, File configFile, File resultFile, AntBuilderAware classpath, Map<String, ?> properties, boolean stopBuild) {
         String propertyName = "org.gradle.checkstyle.violations"
 
         ant.typedef(resource: 'checkstyletask.properties')
@@ -35,7 +35,7 @@ class AntCheckstyle {
             }
         }
 
-        if (ant.properties[propertyName]) {
+        if (stopBuild && ant.properties[propertyName]) {
             throw new GradleException("Checkstyle check violations were found in $source. See the report at $resultFile.")
         }
     }

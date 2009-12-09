@@ -33,9 +33,11 @@ public class Checkstyle extends SourceTask {
 
     private AntCheckstyle antCheckstyle = new AntCheckstyle();
 
+    private boolean stopBuild = true;
+
     @TaskAction
     public void check() {
-        antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties());
+        antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties(), getStopBuild());
     }
 
     @InputFile
@@ -71,5 +73,13 @@ public class Checkstyle extends SourceTask {
 
     public void setProperties(Map<String, Object> properties) {
         this.properties = properties;
+    }
+
+    public boolean getStopBuild() {
+        return this.stopBuild;
+    }
+
+    public void setStopBuild(boolean stopBuild) {
+        this.stopBuild = stopBuild;
     }
 }
