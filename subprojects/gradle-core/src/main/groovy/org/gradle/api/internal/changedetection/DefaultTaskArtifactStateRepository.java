@@ -123,7 +123,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private void loadTasks(TaskInternal task) {
-        cache = repository.getIndexedCacheFor(task.getProject().getGradle(), "taskArtifacts", Collections.EMPTY_MAP);
+        cache = repository.getCacheFor(task.getProject().getGradle(), "taskArtifacts").openIndexedCache();
     }
 
     private static byte type(File file) {

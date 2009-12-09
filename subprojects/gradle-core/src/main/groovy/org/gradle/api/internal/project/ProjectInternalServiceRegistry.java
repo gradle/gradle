@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -34,14 +34,12 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.initialization.DefaultScriptHandler;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ProjectPluginsContainer;
 
@@ -56,125 +54,85 @@ public class ProjectInternalServiceRegistry extends AbstractServiceRegistry impl
     public ProjectInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project) {
         super(parent);
         this.project = project;
+    }
 
-        add(new Service(AntBuilderFactory.class) {
-            @Override
-            protected Object create() {
-                return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
+    protected AntBuilderFactory createAntBuilderFactory() {
+        return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
+    }
+
+    protected ProjectPluginsContainer createProjectPluginsContainer() {
+        return new DefaultProjectsPluginContainer(get(PluginRegistry.class));
+    }
+
+    protected TaskContainerInternal createTaskContainerInternal() {
+        return new DefaultTaskContainer(project, get(ITaskFactory.class));
+    }
+
+    protected Convention createConvention() {
+        return new DefaultConvention();
+    }
+
+    protected RepositoryHandler createRepositoryHandler() {
+        return get(RepositoryHandlerFactory.class).createRepositoryHandler(get(Convention.class));
+    }
+
+    protected ConfigurationContainer createConfigurationContainer() {
+        return get(ConfigurationContainerFactory.class).createConfigurationContainer(get(ResolverProvider.class),
+                get(DependencyMetaDataProvider.class));
+    }
+
+    protected ArtifactHandler createArtifactHandler() {
+        return new DefaultArtifactHandler(get(ConfigurationContainer.class), get(PublishArtifactFactory.class));
+    }
+
+    protected ProjectFinder createProjectFinder() {
+        return new ProjectFinder() {
+            public Project getProject(String path) {
+                return project.project(path);
             }
-        });
+        };
+    }
 
-        add(new Service(ProjectPluginsContainer.class) {
-            @Override
-            protected Object create() {
-                return new DefaultProjectsPluginContainer(get(PluginRegistry.class));
+    protected DependencyHandler createDependencyHandler() {
+        return new DefaultDependencyHandler(get(ConfigurationContainer.class), get(DependencyFactory.class),
+                get(ProjectFinder.class));
+    }
+
+    protected DefaultScriptHandler createScriptHandler() {
+        RepositoryHandler repositoryHandler = get(RepositoryHandlerFactory.class).createRepositoryHandler(
+                new DefaultConvention());
+        ConfigurationContainer configurationContainer = get(ConfigurationContainerFactory.class)
+                .createConfigurationContainer(repositoryHandler, get(DependencyMetaDataProvider.class));
+        DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
+                get(DependencyFactory.class), get(ProjectFinder.class));
+        ClassLoader parentClassLoader;
+        if (project.getParent() != null) {
+            parentClassLoader = project.getParent().getClassLoaderProvider().getClassLoader();
+        } else {
+            parentClassLoader = project.getGradle().getBuildScriptClassLoader();
+        }
+        return new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer,
+                parentClassLoader);
+    }
+
+    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
+        return new DependencyMetaDataProvider() {
+            public InternalRepository getInternalRepository() {
+                return get(InternalRepository.class);
             }
-        });
 
-        add(new Service(TaskContainerInternal.class) {
-            @Override
-            protected Object create() {
-                return new DefaultTaskContainer(project, get(ITaskFactory.class));
+            public File getGradleUserHomeDir() {
+                return project.getGradle().getGradleUserHomeDir();
             }
-        });
 
-        add(new Service(Convention.class) {
-            @Override
-            protected Object create() {
-                return new DefaultConvention();
+            public Module getModuleForPublicDescriptor() {
+                return new DefaultModule(project.getGroup().toString(), project.getName(), project.getVersion().toString(), project.getStatus().toString());
             }
-        });
 
-        add(new Service(RepositoryHandler.class) {
-            @Override
-            protected Object create() {
-                return get(RepositoryHandlerFactory.class).createRepositoryHandler(get(Convention.class));
+            public Module getModuleForResolve() {
+                return new DefaultModule(project.getGroup().toString(), project.getPath().replace(":", "_"), project.getVersion().toString(), project.getStatus().toString());
             }
-        });
-
-        add(new Service(ConfigurationContainer.class) {
-            @Override
-            protected Object create() {
-                return get(ConfigurationContainerFactory.class).createConfigurationContainer(get(ResolverProvider.class),
-                        get(DependencyMetaDataProvider.class));
-            }
-        });
-
-        add(new Service(ArtifactHandler.class) {
-            @Override
-            protected Object create() {
-                return new DefaultArtifactHandler(get(ConfigurationContainer.class), get(PublishArtifactFactory.class));
-            }
-        });
-
-        add(new Service(ProjectFinder.class) {
-            @Override
-            protected Object create() {
-                return new ProjectFinder() {
-                    public Project getProject(String path) {
-                        return project.project(path);
-                    }
-                };
-            }
-        });
-
-        add(new Service(DependencyHandler.class) {
-            @Override
-            protected Object create() {
-                return new DefaultDependencyHandler(get(ConfigurationContainer.class), get(DependencyFactory.class),
-                        get(ProjectFinder.class));
-            }
-        });
-
-        add(new Service(ScriptHandler.class) {
-            @Override
-            protected Object create() {
-                RepositoryHandler repositoryHandler = get(RepositoryHandlerFactory.class).createRepositoryHandler(
-                        new DefaultConvention());
-                ConfigurationContainer configurationContainer = get(ConfigurationContainerFactory.class)
-                        .createConfigurationContainer(repositoryHandler, get(DependencyMetaDataProvider.class));
-                DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
-                        get(DependencyFactory.class), get(ProjectFinder.class));
-                ClassLoader parentClassLoader;
-                if (project.getParent() != null) {
-                    parentClassLoader = project.getParent().getClassLoaderProvider().getClassLoader();
-                } else {
-                    parentClassLoader = project.getGradle().getBuildScriptClassLoader();
-                }
-                return new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer,
-                        parentClassLoader);
-            }
-        });
-
-        add(new Service(ScriptClassLoaderProvider.class) {
-            @Override
-            protected Object create() {
-                return get(ScriptHandler.class);
-            }
-        });
-
-        add(new Service(DependencyMetaDataProvider.class) {
-            @Override
-            protected Object create() {
-                return new DependencyMetaDataProvider() {
-                    public InternalRepository getInternalRepository() {
-                        return get(InternalRepository.class);
-                    }
-
-                    public File getGradleUserHomeDir() {
-                        return project.getGradle().getGradleUserHomeDir();
-                    }
-
-                    public Module getModuleForPublicDescriptor() {
-                        return new DefaultModule(project.getGroup().toString(), project.getName(), project.getVersion().toString(), project.getStatus().toString());
-                    }
-
-                    public Module getModuleForResolve() {
-                        return new DefaultModule(project.getGroup().toString(), project.getPath().replace(":", "_"), project.getVersion().toString(), project.getStatus().toString());
-                    }
-                };
-            }
-        });
+        };
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

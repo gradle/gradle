@@ -22,17 +22,17 @@ import org.gradle.integtests.TestFile;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.TemporaryFolder;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.util.Map;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultCacheRepositoryTest {
@@ -44,34 +44,36 @@ public class DefaultCacheRepositoryTest {
     private final TestFile sharedCacheDir = homeDir.file("caches");
     private final String version = new GradleVersion().getVersion();
     private final Map properties = GUtil.map("a", "value", "b", "value2");
-    private final DefaultCacheRepository repository = new DefaultCacheRepository(homeDir, CacheUsage.ON);
+    private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
+    private final DefaultCacheRepository repository = new DefaultCacheRepository(homeDir, CacheUsage.ON, cacheFactory);
 
     @Test
     public void createsGlobalCache() {
-        PersistentCache cache = repository.getGlobalCache("a/b/c", properties);
-        assertThat(cache, instanceOf(DefaultPersistentCache.class));
+        final PersistentCache cache = context.mock(PersistentCache.class);
 
-        DefaultPersistentCache dCache = (DefaultPersistentCache) cache;
-        assertThat(dCache.getBaseDir(), equalTo((File) sharedCacheDir.file(version + "/a/b/c")));
-        assertThat(dCache.getProperties(), equalTo(properties));
+        context.checking(new Expectations(){{
+            one(cacheFactory).open(sharedCacheDir.file(version + "/a/b/c"), CacheUsage.ON, properties);
+            will(returnValue(cache));
+        }});
+
+        assertThat(repository.getGlobalCache("a/b/c", properties), sameInstance(cache));
     }
 
     @Test
     public void createsCacheForGradle() {
         final Gradle gradle = context.mock(Gradle.class);
         final Project project = context.mock(Project.class);
+        final PersistentCache cache = context.mock(PersistentCache.class);
+
         context.checking(new Expectations() {{
             allowing(gradle).getRootProject();
             will(returnValue(project));
             allowing(project).getProjectDir();
             will(returnValue(buildRootDir));
+            one(cacheFactory).open(buildRootDir.file(".gradle/" + version + "/a/b/c"), CacheUsage.ON, properties);
+            will(returnValue(cache));
         }});
 
-        PersistentCache cache = repository.getCacheFor(gradle, "a/b/c", properties);
-        assertThat(cache, instanceOf(DefaultPersistentCache.class));
-
-        DefaultPersistentCache dCache = (DefaultPersistentCache) cache;
-        assertThat(dCache.getBaseDir(), equalTo((File) buildRootDir.file(".gradle/" + version + "/a/b/c")));
-        assertThat(dCache.getProperties(), equalTo(properties));
+        assertThat(repository.getCacheFor(gradle, "a/b/c", properties), sameInstance(cache));
     }
 }

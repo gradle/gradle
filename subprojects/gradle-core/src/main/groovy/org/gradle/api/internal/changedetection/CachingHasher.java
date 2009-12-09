@@ -20,7 +20,6 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.Serializer;
 
 import java.io.*;
-import java.util.Collections;
 
 public class CachingHasher implements Hasher {
     private final PersistentIndexedCache<File, FileInfo> cache;
@@ -29,7 +28,7 @@ public class CachingHasher implements Hasher {
 
     public CachingHasher(Hasher hasher, CacheRepository cacheRepository) {
         this.hasher = hasher;
-        cache = cacheRepository.getIndexedGlobalCache("fileHashes", Collections.EMPTY_MAP, new FileInfoSerializer());
+        cache = cacheRepository.getGlobalCache("fileHashes").openIndexedCache(new FileInfoSerializer());
     }
 
     public byte[] hash(File file) {

@@ -16,6 +16,7 @@
 package org.gradle.cache;
 
 import org.gradle.CacheUsage;
+import org.gradle.cache.btree.BTreePersistentIndexedCache;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
@@ -23,18 +24,24 @@ import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
-public class DefaultPersistentCache implements PersistentCache {
+public class DefaultPersistentDirectoryCache implements PersistentCache {
     private final File dir;
     private final File propertiesFile;
     private final Properties properties = new Properties();
     private boolean valid;
+    private BTreePersistentIndexedCache indexedCache;
 
-    public DefaultPersistentCache(File dir, CacheUsage cacheUsage, Map<String, ?> properties) {
+    public DefaultPersistentDirectoryCache(File dir, CacheUsage cacheUsage, Map<String, ?> properties) {
         this.dir = dir;
         propertiesFile = new File(dir, "cache.properties");
         this.properties.putAll(properties);
         determineIfCacheIsValid(cacheUsage, properties);
         buildCacheDir();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Cache %s", dir);
     }
 
     private void buildCacheDir() {
@@ -66,6 +73,17 @@ public class DefaultPersistentCache implements PersistentCache {
         valid = true;
     }
 
+    public <K, V> BTreePersistentIndexedCache<K, V> openIndexedCache(Serializer<V> serializer) {
+        if (indexedCache == null) {
+            indexedCache = new BTreePersistentIndexedCache<K,V>(this, serializer);
+        }
+        return indexedCache;
+    }
+
+    public <K, V> BTreePersistentIndexedCache<K, V> openIndexedCache() {
+        return openIndexedCache(new DefaultSerializer<V>());
+    }
+
     public Properties getProperties() {
         return properties;
     }
@@ -78,8 +96,14 @@ public class DefaultPersistentCache implements PersistentCache {
         return valid;
     }
 
-    public void update() {
+    public void markValid() {
         GUtil.saveProperties(properties, propertiesFile);
         valid = true;
+    }
+
+    public void close() {
+        if (indexedCache != null) {
+            indexedCache.close();
+        }
     }
 }

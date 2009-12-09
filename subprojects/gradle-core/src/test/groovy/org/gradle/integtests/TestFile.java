@@ -23,6 +23,8 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleUtil;
 import org.gradle.util.AntUtil;
 import static org.junit.Assert.*;
+
+import org.gradle.util.HashUtil;
 import org.hamcrest.Matcher;
 
 import java.io.File;
@@ -258,5 +260,31 @@ public class TestFile extends File {
         tar.setDestFile(zipFile);
         AntUtil.execute(tar);
         return this;
+    }
+
+    public Snapshot snapshot() {
+        assertIsFile();
+        return new Snapshot();
+    }
+
+    public void assertHasChangedSince(Snapshot snapshot) {
+        Snapshot now = snapshot();
+        assertTrue(now.modTime != snapshot.modTime);
+    }
+
+    public void assertHasNotChangedSince(Snapshot snapshot) {
+        Snapshot now = snapshot();
+        assertEquals(now.modTime, snapshot.modTime);
+        assertArrayEquals(now.hash, snapshot.hash);
+    }
+
+    public class Snapshot {
+        private final long modTime;
+        private final byte[] hash;
+
+        public Snapshot() {
+            modTime = lastModified();
+            hash = HashUtil.createHash(TestFile.this);
+        }
     }
 }

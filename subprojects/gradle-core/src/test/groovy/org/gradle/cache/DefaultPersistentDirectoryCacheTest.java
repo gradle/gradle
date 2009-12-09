@@ -16,6 +16,7 @@
 package org.gradle.cache;
 
 import org.gradle.CacheUsage;
+import org.gradle.cache.btree.BTreePersistentIndexedCache;
 import org.gradle.integtests.TestFile;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
@@ -28,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class DefaultPersistentCacheTest {
+public class DefaultPersistentDirectoryCacheTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final Map<String, String> properties = GUtil.map("prop", "value", "prop2", "other-value");
@@ -38,7 +39,7 @@ public class DefaultPersistentCacheTest {
         TestFile emptyDir = tmpDir.getDir().file("dir");
         emptyDir.assertDoesNotExist();
 
-        DefaultPersistentCache cache = new DefaultPersistentCache(emptyDir, CacheUsage.ON, properties);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(emptyDir, CacheUsage.ON, properties);
         assertFalse(cache.isValid());
 
         emptyDir.assertIsDir();
@@ -48,7 +49,7 @@ public class DefaultPersistentCacheTest {
     public void cacheIsInvalidWhenPropertiesFileDoesNotExist() {
         TestFile dir = tmpDir.getDir().file("dir").createDir();
 
-        DefaultPersistentCache cache = new DefaultPersistentCache(dir, CacheUsage.ON, properties);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
         assertFalse(cache.isValid());
 
         dir.assertIsDir();
@@ -58,7 +59,7 @@ public class DefaultPersistentCacheTest {
     public void rebuildsCacheWhenPropertiesHaveChanged() {
         TestFile dir = createCacheDir("prop", "other-value");
 
-        DefaultPersistentCache cache = new DefaultPersistentCache(dir, CacheUsage.ON, properties);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
         assertFalse(cache.isValid());
 
         dir.assertHasDescendants();
@@ -68,7 +69,7 @@ public class DefaultPersistentCacheTest {
     public void rebuildsCacheWhenCacheRebuildRequested() {
         TestFile dir = createCacheDir();
 
-        DefaultPersistentCache cache = new DefaultPersistentCache(dir, CacheUsage.REBUILD, properties);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.REBUILD, properties);
         assertFalse(cache.isValid());
 
         dir.assertHasDescendants();
@@ -78,7 +79,7 @@ public class DefaultPersistentCacheTest {
     public void usesExistingCacheDirWhenItIsNotInvalid() {
         TestFile dir = createCacheDir();
 
-        DefaultPersistentCache cache = new DefaultPersistentCache(dir, CacheUsage.ON, properties);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
         assertTrue(cache.isValid());
 
         dir.file("cache.properties").assertIsFile();
@@ -89,24 +90,50 @@ public class DefaultPersistentCacheTest {
     public void updateCreatesPropertiesFileWhenItDoesNotExist() {
         TestFile dir = tmpDir.getDir().file("dir");
 
-        DefaultPersistentCache cache = new DefaultPersistentCache(dir, CacheUsage.ON, properties);
-        cache.update();
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
+        cache.markValid();
 
         assertTrue(cache.isValid());
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
 
     @Test
-    public void updatesProperties() {
+    public void updatesPropertiesWhenMarkedValid() {
         TestFile dir = createCacheDir("prop", "some-other-value");
 
-        DefaultPersistentCache cache = new DefaultPersistentCache(dir, CacheUsage.ON, properties);
-        cache.update();
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
+        cache.markValid();
 
         assertTrue(cache.isValid());
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
 
+    @Test
+    public void createsAnIndexedCache() {
+        TestFile dir = tmpDir.getDir().file("dir");
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
+        assertThat(cache.openIndexedCache(), instanceOf(BTreePersistentIndexedCache.class));
+    }
+
+    @Test
+    public void reusesTheIndexedCache() {
+        TestFile dir = tmpDir.getDir().file("dir");
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
+        assertThat(cache.openIndexedCache(), sameInstance(cache.openIndexedCache()));
+    }
+
+    @Test
+    public void closesIndexedCacheOnClose() {
+        TestFile dir = tmpDir.getDir().file("dir");
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
+        
+        BTreePersistentIndexedCache indexedCache = cache.openIndexedCache();
+        assertTrue(indexedCache.isOpen());
+
+        cache.close();
+        assertFalse(indexedCache.isOpen());
+    }
+    
     private Map<String, String> loadProperties(TestFile file) {
         Properties properties = GUtil.loadProperties(file);
         Map<String, String> result = new HashMap<String, String>();

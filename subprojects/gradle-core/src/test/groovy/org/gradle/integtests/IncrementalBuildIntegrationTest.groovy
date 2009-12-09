@@ -40,8 +40,8 @@ task b(type: org.gradle.integtests.TransformerTask, dependsOn: a) {
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
-        long modTimeA = outputFileA.lastModified()
-        long modTimeB = outputFileB.lastModified()
+        TestFile.Snapshot aSnapshot = outputFileA.snapshot()
+        TestFile.Snapshot bSnapshot = outputFileB.snapshot()
         assertThat(outputFileA.text, equalTo('[content]'))
         assertThat(outputFileB.text, equalTo('[[content]]'))
 
@@ -49,21 +49,17 @@ task b(type: org.gradle.integtests.TransformerTask, dependsOn: a) {
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
 
-        assertThat(outputFileA.text, equalTo('[content]'))
-        assertThat(outputFileB.text, equalTo('[[content]]'))
-        assertThat(outputFileA.lastModified(), equalTo(modTimeA))
-        assertThat(outputFileB.lastModified(), equalTo(modTimeB))
+        outputFileA.assertHasNotChangedSince(aSnapshot)
+        outputFileB.assertHasNotChangedSince(bSnapshot)
 
         // Update timestamp, no content changes
 
-        inputFile.setLastModified(modTimeA - 10000);
+        inputFile.setLastModified(inputFile.lastModified() - 10000);
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
 
-        assertThat(outputFileA.text, equalTo('[content]'))
-        assertThat(outputFileB.text, equalTo('[[content]]'))
-        assertThat(outputFileA.lastModified(), equalTo(modTimeA))
-        assertThat(outputFileB.lastModified(), equalTo(modTimeB))
+        outputFileA.assertHasNotChangedSince(aSnapshot)
+        outputFileB.assertHasNotChangedSince(bSnapshot)
 
         // Change content
 
@@ -71,6 +67,8 @@ task b(type: org.gradle.integtests.TransformerTask, dependsOn: a) {
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
+        outputFileA.assertHasChangedSince(aSnapshot)
+        outputFileB.assertHasChangedSince(bSnapshot)
         assertThat(outputFileA.text, equalTo('[new content]'))
         assertThat(outputFileB.text, equalTo('[[new content]]'))
 
@@ -129,8 +127,8 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
 
         TestFile outputAFile = testFile('build/a/file1.txt')
         TestFile outputBFile = testFile('build/b/file1.txt')
-        long outputAModTime = outputAFile.lastModified()
-        long outputBModTime = outputBFile.lastModified()
+        TestFile.Snapshot aSnapshot = outputAFile.snapshot()
+        TestFile.Snapshot bSnapshot = outputBFile.snapshot()
 
         outputAFile.assertContents(equalTo('[content]'))
         outputBFile.assertContents(equalTo('[[content]]'))
@@ -139,11 +137,8 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
 
-        assertEquals(outputAModTime, outputAFile.lastModified())
-        assertEquals(outputBModTime, outputBFile.lastModified())
-
-        outputAFile.assertContents(equalTo('[content]'))
-        outputBFile.assertContents(equalTo('[[content]]'))
+        outputAFile.assertHasNotChangedSince(aSnapshot)
+        outputBFile.assertHasNotChangedSince(bSnapshot)
 
         // Change content
 
@@ -151,6 +146,8 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
         
+        outputAFile.assertHasChangedSince(aSnapshot)
+        outputBFile.assertHasChangedSince(bSnapshot)
         outputAFile.assertContents(equalTo('[new content]'))
         outputBFile.assertContents(equalTo('[[new content]]'))
 

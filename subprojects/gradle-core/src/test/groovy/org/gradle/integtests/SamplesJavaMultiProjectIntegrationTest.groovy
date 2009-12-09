@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,11 @@
 package org.gradle.integtests
 
 import org.gradle.util.GFileUtils
-import org.hamcrest.Matchers
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -196,11 +194,10 @@ class SamplesJavaMultiProjectIntegrationTest {
     public void noRebuildOfProjectDependencies() {
         TestFile apiDir = javaprojectDir.file(API_NAME)
         executer.inDirectory(apiDir).withTasks('classes').run()
-        TestFile sharedJar = javaprojectDir.file(".gradle/internal-repository/org.gradle/shared/1.0/jars/shared.jar")
-        long oldTimeStamp = sharedJar.lastModified()
+        TestFile sharedJar = javaprojectDir.file("shared/build/libs/shared-1.0.jar")
+        TestFile.Snapshot snapshot = sharedJar.snapshot()
         executer.inDirectory(apiDir).withTasks('clean', 'classes').withArguments("-a").run()
-        long newTimeStamp = sharedJar.lastModified()
-        assertThat(newTimeStamp, Matchers.equalTo(oldTimeStamp))
+        sharedJar.assertHasNotChangedSince(snapshot)
     }
 
     @Test

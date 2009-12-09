@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;
-import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -33,7 +32,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
 import org.gradle.api.internal.initialization.DefaultScriptHandler;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -52,65 +50,41 @@ public class GradleInternalServiceRegistry extends AbstractServiceRegistry imple
     public GradleInternalServiceRegistry(ServiceRegistry parent, final GradleInternal gradle) {
         super(parent);
         this.gradle = gradle;
+    }
 
-        add(new Service(ProjectFinder.class) {
-            @Override
-            protected Object create() {
-                return new ProjectFinder() {
-                    public Project getProject(String path) {
-                        return gradle.getRootProject().project(path);
-                    }
-                };
+    protected ProjectFinder createProjectFinder() {
+        return new ProjectFinder() {
+            public Project getProject(String path) {
+                return gradle.getRootProject().project(path);
             }
-        });
+        };
+    }
 
-        add(new Service(IProjectRegistry.class) {
-            @Override
-            protected Object create() {
-                return new DefaultProjectRegistry<ProjectInternal>();
-            }
-        });
+    protected IProjectRegistry createIProjectRegistry() {
+        return new DefaultProjectRegistry<ProjectInternal>();
+    }
 
-        add(new Service(TaskGraphExecuter.class) {
-            @Override
-            protected Object create() {
-                return new DefaultTaskGraphExecuter(get(ListenerManager.class));
-            }
-        });
+    protected TaskGraphExecuter createTaskGraphExecuter() {
+        return new DefaultTaskGraphExecuter(get(ListenerManager.class));
+    }
 
-        add(new Service(PluginRegistry.class) {
-            @Override
-            protected Object create() {
-                return new DefaultPluginRegistry(gradle.getStartParameter().getPluginPropertiesFile());
-            }
-        });
+    protected PluginRegistry createPluginRegistry() {
+        return new DefaultPluginRegistry(gradle.getStartParameter().getPluginPropertiesFile());
+    }
 
-        add(new Service(ScriptHandler.class) {
-            @Override
-            protected Object create() {
-                RepositoryHandler repositoryHandler = get(RepositoryHandlerFactory.class).createRepositoryHandler(
-                        new DefaultConvention());
-                ConfigurationContainer configurationContainer = get(ConfigurationContainerFactory.class)
-                        .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
-                DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, get(
-                        DependencyFactory.class), get(ProjectFinder.class));
-                return new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer,
-                        Thread.currentThread().getContextClassLoader());
-            }
-        });
+    protected DefaultScriptHandler createDefaultScriptHandler() {
+        RepositoryHandler repositoryHandler = get(RepositoryHandlerFactory.class).createRepositoryHandler(
+                new DefaultConvention());
+        ConfigurationContainer configurationContainer = get(ConfigurationContainerFactory.class)
+                .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
+        DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, get(
+                DependencyFactory.class), get(ProjectFinder.class));
+        return new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer,
+                Thread.currentThread().getContextClassLoader());
+    }
 
-        add(new Service(ScriptClassLoaderProvider.class) {
-            @Override
-            protected Object create() {
-                return get(ScriptHandler.class);
-            }
-        });
-
-        add(new Service(InternalRepository.class) {
-            protected Object create() {
-                return new DefaultInternalRepository(gradle, get(PublishModuleDescriptorConverter.class));
-            }
-        });
+    protected InternalRepository createInternalRepository() {
+        return new DefaultInternalRepository(gradle, get(PublishModuleDescriptorConverter.class));
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

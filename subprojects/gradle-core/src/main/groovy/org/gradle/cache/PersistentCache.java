@@ -17,10 +17,39 @@ package org.gradle.cache;
 
 import java.io.File;
 
+/**
+ * Represents a directory which can be used for caching.
+ */
 public interface PersistentCache {
+    /**
+     * Returns the base directory for this cache.
+     */
     File getBaseDir();
 
+    /**
+     * Returns true if this cache is valid. If the cache is valid, its contents can be used. If not, the base directory
+     * will be empty, and the cache contents must be rebuilt. You must call {@link #markValid} to indicate that the
+     * contents have been rebuilt.
+     */
     boolean isValid();
-    
-    void update();
+
+    /**
+     * Marks the contents of the cache as valid.
+     */
+    void markValid();
+
+    /**
+     * Opens an indexed cache backed by this cache.
+     *
+     * @param serializer The serializer to use to serialise the cache entries.
+     * @return The cache.
+     */
+    <K, V> PersistentIndexedCache<K, V> openIndexedCache(Serializer<V> serializer);
+
+    /**
+     * Opens an indexed cache backed by this cache.
+     *
+     * @return The cache.
+     */
+    <K, V> PersistentIndexedCache<K, V> openIndexedCache();
 }

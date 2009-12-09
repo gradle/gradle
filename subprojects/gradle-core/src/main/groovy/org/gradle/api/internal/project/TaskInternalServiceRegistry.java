@@ -20,19 +20,23 @@ import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
 
+/**
+ * Contains the services for a given task.
+ */
 public class TaskInternalServiceRegistry extends AbstractServiceRegistry implements ServiceRegistryFactory {
+    private final ProjectInternal project;
+
     public TaskInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project) {
         super(parent);
-        add(new Service(TaskInputs.class) {
-            protected Object create() {
-                return new DefaultTaskInputs(project.getFileResolver());
-            }
-        });
-        add(new Service(TaskOutputs.class) {
-            protected Object create() {
-                return new DefaultTaskOutputs(project.getFileResolver());
-            }
-        });
+        this.project = project;
+    }
+
+    protected TaskInputs createTaskInputs() {
+        return new DefaultTaskInputs(project.getFileResolver());
+    }
+
+    protected TaskOutputs createTaskOutputs() {
+        return new DefaultTaskOutputs(project.getFileResolver());
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

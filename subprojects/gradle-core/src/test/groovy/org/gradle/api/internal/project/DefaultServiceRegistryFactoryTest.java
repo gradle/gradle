@@ -16,52 +16,63 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
-import org.gradle.util.TemporaryFolder;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
-import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.tasks.SkipTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.cache.CacheFactory;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.DefaultCacheRepository;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.initialization.InitScriptHandler;
+import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
-import org.junit.Test;
-import org.junit.Rule;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.File;
+import java.util.Collections;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultServiceRegistryFactoryTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ListenerManager listenerManager = context.mock(ListenerManager.class);
+    private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final StartParameter startParameter = new StartParameter();
-    private final DefaultServiceRegistryFactory factory = new DefaultServiceRegistryFactory(startParameter,
-            listenerManager);
+    private final DefaultServiceRegistryFactory factory = new DefaultServiceRegistryFactory(parent, startParameter);
+    private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
 
     @Before
     public void setUp() {
         startParameter.setGradleUserHomeDir(tmpDir.getDir());
+        context.checking(new Expectations(){{
+            allowing(parent).get(CacheFactory.class);
+            will(returnValue(cacheFactory));
+        }});
     }
     
     @Test
-    public void throwsExceptionForUnknownService() {
-        try {
-            factory.get(String.class);
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(), equalTo("No service of type String available."));
-        }
+    public void delegatesToParentForUnknownService() {
+        context.checking(new Expectations(){{
+            allowing(parent).get(String.class);
+            will(returnValue("value"));
+        }});
+
+        assertThat(factory.get(String.class), equalTo("value"));
     }
 
     @Test
@@ -83,7 +94,8 @@ public class DefaultServiceRegistryFactoryTest {
 
     @Test
     public void providesAListenerManager() {
-        assertThat(factory.get(ListenerManager.class), sameInstance(listenerManager));
+        assertThat(factory.get(ListenerManager.class), instanceOf(DefaultListenerManager.class));
+        assertThat(factory.get(ListenerManager.class), sameInstance(factory.get(ListenerManager.class)));
     }
 
     @Test
@@ -101,13 +113,9 @@ public class DefaultServiceRegistryFactoryTest {
 
     @Test
     public void providesATaskExecuter() {
-        context.checking(new Expectations() {{
-            allowing(listenerManager).createAnonymousBroadcaster(TaskActionListener.class);
-            will(returnValue(new ListenerBroadcast<TaskActionListener>(TaskActionListener.class)));
-            allowing(listenerManager).getBroadcaster(TaskActionListener.class);
-            will(returnValue(context.mock(TaskActionListener.class)));
+        context.checking(new Expectations(){{
+            one(cacheFactory).open(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)));
         }});
-
         assertThat(factory.get(TaskExecuter.class), instanceOf(SkipTaskExecuter.class));
         assertThat(factory.get(TaskExecuter.class), sameInstance(factory.get(TaskExecuter.class)));
     }
@@ -123,5 +131,17 @@ public class DefaultServiceRegistryFactoryTest {
     public void providesAScriptCompilerFactory() {
         assertThat(factory.get(ScriptCompilerFactory.class), instanceOf(DefaultScriptCompilerFactory.class));
         assertThat(factory.get(ScriptCompilerFactory.class), sameInstance(factory.get(ScriptCompilerFactory.class)));
+    }
+
+    @Test
+    public void providesACacheRepository() {
+        assertThat(factory.get(CacheRepository.class), instanceOf(DefaultCacheRepository.class));
+        assertThat(factory.get(CacheRepository.class), sameInstance(factory.get(CacheRepository.class)));
+    }
+
+    @Test
+    public void providesAnInitScriptHandler() {
+        assertThat(factory.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
+        assertThat(factory.get(InitScriptHandler.class), sameInstance(factory.get(InitScriptHandler.class)));
     }
 }

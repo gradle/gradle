@@ -133,16 +133,18 @@ public class BuildSourceBuilder {
 
     private static class BuildSrcBuildListener extends BuildAdapter {
         private EmbedableJavaProject projectInfo;
+        private Set<File> classpath;
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
             projectInfo = gradle.getRootProject().getConvention().getPlugin(
                     EmbedableJavaProject.class);
             gradle.getStartParameter().setTaskNames(projectInfo.getRebuildTasks());
+            classpath = projectInfo.getRuntimeClasspath().getFiles();
         }
 
         public Collection<File> getRuntimeClasspath() {
-            return projectInfo.getRuntimeClasspath().getFiles();
+            return classpath;
         }
     }
 }

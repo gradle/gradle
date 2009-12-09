@@ -50,7 +50,7 @@ public class BTreePersistentIndexedCacheTest {
         context.checking(new Expectations(){{
             allowing(backingCache).getBaseDir();
             will(returnValue(tmpDir.getDir()));
-            allowing(backingCache).update();
+            allowing(backingCache).markValid();
         }});
 
         cache = new BTreePersistentIndexedCache<String, Integer>(backingCache, serializer, (short) 4, 100);

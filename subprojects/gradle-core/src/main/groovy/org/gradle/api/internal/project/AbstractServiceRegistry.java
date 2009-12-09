@@ -15,12 +15,17 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.GradleException;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.ArrayList;
 
 public class AbstractServiceRegistry implements ServiceRegistry {
     private final List<Service> services = new ArrayList<Service>();
     private final ServiceRegistry parent;
+    private boolean closed;
 
     public AbstractServiceRegistry() {
         this(null);
@@ -28,6 +33,21 @@ public class AbstractServiceRegistry implements ServiceRegistry {
 
     public AbstractServiceRegistry(ServiceRegistry parent) {
         this.parent = parent;
+        findFactoryMethods();
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
+
+    private void findFactoryMethods() {
+        for (Method method : getClass().getDeclaredMethods()) {
+            if (method.getName().startsWith("create") && method.getParameterTypes().length == 0
+                    && method.getReturnType() != Void.class) {
+                add(new FactoryMethodService(method));
+            }
+        }
     }
 
     protected void add(Service service) {
@@ -35,15 +55,26 @@ public class AbstractServiceRegistry implements ServiceRegistry {
     }
 
     protected <T> void add(Class<T> serviceType, final T serviceInstance) {
-        add(new Service(serviceType) {
-            @Override
-            protected Object create() {
-                return serviceInstance;
+        add(new FixedInstanceService<T>(serviceType, serviceInstance));
+    }
+
+    public void close() {
+        try {
+            for (Service service : services) {
+                service.close();
             }
-        });
+        } finally {
+            closed = true;
+            services.clear();
+        }
     }
 
     public <T> T get(Class<T> serviceType) throws IllegalArgumentException {
+        if (closed) {
+            throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.",
+                    serviceType.getSimpleName(), this));
+        }
+
         for (Service service : services) {
             T t = service.getService(serviceType);
             if (t != null) {
@@ -52,14 +83,31 @@ public class AbstractServiceRegistry implements ServiceRegistry {
         }
 
         if (parent != null) {
-            return parent.get(serviceType);
+            try {
+                return parent.get(serviceType);
+            } catch (IllegalArgumentException e) {
+                // Ignore
+            }
         }
 
-        throw new IllegalArgumentException(String.format("No service of type %s available.",
-                serviceType.getSimpleName()));
+        throw new IllegalArgumentException(String.format("No service of type %s available in %s.",
+                serviceType.getSimpleName(), this));
     }
 
-    protected abstract class Service {
+    private static Object invoke(Method method, Object target, Object... args) {
+        try {
+            return method.invoke(target, args);
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof RuntimeException) {
+                throw (RuntimeException) e.getCause();
+            }
+            throw new GradleException(e);
+        } catch (Exception e) {
+            throw new GradleException(e);
+        }
+    }
+
+    protected static abstract class Service {
         final Class<?> serviceType;
         Object service;
 
@@ -79,5 +127,46 @@ public class AbstractServiceRegistry implements ServiceRegistry {
         }
 
         protected abstract Object create();
+
+        public void close() {
+            try {
+                if (service != null) {
+                    invoke(service.getClass().getMethod("close"), service);
+                }
+            } catch (NoSuchMethodException e) {
+                // ignore
+            } finally {
+                service = null;
+            }
+        }
+    }
+
+    private class FactoryMethodService extends Service {
+        private final Method method;
+
+        public FactoryMethodService(Method method) {
+            super(method.getReturnType());
+            this.method = method;
+        }
+
+        @Override
+        protected Object create() {
+            return invoke(method, AbstractServiceRegistry.this);
+        }
+    }
+
+    private static class FixedInstanceService<T> extends Service {
+        private final T serviceInstance;
+
+        public FixedInstanceService(Class<T> serviceType, T serviceInstance) {
+            super(serviceType);
+            this.serviceInstance = serviceInstance;
+            getService(serviceType);
+        }
+
+        @Override
+        protected Object create() {
+            return serviceInstance;
+        }
     }
 }

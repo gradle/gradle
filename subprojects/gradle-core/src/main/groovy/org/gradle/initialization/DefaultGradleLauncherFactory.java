@@ -15,22 +15,14 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.GradleLauncher;
-import org.gradle.GradleLauncherFactory;
-import org.gradle.StartParameter;
-import org.gradle.TaskExecutionLogger;
-import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
-import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.*;
+import org.gradle.api.internal.project.*;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
-import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.WrapUtil;
 
@@ -38,16 +30,14 @@ import org.gradle.util.WrapUtil;
  * @author Hans Dockter
  */
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
+    private final ServiceRegistry sharedServices = new GlobalServicesRegistry();
+    private final NestedBuildTracker tracker = new NestedBuildTracker();
     private LoggingConfigurer loggingConfigurer;
-    private NestedBuildTracker tracker = new NestedBuildTracker();
-    private CommandLine2StartParameterConverter commandLine2StartParameterConverter = new DefaultCommandLine2StartParameterConverter();
+    private CommandLine2StartParameterConverter commandLine2StartParameterConverter;
 
     public DefaultGradleLauncherFactory() {
-        this(new DefaultLoggingConfigurer());
-    }
-
-    DefaultGradleLauncherFactory(LoggingConfigurer loggingConfigurer) {
-        this.loggingConfigurer = loggingConfigurer;
+        loggingConfigurer = sharedServices.get(LoggingConfigurer.class);
+        commandLine2StartParameterConverter = sharedServices.get(CommandLine2StartParameterConverter.class);
     }
 
     public StartParameter createStartParameter(String[] commandLineArgs) {
@@ -59,38 +49,34 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     public GradleLauncher newInstance(StartParameter startParameter) {
-        ListenerManager listenerManager = new DefaultListenerManager();
         loggingConfigurer.configure(startParameter.getLogLevel());
 
+        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(sharedServices, startParameter);
+        ListenerManager listenerManager = serviceRegistryFactory.get(ListenerManager.class);
+
         //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.
-        loggingConfigurer.addStandardOutputListener( listenerManager.getBroadcaster( StandardOutputListener.class ) );
-        loggingConfigurer.addStandardErrorListener( listenerManager.getBroadcaster( StandardOutputListener.class ) );
+        loggingConfigurer.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
+        loggingConfigurer.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
 
         listenerManager.useLogger(new TaskExecutionLogger(Logging.getLogger(TaskExecutionLogger.class)));
         listenerManager.addListener(tracker);
+        listenerManager.addListener(new BuildCleanupListener(serviceRegistryFactory));
 
-        ServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(startParameter, listenerManager);
-        ISettingsFinder settingsFinder = new EmbeddedScriptSettingsFinder(
-                new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
-                        new MasterDirSettingsFinderStrategy(),
-                        new ParentDirSettingsFinderStrategy()))
-        );
-        ScriptCompilerFactory scriptCompilerFactory = serviceRegistryFactory.get(ScriptCompilerFactory.class);
-        InitScriptHandler initScriptHandler = new InitScriptHandler(
-                new UserHomeInitScriptFinder(
-                        new DefaultInitScriptFinder()),
-                new DefaultInitScriptProcessor(scriptCompilerFactory, serviceRegistryFactory.get(ImportsReader.class)));
         DefaultGradle gradle = new DefaultGradle(
                 tracker.getCurrentBuild(),
                 startParameter,
                 serviceRegistryFactory);
         return new GradleLauncher(
                 gradle,
-                initScriptHandler,
+                serviceRegistryFactory.get(InitScriptHandler.class),
                 new SettingsHandler(
-                        settingsFinder,
+                        new EmbeddedScriptSettingsFinder(
+                                new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
+                                        new MasterDirSettingsFinderStrategy(),
+                                        new ParentDirSettingsFinderStrategy()))),
                         new PropertiesLoadingSettingsProcessor(
-                                new ScriptEvaluatingSettingsProcessor(scriptCompilerFactory,
+                                new ScriptEvaluatingSettingsProcessor(
+                                        serviceRegistryFactory.get(ScriptCompilerFactory.class),
                                         serviceRegistryFactory.get(ImportsReader.class),
                                         new SettingsFactory(new DefaultProjectDescriptorRegistry()))
                         ),
@@ -109,5 +95,18 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     public void setCommandLine2StartParameterConverter(
             CommandLine2StartParameterConverter commandLine2StartParameterConverter) {
         this.commandLine2StartParameterConverter = commandLine2StartParameterConverter;
+    }
+
+    private static class BuildCleanupListener extends BuildAdapter {
+        private final DefaultServiceRegistryFactory services;
+
+        private BuildCleanupListener(DefaultServiceRegistryFactory services) {
+            this.services = services;
+        }
+
+        @Override
+        public void buildFinished(BuildResult result) {
+            services.close();
+        }
     }
 }

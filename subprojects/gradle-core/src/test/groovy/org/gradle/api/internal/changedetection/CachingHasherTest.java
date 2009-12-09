@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.Serializer;
@@ -31,7 +32,6 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Collections;
 
 @RunWith(JMock.class)
 public class CachingHasherTest {
@@ -49,8 +49,10 @@ public class CachingHasherTest {
     @Before
     public void setup() {
         context.checking(new Expectations(){{
-            one(cacheRepository).getIndexedGlobalCache(with(equalTo("fileHashes")), with(equalTo(Collections.EMPTY_MAP)), with(notNullValue(
-                    Serializer.class)));
+            PersistentCache persistentCache = context.mock(PersistentCache.class);
+            one(cacheRepository).getGlobalCache("fileHashes");
+            will(returnValue(persistentCache));
+            one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
             will(returnValue(cache));
         }});
         hasher = new CachingHasher(delegate, cacheRepository);

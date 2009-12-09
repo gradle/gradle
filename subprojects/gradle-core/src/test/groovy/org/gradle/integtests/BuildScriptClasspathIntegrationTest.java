@@ -31,17 +31,24 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     @Test
     public void cachesJarGeneratedByBuildSrc() {
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
-        testFile("build.gradle").writelns("new BuildClass()");
+        testFile("build.gradle").writelns(
+                "new BuildClass()",
+                "task test"
+        );
 
-        inTestDirectory().withTaskList().run();
+        inTestDirectory().withTasks("test").run();
 
         TestFile buildSrcJar = testFile("buildSrc/build/libs/buildSrc.jar");
         buildSrcJar.assertIsFile();
-        long modTime = buildSrcJar.lastModified();
+        TestFile.Snapshot snapshot = buildSrcJar.snapshot();
 
-        inTestDirectory().withTaskList().run();
+        inTestDirectory().withTasks("test").run();
 
-        assertThat(buildSrcJar.lastModified(), equalTo(modTime));
+        buildSrcJar.assertHasNotChangedSince(snapshot);
+
+        inTestDirectory().withArguments("-Crebuild").withTasks("test").run();
+
+        buildSrcJar.assertHasChangedSince(snapshot);
     }
 
     @Test

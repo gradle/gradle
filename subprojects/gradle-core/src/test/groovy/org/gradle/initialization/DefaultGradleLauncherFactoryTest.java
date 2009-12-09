@@ -34,7 +34,7 @@ public class DefaultGradleLauncherFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery();
     private final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
     private final CommandLine2StartParameterConverter parameterConverter = context.mock(CommandLine2StartParameterConverter.class);
-    private final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(loggingConfigurer);
+    private final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory();
 
     @Before
     public void setUp() {

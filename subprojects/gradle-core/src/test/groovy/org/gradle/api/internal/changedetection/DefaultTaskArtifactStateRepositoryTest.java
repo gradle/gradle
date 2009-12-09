@@ -22,6 +22,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.integtests.TestFile;
 import org.gradle.util.TemporaryFolder;
@@ -61,6 +62,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private int counter;
     private final DefaultTaskArtifactStateRepository repository = new DefaultTaskArtifactStateRepository(cacheRepository,
             hasher);
+    private PersistentCache persistentCache;
 
     @Before
     public void setup() {
@@ -328,7 +330,10 @@ public class DefaultTaskArtifactStateRepositoryTest {
     
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations(){{
-            one(cacheRepository).getIndexedCacheFor(gradle, "taskArtifacts", EMPTY_MAP);
+            persistentCache = context.mock(PersistentCache.class);
+            one(cacheRepository).getCacheFor(gradle, "taskArtifacts");
+            will(returnValue(persistentCache));
+            one(persistentCache).openIndexedCache();
             will(returnValue(new TestIndexedCache()));
         }});
     }

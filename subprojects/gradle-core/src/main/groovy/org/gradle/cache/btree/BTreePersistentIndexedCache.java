@@ -44,7 +44,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     private final Serializer<V> serializer;
     private final short maxChildIndexEntries;
     private final int minIndexChildNodes;
-    private final BlockStore store;
+    private final StateCheckBlockStore store;
     private HeaderBlock header;
 
     public BTreePersistentIndexedCache(PersistentCache backingCache, Serializer<V> serializer) {
@@ -59,7 +59,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         this.minIndexChildNodes = maxChildIndexEntries / 2;
         cacheFile = new File(backingCache.getBaseDir(), "cache.bin");
         BlockStore cachingStore = new CachingBlockStore(new FileBackedBlockStore(cacheFile), IndexBlock.class, FreeListBlockStore.FreeListBlock.class);
-        store = new FreeListBlockStore(cachingStore, maxFreeListEntries);
+        store = new StateCheckBlockStore(new FreeListBlockStore(cachingStore, maxFreeListEntries));
         try {
             open();
         } catch (Exception e) {
@@ -101,7 +101,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 store.write(header);
                 header.index.newRoot();
                 store.flush();
-                backingCache.update();
+                backingCache.markValid();
             }
         };
 
@@ -174,16 +174,24 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     }
 
     public void reset() {
+        close();
         try {
-            close();
             open();
         } catch (Exception e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void close() throws IOException {
-        store.close();
+    public void close() {
+        try {
+            store.close();
+        } catch (Exception e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public boolean isOpen() {
+        return store.isOpen();
     }
 
     private void rebuild() throws Exception {

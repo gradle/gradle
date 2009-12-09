@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.gradle.integtests
 
 import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+
 import org.junit.runner.RunWith
 import org.junit.Test
 import org.junit.Before
@@ -41,6 +41,7 @@ class CacheProjectIntegrationTest {
     TestFile buildFile
     TestFile propertiesFile
     TestFile classFile
+    TestFile artifactsCache
 
     @Before
     public void setUp() {
@@ -52,33 +53,45 @@ class CacheProjectIntegrationTest {
         ScriptSource source = new FileScriptSource("build file", buildFile)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/cache.properties")
         classFile = userHomeDir.file("caches/$version/scripts/$source.className/BuildScriptTransformer/${source.className}.class")
+        artifactsCache = projectDir.file(".gradle/$version/taskArtifacts/cache.bin")
     }
-    
+
     @Test
-    public void cacheProject() {
+    public void cachesBuildScript() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")
-        long modTime = classFile.lastModified()
+        TestFile.Snapshot classFileSnapshot = classFile.snapshot()
+        TestFile.Snapshot artifactsCacheSnapshot = artifactsCache.snapshot()
 
         testBuild("hello2", "Hello 2")
-        assertThat(classFile.lastModified(), equalTo(modTime))
+        classFile.assertHasNotChangedSince(classFileSnapshot)
+        artifactsCache.assertHasNotChangedSince(artifactsCacheSnapshot)
 
         modifyLargeBuildScript()
         testBuild("newTask", "I am new")
-        assertThat(classFile.lastModified(), not(equalTo(modTime)))
+        classFile.assertHasChangedSince(classFileSnapshot)
+        artifactsCache.assertHasNotChangedSince(artifactsCacheSnapshot)
+        classFileSnapshot = classFile.snapshot()
+        artifactsCacheSnapshot = artifactsCache.snapshot()
+
+        testBuild("newTask", "I am new", "-Crebuild")
+        classFile.assertHasChangedSince(classFileSnapshot)
+        artifactsCache.assertHasChangedSince(artifactsCacheSnapshot)
     }
 
-    private def testBuild(String taskName, String expected) {
-        executer.inDirectory(projectDir).withTasks(taskName).withQuietLogging().run()
+    private def testBuild(String taskName, String expected, String... args) {
+        executer.inDirectory(projectDir).withTasks(taskName).withArguments(args).withQuietLogging().run()
         assertEquals(expected, projectDir.file(TEST_FILE).text)
         classFile.assertIsFile()
         propertiesFile.assertIsFile()
+        artifactsCache.assertIsFile()
     }
 
     // We once ran into a cache problem under windows, which was not reproducible with small build scripts. Therefore we
     // create a larger one here.
+
     def createLargeBuildScript() {
-        File buildFile = new File(projectDir, 'build.gradle')
+        File buildFile = projectDir.file('build.gradle')
         String content = ""
         50.times {i ->
             content += """task 'hello$i' << {
@@ -97,7 +110,7 @@ void someMethod$i() {
     }
 
     def void modifyLargeBuildScript() {
-        File buildFile = new File(projectDir, 'build.gradle')
+        File buildFile = projectDir.file('build.gradle')
         String newContent = buildFile.text + """
 task newTask << {
     File file = file('$TEST_FILE')
@@ -105,6 +118,6 @@ task newTask << {
     file.write('I am new')
 }
 """
-        buildFile.write(newContent) 
+        buildFile.write(newContent)
     }
 }
