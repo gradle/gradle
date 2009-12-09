@@ -26,9 +26,11 @@ import org.gradle.api.artifacts.specs.DependencySpecs;
 import org.gradle.api.artifacts.specs.Type;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.plugins.scala.ScalaPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.ScalaSourceSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.bundling.War;
@@ -81,7 +83,7 @@ public class EclipsePlugin implements Plugin {
     }
 
     private EclipseProject configureEclipseProject(Project project) {
-        EclipseProject eclipseProject = project.getTasks().add(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
+        EclipseProject eclipseProject = project.getTasks().replace(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
         eclipseProject.setProjectName(project.getName());
         eclipseProject.setProjectType(selectEclipseProjectType(project));
         eclipseProject.setDescription("Generates an Eclipse .project file.");
@@ -92,12 +94,15 @@ public class EclipsePlugin implements Plugin {
         if (project.getPlugins().hasPlugin(GroovyPlugin.class)) {
             return ProjectType.GROOVY;
         }
+        if (project.getPlugins().hasPlugin(ScalaPlugin.class)) {
+            return ProjectType.SCALA;
+        }
 
         return ProjectType.JAVA;
     }
 
     private EclipseClasspath configureEclipseClasspath(final Project project) {
-        EclipseClasspath eclipseClasspath = project.getTasks().add(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class);
+        EclipseClasspath eclipseClasspath = project.getTasks().replace(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class);
         eclipseClasspath.getConventionMapping().map(GUtil.map(
                 "srcDirs", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -237,6 +242,10 @@ public class EclipsePlugin implements Plugin {
         return ((DynamicObjectAware) sourceSet(convention, name)).getConvention().findPlugin(GroovySourceSet.class);
     }
 
+    private ScalaSourceSet scalaSourceSet(Convention convention, String name) {
+        return ((DynamicObjectAware) sourceSet(convention, name)).getConvention().findPlugin(ScalaSourceSet.class);
+    }
+
     private Object allLanguageSrcDirs(Convention convention, String name) {
         SourceSet sourceSet = sourceSet(convention, name);
 
@@ -244,6 +253,10 @@ public class EclipsePlugin implements Plugin {
         GroovySourceSet groovySourceSet = groovySourceSet(convention, name);
         if (groovySourceSet != null) {
             extraDirs.addAll(groovySourceSet.getGroovy().getSrcDirs());
+        }
+        ScalaSourceSet scalaSourceSet = scalaSourceSet(convention, name);
+        if (scalaSourceSet != null) {
+            extraDirs.addAll(scalaSourceSet.getScala().getSrcDirs());
         }
 
         return GUtil.addLists(

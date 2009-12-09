@@ -38,6 +38,14 @@ public abstract class ProjectType {
             return WrapUtil.toList("org.eclipse.jdt.groovy.core.groovyNature", "org.eclipse.jdt.core.javanature");
         }
     };
+    public static final ProjectType SCALA = new ProjectType() {
+        public List<String> buildCommandNames() {
+            return WrapUtil.toList("ch.epfl.lamp.sdt.core.scalabuilder");
+        }
+        public List<String> natureNames() {
+            return WrapUtil.toList("org.eclipse.jdt.core.javanature", "ch.epfl.lamp.sdt.core.scalanature");
+        }
+    };
     public static final ProjectType SIMPLE = new ProjectType() {
         public List<String> buildCommandNames() {
             return new ArrayList<String>();
