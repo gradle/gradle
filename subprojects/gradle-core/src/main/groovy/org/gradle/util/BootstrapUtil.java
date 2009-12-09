@@ -101,6 +101,10 @@ public class BootstrapUtil {
         return gradleLibClasspath("ant", "ant-launcher");
     }
 
+    public static List<File> getGradleTestListenerFiles() {
+        return gradleLibClasspath("gradle-core", "gradle-plugins");
+    }
+
     public static List<File> gradleLibClasspath(String... prefixes) {
         List<File> result = new ArrayList<File>();
         for (File pathElement : getGradleClasspath()) {

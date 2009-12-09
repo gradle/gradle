@@ -45,7 +45,7 @@ libraries = [
     ]
 
 libraries.groovy_depends  = [libraries.groovy, libraries.ant, libraries.ant_launcher, libraries.asm_all,
-        libraries.antlr, libraries.commons_cli, libraries.ant_junit]
+        libraries.antlr, libraries.commons_cli, libraries.ant_junit, libraries.junit]
 
 allprojects {
     group = 'org.gradle'

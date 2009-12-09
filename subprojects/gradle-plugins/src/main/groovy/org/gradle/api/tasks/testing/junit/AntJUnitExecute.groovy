@@ -20,6 +20,9 @@ import org.gradle.api.tasks.testing.AntTest
 import org.gradle.util.BootstrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.tasks.testing.TestListener
+import org.gradle.listener.remote.RemoteReceiver
+import org.gradle.listener.ListenerBroadcast
 
 /**
  * @author Hans Dockter
@@ -32,38 +35,48 @@ class AntJUnitExecute {
 
     private static final String CLASSPATH_ID = 'runtests.classpath'
 
-    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, Collection<String> includes, Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant) {
+    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, Collection<String> includes,
+                 Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant,
+                 ListenerBroadcast<TestListener> testListenerBroadcaster) {
         ant.mkdir(dir: testResultsDir.absolutePath)
-        createAntClassPath(ant, classPath + BootstrapUtil.antJunitJarFiles)
+        createAntClassPath(ant, classPath + BootstrapUtil.antJunitJarFiles + BootstrapUtil.gradleTestListenerFiles)
         Map otherArgs = [
                 includeantruntime: 'false',
                 errorproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY,
                 failureproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY
         ]
-        ant.junit(otherArgs + junitOptions.optionMap()) {
-            junitOptions.forkOptions.jvmArgs.each {
-                jvmarg(value: it)
-            }
-            junitOptions.systemProperties.each {String key, value ->
-                sysproperty(key: key, value: value)
-            }
-            junitOptions.forkOptions.environment.each {String key, value ->
-                env(key: key, value: value)
-            }
-            formatter(junitOptions.formatterOptions.optionMap())
-            batchtest(todir: testResultsDir.absolutePath) {
-                fileset(dir: compiledTestsClassesDir.absolutePath) {
-                    includes.each {
-                        include(name: it)
-                    }
-                    excludes.each {
-                        exclude(name: it)
+
+        final RemoteReceiver remoteReceiver = new RemoteReceiver(testListenerBroadcaster, null);
+        try {
+            ant.junit(otherArgs + junitOptions.optionMap()) {
+                junitOptions.forkOptions.jvmArgs.each {
+                    jvmarg(value: it)
+                }
+                junitOptions.systemProperties.each {String key, value ->
+                    sysproperty(key: key, value: value)
+                }
+                junitOptions.forkOptions.environment.each {String key, value ->
+                    env(key: key, value: value)
+                }
+                formatter(junitOptions.formatterOptions.optionMap())
+                sysproperty(key: TestListenerFormatter.PORT_VMARG, value: remoteReceiver.getBoundPort())
+                formatter(type: 'plain', classname: TestListenerFormatter.class.name)
+                batchtest(todir: testResultsDir.absolutePath) {
+                    fileset(dir: compiledTestsClassesDir.absolutePath) {
+                        includes.each {
+                            include(name: it)
+                        }
+                        excludes.each {
+                            exclude(name: it)
+                        }
                     }
                 }
+                classpath() {
+                    path(refid: CLASSPATH_ID)
+                }
             }
-            classpath() {
-                path(refid: CLASSPATH_ID)
-            }
+        } finally {
+            remoteReceiver.close();
         }
     }
 

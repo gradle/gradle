@@ -191,21 +191,25 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
 
         public void execute(Task task) {
-            Map<PropertyInfo, Object> propertyValues = new HashMap<PropertyInfo, Object>();
-            for (PropertyInfo property : properties) {
-                propertyValues.put(property, ReflectionUtil.invoke(task, property.method.getName(), new Object[0]));
-            }
-            for (PropertyInfo property : properties) {
-                property.notNullValidator.validate(property.propertyName, propertyValues.get(property));
-            }
-            for (PropertyInfo property : properties) {
-                property.skipAction.validate(property.propertyName, propertyValues.get(property));
-            }
-            for (PropertyInfo property : properties) {
-                Object value = propertyValues.get(property);
-                if (value != null) {
-                    property.validationAction.validate(property.propertyName, value);
+            try {
+                Map<PropertyInfo, Object> propertyValues = new HashMap<PropertyInfo, Object>();
+                for (PropertyInfo property : properties) {
+                    propertyValues.put(property, ReflectionUtil.invoke(task, property.method.getName(), new Object[0]));
                 }
+                for (PropertyInfo property : properties) {
+                    property.notNullValidator.validate(property.propertyName, propertyValues.get(property));
+                }
+                for (PropertyInfo property : properties) {
+                    property.skipAction.validate(property.propertyName, propertyValues.get(property));
+                }
+                for (PropertyInfo property : properties) {
+                    Object value = propertyValues.get(property);
+                    if (value != null) {
+                        property.validationAction.validate(property.propertyName, value);
+                    }
+                }
+            } catch (InvalidUserDataException e) {
+                throw new InvalidUserDataException(String.format("Error validating %s: %s", task, e.getMessage()), e);
             }
         }
     }

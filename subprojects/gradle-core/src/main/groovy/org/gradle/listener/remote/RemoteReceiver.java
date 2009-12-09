@@ -33,6 +33,10 @@ public class RemoteReceiver  {
     }
 
     public RemoteReceiver(ListenerBroadcast<?> broadcaster, ExceptionListener exceptionListener) throws IOException {
+        if (broadcaster == null) {
+            throw new NullPointerException();
+        }
+        
         this.broadcaster = broadcaster;
         this.exceptionListener = exceptionListener;
         serverSocket = new ServerSocket(0);

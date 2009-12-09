@@ -1,0 +1,54 @@
+import static org.junit.Assert.*
+
+usePlugin 'java'
+repositories.mavenCentral()
+dependencies.testCompile 'junit:junit:4.+'
+test.stopAtFailuresOrErrors = false
+
+def events = []
+// START SNIPPET testListenerImpl
+class MyListener implements org.gradle.api.tasks.testing.TestListener
+{
+    def events
+
+    public void suiteStarting(org.gradle.api.tasks.testing.TestListener.Suite suite) {
+        recordAndOutput('suiteStarting: '+suite.getName())
+    }
+
+    public void suiteFinished(org.gradle.api.tasks.testing.TestListener.Suite suite) {
+        recordAndOutput 'suiteFinished: '+suite.getName()
+    }
+
+    public void testStarting(org.gradle.api.tasks.testing.TestListener.Test test) {
+        recordAndOutput 'testStarting: '+test.getName()
+    }
+
+    public void testFinished(org.gradle.api.tasks.testing.TestListener.Test test, org.gradle.api.tasks.testing.TestListener.Result result) {
+        recordAndOutput 'testFinished: '+test.getName()+', result: '+result.getResultType()
+    }
+
+    private void recordAndOutput(String msg) {
+        events << msg
+        println '  '+msg
+    }
+}
+// END SNIPPET testListenerImpl
+
+// START SNIPPET testListenerRegister
+gradle.addListener(new MyListener(events: events))
+// END SNIPPET testListenerRegister
+
+test.doLast {
+    def expectedEvents = []
+    expectedEvents << '1suiteStarting: DoNothingTest'
+    expectedEvents << 'testStarting: doNothing(DoNothingTest)'
+    expectedEvents << 'testFinished: doNothing(DoNothingTest), result: SUCCESS'
+    expectedEvents << 'testStarting: doNothingButFail(DoNothingTest)'
+    expectedEvents << 'testFinished: doNothingButFail(DoNothingTest), result: FAILURE'
+    expectedEvents << 'testStarting: doNothingButError(DoNothingTest)'
+    expectedEvents << 'testFinished: doNothingButError(DoNothingTest), result: ERROR'
+    expectedEvents << 'suiteFinished: DoNothingTest'
+
+    assertEquals(expectedEvents, events)
+}
+

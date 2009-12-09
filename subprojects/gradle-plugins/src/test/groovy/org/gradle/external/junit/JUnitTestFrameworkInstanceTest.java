@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.listener.ListenerBroadcast;
 import org.jmock.Expectations;
 import org.junit.Before;
 
@@ -42,6 +43,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
     private AntJUnitReport antJUnitReportMock;
     private JUnitOptions jUnitOptionsMock;
     private JunitForkOptions jUnitForkOptionsMock;
+    private ListenerBroadcast<TestListener> listenerBroadcastMock;
     private AbstractTestTask testTask;
 
     @Before
@@ -53,6 +55,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         antJUnitReportMock = context.mock(AntJUnitReport.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
         jUnitForkOptionsMock = context.mock(JunitForkOptions.class);
+        listenerBroadcastMock = context.mock(ListenerBroadcast.class);
         testTask = context.mock(AntTest.class, "JUnitTestFrameworkInstanceTest");
 
         jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testTask, jUnitTestFrameworkMock);
@@ -92,6 +95,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         final List<File> classpathList = new ArrayList<File>();
 
         context.checking(new Expectations() {{
+            one(testMock).getTestListenerBroadcaster(); will(returnValue(listenerBroadcastMock));
             one(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
             one(testMock).getClasspath(); will(returnValue(classpathMock));
             one(classpathMock).getFiles(); will(returnValue(classpathSet));
@@ -99,11 +103,8 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(testMock).getIncludes(); will(returnValue(null));
             one(testMock).getExcludes(); will(returnValue(null));
             one(projectMock).getAnt(); will(returnValue(antBuilderMock));
-            one(antJUnitExecuteMock).execute(
-                    testClassesDir, classpathList, testResultsDir, null, null,
-                    jUnitOptionsMock,
-                    antBuilderMock
-            );
+            one(antJUnitExecuteMock).execute(testClassesDir, classpathList, testResultsDir, null, null,
+                                             jUnitOptionsMock, antBuilderMock, listenerBroadcastMock);
         }});
 
         jUnitTestFrameworkInstance.execute(projectMock, testMock, null, null);

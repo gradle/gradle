@@ -18,6 +18,9 @@ package org.gradle.api.tasks.testing.testng
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.testing.AntTest
+import org.gradle.listener.remote.RemoteReceiver
+import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.tasks.testing.TestListener
 
 /**
  * @author Tom Eyckmans
@@ -29,10 +32,21 @@ public class AntTestNGExecute {
 
     public static final String TESTNG_JARS_PATH = 'org.gradle.api.tasks.testing.testng.jars.path'
 
-    void execute(File compiledTestsClassesDir, Iterable classPath, File testResultsDir, File testReportDir, Collection<String> includes, Collection<String> excludes, TestNGOptions options, AntBuilder ant) {
+    /**
+     * This method contains several comments of the form
+     *         TODO TestNG Listeners: [<stuff>]
+     * Once we can implement TestNG listeners, replace the lines with <stuff> to make it work again.
+     * For a discussion of why this is disabled, see {@link TestNGListenerAdapter}.
+     */
+    void execute(File compiledTestsClassesDir, Iterable classPath, File testResultsDir, File testReportDir,
+                 Collection<String> includes, Collection<String> excludes, TestNGOptions options, AntBuilder ant,
+                 ListenerBroadcast<TestListener> testListenerBroadcaster) {
         ant.mkdir(dir: testResultsDir.absolutePath)
 
-        testngTaskDef(classPath as List, ant, options)
+        List useClassPath = classPath as List
+        //TODO TestNG Listeners: [useClassPath += BootstrapUtil.gradleTestListenerFiles]
+
+        testngTaskDef(useClassPath, ant, options)
 
         Map otherArgs = [
                 failureProperty: AntTest.FAILURES_OR_ERRORS_PROPERTY,
@@ -40,16 +54,19 @@ public class AntTestNGExecute {
                 workingDir: testResultsDir.absolutePath,
                 haltonfailure: false,
                 haltonskipped: false,
+                //TODO TestNG Listeners: [listeners: TestNGListenerAdapter.class.name]
         ]
 
         List<File> suites = options.getSuites(testResultsDir)
 
         logger.info("executing testng tests...");
 
+        //TODO TestNG Listeners: [RemoteReceiver remoteReceiver = new RemoteReceiver(testListenerBroadcaster, null)]
         ant.testng(otherArgs + options.optionMap()) {
             options.jvmArgs.each {
                 jvmarg(value: it)
             }
+            //TODO TestNG Listeners: [sysproperty(key: TestNGListenerAdapter.PORT_VMARG, value: remoteReceiver.getBoundPort())]
             options.systemProperties.each {String key, String value ->
                 sysproperty(key: key, value: value)
             }
@@ -57,7 +74,7 @@ public class AntTestNGExecute {
                 env(key: key, value: value)
             }
             classpath {
-                classPath.each {
+                useClassPath.each {
                     pathelement(location: it)
                 }
             }

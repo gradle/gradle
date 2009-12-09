@@ -134,6 +134,7 @@ public interface Gradle {
      * <li>{@link org.gradle.api.execution.TaskExecutionListener}
      * <li>{@link org.gradle.api.execution.TaskActionListener}
      * <li>{@link org.gradle.api.logging.StandardOutputListener}
+     * <li>org.gradle.api.tasks.testing.TestListener
      * </ul>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.

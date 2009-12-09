@@ -20,8 +20,10 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.AntTest;
+import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
+import org.gradle.listener.ListenerBroadcast;
 import org.jmock.Expectations;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
@@ -38,6 +40,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
 
     private AntTestNGExecute antTestNGExecuteMock;
     private TestNGOptions testngOptionsMock;
+    private ListenerBroadcast<TestListener> listenerBroadcastMock;
     private AbstractTestTask testTask;
 
 
@@ -48,6 +51,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
         testNgTestFrameworkMock = context.mock(TestNGTestFramework.class);
         antTestNGExecuteMock = context.mock(AntTestNGExecute.class);
         testngOptionsMock = context.mock(TestNGOptions.class);
+        listenerBroadcastMock = context.mock(ListenerBroadcast.class);
         testTask = context.mock(AntTest.class, "TestNGTestFrameworkInstanceTest");
 
         testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testTask, testNgTestFrameworkMock);
@@ -79,6 +83,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
         setMocks();
 
         context.checking(new Expectations() {{
+            one(testMock).getTestListenerBroadcaster(); will(returnValue(listenerBroadcastMock));
             one(testMock).getTestSrcDirs();  will(returnValue(testSrcDirs));
             one(testngOptionsMock).setTestResources(testSrcDirs);
             one(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
@@ -86,11 +91,8 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
             one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
             one(testMock).getTestReportDir(); will(returnValue(testReportDir));
             one(projectMock).getAnt(); will(returnValue(antBuilderMock));
-            one(antTestNGExecuteMock).execute(
-                    testClassesDir, classpathMock, testResultsDir, testReportDir, null, null,
-                    testngOptionsMock,
-                    antBuilderMock
-            );
+            one(antTestNGExecuteMock).execute(testClassesDir, classpathMock, testResultsDir, testReportDir, null, null,
+                                              testngOptionsMock, antBuilderMock, listenerBroadcastMock);
         }});
 
         testNGTestFrameworkInstance.execute(projectMock, testMock, null, null);

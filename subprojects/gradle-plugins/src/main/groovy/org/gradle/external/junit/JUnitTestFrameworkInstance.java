@@ -62,7 +62,7 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
     public void execute(Project project, AbstractTestTask testTask, Collection<String> includes,
                         Collection<String> excludes) {
         antJUnitExecute.execute(testTask.getTestClassesDir(), new ArrayList<File>(testTask.getClasspath().getFiles()),
-                testTask.getTestResultsDir(), includes, excludes, options, project.getAnt());
+                testTask.getTestResultsDir(), includes, excludes, options, project.getAnt(), testTask.getTestListenerBroadcaster());
     }
 
     public void report(Project project, AbstractTestTask testTask) {

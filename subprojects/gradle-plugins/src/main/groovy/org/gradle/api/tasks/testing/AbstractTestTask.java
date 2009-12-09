@@ -31,6 +31,8 @@ import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.external.junit.JUnitTestFramework;
 import org.gradle.external.testng.TestNGTestFramework;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.listener.ListenerManager;
+import org.gradle.listener.ListenerBroadcast;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -67,8 +69,46 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     protected boolean scanForTestClasses = true;
 
+    /**
+     * The broadcaster for all {@link TestListener} implementations that
+     * have been registered with ListenerManager.
+     */
+    private ListenerBroadcast<TestListener> testListenerBroadcaster;
+
+    protected AbstractTestTask() {
+        testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestListener.class);
+    }
+
     @TaskAction
     protected abstract void executeTests();
+
+    /**
+     * @return The {@link TestListener} broadcaster.  This broadcaster will send
+     * messages to all listeners that have been registered with the ListenerManager.
+     */
+    public ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
+        return testListenerBroadcaster;
+    }
+
+    /**
+     * Registers a test listener with this task.  This listener will NOT be notified of tests executed by
+     * other tasks.  To get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
+     * @param listener The listener to add.
+     */
+    public void addTestListener(TestListener listener) {
+        testListenerBroadcaster.add(listener);
+    }
+
+    /**
+     * Unregisters a test listener with this task.  This method will only remove listeners that were added
+     * by calling {@link #addTestListener(TestListener)} on this task.  If the listener was registered
+     * with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not 
+     * do anything.  Instead, use {@link org.gradle.api.invocation.Gradle#removeListener(Object)}.
+     * @param listener The listener to remove.
+     */
+    public void removeTestListener(TestListener listener) {
+        testListenerBroadcaster.remove(listener);
+    }
 
     /**
      * Adds include patterns for the files in the test classes directory (e.g. '**&#2F;*Test.class')).

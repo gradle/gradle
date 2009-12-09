@@ -55,7 +55,7 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
         options.setTestResources(testTask.getTestSrcDirs());
 
         antTestNGExecute.execute(testTask.getTestClassesDir(), testTask.getClasspath(), testTask.getTestResultsDir(),
-                testTask.getTestReportDir(), includes, excludes, options, project.getAnt());
+                testTask.getTestReportDir(), includes, excludes, options, project.getAnt(), testTask.getTestListenerBroadcaster());
     }
 
     public void report(Project project, AbstractTestTask testTask) {
