@@ -44,7 +44,7 @@ import java.util.Set;
  *
  * @author Hans Dockter
  */
-public abstract class AbstractTestTask extends ConventionTask implements PatternFilterable {
+public abstract class AbstractTestTask extends ConventionTask implements PatternFilterable, VerificationTask {
     public static final String FAILURES_OR_ERRORS_PROPERTY = "org.gradle.api.tasks.testing.failuresOrErrors";
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
@@ -59,7 +59,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     protected PatternFilterable patternSet = new PatternSet();
 
-    protected boolean stopAtFailuresOrErrors = true;
+    protected boolean ignoreFailures;
 
     protected FileCollection classpath;
 
@@ -269,19 +269,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     }
 
     /**
-     * @return whether this task should throw an exception in case of test failure or error.
+     * {@inheritDoc}
      */
-    public boolean isStopAtFailuresOrErrors() {
-        return stopAtFailuresOrErrors;
+    public boolean isIgnoreFailures() {
+        return ignoreFailures;
     }
 
     /**
-     * Sets whether this task should throw an exception in case of test failuer or error.
-     *
-     * @param stopAtFailuresOrErrors The new stop at failures or errors value.
+     * {@inheritDoc}
      */
-    public void setStopAtFailuresOrErrors(boolean stopAtFailuresOrErrors) {
-        this.stopAtFailuresOrErrors = stopAtFailuresOrErrors;
+    public AbstractTestTask setIgnoreFailures(boolean ignoreFailures) {
+        this.ignoreFailures = ignoreFailures;
+        return this;
     }
 
     public TestFrameworkInstance getTestFramework() {

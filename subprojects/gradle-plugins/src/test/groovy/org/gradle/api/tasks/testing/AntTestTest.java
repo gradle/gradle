@@ -103,7 +103,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
         assertNull(test.getTestReportDir());
         assertEquals(WrapUtil.toLinkedSet(), test.getIncludes());
         assertEquals(WrapUtil.toLinkedSet(), test.getExcludes());
-        assert test.isStopAtFailuresOrErrors();
+        assertFalse(test.isIgnoreFailures());
     }
 
     @org.junit.Test
@@ -141,7 +141,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
 
     @org.junit.Test public void testExecuteWithTestFailuresAndContinueWithFailures() {
         setUpMocks(test);
-        test.setStopAtFailuresOrErrors(false);
+        test.setIgnoreFailures(true);
         context.checking(new Expectations() {{
             one(testFrameworkInstanceMock).report(getProject(), test);
         }});

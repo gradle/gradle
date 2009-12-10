@@ -122,7 +122,7 @@ public class NativeTest extends AbstractTestTask {
         //}
 
         // TODO don't use ant project property?
-        if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
+        if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
                 FAILURES_OR_ERRORS_PROPERTY))) {
             if (testReport) {
                 throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");

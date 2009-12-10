@@ -86,7 +86,7 @@ public class AntTest extends AbstractTestTask {
             testFrameworkInstance.report(getProject(), this);
         }
 
-        if (stopAtFailuresOrErrors && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
+        if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
                 FAILURES_OR_ERRORS_PROPERTY))) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
         }

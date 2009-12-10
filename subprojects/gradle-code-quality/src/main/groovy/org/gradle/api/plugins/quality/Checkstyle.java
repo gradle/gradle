@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Checkstyle extends SourceTask {
+public class Checkstyle extends SourceTask implements VerificationTask {
     private File configFile;
 
     private File resultFile;
@@ -33,11 +33,11 @@ public class Checkstyle extends SourceTask {
 
     private AntCheckstyle antCheckstyle = new AntCheckstyle();
 
-    private boolean stopBuild = true;
+    private boolean ignoreFailures;
 
     @TaskAction
     public void check() {
-        antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties(), getStopBuild());
+        antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties(), isIgnoreFailures());
     }
 
     @InputFile
@@ -75,11 +75,18 @@ public class Checkstyle extends SourceTask {
         this.properties = properties;
     }
 
-    public boolean getStopBuild() {
-        return this.stopBuild;
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isIgnoreFailures() {
+        return ignoreFailures;
     }
 
-    public void setStopBuild(boolean stopBuild) {
-        this.stopBuild = stopBuild;
+    /**
+     * {@inheritDoc}
+     */
+    public Checkstyle setIgnoreFailures(boolean ignoreFailures) {
+        this.ignoreFailures = ignoreFailures;
+        return this;
     }
 }

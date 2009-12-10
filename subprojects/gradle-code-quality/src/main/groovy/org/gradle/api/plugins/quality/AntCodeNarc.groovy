@@ -22,7 +22,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 
 class AntCodeNarc {
-    def execute(AntBuilder ant, FileCollection source, File configFile, File reportFile) {
+    def execute(AntBuilder ant, FileCollection source, File configFile, File reportFile, boolean ignoreFailures) {
         ant.project.addTaskDefinition('codenarc', CodeNarcTask)
         try {
             ant.codenarc(ruleSetFiles: "file:$configFile", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
@@ -31,6 +31,9 @@ class AntCodeNarc {
             }
         } catch (BuildException e) {
             if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
+                if (ignoreFailures) {
+                    return
+                }
                 throw new GradleException("CodeNarc check violations were found in $source. See the report at $reportFile.", e)
             }
             throw e

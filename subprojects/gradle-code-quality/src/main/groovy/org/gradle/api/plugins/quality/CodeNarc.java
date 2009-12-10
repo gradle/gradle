@@ -15,22 +15,20 @@
  */
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.SourceTask;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 
 import java.io.File;
 
-public class CodeNarc extends SourceTask {
+public class CodeNarc extends SourceTask implements VerificationTask {
     private AntCodeNarc antCodeNarc = new AntCodeNarc();
 
     private File reportFile;
     private File configFile;
+    private boolean ignoreFailures;
 
     @TaskAction
     public void check() {
-        antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFile());
+        antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFile(), isIgnoreFailures());
     }
 
     @InputFile
@@ -49,5 +47,20 @@ public class CodeNarc extends SourceTask {
 
     public void setReportFile(File reportFile) {
         this.reportFile = reportFile;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isIgnoreFailures() {
+        return ignoreFailures;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CodeNarc setIgnoreFailures(boolean ignoreFailures) {
+        this.ignoreFailures = ignoreFailures;
+        return this;
     }
 }
