@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,25 @@
  */
 package org.gradle.api.tasks.ide.eclipse;
 
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.util.GFileUtils;
+import org.gradle.integtests.TestFile;
+import org.gradle.util.Resources;
 import org.hamcrest.Matchers;
-import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
 public class EclipseProjectTest extends AbstractTaskTest {
+    @Rule
+    public final Resources resources = new Resources();
     private EclipseProject eclipseProject;
 
     public AbstractTask getTask() {
@@ -45,55 +48,32 @@ public class EclipseProjectTest extends AbstractTaskTest {
     }
 
     @Test
-    public void generateGroovyProject() throws IOException {
-        eclipseProject.setProjectType(ProjectType.GROOVY);
+    public void generateEmptyProject() throws IOException {
         eclipseProject.execute();
-        checkProjectFile("expectedGroovyProjectFile.txt");
+        checkProjectFile("expectedEmptyProjectFile.txt");
     }
 
     @Test
-    public void generateJavaProject() throws IOException {
-        eclipseProject.setProjectType(ProjectType.JAVA);
+    public void generateProjectWithNatures() throws IOException {
+        eclipseProject.getNatureNames().add("org.gradle.test.natures.CustomNature1");
+        eclipseProject.getNatureNames().add("org.gradle.test.natures.CustomNature2");
         eclipseProject.execute();
-        checkProjectFile("expectedJavaProjectFile.txt");
+
+        checkProjectFile("expectedProjectFileWithCustomNature.txt");
     }
 
     @Test
-    public void generateJavaProjectWithDuplicateNature() throws IOException {
-        eclipseProject.setProjectType(ProjectType.JAVA);
-        eclipseProject.getNatureNames().add("org.eclipse.jdt.core.javanature");
+    public void generateProjectWithBuilders() throws IOException {
+		eclipseProject.getBuildCommandNames().add("org.gradle.test.custom.custombuilder1");
+		eclipseProject.getBuildCommandNames().add("org.gradle.test.custom.custombuilder2");
         eclipseProject.execute();
-        checkProjectFile("expectedJavaProjectFile.txt");
-    }
-
-    @Test
-    public void generateJavaProjectWithCustomBuilder() throws IOException {
-        eclipseProject.setProjectType(ProjectType.JAVA);
-		eclipseProject.getBuildCommandNames().add("org.gradle.test.custom.custombuilder");
-        eclipseProject.execute();
-        checkProjectFile("expectedJavaProjectFileWithCustomBuilder.txt");
-    }
-
-    @Test
-    public void generateSimpleProject() throws IOException {
-        eclipseProject.setProjectType(ProjectType.SIMPLE);
-        eclipseProject.execute();
-        checkProjectFile("expectedSimpleProjectFile.txt");
-    }
-
-    @Test
-    public void generateSimpleProjectWithCustomNature() throws IOException {
-        eclipseProject.setProjectType(ProjectType.SIMPLE);
-        eclipseProject.getNatureNames().add("org.gradle.test.natures.CustomNature");
-        eclipseProject.execute();
-
-        checkProjectFile("expectedSimpleProjectFileWithCustomNature.txt");
+        checkProjectFile("expectedProjectFileWithCustomBuilder.txt");
     }
 
     private void checkProjectFile(String expectedResourcePath) throws IOException {
-        File project = new File(getProject().getProjectDir(), EclipseProject.PROJECT_FILE_NAME);
+        TestFile project = new TestFile(getProject().getProjectDir(), EclipseProject.PROJECT_FILE_NAME);
+        project.assertIsFile();
+        project.assertContents(Matchers.equalTo(resources.getResource(expectedResourcePath).getText()));
         assertTrue(project.isFile());
-        assertThat(GFileUtils.readFileToString(project),
-                Matchers.equalTo(IOUtils.toString(this.getClass().getResourceAsStream(expectedResourcePath))));
     }
 }

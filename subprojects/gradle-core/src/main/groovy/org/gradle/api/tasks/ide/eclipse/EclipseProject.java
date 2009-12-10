@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ public class EclipseProject extends ConventionTask {
 
     private String projectName;
 
-    private ProjectType projectType = ProjectType.SIMPLE;
     private Set<String> natureNames = new LinkedHashSet<String>();
     private Set<String> buildCommandNames = new LinkedHashSet<String>();
 
@@ -60,7 +59,7 @@ public class EclipseProject extends ConventionTask {
     private Document createXmlDocument() {
         Document document = DocumentFactory.getInstance().createDocument();
         Element root = document.addElement("projectDescription");
-        root.addElement("name").setText(projectName);
+        root.addElement("name").setText(getProjectName());
         root.addElement("comment");
         root.addElement("projects");
         addNatures(root);
@@ -71,7 +70,7 @@ public class EclipseProject extends ConventionTask {
     private void addBuildSpec(Element root) {
         Element buildRoot = root.addElement("buildSpec");
 
-        for (String buildCommandName : this.buildCommandNames) {
+        for (String buildCommandName : getBuildCommandNames()) {
             Element buildCommand = buildRoot.addElement("buildCommand");
             buildCommand.addElement("name").setText(buildCommandName);
             buildCommand.addElement("arguments");
@@ -80,7 +79,7 @@ public class EclipseProject extends ConventionTask {
 
     private void addNatures(Element root) {
         Element natures = root.addElement("natures");
-        for (String natureName : this.natureNames) {
+        for (String natureName : getNatureNames()) {
             natures.addElement("nature").setText(natureName);
         }
     }
@@ -99,28 +98,6 @@ public class EclipseProject extends ConventionTask {
      */
     public void setProjectName(String projectName) {
         this.projectName = projectName;
-    }
-
-    /**
-     * Returns the type of the Eclipse project
-     */
-    public ProjectType getProjectType() {
-        return projectType;
-    }
-
-    /**
-     * Sets the type of the eclipse project
-     *
-     * @param projectType The project type
-     */
-    public void setProjectType(ProjectType projectType) {
-        this.projectType = projectType;
-
-        this.natureNames.clear();
-        this.natureNames.addAll(projectType.natureNames());
-
-        this.buildCommandNames.clear();
-        this.buildCommandNames.addAll(projectType.buildCommandNames());
     }
 
     /**

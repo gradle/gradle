@@ -63,10 +63,10 @@ public class TemporaryFolder implements MethodRule {
     }
 
     public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
+        init(method, target);
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                init(method, target);
                 base.evaluate();
             }
         };

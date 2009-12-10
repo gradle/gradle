@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import org.junit.runner.RunWith
 import org.junit.Test
 import org.junit.Before
 import static org.junit.Assert.*
+import org.junit.Rule
+import org.gradle.util.Resources
 
 /**
  * @author Hans Dockter
@@ -38,6 +40,8 @@ class PomGenerationIntegrationTest {
     private TestFile pomProjectDir
     private TestFile repoDir
     private TestFile snapshotRepoDir
+
+    @Rule public Resources resources = new Resources();
 
     @Before
     public void setUp() {
@@ -103,7 +107,7 @@ class PomGenerationIntegrationTest {
         matches[0]
     }
 
-    static void checkInstall(long start, TestFile pomProjectDir, String version, String groupId) {
+    void checkInstall(long start, TestFile pomProjectDir, String version, String groupId) {
         TestFile localMavenRepo = new TestFile(pomProjectDir.file("target/localRepoPath.txt").text as File)
         TestFile installedFile = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}.war")
         TestFile installedJavadocFile = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}-javadoc.zip")
@@ -116,9 +120,10 @@ class PomGenerationIntegrationTest {
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
 
-    private static String expectedPom(String version, String groupId) {
+    private String expectedPom(String version, String groupId) {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        templateEngine.createTemplate(PomGenerationIntegrationTest.getResourceAsStream('pomGeneration/expectedPom.txt').text).make(version: version, groupId: groupId)
+        String text = resources.getResource('pomGeneration/expectedPom.txt').text
+        return templateEngine.createTemplate(text).make(version: version, groupId: groupId)
     }
 
     private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {

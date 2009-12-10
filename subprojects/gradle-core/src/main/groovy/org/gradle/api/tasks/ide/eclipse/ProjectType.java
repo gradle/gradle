@@ -18,7 +18,6 @@ package org.gradle.api.tasks.ide.eclipse;
 
 import org.gradle.util.WrapUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ProjectType {
@@ -44,30 +43,6 @@ public abstract class ProjectType {
         }
         public List<String> natureNames() {
             return WrapUtil.toList("org.eclipse.jdt.core.javanature", "ch.epfl.lamp.sdt.core.scalanature");
-        }
-    };
-    public static final ProjectType SIMPLE = new ProjectType() {
-        public List<String> buildCommandNames() {
-            return new ArrayList<String>();
-        }
-        public List<String> natureNames() {
-            return new ArrayList<String>();
-        }
-    };
-    public static final ProjectType WTP_MODULE = new ProjectType() {
-		public List<String> buildCommandNames() {
-			return WrapUtil.toList("org.eclipse.jdt.core.javabuilder", "org.eclipse.wst.common.project.facet.core.builder", "org.eclipse.wst.validation.validationbuilder");
-        }
-        public List<String> natureNames() {
-            return WrapUtil.toList("org.eclipse.jdt.core.javanature", "org.eclipse.wst.common.project.facet.core.nature", "org.eclipse.wst.common.modulecore.ModuleCoreNature");
-        }
-    };
-    public static final ProjectType WTP_WEBAPP = new ProjectType() {
-		public List<String> buildCommandNames() {
-			return WrapUtil.toList("org.eclipse.jdt.core.javabuilder", "org.eclipse.wst.common.project.facet.core.builder", "org.eclipse.wst.validation.validationbuilder");
-        }
-        public List<String> natureNames() {
-            return WrapUtil.toList("org.eclipse.jdt.core.javanature", "org.eclipse.wst.common.project.facet.core.nature", "org.eclipse.wst.common.modulecore.ModuleCoreNature");
         }
     };
 

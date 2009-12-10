@@ -4,12 +4,14 @@
   <name>myProject</name>
   <comment/>
   <projects/>
-  <natures>
-    <nature>org.eclipse.jdt.core.javanature</nature>
-  </natures>
+  <natures/>
   <buildSpec>
     <buildCommand>
-      <name>org.eclipse.jdt.core.javabuilder</name>
+      <name>org.gradle.test.custom.custombuilder1</name>
+      <arguments/>
+    </buildCommand>
+    <buildCommand>
+      <name>org.gradle.test.custom.custombuilder2</name>
       <arguments/>
     </buildCommand>
   </buildSpec>

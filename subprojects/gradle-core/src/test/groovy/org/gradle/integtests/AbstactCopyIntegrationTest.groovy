@@ -17,21 +17,19 @@ package org.gradle.integtests
 
 import org.apache.commons.io.FileUtils
 import org.junit.Before
+import org.junit.Rule
+import org.gradle.util.Resources
 
-public class AbstactCopyIntegrationTest extends AbstractIntegrationTest  {
+public class AbstactCopyIntegrationTest extends AbstractIntegrationTest {
+    @Rule
+    public final Resources resources = new Resources()
+
     @Before
     public void setUp() {
         ['src', 'src2'].each {
-            File resourceFile;
-            try {
-                resourceFile = new File(getClass().getResource("copyTestResources/$it").toURI());
-            } catch (URISyntaxException e) {
-                throw new RuntimeException('Could not locate copy test resources');
-            }
-
+            File resourceFile = resources.getResource("copyTestResources/$it")
             File testSrc = testFile(it)
             FileUtils.deleteQuietly(testSrc)
-
             FileUtils.copyDirectory(resourceFile, testSrc)
         }
     }

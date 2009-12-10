@@ -5,7 +5,8 @@
   <comment/>
   <projects/>
   <natures>
-    <nature>org.gradle.test.natures.CustomNature</nature>
+    <nature>org.gradle.test.natures.CustomNature1</nature>
+    <nature>org.gradle.test.natures.CustomNature2</nature>
   </natures>
   <buildSpec/>
 </projectDescription>

@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <projectDescription>
-  <name>myProject</name>
+  <name>quickstart</name>
   <comment/>
   <projects/>
   <natures>
+    <nature>ch.epfl.lamp.sdt.core.scalanature</nature>
     <nature>org.eclipse.jdt.core.javanature</nature>
   </natures>
   <buildSpec>
     <buildCommand>
-      <name>org.eclipse.jdt.core.javabuilder</name>
-      <arguments/>
-    </buildCommand>
-    <buildCommand>
-      <name>org.gradle.test.custom.custombuilder</name>
+      <name>ch.epfl.lamp.sdt.core.scalabuilder</name>
       <arguments/>
     </buildCommand>
   </buildSpec>

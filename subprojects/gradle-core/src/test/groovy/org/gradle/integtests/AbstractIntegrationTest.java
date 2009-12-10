@@ -17,16 +17,15 @@ package org.gradle.integtests;
 
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
+import org.gradle.util.Resources;
 import org.gradle.util.TemporaryFolder;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Rule;
 
 import java.io.File;
-import java.net.URL;
 
 public class AbstractIntegrationTest {
     @Rule public TemporaryFolder testDir = new TemporaryFolder();
+    @Rule public Resources resources = new Resources();
 
     public TestFile getTestDir() {
         return testDir.getDir();
@@ -41,10 +40,7 @@ public class AbstractIntegrationTest {
     }
 
     protected File getTestBuildFile(String name) {
-        URL resource = getClass().getResource("testProjects/" + name);
-        assertThat(String.format("Could not find resource '%s'", name), resource, notNullValue());
-        assertThat(resource.getProtocol(), equalTo("file"));
-        TestFile sourceFile = new TestFile(resource);
+        TestFile sourceFile = resources.getResource("testProjects/" + name);
         TestFile destFile = testFile(sourceFile.getName());
         sourceFile.copyTo(destFile);
         return destFile;

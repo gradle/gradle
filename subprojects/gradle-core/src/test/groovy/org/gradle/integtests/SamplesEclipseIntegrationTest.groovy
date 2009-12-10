@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.Rule
+import org.gradle.util.Resources
 
 /**
  * @author Hans Dockter
@@ -30,7 +32,6 @@ import org.junit.runner.RunWith
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesEclipseIntegrationTest {
 
-    static final String ECLIPSE_PROJECT_NAME = 'eclipse'
     static final String API_NAME = 'api'
     static final String WEBAPP_NAME = 'webservice'
 
@@ -40,26 +41,30 @@ class SamplesEclipseIntegrationTest {
     private GradleDistribution dist;
     private GradleExecuter executer;
 
+    @Rule public Resources resources = new Resources();
+
+    TestFile cacheDir
+
     @Before
     void setUp() {
-        eclipseProjectDir = dist.samplesDir.file(ECLIPSE_PROJECT_NAME)
+        cacheDir = dist.userHomeDir.file('cache')
     }
 
     @Test
-    public void eclipseGeneration() {
+    public void eclipseGenerationForJavaAndWebProjects() {
+        TestFile eclipseProjectDir = dist.samplesDir.file('eclipse')
         executer.inDirectory(eclipseProjectDir).withTasks('clean', 'eclipse').run()
 
-        String cachePath = dist.userHomeDir.file('cache')
-        String resourcesRoot = 'eclipseproject'
-        compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("$resourcesRoot/expectedApiProjectFile.txt").text,
+        String resourcesRoot = 'eclipseproject/java'
+        compareXmlWithIgnoringOrder(resources.getResource("$resourcesRoot/expectedApiProjectFile.txt").text,
                 eclipseProjectDir.file(API_NAME, ".project").text)
-        compareXmlWithIgnoringOrder(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream("$resourcesRoot/expectedWebserviceProjectFile.txt").text,
+        compareXmlWithIgnoringOrder(resources.getResource("$resourcesRoot/expectedWebserviceProjectFile.txt").text,
                 eclipseProjectDir.file(WEBAPP_NAME, ".project").text)
-        compareXmlWithIgnoringOrder(replacePaths("$resourcesRoot/expectedApiClasspathFile.txt", cachePath, "$eclipseProjectDir/$API_NAME" as File),
+        compareXmlWithIgnoringOrder(replacePaths("$resourcesRoot/expectedApiClasspathFile.txt", cacheDir, "$eclipseProjectDir/$API_NAME" as File),
                 eclipseProjectDir.file(API_NAME, ".classpath").text)
-        compareXmlWithIgnoringOrder(replacePaths("$resourcesRoot/expectedWebserviceClasspathFile.txt", cachePath, "$eclipseProjectDir/$WEBAPP_NAME" as File),
+        compareXmlWithIgnoringOrder(replacePaths("$resourcesRoot/expectedWebserviceClasspathFile.txt", cacheDir, "$eclipseProjectDir/$WEBAPP_NAME" as File),
                 eclipseProjectDir.file(WEBAPP_NAME, ".classpath").text)
-        compareXmlWithIgnoringOrder(replacePaths("$resourcesRoot/expectedWebserviceWtpFile.txt", cachePath, "$eclipseProjectDir/$WEBAPP_NAME" as File),
+        compareXmlWithIgnoringOrder(replacePaths("$resourcesRoot/expectedWebserviceWtpFile.txt", cacheDir, "$eclipseProjectDir/$WEBAPP_NAME" as File),
                 eclipseProjectDir.file(WEBAPP_NAME, ".settings/org.eclipse.wst.common.component").text)
 
         executer.inDirectory(eclipseProjectDir).withTasks('eclipseClean').run()
@@ -70,19 +75,43 @@ class SamplesEclipseIntegrationTest {
         assertDoesNotExist(eclipseProjectDir, false, WEBAPP_NAME, ".settings/org.eclipse.wst.common.component")
     }
 
+    @Test
+    public void eclipseGenerationForGroovyProjects() {
+        TestFile eclipseProjectDir = dist.samplesDir.file('groovy/quickstart')
+        executer.inDirectory(eclipseProjectDir).withTasks('clean', 'eclipse').run()
+
+        String resourcesRoot = 'eclipseproject/groovy'
+        compareXmlWithIgnoringOrder(resources.getResource("$resourcesRoot/expectedProjectFile.txt").text,
+                eclipseProjectDir.file(".project").text)
+        compareXmlWithIgnoringOrder(replacePaths("$resourcesRoot/expectedClasspathFile.txt", cacheDir, eclipseProjectDir),
+                eclipseProjectDir.file(".classpath").text)
+    }
+
+    @Test
+    public void eclipseGenerationForScalaProjects() {
+        TestFile eclipseProjectDir = dist.samplesDir.file('scala/quickstart')
+        executer.inDirectory(eclipseProjectDir).withTasks('clean', 'eclipse').run()
+
+        String resourcesRoot = 'eclipseproject/scala'
+        compareXmlWithIgnoringOrder(resources.getResource("$resourcesRoot/expectedProjectFile.txt").text,
+                eclipseProjectDir.file(".project").text)
+        compareXmlWithIgnoringOrder(replacePaths("$resourcesRoot/expectedClasspathFile.txt", cacheDir, eclipseProjectDir),
+                eclipseProjectDir.file(".classpath").text)
+    }
+
     private static void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
         XMLAssert.assertXMLEqual(diff, true);
     }
 
-    private static String replacePaths(String resourcePath, String cachePath, File eclipseProjectDir) {
+    private String replacePaths(String resourcePath, File cachePath, File eclipseProjectDir) {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        templateEngine.createTemplate(SamplesJavaMultiProjectIntegrationTest.getResourceAsStream(resourcePath).text).make(
-                cachePath: new File(cachePath).canonicalPath, projectDir: eclipseProjectDir.canonicalPath).toString().replace('\\', '/')
+        templateEngine.createTemplate(resources.getResource(resourcePath).text).make(
+                cachePath: cachePath.canonicalPath, projectDir: eclipseProjectDir.canonicalPath).toString().replace('\\', '/')
     }
 
-    static void assertDoesNotExist(TestFile baseDir, boolean shouldExists, Object... path) {
+    static void assertDoesNotExist(TestFile baseDir, boolean shouldExists, Object ... path) {
         baseDir.file(path).assertDoesNotExist()
     }
 }
