@@ -91,9 +91,10 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
                     properties);
             File classesDir;
             if (transformer != null) {
-                classesDir = new File(cache.getBaseDir(), transformer.getClass().getSimpleName());
+                String subdirName = String.format("%s_%s", transformer.getId(), scriptBaseClass.getSimpleName());
+                classesDir = new File(cache.getBaseDir(), subdirName);
             } else {
-                classesDir = new File(cache.getBaseDir(), "NoTransformer");
+                classesDir = new File(cache.getBaseDir(), scriptBaseClass.getSimpleName());
             }
 
             if (!cache.isValid() || !classesDir.exists()) {

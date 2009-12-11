@@ -15,48 +15,45 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.groovy.scripts.*;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.artifacts.dsl.InitScriptClasspathScriptTransformer;
-import org.gradle.api.internal.artifacts.dsl.InitScriptTransformer;
 import org.gradle.api.internal.GradleInternal;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.InitScript;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import java.net.URLClassLoader;
-import java.net.URL;
-
+@RunWith(JMock.class)
 public class DefaultInitScriptProcessorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
 
     @Test
     public void testProcess() {
-        final ScriptCompilerFactory scriptCompilerFactoryMock = context.mock(ScriptCompilerFactory.class);
-        final ScriptCompiler scriptCompilerMock = context.mock(ScriptCompiler.class);
+        final ScriptObjectConfigurerFactory scriptObjectConfigurerFactory = context.mock(ScriptObjectConfigurerFactory.class);
+        final ScriptObjectConfigurer configurer = context.mock(ScriptObjectConfigurer.class);
         final ScriptSource initScriptMock = context.mock(ScriptSource.class);
         final GradleInternal gradleMock = context.mock(GradleInternal.class);
         final ScriptClassLoaderProvider buildClassLoaderProviderMock = context.mock(ScriptClassLoaderProvider.class);
-        final URLClassLoader classLoader = new URLClassLoader(new URL[0]);
-        final groovy.lang.Script classPathScriptMock = new EmptyScript();
-        final groovy.lang.Script buildScriptMock = new EmptyScript();
+
         context.checking(new Expectations() {{
-            one(scriptCompilerFactoryMock).createCompiler(initScriptMock);
-            will(returnValue(gradleMock));
+            one(scriptObjectConfigurerFactory).create(initScriptMock);
+            will(returnValue(configurer));
+
+            one(configurer).setClasspathClosureName("initscript");
+
             allowing(gradleMock).getClassLoaderProvider();
             will(returnValue(buildClassLoaderProviderMock));
-            one(buildClassLoaderProviderMock).getClassLoader();
-            will(returnValue(classLoader));
-            one(scriptCompilerMock).setClassloader(classLoader);
-            one(scriptCompilerMock).setTransformer(with(any(InitScriptClasspathScriptTransformer.class)));
-            one(scriptCompilerMock).compile(Script.class);
-            will(returnValue(classPathScriptMock));
 
-            one(buildClassLoaderProviderMock).updateClassPath();
+            one(configurer).setClassLoaderProvider(buildClassLoaderProviderMock);
 
-            one(scriptCompilerMock).setTransformer(with(any(InitScriptTransformer.class)));
-            one(scriptCompilerMock).compile(Script.class);
-            will(returnValue(buildScriptMock));
+            one(configurer).setScriptBaseClass(InitScript.class);
+
+            one(configurer).apply(gradleMock);
         }});
+
+        DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptObjectConfigurerFactory);
+        processor.process(initScriptMock, gradleMock);
     }
 }

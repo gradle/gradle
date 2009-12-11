@@ -42,10 +42,7 @@ import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
-import org.gradle.configuration.BuildScriptProcessor;
-import org.gradle.configuration.DefaultInitScriptProcessor;
-import org.gradle.configuration.DefaultProjectEvaluator;
-import org.gradle.configuration.ProjectEvaluator;
+import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
@@ -199,8 +196,9 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
     }
     
     protected ProjectEvaluator createProjectEvaluator() {
-        return new DefaultProjectEvaluator(new BuildScriptProcessor(get(ImportsReader.class), get(
-                ScriptCompilerFactory.class)));
+        return new DefaultProjectEvaluator(
+                new BuildScriptProcessor(
+                        get(ScriptObjectConfigurerFactory.class)));
     }
 
     protected ITaskFactory createITaskFactory() {
@@ -227,17 +225,29 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
                 get(CacheRepository.class));
     }
 
+    protected ScriptObjectConfigurerFactory createScriptObjectConfigurerFactory() {
+        return new DefaultScriptObjectConfigurerFactory(
+                get(ScriptCompilerFactory.class),
+                get(ImportsReader.class));
+    }
+    
     protected InitScriptHandler createInitScriptHandler() {
         return new InitScriptHandler(
                 new UserHomeInitScriptFinder(
                         new DefaultInitScriptFinder()),
                 new DefaultInitScriptProcessor(
-                        get(ScriptCompilerFactory.class),
-                        get(ImportsReader.class)));
+                        get(ScriptObjectConfigurerFactory.class)));
 
     }
 
-   
+    protected SettingsProcessor createSettingsProcessor() {
+        return new PropertiesLoadingSettingsProcessor(new
+                ScriptEvaluatingSettingsProcessor(
+                    get(ScriptObjectConfigurerFactory.class),
+                    new SettingsFactory(
+                        new DefaultProjectDescriptorRegistry())));
+    }
+
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
             return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);

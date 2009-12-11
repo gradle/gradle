@@ -15,39 +15,28 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
-import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
-import org.gradle.api.internal.project.ImportsReader;
+import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.*;
 
 public class BuildScriptProcessor implements ProjectEvaluator {
-    private final ImportsReader importsReader;
-    private final ScriptCompilerFactory scriptCompilerFactory;
+    private final ScriptObjectConfigurerFactory configurerFactory;
 
-    public BuildScriptProcessor(ImportsReader importsReader, ScriptCompilerFactory scriptCompilerFactory) {
-        this.importsReader = importsReader;
-        this.scriptCompilerFactory = scriptCompilerFactory;
+    public BuildScriptProcessor(ScriptObjectConfigurerFactory configurerFactory) {
+        this.configurerFactory = configurerFactory;
     }
 
-    public void evaluate(ProjectInternal project) {
-        ScriptSource source = new ImportsScriptSource(project.getBuildScriptSource(), importsReader,
-                project.getRootDir());
-
-        ScriptCompiler compiler = scriptCompilerFactory.createCompiler(source);
-        compiler.setClassloader(project.getClassLoaderProvider().getClassLoader());
-
-        compiler.setTransformer(new BuildScriptClasspathScriptTransformer());
-        ScriptRunner classPathScript = compiler.compile(ProjectScript.class);
-        classPathScript.setDelegate(project);
-        classPathScript.run();
-        project.getClassLoaderProvider().updateClassPath();
-
-        compiler.setTransformer(new BuildScriptTransformer());
-        ScriptRunner script = compiler.compile(ProjectScript.class);
-        script.setDelegate(project);
-        project.setScript(script.getScript());
-        script.run();
+    public void evaluate(final ProjectInternal project) {
+        ScriptObjectConfigurer configurer = configurerFactory.create(project.getBuildScriptSource());
+        configurer.setClassLoaderProvider(project.getClassLoaderProvider());
+        configurer.setClasspathClosureName("buildscript");
+        configurer.setScriptBaseClass(ProjectScript.class);
+        configurer.setInitAction(new Action<Script>() {
+            public void execute(Script script) {
+                project.setScript(script);
+            }
+        });
+        configurer.apply(project);
     }
 }

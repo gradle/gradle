@@ -15,16 +15,11 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
-import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
+import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
-import org.gradle.groovy.scripts.*;
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -33,7 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
+import static org.hamcrest.Matchers.*;
 
 @RunWith(JMock.class)
 public class BuildScriptProcessorTest {
@@ -41,30 +36,17 @@ public class BuildScriptProcessorTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private final ProjectInternal project = context.mock(ProjectInternal.class);
-    private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
-    private final ScriptCompilerFactory scriptCompilerFactory = context.mock(ScriptCompilerFactory.class);
-    private final ScriptCompiler compiler = context.mock(ScriptCompiler.class);
-    private final ImportsReader importsReader = context.mock(ImportsReader.class);
-    private final ClassLoader classLoader = context.mock(ClassLoader.class);
-    private final ScriptRunner classpathScriptRunner = context.mock(ScriptRunner.class, "classpath");
-    private final ScriptRunner buildScriptRunner = context.mock(ScriptRunner.class, "build");
     private final ScriptClassLoaderProvider classLoaderProvider = context.mock(ScriptClassLoaderProvider.class);
-    private final File rootDir = new File("root dir");
-    private final Script buildScript = context.mock(Script.class);
-    private final BuildScriptProcessor evaluator = new BuildScriptProcessor(importsReader, scriptCompilerFactory);
+    private final ScriptObjectConfigurerFactory configurerFactory = context.mock(ScriptObjectConfigurerFactory.class);
+    private final ScriptObjectConfigurer scriptObjectConfigurer = context.mock(ScriptObjectConfigurer.class);
+    private final BuildScriptProcessor evaluator = new BuildScriptProcessor(configurerFactory);
 
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
-            allowing(project).getGradle();
-            will(returnValue(gradle));
-
             allowing(project).getBuildScriptSource();
             will(returnValue(scriptSource));
-
-            allowing(project).getRootDir();
-            will(returnValue(rootDir));
 
             allowing(project).getClassLoaderProvider();
             will(returnValue(classLoaderProvider));
@@ -72,42 +54,16 @@ public class BuildScriptProcessorTest {
     }
 
     @Test
-    public void createsAndExecutesScriptAndNotifiesListener() {
-        final ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSource, importsReader, rootDir);
-
+    public void configuresProjectUsingBuildScript() {
         context.checking(new Expectations() {{
-            one(scriptCompilerFactory).createCompiler(with(reflectionEquals(expectedScriptSource)));
-            will(returnValue(compiler));
+            one(configurerFactory).create(scriptSource);
+            will(returnValue(scriptObjectConfigurer));
 
-            one(classLoaderProvider).getClassLoader();
-            will(returnValue(classLoader));
-            
-            one(compiler).setClassloader(classLoader);
-
-            one(compiler).setTransformer(with(notNullValue(BuildScriptClasspathScriptTransformer.class)));
-
-            one(compiler).compile(ProjectScript.class);
-            will(returnValue(classpathScriptRunner));
-
-            one(classpathScriptRunner).setDelegate(project);
-
-            one(classpathScriptRunner).run();
-
-            one(classLoaderProvider).updateClassPath();
-            
-            one(compiler).setTransformer(with(notNullValue(BuildScriptTransformer.class)));
-
-            one(compiler).compile(ProjectScript.class);
-            will(returnValue(buildScriptRunner));
-
-            one(buildScriptRunner).setDelegate(project);
-
-            one(buildScriptRunner).getScript();
-            will(returnValue(buildScript));
-
-            one(project).setScript(buildScript);
-
-            one(buildScriptRunner).run();
+            one(scriptObjectConfigurer).setClassLoaderProvider(classLoaderProvider);
+            one(scriptObjectConfigurer).setClasspathClosureName("buildscript");
+            one(scriptObjectConfigurer).setInitAction(with(notNullValue(Action.class)));
+            one(scriptObjectConfigurer).setScriptBaseClass(ProjectScript.class);
+            one(scriptObjectConfigurer).apply(project);
         }});
 
         evaluator.evaluate(project);

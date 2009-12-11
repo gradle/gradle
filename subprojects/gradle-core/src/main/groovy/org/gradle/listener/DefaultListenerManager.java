@@ -55,7 +55,7 @@ public class DefaultListenerManager implements ListenerManager {
         synchronized (lock) {
             if (loggers.add(logger)) {
                 for (ListenerBroadcast broadcaster : broadcasterCache.values()) {
-                    addLoggerToBroadcasterIfTypeMatchers(broadcaster, logger);
+                    addLoggerToBroadcasterIfTypeMatches(broadcaster, logger);
                 }
             }
         }
@@ -89,13 +89,13 @@ public class DefaultListenerManager implements ListenerManager {
             addToBroadcasterIfTypeMatches(broadcaster, listener);
         }
         for (Object logger : loggers) {
-            addLoggerToBroadcasterIfTypeMatchers(broadcaster, logger);
+            addLoggerToBroadcasterIfTypeMatches(broadcaster, logger);
         }
 
         return broadcaster;
     }
 
-    private void addLoggerToBroadcasterIfTypeMatchers(ListenerBroadcast broadcaster, Object listener) {
+    private void addLoggerToBroadcasterIfTypeMatches(ListenerBroadcast broadcaster, Object listener) {
         if (broadcaster.getType().isAssignableFrom(listener.getClass())) {
             Object oldLogger = broadcaster.setLogger(listener);
             if (loggers.remove(oldLogger)) {

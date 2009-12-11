@@ -19,8 +19,17 @@ import org.codehaus.groovy.control.CompilationUnit;
 import org.gradle.groovy.scripts.Transformer;
 
 public class BuildScriptTransformer implements Transformer {
+    private final BuildScriptClasspathScriptTransformer classpathScriptTransformer;
+
+    public BuildScriptTransformer(BuildScriptClasspathScriptTransformer transformer) {
+        classpathScriptTransformer = transformer;
+    }
+
+    public String getId() {
+        return "no_" + classpathScriptTransformer.getId();
+    }
+
     public void register(CompilationUnit compilationUnit) {
-        BuildScriptClasspathScriptTransformer classpathScriptTransformer = new BuildScriptClasspathScriptTransformer();
         classpathScriptTransformer.invert().register(compilationUnit);
         TaskDefinitionScriptTransformer taskDefinitionScriptTransformer = new TaskDefinitionScriptTransformer();
         taskDefinitionScriptTransformer.register(compilationUnit);

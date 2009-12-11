@@ -32,7 +32,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptClassLoaderPro
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
     private final ConfigurationContainer configContainer;
-    private final ProjectClassLoader classLoader;
+    private final MutableClassLoader classLoader;
     private final Configuration classpathConfiguration;
 
     public DefaultScriptHandler(RepositoryHandler repositoryHandler, DependencyHandler dependencyHandler,
@@ -40,7 +40,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptClassLoaderPro
         this.repositoryHandler = repositoryHandler;
         this.dependencyHandler = dependencyHandler;
         this.configContainer = configContainer;
-        this.classLoader = new ProjectClassLoader(parentClassLoader);
+        this.classLoader = new MutableClassLoader(parentClassLoader);
         classpathConfiguration = configContainer.add(CLASSPATH_CONFIGURATION);
     }
 
@@ -78,8 +78,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptClassLoaderPro
         }
     }
 
-    private static class ProjectClassLoader extends URLClassLoader {
-        public ProjectClassLoader(ClassLoader parentClassLoader) {
+    private static class MutableClassLoader extends URLClassLoader {
+        public MutableClassLoader(ClassLoader parentClassLoader) {
             super(new URL[0], parentClassLoader);
         }
 

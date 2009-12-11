@@ -66,6 +66,7 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setGradleHomeDir(dist.getGradleHomeDir());
+        parameter.setSearchUpwards(false);
         if (!isDisableTestGradleUserHome()) {
             parameter.setGradleUserHomeDir(dist.getUserHomeDir());
         }

@@ -117,6 +117,10 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
                 return Phases.CANONICALIZATION;
             }
 
+            public String getId() {
+                return "no_" + ClasspathScriptTransformer.this.getId();
+            }
+
             @Override
             public void call(SourceUnit source) throws CompilationFailedException {
                 Spec<Statement> spec = Specs.not(isScriptBlock());

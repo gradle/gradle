@@ -83,7 +83,7 @@ public class DefaultScriptCompilerFactoryTest {
         testClassLoader = new URLClassLoader(new URL[0]);
         testScriptFile = new File(tmpDir.getDir(), "script/mybuild.craidle");
         cacheDir = new File(tmpDir.getDir(), "cache");
-        expectedScriptCacheDir = new TestFile(cacheDir, "NoTransformer").createDir();
+        expectedScriptCacheDir = new TestFile(cacheDir, "Script").createDir();
         expectedScript = context.mock(Script.class);
         expectedScriptRunner = context.mock(ScriptRunner.class);
         scriptProcessor = new DefaultScriptCompilerFactory(scriptCompilationHandlerMock, CacheUsage.ON, scriptRunnerFactoryMock, cacheRepositoryMock);
@@ -218,19 +218,19 @@ public class DefaultScriptCompilerFactoryTest {
     @Test
     public void testUsesSuppliedTransformerToGenerateCacheDir() {
         final Transformer transformer = context.mock(Transformer.class);
-        final File expectedCacheDir = new TestFile(expectedScriptCacheDir.getParentFile(), transformer.getClass().getSimpleName()).createDir();
+        final File expectedCacheDir = new TestFile(expectedScriptCacheDir.getParentFile(), "transformer_Script").createDir();
 
         context.checking(new Expectations(){{
+            allowing(transformer).getId();
+            will(returnValue("transformer"));
+
             one(cacheRepositoryMock).getGlobalCache("scripts/class-name", expectedCacheProperties);
             will(returnValue(cacheMock));
 
             allowing(cacheMock).isValid();
             will(returnValue(true));
 
-            one(scriptCompilationHandlerMock).loadScriptFromDir(
-                    source,
-                    testClassLoader,
-                    expectedCacheDir,
+            one(scriptCompilationHandlerMock).loadScriptFromDir(source, testClassLoader, expectedCacheDir,
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
 

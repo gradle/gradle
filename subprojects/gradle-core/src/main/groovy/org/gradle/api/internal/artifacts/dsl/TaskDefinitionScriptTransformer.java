@@ -32,6 +32,10 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
         return Phases.CANONICALIZATION;
     }
 
+    public String getId() {
+        return "tasks";
+    }
+
     public void call(SourceUnit source) throws CompilationFailedException {
         GroovyCodeVisitor transformer = new TaskDefinitionTransformer();
         source.getAST().getStatementBlock().visit(transformer);

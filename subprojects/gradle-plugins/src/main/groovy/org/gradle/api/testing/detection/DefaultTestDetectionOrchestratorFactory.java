@@ -48,10 +48,6 @@ public class DefaultTestDetectionOrchestratorFactory implements TestDetectionOrc
                 TimeUnit.MILLISECONDS);
     }
 
-    /**
-     *
-     * @return
-     */
     public TestDetectionRunner createDetectionRunner() {
         final NativeTest testTask = testOrchestratorFactory.getTestTask();
         final TestClassProcessor testClassProcessor = new QueueItemProducingTestClassProcessor(

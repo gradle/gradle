@@ -26,9 +26,13 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
+import org.gradle.configuration.DefaultScriptObjectConfigurerFactory;
+import org.gradle.configuration.ScriptObjectConfigurerFactory;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.initialization.InitScriptHandler;
+import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
+import org.gradle.initialization.SettingsProcessor;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.TemporaryFolder;
@@ -143,5 +147,17 @@ public class DefaultServiceRegistryFactoryTest {
     public void providesAnInitScriptHandler() {
         assertThat(factory.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
         assertThat(factory.get(InitScriptHandler.class), sameInstance(factory.get(InitScriptHandler.class)));
+    }
+    
+    @Test
+    public void providesAScriptObjectConfigurerFactory() {
+        assertThat(factory.get(ScriptObjectConfigurerFactory.class), instanceOf(DefaultScriptObjectConfigurerFactory.class));
+        assertThat(factory.get(ScriptObjectConfigurerFactory.class), sameInstance(factory.get(ScriptObjectConfigurerFactory.class)));
+    }
+    
+    @Test
+    public void providesASettingsProcessor() {
+        assertThat(factory.get(SettingsProcessor.class), instanceOf(PropertiesLoadingSettingsProcessor.class));
+        assertThat(factory.get(SettingsProcessor.class), sameInstance(factory.get(SettingsProcessor.class)));
     }
 }

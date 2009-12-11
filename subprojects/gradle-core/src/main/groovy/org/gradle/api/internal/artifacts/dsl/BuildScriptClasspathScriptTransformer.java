@@ -16,14 +16,22 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 /**
- * An implementation of ClasspathScriptTransformer for use in build scripts.  This subclass
- * defines the script method name to be buildscript {}.
+ * An implementation of ClasspathScriptTransformer for use in build scripts.  This subclass defines the script method
+ * name to be buildscript {}.
  */
 public class BuildScriptClasspathScriptTransformer extends ClasspathScriptTransformer {
-    private static final String BUILDSCRIPT_METHOD_NAME = "buildscript";
+    private final String classpathClosureName;
+
+    public BuildScriptClasspathScriptTransformer(String classpathClosureName) {
+        this.classpathClosureName = classpathClosureName;
+    }
+
+    public String getId() {
+        return classpathClosureName;
+    }
 
     protected String getScriptMethodName() {
-        return BUILDSCRIPT_METHOD_NAME;
+        return classpathClosureName;
     }
 }
 

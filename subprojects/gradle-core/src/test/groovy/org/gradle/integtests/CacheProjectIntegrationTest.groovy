@@ -52,7 +52,7 @@ class CacheProjectIntegrationTest {
         buildFile = projectDir.file('build.gradle')
         ScriptSource source = new FileScriptSource("build file", buildFile)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/cache.properties")
-        classFile = userHomeDir.file("caches/$version/scripts/$source.className/BuildScriptTransformer/${source.className}.class")
+        classFile = userHomeDir.file("caches/$version/scripts/$source.className/no_buildscript_ProjectScript/${source.className}.class")
         artifactsCache = projectDir.file(".gradle/$version/taskArtifacts/cache.bin")
     }
 

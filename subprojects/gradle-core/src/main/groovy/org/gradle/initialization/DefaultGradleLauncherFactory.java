@@ -16,12 +16,14 @@
 package org.gradle.initialization;
 
 import org.gradle.*;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
+import org.gradle.api.internal.project.GlobalServicesRegistry;
+import org.gradle.api.internal.project.ProjectFactory;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
-import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.WrapUtil;
@@ -74,12 +76,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                                 new DefaultSettingsFinder(WrapUtil.<ISettingsFileSearchStrategy>toList(
                                         new MasterDirSettingsFinderStrategy(),
                                         new ParentDirSettingsFinderStrategy()))),
-                        new PropertiesLoadingSettingsProcessor(
-                                new ScriptEvaluatingSettingsProcessor(
-                                        serviceRegistryFactory.get(ScriptCompilerFactory.class),
-                                        serviceRegistryFactory.get(ImportsReader.class),
-                                        new SettingsFactory(new DefaultProjectDescriptorRegistry()))
-                        ),
+                        serviceRegistryFactory.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
                                 new DefaultCacheInvalidationStrategy()

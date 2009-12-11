@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package org.gradle.initialization
 
 import groovy.mock.interceptor.MockFor
 import org.gradle.StartParameter
-import org.gradle.api.internal.project.ImportsReader
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.gradle.groovy.scripts.*
-import org.gradle.initialization.*
-import static org.gradle.util.Matchers.*
+import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.configuration.ScriptObjectConfigurerFactory
+import org.gradle.configuration.ScriptObjectConfigurer
 
 /**
  * @author Hans Dockter
@@ -36,14 +36,13 @@ class ScriptEvaluatingSettingsProcessorTest {
     static final File TEST_CURRENT_DIR = new File('currentDir')
     ScriptEvaluatingSettingsProcessor settingsProcessor
     DefaultSettingsFinder expectedSettingsFinder
-    ImportsReader importsReader
     SettingsFactory settingsFactory
     StartParameter expectedStartParameter
-    ScriptCompilerFactory scriptProcessorMock
     DefaultSettings expectedSettings
     MockFor settingsFactoryMocker
     ScriptSource scriptSourceMock
     IGradlePropertiesLoader propertiesLoaderMock
+    ScriptObjectConfigurerFactory configurerFactoryMock
     Map expectedGradleProperties
     URLClassLoader urlClassLoader
 
@@ -51,20 +50,16 @@ class ScriptEvaluatingSettingsProcessorTest {
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        instantiateConstructorArgs()
-        settingsProcessor = new ScriptEvaluatingSettingsProcessor(scriptProcessorMock, importsReader, settingsFactory)
-        initSettingsFinder()
+        configurerFactoryMock = context.mock(ScriptObjectConfigurerFactory)
+        settingsFactory = context.mock(SettingsFactory)
+        settingsProcessor = new ScriptEvaluatingSettingsProcessor(configurerFactoryMock, settingsFactory)
+        expectedSettingsFinder = new DefaultSettingsFinder()
+        scriptSourceMock = context.mock(ScriptSource)
         expectedStartParameter = new StartParameter()
         expectedGradleProperties = [a: 'b']
-        propertiesLoaderMock = [getGradleProperties: { expectedGradleProperties } ] as IGradlePropertiesLoader
+        propertiesLoaderMock = [getGradleProperties: { expectedGradleProperties }] as IGradlePropertiesLoader
         urlClassLoader = new URLClassLoader(new URL[0]);
         initExpectedSettings()
-    }
-
-    private void instantiateConstructorArgs() {
-        scriptProcessorMock = context.mock(ScriptCompilerFactory)
-        importsReader = new ImportsReader()
-        settingsFactory = context.mock(SettingsFactory)
     }
 
     private void initExpectedSettings() {
@@ -80,42 +75,20 @@ class ScriptEvaluatingSettingsProcessorTest {
         }
     }
 
-    private void initSettingsFinder() {
-        expectedSettingsFinder = new DefaultSettingsFinder()
-        scriptSourceMock = context.mock(ScriptSource)
-    }
-
-    @Test public void testSettingsProcessor() {
-        assertSame(scriptProcessorMock, settingsProcessor.scriptProcessor)
-        assert settingsProcessor.importsReader.is(importsReader)
-        assert settingsProcessor.settingsFactory.is(settingsFactory)
-    }
-
     @Test public void testProcessWithSettingsFile() {
         expectedStartParameter.setCurrentDir(TEST_ROOT_DIR)
-        prepareScriptProcessorMock()
+        ScriptObjectConfigurer configurerMock = context.mock(ScriptObjectConfigurer)
+
         context.checking {
-            allowing(scriptSourceMock).getText(); will(returnValue(""))
+            one(configurerFactoryMock).create(scriptSourceMock)
+            will(returnValue(configurerMock))
+
+            one(configurerMock).setClassLoaderProvider(withParam(notNullValue()))
+            one(configurerMock).setScriptBaseClass(SettingsScript)
+            one(configurerMock).apply(expectedSettings)
         }
+        
         SettingsLocation settingsLocation = new SettingsLocation(TEST_ROOT_DIR, scriptSourceMock)
         assertSame(expectedSettings, settingsProcessor.process(settingsLocation, urlClassLoader, expectedStartParameter, propertiesLoaderMock))
-    }
-
-    private void prepareScriptProcessorMock() {
-        ScriptSource expectedScriptSource = new ImportsScriptSource(scriptSourceMock, importsReader, TEST_ROOT_DIR);
-        ScriptRunner scriptRunnerMock = context.mock(ScriptRunner)
-        ScriptCompiler processorMock = context.mock(ScriptCompiler)
-        context.checking {
-            one(scriptProcessorMock).createCompiler(withParam(reflectionEquals(expectedScriptSource)))
-            will(returnValue(processorMock))
-
-            one(processorMock).setClassloader(urlClassLoader)
-            one(processorMock).compile(SettingsScript.class)
-            will(returnValue(scriptRunnerMock))
-
-            one(scriptRunnerMock).setDelegate(expectedSettings)
-
-            one(scriptRunnerMock).run()
-        }
     }
 }

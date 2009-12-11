@@ -220,6 +220,10 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCanVisitAndTransformScriptClass() {
         Transformer visitor = new AbstractScriptTransformer() {
+            public String getId() {
+                return "id";
+            }
+
             protected int getPhase() {
                 return Phases.CANONICALIZATION;
             }

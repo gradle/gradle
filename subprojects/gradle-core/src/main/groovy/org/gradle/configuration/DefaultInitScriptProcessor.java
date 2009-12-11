@@ -16,10 +16,7 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.api.internal.artifacts.dsl.InitScriptClasspathScriptTransformer;
-import org.gradle.api.internal.artifacts.dsl.InitScriptTransformer;
-import org.gradle.groovy.scripts.*;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.InitScript;
 
 /**
@@ -27,30 +24,17 @@ import org.gradle.initialization.InitScript;
  * the classpath based on the initscript {} configuration closure.
  */
 public class DefaultInitScriptProcessor implements InitScriptProcessor {
-    private final ScriptCompilerFactory scriptCompilerFactory;
-    private final ImportsReader importsReader;
+    private final ScriptObjectConfigurerFactory configurerFactory;
 
-    public DefaultInitScriptProcessor(ScriptCompilerFactory scriptCompilerFactory, ImportsReader importsReader) {
-        this.scriptCompilerFactory = scriptCompilerFactory;
-        this.importsReader = importsReader;
+    public DefaultInitScriptProcessor(ScriptObjectConfigurerFactory configurerFactory) {
+        this.configurerFactory = configurerFactory;
     }
 
     public void process(ScriptSource initScript, GradleInternal gradle) {
-        ScriptSource withImports = new ImportsScriptSource(initScript, importsReader, null);
-        ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
-        compiler.setClassloader(gradle.getClassLoaderProvider().getClassLoader());
-
-        compiler.setTransformer(new InitScriptClasspathScriptTransformer());
-        ScriptRunner classPathScript = compiler.compile(InitScript.class);
-        classPathScript.setDelegate(gradle);
-
-        classPathScript.run();
-        gradle.getClassLoaderProvider().updateClassPath();
-
-        compiler.setTransformer(new InitScriptTransformer());
-        ScriptRunner script = compiler.compile(InitScript.class);
-        script.setDelegate(gradle);
-
-        script.run();
+        ScriptObjectConfigurer configurer = configurerFactory.create(initScript);
+        configurer.setClasspathClosureName("initscript");
+        configurer.setClassLoaderProvider(gradle.getClassLoaderProvider());
+        configurer.setScriptBaseClass(InitScript.class);
+        configurer.apply(gradle);
     }
 }
