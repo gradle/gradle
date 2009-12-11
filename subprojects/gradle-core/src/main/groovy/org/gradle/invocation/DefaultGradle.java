@@ -17,6 +17,7 @@
 package org.gradle.invocation;
 
 import groovy.lang.Closure;
+import groovy.lang.Script;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
 import org.gradle.api.ProjectEvaluationListener;
@@ -166,6 +167,10 @@ public class DefaultGradle implements GradleInternal {
 
     public BuildListener getBuildListenerBroadcaster() {
         return listenerManager.getBroadcaster(BuildListener.class);
+    }
+
+    public void setScript(Script script) {
+        // Ignore
     }
 
     public ScriptHandler getInitscript() {

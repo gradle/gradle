@@ -15,21 +15,18 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.groovy.scripts.Script;
+import org.gradle.groovy.scripts.BasicScript;
 
 public interface ScriptObjectConfigurer {
-    ScriptObjectConfigurer setClassLoaderProvider(ScriptClassLoaderProvider provider);
-
-    ScriptObjectConfigurer setInitAction(Action<? super Script> initAction);
-
     ScriptObjectConfigurer setClasspathClosureName(String name);
 
-    ScriptObjectConfigurer setScriptBaseClass(Class<? extends Script> baseClass);
+    ScriptObjectConfigurer setScriptBaseClass(Class<? extends BasicScript> type);
+
+    ScriptObjectConfigurer setClassLoader(ClassLoader classLoader);
 
     /**
-     * Applies the configuration to the given object.
+     * Applies the script to the given object. If target object implements {@link org.gradle.groovy.scripts.ScriptAware},
+     * will coordinate with the target object to configure classloaders, etc.
      *
      * @param target The target object to configure.
      */

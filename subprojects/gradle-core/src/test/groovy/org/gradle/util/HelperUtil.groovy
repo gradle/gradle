@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
-import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
@@ -49,6 +48,7 @@ import org.gradle.api.internal.project.*
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.DefaultTaskExecuter
 import org.gradle.api.execution.TaskActionListener
+import org.gradle.groovy.scripts.BasicScript
 
 /**
  * @author Hans Dockter
@@ -88,7 +88,6 @@ class HelperUtil {
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
                 new DefaultProjectDescriptorRegistry())
         DefaultProject project = projectFactory.createProject(descriptor, null, build)
-        project.script = new EmptyScript()
         build.rootProject = project
         return project;
     }
@@ -199,13 +198,10 @@ public interface TestClosure {
     Object call(Object param);
 }
 
-public abstract class TestScript extends Script {
+public abstract class TestScript extends BasicScript {
 
     ClassLoader getContextClassloader() {
         getClass().classLoader
     }
 
-    StandardOutputRedirector getStandardOutputRedirector() {
-        null
-    }
 }

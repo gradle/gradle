@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,7 +155,7 @@ class DefaultProjectTest {
         parameter.pluginPropertiesFile = new File('plugin.properties')
 
         testTask = HelperUtil.createTask(DefaultTask)
-        
+
         projectEvaluator = context.mock(ProjectEvaluator)
         projectRegistry = new DefaultProjectRegistry()
 
@@ -297,7 +297,7 @@ class DefaultProjectTest {
         assertEquals(Project.DEFAULT_GROUP, project.group)
         assertEquals(Project.DEFAULT_STATUS, project.status)
     }
-    
+
     @Test public void testExecutesActionBeforeEvaluation() {
         Action<Project> listener = context.mock(Action)
         context.checking {
@@ -648,7 +648,7 @@ class DefaultProjectTest {
             one(taskContainerMock).getAll(); will(returnValue([child2Task] as Set))
             one(taskContainerMock).getAll(); will(returnValue([] as Set))
         }
-        
+
         assertEquals(expectedMap, project.getAllTasks(true))
     }
 
@@ -678,7 +678,7 @@ class DefaultProjectTest {
 
         assertEquals([projectTask, child1Task] as Set, project.getTasksByName('task', true))
     }
-    
+
     @Test void testGetTasksByNameNonRecursive() {
         Task projectTask = HelperUtil.createTask(DefaultTask.class)
 
@@ -713,7 +713,7 @@ class DefaultProjectTest {
         }
         tasks
     }
-    
+
     private Task addTestTask(Project project, String name) {
         new DefaultTask(project, name)
     }
@@ -726,7 +726,7 @@ class DefaultProjectTest {
 
         project.convention.plugins.test = new TestConvention()
         assertEquals(TestConvention.METHOD_RESULT, project.scriptMethod(testConfigureClosure))
-        
+
         Script projectScript = createScriptForMethodMissingTest('projectScript')
         project.script = projectScript
         assertEquals('projectScript', project.scriptMethod(testConfigureClosure))
@@ -1070,7 +1070,7 @@ def scriptMethod(Closure closure) {
     }
 
     @Test(expected = ReadOnlyPropertyException) void setName() {
-        project.name = "someNewName" 
+        project.name = "someNewName"
     }
 
     @Test void testGetModule() {

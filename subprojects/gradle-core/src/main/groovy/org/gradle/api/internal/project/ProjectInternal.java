@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.project;
 
-import groovy.lang.Script;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
 
-public interface ProjectInternal extends Project, ProjectIdentifier {
+public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware {
     ProjectInternal getParent();
 
     Project evaluate();
@@ -41,15 +40,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier {
 
     DynamicObject getInheritedScope();                                               
 
-    void setScript(Script buildScript);
-
-    Script getScript();
-
-    StandardOutputRedirector getStandardOutputRedirector();
-
     GradleInternal getGradle();
-
-    ScriptClassLoaderProvider getClassLoaderProvider();
 
     FileResolver getFileResolver();
 

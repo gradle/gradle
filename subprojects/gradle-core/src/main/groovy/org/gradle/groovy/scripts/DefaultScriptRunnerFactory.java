@@ -38,6 +38,7 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
 
         public ScriptRunner setDelegate(Object delegate) {
             scriptMetaData.applyMetaData(script, delegate);
+            script.setScriptTarget(delegate);
             return this;
         }
 

@@ -15,8 +15,6 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -28,8 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.hamcrest.Matchers.*;
-
 @RunWith(JMock.class)
 public class BuildScriptProcessorTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
@@ -37,7 +33,6 @@ public class BuildScriptProcessorTest {
     }};
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
-    private final ScriptClassLoaderProvider classLoaderProvider = context.mock(ScriptClassLoaderProvider.class);
     private final ScriptObjectConfigurerFactory configurerFactory = context.mock(ScriptObjectConfigurerFactory.class);
     private final ScriptObjectConfigurer scriptObjectConfigurer = context.mock(ScriptObjectConfigurer.class);
     private final BuildScriptProcessor evaluator = new BuildScriptProcessor(configurerFactory);
@@ -47,9 +42,6 @@ public class BuildScriptProcessorTest {
         context.checking(new Expectations() {{
             allowing(project).getBuildScriptSource();
             will(returnValue(scriptSource));
-
-            allowing(project).getClassLoaderProvider();
-            will(returnValue(classLoaderProvider));
         }});
     }
 
@@ -59,9 +51,7 @@ public class BuildScriptProcessorTest {
             one(configurerFactory).create(scriptSource);
             will(returnValue(scriptObjectConfigurer));
 
-            one(scriptObjectConfigurer).setClassLoaderProvider(classLoaderProvider);
             one(scriptObjectConfigurer).setClasspathClosureName("buildscript");
-            one(scriptObjectConfigurer).setInitAction(with(notNullValue(Action.class)));
             one(scriptObjectConfigurer).setScriptBaseClass(ProjectScript.class);
             one(scriptObjectConfigurer).apply(project);
         }});

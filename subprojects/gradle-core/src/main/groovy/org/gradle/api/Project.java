@@ -1178,4 +1178,12 @@ public interface Project extends Comparable<Project> {
      * @return The CopySpec
      */
     CopySpec copySpec(Closure closure);
+
+    /**
+     * <p>Configure this project using plugins or scripts. The given closure is used to configure an
+     * {@link org.gradle.api.plugins.ObjectConfigurationAction} which is then used to configure this project.</p>
+     *
+     * @param closure The closure to configure the ObjectConfigurationAction.
+     */
+    void apply(Closure closure);
 }

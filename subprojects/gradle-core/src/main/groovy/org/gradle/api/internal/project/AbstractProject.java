@@ -39,6 +39,7 @@ import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -49,6 +50,7 @@ import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.internal.file.FileSet;
 import org.gradle.configuration.ProjectEvaluator;
+import org.gradle.configuration.ScriptObjectConfigurerFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.util.*;
@@ -252,8 +254,13 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public void setScript(Script buildScript) {
+        if (this.buildScript != null) {
+            // Ignore
+            return;
+        }
         this.buildScript = buildScript;
-        dynamicObjectHelper.addObject(new BeanDynamicObject(buildScript).withNoProperties(), DynamicObjectHelper.Location.BeforeConvention);
+        dynamicObjectHelper.addObject(new BeanDynamicObject(buildScript).withNoProperties(),
+                DynamicObjectHelper.Location.BeforeConvention);
     }
 
     public ScriptSource getBuildScriptSource() {
@@ -858,10 +865,10 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public WorkResult copy(Closure closure) {
-        CopyActionImpl result = new FileCopyActionImpl(fileResolver, new FileCopySpecVisitor());
-        configure(result,  closure);
-        result.execute();
-        return result;
+        CopyActionImpl action = new FileCopyActionImpl(fileResolver, new FileCopySpecVisitor());
+        configure(action,  closure);
+        action.execute();
+        return action;
     }
 
     public CopySpec copySpec(Closure closure) {
@@ -880,5 +887,12 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public Module getModuleForPublicDescriptor() {
         return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModuleForPublicDescriptor();
+    }
+
+    public void apply(Closure closure) {
+        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
+                ScriptObjectConfigurerFactory.class), this);
+        configure(action, closure);
+        action.execute();
     }
 }

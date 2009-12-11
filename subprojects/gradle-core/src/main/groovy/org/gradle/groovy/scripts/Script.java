@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.StandardOutputRedirector;
  */
 public abstract class Script extends groovy.lang.Script {
     private ScriptSource source;
+    private ClassLoader contextClassloader;
 
     public ScriptSource getScriptSource() {
         return source;
@@ -32,7 +33,15 @@ public abstract class Script extends groovy.lang.Script {
         this.source = source;
     }
 
+    public abstract void setScriptTarget(Object target);
+
     public abstract StandardOutputRedirector getStandardOutputRedirector();
 
-    public abstract ClassLoader getContextClassloader();
+    public void setContextClassloader(ClassLoader contextClassloader) {
+        this.contextClassloader = contextClassloader;
+    }
+
+    public ClassLoader getContextClassloader() {
+        return contextClassloader;
+    }
 }

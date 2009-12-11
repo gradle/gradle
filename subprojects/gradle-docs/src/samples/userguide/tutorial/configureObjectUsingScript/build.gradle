@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization
-
-import org.gradle.groovy.scripts.BasicScript
-
-abstract class SettingsScript extends BasicScript {
-    def String toString() {
-        return scriptTarget.toString()
+task configure << {
+    pos = new java.text.FieldPosition(10)
+    apply {
+        script 'other.gradle'
+        to pos
     }
+    println pos.beginIndex
+    println pos.endIndex
 }

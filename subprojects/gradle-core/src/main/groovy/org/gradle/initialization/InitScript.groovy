@@ -15,19 +15,9 @@
  */
 package org.gradle.initialization
 
-import org.gradle.groovy.scripts.Script
-import org.gradle.api.internal.project.StandardOutputRedirector
+import org.gradle.groovy.scripts.BasicScript
 
-abstract class InitScript extends Script {
-
-    def ClassLoader getContextClassloader() {
-        return gradle.initscript.classLoader
-    }
-
-    def StandardOutputRedirector getStandardOutputRedirector() {
-        return gradle.standardOutputRedirector
-    }
-
+abstract class InitScript extends BasicScript {
     def String toString() {
         return "initialization script"
     }

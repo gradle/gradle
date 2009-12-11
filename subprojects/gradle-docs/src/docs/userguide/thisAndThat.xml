@@ -136,19 +136,27 @@ systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
         <title>Caching</title>
         <para>To improve the responsiveness Gradle caches the compiled build script by default. The first time you run a
             build for a project, Gradle creates a
-            <literal>.gradle</literal>
+            <filename>.gradle</filename>
             directory in which it puts the compiled build script. The next time you run this build, Gradle uses the
             compiled build script, if the timestamp of the compiled script is newer than the timestamp of the actual
             build script. Otherwise the build script gets compiled and the new version is stored in the cache. If you
-            run Gradle with the
-            <literal>-x</literal>
-            option, any existing cache is ignored and the build script is compiled and executed on the fly. If you run
-            Gradle with the
-            <literal>-r</literal>
+            run Gradle with the <option>-C off</option> option, any existing cache is ignored and the build script
+            is compiled and executed on the fly. If you run Gradle with the <option>-C rebuild</option>
             option, the build script is always compiled and stored in the cache. That way you can always rebuild the
             cache if for example the timestamps for some reasons don't reflect that the build script needs to be
             recompiled.
         </para>
+    </section>
+    <section>
+        <title>Configuring the project using an external build script</title>
+        <para>You can configure the current project using an external build script. All of the Gradle build language
+            is available in the external script.
+        </para>
+        <sample id="configureProjectUsingScript" dir="userguide/tutorial/configureProjectUsingScript" title="Configuring the project using an external build script">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="other.gradle"/>
+            <output args="-q hello"/>
+        </sample>
     </section>
     <section id='sec:configuring_arbitrary_objects'>
         <title>Configuring arbitrary objects</title>
@@ -156,6 +164,16 @@ systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
         </para>
         <sample id="configureObject" dir="userguide/tutorial/configureObject" title="Configuring arbitrary objects">
             <sourcefile file="build.gradle"/>
+            <output args="-q configure"/>
+        </sample>
+    </section>
+    <section>
+        <title>Configuring arbitrary objects using an external script</title>
+        <para>You can also configure arbitrary objects using an external script.
+        </para>
+        <sample id="configureObjectUsingScript" dir="userguide/tutorial/configureObjectUsingScript" title="Configuring arbitrary objects using a script">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="other.gradle"/>
             <output args="-q configure"/>
         </sample>
     </section>

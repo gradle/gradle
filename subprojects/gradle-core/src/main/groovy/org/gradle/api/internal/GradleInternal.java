@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@ package org.gradle.api.internal;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.*;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.BuildListener;
+import org.gradle.groovy.scripts.ScriptAware;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
  * consumption.  
  */
-public interface GradleInternal extends Gradle {
+public interface GradleInternal extends Gradle, ScriptAware {
     /**
      * {@inheritDoc}
      */
@@ -61,12 +61,6 @@ public interface GradleInternal extends Gradle {
     void setBuildScriptClassLoader(ClassLoader buildScriptClassLoader);
 
     /**
-     * Returns the provider that has been configured by the initscript {} section
-     * in the init scripts.
-     */
-    ScriptClassLoaderProvider getClassLoaderProvider();
-
-    /**
      * Returns the broadcaster for {@link ProjectEvaluationListener} events for this build
      */
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
@@ -89,8 +83,6 @@ public interface GradleInternal extends Gradle {
      * Returns the broadcaster for {@link BuildListener} events
      */
     BuildListener getBuildListenerBroadcaster();
-
-    StandardOutputRedirector getStandardOutputRedirector();
 
     IsolatedAntBuilder getIsolatedAntBuilder();
 

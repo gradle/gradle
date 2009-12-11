@@ -16,7 +16,6 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.InitScript;
 import org.jmock.Expectations;
@@ -35,19 +34,12 @@ public class DefaultInitScriptProcessorTest {
         final ScriptObjectConfigurer configurer = context.mock(ScriptObjectConfigurer.class);
         final ScriptSource initScriptMock = context.mock(ScriptSource.class);
         final GradleInternal gradleMock = context.mock(GradleInternal.class);
-        final ScriptClassLoaderProvider buildClassLoaderProviderMock = context.mock(ScriptClassLoaderProvider.class);
 
         context.checking(new Expectations() {{
             one(scriptObjectConfigurerFactory).create(initScriptMock);
             will(returnValue(configurer));
 
             one(configurer).setClasspathClosureName("initscript");
-
-            allowing(gradleMock).getClassLoaderProvider();
-            will(returnValue(buildClassLoaderProviderMock));
-
-            one(configurer).setClassLoaderProvider(buildClassLoaderProviderMock);
-
             one(configurer).setScriptBaseClass(InitScript.class);
 
             one(configurer).apply(gradleMock);

@@ -75,6 +75,7 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
                 script = loadWithoutCache(classloader, scriptType);
             }
             script.setScriptSource(source);
+            script.setContextClassloader(classloader);
             return scriptRunnerFactory.create(script);
         }
 

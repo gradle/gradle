@@ -15,10 +15,8 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
-import org.gradle.groovy.scripts.*;
 
 public class BuildScriptProcessor implements ProjectEvaluator {
     private final ScriptObjectConfigurerFactory configurerFactory;
@@ -29,14 +27,8 @@ public class BuildScriptProcessor implements ProjectEvaluator {
 
     public void evaluate(final ProjectInternal project) {
         ScriptObjectConfigurer configurer = configurerFactory.create(project.getBuildScriptSource());
-        configurer.setClassLoaderProvider(project.getClassLoaderProvider());
         configurer.setClasspathClosureName("buildscript");
         configurer.setScriptBaseClass(ProjectScript.class);
-        configurer.setInitAction(new Action<Script>() {
-            public void execute(Script script) {
-                project.setScript(script);
-            }
-        });
         configurer.apply(project);
     }
 }

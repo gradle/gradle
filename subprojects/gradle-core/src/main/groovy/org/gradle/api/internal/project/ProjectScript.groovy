@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.groovy.scripts.Script
+import org.gradle.groovy.scripts.BasicScript
 
 /**
  * @author Hans Dockter
@@ -24,25 +24,8 @@ import org.gradle.groovy.scripts.Script
  * todo: We need our own base class as a workaround for http://jira.codehaus.org/browse/GROOVY-2635. When this bug is fixed we can use the metaclass.
  * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
  */
-abstract class ProjectScript extends Script {
-
+abstract class ProjectScript extends BasicScript {
     def String toString() {
-        project.toString()
-    }
-
-    def StandardOutputRedirector getStandardOutputRedirector() {
-        project.standardOutputRedirector
-    }
-
-    def ClassLoader getContextClassloader() {
-        project.buildscript.classLoader
-    }
-
-    void setProperty(String property, newValue) {
-        if ("metaClass".equals(property)) {
-            setMetaClass((MetaClass) newValue)
-        } else {
-            project.setProperty(property, newValue)
-        }
+        getScriptTarget().toString()
     }
 }

@@ -83,7 +83,7 @@ class ScriptEvaluatingSettingsProcessorTest {
             one(configurerFactoryMock).create(scriptSourceMock)
             will(returnValue(configurerMock))
 
-            one(configurerMock).setClassLoaderProvider(withParam(notNullValue()))
+            one(configurerMock).setClassLoader(urlClassLoader)
             one(configurerMock).setScriptBaseClass(SettingsScript)
             one(configurerMock).apply(expectedSettings)
         }

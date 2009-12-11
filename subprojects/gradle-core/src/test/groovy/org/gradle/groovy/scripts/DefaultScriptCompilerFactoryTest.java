@@ -132,6 +132,8 @@ public class DefaultScriptCompilerFactoryTest {
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
 
+            one(expectedScript).setContextClassloader(testClassLoader);
+            
             one(expectedScript).setScriptSource(source);
 
             one(scriptRunnerFactoryMock).create(expectedScript);
@@ -152,6 +154,8 @@ public class DefaultScriptCompilerFactoryTest {
 
             one(scriptCompilationHandlerMock).loadScriptFromDir(source, testClassLoader, expectedScriptCacheDir, expectedScriptBaseClass);
             will(returnValue(expectedScript));
+
+            one(expectedScript).setContextClassloader(testClassLoader);
 
             one(expectedScript).setScriptSource(source);
 
@@ -175,6 +179,8 @@ public class DefaultScriptCompilerFactoryTest {
                         null,
                         expectedScriptBaseClass);
                 will(returnValue(expectedScript));
+
+                one(expectedScript).setContextClassloader(testClassLoader);
 
                 one(expectedScript).setScriptSource(source);
 
@@ -206,6 +212,8 @@ public class DefaultScriptCompilerFactoryTest {
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
 
+            one(expectedScript).setContextClassloader(classLoader);
+
             one(expectedScript).setScriptSource(source);
 
             one(scriptRunnerFactoryMock).create(expectedScript);
@@ -233,6 +241,8 @@ public class DefaultScriptCompilerFactoryTest {
             one(scriptCompilationHandlerMock).loadScriptFromDir(source, testClassLoader, expectedCacheDir,
                     expectedScriptBaseClass);
             will(returnValue(expectedScript));
+
+            one(expectedScript).setContextClassloader(testClassLoader);
 
             one(expectedScript).setScriptSource(source);
 

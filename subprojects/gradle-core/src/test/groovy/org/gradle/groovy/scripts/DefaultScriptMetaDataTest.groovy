@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.gradle.groovy.scripts
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.ProjectScript
 import static org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -30,8 +29,9 @@ class DefaultScriptMetaDataTest {
         DefaultScriptMetaData projectScriptMetaData = new DefaultScriptMetaData()
         DefaultProject testProject = new DefaultProject('someproject')
         testProject.custom = 'true'
-        Script script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
+        BasicScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
         projectScriptMetaData.applyMetaData(script, testProject)
+        script.scriptTarget = testProject
         script.run();
         assertEquals("scriptMethod", script.scriptMethod())
         assertEquals(testProject.path + "mySuffix", script.scriptProperty)
@@ -40,7 +40,7 @@ class DefaultScriptMetaDataTest {
 
     private CompilerConfiguration createBaseCompilerConfiguration() {
         CompilerConfiguration configuration = new CompilerConfiguration()
-        configuration.scriptBaseClass = ProjectScript.class.name
+        configuration.scriptBaseClass = BasicScript.class.name
         configuration
     }
 

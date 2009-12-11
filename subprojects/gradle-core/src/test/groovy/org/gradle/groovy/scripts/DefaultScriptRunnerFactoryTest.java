@@ -70,6 +70,7 @@ public class DefaultScriptRunnerFactoryTest {
 
         context.checking(new Expectations() {{
             one(scriptMetaDataMock).applyMetaData(scriptMock, delegate);
+            one(scriptMock).setScriptTarget(delegate);
         }});
 
         scriptRunner.setDelegate(delegate);

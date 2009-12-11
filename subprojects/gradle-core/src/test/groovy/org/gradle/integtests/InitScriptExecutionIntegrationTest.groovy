@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.*
 
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void executesSettingsScriptWithCorrectEnvironment() {
+    public void executesInitScriptWithCorrectEnvironment() {
         TestFile initScript = testFile('init.gradle')
         initScript << '''
 println 'quiet message'

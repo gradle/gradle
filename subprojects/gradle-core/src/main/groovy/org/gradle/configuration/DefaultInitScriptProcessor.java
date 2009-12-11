@@ -33,7 +33,6 @@ public class DefaultInitScriptProcessor implements InitScriptProcessor {
     public void process(ScriptSource initScript, GradleInternal gradle) {
         ScriptObjectConfigurer configurer = configurerFactory.create(initScript);
         configurer.setClasspathClosureName("initscript");
-        configurer.setClassLoaderProvider(gradle.getClassLoaderProvider());
         configurer.setScriptBaseClass(InitScript.class);
         configurer.apply(gradle);
     }

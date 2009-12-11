@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.configuration.ScriptObjectConfigurer;
 import org.gradle.configuration.ScriptObjectConfigurerFactory;
 import org.gradle.util.Clock;
@@ -60,16 +59,9 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         return settings;
     }
 
-    private void applySettingsScript(SettingsLocation settingsLocation, final ClassLoader buildSourceClassLoader, SettingsInternal settings) {
+    private void applySettingsScript(SettingsLocation settingsLocation, ClassLoader buildSourceClassLoader, SettingsInternal settings) {
         ScriptObjectConfigurer configurer = configurerFactory.create(settingsLocation.getSettingsScriptSource());
-        configurer.setClassLoaderProvider(new ScriptClassLoaderProvider() {
-            public ClassLoader getClassLoader() {
-                return buildSourceClassLoader;
-            }
-
-            public void updateClassPath() {
-            }
-        });
+        configurer.setClassLoader(buildSourceClassLoader);
         configurer.setScriptBaseClass(SettingsScript.class);
         configurer.apply(settings);
     }

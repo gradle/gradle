@@ -15,7 +15,6 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
@@ -38,21 +37,12 @@ public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigu
 
     private class ScriptObjectConfigurerImpl implements ScriptObjectConfigurer {
         private final ScriptSource scriptSource;
-        private ScriptClassLoaderProvider classLoaderProvider;
-        private Class<? extends Script> scriptType = Script.class;
         private String classpathClosureName = "script";
-        private Action<? super Script> initAction = new Action<Script>() {
-            public void execute(Script script) {
-            }
-        };
+        private Class<? extends BasicScript> scriptType = BasicScript.class;
+        private ClassLoader classLoader;
 
         public ScriptObjectConfigurerImpl(ScriptSource scriptSource) {
             this.scriptSource = scriptSource;
-        }
-
-        public ScriptObjectConfigurer setClassLoaderProvider(ScriptClassLoaderProvider provider) {
-            classLoaderProvider = provider;
-            return this;
         }
 
         public ScriptObjectConfigurer setClasspathClosureName(String name) {
@@ -60,35 +50,45 @@ public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigu
             return this;
         }
 
-        public ScriptObjectConfigurer setScriptBaseClass(Class<? extends Script> baseClass) {
-            scriptType = baseClass;
+        public ScriptObjectConfigurer setClassLoader(ClassLoader classLoader) {
+            this.classLoader = classLoader;
             return this;
         }
 
-        public ScriptObjectConfigurer setInitAction(Action<? super Script> initAction) {
-            this.initAction = initAction;
+        public ScriptObjectConfigurer setScriptBaseClass(Class<? extends BasicScript> type) {
+            scriptType = type;
             return this;
         }
 
         public void apply(Object target) {
             ScriptSource withImports = new ImportsScriptSource(scriptSource, importsReader, null);
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
-            compiler.setClassloader(classLoaderProvider.getClassLoader());
+            if (target instanceof ScriptAware) {
+                ScriptAware scriptAware = (ScriptAware) target;
+                ScriptClassLoaderProvider classLoaderProvider = scriptAware.getClassLoaderProvider();
+                compiler.setClassloader(classLoaderProvider.getClassLoader());
 
-            BuildScriptClasspathScriptTransformer classpathScriptTransformer
-                    = new BuildScriptClasspathScriptTransformer(classpathClosureName);
-            compiler.setTransformer(classpathScriptTransformer);
-            ScriptRunner<? extends Script> classPathScript = compiler.compile(scriptType);
-            classPathScript.setDelegate(target);
+                BuildScriptClasspathScriptTransformer classpathScriptTransformer
+                        = new BuildScriptClasspathScriptTransformer(classpathClosureName);
+                compiler.setTransformer(classpathScriptTransformer);
+                ScriptRunner<? extends BasicScript> classPathScript = compiler.compile(scriptType);
+                classPathScript.setDelegate(target);
 
-            classPathScript.run();
-            classLoaderProvider.updateClassPath();
-
-            compiler.setTransformer(new BuildScriptTransformer(classpathScriptTransformer));
-            ScriptRunner<? extends Script> script = compiler.compile(scriptType);
-            script.setDelegate(target);
-            initAction.execute(script.getScript());
-            script.run();
+                classPathScript.run();
+                classLoaderProvider.updateClassPath();
+                
+                compiler.setTransformer(new BuildScriptTransformer(classpathScriptTransformer));
+                ScriptRunner<? extends BasicScript> script = compiler.compile(scriptType);
+                script.setDelegate(target);
+                scriptAware.setScript(script.getScript());
+                script.run();
+            }
+            else {
+                compiler.setClassloader(classLoader);
+                ScriptRunner<? extends BasicScript> script = compiler.compile(scriptType);
+                script.setDelegate(target);
+                script.run();
+            }
         }
     }
 }
