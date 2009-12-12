@@ -68,10 +68,10 @@ public class EclipsePlugin implements Plugin {
         EclipseProject eclipseProject = project.tasks.add(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
         eclipseProject.setProjectName(project.getName());
         eclipseProject.conventionMapping.natureNames = {
-            selectEclipseProjectType(project).natureNames() as Set
+            selectEclipseProjectType(project).natureNames() as LinkedHashSet
         }
         eclipseProject.conventionMapping.buildCommandNames = {
-            selectEclipseProjectType(project).buildCommandNames() as Set
+            selectEclipseProjectType(project).buildCommandNames() as LinkedHashSet
         }
         eclipseProject.setDescription("Generates an Eclipse .project file.");
         return eclipseProject;
