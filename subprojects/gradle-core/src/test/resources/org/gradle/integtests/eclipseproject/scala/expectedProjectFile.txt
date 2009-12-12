@@ -5,8 +5,8 @@
   <comment/>
   <projects/>
   <natures>
-    <nature>ch.epfl.lamp.sdt.core.scalanature</nature>
     <nature>org.eclipse.jdt.core.javanature</nature>
+    <nature>ch.epfl.lamp.sdt.core.scalanature</nature>
   </natures>
   <buildSpec>
     <buildCommand>

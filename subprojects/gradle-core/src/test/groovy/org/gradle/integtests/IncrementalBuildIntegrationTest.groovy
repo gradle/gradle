@@ -146,6 +146,8 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
         
+        outputAFile.assertHasChangedSince(aSnapshot)
+        outputBFile.assertHasChangedSince(bSnapshot)
         outputAFile.assertContents(equalTo('[new content]'))
         outputBFile.assertContents(equalTo('[[new content]]'))
 

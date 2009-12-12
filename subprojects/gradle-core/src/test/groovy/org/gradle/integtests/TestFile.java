@@ -269,7 +269,7 @@ public class TestFile extends File {
 
     public void assertHasChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(now.modTime != snapshot.modTime);
+        assertTrue(now.modTime != snapshot.modTime || !Arrays.equals(now.hash, snapshot.hash));
     }
 
     public void assertHasNotChangedSince(Snapshot snapshot) {
