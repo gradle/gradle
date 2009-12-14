@@ -20,9 +20,11 @@ import org.gradle.api.logging.LogLevel;
 
 public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
     private final ScriptMetaData scriptMetaData;
+    private final ScriptExecutionListener listener;
 
-    public DefaultScriptRunnerFactory(ScriptMetaData scriptMetaData) {
+    public DefaultScriptRunnerFactory(ScriptMetaData scriptMetaData, ScriptExecutionListener listener) {
         this.scriptMetaData = scriptMetaData;
+        this.listener = listener;
     }
 
     public <T extends Script> ScriptRunner<T> create(T script) {
@@ -48,17 +50,22 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
 
         public void run() throws GradleScriptException {
             ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
+            listener.beforeScript(script);
+            GradleScriptException failure = null;
             Thread.currentThread().setContextClassLoader(script.getContextClassloader());
             script.getStandardOutputRedirector().on(LogLevel.QUIET);
             try {
                 script.run();
             } catch (Throwable e) {
-                throw new GradleScriptException(String.format("A problem occurred evaluating %s.", script), e,
+                failure = new GradleScriptException(String.format("A problem occurred evaluating %s.", script), e,
                         script.getScriptSource());
-            } finally {
-                script.getStandardOutputRedirector().flush();
-                script.getStandardOutputRedirector().off();
-                Thread.currentThread().setContextClassLoader(originalLoader);
+            }
+            script.getStandardOutputRedirector().flush();
+            script.getStandardOutputRedirector().off();
+            Thread.currentThread().setContextClassLoader(originalLoader);
+            listener.afterScript(script, failure);
+            if (failure != null) {
+                throw failure;
             }
         }
     }

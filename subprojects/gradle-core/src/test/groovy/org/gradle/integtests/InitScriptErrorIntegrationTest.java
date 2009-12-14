@@ -19,7 +19,7 @@ import org.junit.Test;
 
 public class InitScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void reportsInitScriptEvaulationFailsWithGroovyException() {
+    public void reportsInitScriptEvaluationFailsWithGroovyException() {
         TestFile initScript = testFile("init.gradle");
         initScript.write("\ncreateTakk('do-stuff')");
         ExecutionFailure failure = inTestDirectory().usingInitScript(initScript).runWithFailure();

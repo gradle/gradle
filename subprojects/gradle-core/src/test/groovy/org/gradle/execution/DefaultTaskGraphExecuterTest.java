@@ -24,6 +24,7 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.listener.ListenerManager;
 import org.gradle.listener.ListenerBroadcast;
 import static org.gradle.util.HelperUtil.*;
@@ -48,8 +49,6 @@ import java.util.concurrent.Callable;
  */
 @RunWith(JMock.class)
 public class DefaultTaskGraphExecuterTest {
-
-    static final File TEST_ROOT_DIR = new File("/path/root");
 
     JUnit4Mockery context = new JUnit4Mockery();
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
@@ -311,7 +310,7 @@ public class DefaultTaskGraphExecuterTest {
         try {
             taskExecuter.execute();
             fail();
-        } catch (GradleScriptException e) {
+        } catch (TaskExecutionException e) {
             assertThat(e.getCause(), sameInstance((Throwable) failure));
         }
     }

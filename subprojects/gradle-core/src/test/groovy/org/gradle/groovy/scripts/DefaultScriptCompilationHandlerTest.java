@@ -25,7 +25,7 @@ import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.ScriptCompilationException;
 import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
 import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
@@ -199,7 +199,7 @@ public class DefaultScriptCompilationHandlerTest {
         try {
             scriptCompilationHandler.compileScriptToDir(source, classLoader, scriptCacheDir, null, expectedScriptClass);
             fail();
-        } catch (GradleScriptException e) {
+        } catch (ScriptCompilationException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
             assertThat(e.getLineNumber(), equalTo(3));
         }
@@ -211,7 +211,7 @@ public class DefaultScriptCompilationHandlerTest {
         try {
             scriptCompilationHandler.compileScript(source, classLoader, null, expectedScriptClass);
             fail();
-        } catch (GradleScriptException e) {
+        } catch (ScriptCompilationException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
             assertThat(e.getLineNumber(), equalTo(3));
         }

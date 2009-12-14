@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.ScriptCompilationException;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
@@ -109,8 +109,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         } catch (MultipleCompilationErrorsException e) {
             SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
             Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();
-
-            throw new GradleScriptException(String.format("Could not compile %s.", source.getDisplayName()), e, source,
+            throw new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source,
                     lineNumber);
         } catch (CompilationFailedException e) {
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);

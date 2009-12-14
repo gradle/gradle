@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package org.gradle;
 
 import org.gradle.api.Task;
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.*;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
@@ -77,6 +77,9 @@ public class GradleLauncherTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     private LoggingConfigurer loggingConfigurerMock = context.mock(LoggingConfigurer.class);
+
+    private ExceptionAnalyser exceptionAnalyserMock = context.mock(ExceptionAnalyser.class);
+
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
@@ -111,7 +114,8 @@ public class GradleLauncherTest {
         expectedStartParams.setGradleUserHomeDir(tmpDir.dir("gradleUserHome"));
 
         gradleLauncher = new GradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
-                gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock);
+                gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock,
+                buildBroadcaster, exceptionAnalyserMock);
         
         context.checking(new Expectations() {
             {
@@ -127,8 +131,6 @@ public class GradleLauncherTest {
                 will(returnValue(taskExecuterMock));
                 allowing(gradleMock).getStartParameter();
                 will(returnValue(expectedStartParams));
-                allowing(gradleMock).getBuildListenerBroadcaster();
-                will(returnValue(buildBroadcaster));
             }
         });
     }
@@ -198,17 +200,20 @@ public class GradleLauncherTest {
     @Test
     public void testGetBuildAnalysisWithFailure() {
         final RuntimeException exception = new RuntimeException();
+        final RuntimeException transformedException = new RuntimeException();
         expectInitScripts();
         expectSettingsBuilt();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
             one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
             will(throwException(exception));
+            one(exceptionAnalyserMock).transform(exception);
+            will(returnValue(transformedException));
             one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
         }});
         BuildResult buildResult = gradleLauncher.getBuildAnalysis();
         assertThat(buildResult.getGradle(), sameInstance((Object) gradleMock));
-        assertThat((RuntimeException) buildResult.getFailure(), sameInstance(exception));
+        assertThat((RuntimeException) buildResult.getFailure(), sameInstance(transformedException));
     }
 
     @Test
@@ -238,21 +243,25 @@ public class GradleLauncherTest {
     @Test
     public void testNotifiesListenerOnSettingsInitWithFailure() {
         final RuntimeException failure = new RuntimeException();
+        final RuntimeException transformedException = new RuntimeException();
         expectInitScripts();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
             one(settingsHandlerMock).findAndLoadSettings(gradleMock, gradlePropertiesLoaderMock);
             will(throwException(failure));
-            one(buildBroadcaster).buildFinished(with(result(sameInstance(failure))));
+            one(exceptionAnalyserMock).transform(failure);
+            will(returnValue(transformedException));
+            one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
         BuildResult buildResult = gradleLauncher.run();
-        assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
+        assertThat(buildResult.getFailure(), sameInstance((Throwable) transformedException));
     }
 
     @Test
     public void testNotifiesListenerOnBuildCompleteWithFailure() {
         final RuntimeException failure = new RuntimeException();
+        final RuntimeException transformedException = new RuntimeException();
         expectInitScripts();
         expectSettingsBuilt();
         expectDagBuilt();
@@ -261,11 +270,13 @@ public class GradleLauncherTest {
             one(buildBroadcaster).buildStarted(gradleMock);
             one(buildBroadcaster).projectsLoaded(gradleMock);
             one(buildBroadcaster).projectsEvaluated(gradleMock);
-            one(buildBroadcaster).buildFinished(with(result(sameInstance(failure))));
+            one(exceptionAnalyserMock).transform(failure);
+            will(returnValue(transformedException));
+            one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
         BuildResult buildResult = gradleLauncher.run();
-        assertThat(buildResult.getFailure(), sameInstance((Throwable) failure));
+        assertThat(buildResult.getFailure(), sameInstance((Throwable) transformedException));
     }
 
     private void expectInitScripts() {
@@ -319,26 +330,6 @@ public class GradleLauncherTest {
                 will(throwException(failure));
             }
         });
-    }
-
-    @Test
-    public void testRunWithUnknownTask() {
-        expectedStartParams.setTaskNames(toList("unknown"));
-        expectSettingsBuilt();
-        context.checking(new Expectations() {
-            {
-                one(initscriptHandlerMock).executeScripts(gradleMock);
-                one(buildBroadcaster).buildStarted(gradleMock);
-                one(buildBroadcaster).projectsLoaded(gradleMock);
-                one(buildBroadcaster).projectsEvaluated(gradleMock);
-                one(buildBroadcaster).buildFinished(with(any(BuildResult.class)));
-                one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
-                one(buildConfigurerMock).process(expectedRootProject);
-            }
-        });
-        BuildResult buildResult = gradleLauncher.run();
-        assertThat(buildResult.getFailure(), notNullValue());
-        assertThat(buildResult.getFailure().getClass(), equalTo((Object) TaskSelectionException.class));
     }
 
     // todo: This test is rather weak. Make it stronger.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.ArrayList;
  *
  * @author Hans Dockter
  */
+@Contextual
 public class GradleScriptException extends GradleException {
     private final String originalMessage;
     private final ScriptSource scriptSource;
@@ -55,7 +56,7 @@ public class GradleScriptException extends GradleException {
     }
 
     /**
-     * <p>Returns the source the script where this of this exception occurred.</p>
+     * <p>Returns the source of the script where this exception occurred.</p>
      *
      * @return The source. Never returns null.
      */
@@ -64,7 +65,7 @@ public class GradleScriptException extends GradleException {
     }
 
     /**
-     * <p>Returns a description of the location of where this execption occurred.</p>
+     * <p>Returns a description of the location of where this exception occurred.</p>
      *
      * @return The location description. Never returns null.
      */
@@ -80,22 +81,7 @@ public class GradleScriptException extends GradleException {
      * @return The line number, or null if not known.
      */
     public Integer getLineNumber() {
-        if (lineNumber != null) {
-            return lineNumber;
-        }
-
-        // wasn't explicitly set, so search for the line number
-        Integer foundLineNumber = null;
-        String scriptFileName = scriptSource.getFileName();
-        for (Throwable currentException = this; currentException != null; currentException = currentException.getCause()) {
-            for (StackTraceElement element : currentException.getStackTrace()) {
-                if (scriptFileName.equals(element.getFileName()) && element.getLineNumber() >= 0) {
-                    foundLineNumber = element.getLineNumber();
-                    break;
-                }
-            }
-        }
-        return foundLineNumber;
+        return lineNumber;
     }
 
     /** {@inheritDoc} */
@@ -111,13 +97,7 @@ public class GradleScriptException extends GradleException {
      * @return The reportable exception. Never returns null.
      */
     public GradleScriptException getReportableException() {
-        GradleScriptException reportable = this;
-        for (Throwable t = getCause(); t != null; t = t.getCause()) {
-            if (t instanceof GradleScriptException) {
-                reportable = (GradleScriptException) t;
-            }
-        }
-        return reportable;
+        return this;
     }
 
     /**

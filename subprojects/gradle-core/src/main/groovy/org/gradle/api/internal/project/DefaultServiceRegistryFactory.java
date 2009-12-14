@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
@@ -217,11 +218,13 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory() {
+        ScriptExecutionListener scriptExecutionListener = get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
                 new DefaultScriptCompilationHandler(),
                 startParameter.getCacheUsage(),
                 new DefaultScriptRunnerFactory(
-                        new DefaultScriptMetaData()),
+                        new DefaultScriptMetaData(),
+                        scriptExecutionListener),
                 get(CacheRepository.class));
     }
 
@@ -248,6 +251,10 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
                         new DefaultProjectDescriptorRegistry())));
     }
 
+    protected ExceptionAnalyser createExceptionAnalyser() {
+        return new DefaultExceptionAnalyser(get(ListenerManager.class));
+    }
+    
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
             return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);

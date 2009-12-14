@@ -17,16 +17,15 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.TaskExecutionException;
 
 public class DefaultTaskExecuter implements TaskExecuter {
     private static Logger logger = Logging.getLogger(DefaultTaskExecuter.class);
@@ -62,8 +61,7 @@ public class DefaultTaskExecuter implements TaskExecuter {
                 logger.info("Execution stopped by some action with message: {}", e.getMessage());
                 break;
             } catch (Throwable t) {
-                return new GradleScriptException(String.format("Execution failed for %s.", task), t,
-                        ((ProjectInternal) task.getProject()).getBuildScriptSource());
+                return new TaskExecutionException(task, t);
             } finally {
                 task.getStandardOutputCapture().stop();
             }

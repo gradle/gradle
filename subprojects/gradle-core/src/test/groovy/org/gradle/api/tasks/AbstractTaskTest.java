@@ -213,7 +213,7 @@ public abstract class AbstractTaskTest {
         assertEquals(new DefaultStandardOutputCapture(true, LogLevel.DEBUG), getTask().getStandardOutputCapture());
     }
 
-    @Test(expected=GradleScriptException.class)
+    @Test(expected=TaskExecutionException.class)
     public void disabledStandardOutCaptureDuringExecution() {
         ((AbstractTask)getTask().doFirst(new Action<Task>() {
             public void execute(Task task) {
@@ -222,7 +222,7 @@ public abstract class AbstractTaskTest {
         })).execute().rethrowFailure();
     }
 
-    @Test(expected=GradleScriptException.class)
+    @Test(expected=TaskExecutionException.class)
     public void captureStandardOutDuringExecution() {
         ((AbstractTask)getTask().doFirst(new Action<Task>() {
             public void execute(Task task) {

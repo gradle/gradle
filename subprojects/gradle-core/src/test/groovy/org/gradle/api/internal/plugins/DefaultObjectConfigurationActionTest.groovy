@@ -31,6 +31,7 @@ import org.gradle.configuration.ScriptObjectConfigurer
 public class DefaultObjectConfigurationActionTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Object target = new Object()
+    private final File file = new File('script')
     private final FileResolver resolver = context.mock(FileResolver.class)
     private final ScriptObjectConfigurerFactory factory = context.mock(ScriptObjectConfigurerFactory.class)
     private final ScriptObjectConfigurer configurer = context.mock(ScriptObjectConfigurer.class)
@@ -43,8 +44,6 @@ public class DefaultObjectConfigurationActionTest {
 
     @Test
     public void appliesScriptsToDefaultTargetObject() {
-        File file = new File('script')
-
         context.checking {
             one(resolver).resolve('script')
             will(returnValue(file))
@@ -61,7 +60,6 @@ public class DefaultObjectConfigurationActionTest {
 
     @Test
     public void appliesScriptsToTargetObjects() {
-        File file = new File('script')
         Object target1 = new Object()
         Object target2 = new Object()
 
@@ -77,7 +75,29 @@ public class DefaultObjectConfigurationActionTest {
         }
 
         action.script('script')
-        action.to(target1, target2)
+        action.to(target1)
+        action.to(target2)
+        action.execute()
+    }
+    
+    @Test
+    public void flattensCollections() {
+        Object target1 = new Object()
+        Object target2 = new Object()
+
+        context.checking {
+            one(resolver).resolve('script')
+            will(returnValue(file))
+
+            one(factory).create(withParam(notNullValue()))
+            will(returnValue(configurer))
+
+            one(configurer).apply(target1)
+            one(configurer).apply(target2)
+        }
+
+        action.script('script')
+        action.to([[target1], target2])
         action.execute()
     }
 }

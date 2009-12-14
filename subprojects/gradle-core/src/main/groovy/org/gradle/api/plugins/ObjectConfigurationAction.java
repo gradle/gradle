@@ -21,7 +21,9 @@ package org.gradle.api.plugins;
  */
 public interface ObjectConfigurationAction {
     /**
-     * Specifies the target objects to be configured.
+     * <p>Specifies some target objects to be configured. Any collections or arrays in the given parameters will be
+     * flattened, and the script applied to each object in the result, in the order given. Each call to this method adds
+     * some additional target objects.</p>
      *
      * @param targets The target objects.
      * @return this
@@ -29,7 +31,8 @@ public interface ObjectConfigurationAction {
     ObjectConfigurationAction to(Object... targets);
 
     /**
-     * Configures the target objects using the given script.
+     * Adds a script to use to configure the target objects. You can call this method multiple times, to use multiple
+     * scripts. Scripts are applied in the order that they are added.
      *
      * @param script The script. Evaluated as for {@link org.gradle.api.Project#file(Object)}.
      * @return this

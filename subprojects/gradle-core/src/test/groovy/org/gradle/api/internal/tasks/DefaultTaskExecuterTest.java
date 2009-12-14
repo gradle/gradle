@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleScriptException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionResult;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.ScriptSource;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -154,11 +154,11 @@ public class DefaultTaskExecuterTest {
 
         TaskExecutionResult result = executer.execute(task, state);
 
-        assertThat(result.getFailure(), instanceOf(GradleScriptException.class));
-        GradleScriptException exception = (GradleScriptException) result.getFailure();
-        assertThat(exception.getOriginalMessage(), equalTo("Execution failed for <task>."));
+        assertThat(result.getFailure(), instanceOf(TaskExecutionException.class));
+        TaskExecutionException exception = (TaskExecutionException) result.getFailure();
+        assertThat(exception.getTask(), equalTo((Task) task));
+        assertThat(exception.getMessage(), equalTo("Execution failed for <task>."));
         assertThat(exception.getCause(), sameInstance(failure));
-        assertThat(exception.getScriptSource(), sameInstance(scriptSource));
 
         assertThat(result.getSkipMessage(), nullValue());
         assertFalse(state.isExecuting());
@@ -185,7 +185,7 @@ public class DefaultTaskExecuterTest {
         try {
             result.rethrowFailure();
             fail();
-        } catch (GradleScriptException e) {
+        } catch (TaskExecutionException e) {
             assertThat(e, sameInstance(result.getFailure()));
         }
     }

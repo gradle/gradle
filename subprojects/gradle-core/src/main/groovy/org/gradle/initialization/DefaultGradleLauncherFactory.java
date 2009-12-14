@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.*;
+import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.project.DefaultServiceRegistryFactory;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.api.internal.project.ProjectFactory;
@@ -86,7 +87,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         new ProjectFactory(
                                 startParameter.getBuildScriptSource())),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()),
-                loggingConfigurer);
+                loggingConfigurer,
+                gradle.getBuildListenerBroadcaster(),
+                serviceRegistryFactory.get(ExceptionAnalyser.class));
     }
 
     public void setCommandLine2StartParameterConverter(

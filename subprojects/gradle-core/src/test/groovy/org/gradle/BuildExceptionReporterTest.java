@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ public class BuildExceptionReporterTest {
                 return "<location>";
             }
         };
-        GradleScriptException wrapper = new GradleScriptException("<wrapper>", exception, context.mock(ScriptSource.class, "wrapper"));
 
         final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
                 containsString("<location>"),
@@ -85,7 +84,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(errorMessage));
         }});
 
-        reporter.buildFinished(HelperUtil.createBuildResult(wrapper));
+        reporter.buildFinished(HelperUtil.createBuildResult(exception));
     }
 
     @Test
@@ -103,7 +102,6 @@ public class BuildExceptionReporterTest {
                 return Arrays.asList(new RuntimeException("<outer>"), getCause());
             }
         };
-        GradleScriptException wrapper = new GradleScriptException("<wrapper>", exception, context.mock(ScriptSource.class, "wrapper"));
 
         final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
                 containsString("<location>"),
@@ -115,7 +113,7 @@ public class BuildExceptionReporterTest {
             one(logger).error(with(errorMessage));
         }});
 
-        reporter.buildFinished(HelperUtil.createBuildResult(wrapper));
+        reporter.buildFinished(HelperUtil.createBuildResult(exception));
     }
 
     @Test

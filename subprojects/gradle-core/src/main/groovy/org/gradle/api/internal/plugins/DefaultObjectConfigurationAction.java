@@ -20,9 +20,10 @@ import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.configuration.ScriptObjectConfigurer;
 import org.gradle.configuration.ScriptObjectConfigurerFactory;
 import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.StrictScriptSource;
+import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -31,16 +32,16 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final ScriptObjectConfigurerFactory configurerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Object> scripts = new LinkedHashSet<Object>();
+    private final Object[] defaultTargets;
 
     public DefaultObjectConfigurationAction(FileResolver resolver, ScriptObjectConfigurerFactory configurerFactory, Object... defaultTargets) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
-        to(defaultTargets);
+        this.defaultTargets = defaultTargets;
     }
 
     public ObjectConfigurationAction to(Object... targets) {
-        this.targets.clear();
-        this.targets.addAll(Arrays.asList(targets));
+        GUtil.flatten(targets, this.targets);
         return this;
     }
 
@@ -50,9 +51,14 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     public void execute() {
+        if (targets.isEmpty()) {
+            to(defaultTargets);
+        }
+        
         for (Object script : scripts) {
             File scriptFile = resolver.resolve(script);
-            ScriptObjectConfigurer configurer = configurerFactory.create(new FileScriptSource("script", scriptFile));
+            ScriptObjectConfigurer configurer = configurerFactory.create(new StrictScriptSource(new FileScriptSource(
+                    "script", scriptFile)));
             for (Object target : targets) {
                 configurer.apply(target);
             }

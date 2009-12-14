@@ -32,7 +32,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void reportsGroovyCompilationException() {
+    public void reportsScriptCompilationException() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
             "// a comment",
@@ -45,7 +45,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void reportsNestedProjectEvaulationFailsWithRuntimeException() {
+    public void reportsNestedProjectEvaluationFailsWithRuntimeException() {
         testFile("settings.gradle").write("include 'child'");
 
         TestFile buildFile = testFile("build.gradle");
@@ -106,6 +106,25 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void reportsTaskInjectedByOtherProjectFailsWithRuntimeException() {
+        testFile("settings.gradle").write("include 'a', 'b'");
+        TestFile buildFile = testFile("b/build.gradle");
+        buildFile.writelns(
+                "project(':a') {",
+                "    task a << {",
+                "        throw new RuntimeException('broken')",
+                "    }",
+                "}");
+
+        ExecutionFailure failure = inTestDirectory().withTasks("a").runWithFailure();
+
+        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
+        failure.assertHasLineNumber(3);
+        failure.assertHasDescription("Execution failed for task ':a:a");
+        failure.assertHasCause("broken");
+    }
+
+    @Test
     public void reportsTaskGraphReadyEventFailsWithRuntimeException() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
@@ -121,7 +140,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasDescription("Failed to notify task execution graph listener");
         failure.assertHasCause("broken closure");
     }
-    
+
     @Test @Ignore
     public void reportsTaskDependencyClosureFailsWithRuntimeException() {
         TestFile buildFile = testFile("build.gradle");
@@ -135,7 +154,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
-        failure.assertHasDescription("Failed to notify task execution graph listener");
-        failure.assertHasCause("broken closure");
+        failure.assertHasDescription("??");
+        failure.assertHasCause("broken");
     }
 }

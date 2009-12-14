@@ -15,6 +15,7 @@
  */
 package org.gradle;
 
+import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
@@ -54,7 +55,6 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class GradleLauncher {
-
     private enum Stage {
         Configure, PopulateTaskGraph, Build
     }
@@ -68,6 +68,8 @@ public class GradleLauncher {
     private final BuildLoader buildLoader;
     private final BuildConfigurer buildConfigurer;
     private final LoggingConfigurer loggingConfigurer;
+    private final ExceptionAnalyser exceptionAnalyser;
+    private final BuildListener buildListener;
     private final InitScriptHandler initScriptHandler;
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
@@ -78,7 +80,8 @@ public class GradleLauncher {
      */
     public GradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                    IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
-                   BuildConfigurer buildConfigurer, LoggingConfigurer loggingConfigurer) {
+                   BuildConfigurer buildConfigurer, LoggingConfigurer loggingConfigurer, BuildListener buildListener,
+                   ExceptionAnalyser exceptionAnalyser) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -86,6 +89,8 @@ public class GradleLauncher {
         this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
         this.loggingConfigurer = loggingConfigurer;
+        this.exceptionAnalyser = exceptionAnalyser;
+        this.buildListener = buildListener;
     }
 
     /**
@@ -121,16 +126,17 @@ public class GradleLauncher {
 
     private BuildResult doBuild(Stage upTo) {
         addOutputListeners();
-        gradle.getBuildListenerBroadcaster().buildStarted(gradle);
+        buildListener.buildStarted(gradle);
 
         Throwable failure = null;
         try {
             doBuildStages(upTo);
         } catch (Throwable t) {
-            failure = t;
+            failure = exceptionAnalyser.transform(t);
         }
         BuildResult buildResult = new BuildResult(gradle, failure);
-        gradle.getBuildListenerBroadcaster().buildFinished(buildResult);
+        buildListener.buildFinished(buildResult);
+
         // Switching StandardOutputLogging off is important if the Gradle factory is used to
         // run multiple Gradle builds (each one requiring a new instances of GradleLauncher).
         // Switching it off shouldn't be strictly necessary as StandardOutput capturing should
@@ -165,16 +171,16 @@ public class GradleLauncher {
 
         // Evaluate settings script
         SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle, gradlePropertiesLoader);
-        gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
+        buildListener.settingsEvaluated(settings);
         loggingConfigurer.configure(gradle.getStartParameter().getLogLevel());
 
         // Load build
         buildLoader.load(settings.getRootProject(), gradle, gradlePropertiesLoader.getGradleProperties());
-        gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);
+        buildListener.projectsLoaded(gradle);
 
         // Configure build
         buildConfigurer.process(gradle.getRootProject());
-        gradle.getBuildListenerBroadcaster().projectsEvaluated(gradle);
+        buildListener.projectsEvaluated(gradle);
 
         if (upTo == Stage.Configure) {
             return;

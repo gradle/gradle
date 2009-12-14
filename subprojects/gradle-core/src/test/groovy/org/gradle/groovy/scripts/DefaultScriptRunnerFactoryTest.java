@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts;
 import static org.hamcrest.Matchers.*;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
+import org.jmock.Sequence;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
@@ -41,7 +42,8 @@ public class DefaultScriptRunnerFactoryTest {
     private final StandardOutputRedirector standardOutputRedirectorMock = context.mock(StandardOutputRedirector.class);
     private final ClassLoader classLoaderDummy = context.mock(ClassLoader.class);
     private final ScriptSource scriptSourceDummy = context.mock(ScriptSource.class);
-    private final DefaultScriptRunnerFactory factory = new DefaultScriptRunnerFactory(scriptMetaDataMock);
+    private final ScriptExecutionListener scriptExecutionListenerMock = context.mock(ScriptExecutionListener.class);
+    private final DefaultScriptRunnerFactory factory = new DefaultScriptRunnerFactory(scriptMetaDataMock, scriptExecutionListenerMock);
 
     @Before
     public void setUp() {
@@ -81,8 +83,16 @@ public class DefaultScriptRunnerFactoryTest {
         ScriptRunner<Script> scriptRunner = factory.create(scriptMock);
 
         context.checking(new Expectations() {{
+            Sequence sequence = context.sequence("seq");
+
+            one(scriptExecutionListenerMock).beforeScript(scriptMock);
+            inSequence(sequence);
+
             one(standardOutputRedirectorMock).on(LogLevel.QUIET);
+            inSequence(sequence);
+
             one(scriptMock).run();
+            inSequence(sequence);
             will(doAll(new Action() {
                 public void describeTo(Description description) {
                     description.appendValue("check context classloader");
@@ -93,8 +103,15 @@ public class DefaultScriptRunnerFactoryTest {
                     return null;
                 }
             }));
+
             one(standardOutputRedirectorMock).flush();
+            inSequence(sequence);
+
             one(standardOutputRedirectorMock).off();
+            inSequence(sequence);
+
+            one(scriptExecutionListenerMock).afterScript(scriptMock, null);
+            inSequence(sequence);
         }});
 
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
@@ -112,11 +129,26 @@ public class DefaultScriptRunnerFactoryTest {
         ScriptRunner<Script> scriptRunner = factory.create(scriptMock);
 
         context.checking(new Expectations() {{
+            Sequence sequence = context.sequence("seq");
+
+            one(scriptExecutionListenerMock).beforeScript(scriptMock);
+            inSequence(sequence);
+
             one(standardOutputRedirectorMock).on(LogLevel.QUIET);
+            inSequence(sequence);
+
             one(scriptMock).run();
+            inSequence(sequence);
             will(throwException(failure));
+
             one(standardOutputRedirectorMock).flush();
+            inSequence(sequence);
+
             one(standardOutputRedirectorMock).off();
+            inSequence(sequence);
+
+            one(scriptExecutionListenerMock).afterScript(with(sameInstance(scriptMock)), with(notNullValue(Throwable.class)));
+            inSequence(sequence);
         }});
 
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
