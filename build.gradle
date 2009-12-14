@@ -104,8 +104,9 @@ allprojects {
     if (!config) {
         return
     }
+    ideDir = file('ide')
     task ide(type: Sync) {
-        into file('lib')
+        into "$ideDir/lib"
         from { config.copyRecursive(DependencySpecs.type(Type.EXTERNAL)).files }
     }
 }

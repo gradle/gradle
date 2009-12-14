@@ -45,18 +45,23 @@ dependencies {
 }
 
 processResources.doLast {
-    File versionPropertiesDestination = new File(sourceSets.main.classesDir, GradleVersion.FILE_NAME)
-    [versionPropertiesDestination, new File(buildDir, "resources/test/$GradleVersion.FILE_NAME")].each { File file ->
-        logger.info('Write version properties to: {}', file.absoluteFile)
-        Properties versionProperties = new Properties()
-        versionProperties.putAll([
-                (GradleVersion.VERSION): version.toString(),
-                (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(version.buildTime)
-        ])
-        file.parentFile.mkdirs()
-        file.withOutputStream {
-            versionProperties.store(it, '')
-        }
+    writeVersionProperties(new File(sourceSets.main.classesDir, GradleVersion.FILE_NAME))
+}
+
+ide.doLast {
+    writeVersionProperties(new File(ideDir, "resources/test/$GradleVersion.FILE_NAME"))    
+}
+
+def writeVersionProperties(File destination) {
+    logger.info('Write version properties to: {}', destination.absoluteFile)
+    Properties versionProperties = new Properties()
+    versionProperties.putAll([
+            (GradleVersion.VERSION): version.toString(),
+            (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(version.buildTime)
+    ])
+    destination.parentFile.mkdirs()
+    destination.withOutputStream {
+        versionProperties.store(it, '')
     }
 }
 
@@ -68,9 +73,9 @@ test {
     maxPermSize = '128m'
 
     // there must be a nicer way of doing this...
-    try { xmsSize = customXmsSize; logger.debug('Using custom Xms size: ' + xmsSize + ' for :core:test') } catch ( MissingPropertyException e ) { }
-    try { xmxSize = customXmxSize; logger.debug('Using custom Xmx size: ' + xmxSize + ' for :core:test') } catch ( MissingPropertyException e ) { }
-    try { maxPermSize = customMaxPermSize; logger.debug('Using custom MaxPermSize: ' + maxPermSize + ' for :core:test') } catch ( MissingPropertyException e ) { }
+    try { xmsSize = customXmsSize; logger.debug('Using custom Xms size: ' + xmsSize + ' for :core:test') } catch (MissingPropertyException e) { }
+    try { xmxSize = customXmxSize; logger.debug('Using custom Xmx size: ' + xmxSize + ' for :core:test') } catch (MissingPropertyException e) { }
+    try { maxPermSize = customMaxPermSize; logger.debug('Using custom MaxPermSize: ' + maxPermSize + ' for :core:test') } catch (MissingPropertyException e) { }
 
     options.fork(jvmArgs: ["-ea", "-Xms${xmsSize}", "-Xmx${xmxSize}", "-XX:MaxPermSize=${maxPermSize}", '-XX:+HeapDumpOnOutOfMemoryError'])
 
