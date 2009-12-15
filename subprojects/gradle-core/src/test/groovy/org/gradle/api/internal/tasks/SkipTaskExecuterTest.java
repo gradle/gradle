@@ -15,21 +15,22 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.ScriptSource;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class SkipTaskExecuterTest {
@@ -124,10 +125,9 @@ public class SkipTaskExecuterTest {
 
         TaskExecutionResult result = executer.execute(task, state);
 
-        GradleScriptException exception = (GradleScriptException) result.getFailure();
-        assertThat(exception.getOriginalMessage(), equalTo("Could not evaluate onlyIf predicate for <task>."));
+        GradleException exception = (GradleException) result.getFailure();
+        assertThat(exception.getMessage(), equalTo("Could not evaluate onlyIf predicate for <task>."));
         assertThat(exception.getCause(), sameInstance(failure));
-        assertThat(exception.getScriptSource(), sameInstance(scriptSource));
 
         assertThat(result.getSkipMessage(), nullValue());
         assertTrue(state.isExecuted());

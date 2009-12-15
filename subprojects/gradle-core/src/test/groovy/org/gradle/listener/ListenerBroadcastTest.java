@@ -15,8 +15,6 @@
  */
 package org.gradle.listener;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import static org.gradle.util.HelperUtil.*;
@@ -173,7 +171,7 @@ public class ListenerBroadcastTest {
         try {
             broadcast.getSource().event1("param");
             fail();
-        } catch (GradleException e) {
+        } catch (ListenerNotificationException e) {
             assertThat(e.getMessage(), equalTo("Failed to notify test listener."));
             assertThat(e.getCause(), sameInstance((Throwable) failure));
         }
@@ -194,7 +192,7 @@ public class ListenerBroadcastTest {
         try {
             broadcast.getSource().event1("param");
             fail();
-        } catch (GradleException e) {
+        } catch (ListenerNotificationException e) {
             assertThat(e.getMessage(), equalTo("Failed to notify test listener."));
             assertThat(e.getCause(), sameInstance((Throwable) failure));
         }
@@ -208,9 +206,8 @@ public class ListenerBroadcastTest {
         try {
             broadcast.getSource().event1("param");
             fail();
-        } catch (GradleScriptException e) {
+        } catch (ListenerNotificationException e) {
             assertThat(e.getMessage(), containsString("Failed to notify test listener."));
-            assertThat(e.getScriptSource(), sameInstance(source));
             assertThat(e.getCause().getMessage(), equalTo("failed"));
         }
     }

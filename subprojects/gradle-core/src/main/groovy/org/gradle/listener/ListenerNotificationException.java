@@ -13,29 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+package org.gradle.listener;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
 import org.gradle.api.internal.Contextual;
 
 /**
- * <p>A {@code TaskExecutionException} is thrown when a task fails to execute successfully.</p>
+ * A {@code ListenerNotificationException} is thrown when a listener cannot be notified of an event.
  */
 @Contextual
-public class TaskExecutionException extends GradleException {
-    private final Task task;
-
-    public TaskExecutionException(TaskExecutionException source) {
-        this(source.task, source.getCause());
-    }
-    
-    public TaskExecutionException(Task task, Throwable cause) {
-        super(String.format("Execution failed for %s.", task), cause);
-        this.task = task;
+public class ListenerNotificationException extends GradleException {
+    public ListenerNotificationException() {
     }
 
-    public Task getTask() {
-        return task;
+    public ListenerNotificationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

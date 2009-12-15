@@ -21,9 +21,6 @@ import org.gradle.api.InvalidUserDataException;
  * @author Hans Dockter
  */
 public class PluginInstantiationException extends InvalidUserDataException {
-    public PluginInstantiationException() {
-        super();
-    }
 
     public PluginInstantiationException(String message) {
         super(message);

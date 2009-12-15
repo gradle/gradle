@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.GradleScriptException;
 
 public class SkipTaskExecuter implements TaskExecuter {
     private static Logger logger = Logging.getLogger(SkipTaskExecuter.class);
@@ -50,8 +49,7 @@ public class SkipTaskExecuter implements TaskExecuter {
         try {
             skip = !task.getOnlyIf().isSatisfiedBy(task);
         } catch (Throwable t) {
-            Throwable failure = new GradleScriptException(String.format("Could not evaluate onlyIf predicate for %s.", task), t,
-                    ((ProjectInternal) task.getProject()).getBuildScriptSource());
+            Throwable failure = new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t);
             return new DefaultTaskExecutionResult(task, failure, null);
         }
 

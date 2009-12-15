@@ -16,9 +16,9 @@
 package org.gradle.gradleplugin.foundation;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
+import org.gradle.api.LocationAwareException;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.StartParameter;
-import org.gradle.api.GradleScriptException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -120,8 +120,6 @@ public class GradlePluginLord {
         /**
          * Notification that a command is about to be executed. This is mostly useful
          * for IDE's that may need to save their files.
-         *
-         * @param  fullCommandLine the command that's about to be executed.
         */
         public void aboutToExecuteRequest( Request request );
 
@@ -395,7 +393,6 @@ public class GradlePluginLord {
     * @param  fullCommandLine the full command line to pass to gradle.
     * @param  displayName     what we show on the tab.
     * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown regardless
-    * @param executionInteraction this can observe how the command executes
     */
     public Request addExecutionRequestToQueue(String fullCommandLine, String displayName, boolean forceOutputToBeShown) {
         if (!isStarted) {
@@ -527,12 +524,14 @@ public class GradlePluginLord {
       if (failure != null) {
             formatter.format("%n");
 
-            if (failure instanceof GradleScriptException) {
-                GradleScriptException scriptException = ((GradleScriptException) failure).getReportableException();
+            if (failure instanceof LocationAwareException) {
+                LocationAwareException scriptException = (LocationAwareException) failure;
                 formatter.format("%s%n%n", scriptException.getLocation());
+                formatter.format("%s", scriptException.getOriginalMessage());
 
-                formatter.format("%s%nCause: %s", scriptException.getOriginalMessage(), getMessage(
-                        scriptException.getCause()));
+                for (Throwable cause : scriptException.getReportableCauses()) {
+                    formatter.format("%nCause: %s", getMessage(cause));
+                }
             } else {
                 formatter.format("%s", getMessage(failure));
             }

@@ -15,11 +15,7 @@
  */
 package org.gradle.initialization;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-import static org.gradle.util.Matchers.*;
-
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.LocationAwareException;
 import org.gradle.api.internal.Contextual;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -32,6 +28,9 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultExceptionAnalyserTest {
@@ -69,9 +68,9 @@ public class DefaultExceptionAnalyserTest {
         notifyAnalyser(analyser, source);
 
         Throwable transformedFailure = analyser.transform(failure);
-        assertThat(transformedFailure, instanceOf(GradleScriptException.class));
+        assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
-        GradleScriptException gse = (GradleScriptException) transformedFailure;
+        LocationAwareException gse = (LocationAwareException) transformedFailure;
         assertThat(gse.getScriptSource(), sameInstance(source));
         assertThat(gse.getLineNumber(), equalTo(7));
     }
@@ -87,9 +86,9 @@ public class DefaultExceptionAnalyserTest {
         notifyAnalyser(analyser, source);
 
         Throwable transformedFailure = analyser.transform(failure);
-        assertThat(transformedFailure, instanceOf(GradleScriptException.class));
+        assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
-        GradleScriptException gse = (GradleScriptException) transformedFailure;
+        LocationAwareException gse = (LocationAwareException) transformedFailure;
         assertThat(gse.getScriptSource(), sameInstance(source));
         assertThat(gse.getLineNumber(), equalTo(7));
     }
@@ -105,9 +104,9 @@ public class DefaultExceptionAnalyserTest {
         notifyAnalyser(analyser, source);
 
         Throwable transformedFailure = analyser.transform(failure);
-        assertThat(transformedFailure, instanceOf(GradleScriptException.class));
+        assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
-        GradleScriptException gse = (GradleScriptException) transformedFailure;
+        LocationAwareException gse = (LocationAwareException) transformedFailure;
         assertThat(gse.getScriptSource(), sameInstance(source));
         assertThat(gse.getLineNumber(), equalTo(7));
     }
@@ -135,12 +134,12 @@ public class DefaultExceptionAnalyserTest {
     }
 
     @Contextual
-    private class ContextualException extends RuntimeException {
-        private ContextualException() {
+    public static class ContextualException extends RuntimeException {
+        public ContextualException() {
             super("failed");
         }
 
-        private ContextualException(Throwable throwable) {
+        public ContextualException(Throwable throwable) {
             super(throwable);
         }
     }

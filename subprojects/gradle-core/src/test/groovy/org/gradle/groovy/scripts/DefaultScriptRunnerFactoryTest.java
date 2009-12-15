@@ -158,8 +158,7 @@ public class DefaultScriptRunnerFactoryTest {
             scriptRunner.run();
             fail();
         } catch (GradleScriptException e) {
-            assertThat(e.getOriginalMessage(), equalTo("A problem occurred evaluating <script-to-string>."));
-            assertThat(e.getScriptSource(), sameInstance(scriptSourceDummy));
+            assertThat(e.getMessage(), equalTo("A problem occurred evaluating <script-to-string>."));
             assertThat(e.getCause(), sameInstance((Throwable) failure));
         }
 

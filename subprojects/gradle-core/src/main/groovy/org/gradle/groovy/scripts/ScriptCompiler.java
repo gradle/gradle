@@ -15,7 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.ScriptCompilationException;
 
 /**
  * Compiles a script into an executable {@code ScriptRunner} object.
@@ -35,7 +35,7 @@ public interface ScriptCompiler {
     /**
      * Compiles the script into a {@code ScriptRunner} of the given type.
      *
-     * @throws GradleScriptException On compilation failure.
+     * @throws ScriptCompilationException On compilation failure.
      */
-    <T extends Script> ScriptRunner<T> compile(Class<T> scriptType) throws GradleScriptException;
+    <T extends Script> ScriptRunner<T> compile(Class<T> scriptType) throws ScriptCompilationException;
 }

@@ -17,7 +17,7 @@ package org.gradle;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.util.GUtil;
@@ -139,8 +139,8 @@ public class BuildExceptionReporter extends BuildAdapter {
                     DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE);
         }
 
-        if (failure instanceof GradleScriptException) {
-            GradleScriptException scriptException = ((GradleScriptException) failure).getReportableException();
+        if (failure instanceof LocationAwareException) {
+            LocationAwareException scriptException = (LocationAwareException) failure;
             details.location.format("%s", scriptException.getLocation());
             details.details.format("%s", scriptException.getOriginalMessage());
             for (Throwable cause : scriptException.getReportableCauses()) {

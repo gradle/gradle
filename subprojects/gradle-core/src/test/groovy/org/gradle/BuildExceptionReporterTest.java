@@ -16,24 +16,26 @@
 package org.gradle;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
-import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.api.LocationAwareException;
 import org.gradle.util.HelperUtil;
 import org.hamcrest.Matcher;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
-import java.util.List;
+
+import static org.hamcrest.Matchers.*;
 
 @RunWith(JMock.class)
 public class BuildExceptionReporterTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4Mockery(){{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
     private Logger logger = context.mock(Logger.class);
     private StartParameter startParameter = new StartParameter();
     private BuildExceptionReporter reporter = new BuildExceptionReporter(logger, startParameter);
@@ -65,15 +67,8 @@ public class BuildExceptionReporterTest {
     }
 
     @Test
-    public void reportsGradleScriptException() {
-        final GradleScriptException exception
-                = new GradleScriptException("<message>", new RuntimeException("<cause>"),
-                context.mock(ScriptSource.class, "script")) {
-            @Override
-            public String getLocation() {
-                return "<location>";
-            }
-        };
+    public void reportsLocationAwareException() {
+        final TestException exception = exception("<location>", "<message>", new RuntimeException("<cause>"));
 
         final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
                 containsString("<location>"),
@@ -87,21 +82,23 @@ public class BuildExceptionReporterTest {
         reporter.buildFinished(HelperUtil.createBuildResult(exception));
     }
 
-    @Test
-    public void reportsGradleScriptExceptionWithMultipleCauses() {
-        final GradleScriptException exception
-                = new GradleScriptException("<message>", new RuntimeException("<cause>"),
-                context.mock(ScriptSource.class, "script")) {
-            @Override
-            public String getLocation() {
-                return "<location>";
-            }
+    private TestException exception(final String location, final String message, final Throwable... causes) {
+        final TestException testException = context.mock(TestException.class);
+        context.checking(new Expectations() {{
+            allowing(testException).getLocation();
+            will(returnValue(location));
+            allowing(testException).getOriginalMessage();
+            will(returnValue(message));
+            allowing(testException).getReportableCauses();
+            will(returnValue(Arrays.asList(causes)));
+        }});
+        return testException;
+    }
 
-            @Override
-            public List<Throwable> getReportableCauses() {
-                return Arrays.asList(new RuntimeException("<outer>"), getCause());
-            }
-        };
+    @Test
+    public void reportsLocationAwareExceptionWithMultipleCauses() {
+        final TestException exception = exception("<location>", "<message>", new RuntimeException("<outer>"),
+                new RuntimeException("<cause>"));
 
         final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
                 containsString("<location>"),
@@ -117,15 +114,9 @@ public class BuildExceptionReporterTest {
     }
 
     @Test
-    public void reportsGradleScriptExceptionWhenCauseHasNoMessage() {
-        final GradleScriptException exception
-                = new GradleScriptException("<message>", new RuntimeException(),
-                context.mock(ScriptSource.class)) {
-            @Override
-            public String getLocation() {
-                return "<location>";
-            }
-        };
+    public void reportsLocationAwareExceptionWhenCauseHasNoMessage() {
+        final TestException exception = exception("<location>", "<message>", new RuntimeException());
+
         final Matcher<String> errorMessage = allOf(containsString("Build failed with an exception."),
                 containsString("<location>"),
                 containsString("<message>"),
@@ -178,6 +169,9 @@ public class BuildExceptionReporterTest {
     @Test
     public void doesNothingWheBuildIsSuccessful() {
         reporter.buildFinished(HelperUtil.createBuildResult(null));
+    }
+
+    public abstract class TestException extends GradleException implements LocationAwareException {
     }
 
 }

@@ -17,13 +17,9 @@ package org.gradle.listener;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
-import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.Script;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -180,7 +176,7 @@ public class ListenerBroadcast<T> {
             try {
                 method.invoke(listener, parameters);
             } catch (InvocationTargetException e) {
-                throw new GradleException(getErrorMessage(), e.getCause());
+                throw new ListenerNotificationException(getErrorMessage(), e.getCause());
             }
             return null;
         }
@@ -203,26 +199,7 @@ public class ListenerBroadcast<T> {
                 try {
                     closure.call(parameters);
                 } catch (InvokerInvocationException e) {
-                    ScriptSource source = findSource(closure);
-                    if (source != null) {
-                        throw new GradleScriptException(getErrorMessage(), e.getCause(), source);
-                    }
-                    throw new GradleException(getErrorMessage(), e.getCause());
-                }
-            }
-            return null;
-        }
-
-        private ScriptSource findSource(Closure closure) {
-            Closure c = closure;
-            while (c != null) {
-                if (c.getOwner() instanceof Script) {
-                    return ((Script) c.getOwner()).getScriptSource();
-                }
-                if (c.getOwner() instanceof Closure) {
-                    c = (Closure) c.getOwner();
-                } else {
-                    c = null;
+                    throw new ListenerNotificationException(getErrorMessage(), e.getCause());
                 }
             }
             return null;

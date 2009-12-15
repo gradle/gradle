@@ -16,29 +16,31 @@
 package org.gradle.integtests;
 
 import junit.framework.AssertionFailedError;
-import org.gradle.*;
+import org.gradle.BuildResult;
+import org.gradle.GradleLauncher;
+import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.api.GradleScriptException;
+import org.gradle.api.LocationAwareException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.TaskExecutionResult;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
-import static org.gradle.util.Matchers.*;
-
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.hamcrest.Matcher;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final StartParameter parameter;
@@ -234,11 +236,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         public InProcessExecutionFailure(List<String> tasks, List<String> skippedTasks, String output, String error,
                                          GradleException failure) {
             super(tasks, skippedTasks, output, error);
-            if (failure instanceof GradleScriptException) {
-                this.failure = ((GradleScriptException) failure).getReportableException();
-            } else {
-                this.failure = failure;
-            }
+            this.failure = failure;
         }
 
         public void assertHasLineNumber(int lineNumber) {
@@ -254,8 +252,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void assertThatCause(final Matcher<String> matcher) {
-            if (failure instanceof GradleScriptException) {
-                GradleScriptException exception = (GradleScriptException) failure;
+            if (failure instanceof LocationAwareException) {
+                LocationAwareException exception = (LocationAwareException) failure;
                 assertThat(exception.getReportableCauses(), hasItem(hasMessage(matcher)));
             } else {
                 assertThat(failure.getCause().getMessage(), matcher);
