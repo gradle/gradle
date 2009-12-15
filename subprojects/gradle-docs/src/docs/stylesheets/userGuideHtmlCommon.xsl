@@ -43,6 +43,10 @@
         <!-- Overridden to remove standard body attributes -->
     </xsl:template>
 
+    <xsl:template match="book|chapter|appendix|section|tip|note" mode="html.title.attribute">
+        <!-- Overridden to remove title attribute from structural divs -->
+    </xsl:template>
+
     <!-- ADMONITIONS -->
 
     <xsl:param name="admon.style">
