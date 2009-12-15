@@ -93,6 +93,7 @@ task samplesDocs(type: Docbook2Xhtml, dependsOn: samplesDocbook) {
 }
 
 task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
+    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
     javadocUrl = '../javadoc'
