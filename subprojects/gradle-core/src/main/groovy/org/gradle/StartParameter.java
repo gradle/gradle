@@ -223,11 +223,22 @@ public class StartParameter {
      * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
      * </p>
      *
+     * @param buildScriptText The script to use as the build file.
+     * @return this
+     */
+    public StartParameter useEmbeddedBuildFile(String buildScriptText) {
+        return setBuildScriptSource(new StringScriptSource("embedded build file", buildScriptText));
+    }
+    
+    /**
+     * <p>Specifies that the given script should be used as the build file for this build. Uses an empty settings file.
+     * </p>
+     *
      * @param buildScript The script to use as the build file.
      * @return this
      */
-    public StartParameter useEmbeddedBuildFile(String buildScript) {
-        buildScriptSource = new StringScriptSource("embedded build file", buildScript);
+    public StartParameter setBuildScriptSource(ScriptSource buildScript) {
+        buildScriptSource = buildScript;
         settingsScriptSource = new StringScriptSource("empty settings file", "");
         searchUpwards = false;
         return this;

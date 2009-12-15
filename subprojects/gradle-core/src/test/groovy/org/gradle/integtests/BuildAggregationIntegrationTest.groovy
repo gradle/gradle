@@ -16,18 +16,16 @@
 package org.gradle.integtests
 
 import org.junit.Test
+import static org.hamcrest.Matchers.*
 
 class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canExecuteAnotherBuildFromBuild() {
         testFile('build.gradle') << '''
             assertThat(gradle.parent, nullValue())
-            task build << {
-                assertThat(gradle.parent, nullValue())
-                def startParam = gradle.startParameter.newBuild()
-                startParam.currentDir = file('other')
-                startParam.taskNames = ['dostuff']
-                GradleLauncher.newInstance(startParam).run().rethrowFailure()
+            task build(type: GradleBuild) {
+                dir = 'other'
+                tasks = ['dostuff']
             }
 '''
 
@@ -38,7 +36,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
             }
 '''
 
-        inTestDirectory().withTasks('build').run()     
+        inTestDirectory().withTasks('build').run()
     }
 
     @Test
@@ -58,5 +56,33 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
 
         inTestDirectory().withTasks('build').run()
     }
+
+    @Test
+    public void reportsNestedBuildFailure() {
+        TestFile other = testFile('other.gradle') << '''
+            1/0
+'''
+
+        testFile('build.gradle') << '''
+            task build(type: GradleBuild) {
+                buildFile = 'other.gradle'
+            }
+'''
+
+        ExecutionFailure failure = inTestDirectory().withTasks('build').runWithFailure()
+        failure.assertHasFileName("Build file '${other}'")
+        failure.assertHasLineNumber(2)
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertThatCause(containsString('/ by zero'))
+    }
+
+    @Test
+    public void reportsBuildSrcFailure() {
+        testFile('buildSrc/src/main/java/Broken.java') << 'broken!'
+        ExecutionFailure failure = inTestDirectory().runWithFailure()
+        failure.assertHasFileName('Default buildSrc build script')
+        failure.assertHasDescription('Execution failed for task \':compileJava\'')
+    }
 }
+
 

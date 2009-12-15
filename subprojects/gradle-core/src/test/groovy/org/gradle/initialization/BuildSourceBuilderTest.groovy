@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.*
 import org.jmock.api.Action
 import org.gradle.api.plugins.Convention
 import org.gradle.api.internal.plugins.EmbedableJavaProject
+import org.gradle.groovy.scripts.StringScriptSource
 
 /**
  * @author Hans Dockter
@@ -144,7 +145,7 @@ class BuildSourceBuilderTest {
 
     @Test public void testCreateDependencyWithNonExistingBuildScript() {
         StartParameter modifiedStartParameter = this.expectedStartParameter.newInstance()
-        modifiedStartParameter.useEmbeddedBuildFile(BuildSourceBuilder.getDefaultScript())
+        modifiedStartParameter.setBuildScriptSource(new StringScriptSource("default buildSrc build script", BuildSourceBuilder.getDefaultScript()))
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(false))
             one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))

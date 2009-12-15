@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.LocationAwareException;
 import org.gradle.api.ScriptCompilationException;
 import org.gradle.api.internal.Contextual;
 import org.gradle.api.internal.ExceptionAnalyser;
@@ -50,6 +51,9 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
         if (actualException == null) {
             return exception;
         }
+        if (actualException instanceof LocationAwareException) {
+            return actualException;
+        }
 
         ScriptSource source = null;
         Integer lineNumber = null;
@@ -62,7 +66,9 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
         }
 
         if (source == null) {
-            for (Throwable currentException = actualException; currentException != null; currentException = currentException.getCause()) {
+            for (
+                    Throwable currentException = actualException; currentException != null;
+                    currentException = currentException.getCause()) {
                 for (StackTraceElement element : currentException.getStackTrace()) {
                     if (scripts.containsKey(element.getFileName())) {
                         source = scripts.get(element.getFileName());

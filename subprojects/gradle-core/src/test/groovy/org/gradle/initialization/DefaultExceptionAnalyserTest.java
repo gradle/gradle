@@ -117,6 +117,22 @@ public class DefaultExceptionAnalyserTest {
         assertThat(analyser().transform(failure), sameInstance(failure));
     }
 
+    @Test
+    public void usesOriginalExceptionWhenItIsAlreadyLocationAware() {
+        final Throwable failure = context.mock(TestException.class);
+        context.checking(new Expectations() {{
+            allowing(failure).getCause();
+            will(returnValue(null));
+            allowing(failure).getStackTrace();
+            will(returnValue(WrapUtil.toArray(element)));
+        }});
+
+        DefaultExceptionAnalyser analyser = analyser();
+        notifyAnalyser(analyser, source);
+        
+        assertThat(analyser.transform(failure), sameInstance(failure));
+    }
+
     private void notifyAnalyser(DefaultExceptionAnalyser analyser, final ScriptSource source) {
         final Script script = context.mock(Script.class);
         context.checking(new Expectations() {{
@@ -144,4 +160,8 @@ public class DefaultExceptionAnalyserTest {
         }
     }
 
+    @Contextual
+    public abstract static class TestException extends RuntimeException implements LocationAwareException {
+
+    }
 }

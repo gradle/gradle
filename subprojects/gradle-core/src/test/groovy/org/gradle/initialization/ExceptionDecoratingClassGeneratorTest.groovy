@@ -36,6 +36,8 @@ public class ExceptionDecoratingClassGeneratorTest {
         GradleException target = new GradleException("message", cause)
 
         GradleException exception = generator.newInstance(GradleException.class, target, script, 12)
+        assertThat(exception.getClass().getPackage(), equalTo(GradleException.class.getPackage()))
+        assertThat(exception.getClass().simpleName, equalTo('LocationAwareGradleException'))
         assertThat(exception, instanceOf(LocationAwareException))
         assertThat(exception.originalMessage, equalTo("message"))
         assertThat(exception.originalException, sameInstance(target))

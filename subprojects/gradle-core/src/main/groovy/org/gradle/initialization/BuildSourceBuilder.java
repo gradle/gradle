@@ -22,6 +22,8 @@ import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.plugins.EmbedableJavaProject;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +91,8 @@ public class BuildSourceBuilder {
 
         if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
             logger.debug("Gradle script file does not exists. Using default one.");
-            startParameterArg.useEmbeddedBuildFile(getDefaultScript());
+            ScriptSource source = new StringScriptSource("default buildSrc build script", getDefaultScript());
+            startParameterArg.setBuildScriptSource(source);
         }
 
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameterArg);

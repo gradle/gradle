@@ -56,7 +56,7 @@ public class ExceptionDecoratingClassGenerator implements ClassGenerator {
 
     private <T> Class<? extends T> doGenerate(Class<T> type) {
         ClassWriter visitor = new ClassWriter(true);
-        String typeName = "LocationAware" + type.getName();
+        String typeName = StringUtils.substringBeforeLast(type.getName(), ".") + ".LocationAware" + type.getSimpleName();
         Type generatedType = Type.getType("L" + typeName.replaceAll("\\.", "/") + ";");
         Type superclassType = Type.getType(type);
 
