@@ -6,7 +6,7 @@ userguide-trunk.tmproj
 buildSrc/lib
 buildSrc/build
 buildSrc/.gradle
-subprojects/*/lib
+subprojects/*/ide
 subprojects/gradle-core/build
 subprojects/gradle-open-api/build
 subprojects/gradle-ui/build
