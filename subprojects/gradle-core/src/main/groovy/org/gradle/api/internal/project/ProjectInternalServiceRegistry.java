@@ -48,7 +48,7 @@ import java.io.File;
 /**
  * Contains the services for a given project.
  */
-public class ProjectInternalServiceRegistry extends AbstractServiceRegistry implements ServiceRegistryFactory {
+public class ProjectInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final ProjectInternal project;
 
     public ProjectInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project) {

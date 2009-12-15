@@ -15,7 +15,9 @@
  */
 package org.gradle.groovy.scripts;
 
-import static org.hamcrest.Matchers.*;
+import org.gradle.api.GradleScriptException;
+import org.gradle.api.internal.project.StandardOutputRedirector;
+import org.gradle.api.logging.LogLevel;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -24,13 +26,12 @@ import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.api.internal.project.StandardOutputRedirector;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.GradleScriptException;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultScriptRunnerFactoryTest {
@@ -38,12 +39,11 @@ public class DefaultScriptRunnerFactoryTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private final Script scriptMock = context.mock(Script.class, "<script-to-string>");
-    private final ScriptMetaData scriptMetaDataMock = context.mock(ScriptMetaData.class);
     private final StandardOutputRedirector standardOutputRedirectorMock = context.mock(StandardOutputRedirector.class);
     private final ClassLoader classLoaderDummy = context.mock(ClassLoader.class);
     private final ScriptSource scriptSourceDummy = context.mock(ScriptSource.class);
     private final ScriptExecutionListener scriptExecutionListenerMock = context.mock(ScriptExecutionListener.class);
-    private final DefaultScriptRunnerFactory factory = new DefaultScriptRunnerFactory(scriptMetaDataMock, scriptExecutionListenerMock);
+    private final DefaultScriptRunnerFactory factory = new DefaultScriptRunnerFactory(scriptExecutionListenerMock);
 
     @Before
     public void setUp() {
@@ -62,20 +62,6 @@ public class DefaultScriptRunnerFactoryTest {
     public void createsScriptRunner() {
         ScriptRunner<Script> scriptRunner = factory.create(scriptMock);
         assertThat(scriptRunner.getScript(), sameInstance(scriptMock));
-    }
-
-    @Test
-    public void appliesMetaDataToScriptWhenDelegateIsSet() {
-        final Object delegate = new Object();
-
-        ScriptRunner<Script> scriptRunner = factory.create(scriptMock);
-
-        context.checking(new Expectations() {{
-            one(scriptMetaDataMock).applyMetaData(scriptMock, delegate);
-            one(scriptMock).setScriptTarget(delegate);
-        }});
-
-        scriptRunner.setDelegate(delegate);
     }
 
     @Test

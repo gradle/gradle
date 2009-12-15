@@ -22,16 +22,16 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.ArrayList;
 
-public class AbstractServiceRegistry implements ServiceRegistry {
+public class DefaultServiceRegistry implements ServiceRegistry {
     private final List<Service> services = new ArrayList<Service>();
     private final ServiceRegistry parent;
     private boolean closed;
 
-    public AbstractServiceRegistry() {
+    public DefaultServiceRegistry() {
         this(null);
     }
 
-    public AbstractServiceRegistry(ServiceRegistry parent) {
+    public DefaultServiceRegistry(ServiceRegistry parent) {
         this.parent = parent;
         findFactoryMethods();
     }
@@ -54,7 +54,7 @@ public class AbstractServiceRegistry implements ServiceRegistry {
         services.add(0, service);
     }
 
-    protected <T> void add(Class<T> serviceType, final T serviceInstance) {
+    public <T> void add(Class<T> serviceType, final T serviceInstance) {
         add(new FixedInstanceService<T>(serviceType, serviceInstance));
     }
 
@@ -151,7 +151,7 @@ public class AbstractServiceRegistry implements ServiceRegistry {
 
         @Override
         protected Object create() {
-            return invoke(method, AbstractServiceRegistry.this);
+            return invoke(method, DefaultServiceRegistry.this);
         }
     }
 

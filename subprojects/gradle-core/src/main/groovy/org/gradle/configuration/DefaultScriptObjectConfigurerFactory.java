@@ -18,6 +18,7 @@ package org.gradle.configuration;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.groovy.scripts.*;
 
@@ -72,23 +73,29 @@ public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigu
                         = new BuildScriptClasspathScriptTransformer(classpathClosureName);
                 compiler.setTransformer(classpathScriptTransformer);
                 ScriptRunner<? extends BasicScript> classPathScript = compiler.compile(scriptType);
-                classPathScript.setDelegate(target);
+                setDelegate(classPathScript, target);
 
                 classPathScript.run();
                 classLoaderProvider.updateClassPath();
                 
                 compiler.setTransformer(new BuildScriptTransformer(classpathScriptTransformer));
                 ScriptRunner<? extends BasicScript> script = compiler.compile(scriptType);
-                script.setDelegate(target);
+                setDelegate(script, target);
                 scriptAware.setScript(script.getScript());
                 script.run();
             }
             else {
                 compiler.setClassloader(classLoader);
                 ScriptRunner<? extends BasicScript> script = compiler.compile(scriptType);
-                script.setDelegate(target);
+                setDelegate(script, target);
                 script.run();
             }
+        }
+
+        private void setDelegate(ScriptRunner<? extends BasicScript> scriptRunner, Object target) {
+            DefaultServiceRegistry services = new DefaultServiceRegistry();
+            services.add(ScriptObjectConfigurerFactory.class, DefaultScriptObjectConfigurerFactory.this);
+            scriptRunner.getScript().init(target, services);
         }
     }
 }

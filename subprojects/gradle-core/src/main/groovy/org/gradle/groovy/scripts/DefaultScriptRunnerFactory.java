@@ -19,11 +19,9 @@ import org.gradle.api.GradleScriptException;
 import org.gradle.api.logging.LogLevel;
 
 public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
-    private final ScriptMetaData scriptMetaData;
     private final ScriptExecutionListener listener;
 
-    public DefaultScriptRunnerFactory(ScriptMetaData scriptMetaData, ScriptExecutionListener listener) {
-        this.scriptMetaData = scriptMetaData;
+    public DefaultScriptRunnerFactory(ScriptExecutionListener listener) {
         this.listener = listener;
     }
 
@@ -36,12 +34,6 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
 
         public ScriptRunnerImpl(T script) {
             this.script = script;
-        }
-
-        public ScriptRunner setDelegate(Object delegate) {
-            scriptMetaData.applyMetaData(script, delegate);
-            script.setScriptTarget(delegate);
-            return this;
         }
 
         public T getScript() {

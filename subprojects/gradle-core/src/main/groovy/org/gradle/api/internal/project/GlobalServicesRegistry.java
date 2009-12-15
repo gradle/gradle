@@ -25,7 +25,7 @@ import org.gradle.initialization.LoggingConfigurer;
 /**
  * Contains the services shared by all builds in a given process.
  */
-public class GlobalServicesRegistry extends AbstractServiceRegistry {
+public class GlobalServicesRegistry extends DefaultServiceRegistry {
     public GlobalServicesRegistry() {
         add(LoggingConfigurer.class, new DefaultLoggingConfigurer());
         add(CommandLine2StartParameterConverter.class, new DefaultCommandLine2StartParameterConverter());

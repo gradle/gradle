@@ -80,7 +80,7 @@ class HelperUtil {
         StartParameter startParameter = new StartParameter()
         startParameter.pluginPropertiesFile = new File('plugin.properties')
         startParameter.gradleUserHomeDir = new File(rootDir, 'home')
-        DefaultServiceRegistryFactory serviceRegistryFactory = new DefaultServiceRegistryFactory(new GlobalServicesRegistry(), startParameter)
+        TopLevelBuildServiceRegistry serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameter)
         serviceRegistryFactory.add(TaskExecuter, new DefaultTaskExecuter({} as TaskActionListener))
         IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
 

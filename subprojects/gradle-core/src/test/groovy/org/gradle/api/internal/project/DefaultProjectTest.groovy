@@ -92,7 +92,7 @@ class DefaultProjectTest {
 
     File rootDir
 
-    Script testScript
+    groovy.lang.Script testScript
 
     ScriptSource script;
 
@@ -727,12 +727,11 @@ class DefaultProjectTest {
         project.convention.plugins.test = new TestConvention()
         assertEquals(TestConvention.METHOD_RESULT, project.scriptMethod(testConfigureClosure))
 
-        Script projectScript = createScriptForMethodMissingTest('projectScript')
-        project.script = projectScript
+        project.script = createScriptForMethodMissingTest('projectScript')
         assertEquals('projectScript', project.scriptMethod(testConfigureClosure))
     }
 
-    private Script createScriptForMethodMissingTest(String returnValue) {
+    private groovy.lang.Script createScriptForMethodMissingTest(String returnValue) {
         String code = """
 def scriptMethod(Closure closure) {
     "$returnValue"

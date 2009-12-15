@@ -23,7 +23,7 @@ import org.gradle.api.tasks.TaskOutputs;
 /**
  * Contains the services for a given task.
  */
-public class TaskInternalServiceRegistry extends AbstractServiceRegistry implements ServiceRegistryFactory {
+public class TaskInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final ProjectInternal project;
 
     public TaskInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project) {

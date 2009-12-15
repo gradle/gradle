@@ -23,15 +23,6 @@ import org.gradle.api.GradleScriptException;
  */
 public interface ScriptRunner<T extends Script> extends Runnable {
     /**
-     * Sets the delegate for the script. Any property or method not found on the script will be delegated to this
-     * object.
-     *
-     * @param delegate The delegate. may be null.
-     * @return this
-     */
-    ScriptRunner setDelegate(Object delegate);
-
-    /**
      * Returns the script which will be executed by this runner.
      *
      * @return the script.

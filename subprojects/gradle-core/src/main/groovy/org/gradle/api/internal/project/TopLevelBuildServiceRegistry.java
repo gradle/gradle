@@ -57,11 +57,11 @@ import java.util.Map;
  * Contains the singleton services which are shared by all builds executed by a single {@link org.gradle.GradleLauncher}
  * invocation.
  */
-public class DefaultServiceRegistryFactory extends AbstractServiceRegistry implements ServiceRegistryFactory {
+public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final StartParameter startParameter;
     private final Map<String, ModuleDescriptor> clientModuleRegistry = new HashMap<String, ModuleDescriptor>();
 
-    public DefaultServiceRegistryFactory(final ServiceRegistry parent, final StartParameter startParameter) {
+    public TopLevelBuildServiceRegistry(final ServiceRegistry parent, final StartParameter startParameter) {
         super(parent);
         this.startParameter = startParameter;
 
@@ -77,7 +77,7 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
             }
         });
     }
-    
+
     protected TaskExecuter createTaskExecuter() {
         return new SkipTaskExecuter(
                 new ExecutionShortCircuitTaskExecuter(
@@ -223,7 +223,6 @@ public class DefaultServiceRegistryFactory extends AbstractServiceRegistry imple
                 new DefaultScriptCompilationHandler(),
                 startParameter.getCacheUsage(),
                 new DefaultScriptRunnerFactory(
-                        new DefaultScriptMetaData(),
                         scriptExecutionListener),
                 get(CacheRepository.class));
     }

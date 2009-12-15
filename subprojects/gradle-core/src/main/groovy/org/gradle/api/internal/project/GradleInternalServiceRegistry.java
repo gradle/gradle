@@ -44,7 +44,7 @@ import java.io.File;
 /**
  * Contains the services for a given build.
  */
-public class GradleInternalServiceRegistry extends AbstractServiceRegistry implements ServiceRegistryFactory {
+public class GradleInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final GradleInternal gradle;
 
     public GradleInternalServiceRegistry(ServiceRegistry parent, final GradleInternal gradle) {

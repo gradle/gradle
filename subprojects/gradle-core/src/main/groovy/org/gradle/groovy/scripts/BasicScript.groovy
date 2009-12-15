@@ -17,19 +17,42 @@ package org.gradle.groovy.scripts
 
 import org.gradle.api.internal.project.StandardOutputRedirector
 import org.gradle.api.internal.project.DefaultStandardOutputRedirector
+import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
+import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.configuration.ScriptObjectConfigurerFactory
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.BaseDirConverter
 
-abstract class BasicScript extends org.gradle.groovy.scripts.Script {
+abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script {
     private final StandardOutputRedirector redirector = new DefaultStandardOutputRedirector()
-    private Object target;
+    private ServiceRegistry services
+    private Object target
+    private FileResolver resolver
 
-    void setScriptTarget(Object target) {
+    void init(Object target, ServiceRegistry services) {
+        new DefaultScriptMetaData().applyMetaData(this, target)
         this.target = target
+        this.services = services
+        if (scriptSource.sourceFile) {
+            resolver = new BaseDirConverter(scriptSource.sourceFile.parentFile)
+        } else {
+            resolver = new IdentityFileResolver()
+        }
     }
 
     def Object getScriptTarget() {
         return target
     }
-    
+
+    public void apply(Closure closure) {
+        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, services.get(ScriptObjectConfigurerFactory), target)
+        ConfigureUtil.configure(closure, action)
+        action.execute()
+    }
+
     def String toString() {
         return "script"
     }
@@ -43,8 +66,7 @@ abstract class BasicScript extends org.gradle.groovy.scripts.Script {
             setMetaClass((MetaClass) newValue)
         } else if ("scriptTarget".equals(property)) {
             target = newValue
-        }
-        else {
+        } else {
             target."$property" = newValue
         }
     }

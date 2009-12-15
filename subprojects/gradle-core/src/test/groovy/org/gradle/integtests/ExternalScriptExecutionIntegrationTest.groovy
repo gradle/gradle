@@ -45,6 +45,38 @@ assertEquals('value', someProp)
     }
 
     @Test
+    public void canExecuteExternalScriptFromSettingsScript() {
+        testFile('settings.gradle') << ''' apply { script 'other.gradle' } '''
+        testFile('other.gradle') << ''' include 'child' '''
+        testFile('build.gradle') << ''' assertEquals(['child'], subprojects*.name) '''
+
+        inTestDirectory().withTaskList().run()
+    }
+
+    @Test
+    public void canExecuteExternalScriptFromInitScript() {
+        TestFile initScript = testFile('init.gradle') << ''' apply { script 'other.gradle' } '''
+        testFile('other.gradle') << '''
+addListener(new ListenerImpl())
+class ListenerImpl extends BuildAdapter {
+    public void projectsEvaluated(Gradle gradle) {
+        gradle.rootProject.task('doStuff')
+    }
+}
+'''
+        inTestDirectory().usingInitScript(initScript).withTasks('doStuff').run()
+    }
+
+    @Test
+    public void canExecuteExternalScriptFromExternalScript() {
+        testFile('build.gradle') << ''' apply { script 'other1.gradle' } '''
+        testFile('other1.gradle') << ''' apply { script 'other2.gradle' } '''
+        testFile('other2.gradle') << ''' task doStuff '''
+
+        inTestDirectory().withTasks('doStuff').run()
+    }
+
+    @Test
     public void canExecuteExternalScriptAgainstAnArbitraryObject() {
         testFile('external.gradle') << '''
 assertEquals('doStuff', name)

@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
-public class AbstractServiceRegistryTest {
+public class DefaultServiceRegistryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TestRegistry registry = new TestRegistry();
 
@@ -85,7 +85,7 @@ public class AbstractServiceRegistryTest {
     @Test
     public void createsAnCachesRegisteredServiceInstance() {
         final BigDecimal value = BigDecimal.TEN;
-        registry.add(new AbstractServiceRegistry.Service(BigDecimal.class) {
+        registry.add(new DefaultServiceRegistry.Service(BigDecimal.class) {
             @Override
             protected Object create() {
                 return value;
@@ -132,7 +132,7 @@ public class AbstractServiceRegistryTest {
         }
     }
 
-    private static class TestRegistry extends AbstractServiceRegistry {
+    private static class TestRegistry extends DefaultServiceRegistry {
         public TestRegistry() {
         }
 

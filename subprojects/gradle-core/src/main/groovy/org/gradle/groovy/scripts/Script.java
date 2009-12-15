@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts;
 
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.StandardOutputRedirector;
 
 /**
@@ -33,10 +34,6 @@ public abstract class Script extends groovy.lang.Script {
         this.source = source;
     }
 
-    public abstract void setScriptTarget(Object target);
-
-    public abstract StandardOutputRedirector getStandardOutputRedirector();
-
     public void setContextClassloader(ClassLoader contextClassloader) {
         this.contextClassloader = contextClassloader;
     }
@@ -44,4 +41,8 @@ public abstract class Script extends groovy.lang.Script {
     public ClassLoader getContextClassloader() {
         return contextClassloader;
     }
+
+    public abstract void init(Object target, ServiceRegistry services);
+
+    public abstract StandardOutputRedirector getStandardOutputRedirector();
 }

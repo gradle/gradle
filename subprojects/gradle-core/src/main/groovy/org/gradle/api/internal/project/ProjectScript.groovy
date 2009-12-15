@@ -25,7 +25,12 @@ import org.gradle.groovy.scripts.BasicScript
  * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
  */
 abstract class ProjectScript extends BasicScript {
+
+    def void apply(Closure closure) {
+        scriptTarget.apply(closure)
+    }
+
     def String toString() {
-        getScriptTarget().toString()
+        scriptTarget.toString()
     }
 }

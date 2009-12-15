@@ -55,6 +55,7 @@ public class AbstractIntegrationTest {
                 "import static org.hamcrest.Matchers.*",
                 "import org.gradle.*",
                 "import org.gradle.api.*",
+                "import org.gradle.api.invocation.*",
                 "import org.gradle.api.file.*",
                 "import org.gradle.api.logging.*",
                 "import org.gradle.api.tasks.*",

@@ -53,13 +53,13 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
-public class DefaultServiceRegistryFactoryTest {
+public class TopLevelBuildServiceRegistryTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final StartParameter startParameter = new StartParameter();
-    private final DefaultServiceRegistryFactory factory = new DefaultServiceRegistryFactory(parent, startParameter);
+    private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
 
     @Before
