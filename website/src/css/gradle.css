@@ -17,7 +17,7 @@ body, td, div {
 }
 
 h1 {
-    font-size: 22px;
+    font-size: 26px;
     font-weight: bold;
     color: #7aa76d
 }
@@ -45,39 +45,59 @@ a:hover {
 
 #sidebar {
     position: absolute;
-    top: 0px;
+    top: 80px;
     left: 0px;
     width: 180px;
     background: #7aa76d;
     min-height: 100%;
+    padding-top: 20px;
     padding-left: 10px;
     padding-right: 10px;
     float: left;
 }
 
-#logoImage {
-    height: 100px;
-    padding-top: 10px;
-}
-
-#logoImage a {
-    text-decoration: none;
-}
-
 #header {
     background: #7aa76d;
     height: 80px;
+    padding-left: 10px;
     color: #FFFFFF;
     clear: both;
+    position: relative;
+    white-space: nowrap;
 }
 
-#header .quote {
-    color: #a8cc9e;
-    margin-left: 220px;
+#header table {
+    border-collapse: collapse;
+}
+
+#header td {
     line-height: 80px;
-    font-size: 42px;
+    height: 80px;
+    vertical-align: baseline;
+    padding: 0;
+}
+
+#header #quote {
+    color: #a8cc9e;
+    font-size: 32px;
     font-weight: bold;
     font-style: italic;
+}
+
+#header #title {
+    color: #a8cc9e;
+    font-size: 58px;
+    font-weight: bold;
+    width: 210px;
+}
+
+#header #title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+#header #title .a:hover {
+    color: inherit;
 }
 
 #content {
