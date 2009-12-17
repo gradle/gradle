@@ -29,8 +29,8 @@
 usePlugin('java')
 ]]></programlisting>
         <para>in your script. That's all. From a technological point of view plugins use just the same
-            operations as you can use from your build scripts. That is, they use the Project and Task API (see
-            <xref linkend='project_and_task_api'/>). The Gradle plugins use this API to:
+            operations as you can use from your build scripts. That is, they use the Project and Task API.
+            The Gradle plugins generally use this API to:
         </para>
         <itemizedlist>
             <listitem>

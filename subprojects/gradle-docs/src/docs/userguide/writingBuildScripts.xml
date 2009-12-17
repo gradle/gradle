@@ -13,8 +13,15 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='project_and_task_api' xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>The Project and Task API</title>
+<chapter id='writing_build_scripts' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Writing Build Scripts</title>
+    <para>This chapter looks at some of the details of writing a build script.</para>
+    
+    <section>
+        <title>Script API</title>
+        <para>When Gradle executes a script, it compiles the script into a class which implements <apilink class="org.gradle.api.Script"/>.</para>
+    </section>
+
     <section id='sec:project_api'>
         <title>Project API</title>
         <para>In the tutorial in <xref linkend='tutorial_using_tasks'/> we used, for example, the
@@ -112,7 +119,7 @@
                 </tr>
                 <tr>
                     <td><literal>ant</literal></td>
-                    <td><classname>AntBuilder</classname></td>
+                    <td><apilink class="org.gradle.api.AntBuilder"/></td>
                     <td>An <classname>AntBuilder</classname> instance</td>
                 </tr>
             </table>
@@ -130,39 +137,4 @@
         </section>
     </section>
     
-    <section id='sec:task_api'>
-        <title>Task API</title>
-        <para>Many of the methods of the <classname>Project</classname> instance return task objects. We have already seen some ways that you can
-            use task objects in <xref linkend='tutorial_using_tasks'/>.
-            Look here to learn more about <apilink class="org.gradle.api.Task"/>.
-        </para>
-    </section>
-    <section>
-        <title>Summary</title>
-        <para>The project and the task API constitute the core layer of Gradle and provide all the possible interaction
-            options with this layer.
-            <footnote>
-                <para>There is more to come for this layer in the other chapters, e.g. support for multi-project builds
-                    (see <xref linkend='multi_project_builds'/>).
-                </para>
-            </footnote>
-            This core-layer constitutes a language for dependency based programming.
-            <footnote>
-                <para>Martin Fowler has written about this:
-                    <ulink url='http://martinfowler.com/articles/rake.html#DependencyBasedProgramming'/>
-                </para>
-            </footnote>
-            There are many other projects providing such a language. There is Ant for Java, Rake and Rant for Ruby,
-            SCons for Python, the good old Make and many more.
-            <footnote>
-                <para>Interestingly, Maven2 is the only major build system which does not use dependency based
-                    programming.
-                </para>
-            </footnote>
-            We think that one thing that makes Gradle special compared to the other tools, is its strong support for
-            applying dependency based programming on <emphasis>multi-project</emphasis> builds. We also think that just
-            Gradle's core layer (together with its integration of the Ant tasks), provides a more convenient build
-            system than Ant's core layer.
-        </para>
-    </section>
 </chapter>

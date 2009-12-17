@@ -27,8 +27,55 @@
         Gradle makes this very easy. Just drop your classes in a certain directory and Gradle automatically compiles them
         and puts them in the classpath of your build script.
     </para>
+    <para>Here is a summary of the ways you can organise your build logic:</para>
+    <itemizedlist>
+        <listitem>
+            <para>POGOs. You can declare and use plain old Groovy objects (POGOs) directly in your build script. The
+                build script is written in Groovy, after all, and Groovy provides you with lots of excellent ways to
+                organize code.
+            </para>
+        </listitem>
+        <listitem>
+            <para><link linkend="sec:inherited_properties_and_methods">Inherited properties and methods</link>. In a
+                multi-project build, sub-projects inherit the properties and methods of their parent project.</para>
+        </listitem>
+        <listitem>
+            <para><link linkend="sec:injected_configuration">Configuration injection</link>. In a
+                multi-project build, a project (usually the root project) can inject properties and methods into another
+                project.</para>
+        </listitem>
+        <listitem>
+            <para><link linkend="sec:build_sources"><filename>buildSrc</filename> project</link>. Drop the source for
+                your build classes into a certain directory and Gradle automatically compiles them and includes them
+                in the classpath of your build script.
+            </para>
+        </listitem>
+        <listitem>
+            <para><link linkend="sec:configuring_using_external_script">Shared scripts</link>. Define common configuration
+                in an external build, and apply the script to multiple projects, possibly across different builds.
+            </para>
+        </listitem>
+        <listitem>
+            <para><link linkend="custom_tasks">Custom tasks</link>. Put your build logic into a custom task, and
+                reuse that task in multiple places.</para>
+        </listitem>
+        <listitem>
+            <para><link linkend="custom_plugins">Custom plugins</link>. Put your build build logic into a custom plugin,
+                and apply that plugin to multiple projects.
+            </para>
+        </listitem>
+        <listitem>
+            <para><link linkend="sec:external_build">Execute an external build</link>. Execute another Gradle build from the
+                current build.</para>
+        </listitem>
+        <listitem>
+            <para><link linkend="sec:external_dependencies">External libraries</link>. Use external libraries directly
+                in your build file.
+            </para>
+        </listitem>
+    </itemizedlist>
 
-    <section>
+    <section id="sec:inherited_properties_and_methods">
         <title>Inherited properties and methods</title>
         <para>Any method or property defined in a project build script is also visible to all the sub-projects. You
             can use this to define common configurations, and to extract build logic into methods which can be reused
@@ -41,13 +88,13 @@
         </sample>
     </section>
 
-    <section>
-        <title>Injected properties and methods</title>
+    <section id="sec:injected_configuration">
+        <title>Injected configuration</title>
         <para>You can use the configuration injection technique discussed in <xref linkend="sec:cross_project_configuration"/>
             and <xref linkend="sec:subproject_configuration"/> to inject properties and methods into various projects.
             This is generally a better option than inheritance, for a number of reasons: The injection is
-            explicit in the build script. You can inject different logic into different projects. And you can inject
-            any kind of configuration: repositories, plug-ins, tasks, and so on.
+            explicit in the build script, You can inject different logic into different projects, And you can inject
+            any kind of configuration such as repositories, plug-ins, tasks, and so on.
             The following sample shows how this works.
         </para>
         <sample id="injectedBuildLogic" dir="userguide/organizeBuildLogic/injected" title="Using injected properties and methods">
@@ -58,7 +105,7 @@
     </section>
     
     <section id='sec:build_sources'>
-        <title>Build sources</title>
+        <title>Build sources in the <filename>buildSrc</filename> project</title>
         <para>If you run Gradle, it checks for the existence of a directory called <filename>buildSrc</filename>. Just put
             your build source code in this directory and stick to the layout convention for a Java/Groovy project (see
             <xref linkend='javalayout'/>). Gradle then automatically compiles and tests this code and puts it in
@@ -72,6 +119,19 @@
             <filename>build.gradle</filename> and a <filename>settings.gradle</filename> file in the
             <filename>buildSrc</filename> directory. If you like, you can even have a multi-project build in there.
         </para>
+    </section>
+
+    <section id="sec:external_build">
+        <title>Running another Gradle build from a build</title>
+        <para>You can use the <apilink class="org.gradle.api.tasks.GradleBuild"/> task. You can use either of the
+            <literal>dir</literal> or <literal>buildFile</literal> properties to specify which build to execute,
+            and the <literal>tasks</literal> property to specify which tasks to execute.
+        </para>
+        <sample id="nestedBuild" dir="userguide/organizeBuildLogic/nestedBuild" title="Running another build from a build">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="other.gradle"/>
+            <output args="-q build"/>
+        </sample>
     </section>
 
     <section id='sec:external_dependencies'>
