@@ -15,17 +15,16 @@
  */
 package org.gradle.listener;
 
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StringScriptSource;
-import static org.gradle.util.HelperUtil.*;
 import org.gradle.util.TestClosure;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.gradle.util.HelperUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class ListenerBroadcastTest {
@@ -67,6 +66,23 @@ public class ListenerBroadcastTest {
         broadcast.add(listener2);
 
         broadcast.getSource().event1("param");
+    }
+
+    @Test
+    public void canDispatchEventToListeners() throws NoSuchMethodException {
+        final TestListener listener1 = context.mock(TestListener.class, "listener1");
+        final TestListener listener2 = context.mock(TestListener.class, "listener2");
+
+        context.checking(new Expectations() {{
+            one(listener1).event1("param");
+            one(listener2).event1("param");
+        }});
+
+        broadcast.add(listener1);
+        broadcast.add(listener2);
+
+        Event event = new Event(TestListener.class.getMethod("event1", String.class), new Object[] { "param" });
+        broadcast.dispatch(event);
     }
 
     @Test
@@ -199,18 +215,26 @@ public class ListenerBroadcastTest {
     }
 
     @Test
-    public void wrapsClosureExceptionWhenScriptSourceIsKnown() {
-        ScriptSource source = new StringScriptSource("source", "def c = { { -> throw new RuntimeException('failed') } }; return c()");
-        broadcast.add("event1", toClosure(source));
+    public void dispatchWrapsExceptionThrownByListener() throws NoSuchMethodException {
+        final TestListener listener = context.mock(TestListener.class);
+        final RuntimeException failure = new RuntimeException();
+
+        context.checking(new Expectations() {{
+            one(listener).event1("param");
+            will(throwException(failure));
+        }});
+
+        broadcast.add(listener);
 
         try {
-            broadcast.getSource().event1("param");
+            broadcast.dispatch(new Event(TestListener.class.getMethod("event1", String.class), new Object[]{"param"}));
             fail();
         } catch (ListenerNotificationException e) {
-            assertThat(e.getMessage(), containsString("Failed to notify test listener."));
-            assertThat(e.getCause().getMessage(), equalTo("failed"));
+            assertThat(e.getMessage(), equalTo("Failed to notify test listener."));
+            assertThat(e.getCause(), sameInstance((Throwable) failure));
         }
     }
+
 
     private interface TestListener {
         void event1(String param);

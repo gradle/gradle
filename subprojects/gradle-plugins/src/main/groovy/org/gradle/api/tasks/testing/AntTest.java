@@ -22,7 +22,6 @@ import org.gradle.api.testing.detection.SetBuildingTestClassProcessor;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,8 +69,6 @@ public class AntTest extends AbstractTestTask {
             toUseIncludes = testClassNames;
             toUseExcludes = new ArrayList<String>();
         }
-
-        GFileUtils.createDirectoriesWhenNotExistent(getTestResultsDir());// needed for JUnit reporting
 
         if (!(toUseIncludes.isEmpty() && toUseExcludes.isEmpty())) {
             testFrameworkInstance.execute(getProject(), this, toUseIncludes, toUseExcludes);

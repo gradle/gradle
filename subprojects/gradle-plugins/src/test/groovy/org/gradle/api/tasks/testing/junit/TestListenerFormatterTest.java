@@ -98,7 +98,7 @@ public class TestListenerFormatterTest {
     @Test
     public void testEndTestWithError() {
         context.checking(new Expectations() {{
-            one(testListenerMock).testFinished(with(aTestWithName(TEST_NAME)), with(aResultOf(TestListener.ResultType.ERROR, error)));
+            one(testListenerMock).testFinished(with(aTestWithName(TEST_NAME)), with(aResultOf(TestListener.ResultType.FAILURE, error)));
         }});
 
         testListenerFormatter.addError(testMock, error);
@@ -176,7 +176,6 @@ public class TestListenerFormatterTest {
             {
                 case SUCCESS:
                     return result.getResultType() == type;
-                case ERROR:
                 case FAILURE:
                     return result.getResultType() == type && result.getException() == throwable;
                 default:

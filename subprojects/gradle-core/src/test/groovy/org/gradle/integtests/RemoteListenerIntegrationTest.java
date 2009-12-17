@@ -69,9 +69,12 @@ public class RemoteListenerIntegrationTest {
 
         public static void main(String[] args) throws IOException {
             int port = Integer.parseInt(args[0]);
-            TestListenerInterface sender = new RemoteSender<TestListenerInterface>(TestListenerInterface.class, port).getSource();
+            RemoteSender<TestListenerInterface> remoteSender = new RemoteSender<TestListenerInterface>(
+                    TestListenerInterface.class, port);
+            TestListenerInterface sender = remoteSender.getSource();
             sender.send(FIRST_MESSAGE_TEXT, FIRST_MESSAGE_INT);
             sender.send(SECOND_MESSAGE_TEXT, SECOND_MESSAGE_INT);
+            remoteSender.close();
         }
     }
 

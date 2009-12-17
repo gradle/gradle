@@ -49,7 +49,7 @@ public interface TestListener {
         public String getName();
     }
 
-    public enum ResultType { SUCCESS, FAILURE, ERROR, SKIPPED }
+    public enum ResultType { SUCCESS, FAILURE, SKIPPED }
 
     /**
      * Describes a test result.
@@ -63,12 +63,11 @@ public interface TestListener {
         /**
          * If the test failed with an exception, this will be the exception.  Some
          * test frameworks do not fail without an exception (JUnit), so in those cases
-         * this method will never return null.  If the resultType is not ERROR or
-         * FAILURE an IllegalStateException is thrown.
+         * this method will never return null.  If the resultType is not FAILURE an IllegalStateException is thrown.
          * @return The exception, if any, logged for this test.  If none, a null is returned.
-         * @throws IllegalStateException If the result type is anything other than ERROR or FAILURE.
+         * @throws IllegalStateException If the result type is anything other than FAILURE.
          */
-        public Throwable getException(); // throws exception if type != ERROR or FAILURE
+        public Throwable getException(); // throws exception if type !=  FAILURE
     }
 
     /**

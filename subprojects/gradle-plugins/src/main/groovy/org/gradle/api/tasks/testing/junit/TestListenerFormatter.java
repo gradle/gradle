@@ -28,14 +28,15 @@ import junit.framework.AssertionFailedError;
 
 public class TestListenerFormatter implements JUnitResultFormatter {
     private static final String PORT_VMARG = "test.listener.remote.port";
+    private RemoteSender<TestListener> sender;
     private TestListener remoteSender;
     private Throwable error;
-    private AssertionFailedError failure;
 
     public TestListenerFormatter() throws IOException {
         int port = Integer.parseInt(System.getProperty(PORT_VMARG, "0"));
         if (port != 0) {
-            remoteSender = new RemoteSender<TestListener>(TestListener.class, port).getSource();
+            sender = new RemoteSender<TestListener>(TestListener.class, port);
+            remoteSender = sender.getSource();
         }
     }
 
@@ -66,13 +67,13 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     }
 
     public void addFailure(Test test, AssertionFailedError assertionFailedError) {
-        failure = assertionFailedError;
+        error = assertionFailedError;
     }
 
     public void endTest(Test test) {
-        remoteSender.testFinished(new MyTest(test), new MyResult(error, failure));
+        MyResult result = new MyResult(error);
         error = null;
-        failure = null;
+        remoteSender.testFinished(new MyTest(test), result);
     }
 
     public void startTest(Test test) {
@@ -85,6 +86,11 @@ public class TestListenerFormatter implements JUnitResultFormatter {
 
         public MySuite(JUnitTest jUnitTest) {
             name = jUnitTest.getName();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("suite %s", name);
         }
 
         public String getName() {
@@ -100,6 +106,11 @@ public class TestListenerFormatter implements JUnitResultFormatter {
             name = test.toString();
         }
 
+        @Override
+        public String toString() {
+            return String.format("test %s", name);
+        }
+
         public String getName() {
             return name;
         }
@@ -108,18 +119,13 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     private static class MyResult implements TestListener.Result
     {
         private Throwable error;
-        private AssertionFailedError failure;
 
-        private MyResult(Throwable error, AssertionFailedError failure) {
+        private MyResult(Throwable error) {
             this.error = error;
-            this.failure = failure;
         }
 
         public TestListener.ResultType getResultType() {
             if (error != null) {
-                return TestListener.ResultType.ERROR;
-            }
-            else if (failure != null) {
                 return TestListener.ResultType.FAILURE;
             }
             else {
@@ -130,8 +136,6 @@ public class TestListenerFormatter implements JUnitResultFormatter {
         public Throwable getException() {
             if (error != null) {
                 return error;
-            } else if (failure != null) {
-                return failure;
             }
 
             throw new IllegalStateException("No exception to return");

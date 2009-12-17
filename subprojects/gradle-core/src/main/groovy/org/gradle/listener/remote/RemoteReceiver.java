@@ -15,18 +15,26 @@
  */
 package org.gradle.listener.remote;
 
+import org.gradle.listener.Event;
 import org.gradle.listener.ListenerBroadcast;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+import java.io.*;
+import java.net.InetSocketAddress;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.Channels;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class RemoteReceiver  {
+public class RemoteReceiver implements Closeable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteReceiver.class);
     private final ListenerBroadcast<?> broadcaster;
-    private final ServerSocket serverSocket;
-    private final Thread receiverThread;
+    private final ServerSocketChannel serverSocket;
     private final ExceptionListener exceptionListener;
+    private final ExecutorService executor;
 
     public RemoteReceiver(ListenerBroadcast<?> broadcaster) throws IOException {
         this(broadcaster, null);
@@ -36,58 +44,72 @@ public class RemoteReceiver  {
         if (broadcaster == null) {
             throw new NullPointerException();
         }
-        
+
         this.broadcaster = broadcaster;
         this.exceptionListener = exceptionListener;
-        serverSocket = new ServerSocket(0);
-        receiverThread = new Thread(new Receiver(), "Remote Receiver Thread");
-        receiverThread.start();
+        serverSocket = ServerSocketChannel.open();
+        serverSocket.socket().bind(new InetSocketAddress(0));
+        executor = Executors.newCachedThreadPool();
+        executor.submit(new Receiver());
     }
 
     public int getBoundPort() {
-        return serverSocket.getLocalPort();
+        return serverSocket.socket().getLocalPort();
     }
 
     public void close() throws IOException {
-        receiverThread.interrupt();
         serverSocket.close();
+        executor.shutdownNow();
     }
 
-    private void processMessage(Socket socket)
-    {
-        try {
-            RemoteMessage message = RemoteMessage.receive(socket.getInputStream());
-            message.dispatch(broadcaster);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            if (exceptionListener != null) {
-                exceptionListener.receiverThrewException(e.getTargetException());
-            }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+    private class Handler implements Runnable {
+        private final SocketChannel socket;
+
+        public Handler(SocketChannel socket) {
+            this.socket = socket;
         }
-    }
 
-    private class Receiver implements Runnable
-    {
         public void run() {
-            while (true) {
-                try {
-                    processMessage(serverSocket.accept());
-                } catch (IOException e) {
-                    break; // let the thread die
+            try {
+                InputStream inputStream = new BufferedInputStream(Channels.newInputStream(socket));
+                while (true) {
+                    Event message = Event.receive(inputStream);
+
+                    try {
+                        broadcaster.dispatch(message);
+                    } catch (Exception e) {
+                        if (exceptionListener != null) {
+                            exceptionListener.receiverThrewException(e);
+                        }
+                    }
                 }
+            } catch (Exception e) {
+                if (e instanceof IOException && e.getMessage().startsWith(
+                        "An existing connection was forcibly closed by the remote host")) {
+                    // Ignore
+                    return;
+                }
+                LOGGER.warn("Could not handle remote event connection.", e);
             }
         }
     }
 
-    public static interface ExceptionListener
-    {
+    private class Receiver implements Runnable {
+        public void run() {
+            try {
+                while (true) {
+                    SocketChannel socket = serverSocket.accept();
+                    executor.submit(new Handler(socket));
+                }
+            } catch (AsynchronousCloseException e) {
+                // Ignore
+            } catch (IOException e) {
+                LOGGER.warn("Could not accept remote event connection.", e);
+            }
+        }
+    }
+
+    public static interface ExceptionListener {
         public void receiverThrewException(Throwable throwable);
     }
 }

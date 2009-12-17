@@ -17,6 +17,7 @@ package org.gradle.listener;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.gradle.api.GradleException;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
@@ -117,6 +118,21 @@ public class ListenerBroadcast<T> {
         handlers.remove(listener);
     }
 
+    /**
+     * Broadcasts the given event to all listeners.
+     * @param event The event
+     */
+    public void dispatch(Event event) {
+        try {
+            Method method = type.getMethod(event.getMethodName(), event.getParameters());
+            dispatch(method, event.getArguments());
+        } catch (ListenerNotificationException e) {
+            throw e;
+        } catch (Throwable throwable) {
+            throw new GradleException(throwable);
+        }
+    }
+    
     private String getErrorMessage() {
         String typeDescription = type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim().toLowerCase();
         return String.format("Failed to notify %s.", typeDescription);
@@ -126,6 +142,21 @@ public class ListenerBroadcast<T> {
         T oldLogger = this.logger.getDelegate();
         this.logger = new ListenerInvocationHandler(logger);
         return oldLogger;
+    }
+
+    private void dispatch(Method method, Object[] parameters) throws Throwable {
+        DefaultStandardOutputCapture standardOutputCapture = null;
+        if (getType() != StandardOutputListener.class) {
+            standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
+            standardOutputCapture.start();
+        }
+        logger.invoke(null, method, parameters);
+        for (InvocationHandler handler : handlers.values()) {
+            handler.invoke(null, method, parameters);
+        }
+        if (standardOutputCapture != null) {
+            standardOutputCapture.stop();
+        }
     }
 
     private class BroadcastInvocationHandler implements InvocationHandler {
@@ -140,18 +171,7 @@ public class ListenerBroadcast<T> {
             if (method.getName().equals("toString")) {
                 return String.format("%s broadcast", type.getSimpleName());
             }
-            DefaultStandardOutputCapture standardOutputCapture = null;
-            if (getType() != StandardOutputListener.class) {
-                standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
-                standardOutputCapture.start();
-            }
-            logger.invoke(null, method, parameters);
-            for (InvocationHandler handler : handlers.values()) {
-                handler.invoke(null, method, parameters);
-            }
-            if (standardOutputCapture != null) {
-                standardOutputCapture.stop();
-            }
+            dispatch(method, parameters);
             return null;
         }
     }

@@ -68,21 +68,7 @@ public class BootstrapUtil {
     }
 
     public static List<File> getGradleCoreFiles() {
-        List<File> files = gradleLibClasspath("gradle-core");
-        if (!files.isEmpty()) {
-            return files;
-        }
-
-        // Look for a classes dir
-        files = new ArrayList<File>();
-        for (File file : getGradleClasspath()) {
-            if (file.isDirectory()) {
-                if (new File(file, BootstrapUtil.class.getName().replace('.', '/') + ".class").isFile()) {
-                    files.add(file);
-                }
-            }
-        }
-        return files;
+        return gradleLibClasspath("gradle-core");
     }
 
     public static List<File> getGroovyFiles() {
@@ -106,14 +92,35 @@ public class BootstrapUtil {
     }
 
     public static List<File> gradleLibClasspath(String... prefixes) {
-        List<File> result = new ArrayList<File>();
-        for (File pathElement : getGradleClasspath()) {
+        List<File> files = new ArrayList<File>();
+        List<File> classpath = getGradleClasspath();
+        for (File pathElement : classpath) {
             for (String searchPattern : prefixes) {
                 if (pathElement.getName().startsWith(searchPattern + '-')) {
-                    result.add(pathElement);
+                    files.add(pathElement);
                 }
             }
         }
-        return result;
+
+        if (!files.isEmpty()) {
+            return files;
+        }
+
+        for (String prefix : prefixes) {
+            if (prefix.startsWith("gradle-")) {
+                // Look for a classes dir
+                files = new ArrayList<File>();
+                for (File file : classpath) {
+                    if (file.isDirectory()) {
+                        if (new File(file, BootstrapUtil.class.getName().replace('.', '/') + ".class").isFile()) {
+                            files.add(file);
+                        }
+                    }
+                }
+                return files;
+            }
+        }
+
+        return files;
     }
 }

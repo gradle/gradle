@@ -15,38 +15,40 @@
  */
 package org.gradle.listener.remote;
 
+import org.gradle.listener.Event;
+
+import java.io.*;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.Socket;
-import java.io.IOException;
 
-public class RemoteSender<T> {
+public class RemoteSender<T> implements Closeable {
     private final T source;
-    private final Class<T> type;
-    private final int port;
+    private final Socket socket;
+    private final OutputStream outstr;
 
     public RemoteSender(Class<T> type, int port) throws IOException {
-        this.type = type;
-        this.port = port;
-        source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[] { type },
-                                                  new SenderInvocationHandler()));
+        socket = new Socket((String) null, port);
+        outstr = new BufferedOutputStream(socket.getOutputStream());
+        source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
+                new SenderInvocationHandler()));
     }
 
     public T getSource() {
         return source;
     }
 
+    public void close() throws IOException {
+        socket.close();
+    }
+
     private class SenderInvocationHandler implements InvocationHandler {
         public Object invoke(Object target, Method method, Object[] arguments) throws Throwable {
-            Socket socket = new Socket((String)null, port);
-            try {
-                RemoteMessage message = new RemoteMessage(method, arguments);
-                message.send(socket.getOutputStream());
-                return null;
-            } finally {
-                socket.close();
-            }
+            Event event = new Event(method, arguments);
+            event.send(outstr);
+            outstr.flush();
+            return null;
         }
     }
 
