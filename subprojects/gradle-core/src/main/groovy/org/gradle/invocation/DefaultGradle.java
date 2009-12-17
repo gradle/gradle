@@ -17,22 +17,21 @@
 package org.gradle.invocation;
 
 import groovy.lang.Closure;
-import groovy.lang.Script;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
 import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -49,10 +48,7 @@ public class DefaultGradle implements GradleInternal {
     private StandardOutputRedirector standardOutputRedirector;
     private IProjectRegistry<ProjectInternal> projectRegistry;
     private PluginRegistry pluginRegistry;
-    private ScriptHandler scriptHandler;
-    private ScriptClassLoaderProvider scriptClassLoaderProvider;
     private final ListenerManager listenerManager;
-    private final DefaultIsolatedAntBuilder isolatedAntBuilder = new DefaultIsolatedAntBuilder();
     private final ServiceRegistryFactory services;
 
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
@@ -64,8 +60,6 @@ public class DefaultGradle implements GradleInternal {
         projectRegistry = services.get(IProjectRegistry.class);
         pluginRegistry = services.get(PluginRegistry.class);
         taskGraph = services.get(TaskGraphExecuter.class);
-        scriptHandler = services.get(ScriptHandler.class);
-        scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
     }
 
     public Gradle getParent() {
@@ -169,22 +163,6 @@ public class DefaultGradle implements GradleInternal {
         return listenerManager.getBroadcaster(BuildListener.class);
     }
 
-    public void setScript(Script script) {
-        // Ignore
-    }
-
-    public ScriptHandler getInitscript() {
-        return scriptHandler;
-    }
-
-    public void initscript(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getInitscript());
-    }
-
-    public ScriptClassLoaderProvider getClassLoaderProvider() {
-        return scriptClassLoaderProvider;
-    }
-
     public StandardOutputRedirector getStandardOutputRedirector() {
         return standardOutputRedirector;
     }
@@ -202,10 +180,6 @@ public class DefaultGradle implements GradleInternal {
 
     public Logger getLogger() {
         return logger;
-    }
-
-    public IsolatedAntBuilder getIsolatedAntBuilder() {
-        return isolatedAntBuilder;
     }
 
     public ServiceRegistryFactory getServiceRegistryFactory() {

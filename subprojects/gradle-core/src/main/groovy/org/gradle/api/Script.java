@@ -16,11 +16,15 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.initialization.dsl.ScriptHandler;
+
+import java.io.File;
 
 /**
  * <p>The base class for all scripts executed by Gradle. This is a extension to the Groovy {@code Script} class, which
- * adds in some Gradle-specific methods. Because your script will extends this class, you can use the methods and
- * properties of this class directly in your script.</p>
+ * adds in some Gradle-specific methods. As your compiled script class will implement this interface, you can use the
+ * methods and properties declared here directly in your script.</p>
  *
  * <p>Generally, a {@code Script} object will have a delegate object attached to it. For example, a build script will
  * have a {@link Project} object attached to it, and an initialization script will have a {@link
@@ -28,5 +32,56 @@ import groovy.lang.Closure;
  * on this {@code Script} object is forwarded to the delegate object.</p>
  */
 public interface Script {
+    /**
+     * <p>Configures the delegate object for this script using plugins or scripts. The given closure is used to
+     * configure an {@link org.gradle.api.plugins.ObjectConfigurationAction} which is then used to configure the
+     * delegate object.</p>
+     *
+     * @param closure The closure to configure the {@code ObjectConfigurationAction}.
+     */
     void apply(Closure closure);
+
+    /**
+     * Returns the script handler for this script. You can use this handler to manage the classpath used to compile and
+     * execute this script.
+     *
+     * @return the classpath handler. Never returns null.
+     */
+    ScriptHandler getBuildscript();
+
+    /**
+     * Configures the classpath for this script. The given closure is executed against this script's {@link
+     * ScriptHandler}. The {@link ScriptHandler} is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure the closure to use to configure the script classpath.
+     */
+    void buildscript(Closure configureClosure);
+
+    /**
+     * <p>Resolves a file path relative to this script. This works as described for {@link Project#file(Object)}</p>
+     *
+     * @param path The object to resolve as a File.
+     * @return The resolved file. Never returns null.
+     */
+    File file(Object path);
+
+    /**
+     * <p>Returns a {@link ConfigurableFileCollection} containing the given files. This works as described for {@link
+     * Project#files(Object...)}.</p>
+     *
+     * @param paths The paths to the files. May be empty.
+     * @return The file collection. Never returns null.
+     */
+    ConfigurableFileCollection files(Object... paths);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The file collection is configured
+     * using the given closure. This method works as described for {@link Project#files(Object,
+     * groovy.lang.Closure)}.</p>
+     *
+     * @param paths The contents of the file collection. Evaluated as for {@link #files(Object...)}.
+     * @param configureClosure The closure to use to configure the file collection.
+     * @return the configured file tree. Never returns null.
+     */
+    ConfigurableFileCollection files(Object paths, Closure configureClosure);
 }

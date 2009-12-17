@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GFileUtils;
 import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
@@ -73,7 +72,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
     }
 
     public void testExecute(final int numFilesCompiled) {
-        final IsolatedAntBuilder ant = ((ProjectInternal) testObj.getProject()).getGradle().getIsolatedAntBuilder();
+        final IsolatedAntBuilder ant = getProject().getServiceRegistryFactory().get(IsolatedAntBuilder.class);
         setUpMocksAndAttributes(testObj, TEST_GROOVY_CLASSPATH);
         context.checking(new Expectations(){{
             one(antGroovycCompileMock).execute(

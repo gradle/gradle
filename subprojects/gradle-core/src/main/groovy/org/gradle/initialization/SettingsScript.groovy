@@ -15,9 +15,9 @@
  */
 package org.gradle.initialization
 
-import org.gradle.groovy.scripts.BasicScript
+import org.gradle.groovy.scripts.DefaultScript
 
-abstract class SettingsScript extends BasicScript {
+abstract class SettingsScript extends DefaultScript {
     def String toString() {
         return scriptTarget.toString()
     }

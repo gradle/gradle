@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
+package org.gradle.api.internal.initialization;
 
-import org.gradle.configuration.ScriptObjectConfigurer;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 
-public interface ScriptAware {
-    void beforeCompile(ScriptObjectConfigurer configurer);
-
-    void afterCompile(ScriptObjectConfigurer configurer, Script script);
+public interface ScriptHandlerInternal extends ScriptHandler, ScriptClassLoaderProvider {
 }

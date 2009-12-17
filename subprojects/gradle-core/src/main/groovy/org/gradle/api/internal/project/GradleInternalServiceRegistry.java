@@ -16,33 +16,19 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
-import org.gradle.api.internal.artifacts.DefaultModule;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
-import org.gradle.api.internal.initialization.DefaultScriptHandler;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.execution.DefaultTaskGraphExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
 
-import java.io.File;
-
 /**
- * Contains the services for a given build.
+ * Contains the services for a given {@link GradleInternal} instance.
  */
 public class GradleInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final GradleInternal gradle;
@@ -72,17 +58,6 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
         return new DefaultPluginRegistry(gradle.getStartParameter().getPluginPropertiesFile());
     }
 
-    protected DefaultScriptHandler createDefaultScriptHandler() {
-        RepositoryHandler repositoryHandler = get(RepositoryHandlerFactory.class).createRepositoryHandler(
-                new DefaultConvention());
-        ConfigurationContainer configurationContainer = get(ConfigurationContainerFactory.class)
-                .createConfigurationContainer(repositoryHandler, new DependencyMetaDataProviderImpl());
-        DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, get(
-                DependencyFactory.class), get(ProjectFinder.class));
-        return new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer,
-                Thread.currentThread().getContextClassLoader());
-    }
-
     protected InternalRepository createInternalRepository() {
         return new DefaultInternalRepository(gradle, get(PublishModuleDescriptorConverter.class));
     }
@@ -92,23 +67,5 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
             return new ProjectInternalServiceRegistry(this, (ProjectInternal) domainObject);
         }
         throw new UnsupportedOperationException();
-    }
-
-    private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        public InternalRepository getInternalRepository() {
-            return get(InternalRepository.class);
-        }
-
-        public File getGradleUserHomeDir() {
-            return gradle.getGradleUserHomeDir();
-        }
-
-        public Module getModuleForPublicDescriptor() {
-            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
-        }
-
-        public Module getModuleForResolve() {
-            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
-        }
     }
 }

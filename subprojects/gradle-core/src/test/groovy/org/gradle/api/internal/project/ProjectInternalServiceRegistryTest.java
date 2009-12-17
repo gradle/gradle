@@ -35,14 +35,15 @@ import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.TaskContainer;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class ProjectInternalServiceRegistryTest {
@@ -84,19 +85,19 @@ public class ProjectInternalServiceRegistryTest {
     }
 
     @Test
-    public void projectProvidesAConvention() {
+    public void providesAConvention() {
         assertThat(registry.get(Convention.class), instanceOf(DefaultConvention.class));
         assertThat(registry.get(Convention.class), sameInstance(registry.get(Convention.class)));
     }
 
     @Test
-    public void projectProvidesATaskContainer() {
+    public void providesATaskContainer() {
         assertThat(registry.get(TaskContainer.class), instanceOf(DefaultTaskContainer.class));
         assertThat(registry.get(TaskContainer.class), sameInstance(registry.get(TaskContainer.class)));
     }
 
     @Test
-    public void projectProvidesARepositoryHandler() {
+    public void providesARepositoryHandler() {
         final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
 
         context.checking(new Expectations() {{
@@ -109,7 +110,7 @@ public class ProjectInternalServiceRegistryTest {
     }
 
     @Test
-    public void projectProvidesAnArtifactHandler() {
+    public void providesAnArtifactHandler() {
         expectConfigurationHandlerCreated();
 
         assertThat(registry.get(ArtifactHandler.class), instanceOf(DefaultArtifactHandler.class));
@@ -117,7 +118,7 @@ public class ProjectInternalServiceRegistryTest {
     }
 
     @Test
-    public void projectProvidesADependencyHandler() {
+    public void providesADependencyHandler() {
         expectConfigurationHandlerCreated();
 
         assertThat(registry.get(DependencyHandler.class), instanceOf(DefaultDependencyHandler.class));
@@ -125,13 +126,13 @@ public class ProjectInternalServiceRegistryTest {
     }
 
     @Test
-    public void projectProvidesAnAntBuilderFactory() {
+    public void providesAnAntBuilderFactory() {
         assertThat(registry.get(AntBuilderFactory.class), instanceOf(DefaultAntBuilderFactory.class));
         assertThat(registry.get(AntBuilderFactory.class), sameInstance(registry.get(AntBuilderFactory.class)));
     }
 
     @Test
-    public void projectProvidesAScriptHandlerAndScriptClassLoaderProvider() {
+    public void providesAScriptHandlerAndScriptClassLoaderProvider() {
         expectConfigurationHandlerCreated();
         context.checking(new Expectations() {{
             allowing(project).getParent();

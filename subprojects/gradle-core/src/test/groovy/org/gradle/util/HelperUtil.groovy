@@ -32,12 +32,16 @@ import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.tasks.DefaultTaskExecuter
+import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
+import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
@@ -45,10 +49,6 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultGradle
 import org.gradle.api.internal.project.*
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.DefaultTaskExecuter
-import org.gradle.api.execution.TaskActionListener
-import org.gradle.groovy.scripts.BasicScript
 
 /**
  * @author Hans Dockter
@@ -198,10 +198,5 @@ public interface TestClosure {
     Object call(Object param);
 }
 
-public abstract class TestScript extends BasicScript {
-
-    ClassLoader getContextClassloader() {
-        getClass().classLoader
-    }
-
+public abstract class TestScript extends DefaultScript {
 }

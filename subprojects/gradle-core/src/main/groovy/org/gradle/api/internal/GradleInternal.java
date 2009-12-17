@@ -21,13 +21,12 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.BuildListener;
-import org.gradle.groovy.scripts.ScriptAware;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
  * consumption.  
  */
-public interface GradleInternal extends Gradle, ScriptAware {
+public interface GradleInternal extends Gradle {
     /**
      * {@inheritDoc}
      */
@@ -83,8 +82,6 @@ public interface GradleInternal extends Gradle, ScriptAware {
      * Returns the broadcaster for {@link BuildListener} events
      */
     BuildListener getBuildListenerBroadcaster();
-
-    IsolatedAntBuilder getIsolatedAntBuilder();
 
     ServiceRegistryFactory getServiceRegistryFactory();
 }

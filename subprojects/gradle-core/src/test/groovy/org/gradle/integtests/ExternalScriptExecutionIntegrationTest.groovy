@@ -23,7 +23,18 @@ import org.junit.Test
 public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void executesExternalScriptAgainstAProjectWithCorrectEnvironment() {
+        ArtifactBuilder builder = artifactBuilder();
+        builder.sourceFile('org/gradle/test/BuildClass.java') << '''
+            package org.gradle.test;
+            public class BuildClass { }
+'''
+        builder.buildJar(testFile("repo/test-1.3.jar"));
+
         testFile('external.gradle') << '''
+buildscript {
+    dependencies { classpath files('repo/test-1.3.jar') }
+}
+new org.gradle.test.BuildClass()
 println 'quiet message'
 captureStandardOutput(LogLevel.ERROR)
 println 'error message'
@@ -80,7 +91,7 @@ class ListenerImpl extends BuildAdapter {
     public void canExecuteExternalScriptAgainstAnArbitraryObject() {
         testFile('external.gradle') << '''
 assertEquals('doStuff', name)
-assertSame(Thread.currentThread().contextClassLoader, project.buildscript.classLoader)
+//assertSame(Thread.currentThread().contextClassLoader.parent, project.gradle.buildScriptClassLoader)
 someProp = 'value'
 '''
         testFile('build.gradle') << '''

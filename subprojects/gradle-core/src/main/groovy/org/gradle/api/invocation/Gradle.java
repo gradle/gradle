@@ -21,7 +21,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 
@@ -165,22 +164,6 @@ public interface Gradle {
      * @return this. Never returns null.
      */
     Gradle getGradle();
-
-    /**
-     * Returns the init script handler for this build. You can use this handler to manage the classpath used to compile
-     * and execute the build's init scripts.
-     *
-     * @return the classpath handler. Never returns null.
-     */
-    ScriptHandler getInitscript();
-
-    /**
-     * Configures the init script classpath for this build. The given closure is executed against this build's {@link
-     * ScriptHandler}. The {@link ScriptHandler} is passed to the closure as the closure's delegate.
-     *
-     * @param configureClosure the closure to use to configure the init script classpath.
-     */
-    void initscript(Closure configureClosure);
 
     /**
      * Disables redirection of standard output during init script evaluation. By default redirection is enabled.

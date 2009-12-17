@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.archive.TarFileTree;
@@ -50,6 +49,7 @@ import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.internal.file.FileSet;
 import org.gradle.configuration.ProjectEvaluator;
+import org.gradle.configuration.ScriptObjectConfigurer;
 import org.gradle.configuration.ScriptObjectConfigurerFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerBroadcast;
@@ -221,10 +221,6 @@ public abstract class AbstractProject implements ProjectInternal {
         return projectPluginsHandler;
     }
 
-    public void setProjectPluginsHandler(ProjectPluginsContainer projectPluginsHandler) {
-        this.projectPluginsHandler = projectPluginsHandler;
-    }
-
     public ProjectEvaluator getProjectEvaluator() {
         return projectEvaluator;
     }
@@ -237,8 +233,19 @@ public abstract class AbstractProject implements ProjectInternal {
         return scriptHandler;
     }
 
-    public ScriptClassLoaderProvider getClassLoaderProvider() {
-        return scriptClassLoaderProvider;
+    public void beforeCompile(ScriptObjectConfigurer configurer) {
+        if (configurer.getSource() != buildScriptSource) {
+            return;
+        }
+        configurer.setScriptBaseClass(ProjectScript.class);
+        configurer.setClassLoaderProvider(scriptClassLoaderProvider);
+    }
+
+    public void afterCompile(ScriptObjectConfigurer configurer, org.gradle.groovy.scripts.Script script) {
+        if (configurer.getSource() != buildScriptSource) {
+            return;
+        }
+        setScript(script);
     }
 
     public File getBuildFile() {
@@ -254,10 +261,6 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public void setScript(Script buildScript) {
-        if (this.buildScript != null) {
-            // Ignore
-            return;
-        }
         this.buildScript = buildScript;
         dynamicObjectHelper.addObject(new BeanDynamicObject(buildScript).withNoProperties(),
                 DynamicObjectHelper.Location.BeforeConvention);
@@ -265,10 +268,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public ScriptSource getBuildScriptSource() {
         return buildScriptSource;
-    }
-
-    public void setBuildScriptSource(ScriptSource buildScriptSource) {
-        this.buildScriptSource = buildScriptSource;
     }
 
     public File getRootDir() {
@@ -335,20 +334,12 @@ public abstract class AbstractProject implements ProjectInternal {
         return dependsOnProjects;
     }
 
-    public void setDependsOnProjects(Set<Project> dependsOnProjects) {
-        this.dependsOnProjects = dependsOnProjects;
-    }
-
     public Map<String, Object> getAdditionalProperties() {
         return dynamicObjectHelper.getAdditionalProperties();
     }
 
     public State getState() {
         return state;
-    }
-
-    public void setState(State state) {
-        this.state = state;
     }
 
     public FileResolver getFileResolver() {
@@ -375,16 +366,8 @@ public abstract class AbstractProject implements ProjectInternal {
         return repositoryHandler;
     }
 
-    public void setRepositoryHandler(DefaultRepositoryHandler repositoryHandlerFactory) {
-        this.repositoryHandler = repositoryHandlerFactory;
-    }
-
     public RepositoryHandlerFactory getRepositoryHandlerFactory() {
         return repositoryHandlerFactory;
-    }
-
-    public void setRepositoryHandlerFactory(RepositoryHandlerFactory repositoryHandlerFactory) {
-        this.repositoryHandlerFactory = repositoryHandlerFactory;
     }
 
     public ConfigurationContainer getConfigurations() {
@@ -421,10 +404,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public IProjectRegistry<ProjectInternal> getProjectRegistry() {
         return projectRegistry;
-    }
-
-    public void setProjectRegistry(IProjectRegistry<ProjectInternal> projectRegistry) {
-        this.projectRegistry = projectRegistry;
     }
 
     @Override

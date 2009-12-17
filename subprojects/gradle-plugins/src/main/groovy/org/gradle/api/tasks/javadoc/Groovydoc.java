@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.*;
 
@@ -64,10 +64,9 @@ public class Groovydoc extends SourceTask {
     protected void generate() {
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
-        ProjectInternal project = (ProjectInternal) getProject();
+        IsolatedAntBuilder builder = getServices().get(IsolatedAntBuilder.class);
         antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(), getDocTitle(), getHeader(),
-                getFooter(), getOverview(), isIncludePrivate(), getLinks(), project.getGradle().getIsolatedAntBuilder(),
-                taskClasspath, project);
+                getFooter(), getOverview(), isIncludePrivate(), getLinks(), builder, taskClasspath, getProject());
     }
 
     private void throwExceptionIfTaskClasspathIsEmpty(List taskClasspath) {

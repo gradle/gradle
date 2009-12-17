@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
                                                      List<DependencyResolver> otherResolvers, DependencyResolver internalRepository, 
                                                      ChainResolver userResolverChain, ClientModuleResolver clientModuleResolver,
                                                      ChainResolver outerChain) {
-        List<DependencyResolver> allResolvers = new ArrayList(otherResolvers);
+        List<DependencyResolver> allResolvers = new ArrayList<DependencyResolver>(otherResolvers);
         allResolvers.addAll(classpathResolvers);
         allResolvers.addAll(WrapUtil.toList(internalRepository, outerChain, clientModuleResolver, userResolverChain));
         return allResolvers;

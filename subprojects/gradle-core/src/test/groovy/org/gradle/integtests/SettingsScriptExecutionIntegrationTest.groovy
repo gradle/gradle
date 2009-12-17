@@ -22,12 +22,29 @@ import static org.hamcrest.Matchers.*
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void executesSettingsScriptWithCorrectEnvironment() {
+        ArtifactBuilder builder = artifactBuilder();
+        builder.sourceFile('org/gradle/test/BuildClass.java') << '''
+            package org.gradle.test;
+            public class BuildClass { }
+'''
+        builder.buildJar(testFile("repo/test-1.3.jar"));
+
+        testFile('buildSrc/src/main/java/BuildSrcClass.java') << '''
+            public class BuildSrcClass { }
+'''
+
         testFile('settings.gradle') << '''
+buildscript {
+    dependencies { classpath files('repo/test-1.3.jar') }
+}
+new org.gradle.test.BuildClass()
+new BuildSrcClass();
 println 'quiet message'
 captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 assertNotNull(settings)
-assertSame(Thread.currentThread().contextClassLoader, classLoader)
+assertSame(Thread.currentThread().contextClassLoader, buildscript.classLoader)
+assertSame(Thread.currentThread().contextClassLoader.parent, classLoader)
 '''
         testFile('build.gradle') << 'task doStuff'
 

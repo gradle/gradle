@@ -15,20 +15,19 @@
  */
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.initialization.dsl.ScriptHandler;
+import groovy.lang.Closure;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.ConfigureUtil;
-import groovy.lang.Closure;
 
-import java.net.URLClassLoader;
-import java.net.URL;
-import java.net.MalformedURLException;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 
-public class DefaultScriptHandler implements ScriptHandler, ScriptClassLoaderProvider {
+public class DefaultScriptHandler implements ScriptHandlerInternal {
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
     private final ConfigurationContainer configContainer;

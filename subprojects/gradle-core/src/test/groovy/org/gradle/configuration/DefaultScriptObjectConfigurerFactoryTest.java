@@ -16,7 +16,8 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.artifacts.dsl.ClasspathScriptTransformer;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.groovy.scripts.*;
@@ -45,8 +46,13 @@ public class DefaultScriptObjectConfigurerFactoryTest {
     private final ScriptSource scriptSourceMock = context.mock(ScriptSource.class);
     private final ScriptRunner scriptRunnerMock = context.mock(ScriptRunner.class, "scriptRunner");
     private final BasicScript scriptMock = context.mock(BasicScript.class);
-    private final URLClassLoader defaultClassLoader = new URLClassLoader(new URL[0]);
-    private final DefaultScriptObjectConfigurerFactory factory = new DefaultScriptObjectConfigurerFactory(scriptCompilerFactoryMock, importsReaderMock);
+    private final URLClassLoader parentClassLoader = new URLClassLoader(new URL[0]);
+    private final URLClassLoader scriptClassLoader = new URLClassLoader(new URL[0]);
+    private final ScriptHandlerFactory scriptHandlerFactoryMock = context.mock(ScriptHandlerFactory.class);
+    private final ScriptHandlerInternal scriptHandlerMock = context.mock(ScriptHandlerInternal.class);
+    private final ScriptRunner classPathScriptRunnerMock = context.mock(ScriptRunner.class, "classpathScriptRunner");
+    private final BasicScript classPathScriptMock = context.mock(BasicScript.class, "classpathScript");
+    private final DefaultScriptObjectConfigurerFactory factory = new DefaultScriptObjectConfigurerFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock);
 
     @Test
     public void configuresATargetObjectUsingScript() {
@@ -58,55 +64,19 @@ public class DefaultScriptObjectConfigurerFactoryTest {
             one(scriptCompilerFactoryMock).createCompiler(with(reflectionEquals(new ImportsScriptSource(scriptSourceMock, importsReaderMock, null))));
             will(returnValue(scriptCompilerMock));
 
-            one(scriptCompilerMock).setClassloader(defaultClassLoader);
-            inSequence(sequence);
+            one(scriptHandlerFactoryMock).create(parentClassLoader);
+            will(returnValue(scriptHandlerMock));
 
-            one(scriptCompilerMock).compile(BasicScript.class);
-            will(returnValue(scriptRunnerMock));
-            inSequence(sequence);
+            allowing(scriptHandlerMock).getClassLoader();
+            will(returnValue(scriptClassLoader));
 
-            allowing(scriptRunnerMock).getScript();
-            will(returnValue(scriptMock));
-
-            one(scriptMock).init(with(sameInstance(target)), with(notNullValue(ServiceRegistry.class)));
-            inSequence(sequence);
-
-            one(scriptRunnerMock).run();
-            inSequence(sequence);
-        }});
-
-        ScriptObjectConfigurer configurer = factory.create(scriptSourceMock);
-        configurer.setClassLoader(defaultClassLoader);
-        configurer.apply(target);
-    }
-
-    @Test
-    public void configuresAScriptAwareObjectUsingScript() {
-        final ScriptClassLoaderProvider buildClassLoaderProviderMock = context.mock(ScriptClassLoaderProvider.class);
-        final ScriptAware target = context.mock(ScriptAware.class);
-        final URLClassLoader classLoader = new URLClassLoader(new URL[0]);
-        final ScriptRunner classPathScriptRunnerMock = context.mock(ScriptRunner.class, "classpathScriptRunner");
-        final BasicScript classPathScriptMock = context.mock(BasicScript.class, "classpathScript");
-
-        context.checking(new Expectations() {{
-            Sequence sequence = context.sequence("seq");
-
-            one(scriptCompilerFactoryMock).createCompiler(with(reflectionEquals(new ImportsScriptSource(scriptSourceMock, importsReaderMock, null))));
-            will(returnValue(scriptCompilerMock));
-
-            allowing(target).getClassLoaderProvider();
-            will(returnValue(buildClassLoaderProviderMock));
-            
-            allowing(buildClassLoaderProviderMock).getClassLoader();
-            will(returnValue(classLoader));
-
-            one(scriptCompilerMock).setClassloader(classLoader);
+            one(scriptCompilerMock).setClassloader(scriptClassLoader);
             inSequence(sequence);
 
             one(scriptCompilerMock).setTransformer(with(any(ClasspathScriptTransformer.class)));
             inSequence(sequence);
 
-            one(scriptCompilerMock).compile(BasicScript.class);
+            one(scriptCompilerMock).compile(DefaultScript.class);
             will(returnValue(classPathScriptRunnerMock));
 
             allowing(classPathScriptRunnerMock).getScript();
@@ -118,13 +88,13 @@ public class DefaultScriptObjectConfigurerFactoryTest {
             one(classPathScriptRunnerMock).run();
             inSequence(sequence);
 
-            one(buildClassLoaderProviderMock).updateClassPath();
+            one(scriptHandlerMock).updateClassPath();
             inSequence(sequence);
-
+            
             one(scriptCompilerMock).setTransformer(with(notNullValue(Transformer.class)));
             inSequence(sequence);
-
-            one(scriptCompilerMock).compile(BasicScript.class);
+            
+            one(scriptCompilerMock).compile(DefaultScript.class);
             will(returnValue(scriptRunnerMock));
             inSequence(sequence);
 
@@ -134,7 +104,68 @@ public class DefaultScriptObjectConfigurerFactoryTest {
             one(scriptMock).init(with(sameInstance(target)), with(notNullValue(ServiceRegistry.class)));
             inSequence(sequence);
 
-            one(target).setScript(scriptMock);
+            one(scriptRunnerMock).run();
+            inSequence(sequence);
+        }});
+
+        ScriptObjectConfigurer configurer = factory.create(scriptSourceMock);
+        configurer.setClassLoader(parentClassLoader);
+        configurer.apply(target);
+    }
+
+    @Test
+    public void configuresAScriptAwareObjectUsingScript() {
+        final ScriptAware target = context.mock(ScriptAware.class);
+
+        context.checking(new Expectations() {{
+            Sequence sequence = context.sequence("seq");
+
+            one(scriptCompilerFactoryMock).createCompiler(with(reflectionEquals(new ImportsScriptSource(scriptSourceMock, importsReaderMock, null))));
+            will(returnValue(scriptCompilerMock));
+
+            allowing(target).beforeCompile(with(notNullValue(ScriptObjectConfigurer.class)));
+
+            one(scriptHandlerFactoryMock).create(parentClassLoader);
+            will(returnValue(scriptHandlerMock));
+            
+            allowing(scriptHandlerMock).getClassLoader();
+            will(returnValue(scriptClassLoader));
+
+            one(scriptCompilerMock).setClassloader(scriptClassLoader);
+            inSequence(sequence);
+
+            one(scriptCompilerMock).setTransformer(with(any(ClasspathScriptTransformer.class)));
+            inSequence(sequence);
+
+            one(scriptCompilerMock).compile(DefaultScript.class);
+            will(returnValue(classPathScriptRunnerMock));
+
+            allowing(classPathScriptRunnerMock).getScript();
+            will(returnValue(classPathScriptMock));
+
+            one(classPathScriptMock).init(with(sameInstance(target)), with(notNullValue(ServiceRegistry.class)));
+            inSequence(sequence);
+
+            one(classPathScriptRunnerMock).run();
+            inSequence(sequence);
+
+            one(scriptHandlerMock).updateClassPath();
+            inSequence(sequence);
+
+            one(scriptCompilerMock).setTransformer(with(notNullValue(Transformer.class)));
+            inSequence(sequence);
+
+            one(scriptCompilerMock).compile(DefaultScript.class);
+            will(returnValue(scriptRunnerMock));
+            inSequence(sequence);
+
+            allowing(scriptRunnerMock).getScript();
+            will(returnValue(scriptMock));
+
+            one(scriptMock).init(with(sameInstance(target)), with(notNullValue(ServiceRegistry.class)));
+            inSequence(sequence);
+
+            one(target).afterCompile(with(notNullValue(ScriptObjectConfigurer.class)), with(sameInstance(scriptMock)));
             inSequence(sequence);
 
             one(scriptRunnerMock).run();
@@ -142,6 +173,7 @@ public class DefaultScriptObjectConfigurerFactoryTest {
         }});
 
         ScriptObjectConfigurer configurer = factory.create(scriptSourceMock);
+        configurer.setClassLoader(parentClassLoader);
         configurer.apply(target);
     }
 }

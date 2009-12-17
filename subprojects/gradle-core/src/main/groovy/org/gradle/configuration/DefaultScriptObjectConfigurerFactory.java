@@ -18,18 +18,24 @@ package org.gradle.configuration;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.project.ImportsReader;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.groovy.scripts.*;
 
 public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigurerFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
+    private final ScriptHandlerFactory scriptHandlerFactory;
 
     public DefaultScriptObjectConfigurerFactory(ScriptCompilerFactory scriptCompilerFactory,
-                                                ImportsReader importsReader) {
+                                                ImportsReader importsReader,
+                                                ScriptHandlerFactory scriptHandlerFactory) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
+        this.scriptHandlerFactory = scriptHandlerFactory;
     }
 
     public ScriptObjectConfigurer create(ScriptSource scriptSource) {
@@ -38,12 +44,17 @@ public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigu
 
     private class ScriptObjectConfigurerImpl implements ScriptObjectConfigurer {
         private final ScriptSource scriptSource;
-        private String classpathClosureName = "script";
-        private Class<? extends BasicScript> scriptType = BasicScript.class;
-        private ClassLoader classLoader;
+        private String classpathClosureName = "buildscript";
+        private Class<? extends BasicScript> scriptType = DefaultScript.class;
+        private ScriptClassLoaderProvider classLoaderProvider;
+        private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
         public ScriptObjectConfigurerImpl(ScriptSource scriptSource) {
             this.scriptSource = scriptSource;
+        }
+
+        public ScriptSource getSource() {
+            return scriptSource;
         }
 
         public ScriptObjectConfigurer setClasspathClosureName(String name) {
@@ -56,45 +67,58 @@ public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigu
             return this;
         }
 
+        public ScriptObjectConfigurer setClassLoaderProvider(ScriptClassLoaderProvider classLoaderProvider) {
+            this.classLoaderProvider = classLoaderProvider;
+            return this;
+        }
+
         public ScriptObjectConfigurer setScriptBaseClass(Class<? extends BasicScript> type) {
             scriptType = type;
             return this;
         }
 
         public void apply(Object target) {
-            ScriptSource withImports = new ImportsScriptSource(scriptSource, importsReader, null);
-            ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
-            if (target instanceof ScriptAware) {
-                ScriptAware scriptAware = (ScriptAware) target;
-                ScriptClassLoaderProvider classLoaderProvider = scriptAware.getClassLoaderProvider();
-                compiler.setClassloader(classLoaderProvider.getClassLoader());
-
-                BuildScriptClasspathScriptTransformer classpathScriptTransformer
-                        = new BuildScriptClasspathScriptTransformer(classpathClosureName);
-                compiler.setTransformer(classpathScriptTransformer);
-                ScriptRunner<? extends BasicScript> classPathScript = compiler.compile(scriptType);
-                setDelegate(classPathScript, target);
-
-                classPathScript.run();
-                classLoaderProvider.updateClassPath();
-                
-                compiler.setTransformer(new BuildScriptTransformer(classpathScriptTransformer));
-                ScriptRunner<? extends BasicScript> script = compiler.compile(scriptType);
-                setDelegate(script, target);
-                scriptAware.setScript(script.getScript());
-                script.run();
-            }
-            else {
-                compiler.setClassloader(classLoader);
-                ScriptRunner<? extends BasicScript> script = compiler.compile(scriptType);
-                setDelegate(script, target);
-                script.run();
-            }
-        }
-
-        private void setDelegate(ScriptRunner<? extends BasicScript> scriptRunner, Object target) {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptObjectConfigurerFactory.class, DefaultScriptObjectConfigurerFactory.this);
+
+            ScriptAware scriptAware = null;
+            if (target instanceof ScriptAware) {
+                scriptAware = (ScriptAware) target;
+                scriptAware.beforeCompile(this);
+            }
+            ScriptClassLoaderProvider classLoaderProvider = this.classLoaderProvider;
+
+            if (classLoaderProvider == null) {
+                ScriptHandlerInternal defaultScriptHandler = scriptHandlerFactory.create(classLoader);
+                services.add(ScriptHandlerInternal.class, defaultScriptHandler);
+                classLoaderProvider = defaultScriptHandler;
+            }
+            
+            ScriptSource withImports = new ImportsScriptSource(scriptSource, importsReader, null);
+            ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
+
+            compiler.setClassloader(classLoaderProvider.getClassLoader());
+
+            BuildScriptClasspathScriptTransformer classpathScriptTransformer
+                    = new BuildScriptClasspathScriptTransformer(classpathClosureName);
+            compiler.setTransformer(classpathScriptTransformer);
+            ScriptRunner<? extends BasicScript> classPathScript = compiler.compile(scriptType);
+            setDelegate(classPathScript, target, services);
+
+            classPathScript.run();
+            classLoaderProvider.updateClassPath();
+
+            compiler.setTransformer(new BuildScriptTransformer(classpathScriptTransformer));
+            ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);
+            setDelegate(runner, target, services);
+            if (scriptAware != null) {
+                scriptAware.afterCompile(this, runner.getScript());
+            }
+
+            runner.run();
+        }
+
+        private void setDelegate(ScriptRunner<? extends BasicScript> scriptRunner, Object target, ServiceRegistry services) {
             scriptRunner.getScript().init(target, services);
         }
     }

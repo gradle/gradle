@@ -20,18 +20,31 @@ import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.internal.project.DefaultProject
 import static org.junit.Assert.assertEquals
 import org.junit.Test
+import org.gradle.api.internal.project.ServiceRegistry
+import org.junit.runner.RunWith
+import org.jmock.integration.junit4.JMock
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.api.initialization.dsl.ScriptHandler
 
 /**
  * @author Hans Dockter
  */
-class DefaultScriptMetaDataTest {
+@RunWith(JMock)
+class DefaultScriptTest {
+    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+
     @Test public void testApplyMetaData() {
-        DefaultScriptMetaData projectScriptMetaData = new DefaultScriptMetaData()
+        ServiceRegistry serviceRegistryMock = context.mock(ServiceRegistry.class)
+        context.checking {
+            allowing(serviceRegistryMock).get(ScriptHandler.class)
+            will(returnValue(context.mock(ScriptHandler.class)))
+        }
+
+        DefaultScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
         DefaultProject testProject = new DefaultProject('someproject')
         testProject.custom = 'true'
-        BasicScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)
-        projectScriptMetaData.applyMetaData(script, testProject)
-        script.scriptTarget = testProject
+        script.setScriptSource(new StringScriptSource('script', '//'))
+        script.init(testProject, serviceRegistryMock)
         script.run();
         assertEquals("scriptMethod", script.scriptMethod())
         assertEquals(testProject.path + "mySuffix", script.scriptProperty)
@@ -40,7 +53,7 @@ class DefaultScriptMetaDataTest {
 
     private CompilerConfiguration createBaseCompilerConfiguration() {
         CompilerConfiguration configuration = new CompilerConfiguration()
-        configuration.scriptBaseClass = BasicScript.class.name
+        configuration.scriptBaseClass = DefaultScript.class.name
         configuration
     }
 

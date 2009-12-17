@@ -63,7 +63,7 @@ public class DefaultServiceRegistryTest {
 
         context.checking(new Expectations(){{
             one(parent).get(Map.class);
-            will(throwException(new IllegalArgumentException()));
+            will(throwException(new DefaultServiceRegistry.UnknownServiceException(Map.class, "fail")));
         }});
 
         try {

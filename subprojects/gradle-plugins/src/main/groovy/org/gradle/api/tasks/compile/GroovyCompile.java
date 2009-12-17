@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.util.GUtil;
@@ -49,8 +49,8 @@ public class GroovyCompile extends Compile {
         // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
-        ProjectInternal project = (ProjectInternal) getProject();
-        antGroovyCompile.execute(project.getGradle().getIsolatedAntBuilder(), getSource(), getDestinationDir(),
+        IsolatedAntBuilder builder = getServices().get(IsolatedAntBuilder.class);
+        antGroovyCompile.execute(builder, getSource(), getDestinationDir(),
                 classpath, getSourceCompatibility(), getTargetCompatibility(), getGroovyOptions(), getOptions(),
                 taskClasspath);
         setDidWork(antGroovyCompile.getNumFilesCompiled() > 0);

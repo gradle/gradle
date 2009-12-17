@@ -16,7 +16,6 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -51,8 +50,6 @@ public class BuildScriptProcessorTest {
             one(configurerFactory).create(scriptSource);
             will(returnValue(scriptObjectConfigurer));
 
-            one(scriptObjectConfigurer).setClasspathClosureName("buildscript");
-            one(scriptObjectConfigurer).setScriptBaseClass(ProjectScript.class);
             one(scriptObjectConfigurer).apply(project);
         }});
 

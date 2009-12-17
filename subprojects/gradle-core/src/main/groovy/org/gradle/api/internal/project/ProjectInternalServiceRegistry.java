@@ -33,7 +33,8 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.initialization.DefaultScriptHandler;
+import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -98,21 +99,19 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
                 get(ProjectFinder.class));
     }
 
-    protected DefaultScriptHandler createScriptHandler() {
-        RepositoryHandler repositoryHandler = get(RepositoryHandlerFactory.class).createRepositoryHandler(
-                new DefaultConvention());
-        ConfigurationContainer configurationContainer = get(ConfigurationContainerFactory.class)
-                .createConfigurationContainer(repositoryHandler, get(DependencyMetaDataProvider.class));
-        DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer,
-                get(DependencyFactory.class), get(ProjectFinder.class));
+    protected ScriptHandlerInternal createScriptHandler() {
+        DefaultScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
+                get(RepositoryHandlerFactory.class),
+                get(ConfigurationContainerFactory.class),
+                get(DependencyMetaDataProvider.class),
+                get(DependencyFactory.class));
         ClassLoader parentClassLoader;
         if (project.getParent() != null) {
-            parentClassLoader = project.getParent().getClassLoaderProvider().getClassLoader();
+            parentClassLoader = project.getParent().getBuildscript().getClassLoader();
         } else {
             parentClassLoader = project.getGradle().getBuildScriptClassLoader();
         }
-        return new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer,
-                parentClassLoader);
+        return factory.create(parentClassLoader);
     }
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {

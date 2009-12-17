@@ -85,13 +85,16 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         if (parent != null) {
             try {
                 return parent.get(serviceType);
-            } catch (IllegalArgumentException e) {
+            } catch (UnknownServiceException e) {
+                if (!e.type.equals(serviceType)) {
+                    throw e;
+                }
                 // Ignore
             }
         }
 
-        throw new IllegalArgumentException(String.format("No service of type %s available in %s.",
-                serviceType.getSimpleName(), this));
+        throw new UnknownServiceException(serviceType,
+                String.format("No service of type %s available in %s.", serviceType.getSimpleName(), this));
     }
 
     private static Object invoke(Method method, Object target, Object... args) {
@@ -167,6 +170,15 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         @Override
         protected Object create() {
             return serviceInstance;
+        }
+    }
+
+    static class UnknownServiceException extends IllegalArgumentException {
+        private final Class<?> type;
+
+        UnknownServiceException(Class<?> type, String message) {
+            super(message);
+            this.type = type;
         }
     }
 }

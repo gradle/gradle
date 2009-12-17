@@ -16,7 +16,6 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectScript;
 
 public class BuildScriptProcessor implements ProjectEvaluator {
     private final ScriptObjectConfigurerFactory configurerFactory;
@@ -27,8 +26,6 @@ public class BuildScriptProcessor implements ProjectEvaluator {
 
     public void evaluate(final ProjectInternal project) {
         ScriptObjectConfigurer configurer = configurerFactory.create(project.getBuildScriptSource());
-        configurer.setClasspathClosureName("buildscript");
-        configurer.setScriptBaseClass(ProjectScript.class);
         configurer.apply(project);
     }
 }

@@ -17,6 +17,9 @@
 package org.gradle.api.internal.project
 
 import org.gradle.groovy.scripts.BasicScript
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ConfigurableFileCollection
 
 /**
  * @author Hans Dockter
@@ -28,6 +31,26 @@ abstract class ProjectScript extends BasicScript {
 
     def void apply(Closure closure) {
         scriptTarget.apply(closure)
+    }
+
+    def ScriptHandler getBuildscript() {
+        scriptTarget.buildscript
+    }
+
+    def void buildscript(Closure configureClosure) {
+        scriptTarget.buildscript(configureClosure)
+    }
+
+    def File file(Object path) {
+        scriptTarget.file(path)
+    }
+
+    def ConfigurableFileCollection files(Object paths, Closure configureClosure) {
+        scriptTarget.files(paths, configureClosure)
+    }
+
+    def ConfigurableFileCollection files(Object ... paths) {
+        scriptTarget.files(paths)
     }
 
     def String toString() {

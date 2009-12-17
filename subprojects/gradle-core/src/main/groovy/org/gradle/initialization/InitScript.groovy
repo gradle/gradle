@@ -15,9 +15,18 @@
  */
 package org.gradle.initialization
 
-import org.gradle.groovy.scripts.BasicScript
+import org.gradle.groovy.scripts.DefaultScript
+import org.gradle.api.initialization.dsl.ScriptHandler
 
-abstract class InitScript extends BasicScript {
+abstract class InitScript extends DefaultScript {
+    ScriptHandler getInitscript() {
+        getBuildscript()
+    }
+
+    void initscript(Closure configureClosure) {
+        buildscript(configureClosure)
+    }
+    
     def String toString() {
         return "initialization script"
     }

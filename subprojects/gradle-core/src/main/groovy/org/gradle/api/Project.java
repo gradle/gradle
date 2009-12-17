@@ -376,10 +376,10 @@ public interface Project extends Comparable<Project> {
      * an existing task?</td><td><code>false</code></td></tr> <p/> <tr><td><code>{@value
      * org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>A task name or set of task names which this task depends
      * on</td><td><code>[]</code></td></tr> <p/> <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>A
-     * closure or {@link Action} to add to the task.</td><td><code>null</code></td></tr> <p/> </table> <p/> <p>After
-     * the task is added to the project, it is made available as a property of the project, so that you can reference
-     * the task by name in your build file.  See <a href="#properties">here</a> for more details</p> <p/> <p>If a task
-     * with the given name already exists in this project and the <code>override</code> option is not set to true, an
+     * closure or {@link Action} to add to the task.</td><td><code>null</code></td></tr> <p/> </table> <p/> <p>After the
+     * task is added to the project, it is made available as a property of the project, so that you can reference the
+     * task by name in your build file.  See <a href="#properties">here</a> for more details</p> <p/> <p>If a task with
+     * the given name already exists in this project and the <code>override</code> option is not set to true, an
      * exception is thrown.</p>
      *
      * @param args The task creation options.
@@ -436,10 +436,10 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
      * action is passed to the task's {@link Task#doFirst(Action)} method. Calling this method is equivalent to calling
-     * {@link #createTask(java.util.Map, String, Action)} with an empty options map.</p> <p/> <p>After the task is
-     * added to the project, it is made available as a property of the project, so that you can reference the task by
-     * name in your build file.  See <a href="#properties">here</a> for more details</p> <p/> <p>If a task with the
-     * given name already exists in this project, an exception is thrown.</p>
+     * {@link #createTask(java.util.Map, String, Action)} with an empty options map.</p> <p/> <p>After the task is added
+     * to the project, it is made available as a property of the project, so that you can reference the task by name in
+     * your build file.  See <a href="#properties">here</a> for more details</p> <p/> <p>If a task with the given name
+     * already exists in this project, an exception is thrown.</p>
      *
      * @param name The name of the task to be created
      * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
@@ -658,12 +658,21 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Resolves a file path relative to the project directory of this project. This method converts the supplied path
-     * based on its type:</p> <p/> <ul> <p/> <li>{@link File}. If the file is an absolute file, return it as is.
-     * Otherwise, interpret the file's path relative to the project directory.</li> <p/> <li>{@link Closure}. The
-     * closure's return value is resolved recursively.</li> <p/> <li>{@link java.util.concurrent.Callable}. The
-     * callable's return value is resolved recursively.</li> <p/> <li>{@link Object}. The object's {@code toString()}
-     * value is interpreted as a path. If the path is a relative path, the project directory will be used as a base
-     * directory.</li> <p/> </ul>
+     * based on its type:</p>
+     *
+     * <ul>
+     *
+     * <li>{@link File}. If the file is an absolute file, return it as is. Otherwise, interpret the file's path relative
+     * to the project directory.</li>
+     *
+     * <li>{@link Closure}. The closure's return value is resolved recursively.</li>
+     *
+     * <li>{@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
+     *
+     * <li>{@link Object}. The object's {@code toString()} value is interpreted as a path. If the path is a relative
+     * path, the project directory will be used as a base directory.</li>
+     *
+     * </ul>
      *
      * @param path The object to resolve as a File.
      * @return The resolved file. Never returns null.
@@ -694,19 +703,32 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
-     * types to this method:</p> <p/> <ul> <p/> <li>A {@code String}. Interpreted relative to the project directory, as
-     * a call to {@link #file(Object)}.</li> <p/> <li>A {@code Collection} or an array. May contain any of the types
-     * listed here. The elements of the collection are recursively converted to files.</li> <p/> <li>A {@link
-     * org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned collection.</li>
-     * <p/> <li>A {@link java.util.concurrent.Callable}. The {@code call()} method may return any of the types listed
-     * here. The return value of the {@code call()} method is recursively converted to files. A {@code null} return
-     * value is treated as an empty collection.</li> <p/> <li>A Closure. May return any of the types listed here. The
-     * return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty
-     * collection.</li> <p/> <li>An Object. Its {@code toString()} value is treated the same way as a String, as per a
-     * call to {@link #file(Object)}.</li> <p/> </ul> <p/> <p>The returned file collection is lazy, so that the paths
-     * are evaluated only when the contents of the file collection are queried. The file collection is also live, so
-     * that it evaluates the above each time the contents of the collection is queried.</p> <p/> <p>The returned file
-     * collection maintains the iteration order of the supplied paths.</p>
+     * types to this method:</p>
+     *
+     * <ul> <li>A {@code String}. Interpreted relative to the project directory, as a call to {@link
+     * #file(Object)}.</li>
+     *
+     * <li>A {@code Collection} or an array. May contain any of the types listed here. The elements of the collection
+     * are recursively converted to files.</li>
+     *
+     * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned
+     * collection.</li>
+     *
+     * <li>A {@link java.util.concurrent.Callable}. The {@code call()} method may return any of the types listed here.
+     * The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is
+     * treated as an empty collection.</li>
+     *
+     * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
+     * to files. A {@code null} return value is treated as an empty collection.</li>
+     *
+     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as per a call to {@link
+     * #file(Object)}.</li> </ul>
+     *
+     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
+     * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
+     * of the collection is queried.</p>
+     *
+     * <p>The returned file collection maintains the iteration order of the supplied paths.</p>
      *
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.
@@ -716,13 +738,13 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as for {@link
      * #files(Object...)}. The file collection is configured using the given closure. The file collection is passed to
-     * the closure as its delegate. Example:</p> <p/>
+     * the closure as its delegate. Example:</p>
      * <pre>
      * files "$buildDir/classes" {
      *     builtBy 'compile'
      * }
      * </pre>
-     * <p/> <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
+     * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
      * of the collection is queried.</p>
      *
@@ -1054,8 +1076,8 @@ public interface Project extends Comparable<Project> {
      * }
      * </pre>
      *
-     * <p>The object being configured is also passed to the closure as a parameter, so you can access it explicitly
-     * if required:</p>
+     * <p>The object being configured is also passed to the closure as a parameter, so you can access it explicitly if
+     * required:</p>
      * <pre>
      * configure(someObj) { obj -> obj.doThis() }
      * </pre>
@@ -1180,10 +1202,10 @@ public interface Project extends Comparable<Project> {
     CopySpec copySpec(Closure closure);
 
     /**
-     * <p>Configure this project using plugins or scripts. The given closure is used to configure an
-     * {@link org.gradle.api.plugins.ObjectConfigurationAction} which is then used to configure this project.</p>
+     * <p>Configures this project using plugins or scripts. The given closure is used to configure an {@link
+     * org.gradle.api.plugins.ObjectConfigurationAction} which is then used to configure this project.</p>
      *
-     * @param closure The closure to configure the ObjectConfigurationAction.
+     * @param closure The closure to configure the {@code ObjectConfigurationAction}.
      */
     void apply(Closure closure);
 }

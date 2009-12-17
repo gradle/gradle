@@ -16,8 +16,12 @@
 package org.gradle.api.internal.project;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.gradle.StartParameter;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ClassGenerator;
@@ -25,6 +29,8 @@ import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
+import org.gradle.api.internal.artifacts.DefaultModule;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
@@ -36,6 +42,8 @@ import org.gradle.api.internal.changedetection.CachingHasher;
 import org.gradle.api.internal.changedetection.DefaultHasher;
 import org.gradle.api.internal.changedetection.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.tasks.DefaultTaskExecuter;
 import org.gradle.api.internal.tasks.SkipTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -50,6 +58,7 @@ import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.WrapUtil;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -195,7 +204,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                         startParameter.getProjectDependenciesBuildInstruction(),
                         classGenerator));
     }
-    
+
     protected ProjectEvaluator createProjectEvaluator() {
         return new DefaultProjectEvaluator(
                 new BuildScriptProcessor(
@@ -230,9 +239,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ScriptObjectConfigurerFactory createScriptObjectConfigurerFactory() {
         return new DefaultScriptObjectConfigurerFactory(
                 get(ScriptCompilerFactory.class),
-                get(ImportsReader.class));
+                get(ImportsReader.class),
+                get(ScriptHandlerFactory.class));
     }
-    
+
     protected InitScriptHandler createInitScriptHandler() {
         return new InitScriptHandler(
                 new UserHomeInitScriptFinder(
@@ -253,6 +263,18 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ExceptionAnalyser createExceptionAnalyser() {
         return new DefaultExceptionAnalyser(get(ListenerManager.class));
     }
+
+    protected ScriptHandlerFactory createScriptHandlerFactory() {
+        return new DefaultScriptHandlerFactory(
+                get(RepositoryHandlerFactory.class),
+                get(ConfigurationContainerFactory.class),
+                new DependencyMetaDataProviderImpl(), 
+                get(DependencyFactory.class));
+    }
+
+    protected IsolatedAntBuilder createIsolatedAntBuilder() {
+        return new DefaultIsolatedAntBuilder();
+    }
     
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
@@ -260,5 +282,26 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         }
         throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
                 domainObject.getClass().getSimpleName()));
+    }
+
+    private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
+        public InternalRepository getInternalRepository() {
+            return new EmptyInternalRepository();
+        }
+
+        public File getGradleUserHomeDir() {
+            return startParameter.getGradleUserHomeDir();
+        }
+
+        public Module getModuleForPublicDescriptor() {
+            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
+        }
+
+        public Module getModuleForResolve() {
+            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
+        }
+    }
+
+    private static class EmptyInternalRepository extends ChainResolver implements InternalRepository {
     }
 }

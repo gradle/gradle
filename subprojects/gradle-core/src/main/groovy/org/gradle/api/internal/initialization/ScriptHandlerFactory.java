@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
+package org.gradle.api.internal.initialization;
 
-import org.gradle.configuration.ScriptObjectConfigurer;
-
-public interface ScriptAware {
-    void beforeCompile(ScriptObjectConfigurer configurer);
-
-    void afterCompile(ScriptObjectConfigurer configurer, Script script);
+public interface ScriptHandlerFactory {
+    ScriptHandlerInternal create(ClassLoader parentClassLoader);
 }

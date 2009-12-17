@@ -31,7 +31,6 @@ import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.HelperUtil;
-import org.gradle.util.TestClosure;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -152,21 +151,6 @@ public class DefaultGradleTest {
         }});
         gradle.useLogger(logger);
     }
-
-    @Test
-    public void testScriptClasspath() {
-        final TestClosure testClosure = context.mock(TestClosure.class);
-        context.checking(new Expectations(){{
-            one(testClosure).call(scriptHandlerMock);
-            one(scriptHandlerMock).getRepositories();
-        }});
-
-        Closure closure = HelperUtil.toClosure(testClosure);
-        gradle.initscript(closure);
-
-        assertThat(closure.getDelegate(), instanceOf(ScriptHandler.class));
-        assertThat((ScriptHandler)closure.getDelegate(), equalTo(scriptHandlerMock));
-      }
 
     @Test
     public void captureStdOut() {
