@@ -17,7 +17,10 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.project.*;
@@ -25,21 +28,19 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
-import static org.gradle.util.Matchers.*;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.*;
 import org.jmock.Expectations;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -51,7 +52,9 @@ public abstract class AbstractTaskTest {
 
     private AbstractProject project;
 
-    protected JUnit4Mockery context = new JUnit4Mockery();
+    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
     private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
 
     @Before
