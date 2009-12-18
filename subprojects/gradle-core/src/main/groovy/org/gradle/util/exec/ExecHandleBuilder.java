@@ -35,7 +35,6 @@ public class ExecHandleBuilder {
     private long keepWaitingTimeout = 100;
     private ExecOutputHandle standardOutputHandle;
     private ExecOutputHandle errorOutputHandle;
-    private ExecHandleNotifierFactory notifierFactory;
     private List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
 
     public ExecHandleBuilder() {
@@ -43,9 +42,9 @@ public class ExecHandleBuilder {
     }
 
     public ExecHandleBuilder(boolean outputDirectFlush) {
-        standardOutputHandle = new StreamWriterExecOutputHandle(System.out, outputDirectFlush);
-        errorOutputHandle = new StreamWriterExecOutputHandle(System.err, outputDirectFlush);
-        notifierFactory = new DefaultExecHandleNotifierFactory();
+        standardOutputHandle = new StreamWriterExecOutputHandle(System.out, true, outputDirectFlush);
+        errorOutputHandle = new StreamWriterExecOutputHandle(System.err, true, outputDirectFlush);
+        inheritEnvironment();
     }
 
     public ExecHandleBuilder(File execDirectory) {
@@ -101,6 +100,12 @@ public class ExecHandleBuilder {
 
     public ExecHandleBuilder clearArguments() {
         this.arguments.clear();
+        return this;
+    }
+
+    public ExecHandleBuilder commandLine(String... arguments) {
+        execCommand(arguments[0]);
+        arguments(Arrays.asList(arguments).subList(1, arguments.length));
         return this;
     }
 
@@ -162,40 +167,6 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    public ExecHandleBuilder inheritEnvironmentWithKeys(String... keys) {
-        if (keys == null) {
-            throw new IllegalArgumentException("keys == null!");
-        }
-        if (keys.length == 0) {
-            throw new IllegalArgumentException("keys.length == 0!");
-        }
-
-        clearEnvironment();
-
-        final Map<String, String> currentEnvironment = System.getenv();
-        for (final String key : Arrays.asList(keys)) {
-            environment(key, currentEnvironment.get(key));
-        }
-
-        return this;
-    }
-
-    public ExecHandleBuilder inheritEnvironmentWithoutKeys(String... keys) {
-        if (keys == null) {
-            throw new IllegalArgumentException("keys == null!");
-        }
-        if (keys.length == 0) {
-            throw new IllegalArgumentException("keys.length == 0!");
-        }
-
-        inheritEnvironment();
-        for (final String key : Arrays.asList(keys)) {
-            environment.remove(key);
-        }
-
-        return this;
-    }
-
     public ExecHandleBuilder keepWaitingTimeout(long keepWaitingTimeout) {
         if (keepWaitingTimeout <= 0) {
             throw new IllegalArgumentException("keepWaitingTimeout <= 0!");
@@ -249,21 +220,13 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    public ExecHandleBuilder notifierFactory(ExecHandleNotifierFactory notifierFactory) {
-        if (notifierFactory == null) {
-            throw new IllegalArgumentException("notifierFactory == null!");
-        }
-        this.notifierFactory = notifierFactory;
-        return this;
-    }
-
     public ExecHandle getExecHandle() {
         if (StringUtils.isEmpty(execCommand)) {
             throw new IllegalStateException("execCommand == null!");
         }
 
         return new DefaultExecHandle(execDirectory, execCommand, arguments, normalTerminationExitCode, environment,
-                keepWaitingTimeout, standardOutputHandle, errorOutputHandle, notifierFactory, listeners);
+                keepWaitingTimeout, standardOutputHandle, errorOutputHandle, listeners);
     }
 
     public ExecHandleBuilder arguments(List<String> arguments) {

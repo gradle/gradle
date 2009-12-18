@@ -15,6 +15,7 @@
  */
 package org.gradle.listener;
 
+import org.gradle.listener.dispatch.Event;
 import org.gradle.util.TestClosure;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -235,8 +236,7 @@ public class ListenerBroadcastTest {
         }
     }
 
-
-    private interface TestListener {
+    public interface TestListener {
         void event1(String param);
 
         void event2(int value, String other);

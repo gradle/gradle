@@ -77,7 +77,6 @@ public class DefaultExecHandleTest {
                 100,
                 outHandle,
                 errHandle,
-                new DefaultExecHandleNotifierFactory(),
                 null
         );
 
@@ -109,7 +108,6 @@ public class DefaultExecHandleTest {
                 100,
                 outHandle,
                 errHandle,
-                new DefaultExecHandleNotifierFactory(), 
                 null
         );
 

@@ -21,7 +21,6 @@ import org.gradle.api.logging.Logging;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.ConnectException;
-import java.net.InetAddress;
 import java.net.Socket;
 
 /**
@@ -74,8 +73,7 @@ public class ClientProcess {
     public boolean start(int port) {
         Socket clientSocket = null;
         try {
-            InetAddress ipAddress = InetAddress.getLocalHost();
-            clientSocket = new Socket(ipAddress, port);
+            clientSocket = new Socket((String) null, port);
             socketWrapper = new ObjectSocketWrapper(clientSocket);
             if (protocol.serverConnected(clientSocket)) {
                 return true;

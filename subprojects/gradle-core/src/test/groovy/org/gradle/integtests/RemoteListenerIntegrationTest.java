@@ -15,20 +15,20 @@
  */
 package org.gradle.integtests;
 
-import org.junit.Test;
-import org.gradle.util.exec.ExecHandleBuilder;
-import org.gradle.util.exec.ExecHandle;
-import org.gradle.util.exec.ExecHandleState;
-import org.gradle.listener.remote.RemoteReceiver;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.remote.RemoteReceiver;
 import org.gradle.listener.remote.RemoteSender;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import org.gradle.util.exec.ExecHandle;
+import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.util.exec.ExecHandleState;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 
 public class RemoteListenerIntegrationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
@@ -54,6 +54,7 @@ public class RemoteListenerIntegrationTest {
         if (exceptionListener.ex != null) {
             throw exceptionListener.ex;
         }
+        receiver.close();
         context.assertIsSatisfied();
     }
 
@@ -78,13 +79,12 @@ public class RemoteListenerIntegrationTest {
         }
     }
 
-    private void executeJava(String mainClass, int port)
-    {
+    private void executeJava(String mainClass, int port) {
         ExecHandleBuilder builder = new ExecHandleBuilder();
-        builder.inheritEnvironment();
         builder.execDirectory(new File(System.getProperty("user.dir")));
         builder.execCommand(new File(System.getProperty("java.home")+"/bin/java").getPath());
         builder.arguments("-cp", System.getProperty("java.class.path"));
+
         builder.arguments(mainClass, String.valueOf(port));
 
         ExecHandle proc = builder.getExecHandle();

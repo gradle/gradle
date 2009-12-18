@@ -19,11 +19,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.foundation.common.ObserverLord;
 
-import java.net.ServerSocket;
-import java.net.BindException;
-import java.net.Socket;
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  * This is a server that talks to a client via sockets (Rudimentary form of Inter-Process Communication (IPC)). This
@@ -35,7 +34,6 @@ import java.io.Serializable;
   */
 public class Server<P extends Server.Protocol, O extends Server.ServerObserver>
 {
-   public static final int STARTING_PORT = 1800;
    private final Logger logger = Logging.getLogger( Server.class );
 
    private ServerSocket serverSocket = null;
@@ -51,53 +49,53 @@ public class Server<P extends Server.Protocol, O extends Server.ServerObserver>
 
    //
 
-            /**
-            * Implement this to define the behavior of the communication on the server side.
-            */
-            public interface Protocol<S extends Server>
-            {
-               /**
-               * Gives your protocol a chance to store this server so it can access its functions.
-               */
-               public void initialize( S server );
+    /**
+     * Implement this to define the behavior of the communication on the server side.
+     */
+    public interface Protocol<S extends Server>
+    {
+        /**
+         * Gives your protocol a chance to store this server so it can access its functions.
+         */
+        public void initialize( S server );
 
-               /**
-               * Notification that the connection was accepted by the client.
-               */
-               public void connectionAccepted();
+        /**
+         * Notification that the connection was accepted by the client.
+         */
+        public void connectionAccepted();
 
-               /**
-               * @return true if we should keep the connection alive. False if we should stop communicaiton.
-               */
-               public boolean continueConnection();
+        /**
+         * @return true if we should keep the connection alive. False if we should stop communicaiton.
+         */
+        public boolean continueConnection();
 
-               /**
-               * Notification that a message has been received.
-               *
-               * @param message the message that was received.
-               */
-               public void messageReceived( MessageObject message );
+        /**
+         * Notification that a message has been received.
+         *
+         * @param message the message that was received.
+         */
+        public void messageReceived( MessageObject message );
 
-               /**
-               * Notification that the client has stopped all communications.
-               */
-               public void clientCommunicationStopped();
+        /**
+         * Notification that the client has stopped all communications.
+         */
+        public void clientCommunicationStopped();
 
-               /**
-               * Notification that a read failure occurred. This really only exists for debugging purposes when things
-               * go wrong.
-                */
-               void readFailureOccurred();
-            }
+        /**
+         * Notification that a read failure occurred. This really only exists for debugging purposes when things
+         * go wrong.
+         */
+        void readFailureOccurred();
+    }
 
-   //
-                           public interface ServerObserver
-                           {
-                              /**
+    //
+    public interface ServerObserver
+    {
+        /**
          * Notification that the server has shutdown.
-                              */
-                              public void serverExited();
-                           }
+         */
+        public void serverExited();
+    }
 
    public Server( P protocol )
    {
@@ -150,30 +148,13 @@ public class Server<P extends Server.Protocol, O extends Server.ServerObserver>
    */
    private int connect()
    {
-      int port = STARTING_PORT;
-      boolean keepSearching = true;
-      while( keepSearching )
-      {
-         try
-         {
-            isServerRunning = false;
-            serverSocket = new ServerSocket( port );
-            isServerRunning = true;
-            keepSearching = false;
-         }
-         catch( BindException e )
-         {
-            //the port is already in use, go try the next one.
-            port++;
-         }
-         catch( IOException e )
-         {
-            logger.error( "Could not listen on port: " + port, e );
-            keepSearching = false;
-            port = -1;
-         }
-      }
-      return port;
+       try {
+           serverSocket = new ServerSocket(0);
+           return serverSocket.getLocalPort();
+       } catch (IOException e) {
+           logger.error( "Could not listen on port: " + port, e );
+           return -1;
+       }
    }
 
    /**

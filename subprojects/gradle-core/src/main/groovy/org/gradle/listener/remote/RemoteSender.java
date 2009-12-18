@@ -15,42 +15,42 @@
  */
 package org.gradle.listener.remote;
 
-import org.gradle.listener.Event;
+import org.gradle.listener.dispatch.AsyncDispatch;
+import org.gradle.listener.dispatch.CloseableDispatch;
+import org.gradle.listener.dispatch.ProxyDispatchAdapter;
+import org.gradle.listener.dispatch.SerializingDispatch;
 
-import java.io.*;
-import java.lang.reflect.Proxy;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
+import java.io.BufferedOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RemoteSender<T> implements Closeable {
-    private final T source;
+    private final ProxyDispatchAdapter<T> source;
     private final Socket socket;
+    private final CloseableDispatch asyncDispatch;
     private final OutputStream outstr;
+    private ExecutorService executor;
 
     public RemoteSender(Class<T> type, int port) throws IOException {
         socket = new Socket((String) null, port);
         outstr = new BufferedOutputStream(socket.getOutputStream());
-        source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
-                new SenderInvocationHandler()));
+        executor = Executors.newSingleThreadExecutor();
+        asyncDispatch = new AsyncDispatch(executor, new SerializingDispatch(outstr));
+        source = new ProxyDispatchAdapter<T>(type, asyncDispatch);
     }
 
     public T getSource() {
-        return source;
+        return source.getSource();
     }
 
     public void close() throws IOException {
+        asyncDispatch.close();
+        executor.shutdown();
         socket.close();
     }
-
-    private class SenderInvocationHandler implements InvocationHandler {
-        public Object invoke(Object target, Method method, Object[] arguments) throws Throwable {
-            Event event = new Event(method, arguments);
-            event.send(outstr);
-            outstr.flush();
-            return null;
-        }
-    }
-
 }
 

@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener;
+package org.gradle.listener.dispatch;
 
 import java.io.*;
 import java.lang.reflect.Method;
 
 public class Event implements Serializable {
+    private transient Method method;
     private String methodName;
     private Class[] parameters;
     private Object[] arguments;
 
     public Event(Method method, Object[] args) {
+        this.method = method;
         methodName = method.getName();
         parameters = method.getParameterTypes();
         arguments = args;
@@ -39,6 +41,13 @@ public class Event implements Serializable {
 
     public Object[] getArguments() {
         return arguments;
+    }
+
+    public Method getMethod(Class<?> type) throws NoSuchMethodException {
+        if (method != null) {
+            return method;
+        }
+        return type.getMethod(methodName, parameters);
     }
 
     public void send(OutputStream outputSteam) throws IOException {
@@ -84,13 +93,15 @@ public class Event implements Serializable {
         public Throwable read() throws IOException {
             if (serializedException != null) {
                 try {
-                    return (Throwable) new ObjectInputStream(new ByteArrayInputStream(serializedException)).readObject();
+                    return (Throwable) new ObjectInputStream(new ByteArrayInputStream(serializedException))
+                            .readObject();
                 } catch (ClassNotFoundException e) {
                     // Ignore
                 }
             }
 
-            RuntimeException exception = new RuntimeException(String.format("%s: %s", type, message), cause != null ? cause.read() : null);
+            RuntimeException exception = new RuntimeException(String.format("%s: %s", type, message),
+                    cause != null ? cause.read() : null);
             exception.setStackTrace(stackTrace);
             return exception;
         }

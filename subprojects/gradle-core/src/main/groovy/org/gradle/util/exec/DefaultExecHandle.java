@@ -16,6 +16,8 @@
 
 package org.gradle.util.exec;
 
+import org.gradle.listener.AsyncListenerBroadcast;
+import org.gradle.listener.ListenerBroadcast;
 import org.gradle.util.ThreadUtils;
 import org.gradle.util.shutdown.ShutdownHookActionRegister;
 
@@ -24,7 +26,6 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Condition;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 
@@ -112,15 +113,13 @@ public class DefaultExecHandle implements ExecHandle {
     private int exitCode;
     private Throwable failureCause;
 
-    private final ExecHandleNotifierFactory notifierFactory;
-    private final List<ExecHandleListener> listeners = new CopyOnWriteArrayList<ExecHandleListener>();
+    private final ListenerBroadcast<ExecHandleListener> broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
 
     private ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode,
                       Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle,
-                      ExecOutputHandle errorOutputHandle, ExecHandleNotifierFactory notifierFactory,
-                      List<ExecHandleListener> listeners) {
+                      ExecOutputHandle errorOutputHandle, List<ExecHandleListener> listeners) {
         this.directory = directory;
         this.command = command;
         this.arguments = new ArrayList<String>();
@@ -137,9 +136,8 @@ public class DefaultExecHandle implements ExecHandle {
         this.lock = new ReentrantLock();
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
-        this.notifierFactory = notifierFactory;
-        if (listeners != null && !listeners.isEmpty()) {
-            this.listeners.addAll(listeners);
+        if (listeners != null) {
+            broadcast.addAll(listeners);
         }
     }
 
@@ -303,7 +301,7 @@ public class DefaultExecHandle implements ExecHandle {
         ShutdownHookActionRegister.addShutdownHookAction(shutdownHookAction);
 
         setState(ExecHandleState.STARTED);
-        ThreadUtils.run(notifierFactory.createStartedNotifier(this));
+        broadcast.getSource().executionStarted(this);
     }
 
     void finished(int exitCode) {
@@ -313,11 +311,11 @@ public class DefaultExecHandle implements ExecHandle {
             setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException(
                     "exitCode(" + exitCode + ") != " + normalTerminationExitCode + "!"));
             shutdownThreadPool();
-            ThreadUtils.run(notifierFactory.createFailedNotifier(this));
+            broadcast.getSource().executionFailed(this);
         } else {
             setEndStateInfo(ExecHandleState.SUCCEEDED, 0, null);
             shutdownThreadPool();
-            ThreadUtils.run(notifierFactory.createSucceededNotifier(this));
+            broadcast.getSource().executionFinished(this);
         }
     }
 
@@ -326,7 +324,7 @@ public class DefaultExecHandle implements ExecHandle {
 
         setState(ExecHandleState.ABORTED);
         shutdownThreadPool();
-        ThreadUtils.run(notifierFactory.createAbortedNotifier(this));
+        broadcast.getSource().executionAborted(this);
     }
 
     void failed(Throwable failureCause) {
@@ -334,24 +332,14 @@ public class DefaultExecHandle implements ExecHandle {
 
         setEndStateInfo(ExecHandleState.FAILED, -1, failureCause);
         shutdownThreadPool();
-        ThreadUtils.run(notifierFactory.createFailedNotifier(this));
+        broadcast.getSource().executionFailed(this);
     }
 
     public void addListeners(ExecHandleListener... listeners) {
-        if (listeners == null) {
-            throw new IllegalArgumentException("listeners == null!");
-        }
-        this.listeners.addAll(Arrays.asList(listeners));
+        broadcast.addAll(Arrays.asList(listeners));
     }
 
     public void removeListeners(ExecHandleListener... listeners) {
-        if (listeners == null) {
-            throw new IllegalArgumentException("listeners == null!");
-        }
-        this.listeners.removeAll(Arrays.asList(listeners));
-    }
-
-    public List<ExecHandleListener> getListeners() {
-        return Collections.unmodifiableList(listeners);
+        broadcast.removeAll(Arrays.asList(listeners));
     }
 }

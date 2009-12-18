@@ -15,12 +15,17 @@
  */
 package org.gradle.listener.remote;
 
-import org.gradle.listener.Event;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.dispatch.Dispatch;
+import org.gradle.listener.dispatch.Event;
+import org.gradle.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.Channels;
@@ -31,16 +36,16 @@ import java.util.concurrent.Executors;
 
 public class RemoteReceiver implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteReceiver.class);
-    private final ListenerBroadcast<?> broadcaster;
+    private final Dispatch broadcaster;
     private final ServerSocketChannel serverSocket;
     private final ExceptionListener exceptionListener;
     private final ExecutorService executor;
 
-    public RemoteReceiver(ListenerBroadcast<?> broadcaster) throws IOException {
+    public RemoteReceiver(Dispatch broadcaster) throws IOException {
         this(broadcaster, null);
     }
 
-    public RemoteReceiver(ListenerBroadcast<?> broadcaster, ExceptionListener exceptionListener) throws IOException {
+    public RemoteReceiver(Dispatch broadcaster, ExceptionListener exceptionListener) throws IOException {
         if (broadcaster == null) {
             throw new NullPointerException();
         }
@@ -48,7 +53,7 @@ public class RemoteReceiver implements Closeable {
         this.broadcaster = broadcaster;
         this.exceptionListener = exceptionListener;
         serverSocket = ServerSocketChannel.open();
-        serverSocket.socket().bind(new InetSocketAddress(0));
+        serverSocket.socket().bind(new InetSocketAddress(InetAddress.getByName(null), 0));
         executor = Executors.newCachedThreadPool();
         executor.submit(new Receiver());
     }
@@ -59,7 +64,7 @@ public class RemoteReceiver implements Closeable {
 
     public void close() throws IOException {
         serverSocket.close();
-        executor.shutdownNow();
+        ThreadUtils.shutdown(executor);
     }
 
     private class Handler implements Runnable {
@@ -74,7 +79,6 @@ public class RemoteReceiver implements Closeable {
                 InputStream inputStream = new BufferedInputStream(Channels.newInputStream(socket));
                 while (true) {
                     Event message = Event.receive(inputStream);
-
                     try {
                         broadcaster.dispatch(message);
                     } catch (Exception e) {

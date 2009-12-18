@@ -49,8 +49,6 @@ public interface ExecHandle {
 
     ExecHandleState startAndWaitForFinish();
 
-    List<ExecHandleListener> getListeners();
-
     void addListeners(ExecHandleListener ... listeners);
 
     void removeListeners(ExecHandleListener ... listeners);

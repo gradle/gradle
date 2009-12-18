@@ -41,8 +41,8 @@ public class ExecOutputHandleRunner implements Runnable {
         boolean keepHandling = true;
 
         try {
-            String outputLine;
             while (keepHandling) {
+                String outputLine = null;
                 try {
                     outputLine = inputReader.readLine();
                 } catch (Throwable t) {

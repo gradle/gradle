@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,10 @@ package org.gradle.util;
  * @author Hans Dockter
  */
 import groovy.lang.Closure;
+import org.hamcrest.Description;
 import org.jmock.Expectations;
+import org.jmock.api.Action;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.hamcrest.Matcher;
 
@@ -33,6 +36,18 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
 
         <T> void withParam(Matcher<T> matcher) {
             this.with(matcher);
+        }
+
+        void will(final Closure cl) {
+            will(new Action() {
+                public void describeTo(Description description) {
+                    description.appendText("execute closure");
+                }
+
+                public Object invoke(Invocation invocation) throws Throwable {
+                    return cl.call(invocation.getParametersAsArray());
+                }
+            });
         }
     }
 

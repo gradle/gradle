@@ -153,11 +153,11 @@ public class DefaultListenerManagerTest {
         manager.createAnonymousBroadcaster(TestFooListener.class).getSource().foo("param");
     }
 
-    private interface TestFooListener {
+    public interface TestFooListener {
         void foo(String param);
     }
 
-    private interface TestBarListener {
+    public interface TestBarListener {
         void bar(int value);
     }
 }

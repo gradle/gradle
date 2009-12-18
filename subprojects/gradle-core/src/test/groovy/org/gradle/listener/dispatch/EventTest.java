@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener;
+package org.gradle.listener.dispatch;
 
 import org.junit.Test;
 

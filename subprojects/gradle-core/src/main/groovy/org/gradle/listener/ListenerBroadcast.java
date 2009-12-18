@@ -16,46 +16,40 @@
 package org.gradle.listener;
 
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.InvokerInvocationException;
-import org.gradle.api.GradleException;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.StandardOutputListener;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import org.gradle.api.Transformer;
+import org.gradle.listener.dispatch.BroadcastDispatch;
+import org.gradle.listener.dispatch.CloseableDispatch;
+import org.gradle.listener.dispatch.Event;
+import org.gradle.listener.dispatch.ProxyDispatchAdapter;
 
 /**
  * <p>Manages a set of listeners of type T. Provides an implementation of T which can be used to broadcast to all
  * registered listeners.</p>
  *
+ * <p>Ordering is maintained for events, so that events are delivered to listeners in the order they are generated.
+ * Events are delivered to listeners in the order that listeners are added to this broadcaster.</p>
+ *
  * @param <T> The listener type.
  */
-public class ListenerBroadcast<T> {
-    private final T source;
+public class ListenerBroadcast<T> implements CloseableDispatch {
+    private final ProxyDispatchAdapter<T> source;
+    private final BroadcastDispatch<T> broadcast;
     private final Class<T> type;
-    private final Map<Object, InvocationHandler> handlers = new LinkedHashMap<Object, InvocationHandler>();
-    private final DelegatingInvocationHandler noOpLogger = new DelegatingInvocationHandler() {
-        @Override
-        public T getDelegate() {
-            return null;
-        }
-
-        public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-            return null;
-        }
-    };
-    private DelegatingInvocationHandler logger = noOpLogger;
+    private final CloseableDispatch dispatch;
 
     public ListenerBroadcast(Class<T> type) {
+        this(type, new Transformer<CloseableDispatch>() {
+            public CloseableDispatch transform(CloseableDispatch original) {
+                return original;
+            }
+        });
+    }
+
+    protected ListenerBroadcast(Class<T> type, Transformer<CloseableDispatch> transformer) {
         this.type = type;
-        source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
-                new BroadcastInvocationHandler()));
+        broadcast = new BroadcastDispatch<T>(type);
+        dispatch = transformer.transform(broadcast);
+        source = new ProxyDispatchAdapter<T>(type, dispatch);
     }
 
     /**
@@ -64,7 +58,7 @@ public class ListenerBroadcast<T> {
      * @return The broadcaster.
      */
     public T getSource() {
-        return source;
+        return source.getSource();
     }
 
     /**
@@ -82,9 +76,20 @@ public class ListenerBroadcast<T> {
      * @param listener The listener.
      */
     public void add(T listener) {
-        handlers.put(listener, new ListenerInvocationHandler(listener));
+        broadcast.add(listener);
     }
 
+    /**
+     * Adds the given listeners.
+     *
+     * @param listeners The listeners
+     */
+    public void addAll(Iterable<? extends T> listeners) {
+        for (T listener : listeners) {
+            broadcast.add(listener);
+        }
+    }
+    
     /**
      * Adds the given listener if it is an instance of the listener type.
      *
@@ -100,7 +105,7 @@ public class ListenerBroadcast<T> {
      * Adds a closure to be notified when the given method is called.
      */
     public void add(String methodName, Closure closure) {
-        handlers.put(closure, new ClosureInvocationHandler(methodName, closure));
+        broadcast.add(methodName, closure);
     }
 
     /**
@@ -112,117 +117,34 @@ public class ListenerBroadcast<T> {
         if (!type.isInstance(listener)) {
             return;
         }
-        if (listener.equals(logger.getDelegate())) {
-            logger = noOpLogger;
+        broadcast.remove(listener);
+    }
+
+    /**
+     * Removes the given listeners.
+     *
+     * @param listeners The listeners
+     */
+    public void removeAll(Iterable<?> listeners) {
+        for (Object listener : listeners) {
+            remove(listener);
         }
-        handlers.remove(listener);
     }
 
     /**
      * Broadcasts the given event to all listeners.
+     *
      * @param event The event
      */
     public void dispatch(Event event) {
-        try {
-            Method method = type.getMethod(event.getMethodName(), event.getParameters());
-            dispatch(method, event.getArguments());
-        } catch (ListenerNotificationException e) {
-            throw e;
-        } catch (Throwable throwable) {
-            throw new GradleException(throwable);
-        }
+        dispatch.dispatch(event);
     }
-    
-    private String getErrorMessage() {
-        String typeDescription = type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim().toLowerCase();
-        return String.format("Failed to notify %s.", typeDescription);
+
+    public void close() {
+        dispatch.close();
     }
 
     public T setLogger(T logger) {
-        T oldLogger = this.logger.getDelegate();
-        this.logger = new ListenerInvocationHandler(logger);
-        return oldLogger;
-    }
-
-    private void dispatch(Method method, Object[] parameters) throws Throwable {
-        DefaultStandardOutputCapture standardOutputCapture = null;
-        if (getType() != StandardOutputListener.class) {
-            standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
-            standardOutputCapture.start();
-        }
-        logger.invoke(null, method, parameters);
-        for (InvocationHandler handler : handlers.values()) {
-            handler.invoke(null, method, parameters);
-        }
-        if (standardOutputCapture != null) {
-            standardOutputCapture.stop();
-        }
-    }
-
-    private class BroadcastInvocationHandler implements InvocationHandler {
-        public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
-            if (method.getName().equals("equals")) {
-                return parameters[0] != null && Proxy.isProxyClass(parameters[0].getClass())
-                        && Proxy.getInvocationHandler(parameters[0]) == this;
-            }
-            if (method.getName().equals("hashCode")) {
-                return hashCode();
-            }
-            if (method.getName().equals("toString")) {
-                return String.format("%s broadcast", type.getSimpleName());
-            }
-            dispatch(method, parameters);
-            return null;
-        }
-    }
-
-    private abstract class DelegatingInvocationHandler implements InvocationHandler {
-        abstract T getDelegate();
-    }
-
-    private class ListenerInvocationHandler extends DelegatingInvocationHandler {
-        private final T listener;
-
-        public ListenerInvocationHandler(T listener) {
-            this.listener = listener;
-        }
-
-        @Override
-        T getDelegate() {
-            return listener;
-        }
-
-        public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
-            try {
-                method.invoke(listener, parameters);
-            } catch (InvocationTargetException e) {
-                throw new ListenerNotificationException(getErrorMessage(), e.getCause());
-            }
-            return null;
-        }
-    }
-
-    private class ClosureInvocationHandler implements InvocationHandler {
-        private final String methodName;
-        private final Closure closure;
-
-        public ClosureInvocationHandler(String methodName, Closure closure) {
-            this.methodName = methodName;
-            this.closure = closure;
-        }
-
-        public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
-            if (method.getName().equals(methodName)) {
-                if (closure.getMaximumNumberOfParameters() < parameters.length) {
-                    parameters = Arrays.asList(parameters).subList(0, closure.getMaximumNumberOfParameters()).toArray();
-                }
-                try {
-                    closure.call(parameters);
-                } catch (InvokerInvocationException e) {
-                    throw new ListenerNotificationException(getErrorMessage(), e.getCause());
-                }
-            }
-            return null;
-        }
+        return broadcast.setLogger(logger);
     }
 }

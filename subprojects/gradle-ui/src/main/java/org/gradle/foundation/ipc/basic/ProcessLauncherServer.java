@@ -18,8 +18,10 @@ package org.gradle.foundation.ipc.basic;
 import org.gradle.foundation.common.ObserverLord;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.util.exec.ExecHandle;
+import org.gradle.util.exec.ExecHandleBuilder;
 
-import java.util.Iterator;
+import java.io.ByteArrayOutputStream;
 
 /**
  * This launches an application as a separate process then listens for messages from it. You implement the Protocol
@@ -30,7 +32,7 @@ import java.util.Iterator;
  * @author mhunsicker
  */
 public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol, ProcessLauncherServer.ServerObserver> {
-    private volatile ExternalProcess externalProcess;
+    private volatile ExecHandle externalProcess;
 
     private final Logger logger = Logging.getLogger(ProcessLauncherServer.class);
 
@@ -87,19 +89,18 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                 ExecutionInfo executionInfo = new ExecutionInfo();
                 protocol.getExecutionInfo(getPort(), executionInfo);
 
-                ExternalProcess externalProcess = new ExternalProcess(executionInfo.workingDirectory, executionInfo.commandLineArguments);
-                setExternalProcess(externalProcess);
+                ExecHandleBuilder builder = new ExecHandleBuilder();
+                builder.execDirectory(executionInfo.workingDirectory);
+                builder.commandLine(executionInfo.commandLineArguments);
+                builder.environment(executionInfo.environmentVariables);
+                ByteArrayOutputStream output = new ByteArrayOutputStream();
+                builder.standardOutput(output);
+                builder.errorOutput(output);
+                ExecHandle execHandle = builder.getExecHandle();
+                setExternalProcess(execHandle);
 
-                //set environment variables
-                Iterator<String> iterator = executionInfo.environmentVariables.keySet().iterator();
-                while( iterator.hasNext() ) {
-                   String name = iterator.next();
-                   String value = executionInfo.environmentVariables.get( name );
-                   externalProcess.setEnvironmentVariable( name, value );
-                }
-
-               try {
-                    externalProcess.start();
+                try {
+                    execHandle.start();
                 }
                 catch (Throwable e) {
                     logger.error("Starting external process", e);
@@ -108,17 +109,11 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                     return;
                 }
 
-                int result = 0;
-                try {
-                    result = externalProcess.waitFor();
-                }
-                catch (InterruptedException e) {
-                    logger.error("Waiting for external process", e);
-                }
+                execHandle.waitForFinish();
 
                 setExternalProcess(null);   //clear our external process member variable (we're using our local variable below). This is so we know the process has already stopped.
 
-                notifyClientExited( result, externalProcess.getOutput() );
+                notifyClientExited( execHandle.getExitCode(), output.toString() );
             }
         });
 
@@ -130,7 +125,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
         killProcess(); //if the process is still running, shut it down
     }
 
-    public void setExternalProcess(ExternalProcess externalProcess) {
+    public void setExternalProcess(ExecHandle externalProcess) {
         this.externalProcess = externalProcess;
     }
 
@@ -142,14 +137,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
         if (externalProcess != null) {
             requestShutdown();
             protocol.aboutToKillProcess();
-            try {
-                externalProcess.stop();
-            }
-            catch (InterruptedException e) {
-                logger.error("Stopping external process", e);
-                //just keep going. This means something probably went bad with recording the output, but the process should be stopped.
-            }
-
+            externalProcess.abort();
             setExternalProcess(null);
             notifyClientExited(-1, "Process Canceled");
         }
