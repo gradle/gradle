@@ -34,10 +34,12 @@ public class TestListenerFormatter implements JUnitResultFormatter {
 
     public TestListenerFormatter() throws IOException {
         int port = Integer.parseInt(System.getProperty(PORT_VMARG, "0"));
-        if (port != 0) {
-            sender = new RemoteSender<TestListener>(TestListener.class, port);
-            remoteSender = sender.getSource();
+        if (port <= 0) {
+            throw new IllegalArgumentException(String.format("Invalid port '%s' specified for remote test listener.",
+                    System.getProperty(PORT_VMARG)));
         }
+        sender = new RemoteSender<TestListener>(TestListener.class, port);
+        remoteSender = sender.getSource();
     }
 
     public TestListenerFormatter(TestListener listener) throws IOException {

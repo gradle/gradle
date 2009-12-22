@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ class AntJUnitExecute {
         ]
 
         final RemoteReceiver remoteReceiver = new RemoteReceiver(testListenerBroadcaster, null);
+        logger.debug("Listening for test listener events on port {}.", remoteReceiver.boundPort)
         try {
             ant.junit(otherArgs + junitOptions.optionMap()) {
                 junitOptions.forkOptions.jvmArgs.each {
@@ -59,7 +60,7 @@ class AntJUnitExecute {
                     env(key: key, value: value)
                 }
                 formatter(junitOptions.formatterOptions.optionMap())
-                sysproperty(key: TestListenerFormatter.PORT_VMARG, value: remoteReceiver.getBoundPort())
+                sysproperty(key: TestListenerFormatter.PORT_VMARG, value: remoteReceiver.boundPort)
                 formatter(type: 'plain', classname: TestListenerFormatter.class.name)
                 batchtest(todir: testResultsDir.absolutePath) {
                     fileset(dir: compiledTestsClassesDir.absolutePath) {
