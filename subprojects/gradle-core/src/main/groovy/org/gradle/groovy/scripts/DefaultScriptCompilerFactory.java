@@ -15,7 +15,6 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.CacheUsage;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.HashUtil;
@@ -29,14 +28,12 @@ import java.util.Map;
  */
 public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
     private final ScriptCompilationHandler scriptCompilationHandler;
-    private final CacheUsage cacheUsage;
     private final CacheRepository cacheRepository;
     private final ScriptRunnerFactory scriptRunnerFactory;
 
-    public DefaultScriptCompilerFactory(ScriptCompilationHandler scriptCompilationHandler, CacheUsage cacheUsage,
+    public DefaultScriptCompilerFactory(ScriptCompilationHandler scriptCompilationHandler,
                                         ScriptRunnerFactory scriptRunnerFactory, CacheRepository cacheRepository) {
         this.scriptCompilationHandler = scriptCompilationHandler;
-        this.cacheUsage = cacheUsage;
         this.cacheRepository = cacheRepository;
         this.scriptRunnerFactory = scriptRunnerFactory;
     }
@@ -68,19 +65,10 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
             ClassLoader classloader = this.classloader != null ? this.classloader
                     : Thread.currentThread().getContextClassLoader();
 
-            T script;
-            if (cacheUsage != CacheUsage.OFF) {
-                script = loadViaCache(classloader, scriptType);
-            } else {
-                script = loadWithoutCache(classloader, scriptType);
-            }
+            T script = loadViaCache(classloader, scriptType);
             script.setScriptSource(source);
             script.setContextClassloader(classloader);
             return scriptRunnerFactory.create(script);
-        }
-
-        private <T extends Script> T loadWithoutCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
-            return scriptCompilationHandler.compileScript(source, classLoader, transformer, scriptBaseClass);
         }
 
         private <T extends Script> T loadViaCache(ClassLoader classLoader, Class<T> scriptBaseClass) {

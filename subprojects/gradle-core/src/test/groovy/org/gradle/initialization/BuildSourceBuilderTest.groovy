@@ -128,8 +128,8 @@ class BuildSourceBuilderTest {
         assertEquals(testDependencies, actualClasspath)
     }
 
-    @Test public void testCreateDependencyWithCachedArtifactAndValidCacheWithCacheOff() {
-        expectedStartParameter.setCacheUsage(CacheUsage.OFF)
+    @Test public void testCreateDependencyWithCachedArtifactAndValidCacheWithRebuildCache() {
+        expectedStartParameter.setCacheUsage(CacheUsage.REBUILD)
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(true))

@@ -229,9 +229,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ScriptCompilerFactory createScriptCompileFactory() {
         ScriptExecutionListener scriptExecutionListener = get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
-                new DefaultScriptCompilationHandler(),
-                startParameter.getCacheUsage(),
-                new DefaultScriptRunnerFactory(
+                new DefaultScriptCompilationHandler(), new DefaultScriptRunnerFactory(
                         scriptExecutionListener),
                 get(CacheRepository.class));
     }

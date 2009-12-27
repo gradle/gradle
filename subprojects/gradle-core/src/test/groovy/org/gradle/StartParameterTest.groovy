@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -231,7 +231,7 @@ class StartParameterTest {
         // Copied properties
         parameter.gradleHomeDir = tmpDir.dir
         parameter.gradleUserHomeDir = new File("home")
-        parameter.cacheUsage = CacheUsage.OFF
+        parameter.cacheUsage = CacheUsage.REBUILD
         parameter.pluginPropertiesFile = new File("plugins")
         parameter.defaultImportsFile = new File("imports")
         parameter.logLevel = LogLevel.DEBUG

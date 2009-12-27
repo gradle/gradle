@@ -82,7 +82,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"), String.format(
                     "Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
             acceptsAll(WrapUtil.toList(CACHE, "cache"),
-                    "Specifies how compiled build scripts should be cached. Possible values are: 'rebuild', 'off', 'on'. Default value is 'on'")
+                    "Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'")
                     .withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(VERSION, "version"), "Print version info.");
             acceptsAll(WrapUtil.toList(DEBUG, "debug"), "Log in debug mode (includes normal stacktrace).");

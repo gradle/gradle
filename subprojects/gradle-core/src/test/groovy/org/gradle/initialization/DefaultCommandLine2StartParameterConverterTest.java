@@ -207,12 +207,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     @Test
-    public void withCacheOffFlagSet() {
-        expectedCacheUsage = CacheUsage.OFF;
-        checkConversion("-C", "off");
-    }
-
-    @Test
     public void withRebuildCacheFlagSet() {
         expectedCacheUsage = CacheUsage.REBUILD;
         checkConversion("-C", "rebuild");

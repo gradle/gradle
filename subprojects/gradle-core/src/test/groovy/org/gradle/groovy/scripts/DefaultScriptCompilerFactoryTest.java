@@ -16,7 +16,6 @@
 
 package org.gradle.groovy.scripts;
 
-import org.gradle.CacheUsage;
 import org.gradle.integtests.TestFile;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -86,7 +85,7 @@ public class DefaultScriptCompilerFactoryTest {
         expectedScriptCacheDir = new TestFile(cacheDir, "Script").createDir();
         expectedScript = context.mock(Script.class);
         expectedScriptRunner = context.mock(ScriptRunner.class);
-        scriptProcessor = new DefaultScriptCompilerFactory(scriptCompilationHandlerMock, CacheUsage.ON, scriptRunnerFactoryMock, cacheRepositoryMock);
+        scriptProcessor = new DefaultScriptCompilerFactory(scriptCompilationHandlerMock, scriptRunnerFactoryMock, cacheRepositoryMock);
         source = context.mock(ScriptSource.class);
         String expectedHash = HashUtil.createHash(TEST_SCRIPT_TEXT);
         expectedCacheProperties = GUtil.map("source.filename", "file-name", "source.hash", expectedHash);
@@ -163,33 +162,6 @@ public class DefaultScriptCompilerFactoryTest {
             will(returnValue(expectedScriptRunner));
         }});
 
-        assertSame(expectedScriptRunner, scriptProcessor.createCompiler(source).compile(expectedScriptBaseClass));
-    }
-
-    @Test
-    public void testWithCacheOff() {
-        context.checking(new Expectations() {
-            {
-                allowing(source).getSourceFile();
-                will(returnValue(testScriptFile));
-
-                one(scriptCompilationHandlerMock).compileScript(
-                        source,
-                        testClassLoader,
-                        null,
-                        expectedScriptBaseClass);
-                will(returnValue(expectedScript));
-
-                one(expectedScript).setContextClassloader(testClassLoader);
-
-                one(expectedScript).setScriptSource(source);
-
-                one(scriptRunnerFactoryMock).create(expectedScript);
-                will(returnValue(expectedScriptRunner));
-            }
-        });
-
-        scriptProcessor = new DefaultScriptCompilerFactory(scriptCompilationHandlerMock, CacheUsage.OFF, scriptRunnerFactoryMock, cacheRepositoryMock);
         assertSame(expectedScriptRunner, scriptProcessor.createCompiler(source).compile(expectedScriptBaseClass));
     }
 

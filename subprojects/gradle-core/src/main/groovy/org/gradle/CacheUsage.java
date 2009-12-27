@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.gradle.api.InvalidUserDataException;
  * @author Hans Dockter
  */
 public enum CacheUsage {
-    ON, REBUILD, OFF;
+    ON, REBUILD;
 
     public static CacheUsage fromString(String usagestr) {
         try {

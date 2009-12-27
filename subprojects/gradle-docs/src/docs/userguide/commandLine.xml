@@ -31,7 +31,7 @@
         <varlistentry>
             <term><option>-C</option>, <option>--cache</option></term>
             <listitem><para>Specifies how compiled build scripts should be cached. Possible values are:
-                <literal>rebuild</literal>, <literal>off</literal>, <literal>on</literal>. Default value is
+                <literal>rebuild</literal> or <literal>on</literal>. Default value is
                 <literal>on</literal>. See <xref linkend="sec:caching"/> for more details.
             </para></listitem>
         </varlistentry>
