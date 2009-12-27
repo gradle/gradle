@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -28,7 +29,7 @@ import java.util.concurrent.Callable;
 public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     private final ValidationAction ouputFileValidation = new ValidationAction() {
         public void validate(String propertyName, Object value) throws InvalidUserDataException {
-            File fileValue = (File) value;
+            File fileValue = GFileUtils.canonicalise((File) value);
             if (fileValue.exists() && !fileValue.isFile()) {
                 throw new InvalidUserDataException(String.format(
                         "Cannot write to file '%s' specified for property '%s' as it is a directory.", fileValue,
