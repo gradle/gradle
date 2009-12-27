@@ -126,25 +126,6 @@ public class AbstractReportTaskTest {
         task.generate();
     }
 
-    @Test
-    public void createsMissingOutputDirectory() throws IOException {
-        final File file = tmpDir.getDir().file("missing/missing.txt");
-        assertFalse(file.getParentFile().isDirectory());
-
-        context.checking(new Expectations() {{
-            one(renderer).setOutputFile(file);
-            one(renderer).startProject(project);
-            one(generator).run();
-            one(renderer).completeProject(project);
-            one(renderer).complete();
-        }});
-
-        task.setOutputFile(file);
-        task.generate();
-
-        assertTrue(file.getParentFile().isDirectory());
-    }
-
     public static class TestReportTask extends AbstractReportTask {
         private Runnable generator;
         private ProjectReportRenderer renderer;

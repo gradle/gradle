@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.OutputFile;
 
@@ -41,7 +42,6 @@ public abstract class AbstractReportTask extends ConventionTask {
             ProjectReportRenderer renderer = getRenderer();
             File outputFile = getOutputFile();
             if (outputFile != null) {
-                outputFile.getParentFile().mkdirs();
                 renderer.setOutputFile(outputFile);
             }
             Set<Project> projects = new TreeSet<Project>(this.projects);
@@ -65,7 +65,7 @@ public abstract class AbstractReportTask extends ConventionTask {
      *
      * @return The output file. May be null.
      */
-    @OutputFile
+    @OutputFile @Optional
     public File getOutputFile() {
         return outputFile;
     }
