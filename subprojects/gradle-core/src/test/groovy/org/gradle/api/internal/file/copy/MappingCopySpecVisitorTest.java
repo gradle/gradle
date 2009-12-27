@@ -214,6 +214,20 @@ public class MappingCopySpecVisitorTest {
     }
 
     @Test
+    public void getSizeReturnsSizeOfFilteredContent() {
+        final FileCopyDetails mappedDetails = expectActionExecutedWhenFileVisited();
+
+        context.checking(new Expectations() {{
+            one(details).open();
+            will(returnValue(new ByteArrayInputStream("content".getBytes())));
+        }});
+
+        mappedDetails.filter(HelperUtil.toClosure("{ 'PREFIX: ' + it } "));
+
+        assertThat(mappedDetails.getSize(), equalTo(15L));
+    }
+
+    @Test
     public void wrappedFileElementDelegatesToSourceForRemainingMethods() {
         final FileVisitDetails mappedDetails = expectSpecAndFileVisited();
         final File file = new File("file");

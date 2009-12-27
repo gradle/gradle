@@ -20,10 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 
-import java.io.File;
-import java.io.FilterReader;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Map;
 
 public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
@@ -74,7 +71,11 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
         }
 
         public File getFile() {
-            return fileDetails.getFile();
+            if (filterChain.hasFilters()) {
+                throw new UnsupportedOperationException();
+            } else {
+                return fileDetails.getFile();
+            }
         }
 
         public boolean isDirectory() {
@@ -86,7 +87,13 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
         }
 
         public long getSize() {
-            return fileDetails.getSize();
+            if (filterChain.hasFilters()) {
+                ByteCountingOutputStream outputStream = new ByteCountingOutputStream();
+                copyTo(outputStream);
+                return outputStream.size;
+            } else {
+                return fileDetails.getSize();
+            }
         }
 
         public InputStream open() {
@@ -151,6 +158,25 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
         public ContentFilterable filter(Class<? extends FilterReader> filterType) {
             filterChain.add(filterType);
             return this;
+        }
+    }
+
+    private static class ByteCountingOutputStream extends OutputStream {
+        long size;
+
+        @Override
+        public void write(int b) throws IOException {
+            size++;
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+            size += b.length;
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            size += len;
         }
     }
 }

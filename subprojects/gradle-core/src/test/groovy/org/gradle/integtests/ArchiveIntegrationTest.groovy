@@ -165,7 +165,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
     @Test public void canCreateATarArchive() {
         createDir('test') {
             dir1 {
-                file 'file1.txt'
+                file('file1.txt') << 'abc'
             }
             file 'file1.txt'
             dir2 {
@@ -178,6 +178,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             task tar(type: Tar) {
                 from('test') {
                     include '**/*.txt'
+                    filter { "[$it]" }
                 }
                 from('test') {
                     include '**/*.sh'
@@ -195,6 +196,8 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         TestFile expandDir = testFile('expanded')
         testFile('build/test.tar').usingNativeTools().untarTo(expandDir)
         expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt', 'scripts/dir2/script.sh')
+
+        expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
 
         expandDir.file('dir1').assertPermissions(equalTo("drwxr-xr-x"))
         expandDir.file('dir1/file1.txt').assertPermissions(equalTo("-rw-r--r--"))
