@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.testing.junit;
 
+import org.gradle.api.tasks.testing.TestSuite;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.internal.matchers.TypeSafeMatcher;
@@ -62,7 +63,7 @@ public class TestListenerFormatterTest {
     @Test
     public void testStartTestSuite() {
         context.checking(new Expectations() {{
-            one(testListenerMock).suiteStarting(with(aSuiteWithName(TEST_SUITE_NAME)));
+            one(testListenerMock).beforeSuite(with(aSuiteWithName(TEST_SUITE_NAME)));
         }});
 
         testListenerFormatter.startTestSuite(jUnitTestMock);
@@ -71,7 +72,7 @@ public class TestListenerFormatterTest {
     @Test
     public void testEndTestSuite() {
         context.checking(new Expectations() {{
-            one(testListenerMock).suiteFinished(with(aSuiteWithName(TEST_SUITE_NAME)));
+            one(testListenerMock).afterSuite(with(aSuiteWithName(TEST_SUITE_NAME)));
         }});
 
         testListenerFormatter.endTestSuite(jUnitTestMock);
@@ -80,7 +81,7 @@ public class TestListenerFormatterTest {
     @Test
     public void testStartTest() {
         context.checking(new Expectations() {{
-            one(testListenerMock).testStarting(with(aTestWithName(TEST_NAME)));
+            one(testListenerMock).beforeTest(with(aTestWithName(TEST_NAME)));
         }});
 
         testListenerFormatter.startTest(testMock);
@@ -89,7 +90,7 @@ public class TestListenerFormatterTest {
     @Test
     public void testEndTestSuccess() {
         context.checking(new Expectations() {{
-            one(testListenerMock).testFinished(with(aTestWithName(TEST_NAME)), with(aResultOf(TestListener.ResultType.SUCCESS, null)));
+            one(testListenerMock).afterTest(with(aTestWithName(TEST_NAME)), with(aResultOf(org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS, null)));
         }});
 
         testListenerFormatter.endTest(testMock);
@@ -98,7 +99,7 @@ public class TestListenerFormatterTest {
     @Test
     public void testEndTestWithError() {
         context.checking(new Expectations() {{
-            one(testListenerMock).testFinished(with(aTestWithName(TEST_NAME)), with(aResultOf(TestListener.ResultType.FAILURE, error)));
+            one(testListenerMock).afterTest(with(aTestWithName(TEST_NAME)), with(aResultOf(org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE, error)));
         }});
 
         testListenerFormatter.addError(testMock, error);
@@ -108,7 +109,7 @@ public class TestListenerFormatterTest {
     @Test
     public void testEndTestWithFailure() {
         context.checking(new Expectations() {{
-            one(testListenerMock).testFinished(with(aTestWithName(TEST_NAME)), with(aResultOf(TestListener.ResultType.FAILURE, failure)));
+            one(testListenerMock).afterTest(with(aTestWithName(TEST_NAME)), with(aResultOf(org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE, failure)));
         }});
 
         testListenerFormatter.addFailure(testMock, failure);
@@ -116,28 +117,28 @@ public class TestListenerFormatterTest {
     }
 
     @Factory
-    private static Matcher<TestListener.Suite> aSuiteWithName(String name) {
+    private static Matcher<TestSuite> aSuiteWithName(String name) {
         return new SuiteHasNameMatcher(name);
     }
 
     @Factory
-    private static Matcher<TestListener.Test> aTestWithName(String value) {
+    private static Matcher<org.gradle.api.tasks.testing.Test> aTestWithName(String value) {
         return new TestHasNameMatcher(value);
     }
 
     @Factory
-    private static Matcher<TestListener.Result> aResultOf(TestListener.ResultType type, Throwable throwable) {
+    private static Matcher<org.gradle.api.tasks.testing.TestResult> aResultOf(org.gradle.api.tasks.testing.TestResult.ResultType type, Throwable throwable) {
         return new TestResultMatcher(type, throwable);
     }
 
-    private static class SuiteHasNameMatcher extends TypeSafeMatcher<TestListener.Suite> {
+    private static class SuiteHasNameMatcher extends TypeSafeMatcher<TestSuite> {
         private String name;
 
         public SuiteHasNameMatcher(String name) {
             this.name = name;
         }
 
-        public boolean matchesSafely(TestListener.Suite suite) {
+        public boolean matchesSafely(TestSuite suite) {
             return suite.getName().equals(name);
         }
 
@@ -146,14 +147,14 @@ public class TestListenerFormatterTest {
         }
     }
 
-    private static class TestHasNameMatcher extends TypeSafeMatcher<TestListener.Test> {
+    private static class TestHasNameMatcher extends TypeSafeMatcher<org.gradle.api.tasks.testing.Test> {
         private String name;
 
         public TestHasNameMatcher(String name) {
             this.name = name;
         }
 
-        public boolean matchesSafely(TestListener.Test test) {
+        public boolean matchesSafely(org.gradle.api.tasks.testing.Test test) {
             return test.getName().equals(name);
         }
 
@@ -162,16 +163,16 @@ public class TestListenerFormatterTest {
         }
     }
 
-    private static class TestResultMatcher extends TypeSafeMatcher<TestListener.Result> {
-        private TestListener.ResultType type;
+    private static class TestResultMatcher extends TypeSafeMatcher<org.gradle.api.tasks.testing.TestResult> {
+        private org.gradle.api.tasks.testing.TestResult.ResultType type;
         private Throwable throwable;
 
-        public TestResultMatcher(TestListener.ResultType type, Throwable throwable) {
+        public TestResultMatcher(org.gradle.api.tasks.testing.TestResult.ResultType type, Throwable throwable) {
             this.type = type;
             this.throwable = throwable;
         }
 
-        public boolean matchesSafely(TestListener.Result result) {
+        public boolean matchesSafely(org.gradle.api.tasks.testing.TestResult result) {
             switch (type)
             {
                 case SUCCESS:

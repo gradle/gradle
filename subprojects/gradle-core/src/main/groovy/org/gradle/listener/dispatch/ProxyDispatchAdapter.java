@@ -26,10 +26,10 @@ import java.lang.reflect.Proxy;
  */
 public class ProxyDispatchAdapter<T> {
     private final Class<T> type;
-    private final Dispatch dispatch;
+    private final Dispatch<? super Event> dispatch;
     private final T source;
 
-    public ProxyDispatchAdapter(Class<T> type, Dispatch dispatch) {
+    public ProxyDispatchAdapter(Class<T> type, Dispatch<? super Event> dispatch) {
         this.type = type;
         this.dispatch = dispatch;
         source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},

@@ -90,23 +90,24 @@ public class JUnitIntegrationTest {
         testDir.file("src/test/java/SomeTest.java").writelns(
                 "public class SomeTest {",
                 "@org.junit.Test public void pass() { }",
-                "@org.junit.Test public void fail() { org.junit.Assert.fail(); }",
-                "@org.junit.Test public void knownError() { throw new RuntimeException(); }",
+                "@org.junit.Test public void fail() { org.junit.Assert.fail(\"message\"); }",
+                "@org.junit.Test public void knownError() { throw new RuntimeException(\"message\"); }",
                 "@org.junit.Test public void unknownError() throws AppException { throw new AppException(); }",
                 "}"
         );
 
         testDir.file("build.gradle").writelns(
                 "usePlugin 'java'",
+                "repositories { mavenCentral() } ",
                 "dependencies { testCompile 'junit:junit:4.4' }",
                 "def listener = new TestListenerImpl()",
                 "test.addTestListener(listener)",
                 "test.ignoreFailures = true",
                 "class TestListenerImpl implements TestListener {",
-                "void suiteStarting(TestListener.Suite suite) { println 'START SUITE ' + suite.name }",
-                "void suiteFinished(TestListener.Suite suite) { println 'FINISH SUITE ' + suite.name }",
-                "void testStarting(TestListener.Test test) { println 'START TEST ' + test.name }",
-                "void testFinished(TestListener.Test test, TestListener.Result result) { println 'FINISH TEST ' + test.name + ' error: ' + result.error }",
+                "void beforeSuite(TestSuite suite) { println 'START SUITE ' + suite.name }",
+                "void afterSuite(TestSuite suite) { println 'FINISH SUITE ' + suite.name }",
+                "void beforeTest(Test test) { println 'START TEST ' + test.name }",
+                "void afterTest(Test test, TestResult result) { println 'FINISH TEST ' + test.name + ' error: ' + result.error }",
                 "}"
         );
 
@@ -116,10 +117,47 @@ public class JUnitIntegrationTest {
         assertThat(result.getOutput(), containsLine("START TEST pass(SomeTest)"));
         assertThat(result.getOutput(), containsLine("FINISH TEST pass(SomeTest) error: null"));
         assertThat(result.getOutput(), containsLine("START TEST fail(SomeTest)"));
-        assertThat(result.getOutput(), containsLine("FINISH TEST fail(SomeTest) error: junit.framework.AssertionFailedError: "));
+        assertThat(result.getOutput(), containsLine("FINISH TEST fail(SomeTest) error: junit.framework.AssertionFailedError: message"));
         assertThat(result.getOutput(), containsLine("START TEST knownError(SomeTest)"));
-        assertThat(result.getOutput(), containsLine("FINISH TEST knownError(SomeTest) error: java.lang.RuntimeException"));
+        assertThat(result.getOutput(), containsLine("FINISH TEST knownError(SomeTest) error: java.lang.RuntimeException: message"));
         assertThat(result.getOutput(), containsLine("START TEST unknownError(SomeTest)"));
-        assertThat(result.getOutput(), containsLine("FINISH TEST unknownError(SomeTest) error: java.lang.RuntimeException: AppException: null"));
+        assertThat(result.getOutput(), containsLine("FINISH TEST unknownError(SomeTest) error: org.gradle.listener.dispatch.PlaceholderException: AppException: null"));
+    }
+
+    @Test
+    public void canListenForTestResultsWhenJUnit3IsUsed() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("src/test/java/SomeTest.java").writelns(
+                "public class SomeTest extends junit.framework.TestCase {",
+                "public void testPass() { }",
+                "public void testFail() { junit.framework.Assert.fail(\"message\"); }",
+                "public void testError() { throw new RuntimeException(\"message\"); }",
+                "}"
+        );
+
+        testDir.file("build.gradle").writelns(
+                "usePlugin 'java'",
+                "repositories { mavenCentral() } ",
+                "dependencies { testCompile 'junit:junit:3.8' }",
+                "def listener = new TestListenerImpl()",
+                "test.addTestListener(listener)",
+                "test.ignoreFailures = true",
+                "class TestListenerImpl implements TestListener {",
+                "void beforeSuite(TestSuite suite) { println 'START SUITE ' + suite.name }",
+                "void afterSuite(TestSuite suite) { println 'FINISH SUITE ' + suite.name }",
+                "void beforeTest(Test test) { println 'START TEST ' + test.name }",
+                "void afterTest(Test test, TestResult result) { println 'FINISH TEST ' + test.name + ' error: ' + result.error }",
+                "}"
+        );
+
+        ExecutionResult result = executer.withTasks("test").run();
+        assertThat(result.getOutput(), containsLine("START SUITE SomeTest"));
+        assertThat(result.getOutput(), containsLine("FINISH SUITE SomeTest"));
+        assertThat(result.getOutput(), containsLine("START TEST testPass(SomeTest)"));
+        assertThat(result.getOutput(), containsLine("FINISH TEST testPass(SomeTest) error: null"));
+        assertThat(result.getOutput(), containsLine("START TEST testFail(SomeTest)"));
+        assertThat(result.getOutput(), containsLine("FINISH TEST testFail(SomeTest) error: junit.framework.AssertionFailedError: message"));
+        assertThat(result.getOutput(), containsLine("START TEST testError(SomeTest)"));
+        assertThat(result.getOutput(), containsLine("FINISH TEST testError(SomeTest) error: java.lang.RuntimeException: message"));
     }
 }

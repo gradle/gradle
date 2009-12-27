@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class BroadcastDispatch<T> implements CloseableDispatch {
+public class BroadcastDispatch<T> implements CloseableDispatch<Event> {
     private final Class<T> type;
     private final Map<Object, InvocationHandler> handlers = new LinkedHashMap<Object, InvocationHandler>();
     private final DelegatingInvocationHandler noOpLogger = new DelegatingInvocationHandler() {

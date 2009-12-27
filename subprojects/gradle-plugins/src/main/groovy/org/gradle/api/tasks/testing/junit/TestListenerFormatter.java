@@ -15,16 +15,20 @@
  */
 package org.gradle.api.tasks.testing.junit;
 
+import junit.framework.AssertionFailedError;
+import junit.framework.Test;
+import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitResultFormatter;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
-import org.apache.tools.ant.BuildException;
-import org.gradle.listener.remote.RemoteSender;
 import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.TestSuite;
+import org.gradle.listener.remote.RemoteSender;
+import org.gradle.util.shutdown.ShutdownHookActionRegister;
 
-import java.io.*;
-
-import junit.framework.Test;
-import junit.framework.AssertionFailedError;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Serializable;
 
 public class TestListenerFormatter implements JUnitResultFormatter {
     private static final String PORT_VMARG = "test.listener.remote.port";
@@ -39,6 +43,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
                     System.getProperty(PORT_VMARG)));
         }
         sender = new RemoteSender<TestListener>(TestListener.class, port);
+        ShutdownHookActionRegister.closeOnExit(sender);
         remoteSender = sender.getSource();
     }
 
@@ -48,11 +53,11 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     }
     
     public void startTestSuite(JUnitTest jUnitTest) throws BuildException {
-        remoteSender.suiteStarting(new MySuite(jUnitTest));
+        remoteSender.beforeSuite(new MySuite(jUnitTest));
     }
 
     public void endTestSuite(JUnitTest jUnitTest) throws BuildException {
-        remoteSender.suiteFinished(new MySuite(jUnitTest));
+        remoteSender.afterSuite(new MySuite(jUnitTest));
     }
 
     public void setOutput(OutputStream outputStream) {
@@ -75,14 +80,14 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     public void endTest(Test test) {
         MyResult result = new MyResult(error);
         error = null;
-        remoteSender.testFinished(new MyTest(test), result);
+        remoteSender.afterTest(new MyTest(test), result);
     }
 
     public void startTest(Test test) {
-        remoteSender.testStarting(new MyTest(test));
+        remoteSender.beforeTest(new MyTest(test));
     }
 
-    private static class MySuite implements TestListener.Suite
+    private static class MySuite implements TestSuite, Serializable
     {
         private String name;
 
@@ -100,7 +105,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
         }
     }
 
-    private static class MyTest implements TestListener.Test
+    private static class MyTest implements org.gradle.api.tasks.testing.Test, Serializable
     {
         private String name;
 
@@ -118,7 +123,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
         }
     }
 
-    private static class MyResult implements TestListener.Result
+    private static class MyResult implements TestResult, Serializable
     {
         private Throwable error;
 
@@ -126,12 +131,12 @@ public class TestListenerFormatter implements JUnitResultFormatter {
             this.error = error;
         }
 
-        public TestListener.ResultType getResultType() {
+        public ResultType getResultType() {
             if (error != null) {
-                return TestListener.ResultType.FAILURE;
+                return ResultType.FAILURE;
             }
             else {
-                return TestListener.ResultType.SUCCESS;
+                return ResultType.SUCCESS;
             }
         }
 

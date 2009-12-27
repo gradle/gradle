@@ -298,14 +298,14 @@ public class DefaultExecHandle implements ExecHandle {
 
     void started() {
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
-        ShutdownHookActionRegister.addShutdownHookAction(shutdownHookAction);
+        ShutdownHookActionRegister.addAction(shutdownHookAction);
 
         setState(ExecHandleState.STARTED);
         broadcast.getSource().executionStarted(this);
     }
 
     void finished(int exitCode) {
-        ShutdownHookActionRegister.removeShutdownHookAction(shutdownHookAction);
+        ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         if (exitCode != normalTerminationExitCode) {
             setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException(
@@ -320,7 +320,7 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void aborted() {
-        ShutdownHookActionRegister.removeShutdownHookAction(shutdownHookAction);
+        ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         setState(ExecHandleState.ABORTED);
         shutdownThreadPool();
@@ -328,7 +328,7 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void failed(Throwable failureCause) {
-        ShutdownHookActionRegister.removeShutdownHookAction(shutdownHookAction);
+        ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         setEndStateInfo(ExecHandleState.FAILED, -1, failureCause);
         shutdownThreadPool();

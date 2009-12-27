@@ -46,7 +46,7 @@ class AntJUnitExecute {
                 failureproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY
         ]
 
-        final RemoteReceiver remoteReceiver = new RemoteReceiver(testListenerBroadcaster, null);
+        final RemoteReceiver remoteReceiver = new RemoteReceiver(testListenerBroadcaster);
         logger.debug("Listening for test listener events on port {}.", remoteReceiver.boundPort)
         try {
             ant.junit(otherArgs + junitOptions.optionMap()) {

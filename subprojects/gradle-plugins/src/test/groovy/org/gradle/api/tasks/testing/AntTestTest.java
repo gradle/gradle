@@ -26,18 +26,21 @@ import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.TestClosure;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.startsWith;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.*;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 
 /**
@@ -147,6 +150,30 @@ public class AntTestTest extends AbstractConventionTaskTest {
         }});
         getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
         test.execute();
+    }
+
+    @org.junit.Test public void testListenerMethodsDelegateToListenerBroadcast() {
+        final TestListener listener = context.mock(TestListener.class);
+        final TestClosure closure = context.mock(TestClosure.class);
+        test.addTestListener(listener);
+        test.beforeTest(HelperUtil.toClosure(closure));
+        test.afterTest(HelperUtil.toClosure(closure));
+
+        final Test testInfo = context.mock(Test.class);
+        final TestResult result = context.mock(TestResult.class);
+        context.checking(new Expectations() {{
+            one(listener).beforeTest(testInfo);
+            one(closure).call(testInfo);
+        }});
+
+        test.getTestListenerBroadcaster().getSource().beforeTest(testInfo);
+
+        context.checking(new Expectations() {{
+            one(listener).afterTest(testInfo, result);
+            one(closure).call(testInfo);
+        }});
+
+        test.getTestListenerBroadcaster().getSource().afterTest(testInfo, result);
     }
 
     private void setUpMocks(final AntTest test) {

@@ -16,7 +16,9 @@
 package org.gradle.listener.remote;
 
 import org.gradle.listener.dispatch.Dispatch;
+import org.gradle.listener.dispatch.EndOfStream;
 import org.gradle.listener.dispatch.Event;
+import org.gradle.listener.dispatch.Message;
 import org.gradle.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,20 +38,16 @@ import java.util.concurrent.Executors;
 
 public class RemoteReceiver implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteReceiver.class);
-    private final Dispatch broadcaster;
+    private final Dispatch<? super Event> broadcaster;
     private final ServerSocketChannel serverSocket;
     private final ExceptionListener exceptionListener;
     private final ExecutorService executor;
 
-    public RemoteReceiver(Dispatch broadcaster) throws IOException {
+    public RemoteReceiver(Dispatch<? super Event> broadcaster) throws IOException {
         this(broadcaster, null);
     }
 
-    public RemoteReceiver(Dispatch broadcaster, ExceptionListener exceptionListener) throws IOException {
-        if (broadcaster == null) {
-            throw new NullPointerException();
-        }
-
+    public RemoteReceiver(Dispatch<? super Event> broadcaster, ExceptionListener exceptionListener) throws IOException {
         this.broadcaster = broadcaster;
         this.exceptionListener = exceptionListener;
         serverSocket = ServerSocketChannel.open();
@@ -76,23 +74,29 @@ public class RemoteReceiver implements Closeable {
 
         public void run() {
             try {
-                InputStream inputStream = new BufferedInputStream(Channels.newInputStream(socket));
-                while (true) {
-                    Event message = Event.receive(inputStream);
-                    try {
-                        broadcaster.dispatch(message);
-                    } catch (Exception e) {
-                        if (exceptionListener != null) {
-                            exceptionListener.receiverThrewException(e);
+                try {
+                    InputStream inputStream = new BufferedInputStream(Channels.newInputStream(socket));
+                    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                    while (true) {
+                        Message message = Message.receive(inputStream, classLoader);
+                        if (message instanceof EndOfStream) {
+                            // End of stream - finish with this
+                            return;
+                        }
+
+                        Event event = (Event) message;
+                        try {
+                            broadcaster.dispatch(event);
+                        } catch (Exception e) {
+                            if (exceptionListener != null) {
+                                exceptionListener.receiverThrewException(e);
+                            }
                         }
                     }
+                } finally {
+                    socket.close();
                 }
             } catch (Exception e) {
-                if (e instanceof IOException && e.getMessage().startsWith(
-                        "An existing connection was forcibly closed by the remote host")) {
-                    // Ignore
-                    return;
-                }
                 LOGGER.warn("Could not handle remote event connection.", e);
             }
         }

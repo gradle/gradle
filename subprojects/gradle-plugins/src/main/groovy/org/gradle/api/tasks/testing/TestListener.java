@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks.testing;
 
-import java.io.Serializable;
-
 // todo: consider multithreading/multiprocess issues
 // Teamcity has the concept of a "wave" of messages
 // where each thread/process uses a unique wave id
@@ -29,68 +27,26 @@ import java.io.Serializable;
 public interface TestListener {
 
     /**
-     * Describes a suite of tests.  Many testing frameworks aggregate
-     * tests into suites that get executed together.
-     */
-    public interface Suite extends Serializable {
-        /**
-         * @return The name of the suite.  Not guaranteed to be unique.
-         */
-        public String getName();
-    }
-
-    /**
-     * Describes a single test.
-     */
-    public interface Test extends Serializable {
-        /**
-         * @return The name of the test.  Not guaranteed to be unique.
-         */
-        public String getName();
-    }
-
-    public enum ResultType { SUCCESS, FAILURE, SKIPPED }
-
-    /**
-     * Describes a test result.
-     */
-    public interface Result extends Serializable {
-        /**
-         * @return The type of result.  Generally one wants it to be SUCCESS!
-         */
-        public ResultType getResultType();
-
-        /**
-         * If the test failed with an exception, this will be the exception.  Some
-         * test frameworks do not fail without an exception (JUnit), so in those cases
-         * this method will never return null.  If the resultType is not FAILURE an IllegalStateException is thrown.
-         * @return The exception, if any, logged for this test.  If none, a null is returned.
-         * @throws IllegalStateException If the result type is anything other than FAILURE.
-         */
-        public Throwable getException(); // throws exception if type !=  FAILURE
-    }
-
-    /**
      * Called before a test suite is started.
      * @param suite The suite whose tests are about to be executed.
      */
-    void suiteStarting(Suite suite);
+    void beforeSuite(TestSuite suite);
 
     /**
      * Called after a test suite is finished.
      * @param suite The suite whose tests have finished being executed.
      */
-    void suiteFinished(Suite suite);
+    void afterSuite(TestSuite suite);
 
     /**
      * Called before a test is started.
      * @param test The test which is about to be executed.
      */
-    void testStarting(Test test);
+    void beforeTest(Test test);
 
     /**
      * Called after a test is finished.
      * @param test The test which has finished executing.
      */
-    void testFinished(Test test, Result result);
+    void afterTest(Test test, TestResult result);
 }

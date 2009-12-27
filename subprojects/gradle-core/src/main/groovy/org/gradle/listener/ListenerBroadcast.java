@@ -31,7 +31,7 @@ import org.gradle.listener.dispatch.ProxyDispatchAdapter;
  *
  * @param <T> The listener type.
  */
-public class ListenerBroadcast<T> implements CloseableDispatch {
+public class ListenerBroadcast<T> implements CloseableDispatch<Event> {
     private final ProxyDispatchAdapter<T> source;
     private final BroadcastDispatch<T> broadcast;
     private final Class<T> type;

@@ -15,10 +15,7 @@
  */
 package org.gradle.listener.remote;
 
-import org.gradle.listener.dispatch.AsyncDispatch;
-import org.gradle.listener.dispatch.CloseableDispatch;
-import org.gradle.listener.dispatch.ProxyDispatchAdapter;
-import org.gradle.listener.dispatch.SerializingDispatch;
+import org.gradle.listener.dispatch.*;
 
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
@@ -31,15 +28,14 @@ import java.util.concurrent.Executors;
 public class RemoteSender<T> implements Closeable {
     private final ProxyDispatchAdapter<T> source;
     private final Socket socket;
-    private final CloseableDispatch asyncDispatch;
-    private final OutputStream outstr;
+    private final CloseableDispatch<Message> asyncDispatch;
     private ExecutorService executor;
 
     public RemoteSender(Class<T> type, int port) throws IOException {
         socket = new Socket((String) null, port);
-        outstr = new BufferedOutputStream(socket.getOutputStream());
+        OutputStream outstr = new BufferedOutputStream(socket.getOutputStream());
         executor = Executors.newSingleThreadExecutor();
-        asyncDispatch = new AsyncDispatch(executor, new SerializingDispatch(outstr));
+        asyncDispatch = new AsyncDispatch<Message>(executor, new SerializingDispatch(outstr));
         source = new ProxyDispatchAdapter<T>(type, asyncDispatch);
     }
 
@@ -48,6 +44,7 @@ public class RemoteSender<T> implements Closeable {
     }
 
     public void close() throws IOException {
+        asyncDispatch.dispatch(new EndOfStream());
         asyncDispatch.close();
         executor.shutdown();
         socket.close();

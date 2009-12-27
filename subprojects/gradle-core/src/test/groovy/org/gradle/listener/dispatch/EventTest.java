@@ -15,6 +15,7 @@
  */
 package org.gradle.listener.dispatch;
 
+import groovy.lang.GroovyClassLoader;
 import org.junit.Test;
 
 import java.io.*;
@@ -23,14 +24,17 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class EventTest {
+    private final GroovyClassLoader source = new GroovyClassLoader(getClass().getClassLoader());
+    private final GroovyClassLoader dest = new GroovyClassLoader(getClass().getClassLoader());
+
     @Test
     public void replacesUnserializableExceptionWithPlaceholder() throws Exception {
         RuntimeException cause = new RuntimeException("nested");
         UnserializableException original = new UnserializableException("message", cause);
         Object transported = transport(original);
 
-        assertThat(transported, instanceOf(RuntimeException.class));
-        RuntimeException e = (RuntimeException) transported;
+        assertThat(transported, instanceOf(PlaceholderException.class));
+        PlaceholderException e = (PlaceholderException) transported;
         assertThat(e.getMessage(), equalTo(UnserializableException.class.getName() + ": " + original.getMessage()));
         assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
 
@@ -46,7 +50,7 @@ public class EventTest {
         Object transported = transport(new RuntimeException(original));
 
         assertThat(transported, instanceOf(RuntimeException.class));
-        Throwable e = ((RuntimeException) transported).getCause();
+        PlaceholderException e = (PlaceholderException) ((RuntimeException) transported).getCause();
         assertThat(e.getMessage(), equalTo(UnserializableException.class.getName() + ": " + original.getMessage()));
         assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
 
@@ -62,7 +66,7 @@ public class EventTest {
         Object transported = transport(original);
 
         assertThat(transported, instanceOf(RuntimeException.class));
-        RuntimeException e = (RuntimeException) transported;
+        PlaceholderException e = (PlaceholderException) transported;
         assertThat(e.getMessage(), equalTo(UndeserializableException.class.getName() + ": " + original.getMessage()));
         assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
         
@@ -78,8 +82,29 @@ public class EventTest {
         Object transported = transport(new RuntimeException(original));
 
         assertThat(transported, instanceOf(RuntimeException.class));
-        Throwable e = ((RuntimeException) transported).getCause();
+        PlaceholderException e = (PlaceholderException) ((RuntimeException) transported).getCause();
         assertThat(e.getMessage(), equalTo(UndeserializableException.class.getName() + ": " + original.getMessage()));
+        assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
+
+        assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
+        assertThat(e.getCause().getMessage(), equalTo("nested"));
+        assertThat(e.getCause().getStackTrace(), equalTo(cause.getStackTrace()));
+    }
+
+    @Test
+    public void replacesIncompatibleExceptionWithLocalVersion() throws Exception {
+        RuntimeException cause = new RuntimeException("nested");
+        Class<? extends RuntimeException> sourceExceptionType = source.parseClass(
+                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }");
+        Class<? extends RuntimeException> destExceptionType = dest.parseClass(
+                "package org.gradle; public class TestException extends RuntimeException { private String someField; public TestException(String msg) { super(msg); } }");
+
+        RuntimeException original = sourceExceptionType.getConstructor(String.class, Throwable.class).newInstance("message", cause);
+        Object transported = transport(original);
+
+        assertThat(transported, instanceOf(destExceptionType));
+        RuntimeException e = (RuntimeException) transported;
+        assertThat(e.getMessage(), equalTo(original.getMessage()));
         assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
 
         assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
@@ -92,7 +117,7 @@ public class EventTest {
         new Event(String.class.getMethod("length"), new Object[]{arg}).send(outputStream);
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-        Event event = Event.receive(inputStream);
+        Event event = (Event) Message.receive(inputStream, dest);
         return event.getArguments()[0];
     }
 

@@ -15,6 +15,6 @@
  */
 package org.gradle.listener.dispatch;
 
-public interface Dispatch {
-    void dispatch(Event event);
+public interface Dispatch<T extends Message> {
+    void dispatch(T message);
 }

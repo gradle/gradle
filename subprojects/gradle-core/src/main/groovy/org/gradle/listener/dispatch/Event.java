@@ -15,10 +15,9 @@
  */
 package org.gradle.listener.dispatch;
 
-import java.io.*;
 import java.lang.reflect.Method;
 
-public class Event implements Serializable {
+public class Event extends Message {
     private transient Method method;
     private String methodName;
     private Class[] parameters;
@@ -31,14 +30,6 @@ public class Event implements Serializable {
         arguments = args;
     }
 
-    public String getMethodName() {
-        return methodName;
-    }
-
-    public Class[] getParameters() {
-        return parameters;
-    }
-
     public Object[] getArguments() {
         return arguments;
     }
@@ -48,99 +39,6 @@ public class Event implements Serializable {
             return method;
         }
         return type.getMethod(methodName, parameters);
-    }
-
-    public void send(OutputStream outputSteam) throws IOException {
-        ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(outputSteam);
-        try {
-            oos.writeObject(this);
-        } finally {
-            oos.flush();
-        }
-    }
-
-    public static Event receive(InputStream inputSteam) throws IOException, ClassNotFoundException {
-        ObjectInputStream ois = new ExceptionReplacingObjectInputStream(inputSteam);
-        return (Event) ois.readObject();
-    }
-
-    private static class ExceptionPlaceholder implements Serializable {
-        private byte[] serializedException;
-        private String type;
-        private String message;
-        private ExceptionPlaceholder cause;
-        private StackTraceElement[] stackTrace;
-
-        public ExceptionPlaceholder(Throwable throwable) throws IOException {
-            ByteArrayOutputStream outstr = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(outstr);
-            try {
-                oos.writeObject(throwable);
-                oos.close();
-                serializedException = outstr.toByteArray();
-            } catch (NotSerializableException e) {
-                // Ignore
-            }
-
-            type = throwable.getClass().getName();
-            message = throwable.getMessage();
-            if (throwable.getCause() != null) {
-                cause = new ExceptionPlaceholder(throwable.getCause());
-            }
-            stackTrace = throwable.getStackTrace();
-        }
-
-        public Throwable read() throws IOException {
-            if (serializedException != null) {
-                try {
-                    return (Throwable) new ObjectInputStream(new ByteArrayInputStream(serializedException))
-                            .readObject();
-                } catch (ClassNotFoundException e) {
-                    // Ignore
-                }
-            }
-
-            RuntimeException exception = new RuntimeException(String.format("%s: %s", type, message),
-                    cause != null ? cause.read() : null);
-            exception.setStackTrace(stackTrace);
-            return exception;
-        }
-    }
-
-    private static class TopLevelExceptionPlaceholder extends ExceptionPlaceholder {
-        private TopLevelExceptionPlaceholder(Throwable throwable) throws IOException {
-            super(throwable);
-        }
-    }
-
-    private static class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
-        public ExceptionReplacingObjectOutputStream(OutputStream outputSteam) throws IOException {
-            super(outputSteam);
-            enableReplaceObject(true);
-        }
-
-        @Override
-        protected Object replaceObject(Object obj) throws IOException {
-            if (obj instanceof Throwable) {
-                return new TopLevelExceptionPlaceholder((Throwable) obj);
-            }
-            return obj;
-        }
-    }
-
-    private static class ExceptionReplacingObjectInputStream extends ObjectInputStream {
-        public ExceptionReplacingObjectInputStream(InputStream inputSteam) throws IOException {
-            super(inputSteam);
-            enableResolveObject(true);
-        }
-
-        @Override
-        protected Object resolveObject(Object obj) throws IOException {
-            if (obj instanceof TopLevelExceptionPlaceholder) {
-                return ((ExceptionPlaceholder) obj).read();
-            }
-            return obj;
-        }
     }
 }
 

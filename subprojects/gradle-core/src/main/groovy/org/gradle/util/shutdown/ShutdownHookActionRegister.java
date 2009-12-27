@@ -15,9 +15,10 @@
  */
 package org.gradle.util.shutdown;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.UncheckedIOException;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -26,19 +27,30 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ShutdownHookActionRegister {
     private static final ShutdownHookActionRegister INSTANCE = new ShutdownHookActionRegister();
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShutdownHookActionRegister.class);
     private final List<Runnable> shutdownHookActions = new CopyOnWriteArrayList<Runnable>();
 
     private ShutdownHookActionRegister() {
         Runtime.getRuntime().addShutdownHook(new Thread(new GradleShutdownHook(), "gradle-shutdown-hook"));
     }
 
-    public static void addShutdownHookAction(Runnable shutdownHookAction) {
+    public static void addAction(Runnable shutdownHookAction) {
         INSTANCE.shutdownHookActions.add(shutdownHookAction);
     }
 
-    public static void removeShutdownHookAction(Runnable shutdownHookAction) {
+    public static void removeAction(Runnable shutdownHookAction) {
         INSTANCE.shutdownHookActions.remove(shutdownHookAction);
+    }
+
+    public static void closeOnExit(final Closeable closeable) {
+        addAction(new Runnable() {
+            public void run() {
+                try {
+                    closeable.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        });
     }
 
     private class GradleShutdownHook implements Runnable {
@@ -47,7 +59,8 @@ public class ShutdownHookActionRegister {
                 try {
                     shutdownHookAction.run();
                 } catch (Throwable t) {
-                    LOGGER.error("failed to execute a shutdown action ", t);
+                    System.err.println("failed to execute a shutdown action.");
+                    t.printStackTrace(System.err);
                 }
             }
         }

@@ -15,9 +15,11 @@
  */
 package org.gradle.listener.dispatch;
 
-public interface CloseableDispatch<T extends Message> extends Dispatch<T> {
-    /**
-     * Closes this dispatch. Stops accepting new events and blocks until all events have been dispatched.
-     */
-    void close();
+/**
+ * A {@code PlaceholderException} is used when an exception cannot be serialized or deserialized.
+ */
+public class PlaceholderException extends RuntimeException {
+    public PlaceholderException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

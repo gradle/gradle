@@ -18,6 +18,7 @@ package org.gradle.listener;
 import org.gradle.api.Transformer;
 import org.gradle.listener.dispatch.AsyncDispatch;
 import org.gradle.listener.dispatch.CloseableDispatch;
+import org.gradle.listener.dispatch.Event;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -34,7 +35,7 @@ public class AsyncListenerBroadcast<T> extends ListenerBroadcast<T> {
     AsyncListenerBroadcast(Class<T> type, final Executor executor) {
         super(type, new Transformer<CloseableDispatch>() {
             public CloseableDispatch transform(CloseableDispatch original) {
-                return new AsyncDispatch(executor, original);
+                return new AsyncDispatch<Event>(executor, original);
             }
         });
     }

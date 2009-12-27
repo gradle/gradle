@@ -23,24 +23,24 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class AsyncDispatch implements CloseableDispatch {
+public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
     private static final int MAX_QUEUE_SIZE = 200;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private final LinkedList<Event> queue = new LinkedList<Event>();
+    private final LinkedList<T> queue = new LinkedList<T>();
     private boolean closed;
 
-    public AsyncDispatch(Executor executor, final Dispatch dispatch) {
+    public AsyncDispatch(Executor executor, final Dispatch<? super T> dispatch) {
         executor.execute(new Runnable() {
             public void run() {
-                pushEvents(dispatch);
+                pushMessages(dispatch);
             }
         });
     }
 
-    private void pushEvents(Dispatch dispatch) {
+    private void pushMessages(Dispatch<? super T> dispatch) {
         while (true) {
-            List<Event> events = new ArrayList<Event>();
+            List<T> messages = new ArrayList<T>();
             lock.lock();
             try {
                 while (!closed && queue.isEmpty()) {
@@ -51,22 +51,22 @@ public class AsyncDispatch implements CloseableDispatch {
                     }
                 }
                 if (!queue.isEmpty()) {
-                    events.addAll(queue);
+                    messages.addAll(queue);
                 }
             } finally {
                 lock.unlock();
             }
 
-            if (events.isEmpty()) {
+            if (messages.isEmpty()) {
                 return;
             }
-            for (Event event : events) {
-                dispatch.dispatch(event);
+            for (T message : messages) {
+                dispatch.dispatch(message);
             }
             
             lock.lock();
             try {
-                queue.subList(0, events.size()).clear();
+                queue.subList(0, messages.size()).clear();
                 condition.signalAll();
             } finally {
                 lock.unlock();
@@ -74,7 +74,7 @@ public class AsyncDispatch implements CloseableDispatch {
         }
     }
 
-    public void dispatch(final Event event) {
+    public void dispatch(final T message) {
         lock.lock();
         try {
             while (!closed && queue.size() >= MAX_QUEUE_SIZE) {
@@ -85,9 +85,9 @@ public class AsyncDispatch implements CloseableDispatch {
                 }
             }
             if (closed) {
-                throw new IllegalStateException("This event dispatch has been closed.");
+                throw new IllegalStateException("This message dispatch has been closed.");
             }
-            queue.add(event);
+            queue.add(message);
             condition.signalAll();
         } finally {
             lock.unlock();

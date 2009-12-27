@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.dispatch;
+package org.gradle.api.tasks.testing;
 
-public interface CloseableDispatch<T extends Message> extends Dispatch<T> {
+import java.io.Serializable;
+
+/**
+ * Describes a single test.
+ */
+public interface Test extends Serializable {
     /**
-     * Closes this dispatch. Stops accepting new events and blocks until all events have been dispatched.
+     * @return The name of the test.  Not guaranteed to be unique.
      */
-    void close();
+    public String getName();
 }

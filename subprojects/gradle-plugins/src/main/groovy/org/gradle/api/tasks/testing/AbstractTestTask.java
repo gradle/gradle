@@ -70,29 +70,30 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     protected boolean scanForTestClasses = true;
 
     /**
-     * The broadcaster for all {@link TestListener} implementations that
-     * have been registered with ListenerManager.
+     * The broadcaster for all {@link TestListener} implementations that have been registered with ListenerManager.
      */
     private ListenerBroadcast<TestListener> testListenerBroadcaster;
 
     protected AbstractTestTask() {
-        testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(TestListener.class);
+        testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
+                TestListener.class);
     }
 
     @TaskAction
     protected abstract void executeTests();
 
     /**
-     * @return The {@link TestListener} broadcaster.  This broadcaster will send
-     * messages to all listeners that have been registered with the ListenerManager.
+     * @return The {@link TestListener} broadcaster.  This broadcaster will send messages to all listeners that have
+     *         been registered with the ListenerManager.
      */
     public ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
         return testListenerBroadcaster;
     }
 
     /**
-     * Registers a test listener with this task.  This listener will NOT be notified of tests executed by
-     * other tasks.  To get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
+     * Registers a test listener with this task.  This listener will NOT be notified of tests executed by other tasks.
+     * To get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
+     *
      * @param listener The listener to add.
      */
     public void addTestListener(TestListener listener) {
@@ -100,14 +101,35 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     }
 
     /**
-     * Unregisters a test listener with this task.  This method will only remove listeners that were added
-     * by calling {@link #addTestListener(TestListener)} on this task.  If the listener was registered
-     * with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not 
-     * do anything.  Instead, use {@link org.gradle.api.invocation.Gradle#removeListener(Object)}.
+     * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling
+     * {@link #addTestListener(TestListener)} on this task.  If the listener was registered with Gradle using {@link
+     * org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything.  Instead, use {@link
+     * org.gradle.api.invocation.Gradle#removeListener(Object)}.
+     *
      * @param listener The listener to remove.
      */
     public void removeTestListener(TestListener listener) {
         testListenerBroadcaster.remove(listener);
+    }
+
+    /**
+     * Adds a closure to be notified before a test is executed. A {@link org.gradle.api.tasks.testing.Test} instance is
+     * passed to the closure as a parameter.
+     *
+     * @param closure The closure to call.
+     */
+    public void beforeTest(Closure closure) {
+        testListenerBroadcaster.add("beforeTest", closure);
+    }
+
+    /**
+     * Adds a closure to be notified after a test has executed. A {@link org.gradle.api.tasks.testing.Test} and {@link
+     * org.gradle.api.tasks.testing.TestResult} instance are passed to the closure as a parameter.
+     *
+     * @param closure The closure to call.
+     */
+    public void afterTest(Closure closure) {
+        testListenerBroadcaster.add("afterTest", closure);
     }
 
     /**

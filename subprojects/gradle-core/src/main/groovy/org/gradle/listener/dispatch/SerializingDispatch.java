@@ -20,16 +20,16 @@ import org.gradle.api.UncheckedIOException;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class SerializingDispatch implements Dispatch {
+public class SerializingDispatch implements Dispatch<Message> {
     private final OutputStream outstr;
 
     public SerializingDispatch(OutputStream outstr) {
         this.outstr = outstr;
     }
 
-    public void dispatch(Event event) {
+    public void dispatch(Message message) {
         try {
-            event.send(outstr);
+            message.send(outstr);
             outstr.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);

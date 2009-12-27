@@ -15,9 +15,5 @@
  */
 package org.gradle.listener.dispatch;
 
-public interface CloseableDispatch<T extends Message> extends Dispatch<T> {
-    /**
-     * Closes this dispatch. Stops accepting new events and blocks until all events have been dispatched.
-     */
-    void close();
+public class EndOfStream extends Message {
 }
