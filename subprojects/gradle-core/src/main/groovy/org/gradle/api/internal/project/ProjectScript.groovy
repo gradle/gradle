@@ -29,6 +29,10 @@ abstract class ProjectScript extends BasicScript {
         scriptTarget.apply(closure)
     }
 
+    def void apply(Map options) {
+        scriptTarget.apply(options)
+    }
+
     def ScriptHandler getBuildscript() {
         scriptTarget.buildscript
     }

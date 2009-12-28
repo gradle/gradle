@@ -27,14 +27,14 @@ public class MultiParentClassLoader extends ClassLoader {
     private final List<ClassLoader> parents;
 
     public MultiParentClassLoader(ClassLoader... parents) {
-        super(parents[0]);
+        super(parents.length == 0 ? null : parents[0]);
         this.parents = new CopyOnWriteArrayList<ClassLoader>(Arrays.asList(parents));
     }
 
     public void addParent(ClassLoader parent) {
         parents.add(parent);
     }
-    
+
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         for (ClassLoader parent : parents) {

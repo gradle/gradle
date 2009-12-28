@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.configuration.ScriptObjectConfigurer;
@@ -31,10 +33,11 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final FileResolver resolver;
     private final ScriptObjectConfigurerFactory configurerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
-    private final Set<Object> scripts = new LinkedHashSet<Object>();
+    private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
     private final Object[] defaultTargets;
 
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptObjectConfigurerFactory configurerFactory, Object... defaultTargets) {
+    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptObjectConfigurerFactory configurerFactory,
+                                            Object... defaultTargets) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
         this.defaultTargets = defaultTargets;
@@ -45,23 +48,71 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    public ObjectConfigurationAction script(Object script) {
-        scripts.add(script);
+    public ObjectConfigurationAction script(final Object script) {
+        actions.add(new Runnable() {
+            public void run() {
+                applyScript(script);
+            }
+        });
         return this;
+    }
+
+    public ObjectConfigurationAction plugin(final Class<? extends Plugin> pluginClass) {
+        actions.add(new Runnable() {
+            public void run() {
+                applyPlugin(pluginClass);
+            }
+        });
+        return this;
+    }
+
+    public ObjectConfigurationAction plugin(final String pluginName) {
+        actions.add(new Runnable() {
+            public void run() {
+                applyPlugin(pluginName);
+            }
+        });
+        return this;
+    }
+
+    private void applyScript(Object script) {
+        File scriptFile = resolver.resolve(script);
+        ScriptObjectConfigurer configurer = configurerFactory.create(new StrictScriptSource(new FileScriptSource(
+                "script", scriptFile)));
+        for (Object target : targets) {
+            configurer.apply(target);
+        }
+    }
+
+    private void applyPlugin(Class<? extends Plugin> pluginClass) {
+        for (Object target : targets) {
+            if (target instanceof Project) {
+                Project project = (Project) target;
+                project.usePlugin(pluginClass);
+            } else {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+
+    private void applyPlugin(String pluginName) {
+        for (Object target : targets) {
+            if (target instanceof Project) {
+                Project project = (Project) target;
+                project.usePlugin(pluginName);
+            } else {
+                throw new UnsupportedOperationException();
+            }
+        }
     }
 
     public void execute() {
         if (targets.isEmpty()) {
             to(defaultTargets);
         }
-        
-        for (Object script : scripts) {
-            File scriptFile = resolver.resolve(script);
-            ScriptObjectConfigurer configurer = configurerFactory.create(new StrictScriptSource(new FileScriptSource(
-                    "script", scriptFile)));
-            for (Object target : targets) {
-                configurer.apply(target);
-            }
+
+        for (Runnable action : actions) {
+            action.run();
         }
     }
 }

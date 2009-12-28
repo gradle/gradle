@@ -22,6 +22,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 
 import java.io.File;
+import java.util.Map;
 
 /**
  * <p>The base class for all scripts executed by Gradle. This is a extension to the Groovy {@code Script} class, which
@@ -42,6 +43,22 @@ public interface Script {
      * @param closure The closure to configure the {@code ObjectConfigurationAction}.
      */
     void apply(Closure closure);
+
+    /**
+     * <p>Configures the delegate object for this script using plugins or scripts. The following options are
+     * available:</p>
+     *
+     * <ul><li>{@code script}: A script to apply to the delegate object.</li>
+     *
+     * <li>{@code plugin}: A plugin to apply to the delegate object.</li>
+     *
+     * <li>{@code to}: The target delegate object or objects.</li></ul>
+     *
+     * <p>For more detail, see {@link org.gradle.api.plugins.ObjectConfigurationAction}.</p>
+     *
+     * @param options The options to use to configure the {@code ObjectConfigurationAction}.
+     */
+    void apply(Map<String, ?> options);
 
     /**
      * Returns the script handler for this script. You can use this handler to manage the classpath used to compile and

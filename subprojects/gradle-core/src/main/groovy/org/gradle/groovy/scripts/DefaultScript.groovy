@@ -53,6 +53,12 @@ abstract class DefaultScript extends BasicScript {
         action.execute()
     }
 
+    void apply(Map options) {
+        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, services.get(ScriptObjectConfigurerFactory.class), scriptTarget)
+        ConfigureUtil.configure(options, action)
+        action.execute()
+    }
+
     ScriptHandler getBuildscript() {
         return scriptHandler;
     }

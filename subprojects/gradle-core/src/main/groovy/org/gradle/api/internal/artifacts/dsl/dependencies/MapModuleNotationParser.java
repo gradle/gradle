@@ -19,7 +19,7 @@ import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ class MapModuleNotationParser implements IDependencyImplementationFactory {
         ExternalDependency dependency = (ExternalDependency) classGenerator.newInstance(type, group, name, version, configuration);
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args,
                 "classifier"));
-        ReflectionUtil.setFromMap(dependency, args);
+        ConfigureUtil.configure(args, dependency);
         return type.cast(dependency);
     }
 

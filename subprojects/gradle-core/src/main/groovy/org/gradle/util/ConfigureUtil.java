@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
+import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
+
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -25,6 +29,23 @@ public class ConfigureUtil {
 
     public static <T> T configure(Closure configureClosure, T delegate) {
         return configure(configureClosure, delegate, Closure.DELEGATE_FIRST);
+    }
+
+    public static <T> T configure(Map<String, ?> properties, T delegate) {
+        for (Map.Entry<String, ?> entry : properties.entrySet()) {
+            try {
+                ReflectionUtil.setProperty(delegate, entry.getKey(), entry.getValue());
+            } catch (MissingPropertyException e) {
+                // Try as a method
+                try {
+                    ReflectionUtil.invoke(delegate, entry.getKey(), new Object[]{entry.getValue()});
+                } catch (MissingMethodException mme) {
+                    // Throw the original MPE
+                    throw e;
+                }
+            }
+        }
+        return delegate;
     }
 
     private static <T> T configure(Closure configureClosure, T delegate, int resolveStrategy) {

@@ -26,7 +26,6 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
 import java.util.Collection;
@@ -49,7 +48,7 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
 
     public FileSet(Map<String, ?> args, FileResolver resolver) {
         this.resolver = resolver != null ? resolver : new IdentityFileResolver();
-        ReflectionUtil.setFromMap(this, args);
+        ConfigureUtil.configure(args, this);
     }
 
     public PatternSet getPatternSet() {

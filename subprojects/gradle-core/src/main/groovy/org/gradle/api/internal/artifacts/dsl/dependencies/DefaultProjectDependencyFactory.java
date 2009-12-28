@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.GString;
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +55,7 @@ public class DefaultProjectDependencyFactory implements ProjectDependencyFactory
         String path = getAndRemove(args, "path");
         String configuration = getAndRemove(args, "configuration");
         ProjectDependency dependency = classGenerator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(path), configuration, instruction);
-        ReflectionUtil.setFromMap(dependency, args);
+        ConfigureUtil.configure(args, dependency);
         return dependency;
     }
 

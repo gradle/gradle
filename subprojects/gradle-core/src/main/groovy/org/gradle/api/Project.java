@@ -953,12 +953,6 @@ public interface Project extends Comparable<Project> {
     void allprojects(Closure configureClosure);
 
     /**
-     * @param projects
-     * @param action
-     */
-    void applyActions(Set<Project> projects, Action<? super Project> action);
-
-    /**
      * Adds an action to execute immediately before this project is evaluated.
      *
      * @param action the action to execute.
@@ -1099,6 +1093,15 @@ public interface Project extends Comparable<Project> {
     Iterable<?> configure(Iterable<?> objects, Closure configureClosure);
 
     /**
+     * Configures a collection of objects via an action.
+     *
+     * @param objects The objects to configure
+     * @param configureAction The action to apply to each object
+     * @return The configured objects.
+     */
+    <T> Iterable<T> configure(Iterable<T> objects, Action<? super T> configureAction);
+
+    /**
      * Returns a handler to create repositories which are used for retrieving dependencies and uploading artifacts
      * produced by the project.
      *
@@ -1208,4 +1211,20 @@ public interface Project extends Comparable<Project> {
      * @param closure The closure to configure the {@code ObjectConfigurationAction}.
      */
     void apply(Closure closure);
+
+    /**
+     * <p>Configures this project using plugins or scripts. The following options are
+     * available:</p>
+     *
+     * <ul><li>{@code script}: A script to apply to the project.</li>
+     *
+     * <li>{@code plugin}: A plugin to apply to the project.</li>
+     *
+     * <li>{@code to}: The target delegate object or objects. Use this to configure objects other than the project.</li></ul>
+     *
+     * <p>For more detail, see {@link org.gradle.api.plugins.ObjectConfigurationAction}.</p>
+     *
+     * @param options The options to use to configure the {@code ObjectConfigurationAction}.
+     */
+    void apply(Map<String, ?> options);
 }

@@ -33,18 +33,50 @@ class ConfigureUtilTest {
     }
 
     @Test
-    public void passesConfiguredObjectToClosure() {
+    public void passesConfiguredObjectToClosureAsParameter() {
         List obj = []
         def cl = {
             assertThat(it, sameInstance(obj))
         }
-        def cl2 = { List list ->
+        def cl2 = {List list ->
             assertThat(list, sameInstance(obj))
         }
-        def cl3 = { ->
+        def cl3 = {->
+            assertThat(delegate, sameInstance(obj))
         }
         ConfigureUtil.configure(cl, obj)
         ConfigureUtil.configure(cl2, obj)
         ConfigureUtil.configure(cl3, obj)
+    }
+
+    @Test
+    public void canConfigureObjectPropertyUsingMap() {
+        Bean obj = new Bean()
+
+        ConfigureUtil.configure(obj, prop: 'value')
+        assertThat(obj.prop, equalTo('value'))
+
+        ConfigureUtil.configure(obj, method: 'value2')
+        assertThat(obj.prop, equalTo('value2'))
+    }
+
+    @Test
+    public void throwsExceptionForUnknownProperty() {
+        Bean obj = new Bean()
+
+        try {
+            ConfigureUtil.configure(obj, unknown: 'value')
+            fail()
+        } catch (MissingPropertyException e) {
+            assertThat(e.type, equalTo(Bean.class))
+            assertThat(e.property, equalTo('unknown'))
+        }
+    }
+}
+
+class Bean {
+    String prop
+    def method(String value) {
+        prop = value
     }
 }

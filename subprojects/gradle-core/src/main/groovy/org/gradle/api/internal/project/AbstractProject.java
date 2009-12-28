@@ -474,17 +474,18 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public void subprojects(Action<? super Project> action) {
-        applyActions(getSubprojects(), action);
+        configure(getSubprojects(), action);
     }
 
     public void allprojects(Action<? super Project> action) {
-        applyActions(getAllprojects(), action);
+        configure(getAllprojects(), action);
     }
 
-    public void applyActions(Set<Project> projects, Action<? super Project> action) {
-        for (Project project : projects) {
-            action.execute(project);
+    public <T> Iterable<T> configure(Iterable<T> objects, Action<? super T> configureAction) {
+        for (T object : objects) {
+            configureAction.execute(object);
         }
+        return objects;
     }
 
     public AntBuilder getAnt() {
@@ -872,6 +873,13 @@ public abstract class AbstractProject implements ProjectInternal {
         DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
                 ScriptObjectConfigurerFactory.class), this);
         configure(action, closure);
+        action.execute();
+    }
+
+    public void apply(Map<String, ?> options) {
+        DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
+                ScriptObjectConfigurerFactory.class), this);
+        ConfigureUtil.configure(options, action);
         action.execute();
     }
 }

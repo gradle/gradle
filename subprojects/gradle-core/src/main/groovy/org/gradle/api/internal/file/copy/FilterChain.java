@@ -20,9 +20,12 @@ import org.apache.tools.ant.util.ReaderInputStream;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.util.ConfigureUtil;
 
-import java.io.*;
+import java.io.FilterReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
@@ -53,7 +56,7 @@ public class FilterChain implements Transformer<InputStream> {
                     FilterReader result = constructor.newInstance(original);
 
                     if (properties != null) {
-                        ReflectionUtil.setFromMap(result, properties);
+                        ConfigureUtil.configure(properties, result);
                     }
                     return result;
                 } catch (Throwable th) {
