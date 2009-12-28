@@ -25,6 +25,7 @@ import org.junit.runner.RunWith
 import org.jmock.integration.junit4.JMock
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.project.StandardOutputRedirector
 
 /**
  * @author Hans Dockter
@@ -38,6 +39,8 @@ class DefaultScriptTest {
         context.checking {
             allowing(serviceRegistryMock).get(ScriptHandler.class)
             will(returnValue(context.mock(ScriptHandler.class)))
+            allowing(serviceRegistryMock).get(StandardOutputRedirector.class)
+            will(returnValue(context.mock(StandardOutputRedirector.class)))
         }
 
         DefaultScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)

@@ -16,18 +16,13 @@
 package org.gradle.integtests
 
 import org.junit.Test
-import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void executesInitScriptWithCorrectEnvironment() {
-        ArtifactBuilder builder = artifactBuilder();
-        builder.sourceFile('org/gradle/test/BuildClass.java') << '''
-            package org.gradle.test;
-            public class BuildClass { }
-'''
-        builder.buildJar(testFile("repo/test-1.3.jar"));
+        createExternalJar();
 
         TestFile initScript = testFile('init.gradle')
         initScript << '''
@@ -39,7 +34,10 @@ println 'quiet message'
 captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 assertNotNull(gradle)
-assertSame(Thread.currentThread().contextClassLoader, initscript.classLoader)
+assertSame(initscript.classLoader, getClass().classLoader.parent)
+assertSame(initscript.classLoader, Thread.currentThread().contextClassLoader)
+assertSame(scriptClassLoader, initscript.classLoader.parent)
+assertSame(Gradle.class.classLoader, scriptClassLoader.parent)
 '''
         testFile('build.gradle') << 'task doStuff'
 
@@ -48,5 +46,39 @@ assertSame(Thread.currentThread().contextClassLoader, initscript.classLoader)
         assertThat(result.output, not(containsString('error message')))
         assertThat(result.error, containsString('error message'))
         assertThat(result.error, not(containsString('quiet message')))
+    }
+
+    @Test
+    public void eachScriptHasIndependentClassLoader() {
+        createExternalJar()
+
+        TestFile initScript1 = testFile('init1.gradle')
+        initScript1 << '''
+initscript {
+    dependencies { classpath files('repo/test-1.3.jar') }
+}
+new org.gradle.test.BuildClass()
+'''
+        TestFile initScript2 = testFile('init2.gradle')
+        initScript2 << '''
+try {
+    Class.forName('org.gradle.test.BuildClass')
+    fail()
+} catch (ClassNotFoundException e) {
+}
+'''
+
+        testFile('build.gradle') << 'task doStuff'
+
+       inTestDirectory().usingInitScript(initScript1).usingInitScript(initScript2)
+    }
+
+    private def createExternalJar() {
+        ArtifactBuilder builder = artifactBuilder();
+        builder.sourceFile('org/gradle/test/BuildClass.java') << '''
+            package org.gradle.test;
+            public class BuildClass { }
+'''
+        builder.buildJar(testFile("repo/test-1.3.jar"))
     }
 }

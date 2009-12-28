@@ -18,18 +18,23 @@ package org.gradle.util;
 import java.util.*;
 import java.net.URL;
 import java.io.IOException;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * A {@code ClassLoader} which delegates to multiple parent classloaders.
+ * A {@code ClassLoader} which delegates to multiple parent ClassLoaders.
  */
 public class MultiParentClassLoader extends ClassLoader {
-    private List<ClassLoader> parents;
+    private final List<ClassLoader> parents;
 
     public MultiParentClassLoader(ClassLoader... parents) {
         super(parents[0]);
-        this.parents = new ArrayList<ClassLoader>(Arrays.asList(parents));
+        this.parents = new CopyOnWriteArrayList<ClassLoader>(Arrays.asList(parents));
     }
 
+    public void addParent(ClassLoader parent) {
+        parents.add(parent);
+    }
+    
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         for (ClassLoader parent : parents) {

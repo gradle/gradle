@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.gradle.api.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
 
 import java.io.File;
 
@@ -167,37 +165,4 @@ public interface Settings {
      * @return The parameters. Never returns null.
      */
     StartParameter getStartParameter();
-
-    /**
-     * <p>Returns the classloader used to compile and execute the settings script.</p>
-     *
-     * @return The classloader. Never returns null.
-     */
-    ClassLoader getClassLoader();
-
-    /**
-     * Disables redirection of standard output during settings evaluation. By default redirection is enabled.
-     *
-     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
-     */
-    void disableStandardOutputCapture();
-
-    /**
-     * Starts redirection of standard output during to the logging system during settings evaluation. By default
-     * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
-     * ERROR level. Redirection of output at execution time can be configured via the tasks.
-     *
-     * For more fine-grained control on redirecting standard output see {@link org.gradle.api.logging.StandardOutputLogging}.
-     *
-     * @param level The level standard out should be logged to.
-     * @see #disableStandardOutputCapture()
-     */
-    void captureStandardOutput(LogLevel level);
-
-    /**
-     * Returns the logger for this build. You can use this in your settings script to write log messages.
-     *
-     * @return The logger. Never returns null.
-     */
-    Logger getLogger();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,11 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.DefaultStandardOutputRedirector;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
-import java.util.Map;
 import java.net.URLClassLoader;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -38,8 +37,7 @@ public class SettingsFactory {
     public SettingsInternal createSettings(File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
                                            URLClassLoader classloader) {
-        DefaultSettings settings = new DefaultSettings(projectDescriptorRegistry,
-                classloader, settingsDir, settingsScript, startParameter, new DefaultStandardOutputRedirector());
+        DefaultSettings settings = new DefaultSettings(projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter);
         settings.getAdditionalProperties().putAll(gradleProperties);
         return settings;
     }

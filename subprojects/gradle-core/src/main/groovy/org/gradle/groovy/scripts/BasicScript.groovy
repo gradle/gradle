@@ -15,16 +15,22 @@
  */
 package org.gradle.groovy.scripts
 
-import org.gradle.api.internal.project.DefaultStandardOutputRedirector
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.api.internal.project.StandardOutputRedirector
 
+/**
+ * @author Hans Dockter
+ *
+ * todo: We need our own base class as a workaround for http://jira.codehaus.org/browse/GROOVY-2635. When this bug is fixed we can use the metaclass.
+ * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
+ */
 abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script {
-    private final StandardOutputRedirector redirector = new DefaultStandardOutputRedirector()
+    private StandardOutputRedirector redirector
     private Object target
 
     void init(Object target, ServiceRegistry services) {
         new DefaultScriptMetaData().applyMetaData(this, target)
+        redirector = services.get(StandardOutputRedirector.class)
         this.target = target
     }
 
@@ -32,7 +38,7 @@ abstract class BasicScript extends org.gradle.groovy.scripts.Script implements o
         return target
     }
 
-    StandardOutputRedirector getStandardOutputRedirector() {
+    def StandardOutputRedirector getStandardOutputRedirector() {
         return redirector
     }
 

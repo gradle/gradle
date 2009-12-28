@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.util.MultiParentClassLoader;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
@@ -50,15 +51,17 @@ public class SettingsHandlerTest {
     private ISettingsFinder settingsFinder = context.mock(ISettingsFinder.class);
     private SettingsProcessor settingsProcessor = context.mock(SettingsProcessor.class);
     private BuildSourceBuilder buildSourceBuilder = context.mock(BuildSourceBuilder.class);
-    private SettingsHandler settingsHandler = new SettingsHandler(settingsFinder, settingsProcessor, buildSourceBuilder);
+    private MultiParentClassLoader scriptClassLoader = context.mock(MultiParentClassLoader.class);
+    private SettingsHandler settingsHandler = new SettingsHandler(settingsFinder, settingsProcessor,
+            buildSourceBuilder);
 
     @org.junit.Test
     public void findAndLoadSettingsWithExistingSettings() {
         prepareForExistingSettings();
         context.checking(new Expectations() {{
-            allowing(buildSourceBuilder).buildAndCreateClassLoader(with(aBuildSrcStartParameter(
-                    new File(settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR))));
-            will(returnValue(urlClassLoader));    
+            allowing(buildSourceBuilder).buildAndCreateClassLoader(with(aBuildSrcStartParameter(new File(
+                    settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR))));
+            will(returnValue(urlClassLoader));
         }});
         assertThat(settingsHandler.findAndLoadSettings(gradle, gradlePropertiesLoader), sameInstance(settings));
     }
@@ -75,7 +78,8 @@ public class SettingsHandlerTest {
             allowing(settings).createClassLoader();
             will(returnValue(urlClassLoader));
 
-            one(gradle).setBuildScriptClassLoader(urlClassLoader);
+            allowing(gradle).getScriptClassLoader();
+            will(returnValue(scriptClassLoader));
 
             allowing(projectSpec).containsProject(projectRegistry);
             will(returnValue(true));
@@ -86,8 +90,11 @@ public class SettingsHandlerTest {
             allowing(settingsFinder).find(startParameter);
             will(returnValue(settingsLocation));
 
-            allowing(settingsProcessor).process(settingsLocation, urlClassLoader, startParameter, gradlePropertiesLoader);
+            one(settingsProcessor).process(settingsLocation, urlClassLoader, startParameter,
+                    gradlePropertiesLoader);
             will(returnValue(settings));
+
+            one(scriptClassLoader).addParent(urlClassLoader);
         }});
     }
 

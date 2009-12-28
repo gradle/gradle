@@ -138,7 +138,7 @@ public class ProjectInternalServiceRegistryTest {
             allowing(project).getParent();
             will(returnValue(null));
 
-            allowing(gradle).getBuildScriptClassLoader();
+            allowing(gradle).getScriptClassLoader();
             will(returnValue(null));
 
             ignoring(configurationContainer);

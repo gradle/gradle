@@ -109,7 +109,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         if (project.getParent() != null) {
             parentClassLoader = project.getParent().getBuildscript().getClassLoader();
         } else {
-            parentClassLoader = project.getGradle().getBuildScriptClassLoader();
+            parentClassLoader = project.getGradle().getScriptClassLoader();
         }
         return factory.create(parentClassLoader);
     }

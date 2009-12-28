@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,8 @@ class LoggingIntegrationTest {
             'buildSrc quiet',
             'nestedBuild/buildSrc quiet',
             'nestedBuild quiet',
-            'nestedBuild task quiet'
+            'nestedBuild task quiet',
+            'external quiet message'
     ]
     List errorMessages = [
             'An error log message.'
@@ -59,6 +60,7 @@ class LoggingIntegrationTest {
             'A task message which is logged at LIFECYCLE level',
             'settings lifecycle log',
             'init lifecycle log',
+            'external lifecycle message',
             'LOGGER: evaluating :',
             'LOGGER: evaluating :project1',
             'LOGGER: evaluating :project2',
@@ -89,7 +91,8 @@ class LoggingIntegrationTest {
             'LOGGER: task completed work',
             'buildSrc info',
             'nestedBuild/buildSrc info',
-            'nestedBuild info'
+            'nestedBuild info',
+            'external info message'
     ]
     List debugMessages = [
             'A debug log message.'

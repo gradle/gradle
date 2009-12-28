@@ -23,23 +23,23 @@ import org.junit.Test
 public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void executesExternalScriptAgainstAProjectWithCorrectEnvironment() {
-        ArtifactBuilder builder = artifactBuilder();
-        builder.sourceFile('org/gradle/test/BuildClass.java') << '''
-            package org.gradle.test;
-            public class BuildClass { }
-'''
-        builder.buildJar(testFile("repo/test-1.3.jar"));
+        createExternalJar()
+        createBuildSrc()
 
         testFile('external.gradle') << '''
 buildscript {
     dependencies { classpath files('repo/test-1.3.jar') }
 }
 new org.gradle.test.BuildClass()
+new BuildSrcClass()
 println 'quiet message'
 captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 assertNotNull(project)
-assertSame(Thread.currentThread().contextClassLoader, buildscript.classLoader)
+assertSame(buildscript.classLoader, getClass().classLoader.parent)
+assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
+assertSame(gradle.scriptClassLoader, buildscript.classLoader.parent)
+assertNotSame(project.buildscript.classLoader, buildscript.classLoader)
 task doStuff
 someProp = 'value'
 '''
@@ -89,9 +89,18 @@ class ListenerImpl extends BuildAdapter {
 
     @Test
     public void canExecuteExternalScriptAgainstAnArbitraryObject() {
+        createBuildSrc()
+
         testFile('external.gradle') << '''
+println 'quiet message'
+captureStandardOutput(LogLevel.ERROR)
+println 'error message'
+new BuildSrcClass()
 assertEquals('doStuff', name)
-//assertSame(Thread.currentThread().contextClassLoader.parent, project.gradle.buildScriptClassLoader)
+assertSame(buildscript.classLoader, getClass().classLoader.parent)
+assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
+assertSame(project.gradle.scriptClassLoader, buildscript.classLoader.parent)
+assertNotSame(project.buildscript.classLoader, buildscript.classLoader)
 someProp = 'value'
 '''
         testFile('build.gradle') << '''
@@ -103,6 +112,25 @@ apply {
 assertEquals('value', doStuff.someProp)
 '''
 
-        inTestDirectory().withTasks('doStuff').run()
+        ExecutionResult result = inTestDirectory().withTasks('doStuff').run()
+        assertThat(result.output, containsString('quiet message'))
+        assertThat(result.output, not(containsString('error message')))
+        assertThat(result.error, containsString('error message'))
+        assertThat(result.error, not(containsString('quiet message')))
+    }
+
+    private TestFile createBuildSrc() {
+        return testFile('buildSrc/src/main/java/BuildSrcClass.java') << '''
+            public class BuildSrcClass { }
+'''
+    }
+    
+    private def createExternalJar() {
+        ArtifactBuilder builder = artifactBuilder();
+        builder.sourceFile('org/gradle/test/BuildClass.java') << '''
+            package org.gradle.test;
+            public class BuildClass { }
+'''
+        builder.buildJar(testFile("repo/test-1.3.jar"))
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.api.internal.project.StandardOutputRedirector
 
 /**
  * @author Hans Dockter
@@ -28,8 +27,8 @@ public class DefaultSettings extends BaseSettings {
 
     DefaultSettings(IProjectDescriptorRegistry projectDescriptorRegistry,
                     URLClassLoader classloader, File settingsDir,
-                    ScriptSource settingsScript, StartParameter startParameter, StandardOutputRedirector standardOutputRedirector) {
-      super(projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter, standardOutputRedirector)
+                    ScriptSource settingsScript, StartParameter startParameter) {
+      super(projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter)
     }
 
     def propertyMissing(String property) {

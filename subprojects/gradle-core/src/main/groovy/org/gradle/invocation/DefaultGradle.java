@@ -25,27 +25,21 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
-import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.MultiParentClassLoader;
 
 import java.io.File;
 
 public class DefaultGradle implements GradleInternal {
-    private final Logger logger = Logging.getLogger(Gradle.class);
-
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
     private TaskGraphExecuter taskGraph;
     private final Gradle parent;
     private StartParameter startParameter;
-    private ClassLoader buildScriptClassLoader;
-    private StandardOutputRedirector standardOutputRedirector;
+    private MultiParentClassLoader scriptClassLoader;
     private IProjectRegistry<ProjectInternal> projectRegistry;
     private PluginRegistry pluginRegistry;
     private final ListenerManager listenerManager;
@@ -56,10 +50,10 @@ public class DefaultGradle implements GradleInternal {
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
         this.listenerManager = services.get(ListenerManager.class);
-        this.standardOutputRedirector = services.get(StandardOutputRedirector.class);
         projectRegistry = services.get(IProjectRegistry.class);
         pluginRegistry = services.get(PluginRegistry.class);
         taskGraph = services.get(TaskGraphExecuter.class);
+        scriptClassLoader = services.get(MultiParentClassLoader.class);
     }
 
     public Gradle getParent() {
@@ -110,12 +104,8 @@ public class DefaultGradle implements GradleInternal {
         return projectRegistry;
     }
 
-    public ClassLoader getBuildScriptClassLoader() {
-        return buildScriptClassLoader;
-    }
-
-    public void setBuildScriptClassLoader(ClassLoader buildScriptClassLoader) {
-        this.buildScriptClassLoader = buildScriptClassLoader;
+    public MultiParentClassLoader getScriptClassLoader() {
+        return scriptClassLoader;
     }
 
     public PluginRegistry getPluginRegistry() {
@@ -163,23 +153,8 @@ public class DefaultGradle implements GradleInternal {
         return listenerManager.getBroadcaster(BuildListener.class);
     }
 
-    public StandardOutputRedirector getStandardOutputRedirector() {
-        return standardOutputRedirector;
-    }
-
-    public void captureStandardOutput(LogLevel level) {
-        standardOutputRedirector.on(level);
-    }
-
-    public void disableStandardOutputCapture() {
-    }
-
     public Gradle getGradle() {
         return this;
-    }
-
-    public Logger getLogger() {
-        return logger;
     }
 
     public ServiceRegistryFactory getServiceRegistryFactory() {

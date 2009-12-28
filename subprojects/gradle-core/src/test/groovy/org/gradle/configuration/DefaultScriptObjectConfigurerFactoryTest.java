@@ -52,7 +52,7 @@ public class DefaultScriptObjectConfigurerFactoryTest {
     private final ScriptHandlerInternal scriptHandlerMock = context.mock(ScriptHandlerInternal.class);
     private final ScriptRunner classPathScriptRunnerMock = context.mock(ScriptRunner.class, "classpathScriptRunner");
     private final BasicScript classPathScriptMock = context.mock(BasicScript.class, "classpathScript");
-    private final DefaultScriptObjectConfigurerFactory factory = new DefaultScriptObjectConfigurerFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock);
+    private final DefaultScriptObjectConfigurerFactory factory = new DefaultScriptObjectConfigurerFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentClassLoader);
 
     @Test
     public void configuresATargetObjectUsingScript() {
@@ -109,7 +109,6 @@ public class DefaultScriptObjectConfigurerFactoryTest {
         }});
 
         ScriptObjectConfigurer configurer = factory.create(scriptSourceMock);
-        configurer.setClassLoader(parentClassLoader);
         configurer.apply(target);
     }
 
@@ -173,7 +172,6 @@ public class DefaultScriptObjectConfigurerFactoryTest {
         }});
 
         ScriptObjectConfigurer configurer = factory.create(scriptSourceMock);
-        configurer.setClassLoader(parentClassLoader);
         configurer.apply(target);
     }
 }

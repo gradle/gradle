@@ -21,8 +21,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
 
 import java.io.File;
 
@@ -164,30 +162,4 @@ public interface Gradle {
      * @return this. Never returns null.
      */
     Gradle getGradle();
-
-    /**
-     * Disables redirection of standard output during init script evaluation. By default redirection is enabled.
-     *
-     * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
-     */
-    void disableStandardOutputCapture();
-
-    /**
-     * Starts redirection of standard output during to the logging system during init script evaluation. By default
-     * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
-     * ERROR level. Redirection of output at execution time can be configured via the tasks.
-     *
-     * For more fine-grained control on redirecting standard output see {@link org.gradle.api.logging.StandardOutputLogging}.
-     *
-     * @param level The level standard out should be logged to.
-     * @see #disableStandardOutputCapture()
-     */
-    void captureStandardOutput(LogLevel level);
-
-    /**
-     * Returns the logger for this build. You can use this in your init scripts to write log messages.
-     *
-     * @return The logger. Never returns null.
-     */
-    Logger getLogger();
 }

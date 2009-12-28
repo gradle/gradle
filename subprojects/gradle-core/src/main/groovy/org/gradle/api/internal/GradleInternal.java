@@ -21,6 +21,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.BuildListener;
+import org.gradle.util.MultiParentClassLoader;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
@@ -47,17 +48,9 @@ public interface GradleInternal extends Gradle {
     PluginRegistry getPluginRegistry();
 
     /**
-     * Returns the root classloader to use for the build scripts of this build.
+     * Returns the root {@code ClassLoader} to use for the scripts of this build.
      */
-    ClassLoader getBuildScriptClassLoader();
-
-    /**
-     * Set once the buildSrc module has been built.  This allows scripts to use
-     * classes defined in the buildSrc project.
-     * @param buildScriptClassLoader A ClassLoader that can load classes from the
-     *                               buildSrc project.
-     */
-    void setBuildScriptClassLoader(ClassLoader buildScriptClassLoader);
+    MultiParentClassLoader getScriptClassLoader();
 
     /**
      * Returns the broadcaster for {@link ProjectEvaluationListener} events for this build

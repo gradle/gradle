@@ -15,19 +15,23 @@
  */
 package org.gradle.groovy.scripts
 
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.BaseDirConverter
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
 import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.configuration.ScriptObjectConfigurerFactory
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.logging.Logging
+import org.gradle.api.Script
 
 abstract class DefaultScript extends BasicScript {
+    private static final Logger LOGGER = Logging.getLogger(Script.class)
     private ServiceRegistry services
     private FileResolver resolver
     private ScriptHandler scriptHandler
@@ -69,8 +73,17 @@ abstract class DefaultScript extends BasicScript {
         ConfigureUtil.configure(configureClosure, resolver.resolveFiles(paths))
     }
 
-    FileCollection xfiles(Object ... paths) {
-        resolver.resolveFiles(paths)
+    public void captureStandardOutput(LogLevel level) {
+        standardOutputRedirector.on(level);
+    }
+
+    public void disableStandardOutputCapture() {
+        standardOutputRedirector.flush();
+        standardOutputRedirector.off();
+    }
+
+    public Logger getLogger() {
+        return LOGGER;
     }
 
     def String toString() {

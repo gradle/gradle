@@ -63,8 +63,7 @@ public class SettingsHandler {
             }
         }
 
-        // todo: Violation of Command Query separation
-        gradle.setBuildScriptClassLoader(settings.createClassLoader());
+        gradle.getScriptClassLoader().addParent(settings.createClassLoader());
         return settings;
     }
 

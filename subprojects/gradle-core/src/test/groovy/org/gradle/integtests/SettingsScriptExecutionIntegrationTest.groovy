@@ -22,16 +22,8 @@ import static org.hamcrest.Matchers.*
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void executesSettingsScriptWithCorrectEnvironment() {
-        ArtifactBuilder builder = artifactBuilder();
-        builder.sourceFile('org/gradle/test/BuildClass.java') << '''
-            package org.gradle.test;
-            public class BuildClass { }
-'''
-        builder.buildJar(testFile("repo/test-1.3.jar"));
-
-        testFile('buildSrc/src/main/java/BuildSrcClass.java') << '''
-            public class BuildSrcClass { }
-'''
+        createExternalJar()
+        createBuildSrc()
 
         testFile('settings.gradle') << '''
 buildscript {
@@ -43,8 +35,9 @@ println 'quiet message'
 captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 assertNotNull(settings)
-assertSame(Thread.currentThread().contextClassLoader, buildscript.classLoader)
-assertSame(Thread.currentThread().contextClassLoader.parent, classLoader)
+assertSame(buildscript.classLoader, getClass().classLoader.parent)
+assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
+assertSame(Gradle.class.classLoader, buildscript.classLoader.parent.parent)
 '''
         testFile('build.gradle') << 'task doStuff'
 
@@ -53,5 +46,20 @@ assertSame(Thread.currentThread().contextClassLoader.parent, classLoader)
         assertThat(result.output, not(containsString('error message')))
         assertThat(result.error, containsString('error message'))
         assertThat(result.error, not(containsString('quiet message')))
+    }
+
+    private TestFile createBuildSrc() {
+        return testFile('buildSrc/src/main/java/BuildSrcClass.java') << '''
+            public class BuildSrcClass { }
+'''
+    }
+
+    private def createExternalJar() {
+        ArtifactBuilder builder = artifactBuilder();
+        builder.sourceFile('org/gradle/test/BuildClass.java') << '''
+            package org.gradle.test;
+            public class BuildClass { }
+'''
+        builder.buildJar(testFile("repo/test-1.3.jar"))
     }
 }

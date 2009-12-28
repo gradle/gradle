@@ -20,22 +20,23 @@ import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.api.internal.project.ImportsReader;
-import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.internal.project.*;
 import org.gradle.groovy.scripts.*;
 
 public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigurerFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
     private final ScriptHandlerFactory scriptHandlerFactory;
+    private final ClassLoader defaultClassLoader;
 
     public DefaultScriptObjectConfigurerFactory(ScriptCompilerFactory scriptCompilerFactory,
                                                 ImportsReader importsReader,
-                                                ScriptHandlerFactory scriptHandlerFactory) {
+                                                ScriptHandlerFactory scriptHandlerFactory,
+                                                ClassLoader defaultClassLoader) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;
+        this.defaultClassLoader = defaultClassLoader;
     }
 
     public ScriptObjectConfigurer create(ScriptSource scriptSource) {
@@ -47,7 +48,7 @@ public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigu
         private String classpathClosureName = "buildscript";
         private Class<? extends BasicScript> scriptType = DefaultScript.class;
         private ScriptClassLoaderProvider classLoaderProvider;
-        private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        private ClassLoader classLoader = defaultClassLoader;
 
         public ScriptObjectConfigurerImpl(ScriptSource scriptSource) {
             this.scriptSource = scriptSource;
@@ -80,6 +81,7 @@ public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigu
         public void apply(Object target) {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptObjectConfigurerFactory.class, DefaultScriptObjectConfigurerFactory.this);
+            services.add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
 
             ScriptAware scriptAware = null;
             if (target instanceof ScriptAware) {

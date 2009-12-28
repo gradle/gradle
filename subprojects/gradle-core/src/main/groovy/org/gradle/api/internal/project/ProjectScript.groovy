@@ -20,13 +20,9 @@ import org.gradle.groovy.scripts.BasicScript
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logger
 
-/**
- * @author Hans Dockter
- *
- * todo: We need our own base class as a workaround for http://jira.codehaus.org/browse/GROOVY-2635. When this bug is fixed we can use the metaclass.
- * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
- */
 abstract class ProjectScript extends BasicScript {
 
     def void apply(Closure closure) {
@@ -51,6 +47,18 @@ abstract class ProjectScript extends BasicScript {
 
     def ConfigurableFileCollection files(Object ... paths) {
         scriptTarget.files(paths)
+    }
+
+    def void disableStandardOutputCapture() {
+        scriptTarget.disableStandardOutputCapture()
+    }
+
+    def void captureStandardOutput(LogLevel level) {
+        scriptTarget.captureStandardOutput(level)
+    }
+
+    def Logger getLogger() {
+        scriptTarget.logger
     }
 
     def String toString() {

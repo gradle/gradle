@@ -28,7 +28,9 @@ println 'quiet message'
 captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 assertNotNull(project)
-assertSame(Thread.currentThread().contextClassLoader, buildscript.classLoader)
+assertSame(buildscript.classLoader, getClass().classLoader.parent)
+assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
+assertSame(gradle.scriptClassLoader, buildscript.classLoader.parent)
 
 task doStuff
 '''

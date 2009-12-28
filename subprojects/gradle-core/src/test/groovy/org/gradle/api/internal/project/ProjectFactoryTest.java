@@ -30,13 +30,12 @@ import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.Matchers;
+import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.TemporaryFolder;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,8 +43,9 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -55,7 +55,7 @@ public class ProjectFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private final ClassLoader buildScriptClassLoader = new URLClassLoader(new URL[0]);
+    private final MultiParentClassLoader buildScriptClassLoader = new MultiParentClassLoader(getClass().getClassLoader());
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
     private final File rootDir = testDir.getDir();
@@ -88,7 +88,7 @@ public class ProjectFactoryTest {
                     with(any(DependencyMetaDataProvider.class)));
             allowing(gradle).getProjectRegistry();
             will(returnValue(gradleServices.get(IProjectRegistry.class)));
-            allowing(gradle).getBuildScriptClassLoader();
+            allowing(gradle).getScriptClassLoader();
             will(returnValue(buildScriptClassLoader));
             allowing(gradle).getGradleUserHomeDir();
             will(returnValue(new File("gradleUserHomeDir")));

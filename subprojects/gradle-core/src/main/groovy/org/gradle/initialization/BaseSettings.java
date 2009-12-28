@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,6 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DynamicObjectHelper;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
-import org.gradle.api.internal.project.StandardOutputRedirector;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.Logger;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ClasspathUtil;
 
@@ -39,8 +35,6 @@ import java.util.Map;
  */
 public class BaseSettings implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
-
-    private final Logger logger = Logging.getLogger(Settings.class);
 
     private ScriptSource settingsScript;
 
@@ -56,20 +50,17 @@ public class BaseSettings implements SettingsInternal {
 
     private IProjectDescriptorRegistry projectDescriptorRegistry;
 
-    private StandardOutputRedirector standardOutputRedirector;
-
     protected BaseSettings() {
     }
 
     public BaseSettings(IProjectDescriptorRegistry projectDescriptorRegistry,
                         URLClassLoader classloader, File settingsDir, ScriptSource settingsScript,
-                        StartParameter startParameter, StandardOutputRedirector standardOutputRedirector) {
+                        StartParameter startParameter) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.classloader = classloader;
-        this.standardOutputRedirector = standardOutputRedirector;
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         dynamicObjectHelper = new DynamicObjectHelper(this);
     }
@@ -151,23 +142,6 @@ public class BaseSettings implements SettingsInternal {
         }
 
         return classloader;
-    }
-
-    public StandardOutputRedirector getStandardOutputRedirector() {
-        return standardOutputRedirector;
-    }
-
-    public void captureStandardOutput(LogLevel level) {
-        standardOutputRedirector.on(level);
-    }
-
-    public void disableStandardOutputCapture() {
-        standardOutputRedirector.flush();
-        standardOutputRedirector.off();
-    }
-
-    public Logger getLogger() {
-        return logger;
     }
 
     public URLClassLoader getClassLoader() {

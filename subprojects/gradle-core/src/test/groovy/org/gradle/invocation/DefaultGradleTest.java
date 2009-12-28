@@ -24,18 +24,15 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
-import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.MultiParentClassLoader;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
-
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,21 +41,26 @@ import org.junit.runners.JUnit4;
 import java.io.File;
 import java.io.IOException;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 @RunWith(JUnit4.class)
 public class DefaultGradleTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4Mockery(){{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
     private final StartParameter parameter = new StartParameter() {{
         setPluginPropertiesFile(new File("plugin.properties"));
     }};
     private final ScriptHandler scriptHandlerMock = context.mock(ScriptHandler.class);
     private final ServiceRegistryFactory serviceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, "parent");
     private final ServiceRegistryFactory gradleServiceRegistryMock = context.mock(ServiceRegistryFactory.class, "gradle");
-    private final StandardOutputRedirector standardOutputRedirectorMock = context.mock(StandardOutputRedirector.class);
     private final IProjectRegistry projectRegistry = context.mock(IProjectRegistry.class);
     private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
     private final Gradle parent = context.mock(Gradle.class, "parentBuild");
+    private final MultiParentClassLoader scriptClassLoaderMock = context.mock(MultiParentClassLoader.class);
     private DefaultGradle gradle;
 
     @Before
@@ -70,8 +72,6 @@ public class DefaultGradleTest {
             will(returnValue(scriptHandlerMock));
             allowing(gradleServiceRegistryMock).get(ScriptClassLoaderProvider.class);
             will(returnValue(context.mock(ScriptClassLoaderProvider.class)));
-            allowing(gradleServiceRegistryMock).get(StandardOutputRedirector.class);
-            will(returnValue(standardOutputRedirectorMock));
             allowing(gradleServiceRegistryMock).get(IProjectRegistry.class);
             will(returnValue(projectRegistry));
             allowing(gradleServiceRegistryMock).get(PluginRegistry.class);
@@ -80,6 +80,8 @@ public class DefaultGradleTest {
             will(returnValue(taskExecuter));
             allowing(gradleServiceRegistryMock).get(ListenerManager.class);
             will(returnValue(listenerManager));
+            allowing(gradleServiceRegistryMock).get(MultiParentClassLoader.class);
+            will(returnValue(scriptClassLoaderMock));
         }});
         gradle = new DefaultGradle(parent, parameter, serviceRegistryFactoryMock);
     }
@@ -88,7 +90,6 @@ public class DefaultGradleTest {
     public void defaultValues() {
         assertThat(gradle.getParent(), sameInstance(parent));
         assertThat(gradle.getServiceRegistryFactory(), sameInstance(gradleServiceRegistryMock));
-        assertThat(gradle.getStandardOutputRedirector(), sameInstance(standardOutputRedirectorMock));
         assertThat(gradle.getProjectRegistry(), sameInstance(projectRegistry));
         assertThat(gradle.getPluginRegistry(), sameInstance(pluginRegistry));
         assertThat(gradle.getTaskGraph(), sameInstance(taskExecuter));
@@ -150,22 +151,5 @@ public class DefaultGradleTest {
             one(listenerManager).useLogger(logger);
         }});
         gradle.useLogger(logger);
-    }
-
-    @Test
-    public void captureStdOut() {
-        context.checking(new Expectations(){{
-            one(standardOutputRedirectorMock).on(LogLevel.DEBUG);
-        }});
-        gradle.captureStandardOutput(LogLevel.DEBUG);
-    }
-
-    @Test
-    public void disableStdOutCapture() {
-        context.checking(new Expectations(){{
-            one(standardOutputRedirectorMock).flush();
-            one(standardOutputRedirectorMock).off();
-        }});
-        gradle.disableStandardOutputCapture();
     }
 }

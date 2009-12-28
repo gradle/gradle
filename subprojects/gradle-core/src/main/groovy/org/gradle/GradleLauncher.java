@@ -172,7 +172,6 @@ public class GradleLauncher {
         // Evaluate settings script
         SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle, gradlePropertiesLoader);
         buildListener.settingsEvaluated(settings);
-        loggingConfigurer.configure(gradle.getStartParameter().getLogLevel());
 
         // Load build
         buildLoader.load(settings.getRootProject(), gradle, gradlePropertiesLoader.getGradleProperties());

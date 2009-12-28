@@ -56,6 +56,7 @@ import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
+import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -238,9 +239,14 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         return new DefaultScriptObjectConfigurerFactory(
                 get(ScriptCompilerFactory.class),
                 get(ImportsReader.class),
-                get(ScriptHandlerFactory.class));
+                get(ScriptHandlerFactory.class),
+                get(ClassLoader.class));
     }
 
+    protected MultiParentClassLoader createRootClassLoader() {
+        return new MultiParentClassLoader(getClass().getClassLoader());
+    }
+    
     protected InitScriptHandler createInitScriptHandler() {
         return new InitScriptHandler(
                 new UserHomeInitScriptFinder(
