@@ -49,8 +49,8 @@ import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.internal.file.FileSet;
 import org.gradle.configuration.ProjectEvaluator;
-import org.gradle.configuration.ScriptObjectConfigurer;
-import org.gradle.configuration.ScriptObjectConfigurerFactory;
+import org.gradle.configuration.ScriptPlugin;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.util.*;
@@ -233,7 +233,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return scriptHandler;
     }
 
-    public void beforeCompile(ScriptObjectConfigurer configurer) {
+    public void beforeCompile(ScriptPlugin configurer) {
         if (configurer.getSource() != buildScriptSource) {
             return;
         }
@@ -241,7 +241,7 @@ public abstract class AbstractProject implements ProjectInternal {
         configurer.setClassLoaderProvider(scriptClassLoaderProvider);
     }
 
-    public void afterCompile(ScriptObjectConfigurer configurer, org.gradle.groovy.scripts.Script script) {
+    public void afterCompile(ScriptPlugin configurer, org.gradle.groovy.scripts.Script script) {
         if (configurer.getSource() != buildScriptSource) {
             return;
         }
@@ -871,14 +871,14 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public void apply(Closure closure) {
         DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptObjectConfigurerFactory.class), this);
+                ScriptPluginFactory.class), this);
         configure(action, closure);
         action.execute();
     }
 
     public void apply(Map<String, ?> options) {
         DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptObjectConfigurerFactory.class), this);
+                ScriptPluginFactory.class), this);
         ConfigureUtil.configure(options, action);
         action.execute();
     }

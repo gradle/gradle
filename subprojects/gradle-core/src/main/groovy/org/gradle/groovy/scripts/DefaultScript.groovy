@@ -25,7 +25,7 @@ import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.ObjectConfigurationAction
-import org.gradle.configuration.ScriptObjectConfigurerFactory
+import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.logging.Logging
 import org.gradle.api.Script
@@ -48,13 +48,13 @@ abstract class DefaultScript extends BasicScript {
     }
 
     void apply(Closure closure) {
-        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, services.get(ScriptObjectConfigurerFactory.class), scriptTarget)
+        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, services.get(ScriptPluginFactory.class), scriptTarget)
         ConfigureUtil.configure(closure, action)
         action.execute()
     }
 
     void apply(Map options) {
-        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, services.get(ScriptObjectConfigurerFactory.class), scriptTarget)
+        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, services.get(ScriptPluginFactory.class), scriptTarget)
         ConfigureUtil.configure(options, action)
         action.execute()
     }

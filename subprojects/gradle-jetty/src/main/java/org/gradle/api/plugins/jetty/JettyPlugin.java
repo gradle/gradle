@@ -32,7 +32,7 @@ import java.io.File;
  *
  * @author Hans Dockter
  */
-public class JettyPlugin implements Plugin {
+public class JettyPlugin implements Plugin<Project> {
     public static final String JETTY_RUN = "jettyRun";
     public static final String JETTY_RUN_WAR = "jettyRunWar";
     public static final String JETTY_STOP = "jettyStop";
@@ -40,8 +40,8 @@ public class JettyPlugin implements Plugin {
     public static final String RELOAD_AUTOMATIC = "automatic";
     public static final String RELOAD_MANUAL = "manual";
 
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-        projectPluginsHandler.usePlugin(WarPlugin.class, project);
+    public void use(Project project) {
+        project.usePlugin(WarPlugin.class);
         JettyPluginConvention jettyConvention = new JettyPluginConvention();
         Convention convention = project.getConvention();
         convention.getPlugins().put("jetty", jettyConvention);

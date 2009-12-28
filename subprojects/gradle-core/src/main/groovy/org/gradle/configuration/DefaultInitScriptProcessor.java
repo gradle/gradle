@@ -24,16 +24,16 @@ import org.gradle.initialization.InitScript;
  * the classpath based on the initscript {} configuration closure.
  */
 public class DefaultInitScriptProcessor implements InitScriptProcessor {
-    private final ScriptObjectConfigurerFactory configurerFactory;
+    private final ScriptPluginFactory configurerFactory;
 
-    public DefaultInitScriptProcessor(ScriptObjectConfigurerFactory configurerFactory) {
+    public DefaultInitScriptProcessor(ScriptPluginFactory configurerFactory) {
         this.configurerFactory = configurerFactory;
     }
 
     public void process(ScriptSource initScript, GradleInternal gradle) {
-        ScriptObjectConfigurer configurer = configurerFactory.create(initScript);
+        ScriptPlugin configurer = configurerFactory.create(initScript);
         configurer.setClasspathClosureName("initscript");
         configurer.setScriptBaseClass(InitScript.class);
-        configurer.apply(gradle);
+        configurer.use(gradle);
     }
 }

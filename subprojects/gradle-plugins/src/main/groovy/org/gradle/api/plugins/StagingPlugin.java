@@ -25,10 +25,10 @@ import org.gradle.api.tasks.testing.NativeTest;
 /**
  * @author Tom Eyckmans
  */
-public class StagingPlugin implements Plugin {
+public class StagingPlugin implements Plugin<Project> {
 
-    public void use(final Project project, ProjectPluginsContainer projectPluginsHandler) {
-        projectPluginsHandler.usePlugin(JavaPlugin.class, project);
+    public void use(final Project project) {
+        project.usePlugin(JavaPlugin.class);
 
         TaskCollection<AntTest> antTestTasks = project.getTasks().withType(AntTest.class);
         for (AntTest antTestTask : antTestTasks) {

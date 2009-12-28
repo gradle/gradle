@@ -42,12 +42,12 @@ import java.io.File;
  *
  * @author Hans Dockter
  */
-public class GroovyPlugin implements Plugin {
+public class GroovyPlugin implements Plugin<Project> {
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
 
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-        JavaPlugin javaPlugin = projectPluginsHandler.usePlugin(JavaPlugin.class, project);
+    public void use(Project project) {
+        JavaPlugin javaPlugin = project.getPlugins().usePlugin(JavaPlugin.class, project);
 
         Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
                 setDescription("The groovy libraries to be used for this Groovy project.");

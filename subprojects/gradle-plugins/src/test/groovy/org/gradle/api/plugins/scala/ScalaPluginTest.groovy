@@ -33,12 +33,12 @@ public class ScalaPluginTest {
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
 
     @Test public void appliesTheJavaPluginToTheProject() {
-        scalaPlugin.use(project, project.getPlugins())
+        scalaPlugin.use(project)
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin))
     }
 
     @Test public void addsScalaToolsConfigurationToTheProject() {
-        scalaPlugin.use(project, project.getPlugins())
+        scalaPlugin.use(project)
         def configuration = project.configurations.getByName(ScalaPlugin.SCALA_TOOLS_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertFalse(configuration.visible)
@@ -46,7 +46,7 @@ public class ScalaPluginTest {
     }
 
     @Test public void addsScalaConventionToEachSourceSetAndAppliesMappings() {
-        scalaPlugin.use(project, project.getPlugins())
+        scalaPlugin.use(project)
 
         def sourceSet = project.sourceSets.main
         assertThat(sourceSet.scala.displayName, equalTo("main Scala source"))
@@ -62,7 +62,7 @@ public class ScalaPluginTest {
     }
 
     @Test public void addsCompileTaskForEachSourceSet() {
-        scalaPlugin.use(project, project.getPlugins())
+        scalaPlugin.use(project)
 
         def task = project.tasks['compileScala']
         assertThat(task, instanceOf(ScalaCompile.class))
@@ -88,7 +88,7 @@ public class ScalaPluginTest {
     }
 
     @Test public void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
-        scalaPlugin.use(project, project.getPlugins())
+        scalaPlugin.use(project)
 
         def task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
         assertThat(task, dependsOn(hasItem('compileScala')))
@@ -98,7 +98,7 @@ public class ScalaPluginTest {
     }
     
     @Test public void configuresCompileTasksDefinedByTheBuildScript() {
-        scalaPlugin.use(project, project.getPlugins())
+        scalaPlugin.use(project)
 
         def task = project.createTask('otherCompile', type: ScalaCompile)
         assertThat(task.classpath, equalTo(project.sourceSets.main.compileClasspath))
@@ -107,7 +107,7 @@ public class ScalaPluginTest {
     }
 
     @Test public void addsScalaDocTasksToTheProject() {
-        scalaPlugin.use(project, project.getPlugins())
+        scalaPlugin.use(project)
 
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         assertThat(task, instanceOf(ScalaDoc.class))
@@ -120,7 +120,7 @@ public class ScalaPluginTest {
     }
 
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
-        scalaPlugin.use(project, project.getPlugins())
+        scalaPlugin.use(project)
 
         def task = project.createTask('otherScaladoc', type: ScalaDoc)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME, ScalaPlugin.SCALA_DEFINE_TASK_NAME))

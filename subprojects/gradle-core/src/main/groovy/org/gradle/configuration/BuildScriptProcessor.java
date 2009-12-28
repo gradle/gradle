@@ -18,14 +18,14 @@ package org.gradle.configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class BuildScriptProcessor implements ProjectEvaluator {
-    private final ScriptObjectConfigurerFactory configurerFactory;
+    private final ScriptPluginFactory configurerFactory;
 
-    public BuildScriptProcessor(ScriptObjectConfigurerFactory configurerFactory) {
+    public BuildScriptProcessor(ScriptPluginFactory configurerFactory) {
         this.configurerFactory = configurerFactory;
     }
 
     public void evaluate(final ProjectInternal project) {
-        ScriptObjectConfigurer configurer = configurerFactory.create(project.getBuildScriptSource());
-        configurer.apply(project);
+        ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource());
+        configurer.use(project);
     }
 }

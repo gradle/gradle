@@ -30,22 +30,22 @@ public class DefaultInitScriptProcessorTest {
 
     @Test
     public void testProcess() {
-        final ScriptObjectConfigurerFactory scriptObjectConfigurerFactory = context.mock(ScriptObjectConfigurerFactory.class);
-        final ScriptObjectConfigurer configurer = context.mock(ScriptObjectConfigurer.class);
+        final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
+        final ScriptPlugin configurer = context.mock(ScriptPlugin.class);
         final ScriptSource initScriptMock = context.mock(ScriptSource.class);
         final GradleInternal gradleMock = context.mock(GradleInternal.class);
 
         context.checking(new Expectations() {{
-            one(scriptObjectConfigurerFactory).create(initScriptMock);
+            one(scriptPluginFactory).create(initScriptMock);
             will(returnValue(configurer));
 
             one(configurer).setClasspathClosureName("initscript");
             one(configurer).setScriptBaseClass(InitScript.class);
 
-            one(configurer).apply(gradleMock);
+            one(configurer).use(gradleMock);
         }});
 
-        DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptObjectConfigurerFactory);
+        DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptPluginFactory);
         processor.process(initScriptMock, gradleMock);
     }
 }

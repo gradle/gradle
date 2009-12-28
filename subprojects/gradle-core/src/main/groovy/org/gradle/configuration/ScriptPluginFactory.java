@@ -17,6 +17,6 @@ package org.gradle.configuration;
 
 import org.gradle.groovy.scripts.ScriptSource;
 
-public interface ScriptObjectConfigurerFactory {
-    ScriptObjectConfigurer create(ScriptSource scriptSource);
+public interface ScriptPluginFactory {
+    ScriptPlugin create(ScriptSource scriptSource);
 }

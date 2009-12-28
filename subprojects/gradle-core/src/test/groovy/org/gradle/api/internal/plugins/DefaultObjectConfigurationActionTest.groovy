@@ -15,17 +15,15 @@
  */
 package org.gradle.api.internal.plugins
 
-
-import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
+
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.runner.RunWith
 import org.junit.Test
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.configuration.ScriptObjectConfigurerFactory
-import org.gradle.configuration.ScriptObjectConfigurer
+import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.ScriptPlugin
 
 @RunWith(JMock.class)
 public class DefaultObjectConfigurationActionTest {
@@ -33,8 +31,8 @@ public class DefaultObjectConfigurationActionTest {
     private final Object target = new Object()
     private final File file = new File('script')
     private final FileResolver resolver = context.mock(FileResolver.class)
-    private final ScriptObjectConfigurerFactory factory = context.mock(ScriptObjectConfigurerFactory.class)
-    private final ScriptObjectConfigurer configurer = context.mock(ScriptObjectConfigurer.class)
+    private final ScriptPluginFactory factory = context.mock(ScriptPluginFactory.class)
+    private final ScriptPlugin configurer = context.mock(ScriptPlugin.class)
     private final DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, factory, target)
 
     @Test
@@ -51,7 +49,7 @@ public class DefaultObjectConfigurationActionTest {
             one(factory).create(withParam(notNullValue()))
             will(returnValue(configurer))
 
-            one(configurer).apply(target)
+            one(configurer).use(target)
         }
 
         action.script('script')
@@ -70,8 +68,8 @@ public class DefaultObjectConfigurationActionTest {
             one(factory).create(withParam(notNullValue()))
             will(returnValue(configurer))
 
-            one(configurer).apply(target1)
-            one(configurer).apply(target2)
+            one(configurer).use(target1)
+            one(configurer).use(target2)
         }
 
         action.script('script')
@@ -92,8 +90,8 @@ public class DefaultObjectConfigurationActionTest {
             one(factory).create(withParam(notNullValue()))
             will(returnValue(configurer))
 
-            one(configurer).apply(target1)
-            one(configurer).apply(target2)
+            one(configurer).use(target1)
+            one(configurer).use(target2)
         }
 
         action.script('script')

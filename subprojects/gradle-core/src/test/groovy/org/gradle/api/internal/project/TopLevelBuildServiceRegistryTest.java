@@ -27,8 +27,8 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
-import org.gradle.configuration.DefaultScriptObjectConfigurerFactory;
-import org.gradle.configuration.ScriptObjectConfigurerFactory;
+import org.gradle.configuration.DefaultScriptPluginFactory;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.initialization.DefaultExceptionAnalyser;
@@ -153,8 +153,8 @@ public class TopLevelBuildServiceRegistryTest {
     
     @Test
     public void providesAScriptObjectConfigurerFactory() {
-        assertThat(factory.get(ScriptObjectConfigurerFactory.class), instanceOf(DefaultScriptObjectConfigurerFactory.class));
-        assertThat(factory.get(ScriptObjectConfigurerFactory.class), sameInstance(factory.get(ScriptObjectConfigurerFactory.class)));
+        assertThat(factory.get(ScriptPluginFactory.class), instanceOf(DefaultScriptPluginFactory.class));
+        assertThat(factory.get(ScriptPluginFactory.class), sameInstance(factory.get(ScriptPluginFactory.class)));
     }
     
     @Test

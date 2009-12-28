@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,11 @@ package org.gradle.api.internal.project
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.ProjectPluginsContainer
 
 /**
 * @author Hans Dockter
 */
-class TestPlugin2 implements Plugin {
-    void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-
+class TestPlugin2 implements Plugin<Project> {
+    void use(Project project) {
     }
 }

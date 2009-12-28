@@ -23,10 +23,10 @@ import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Test
 import org.gradle.groovy.scripts.*
-import static org.hamcrest.Matchers.*
+
 import static org.junit.Assert.*
-import org.gradle.configuration.ScriptObjectConfigurerFactory
-import org.gradle.configuration.ScriptObjectConfigurer
+import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.ScriptPlugin
 
 /**
  * @author Hans Dockter
@@ -42,7 +42,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     MockFor settingsFactoryMocker
     ScriptSource scriptSourceMock
     IGradlePropertiesLoader propertiesLoaderMock
-    ScriptObjectConfigurerFactory configurerFactoryMock
+    ScriptPluginFactory configurerFactoryMock
     Map expectedGradleProperties
     URLClassLoader urlClassLoader
 
@@ -50,7 +50,7 @@ class ScriptEvaluatingSettingsProcessorTest {
 
     @Before public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE)
-        configurerFactoryMock = context.mock(ScriptObjectConfigurerFactory)
+        configurerFactoryMock = context.mock(ScriptPluginFactory)
         settingsFactory = context.mock(SettingsFactory)
         settingsProcessor = new ScriptEvaluatingSettingsProcessor(configurerFactoryMock, settingsFactory)
         expectedSettingsFinder = new DefaultSettingsFinder()
@@ -77,7 +77,7 @@ class ScriptEvaluatingSettingsProcessorTest {
 
     @Test public void testProcessWithSettingsFile() {
         expectedStartParameter.setCurrentDir(TEST_ROOT_DIR)
-        ScriptObjectConfigurer configurerMock = context.mock(ScriptObjectConfigurer)
+        ScriptPlugin configurerMock = context.mock(ScriptPlugin)
 
         context.checking {
             one(configurerFactoryMock).create(scriptSourceMock)
@@ -85,7 +85,7 @@ class ScriptEvaluatingSettingsProcessorTest {
 
             one(configurerMock).setClassLoader(urlClassLoader)
             one(configurerMock).setScriptBaseClass(SettingsScript)
-            one(configurerMock).apply(expectedSettings)
+            one(configurerMock).use(expectedSettings)
         }
         
         SettingsLocation settingsLocation = new SettingsLocation(TEST_ROOT_DIR, scriptSourceMock)

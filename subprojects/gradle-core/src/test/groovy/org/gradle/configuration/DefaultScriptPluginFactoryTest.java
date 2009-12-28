@@ -36,7 +36,7 @@ import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 
 @RunWith(JMock.class)
-public class DefaultScriptObjectConfigurerFactoryTest {
+public class DefaultScriptPluginFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
@@ -52,7 +52,7 @@ public class DefaultScriptObjectConfigurerFactoryTest {
     private final ScriptHandlerInternal scriptHandlerMock = context.mock(ScriptHandlerInternal.class);
     private final ScriptRunner classPathScriptRunnerMock = context.mock(ScriptRunner.class, "classpathScriptRunner");
     private final BasicScript classPathScriptMock = context.mock(BasicScript.class, "classpathScript");
-    private final DefaultScriptObjectConfigurerFactory factory = new DefaultScriptObjectConfigurerFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentClassLoader);
+    private final DefaultScriptPluginFactory factory = new DefaultScriptPluginFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentClassLoader);
 
     @Test
     public void configuresATargetObjectUsingScript() {
@@ -108,8 +108,8 @@ public class DefaultScriptObjectConfigurerFactoryTest {
             inSequence(sequence);
         }});
 
-        ScriptObjectConfigurer configurer = factory.create(scriptSourceMock);
-        configurer.apply(target);
+        ScriptPlugin configurer = factory.create(scriptSourceMock);
+        configurer.use(target);
     }
 
     @Test
@@ -122,7 +122,7 @@ public class DefaultScriptObjectConfigurerFactoryTest {
             one(scriptCompilerFactoryMock).createCompiler(with(reflectionEquals(new ImportsScriptSource(scriptSourceMock, importsReaderMock, null))));
             will(returnValue(scriptCompilerMock));
 
-            allowing(target).beforeCompile(with(notNullValue(ScriptObjectConfigurer.class)));
+            allowing(target).beforeCompile(with(notNullValue(ScriptPlugin.class)));
 
             one(scriptHandlerFactoryMock).create(parentClassLoader);
             will(returnValue(scriptHandlerMock));
@@ -164,14 +164,14 @@ public class DefaultScriptObjectConfigurerFactoryTest {
             one(scriptMock).init(with(sameInstance(target)), with(notNullValue(ServiceRegistry.class)));
             inSequence(sequence);
 
-            one(target).afterCompile(with(notNullValue(ScriptObjectConfigurer.class)), with(sameInstance(scriptMock)));
+            one(target).afterCompile(with(notNullValue(ScriptPlugin.class)), with(sameInstance(scriptMock)));
             inSequence(sequence);
 
             one(scriptRunnerMock).run();
             inSequence(sequence);
         }});
 
-        ScriptObjectConfigurer configurer = factory.create(scriptSourceMock);
-        configurer.apply(target);
+        ScriptPlugin configurer = factory.create(scriptSourceMock);
+        configurer.use(target);
     }
 }

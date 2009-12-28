@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,14 @@ class WarPluginTest {
     }
 
     @Test public void appliesJavaPluginAndAddsConvention() {
-        warPlugin.use(project, project.getPlugins())
+        warPlugin.use(project)
 
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin));
         assertThat(project.convention.plugins.war, instanceOf(WarPluginConvention))
     }
     
     @Test public void createsConfigurations() {
-        warPlugin.use(project, project.getPlugins())
+        warPlugin.use(project)
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)))
@@ -74,7 +74,7 @@ class WarPluginTest {
     }
 
     @Test public void addsTasks() {
-        warPlugin.use(project, project.getPlugins())
+        warPlugin.use(project)
 
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         assertThat(task, instanceOf(War))
@@ -86,11 +86,11 @@ class WarPluginTest {
     }
 
     @Test public void dependsOnRuntimeConfig() {
-        warPlugin.use(project, project.getPlugins())
+        warPlugin.use(project)
 
         Project childProject = HelperUtil.createChildProject(project, 'child')
         JavaPlugin javaPlugin = new JavaPlugin()
-        javaPlugin.use(childProject, childProject.getPlugins())
+        javaPlugin.use(childProject)
 
         project.dependencies {
             runtime project(path: childProject.path, configuration: 'archives')
@@ -105,7 +105,7 @@ class WarPluginTest {
         File runtimeJar = project.file('runtime.jar')
         File providedJar = project.file('provided.jar')
 
-        warPlugin.use(project, project.getPlugins())
+        warPlugin.use(project)
 
         project.dependencies {
             providedCompile project.files(providedJar)
@@ -118,7 +118,7 @@ class WarPluginTest {
     }
 
     @Test public void appliesMappingsToArchiveTasks() {
-        warPlugin.use(project, project.getPlugins())
+        warPlugin.use(project)
 
         def task = project.createTask('customWar', type: War)
         assertThat(task, dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME)))
@@ -128,7 +128,7 @@ class WarPluginTest {
     }
 
     @Test public void addsDefaultWarToArchiveConfiguration() {
-        warPlugin.use(project, project.getPlugins())
+        warPlugin.use(project)
 
         Configuration archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         assertThat(archiveConfiguration.getAllArtifacts().size(), equalTo(1)); 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ class JavaPluginTest {
     private final JavaPlugin javaPlugin = new JavaPlugin()
 
     @Test public void appliesBasePluginsAndAddsConventionObject() {
-        javaPlugin.use(project, project.getPlugins())
+        javaPlugin.use(project)
 
         assertTrue(project.getPlugins().hasPlugin(ReportingBasePlugin))
         assertTrue(project.getPlugins().hasPlugin(BasePlugin))
@@ -56,7 +56,7 @@ class JavaPluginTest {
     }
 
     @Test public void addsConfigurationsToTheProject() {
-        javaPlugin.use(project, project.getPlugins())
+        javaPlugin.use(project)
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertFalse(configuration.visible)
@@ -89,7 +89,7 @@ class JavaPluginTest {
     }
 
     @Test public void createsStandardSourceSetsAndAppliesMappings() {
-        javaPlugin.use(project, project.getPlugins())
+        javaPlugin.use(project)
 
         def set = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
         assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/main/java'))))
@@ -113,7 +113,7 @@ class JavaPluginTest {
     }
 
     @Test public void createsTasksAndAppliesMappingsForNewSourceSet() {
-        javaPlugin.use(project, project.getPlugins())
+        javaPlugin.use(project)
 
         project.sourceSets.add('custom')
         def set = project.sourceSets.custom
@@ -147,7 +147,7 @@ class JavaPluginTest {
     }
     
     @Test public void createsStandardTasksAndAppliesMappings() {
-        javaPlugin.use(project, project.getPlugins())
+        javaPlugin.use(project)
 
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
         assertThat(task, instanceOf(Copy))
@@ -231,7 +231,7 @@ class JavaPluginTest {
     }
 
     @Test public void appliesMappingsToTasksDefinedByBuildScript() {
-        javaPlugin.use(project, project.getPlugins())
+        javaPlugin.use(project)
 
         def task = project.createTask('customCompile', type: Compile)
         assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
@@ -253,7 +253,7 @@ class JavaPluginTest {
     }
 
     @Test public void appliesMappingsToCustomJarTasks() {
-        javaPlugin.use(project, project.getPlugins())
+        javaPlugin.use(project)
 
         def task = project.createTask('customJar', type: Jar)
         assertThat(task, dependsOn())
@@ -266,10 +266,10 @@ class JavaPluginTest {
         DefaultProject middleProject = HelperUtil.createChildProject(project, "middle");
         DefaultProject appProject = HelperUtil.createChildProject(project, "app");
 
-        javaPlugin.use(project, project.getPlugins());
-        javaPlugin.use(commonProject, commonProject.getPlugins());
-        javaPlugin.use(middleProject, middleProject.getPlugins());
-        javaPlugin.use(appProject, appProject.getPlugins());
+        javaPlugin.use(project);
+        javaPlugin.use(commonProject);
+        javaPlugin.use(middleProject);
+        javaPlugin.use(appProject);
 
         appProject.dependencies {
             compile project(path: middleProject.path, configuration: 'compile')

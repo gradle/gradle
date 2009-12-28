@@ -39,7 +39,7 @@ import java.util.Map;
  *
  * @author Hans Dockter
  */
-public class MavenPlugin implements Plugin {
+public class MavenPlugin implements Plugin<Project> {
     public static final int COMPILE_PRIORITY = 300;
     public static final int RUNTIME_PRIORITY = 200;
     public static final int TEST_COMPILE_PRIORITY = 150;
@@ -50,9 +50,10 @@ public class MavenPlugin implements Plugin {
 
     public static final String INSTALL_TASK_NAME = "install";
 
-    public void use(final Project project, ProjectPluginsContainer plugins) {
+    public void use(final Project project) {
         setConventionMapping(project);
         addConventionObject(project, new HashMap<String, Object>());
+        ProjectPluginsContainer plugins = project.getPlugins();
         plugins.withType(JavaPlugin.class).allPlugins(new Action<JavaPlugin>() {
             public void execute(JavaPlugin javaPlugin) {
                 configureJavaScopeMappings(project.getRepositories(), project.getConfigurations());

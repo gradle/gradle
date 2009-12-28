@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,13 +35,13 @@ class GroovyPluginTest {
     private final GroovyPlugin groovyPlugin = new GroovyPlugin()
 
     @Test public void appliesTheJavaPluginToTheProject() {
-        groovyPlugin.use(project, project.getPlugins())
+        groovyPlugin.use(project)
 
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin));
     }
 
     @Test public void addsGroovyConfigurationToTheProject() {
-        groovyPlugin.use(project, project.getPlugins())
+        groovyPlugin.use(project)
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyPlugin.GROOVY_CONFIGURATION_NAME)))
@@ -55,7 +55,7 @@ class GroovyPluginTest {
     }
 
     @Test public void addsGroovyConventionToEachSourceSetAndAppliesMappings() {
-        groovyPlugin.use(project, project.getPlugins())
+        groovyPlugin.use(project)
 
         def sourceSet = project.sourceSets.main
         assertThat(sourceSet.groovy.displayName, equalTo("main Groovy source"))
@@ -71,7 +71,7 @@ class GroovyPluginTest {
     }
 
     @Test public void addsCompileTaskForEachSourceSet() {
-        groovyPlugin.use(project, project.getPlugins())
+        groovyPlugin.use(project)
 
         def task = project.tasks['compileGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
@@ -95,7 +95,7 @@ class GroovyPluginTest {
     }
 
     @Test public void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
-        groovyPlugin.use(project, project.getPlugins())
+        groovyPlugin.use(project)
 
         def task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
         assertThat(task, dependsOn(hasItem('compileGroovy')))
@@ -105,7 +105,7 @@ class GroovyPluginTest {
     }
     
     @Test public void addsStandardTasksToTheProject() {
-        groovyPlugin.use(project, project.getPlugins())
+        groovyPlugin.use(project)
 
         def task = project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME]
         assertThat(task, instanceOf(Groovydoc.class))
@@ -116,7 +116,7 @@ class GroovyPluginTest {
     }
 
     @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
-        groovyPlugin.use(project, project.getPlugins())
+        groovyPlugin.use(project)
         
         def task = project.createTask('otherCompile', type: GroovyCompile)
         assertThat(task.classpath, sameInstance(project.sourceSets.main.compileClasspath))

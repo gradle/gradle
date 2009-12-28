@@ -209,7 +209,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ProjectEvaluator createProjectEvaluator() {
         return new DefaultProjectEvaluator(
                 new BuildScriptProcessor(
-                        get(ScriptObjectConfigurerFactory.class)));
+                        get(ScriptPluginFactory.class)));
     }
 
     protected ITaskFactory createITaskFactory() {
@@ -235,8 +235,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 get(CacheRepository.class));
     }
 
-    protected ScriptObjectConfigurerFactory createScriptObjectConfigurerFactory() {
-        return new DefaultScriptObjectConfigurerFactory(
+    protected ScriptPluginFactory createScriptObjectConfigurerFactory() {
+        return new DefaultScriptPluginFactory(
                 get(ScriptCompilerFactory.class),
                 get(ImportsReader.class),
                 get(ScriptHandlerFactory.class),
@@ -252,14 +252,14 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new UserHomeInitScriptFinder(
                         new DefaultInitScriptFinder()),
                 new DefaultInitScriptProcessor(
-                        get(ScriptObjectConfigurerFactory.class)));
+                        get(ScriptPluginFactory.class)));
 
     }
 
     protected SettingsProcessor createSettingsProcessor() {
         return new PropertiesLoadingSettingsProcessor(new
                 ScriptEvaluatingSettingsProcessor(
-                    get(ScriptObjectConfigurerFactory.class),
+                    get(ScriptPluginFactory.class),
                     new SettingsFactory(
                         new DefaultProjectDescriptorRegistry())));
     }

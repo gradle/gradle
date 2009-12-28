@@ -18,7 +18,7 @@ package org.gradle.api.internal.project
 
 import org.gradle.groovy.scripts.BasicScript
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.file.FileCollection
+
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger

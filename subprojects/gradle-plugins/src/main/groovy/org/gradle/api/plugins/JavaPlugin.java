@@ -44,7 +44,7 @@ import java.util.concurrent.Callable;
  *
  * @author Hans Dockter
  */
-public class JavaPlugin implements Plugin {
+public class JavaPlugin implements Plugin<Project> {
     public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
     public static final String CLASSES_TASK_NAME = "classes";
     public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
@@ -64,9 +64,9 @@ public class JavaPlugin implements Plugin {
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
 
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-        projectPluginsHandler.usePlugin(BasePlugin.class, project);
-        projectPluginsHandler.usePlugin(ReportingBasePlugin.class, project);
+    public void use(Project project) {
+        project.usePlugin(BasePlugin.class);
+        project.usePlugin(ReportingBasePlugin.class);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project);
         project.getConvention().getPlugins().put("java", javaConvention);

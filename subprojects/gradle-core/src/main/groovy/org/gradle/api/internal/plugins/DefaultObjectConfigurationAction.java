@@ -19,8 +19,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.ObjectConfigurationAction;
-import org.gradle.configuration.ScriptObjectConfigurer;
-import org.gradle.configuration.ScriptObjectConfigurerFactory;
+import org.gradle.configuration.ScriptPlugin;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.StrictScriptSource;
 import org.gradle.util.GUtil;
@@ -31,12 +31,12 @@ import java.util.Set;
 
 public class DefaultObjectConfigurationAction implements ObjectConfigurationAction {
     private final FileResolver resolver;
-    private final ScriptObjectConfigurerFactory configurerFactory;
+    private final ScriptPluginFactory configurerFactory;
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
     private final Object[] defaultTargets;
 
-    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptObjectConfigurerFactory configurerFactory,
+    public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
                                             Object... defaultTargets) {
         this.resolver = resolver;
         this.configurerFactory = configurerFactory;
@@ -77,10 +77,10 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyScript(Object script) {
         File scriptFile = resolver.resolve(script);
-        ScriptObjectConfigurer configurer = configurerFactory.create(new StrictScriptSource(new FileScriptSource(
+        ScriptPlugin configurer = configurerFactory.create(new StrictScriptSource(new FileScriptSource(
                 "script", scriptFile)));
         for (Object target : targets) {
-            configurer.apply(target);
+            configurer.use(target);
         }
     }
 

@@ -25,7 +25,7 @@ public class ReportingBasePluginTest {
     @Test
     public void addsTasksAndConventionToProject() {
         Project project = HelperUtil.createRootProject();
-        new ReportingBasePlugin().use(project, project.getPlugins());
+        new ReportingBasePlugin().use(project);
 
         assertThat(project.getConvention().getPlugins().get("reportingBase"), instanceOf(ReportingBasePluginConvention.class));
     }

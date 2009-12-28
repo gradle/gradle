@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,18 @@
  */
 package org.gradle.api;
 
-import org.gradle.api.plugins.ProjectPluginsContainer;
-
 /**
- * <p>A <code>Plugin</code> represents an extension to Gradle, which you can use to add behaviour your {@link
- * org.gradle.api.Project}.</p>
+ * <p>A <code>Plugin</code> represents an extension to Gradle. A plugin applies some configuration to a target object.
+ * Usually, this target object is a {@link org.gradle.api.Project}, but plugins can be applied to any type of
+ * objects.</p>
  *
  * @author Hans Dockter
  */
-public interface Plugin {
-    void use(Project project, ProjectPluginsContainer projectPluginsHandler);
+public interface Plugin<T> {
+    /**
+     * Apply this plugin to the given target object.
+     *
+     * @param target The target object
+     */
+    void use(T target);
 }

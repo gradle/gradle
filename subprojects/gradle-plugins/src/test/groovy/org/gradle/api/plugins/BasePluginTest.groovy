@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,13 +40,13 @@ class BasePluginTest {
     private final BasePlugin plugin = new BasePlugin()
 
     @Test public void addsConventionObject() {
-        plugin.use(project, project.getPlugins())
+        plugin.use(project)
 
         assertThat(project.convention.plugins.base, instanceOf(BasePluginConvention))
     }
 
     @Test public void createsTasksAndAppliesMappings() {
-        plugin.use(project, project.getPlugins())
+        plugin.use(project)
 
         def task = project.tasks[BasePlugin.CLEAN_TASK_NAME]
         assertThat(task, instanceOf(Clean))
@@ -58,7 +58,7 @@ class BasePluginTest {
     }
 
     @Test public void addsRulesWhenAConfigurationIsAdded() {
-        plugin.use(project, project.getPlugins())
+        plugin.use(project)
 
         assertThat(project.tasks.rules, isEmpty())
 
@@ -72,7 +72,7 @@ class BasePluginTest {
     }
     
     @Test public void addsImplicitTasksForConfiguration() {
-        plugin.use(project, project.getPlugins())
+        plugin.use(project)
 
         Task producer = [getName: {-> 'producer'}] as Task
         PublishArtifact artifactStub = [getBuildDependencies: {-> new DefaultTaskDependency().add(producer) }] as PublishArtifact
@@ -89,7 +89,7 @@ class BasePluginTest {
     }
     
     @Test public void appliesMappingsForArchiveTasks() {
-        plugin.use(project, project.getPlugins())
+        plugin.use(project)
 
         project.version = '1.0'
 
@@ -116,7 +116,7 @@ class BasePluginTest {
     }
 
     @Test public void usesNullVersionWhenProjectVersionNotSpecified() {
-        plugin.use(project, project.getPlugins())
+        plugin.use(project)
 
         def task = project.tasks.add('someJar', Jar)
         assertThat(task.version, nullValue())

@@ -32,8 +32,8 @@ public class BuildScriptProcessorTest {
     }};
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
-    private final ScriptObjectConfigurerFactory configurerFactory = context.mock(ScriptObjectConfigurerFactory.class);
-    private final ScriptObjectConfigurer scriptObjectConfigurer = context.mock(ScriptObjectConfigurer.class);
+    private final ScriptPluginFactory configurerFactory = context.mock(ScriptPluginFactory.class);
+    private final ScriptPlugin scriptPlugin = context.mock(ScriptPlugin.class);
     private final BuildScriptProcessor evaluator = new BuildScriptProcessor(configurerFactory);
 
     @Before
@@ -48,9 +48,9 @@ public class BuildScriptProcessorTest {
     public void configuresProjectUsingBuildScript() {
         context.checking(new Expectations() {{
             one(configurerFactory).create(scriptSource);
-            will(returnValue(scriptObjectConfigurer));
+            will(returnValue(scriptPlugin));
 
-            one(scriptObjectConfigurer).apply(project);
+            one(scriptPlugin).use(project);
         }});
 
         evaluator.evaluate(project);

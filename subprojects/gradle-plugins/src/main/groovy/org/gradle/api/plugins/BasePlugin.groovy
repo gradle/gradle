@@ -28,11 +28,11 @@ import org.gradle.api.tasks.bundling.Jar
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
  */
-class BasePlugin implements Plugin {
+class BasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = "clean"
     public static final String ASSEMBLE_TASK_NAME = "assemble"
 
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
+    public void use(Project project) {
         project.convention.plugins.base = new BasePluginConvention(project)
 
         configureBuildConfigurationRule(project)

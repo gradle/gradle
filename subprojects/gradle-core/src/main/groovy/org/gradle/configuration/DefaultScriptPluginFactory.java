@@ -23,13 +23,13 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.project.*;
 import org.gradle.groovy.scripts.*;
 
-public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigurerFactory {
+public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final ClassLoader defaultClassLoader;
 
-    public DefaultScriptObjectConfigurerFactory(ScriptCompilerFactory scriptCompilerFactory,
+    public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                                 ImportsReader importsReader,
                                                 ScriptHandlerFactory scriptHandlerFactory,
                                                 ClassLoader defaultClassLoader) {
@@ -39,18 +39,18 @@ public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigu
         this.defaultClassLoader = defaultClassLoader;
     }
 
-    public ScriptObjectConfigurer create(ScriptSource scriptSource) {
-        return new ScriptObjectConfigurerImpl(scriptSource);
+    public ScriptPlugin create(ScriptSource scriptSource) {
+        return new ScriptPluginImpl(scriptSource);
     }
 
-    private class ScriptObjectConfigurerImpl implements ScriptObjectConfigurer {
+    private class ScriptPluginImpl implements ScriptPlugin {
         private final ScriptSource scriptSource;
         private String classpathClosureName = "buildscript";
         private Class<? extends BasicScript> scriptType = DefaultScript.class;
         private ScriptClassLoaderProvider classLoaderProvider;
         private ClassLoader classLoader = defaultClassLoader;
 
-        public ScriptObjectConfigurerImpl(ScriptSource scriptSource) {
+        public ScriptPluginImpl(ScriptSource scriptSource) {
             this.scriptSource = scriptSource;
         }
 
@@ -58,29 +58,29 @@ public class DefaultScriptObjectConfigurerFactory implements ScriptObjectConfigu
             return scriptSource;
         }
 
-        public ScriptObjectConfigurer setClasspathClosureName(String name) {
+        public ScriptPlugin setClasspathClosureName(String name) {
             this.classpathClosureName = name;
             return this;
         }
 
-        public ScriptObjectConfigurer setClassLoader(ClassLoader classLoader) {
+        public ScriptPlugin setClassLoader(ClassLoader classLoader) {
             this.classLoader = classLoader;
             return this;
         }
 
-        public ScriptObjectConfigurer setClassLoaderProvider(ScriptClassLoaderProvider classLoaderProvider) {
+        public ScriptPlugin setClassLoaderProvider(ScriptClassLoaderProvider classLoaderProvider) {
             this.classLoaderProvider = classLoaderProvider;
             return this;
         }
 
-        public ScriptObjectConfigurer setScriptBaseClass(Class<? extends BasicScript> type) {
+        public ScriptPlugin setScriptBaseClass(Class<? extends BasicScript> type) {
             scriptType = type;
             return this;
         }
 
-        public void apply(Object target) {
+        public void use(Object target) {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
-            services.add(ScriptObjectConfigurerFactory.class, DefaultScriptObjectConfigurerFactory.this);
+            services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
 
             ScriptAware scriptAware = null;

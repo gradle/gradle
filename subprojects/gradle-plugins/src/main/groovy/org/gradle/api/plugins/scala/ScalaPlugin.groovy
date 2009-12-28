@@ -18,18 +18,16 @@ package org.gradle.api.plugins.scala;
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.plugins.ProjectPluginsContainer
-
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDefine
 import org.gradle.api.tasks.scala.ScalaDoc
-import org.gradle.api.file.FileTreeElement
 
-public class ScalaPlugin implements Plugin {
+public class ScalaPlugin implements Plugin<Project> {
     // public configurations
     public static final String SCALA_TOOLS_CONFIGURATION_NAME = "scalaTools";
 
@@ -37,8 +35,8 @@ public class ScalaPlugin implements Plugin {
     public static final String SCALA_DOC_TASK_NAME = "scaladoc";
     public static final String SCALA_DEFINE_TASK_NAME = "defineScalaAnt";
 
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
-        JavaPlugin javaPlugin = projectPluginsHandler.usePlugin(JavaPlugin.class, project);
+    public void use(Project project) {
+        JavaPlugin javaPlugin = project.plugins.usePlugin(JavaPlugin.class, project);
 
         project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME).setVisible(false).setTransitive(true).
                 setDescription("The Scala tools libraries to be used for this Scala project.");

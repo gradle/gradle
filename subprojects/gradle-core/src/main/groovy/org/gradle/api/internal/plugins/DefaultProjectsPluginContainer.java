@@ -65,8 +65,8 @@ public class DefaultProjectsPluginContainer extends AbstractPluginContainer impl
     PluginProvider createPluginProvider(final Project project) {
         return new PluginProvider() {
             public Plugin providePlugin(Class<? extends Plugin> type) {
-                Plugin plugin = pluginRegistry.loadPlugin(type);
-                plugin.use(project, DefaultProjectsPluginContainer.this);
+                Plugin<Project> plugin = pluginRegistry.loadPlugin(type);
+                plugin.use(project);
                 return plugin;
             }
         };

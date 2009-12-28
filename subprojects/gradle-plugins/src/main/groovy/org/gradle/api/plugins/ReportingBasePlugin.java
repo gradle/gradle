@@ -29,8 +29,8 @@ import org.gradle.api.Project;
  *
  * </ul>
  */
-public class ReportingBasePlugin implements Plugin {
-    public void use(Project project, ProjectPluginsContainer projectPluginsHandler) {
+public class ReportingBasePlugin implements Plugin<Project> {
+    public void use(Project project) {
         Convention convention = project.getConvention();
         convention.getPlugins().put("reportingBase", new ReportingBasePluginConvention(project));
     }

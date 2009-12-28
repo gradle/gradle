@@ -37,13 +37,13 @@ import java.util.concurrent.Callable;
  *
  * @author Hans Dockter
  */
-public class WarPlugin implements Plugin {
+public class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
 
-    public void use(final Project project, ProjectPluginsContainer projectPluginsHandler) {
-        projectPluginsHandler.usePlugin(JavaPlugin.class, project);
+    public void use(final Project project) {
+        project.usePlugin(JavaPlugin.class);
         final WarPluginConvention pluginConvention = new WarPluginConvention(project);
         project.getConvention().getPlugins().put("war", pluginConvention);
 

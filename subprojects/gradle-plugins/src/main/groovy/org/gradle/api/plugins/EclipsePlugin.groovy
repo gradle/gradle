@@ -37,7 +37,7 @@ import org.gradle.api.tasks.ide.eclipse.*
  *
  * @author Hans Dockter
  */
-public class EclipsePlugin implements Plugin {
+public class EclipsePlugin implements Plugin<Project> {
     public static final String ECLIPSE_TASK_NAME = "eclipse";
     public static final String ECLIPSE_CLEAN_TASK_NAME = "eclipseClean";
     public static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject";
@@ -45,12 +45,12 @@ public class EclipsePlugin implements Plugin {
     public static final String ECLIPSE_CP_TASK_NAME = "eclipseCp";
     public static final String ECLIPSE_WTP_MODULE_TASK_NAME = "eclipseWtpModule";
 
-    public void use(final Project project, ProjectPluginsContainer projectPluginsHandler) {
-        projectPluginsHandler.withType(JavaPlugin.class).allPlugins {
+    public void use(final Project project) {
+        project.plugins.withType(JavaPlugin.class).allPlugins {
             configureEclipseProjectAndClasspath(project);
             configureEclipseWtpModuleForJavaProjects(project);
         }
-        projectPluginsHandler.withType(WarPlugin.class).allPlugins {
+        project.plugins.withType(WarPlugin.class).allPlugins {
             configureEclipseWtpModuleForWarProjects(project);
         }
     }
