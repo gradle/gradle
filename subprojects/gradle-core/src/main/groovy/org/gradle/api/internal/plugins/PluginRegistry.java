@@ -18,12 +18,11 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.plugins.PluginInstantiationException;
-import org.gradle.api.plugins.PluginContainer;
 
 /**
  * @author Hans Dockter
  */
-public interface PluginRegistry extends PluginContainer {
+public interface PluginRegistry {
     Plugin loadPlugin(String pluginName) throws UnknownPluginException, PluginInstantiationException;
 
     <T extends Plugin> T loadPlugin(Class<T> pluginClass) throws PluginInstantiationException;

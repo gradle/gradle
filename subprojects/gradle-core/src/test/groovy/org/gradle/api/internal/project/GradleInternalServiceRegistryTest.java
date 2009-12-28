@@ -28,6 +28,7 @@ import org.gradle.execution.DefaultTaskGraphExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
+import org.gradle.util.MultiParentClassLoader;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -35,8 +36,6 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -57,7 +56,6 @@ public class GradleInternalServiceRegistryTest {
 
     @Before
     public void setUp() {
-        startParameter.setPluginPropertiesFile(new File("plugin"));
         context.checking(new Expectations(){{
             allowing(parent).get(PublishModuleDescriptorConverter.class);
             will(returnValue(publishModuleDescriptorConverter));
@@ -65,6 +63,8 @@ public class GradleInternalServiceRegistryTest {
             will(returnValue(listenerManager));
             allowing(gradle).getStartParameter();
             will(returnValue(startParameter));
+            allowing(gradle).getScriptClassLoader();
+            will(returnValue(new MultiParentClassLoader()));
         }});
     }
 

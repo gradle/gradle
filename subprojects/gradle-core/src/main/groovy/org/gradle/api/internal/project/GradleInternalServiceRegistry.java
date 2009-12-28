@@ -55,7 +55,7 @@ public class GradleInternalServiceRegistry extends DefaultServiceRegistry implem
     }
 
     protected PluginRegistry createPluginRegistry() {
-        return new DefaultPluginRegistry(gradle.getStartParameter().getPluginPropertiesFile());
+        return new DefaultPluginRegistry(gradle.getScriptClassLoader());
     }
 
     protected InternalRepository createInternalRepository() {

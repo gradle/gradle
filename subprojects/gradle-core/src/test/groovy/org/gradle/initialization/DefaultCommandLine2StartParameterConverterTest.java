@@ -49,7 +49,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private File expectedBuildFile = null;
     private File expectedGradleUserHome = new File(StartParameter.DEFAULT_GRADLE_USER_HOME);
     private File expectedGradleImportsFile;
-    private File expectedPluginPropertiesFile;
     private File expectedProjectDir;
     private List<String> expectedTaskNames = toList();
     private Set<String> expectedExcludedTasks = toSet();
@@ -76,7 +75,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
         System.setProperty("gradle.home", "roadToNowhere");
 
         expectedGradleImportsFile = new File(TEST_GRADLE_HOME, StartParameter.IMPORTS_FILE_NAME).getCanonicalFile();
-        expectedPluginPropertiesFile = new File(TEST_GRADLE_HOME, StartParameter.DEFAULT_PLUGIN_PROPERTIES).getCanonicalFile();
         expectedProjectDir = new File("").getCanonicalFile();
     }
 
@@ -111,7 +109,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedGradleImportsFile, startParameter.getDefaultImportsFile());
-        assertEquals(expectedPluginPropertiesFile, startParameter.getPluginPropertiesFile());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedDryRun, startParameter.isDryRun());
@@ -155,12 +152,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withSpecifiedDefaultImportsFile() {
         expectedGradleImportsFile = new File("somename");
         checkConversion("-K", expectedGradleImportsFile.toString());
-    }
-
-    @Test
-    public void withSpecifiedPluginPropertiesFile() {
-        expectedPluginPropertiesFile = new File("somename");
-        checkConversion("-l", expectedPluginPropertiesFile.toString());
     }
 
     @Test

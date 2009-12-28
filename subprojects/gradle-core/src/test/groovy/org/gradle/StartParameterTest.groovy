@@ -55,7 +55,6 @@ class StartParameterTest {
         testObj.systemPropertiesArgs = [b: 'b']
         testObj.gradleUserHomeDir = new File('b')
         testObj.defaultImportsFile = new File('imports')
-        testObj.pluginPropertiesFile = new File('plugin')
         testObj.initScripts = [new File('init script'), new File("/path/to/another init script")]
         testObj.cacheUsage = CacheUsage.ON
 
@@ -203,15 +202,12 @@ class StartParameterTest {
         parameter.gradleHomeDir = gradleHome
         assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
         assertThat(parameter.defaultImportsFile, equalTo(new File(gradleHome.canonicalFile, StartParameter.IMPORTS_FILE_NAME)))
-        assertThat(parameter.pluginPropertiesFile, equalTo(new File(gradleHome.canonicalFile, StartParameter.DEFAULT_PLUGIN_PROPERTIES)))
 
         parameter = new StartParameter()
         parameter.defaultImportsFile = new File("imports")
-        parameter.pluginPropertiesFile = new File("plugins")
         parameter.gradleHomeDir = gradleHome
         assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
         assertThat(parameter.defaultImportsFile, equalTo(new File("imports")))
-        assertThat(parameter.pluginPropertiesFile, equalTo(new File("plugins")))
     }
 
     @Test public void testWrapsExecuterWhenDryRunIsTrue() {
@@ -232,7 +228,6 @@ class StartParameterTest {
         parameter.gradleHomeDir = tmpDir.dir
         parameter.gradleUserHomeDir = new File("home")
         parameter.cacheUsage = CacheUsage.REBUILD
-        parameter.pluginPropertiesFile = new File("plugins")
         parameter.defaultImportsFile = new File("imports")
         parameter.logLevel = LogLevel.DEBUG
 
@@ -252,7 +247,6 @@ class StartParameterTest {
         assertThat(newParameter.gradleHomeDir, equalTo(parameter.gradleHomeDir));
         assertThat(newParameter.gradleUserHomeDir, equalTo(parameter.gradleUserHomeDir));
         assertThat(newParameter.cacheUsage, equalTo(parameter.cacheUsage));
-        assertThat(newParameter.pluginPropertiesFile, equalTo(parameter.pluginPropertiesFile));
         assertThat(newParameter.defaultImportsFile, equalTo(parameter.defaultImportsFile));
         assertThat(newParameter.logLevel, equalTo(parameter.logLevel));
 

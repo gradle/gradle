@@ -91,17 +91,12 @@
         </varlistentry>
         <varlistentry>
             <term><option>--gui</option></term>
-            <listitem><para>Launches a GUI application. See <xref linkend="tutorial_gradle_gui"/>.
+            <listitem><para>Launches the Gradle GUI. See <xref linkend="tutorial_gradle_gui"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
             <term><option>-i</option>, <option>--info</option></term>
             <listitem><para>Set log level to info. See <xref linkend="logging"/>.
-            </para></listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>-l</option>, <option>--plugin-properties-file</option></term>
-            <listitem><para>Specifies the plugin properties file.
             </para></listitem>
         </varlistentry>
         <varlistentry>

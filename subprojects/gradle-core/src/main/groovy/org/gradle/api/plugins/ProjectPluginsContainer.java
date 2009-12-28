@@ -22,8 +22,8 @@ import org.gradle.api.Plugin;
  * A {@code ProjectPluginsContainer} is used by a project to use plugins against the project and manage the plugins that
  * have been used.
  *
- * Plugins can be specified by id or type. The id of a plugin is specified in the plugin.properties file in GRADLE_HOME.
- * Only the plugin specified there have an id.
+ * Plugins can be specified by id or type. The id of a plugin is specified using a META-INF/gradle-plugins.properties
+ * resource.
  *
  * The name of a plugin is either its id. In the case a plugin does not has an id, its name is the fully qualified class
  * name.

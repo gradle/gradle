@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,26 @@
  */
 package org.gradle.api.internal.project;
 
-import static junit.framework.Assert.assertSame;
-import org.gradle.api.Project;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.WrapUtil.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import static junit.framework.Assert.assertSame;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Hans Dockter

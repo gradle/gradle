@@ -21,7 +21,6 @@ import org.gradle.BuildListener;
 import org.gradle.StartParameter;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
@@ -41,7 +40,6 @@ public class DefaultGradle implements GradleInternal {
     private StartParameter startParameter;
     private MultiParentClassLoader scriptClassLoader;
     private IProjectRegistry<ProjectInternal> projectRegistry;
-    private PluginRegistry pluginRegistry;
     private final ListenerManager listenerManager;
     private final ServiceRegistryFactory services;
 
@@ -51,7 +49,6 @@ public class DefaultGradle implements GradleInternal {
         this.services = parentRegistry.createFor(this);
         this.listenerManager = services.get(ListenerManager.class);
         projectRegistry = services.get(IProjectRegistry.class);
-        pluginRegistry = services.get(PluginRegistry.class);
         taskGraph = services.get(TaskGraphExecuter.class);
         scriptClassLoader = services.get(MultiParentClassLoader.class);
     }
@@ -106,10 +103,6 @@ public class DefaultGradle implements GradleInternal {
 
     public MultiParentClassLoader getScriptClassLoader() {
         return scriptClassLoader;
-    }
-
-    public PluginRegistry getPluginRegistry() {
-        return pluginRegistry;
     }
 
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {

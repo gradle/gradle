@@ -152,7 +152,6 @@ class DefaultProjectTest {
 
         testScript = new EmptyScript()
         StartParameter parameter = new StartParameter()
-        parameter.pluginPropertiesFile = new File('plugin.properties')
 
         testTask = HelperUtil.createTask(DefaultTask)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.gradle.api.UncheckedIOException;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -129,10 +130,26 @@ public class GUtil {
         return map;
     }
 
+    public static void addToMap(Map<String, String> dest, Properties src) {
+        Enumeration<?> enumeration = src.propertyNames();
+        while (enumeration.hasMoreElements()) {
+            Object o = enumeration.nextElement();
+            dest.put(o.toString(), src.getProperty(o.toString()));
+        }
+    }
+
     public static Properties loadProperties(File propertyFile) {
         try {
             return loadProperties(new FileInputStream(propertyFile));
         } catch (FileNotFoundException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static Properties loadProperties(URL url) {
+        try {
+            return loadProperties(url.openStream());
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }

@@ -73,7 +73,6 @@ public class ProjectFactoryTest {
     @Before
     public void setUp() throws Exception {
         startParameterStub.setGradleUserHomeDir(testDir.dir("home"));
-        startParameterStub.setPluginPropertiesFile(new File("plugins"));
         context.checking(new Expectations() {{
             allowing(repositoryHandlerFactory).createRepositoryHandler(with(any(Convention.class)));
             will(returnValue(repositoryHandler));

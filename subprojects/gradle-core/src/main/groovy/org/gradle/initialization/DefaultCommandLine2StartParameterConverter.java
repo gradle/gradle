@@ -50,7 +50,6 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String PROJECT_DIR = "p";
     private static final String PROJECT_DEPENDENCY_TASK_NAMES = "A";
     private static final String NO_PROJECT_DEPENDENCY_REBUILD = "a";
-    private static final String PLUGIN_PROPERTIES_FILE = "l";
     private static final String DEFAULT_IMPORT_FILE = "K";
     private static final String BUILD_FILE = "b";
     public static final String INIT_SCRIPT = "I";
@@ -105,8 +104,6 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
                     .ofType(String.class);
             acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"),
                     "Specifies the gradle user home directory.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(PLUGIN_PROPERTIES_FILE, "plugin-properties-file"),
-                    "Specifies the plugin.properties file.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(DEFAULT_IMPORT_FILE, "default-import-file"),
                     "Specifies the default import file.").withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(INIT_SCRIPT, "init-script"), "Specifies an initialization script.")
@@ -228,10 +225,6 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
 
         for (String script : (List<String>) options.argumentsOf(INIT_SCRIPT)) {
             startParameter.addInitScript(new File(script));
-        }
-
-        if (options.hasArgument(PLUGIN_PROPERTIES_FILE)) {
-            startParameter.setPluginPropertiesFile(new File(options.argumentOf(PLUGIN_PROPERTIES_FILE)));
         }
 
         if (options.has(CACHE)) {

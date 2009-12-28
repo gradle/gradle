@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,22 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.TestPlugin1;
 import org.gradle.api.internal.project.TestPlugin2;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.integtests.TestFile;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
 import org.junit.Assert;
-import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Properties;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -40,18 +44,24 @@ public class DefaultPluginRegistryTest extends AbstractPluginContainerTest {
     private DefaultPluginRegistry pluginRegistry;
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
+    private URLClassLoader classLoader;
+
+    @Before
+    public void setup() throws Exception {
+        Properties properties = new Properties();
+        properties.putAll(WrapUtil.toMap(pluginId, TestPlugin1.class.getName()));
+        TestFile propertiesFile = testDir.file("META-INF/gradle-plugins.properties");
+        try {
+            properties.store(new FileOutputStream(propertiesFile), "");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        classLoader = new URLClassLoader(new URL[]{testDir.getDir().toURI().toURL()});
+    }
 
     protected DefaultPluginRegistry getPluginContainer() {
         if (pluginRegistry == null) {
-            Properties properties = new Properties();
-            properties.putAll(WrapUtil.toMap(pluginId, TestPlugin1.class.getName()));
-            File propertiesFile = testDir.file("plugin.properties");
-            try {
-                properties.store(new FileOutputStream(propertiesFile), "");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            pluginRegistry = new DefaultPluginRegistry(propertiesFile);
+            pluginRegistry = new DefaultPluginRegistry(classLoader);
         }
         return pluginRegistry;
     }
@@ -74,29 +84,15 @@ public class DefaultPluginRegistryTest extends AbstractPluginContainerTest {
 
     @Test
     public void testLoadPlugin() throws IOException {
-        DefaultPluginRegistry pluginRegistry = (DefaultPluginRegistry) getPluginContainer();
+        DefaultPluginRegistry pluginRegistry = getPluginContainer();
         TestPlugin1 testPlugin1 = (TestPlugin1) pluginRegistry.loadPlugin(pluginId);
         Assert.assertThat((TestPlugin1) pluginRegistry.loadPlugin(pluginId), sameInstance(testPlugin1));
         Assert.assertThat(pluginRegistry.loadPlugin(TestPlugin1.class), sameInstance(testPlugin1));
         assertTrue(pluginRegistry.loadPlugin(TestPlugin2.class) instanceof TestPlugin2);
     }
 
-    @Test
-    public void testLoadPluginWithNonExistentPropertiesFile() {
-        File propertiesFile = new File("/plugin.properties");
-        assertFalse(propertiesFile.isFile());
-        DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(propertiesFile);
-        assertTrue(pluginRegistry.loadPlugin(TestPlugin2.class) instanceof TestPlugin2);
-    }
-
-    @Test
-    public void testLoadPluginWithNoPropertiesFile() {
-        DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry();
-        assertTrue(pluginRegistry.loadPlugin(TestPlugin2.class) instanceof TestPlugin2);
-    }
-
     @Test(expected = UnknownPluginException.class)
     public void testWithNonExistingId() {
-        new DefaultPluginRegistry().loadPlugin("unknownId");
+        getPluginContainer().loadPlugin("unknownId");
     }
 }

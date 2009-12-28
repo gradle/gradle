@@ -45,7 +45,6 @@ import java.util.*;
  * @see GradleLauncher
  */
 public class StartParameter {
-    public final static String DEFAULT_PLUGIN_PROPERTIES = "plugin.properties";
     public final static String IMPORTS_FILE_NAME = "gradle-imports";
 
     public enum ShowStacktrace {
@@ -64,7 +63,6 @@ public class StartParameter {
     public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
     private File gradleUserHomeDir = new File(GUtil.elvis(System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY), DEFAULT_GRADLE_USER_HOME));
     private File defaultImportsFile;
-    private File pluginPropertiesFile;
     private File gradleHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
     private ScriptSource buildScriptSource;
@@ -106,7 +104,6 @@ public class StartParameter {
         startParameter.gradleHomeDir = gradleHomeDir;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.defaultImportsFile = defaultImportsFile;
-        startParameter.pluginPropertiesFile = pluginPropertiesFile;
         startParameter.cacheUsage = cacheUsage;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
@@ -133,7 +130,6 @@ public class StartParameter {
         StartParameter startParameter = new StartParameter();
         startParameter.gradleHomeDir = gradleHomeDir;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
-        startParameter.pluginPropertiesFile = pluginPropertiesFile;
         startParameter.defaultImportsFile = defaultImportsFile;
         startParameter.cacheUsage = cacheUsage;
         startParameter.logLevel = logLevel;
@@ -183,9 +179,6 @@ public class StartParameter {
         this.gradleHomeDir = GFileUtils.canonicalise(gradleHomeDir);
         if (defaultImportsFile == null) {
             defaultImportsFile = new File(this.gradleHomeDir, IMPORTS_FILE_NAME);
-        }
-        if (pluginPropertiesFile == null) {
-            pluginPropertiesFile = new File(this.gradleHomeDir, DEFAULT_PLUGIN_PROPERTIES);
         }
     }
 
@@ -376,14 +369,6 @@ public class StartParameter {
         this.defaultImportsFile = defaultImportsFile;
     }
 
-    public File getPluginPropertiesFile() {
-        return pluginPropertiesFile;
-    }
-
-    public void setPluginPropertiesFile(File pluginPropertiesFile) {
-        this.pluginPropertiesFile = pluginPropertiesFile;
-    }
-
     public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
         return projectDependenciesBuildInstruction;
     }
@@ -545,7 +530,6 @@ public class StartParameter {
                 ", systemPropertiesArgs=" + systemPropertiesArgs +
                 ", gradleUserHomeDir=" + gradleUserHomeDir +
                 ", defaultImportsFile=" + defaultImportsFile +
-                ", pluginPropertiesFile=" + pluginPropertiesFile +
                 ", gradleHomeDir=" + gradleHomeDir +
                 ", cacheUsage=" + cacheUsage +
                 ", buildScriptSource=" + buildScriptSource +

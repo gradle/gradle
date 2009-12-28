@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.*;
-import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.BuildListener;
@@ -44,8 +43,6 @@ public interface GradleInternal extends Gradle {
     ProjectInternal getDefaultProject();
 
     IProjectRegistry<ProjectInternal> getProjectRegistry();
-
-    PluginRegistry getPluginRegistry();
 
     /**
      * Returns the root {@code ClassLoader} to use for the scripts of this build.

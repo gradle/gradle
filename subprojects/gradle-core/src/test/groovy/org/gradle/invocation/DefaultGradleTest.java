@@ -49,9 +49,7 @@ public class DefaultGradleTest {
     private final JUnit4Mockery context = new JUnit4Mockery(){{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private final StartParameter parameter = new StartParameter() {{
-        setPluginPropertiesFile(new File("plugin.properties"));
-    }};
+    private final StartParameter parameter = new StartParameter();
     private final ScriptHandler scriptHandlerMock = context.mock(ScriptHandler.class);
     private final ServiceRegistryFactory serviceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, "parent");
     private final ServiceRegistryFactory gradleServiceRegistryMock = context.mock(ServiceRegistryFactory.class, "gradle");
@@ -91,7 +89,6 @@ public class DefaultGradleTest {
         assertThat(gradle.getParent(), sameInstance(parent));
         assertThat(gradle.getServiceRegistryFactory(), sameInstance(gradleServiceRegistryMock));
         assertThat(gradle.getProjectRegistry(), sameInstance(projectRegistry));
-        assertThat(gradle.getPluginRegistry(), sameInstance(pluginRegistry));
         assertThat(gradle.getTaskGraph(), sameInstance(taskExecuter));
     }
     

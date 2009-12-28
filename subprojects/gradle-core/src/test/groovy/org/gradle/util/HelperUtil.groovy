@@ -78,7 +78,6 @@ class HelperUtil {
 
     static DefaultProject createRootProject(File rootDir) {
         StartParameter startParameter = new StartParameter()
-        startParameter.pluginPropertiesFile = new File('plugin.properties')
         startParameter.gradleUserHomeDir = new File(rootDir, 'home')
         TopLevelBuildServiceRegistry serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameter)
         serviceRegistryFactory.add(TaskExecuter, new DefaultTaskExecuter({} as TaskActionListener))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,18 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Properties;
-import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -31,8 +35,7 @@ import java.io.File;
 
 public class DefaultPluginRegistry extends AbstractPluginContainer implements PluginRegistry {
     private static Logger logger = LoggerFactory.getLogger(DefaultPluginRegistry.class);
-
-    private Properties properties = new Properties();
+    private final Map<String, String> properties = new HashMap<String, String>();
 
     private PluginProvider pluginProvider = new PluginProvider() {
         public Plugin providePlugin(Class<? extends Plugin> type) {
@@ -46,15 +49,17 @@ public class DefaultPluginRegistry extends AbstractPluginContainer implements Pl
         }
     };
 
-    public DefaultPluginRegistry() {
-    }
-
-    public DefaultPluginRegistry(File pluginProperties) {
-        if (!pluginProperties.isFile()) {
-            return;
+    public DefaultPluginRegistry(ClassLoader classLoader) {
+        try {
+            Enumeration<URL> propertiesFiles = classLoader.getResources("META-INF/gradle-plugins.properties");
+            while (propertiesFiles.hasMoreElements()) {
+                URL url = propertiesFiles.nextElement();
+                logger.debug("Adding plugins from {}", url);
+                GUtil.addToMap(properties, GUtil.loadProperties(url));
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
-        logger.debug("Checking file= {}", pluginProperties);
-        properties = GUtil.loadProperties(pluginProperties);
     }
 
     public Plugin loadPlugin(String pluginId) {
@@ -70,20 +75,20 @@ public class DefaultPluginRegistry extends AbstractPluginContainer implements Pl
     }
 
     public String getIdForType(Class<? extends Plugin> type) {
-        for (Object o : properties.keySet()) {
-            if (properties.getProperty(o.toString()).equals(type.getName())) {
-                return o.toString();
+        for (String id : properties.keySet()) {
+            if (properties.get(id).equals(type.getName())) {
+                return id;
             }
         }
         return null;
     }
 
     public Class<? extends Plugin> getTypeForId(String pluginId) {
-        if (!GUtil.isTrue(properties.getProperty(pluginId))) {
-            throw new UnknownPluginException("The plugin with the id " + pluginId + " is not available.");
+        if (!GUtil.isTrue(properties.get(pluginId))) {
+            throw new UnknownPluginException("The plugin with the id '" + pluginId + "' is not available.");
         }
         try {
-            return Class.forName(properties.getProperty(pluginId)).asSubclass(Plugin.class);
+            return Class.forName(properties.get(pluginId)).asSubclass(Plugin.class);
         } catch (ClassNotFoundException e) {
             throw new PluginInstantiationException(e);
         }
