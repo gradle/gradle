@@ -18,17 +18,17 @@ package org.gradle.api.internal.plugins;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 
-public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectContainer<T>
+public class DefaultPluginCollection<T extends Plugin> extends DefaultNamedDomainObjectContainer<T>
         implements PluginCollection<T> {
     public DefaultPluginCollection(Class<T> type) {
         super(type);
     }
 
-    protected DefaultPluginCollection(Class<T> type, Store<T> store) {
+    protected DefaultPluginCollection(Class<T> type, NamedObjectStore<T> store) {
         super(type, store);
     }
 

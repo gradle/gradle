@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Project;
 import org.gradle.api.Plugin;
 
 /**
@@ -32,37 +31,35 @@ import org.gradle.api.Plugin;
  */
 public interface ProjectPluginsContainer extends PluginContainer {
     /**
-     * Has the same behavior as {@link #usePlugin(Class, org.gradle.api.Project)} except that the the plugin
-     * is specified via its id. Not all plugins have an id.
+     * Has the same behavior as {@link #usePlugin(Class)} except that the the plugin is specified via its id. Not all
+     * plugins have an id.
      *
      * @param id The id of the plugin to be used
-     * @param project The project against the plugin should be used
      * @return The plugin which has been used against the project.
      */
-    Plugin usePlugin(String id, Project project);
+    Plugin usePlugin(String id);
 
     /**
-     * Uses a plugin against a particular project. This usually means that the plugin uses the project API to add
-     * and modify the state of the project. This method can be called an arbitrary number of time for a particular
-     * plugin type. The plugin will be actually used only the first time this method is called.  
+     * Uses a plugin against the project. This usually means that the plugin uses the project API to add and modify the
+     * state of the project. This method can be called an arbitrary number of time for a particular plugin type. The
+     * plugin will be actually used only the first time this method is called.
      *
      * @param type The type of the plugin to be used
-     * @param project The project against the plugin should be used
      * @return The plugin which has been used against the project.
      */
-    <T extends Plugin> T usePlugin(Class<T> type, Project project);
+    <T extends Plugin> T usePlugin(Class<T> type);
 
     /**
      * Returns a plugin with the specified id if this plugin has been used in the project.
-     * 
+     *
      * @param id The id of the plugin
      */
-    Plugin getPlugin(String id);
+    Plugin getPlugin(String id) throws UnknownPluginException;
 
     /**
      * Returns a plugin with the specified type if this plugin has been used in the project.
      *
      * @param type The type of the plugin
      */
-    Plugin getPlugin(Class<? extends Plugin> type);
+    Plugin getPlugin(Class<? extends Plugin> type) throws UnknownPluginException;
 }

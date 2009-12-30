@@ -15,28 +15,29 @@
  */
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Project;
 import org.gradle.api.Plugin;
-import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.TestPlugin1;
 import org.gradle.api.internal.project.TestPlugin2;
+import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.sameInstance;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultProjectsPluginContainerTest extends AbstractPluginContainerTest {
     protected JUnit4Mockery context = new JUnit4Mockery();
-    
+    private final DefaultProject project = HelperUtil.createRootProject();
+
     protected PluginRegistry pluginRegistryStub = context.mock(PluginRegistry.class);
-    private DefaultProjectsPluginContainer projectsPluginHandler = new DefaultProjectsPluginContainer(pluginRegistryStub);
+    private DefaultProjectsPluginContainer projectsPluginHandler = new DefaultProjectsPluginContainer(pluginRegistryStub, project);
 
     protected TestPlugin1 pluginWithIdMock = new TestPlugin1();
     protected TestPlugin2 pluginWithoutIdMock = new TestPlugin2();
@@ -54,11 +55,11 @@ public class DefaultProjectsPluginContainerTest extends AbstractPluginContainerT
     }
 
     protected Plugin addWithType(Class<? extends Plugin> type) {
-        return getPluginContainer().usePlugin(type, HelperUtil.createRootProject());
+        return getPluginContainer().usePlugin(type);
     }
 
     protected Plugin addWithId(String pluginId) {
-        return getPluginContainer().usePlugin(pluginId, HelperUtil.createRootProject());
+        return getPluginContainer().usePlugin(pluginId);
     }
 
     @Before
@@ -74,18 +75,16 @@ public class DefaultProjectsPluginContainerTest extends AbstractPluginContainerT
 
     @org.junit.Test
     public void usePluginWithId() {
-        final Project projectDummy = context.mock(Project.class);
-        projectsPluginHandler.usePlugin(pluginId, projectDummy);
-        projectsPluginHandler.usePlugin(pluginId, projectDummy);
+        projectsPluginHandler.usePlugin(pluginId);
+        projectsPluginHandler.usePlugin(pluginId);
         assertThat(pluginWithIdMock.getApplyCounter(), equalTo(1));
         assertThat((TestPlugin1) projectsPluginHandler.getPlugin(pluginId), sameInstance(pluginWithIdMock));
     }
 
     @org.junit.Test
     public void usePluginWithType() {
-        final Project projectDummy = context.mock(Project.class);
-        projectsPluginHandler.usePlugin(TestPlugin1.class, projectDummy);
-        projectsPluginHandler.usePlugin(TestPlugin1.class, projectDummy);
+        projectsPluginHandler.usePlugin(TestPlugin1.class);
+        projectsPluginHandler.usePlugin(TestPlugin1.class);
         assertThat(pluginWithIdMock.getApplyCounter(), equalTo(1));
         assertThat((TestPlugin1) projectsPluginHandler.getPlugin(TestPlugin1.class), sameInstance(pluginWithIdMock));
     }

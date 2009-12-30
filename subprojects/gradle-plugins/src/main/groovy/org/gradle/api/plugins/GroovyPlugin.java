@@ -47,7 +47,7 @@ public class GroovyPlugin implements Plugin<Project> {
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
 
     public void use(Project project) {
-        JavaPlugin javaPlugin = project.getPlugins().usePlugin(JavaPlugin.class, project);
+        JavaPlugin javaPlugin = project.getPlugins().usePlugin(JavaPlugin.class);
 
         Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
                 setDescription("The groovy libraries to be used for this Groovy project.");

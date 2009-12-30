@@ -15,145 +15,120 @@
  */
 package org.gradle.api.internal;
 
-import org.gradle.api.NamedDomainObjectCollection;
+import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.Action;
-import org.gradle.util.ConfigureUtil;
 
-import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
-import groovy.lang.MissingPropertyException;
-import groovy.lang.Closure;
+public abstract class AbstractDomainObjectCollection<T> implements DomainObjectCollection<T> {
+    private final Store<T> store;
 
-public abstract class AbstractDomainObjectCollection<T> implements NamedDomainObjectCollection<T> {
-    private final DynamicObject dynamicObject = new ContainerDynamicObject();
+    protected AbstractDomainObjectCollection(Store<T> store) {
+        this.store = store;
+    }
 
     public Set<T> getAll() {
-        return new LinkedHashSet<T>(getAsMap().values());
+        return new LinkedHashSet<T>(store.getAll());
     }
 
     public Set<T> findAll(Spec<? super T> spec) {
-        return Specs.filterIterable(getAsMap().values(), spec);
-    }
-
-    public T getByName(String name) throws UnknownDomainObjectException {
-        T t = findByName(name);
-        if (t == null) {
-            throw createNotFoundException(name);
-        }
-        return t;
-    }
-
-    public T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException {
-        T t = getByName(name);
-        ConfigureUtil.configure(configureClosure, t);
-        return t;
-    }
-    
-    public T getAt(String name) throws UnknownDomainObjectException {
-        return getByName(name);
+        return Specs.filterIterable(store.getAll(), spec);
     }
 
     public Iterator<T> iterator() {
-        return getAsMap().values().iterator();
+        return getAll().iterator();
     }
 
     public void allObjects(Action<? super T> action) {
-        for (T t : getAsMap().values()) {
+        for (T t : store.getAll()) {
             action.execute(t);
         }
         whenObjectAdded(action);
     }
 
     public void allObjects(Closure action) {
-        for (T t : getAsMap().values()) {
+        for (T t : store.getAll()) {
             action.call(t);
         }
         whenObjectAdded(action);
     }
 
-    /**
-     * Returns a {@link DynamicObject} which can be used to access the domain objects as dynamic properties and
-     * methods.
-     *
-     * @return The dynamic object
-     */
-    public DynamicObject getAsDynamicObject() {
-        return dynamicObject;
+    public Action<? super T> whenObjectAdded(Action<? super T> action) {
+        store.objectAdded(action);
+        return action;
     }
 
-    /**
-     * Called when an unknown domain object is requested.
-     *
-     * @param name The name of the unknown object
-     * @return The exception to throw.
-     */
-    protected abstract UnknownDomainObjectException createNotFoundException(String name);
-
-    /**
-     * Returns the display name of this collection
-     *
-     * @return The display name
-     */
-    public abstract String getDisplayName();
-
-    private class ContainerDynamicObject extends CompositeDynamicObject {
-        private ContainerDynamicObject() {
-            setObjects(new BeanDynamicObject(AbstractDomainObjectCollection.this), new ContainerElementsDynamicObject());
-        }
-
-        @Override
-        protected String getDisplayName() {
-            return AbstractDomainObjectCollection.this.getDisplayName();
-        }
+    public Action<? super T> whenObjectRemoved(Action<? super T> action) {
+        store.objectRemoved(action);
+        return action;
     }
 
-    private class ContainerElementsDynamicObject extends AbstractDynamicObject {
-        @Override
-        protected String getDisplayName() {
-            return AbstractDomainObjectCollection.this.getDisplayName();
+    public void whenObjectAdded(Closure action) {
+        whenObjectAdded((Action<? super T>) DefaultGroovyMethods.asType(action, Action.class));
+    }
+
+    protected interface Store<S> {
+        Collection<? extends S> getAll();
+
+        void objectAdded(Action<? super S> action);
+
+        void objectRemoved(Action<? super S> action);
+    }
+
+    protected static class FilteredStore<S> implements Store<S> {
+        private final Store<? super S> store;
+        private final Class<S> type;
+        private final Spec<? super S> spec;
+
+        public FilteredStore(Store<? super S> store, Class<S> type, Spec<? super S> spec) {
+            this.store = store;
+            this.type = type;
+            this.spec = spec;
         }
 
-        @Override
-        public boolean hasProperty(String name) {
-            return findByName(name) != null;
-        }
-
-        @Override
-        public T getProperty(String name) throws MissingPropertyException {
-            T t = findByName(name);
-            if (t == null) {
-                return (T) super.getProperty(name);
+        public Collection<? extends S> getAll() {
+            List<S> values = new ArrayList<S>();
+            for (Object s : store.getAll()) {
+                S filtered = filter(s);
+                if (filtered != null) {
+                    values.add(filtered);
+                }
             }
-            return t;
+            return values;
         }
 
-        @Override
-        public Map<String, T> getProperties() {
-            return getAsMap();
+        public void objectAdded(Action<? super S> action) {
+            store.objectAdded(filter(action));
         }
 
-        @Override
-        public boolean hasMethod(String name, Object... arguments) {
-            return isConfigureMethod(name, arguments);
+        public void objectRemoved(Action<? super S> action) {
+            store.objectRemoved(filter(action));
         }
 
-        @Override
-        public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
-            if (isConfigureMethod(name, arguments)) {
-                return ConfigureUtil.configure((Closure) arguments[0], getByName(name));
-            } else {
-                return super.invokeMethod(name, arguments);
+        protected S filter(Object object) {
+            if (!type.isInstance(object)) {
+                return null;
             }
+            S s = type.cast(object);
+            if (!spec.isSatisfiedBy(s)) {
+                return null;
+            }
+            return s;
         }
 
-        private boolean isConfigureMethod(String name, Object... arguments) {
-            return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
+        protected Action<Object> filter(final Action<? super S> action) {
+            return new Action<Object>() {
+                public void execute(Object object) {
+                    S s = filter(object);
+                    if (s != null) {
+                        action.execute(s);
+                    }
+                }
+            };
         }
     }
 

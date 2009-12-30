@@ -24,7 +24,8 @@ import java.util.Set;
  * <p>A {@code SourceDirectorySet} represents a set of source files composed from a set of source directories, along
  * with associated include and exclude patterns.</p>
  *
- * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec TODO - allow add FileTree
+ * TODO - configure includes/excludes for individual source dirs, and sync up with CopySpec
+ * TODO - allow add FileTree
  */
 public interface SourceDirectorySet extends FileTree, PatternFilterable {
 

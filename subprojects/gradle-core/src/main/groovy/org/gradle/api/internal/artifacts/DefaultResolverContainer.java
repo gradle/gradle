@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.util.ConfigureUtil;
@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-public class DefaultResolverContainer extends DefaultDomainObjectContainer<DependencyResolver>
+public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<DependencyResolver>
         implements ResolverContainer, MavenPomMetaInfoProvider {
     private ResolverFactory resolverFactory;
 

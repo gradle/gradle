@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
-import org.gradle.api.DomainObjectContainer;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectCollection;
 
@@ -46,7 +46,7 @@ import org.gradle.api.NamedDomainObjectCollection;
  *
  * @author Hans Dockter
  */
-public interface ConfigurationContainer extends DomainObjectContainer<Configuration>, NamedDomainObjectCollection<Configuration> {
+public interface ConfigurationContainer extends NamedDomainObjectContainer<Configuration>, NamedDomainObjectCollection<Configuration> {
     /**
      * {@inheritDoc}
      */

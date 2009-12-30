@@ -26,7 +26,7 @@ import java.util.Map;
  * <p>You can obtain a {@code TaskContainer} instance by calling {@link org.gradle.api.Project#getTasks()}, or using the
  * {@code tasks} property in your build script.</p>
  */
-public interface TaskContainer extends TaskCollection<Task>, DomainObjectContainer<Task> {
+public interface TaskContainer extends TaskCollection<Task>, NamedDomainObjectContainer<Task> {
     /**
      * <p>Locates a task by path. You can supply a task name, a relative path, or an absolute path. Relative paths are
      * interpreted relative to the project for this container. This method returns null if no task with the given path

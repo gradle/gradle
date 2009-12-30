@@ -17,12 +17,12 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
-import org.gradle.api.internal.DefaultDomainObjectContainer;
+import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 
-public class DefaultTaskCollection<T extends Task> extends DefaultDomainObjectContainer<T> implements TaskCollection<T> {
+public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectContainer<T> implements TaskCollection<T> {
     protected final ProjectInternal project;
 
     public DefaultTaskCollection(Class<T> type, ProjectInternal project) {
@@ -30,7 +30,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultDomainObjectCo
         this.project = project;
     }
 
-    protected DefaultTaskCollection(Class<T> type, ProjectInternal project, Store<T> store) {
+    protected DefaultTaskCollection(Class<T> type, ProjectInternal project, NamedObjectStore<T> store) {
         super(type, store);
         this.project = project;
     }

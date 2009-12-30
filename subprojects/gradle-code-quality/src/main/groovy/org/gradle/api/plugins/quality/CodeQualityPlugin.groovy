@@ -33,7 +33,7 @@ public class CodeQualityPlugin implements Plugin<Project> {
     public static final String CODE_NARC_TEST_TASK = "codenarcTest";
 
     public void use(final Project project) {
-        project.plugins.usePlugin(ReportingBasePlugin.class, project);
+        project.plugins.usePlugin(ReportingBasePlugin.class);
 
         JavaCodeQualityPluginConvention javaPluginConvention = new JavaCodeQualityPluginConvention(project)
         project.convention.plugins.javaCodeQuality = javaPluginConvention;

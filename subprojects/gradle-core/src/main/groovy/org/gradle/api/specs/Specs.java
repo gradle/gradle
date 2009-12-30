@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class Specs {
         };
     }
 
-    public static <T> Set<T> filterIterable(Iterable<T> iterable, Spec<? super T> spec) {
+    public static <T> Set<T> filterIterable(Iterable<? extends T> iterable, Spec<? super T> spec) {
         Set<T> result = new LinkedHashSet<T>();
         for (T t : iterable) {
             if (spec.isSatisfiedBy(t)) {

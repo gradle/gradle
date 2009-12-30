@@ -357,7 +357,7 @@ class DefaultProjectTest {
 
     private void checkUsePlugin(def usePluginArgument) {
         context.checking {
-            one(projectPluginsHandlerMock).usePlugin(usePluginArgument, project); will(returnValue([:] as Plugin))
+            one(projectPluginsHandlerMock).usePlugin(usePluginArgument); will(returnValue([:] as Plugin))
         }
         assertThat(project.usePlugin(usePluginArgument), sameInstance(project))
     }

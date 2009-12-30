@@ -62,7 +62,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected ProjectPluginsContainer createProjectPluginsContainer() {
-        return new DefaultProjectsPluginContainer(get(PluginRegistry.class));
+        return new DefaultProjectsPluginContainer(get(PluginRegistry.class), project);
     }
 
     protected TaskContainerInternal createTaskContainerInternal() {

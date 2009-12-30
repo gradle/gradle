@@ -17,7 +17,7 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.DomainObjectContainer;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
@@ -52,7 +52,7 @@ import java.util.List;
  *
  * @author Hans Dockter
  */
-public interface ResolverContainer extends DomainObjectContainer<DependencyResolver>, NamedDomainObjectCollection<DependencyResolver> {
+public interface ResolverContainer extends NamedDomainObjectContainer<DependencyResolver>, NamedDomainObjectCollection<DependencyResolver> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
     String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";

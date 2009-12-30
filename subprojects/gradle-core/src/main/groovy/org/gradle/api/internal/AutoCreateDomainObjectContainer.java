@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.ConfigureUtil;
 
-public abstract class AutoCreateDomainObjectContainer<T> extends DefaultDomainObjectContainer<T> {
+public abstract class AutoCreateDomainObjectContainer<T> extends DefaultNamedDomainObjectContainer<T> {
     protected AutoCreateDomainObjectContainer(Class<T> type) {
         super(type);
     }

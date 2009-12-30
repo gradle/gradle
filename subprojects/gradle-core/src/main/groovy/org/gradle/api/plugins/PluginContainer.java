@@ -16,14 +16,13 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.DomainObjectContainer;
 
 /**
  * <p>A {@code PluginContainer} is used to manage a set of {@link org.gradle.api.Plugin} instances.</p>
  *
  * @author Hans Dockter
  */
-public interface PluginContainer extends PluginCollection<Plugin>, DomainObjectContainer<Plugin> {
+public interface PluginContainer extends PluginCollection<Plugin> {
     /**
      * Returns true if the container has a plugin with the given name, false otherwise.
      *

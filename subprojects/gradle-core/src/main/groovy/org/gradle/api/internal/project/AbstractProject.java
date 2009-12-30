@@ -523,12 +523,12 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project usePlugin(String pluginName) {
-        projectPluginsHandler.usePlugin(pluginName, this);
+        projectPluginsHandler.usePlugin(pluginName);
         return this;
     }
 
     public Project usePlugin(Class<? extends Plugin> pluginClass) {
-        projectPluginsHandler.usePlugin(pluginClass, this);
+        projectPluginsHandler.usePlugin(pluginClass);
         return this;
     }
 
