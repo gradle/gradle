@@ -14,9 +14,6 @@ dependencies {
 
     compile "commons-httpclient:commons-httpclient:3.0@jar", "commons-codec:commons-codec:1.2@jar", "org.slf4j:jcl-over-slf4j:1.5.8@jar"
 
-    // Needed by the eclipse plugin
-    compile "dom4j:dom4j:1.6.1@jar", "jaxen:jaxen:1.1@jar"
-
     compile "org.apache.ivy:ivy:2.1.0-rc2@jar", "jsch:jsch:0.1.31@jar"
 
     compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",

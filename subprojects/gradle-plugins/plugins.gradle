@@ -28,6 +28,8 @@ dependencies {
             "dom4j:dom4j:1.6.1@jar",
             "jaxen:jaxen:1.1@jar"
 
+    testCompile "xmlunit:xmlunit:1.2"
+
     runtime libraries.ant_junit
 
     testCompile project(path: ':core', configuration: 'testFixtures')
