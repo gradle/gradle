@@ -20,14 +20,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(DistributionIntegrationTestRunner.class)
-class SamplesGroovy156IntegrationTest {
+class SamplesGroovyOldVersionsIntegrationTest {
 
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
 
     @Test
-    public void groovySample() {
+    public void groovy156() {
         TestFile groovyProjectDir = dist.samplesDir.file('groovy/groovy-1.5.6')
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
@@ -37,5 +37,18 @@ class SamplesGroovy156IntegrationTest {
 
         // Check jar exists
         groovyProjectDir.file("build/libs/groovy-1.5.6.jar").assertIsFile()
+    }
+
+    @Test
+    public void groovy167() {
+        TestFile groovyProjectDir = dist.samplesDir.file('groovy/groovy-1.6.7')
+        executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
+
+        // Check tests have run
+        groovyProjectDir.file('build/test-results/TEST-org.gradle.PersonTest.xml').assertIsFile()
+        groovyProjectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
+
+        // Check jar exists
+        groovyProjectDir.file("build/libs/groovy-1.6.7.jar").assertIsFile()
     }
 }
