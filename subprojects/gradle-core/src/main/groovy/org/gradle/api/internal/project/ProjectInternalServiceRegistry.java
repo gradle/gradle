@@ -42,7 +42,7 @@ import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ProjectPluginsContainer;
+import org.gradle.api.plugins.PluginContainer;
 
 import java.io.File;
 
@@ -61,7 +61,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
     }
 
-    protected ProjectPluginsContainer createProjectPluginsContainer() {
+    protected PluginContainer createPluginContainer() {
         return new DefaultProjectsPluginContainer(get(PluginRegistry.class), project);
     }
 

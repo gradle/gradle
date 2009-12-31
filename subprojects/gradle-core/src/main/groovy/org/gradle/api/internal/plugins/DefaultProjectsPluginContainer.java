@@ -17,27 +17,52 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.ProjectPluginsContainer;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultProjectsPluginContainer extends AbstractPluginContainer implements ProjectPluginsContainer {
+public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plugin> implements PluginContainer {
     private PluginRegistry pluginRegistry;
     private final Project project;
 
     public DefaultProjectsPluginContainer(PluginRegistry pluginRegistry, Project project) {
+        super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
         this.project = project;
     }
 
     public Plugin usePlugin(String id) {
-        return addPlugin(id, createPluginProvider(project));
+        return addPluginInternal(getTypeForId(id), id);
     }
 
     public <T extends Plugin> T usePlugin(Class<T> type) {
-        return addPlugin(type, createPluginProvider(project));
+        return addPluginInternal(type, getNameForType(type));
+    }
+
+    public boolean hasPlugin(String name) {
+        return findPlugin(name) != null;
+    }
+
+    public boolean hasPlugin(Class<? extends Plugin> type) {
+        return findPlugin(type) != null;
+    }
+
+    public Plugin findPlugin(String name) {
+        return findByName(name);
+    }
+
+    public Plugin findPlugin(Class<? extends Plugin> type) {
+        return findByName(getNameForType(type));
+    }
+
+    private <T extends Plugin> T addPluginInternal(Class<T> type, String name) {
+        if (findByName(name) == null) {
+            Plugin plugin = providePlugin(type);
+            addObject(name, plugin);
+        }
+        return (T) findByName(name);
     }
 
     public Plugin getPlugin(String id) {
@@ -64,13 +89,9 @@ public class DefaultProjectsPluginContainer extends AbstractPluginContainer impl
         return pluginRegistry.getTypeForId(id);
     }
 
-    PluginProvider createPluginProvider(final Project project) {
-        return new PluginProvider() {
-            public Plugin providePlugin(Class<? extends Plugin> type) {
-                Plugin<Project> plugin = pluginRegistry.loadPlugin(type);
-                plugin.use(project);
-                return plugin;
-            }
-        };
+    private Plugin<Project> providePlugin(Class<? extends Plugin> type) {
+        Plugin<Project> plugin = pluginRegistry.loadPlugin(type);
+        plugin.use(project);
+        return plugin;
     }
 }

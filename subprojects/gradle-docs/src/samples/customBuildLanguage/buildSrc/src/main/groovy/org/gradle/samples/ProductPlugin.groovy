@@ -17,7 +17,6 @@ package org.gradle.samples
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.ProjectPluginsContainer
 import org.gradle.api.tasks.bundling.Zip
 
 /**

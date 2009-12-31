@@ -28,7 +28,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ProjectPluginsContainer;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 
@@ -1148,7 +1148,7 @@ public interface Project extends Comparable<Project> {
      *
      * @return the plugin container. Never returns null.
      */
-    ProjectPluginsContainer getPlugins();
+    PluginContainer getPlugins();
 
     /**
      * Returns the build script handler for this project. You can use this handler to manage the classpath used to

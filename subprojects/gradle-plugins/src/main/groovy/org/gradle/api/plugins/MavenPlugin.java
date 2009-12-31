@@ -53,7 +53,7 @@ public class MavenPlugin implements Plugin<Project> {
     public void use(final Project project) {
         setConventionMapping(project);
         addConventionObject(project, new HashMap<String, Object>());
-        ProjectPluginsContainer plugins = project.getPlugins();
+        PluginContainer plugins = project.getPlugins();
         plugins.withType(JavaPlugin.class).allPlugins(new Action<JavaPlugin>() {
             public void execute(JavaPlugin javaPlugin) {
                 configureJavaScopeMappings(project.getRepositories(), project.getConfigurations());

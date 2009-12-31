@@ -25,11 +25,17 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.BaseDirConverter;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileSet;
+import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
@@ -44,10 +50,9 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
-import org.gradle.api.plugins.ProjectPluginsContainer;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.Directory;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.internal.file.FileSet;
 import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -110,7 +115,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
 
-    private ProjectPluginsContainer projectPluginsHandler;
+    private PluginContainer pluginContainer;
 
     private final String path;
 
@@ -187,7 +192,7 @@ public abstract class AbstractProject implements ProjectInternal {
         projectEvaluator = services.get(ProjectEvaluator.class);
         repositoryHandler = services.get(RepositoryHandler.class);
         configurationContainer = services.get(ConfigurationContainer.class);
-        projectPluginsHandler = services.get(ProjectPluginsContainer.class);
+        pluginContainer = services.get(PluginContainer.class);
         artifactHandler = services.get(ArtifactHandler.class);
         dependencyHandler = services.get(DependencyHandler.class);
         scriptHandler = services.get(ScriptHandler.class);
@@ -217,8 +222,8 @@ public abstract class AbstractProject implements ProjectInternal {
         return gradle;
     }
 
-    public ProjectPluginsContainer getPlugins() {
-        return projectPluginsHandler;
+    public PluginContainer getPlugins() {
+        return pluginContainer;
     }
 
     public ProjectEvaluator getProjectEvaluator() {
@@ -523,12 +528,12 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project usePlugin(String pluginName) {
-        projectPluginsHandler.usePlugin(pluginName);
+        pluginContainer.usePlugin(pluginName);
         return this;
     }
 
     public Project usePlugin(Class<? extends Plugin> pluginClass) {
-        projectPluginsHandler.usePlugin(pluginClass);
+        pluginContainer.usePlugin(pluginClass);
         return this;
     }
 

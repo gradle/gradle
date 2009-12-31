@@ -18,11 +18,37 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 
 /**
- * <p>A {@code PluginContainer} is used to manage a set of {@link org.gradle.api.Plugin} instances.</p>
+ * <p>A {@code PluginContainer} is used to manage a set of {@link org.gradle.api.Plugin} instances applied to a
+ * particular project.</p>
+ *
+ * <p>Plugins can be specified using either an id or type. The id of a plugin is specified using a
+ * META-INF/gradle-plugins.properties resource.</p>
+ *
+ * <p>The name of a plugin is its id. In the case a plugin does not has an id, its name is the fully qualified class
+ * name.</p>
  *
  * @author Hans Dockter
  */
 public interface PluginContainer extends PluginCollection<Plugin> {
+    /**
+     * Has the same behavior as {@link #usePlugin(Class)} except that the the plugin is specified via its id. Not all
+     * plugins have an id.
+     *
+     * @param id The id of the plugin to be used
+     * @return The plugin which has been used against the project.
+     */
+    Plugin usePlugin(String id);
+
+    /**
+     * Uses a plugin against the project. This usually means that the plugin uses the project API to add and modify the
+     * state of the project. This method can be called an arbitrary number of time for a particular plugin type. The
+     * plugin will be actually used only the first time this method is called.
+     *
+     * @param type The type of the plugin to be used
+     * @return The plugin which has been used against the project.
+     */
+    <T extends Plugin> T usePlugin(Class<T> type);
+
     /**
      * Returns true if the container has a plugin with the given name, false otherwise.
      *
@@ -32,6 +58,7 @@ public interface PluginContainer extends PluginCollection<Plugin> {
 
     /**
      * Returns true if the container has a plugin with the given type, false otherwise.
+     *
      * @param type The type of the plugin
      */
     boolean hasPlugin(Class<? extends Plugin> type);
@@ -51,4 +78,18 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @return the plugin or null if no plugin for the given type exists.
      */
     Plugin findPlugin(Class<? extends Plugin> type);
+
+    /**
+     * Returns a plugin with the specified id if this plugin has been used in the project.
+     *
+     * @param id The id of the plugin
+     */
+    Plugin getPlugin(String id) throws UnknownPluginException;
+
+    /**
+     * Returns a plugin with the specified type if this plugin has been used in the project.
+     *
+     * @param type The type of the plugin
+     */
+    Plugin getPlugin(Class<? extends Plugin> type) throws UnknownPluginException;
 }

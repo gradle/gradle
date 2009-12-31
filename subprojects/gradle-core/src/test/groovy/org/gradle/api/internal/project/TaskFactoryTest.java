@@ -22,6 +22,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
+import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
@@ -146,7 +147,7 @@ public class TaskFactoryTest {
         try {
             taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, MissingConstructorTask.class));
             fail();
-        } catch (GradleException e) {
+        } catch (InvalidUserDataException e) {
             assertEquals(
                     "Cannot create task of type 'MissingConstructorTask' as it does not have a public no-args constructor.",
                     e.getMessage());
@@ -158,7 +159,7 @@ public class TaskFactoryTest {
         try {
             taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, NotATask.class));
             fail();
-        } catch (GradleException e) {
+        } catch (InvalidUserDataException e) {
             assertEquals("Cannot create task of type 'NotATask' as it does not implement the Task interface.",
                     e.getMessage());
         }
@@ -169,7 +170,7 @@ public class TaskFactoryTest {
         try {
             taskFactory.createTask(testProject, GUtil.map(Task.TASK_NAME, "task", Task.TASK_TYPE, CannotConstructTask.class));
             fail();
-        } catch (GradleException e) {
+        } catch (TaskInstantiationException e) {
             assertEquals("Could not create task of type 'CannotConstructTask'.", e.getMessage());
             assertTrue(RuntimeException.class.isInstance(e.getCause()));
             assertEquals("fail", e.getCause().getMessage());

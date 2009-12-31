@@ -33,7 +33,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactoryTest
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactoryTest.ConventionAwareRepositoryHandler
+
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
@@ -41,13 +41,12 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.PathResolvingFileCollection
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.api.internal.project.AbstractProject.State
+
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
 import org.gradle.api.plugins.Convention
-import org.gradle.api.plugins.ProjectPluginsContainer
 import org.gradle.api.tasks.Directory
 import org.gradle.configuration.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
@@ -62,11 +61,12 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.*
-import org.gradle.api.internal.project.*
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.artifacts.Module
+import org.gradle.api.plugins.PluginContainer
 
 /**
  * @author Hans Dockter
@@ -110,7 +110,7 @@ class DefaultProjectTest {
     RepositoryHandler repositoryHandlerMock
     DependencyFactory dependencyFactoryMock
     DependencyHandler dependencyHandlerMock = context.mock(DependencyHandler)
-    ProjectPluginsContainer projectPluginsHandlerMock = context.mock(ProjectPluginsContainer)
+    PluginContainer pluginContainerMock = context.mock(PluginContainer)
     PublishArtifactFactory publishArtifactFactoryMock = context.mock(PublishArtifactFactory)
     ScriptHandler scriptHandlerMock = context.mock(ScriptHandler)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
@@ -173,7 +173,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(Convention); will(returnValue(convention))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
             allowing(serviceRegistryMock).get(AntBuilderFactory); will(returnValue(antBuilderFactoryMock))
-            allowing(serviceRegistryMock).get(ProjectPluginsContainer); will(returnValue(projectPluginsHandlerMock))
+            allowing(serviceRegistryMock).get(PluginContainer); will(returnValue(pluginContainerMock))
             allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
             allowing(serviceRegistryMock).get(StandardOutputRedirector); will(returnValue(outputRedirectorMock))
@@ -357,7 +357,7 @@ class DefaultProjectTest {
 
     private void checkUsePlugin(def usePluginArgument) {
         context.checking {
-            one(projectPluginsHandlerMock).usePlugin(usePluginArgument); will(returnValue([:] as Plugin))
+            one(pluginContainerMock).usePlugin(usePluginArgument); will(returnValue([:] as Plugin))
         }
         assertThat(project.usePlugin(usePluginArgument), sameInstance(project))
     }

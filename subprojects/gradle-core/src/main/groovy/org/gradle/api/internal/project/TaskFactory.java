@@ -20,6 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.util.GUtil;
 
 import java.lang.reflect.Constructor;
@@ -74,7 +75,7 @@ public class TaskFactory implements ITaskFactory {
 
     private TaskInternal createTaskObject(ProjectInternal project, final Class<? extends TaskInternal> type, String name, boolean generateGetters) {
         if (!Task.class.isAssignableFrom(type)) {
-            throw new GradleException(String.format(
+            throw new InvalidUserDataException(String.format(
                     "Cannot create task of type '%s' as it does not implement the Task interface.",
                     type.getSimpleName()));
         }
@@ -93,7 +94,7 @@ public class TaskFactory implements ITaskFactory {
             params = new Object[0];
         } catch (NoSuchMethodException e) {
             // Ignore
-            throw new GradleException(String.format(
+            throw new InvalidUserDataException(String.format(
                     "Cannot create task of type '%s' as it does not have a public no-args constructor.",
                     type.getSimpleName()));
         }
@@ -103,10 +104,10 @@ public class TaskFactory implements ITaskFactory {
                 try {
                     return constructor.newInstance(params);
                 } catch (InvocationTargetException e) {
-                    throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()),
+                    throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", type.getSimpleName()),
                             e.getCause());
                 } catch (Exception e) {
-                    throw new GradleException(String.format("Could not create task of type '%s'.", type.getSimpleName()), e);
+                    throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", type.getSimpleName()), e);
                 }
             }
         });

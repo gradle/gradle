@@ -37,6 +37,10 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
         this.store = store;
     }
 
+    public Class<T> getType() {
+        return type;
+    }
+
     public DomainObjectCollection<T> matching(final Spec<? super T> spec) {
         return new DefaultDomainObjectContainer<T>(type, storeWithSpec(spec));
     }

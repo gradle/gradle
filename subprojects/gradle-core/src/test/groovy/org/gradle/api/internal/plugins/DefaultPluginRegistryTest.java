@@ -18,11 +18,12 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.TestPlugin1;
 import org.gradle.api.internal.project.TestPlugin2;
+import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.integtests.TestFile;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
-import org.junit.Assert;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +41,8 @@ import static org.junit.Assert.*;
  * @author Hans Dockter
  */
 
-public class DefaultPluginRegistryTest extends AbstractPluginContainerTest {
+public class DefaultPluginRegistryTest {
+    private String pluginId = "test";
     private DefaultPluginRegistry pluginRegistry;
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
@@ -56,43 +58,54 @@ public class DefaultPluginRegistryTest extends AbstractPluginContainerTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        classLoader = new URLClassLoader(new URL[]{testDir.getDir().toURI().toURL()});
-    }
-
-    protected DefaultPluginRegistry getPluginContainer() {
-        if (pluginRegistry == null) {
-            pluginRegistry = new DefaultPluginRegistry(classLoader);
-        }
-        return pluginRegistry;
-    }
-
-    protected Plugin getPluginWithId() {
-        return getPluginContainer().loadPlugin(pluginId);
-    }
-
-    protected Plugin getPluginWithoutId() {
-        return getPluginContainer().loadPlugin(TestPlugin2.class);
-    }
-
-    protected Plugin addWithType(Class<? extends Plugin> type) {
-        return getPluginContainer().loadPlugin(type);
-    }
-
-    protected Plugin addWithId(String pluginId) {
-        return getPluginContainer().loadPlugin(pluginId);
+        classLoader = new URLClassLoader(new URL[]{testDir.getDir().toURI().toURL()}, ClassLoader.getSystemClassLoader().getParent());
+        pluginRegistry = new DefaultPluginRegistry(classLoader);
     }
 
     @Test
-    public void testLoadPlugin() throws IOException {
-        DefaultPluginRegistry pluginRegistry = getPluginContainer();
-        TestPlugin1 testPlugin1 = (TestPlugin1) pluginRegistry.loadPlugin(pluginId);
-        Assert.assertThat((TestPlugin1) pluginRegistry.loadPlugin(pluginId), sameInstance(testPlugin1));
-        Assert.assertThat(pluginRegistry.loadPlugin(TestPlugin1.class), sameInstance(testPlugin1));
-        assertTrue(pluginRegistry.loadPlugin(TestPlugin2.class) instanceof TestPlugin2);
+    public void canLoadPluginByType() {
+        DefaultPluginRegistry pluginRegistry = this.pluginRegistry;
+        assertThat(pluginRegistry.loadPlugin(TestPlugin2.class), instanceOf(TestPlugin2.class));
     }
 
-    @Test(expected = UnknownPluginException.class)
-    public void testWithNonExistingId() {
-        getPluginContainer().loadPlugin("unknownId");
+    @Test
+    public void canLoadPluginById() {
+        DefaultPluginRegistry pluginRegistry = this.pluginRegistry;
+        assertThat(pluginRegistry.loadPlugin(pluginId), instanceOf(TestPlugin1.class));
+    }
+
+    @Test
+    public void cachesPluginsByType() {
+        DefaultPluginRegistry pluginRegistry = this.pluginRegistry;
+        assertThat(pluginRegistry.loadPlugin(pluginId), sameInstance((Plugin) pluginRegistry.loadPlugin(
+                TestPlugin1.class)));
+        assertThat(pluginRegistry.loadPlugin(TestPlugin2.class), sameInstance(pluginRegistry.loadPlugin(
+                TestPlugin2.class)));
+    }
+
+    @Test
+    public void failsForUnknownId() {
+        try {
+            pluginRegistry.loadPlugin("unknownId");
+            fail();
+        } catch (UnknownPluginException e) {
+            assertThat(e.getMessage(), equalTo("Plugin with id 'unknownId' not found."));
+        }
+    }
+
+    @Test
+    public void wrapsPluginInstantiationFailure() {
+        try {
+            pluginRegistry.loadPlugin(BrokenPlugin.class);
+            fail();
+        } catch (PluginInstantiationException e) {
+            assertThat(e.getMessage(), equalTo("Could not create plugin of type 'BrokenPlugin'."));
+            assertThat(e.getCause(), Matchers.<Object>nullValue());
+        }
+    }
+
+    private class BrokenPlugin implements Plugin<String> {
+        public void use(String target) {
+        }
     }
 }

@@ -33,21 +33,10 @@ import java.util.Map;
  * @author Hans Dockter
  */
 
-public class DefaultPluginRegistry extends AbstractPluginContainer implements PluginRegistry {
+public class DefaultPluginRegistry implements PluginRegistry {
     private static Logger logger = LoggerFactory.getLogger(DefaultPluginRegistry.class);
     private final Map<String, String> properties = new HashMap<String, String>();
-
-    private PluginProvider pluginProvider = new PluginProvider() {
-        public Plugin providePlugin(Class<? extends Plugin> type) {
-            try {
-                return type.newInstance();
-            } catch (IllegalAccessException e) {
-                throw new PluginInstantiationException(e);
-            } catch (InstantiationException e) {
-                throw new PluginInstantiationException(e);
-            }
-        }
-    };
+    private final Map<Class<? extends Plugin>, Plugin<?>> plugins = new HashMap<Class<? extends Plugin>, Plugin<?>>();
 
     public DefaultPluginRegistry(ClassLoader classLoader) {
         try {
@@ -63,11 +52,22 @@ public class DefaultPluginRegistry extends AbstractPluginContainer implements Pl
     }
 
     public Plugin loadPlugin(String pluginId) {
-        return addPlugin(pluginId, pluginProvider);
+        return loadPlugin(getTypeForId(pluginId));
     }
 
     public <T extends Plugin> T loadPlugin(Class<T> pluginClass) {
-        return addPlugin(pluginClass, pluginProvider);
+        T plugin = pluginClass.cast(plugins.get(pluginClass));
+        if (plugin == null) {
+            try {
+                plugin = pluginClass.newInstance();
+            } catch (InstantiationException e) {
+                throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.", pluginClass.getSimpleName()), e.getCause());
+            } catch (Exception e) {
+                throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.", pluginClass.getSimpleName()), e);
+            }
+            plugins.put(pluginClass, plugin);
+        }
+        return plugin;
     }
 
     public String getNameForType(Class<? extends Plugin> type) {
@@ -84,14 +84,14 @@ public class DefaultPluginRegistry extends AbstractPluginContainer implements Pl
     }
 
     public Class<? extends Plugin> getTypeForId(String pluginId) {
-        if (!GUtil.isTrue(properties.get(pluginId))) {
-            throw new UnknownPluginException("The plugin with the id '" + pluginId + "' is not available.");
+        String implClassName = properties.get(pluginId);
+        if (!GUtil.isTrue(implClassName)) {
+            throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
         try {
-            return Class.forName(properties.get(pluginId)).asSubclass(Plugin.class);
+            return Class.forName(implClassName).asSubclass(Plugin.class);
         } catch (ClassNotFoundException e) {
-            throw new PluginInstantiationException(e);
+            throw new PluginInstantiationException(String.format("Could not find implementation class '%s' for plugin '%s'.", implClassName, pluginId), e);
         }
     }
-
 }
