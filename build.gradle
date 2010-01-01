@@ -52,10 +52,12 @@ libraries = [
         groovy          : 'org.codehaus.groovy:groovy:1.7.0@jar',
         jaxen           : 'jaxen:jaxen:1.1@jar',
         jopt_simple     : 'net.sf.jopt-simple:jopt-simple:2.4.1@jar',
-        jul_to_slf4j    : 'org.slf4j:jul-to-slf4j:1.5.8@jar',
-        logback_classic : 'ch.qos.logback:logback-classic:0.9.17@jar',
-        logback_core    : 'ch.qos.logback:logback-core:0.9.17@jar',
-        slf4j_api       : 'org.slf4j:slf4j-api:1.5.8@jar',
+        slf4j_api       : 'org.slf4j:slf4j-api:1.5.10@jar',
+        jcl_to_slf4j    : 'org.slf4j:jcl-over-slf4j:1.5.10@jar',
+        jul_to_slf4j    : 'org.slf4j:jul-to-slf4j:1.5.10@jar',
+        log4j_to_slf4j  : 'org.slf4j:log4j-over-slf4j:1.5.10@jar',
+        logback_classic : 'ch.qos.logback:logback-classic:0.9.18@jar',
+        logback_core    : 'ch.qos.logback:logback-core:0.9.18@jar',
         junit           : 'junit:junit:4.7'
     ]
 
