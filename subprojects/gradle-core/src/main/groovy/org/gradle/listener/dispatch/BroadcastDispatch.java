@@ -16,7 +16,6 @@
 package org.gradle.listener.dispatch;
 
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
@@ -146,8 +145,8 @@ public class BroadcastDispatch<T> implements CloseableDispatch<Event> {
                 }
                 try {
                     closure.call(parameters);
-                } catch (InvokerInvocationException e) {
-                    throw new ListenerNotificationException(getErrorMessage(), e.getCause());
+                } catch (Throwable e) {
+                    throw new ListenerNotificationException(getErrorMessage(), e);
                 }
             }
             return null;

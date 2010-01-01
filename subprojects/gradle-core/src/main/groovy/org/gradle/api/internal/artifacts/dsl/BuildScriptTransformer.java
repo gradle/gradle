@@ -33,5 +33,8 @@ public class BuildScriptTransformer implements Transformer {
         classpathScriptTransformer.invert().register(compilationUnit);
         TaskDefinitionScriptTransformer taskDefinitionScriptTransformer = new TaskDefinitionScriptTransformer();
         taskDefinitionScriptTransformer.register(compilationUnit);
+        // TODO - remove this
+        FixMainScriptTransformer fixMainScriptTransformer = new FixMainScriptTransformer();
+        fixMainScriptTransformer.register(compilationUnit);
     }
 }

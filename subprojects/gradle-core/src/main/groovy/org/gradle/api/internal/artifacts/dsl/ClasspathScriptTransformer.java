@@ -16,22 +16,26 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.ImportNode;
+import org.codehaus.groovy.ast.MethodNode;
+import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.ImportNode;
 import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.Phases;
+import org.codehaus.groovy.control.SourceUnit;
+import org.gradle.api.GradleException;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.groovy.scripts.Transformer;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,42 +57,52 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
 
         // Filter imported classes which are not available yet
 
-        Iterator iter = source.getAST().getImports().iterator();
+        Iterator<ImportNode> iter = source.getAST().getImports().iterator();
         while (iter.hasNext()) {
-            ImportNode importedClass = (ImportNode) iter.next();
+            ImportNode importedClass = iter.next();
+            if (!isVisible(source, importedClass.getClassName())) {
+                try {
+                    Field field = ModuleNode.class.getDeclaredField("imports");
+                    field.setAccessible(true);
+                    Map value = (Map) field.get(source.getAST());
+                    value.remove(importedClass.getAlias());
+                } catch (Exception e) {
+                    throw new GradleException(e);
+                }
+            }
+        }
+
+        iter = source.getAST().getStaticImports().values().iterator();
+        while (iter.hasNext()) {
+            ImportNode importedClass = iter.next();
             if (!isVisible(source, importedClass.getClassName())) {
                 iter.remove();
             }
         }
 
-        iter = source.getAST().getStaticImportClasses().keySet().iterator();
+        iter = source.getAST().getStaticStarImports().values().iterator();
         while (iter.hasNext()) {
-            String importedClass = (String) iter.next();
-            if (!isVisible(source, importedClass)) {
+            ImportNode importedClass = iter.next();
+            if (!isVisible(source, importedClass.getClassName())) {
                 iter.remove();
             }
         }
 
-        iter = source.getAST().getStaticImportAliases().entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry entry = (Map.Entry) iter.next();
-            ClassNode importedClass = (ClassNode) entry.getValue();
-            if (!isVisible(source, importedClass.getName())) {
-                iter.remove();
-                source.getAST().getStaticImportFields().remove(entry.getKey());
+        ClassNode scriptClass = getScriptClass(source);
+        Iterator<ClassNode> classes = source.getAST().getClasses().iterator();
+        while (classes.hasNext()) {
+            ClassNode classNode = classes.next();
+            if (classNode != scriptClass) {
+                classes.remove();
             }
         }
-//        source.getAST().getStaticImportFields().clear();
-//        source.getAST().getStaticImportAliases().clear();
 
-        List classes = source.getAST().getClasses();
-        if (!classes.isEmpty()) {
-            classes.subList(1, classes.size()).clear();
-            ClassNode scriptClass = (ClassNode) classes.get(0);
-            if (scriptClass.getMethods().size() > 2) {
-                scriptClass.getMethods().subList(2, scriptClass.getMethods().size()).clear();
+        for (MethodNode methodNode : new ArrayList<MethodNode>(scriptClass.getMethods())) {
+            if (!methodNode.getName().equals("run")) {
+                removeMethod(scriptClass, methodNode);
             }
         }
+        
         source.getAST().getMethods().clear();
     }
 

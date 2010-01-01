@@ -17,6 +17,7 @@ package org.gradle.groovy.scripts;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilationUnit;
@@ -84,7 +85,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     // because it does not know where Gradle scripts might live.
                     @Override
                     protected ClassVisitor createClassVisitor() {
-                        return new ClassWriter(true) {
+                        return new ClassWriter(ClassWriter.COMPUTE_MAXS) {
                             // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
                             // insert the full path if our script source has a source file
                             @Override
@@ -104,8 +105,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         String scriptText = source.getText();
         String scriptName = source.getClassName();
         Class scriptClass;
+        GroovyCodeSource codeSource = new GroovyCodeSource(scriptText == null ? "" : scriptText, scriptName, "/groovy/script");
         try {
-            scriptClass = groovyClassLoader.parseClass(scriptText == null ? "" : scriptText, scriptName);
+            scriptClass = groovyClassLoader.parseClass(codeSource, false);
         } catch (MultipleCompilationErrorsException e) {
             SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
             Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();

@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.GroovyCodeVisitor;
+import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.ast.expr.*;
+import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.groovy.scripts.Transformer;
 
 public abstract class AbstractScriptTransformer extends CompilationUnit.SourceUnitOperation implements Transformer {
@@ -35,5 +39,22 @@ public abstract class AbstractScriptTransformer extends CompilationUnit.SourceUn
     protected boolean targetIsThis(MethodCallExpression call) {
         Expression target = call.getObjectExpression();
         return target instanceof VariableExpression && target.getText().equals("this");
+    }
+
+    protected void visitScriptCode(SourceUnit source, GroovyCodeVisitor transformer) {
+        source.getAST().getStatementBlock().visit(transformer);
+        for (Object method : source.getAST().getMethods()) {
+            MethodNode methodNode = (MethodNode) method;
+            methodNode.getCode().visit(transformer);
+        }
+    }
+
+    protected ClassNode getScriptClass(SourceUnit source) {
+        return source.getAST().getClasses().get(0);
+    }
+
+    protected void removeMethod(ClassNode declaringClass, MethodNode methodNode) {
+        declaringClass.getMethods().remove(methodNode);
+        declaringClass.getDeclaredMethods(methodNode.getName()).clear();
     }
 }

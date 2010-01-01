@@ -113,7 +113,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         try {
             classStream = new BufferedInputStream(new FileInputStream(testClassFile));
             final ClassReader classReader = new ClassReader(classStream);
-            classReader.accept(classVisitor, true);
+            classReader.accept(classVisitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
         } catch (Throwable e) {
             throw new GradleException("failed to read class file " + testClassFile.getAbsolutePath(), e);
         } finally {

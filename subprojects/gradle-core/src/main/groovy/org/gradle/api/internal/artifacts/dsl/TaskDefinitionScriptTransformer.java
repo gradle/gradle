@@ -17,12 +17,10 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.codehaus.groovy.ast.CodeVisitorSupport;
 import org.codehaus.groovy.ast.DynamicVariable;
-import org.codehaus.groovy.ast.GroovyCodeVisitor;
-import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.Phases;
+import org.codehaus.groovy.control.SourceUnit;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,12 +35,7 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
     }
 
     public void call(SourceUnit source) throws CompilationFailedException {
-        GroovyCodeVisitor transformer = new TaskDefinitionTransformer();
-        source.getAST().getStatementBlock().visit(transformer);
-        for (Object method : source.getAST().getMethods()) {
-            MethodNode methodNode = (MethodNode) method;
-            methodNode.getCode().visit(transformer);
-        }
+        visitScriptCode(source, new TaskDefinitionTransformer());
     }
 
     private class TaskDefinitionTransformer extends CodeVisitorSupport {

@@ -18,6 +18,7 @@ package org.gradle.api.internal
 import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import org.junit.Ignore
 
 class AutoCreateDomainObjectContainerTest {
     private final AutoCreateDomainObjectContainer container = new TestContainer()
@@ -102,7 +103,7 @@ class AutoCreateDomainObjectContainerTest {
         assertThat(container.list2, equalTo(['list2', container.list1]))
     }
 
-    @Test
+    @Test @Ignore
     public void canUseAnItemCalledMainInAScript() {
         Script script = new GroovyShell().parse("""import org.gradle.util.ConfigureUtil
             c.configure {

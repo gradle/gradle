@@ -54,7 +54,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private ClassBuilderImpl(Class<T> type) {
             this.type = type;
 
-            visitor = new ClassWriter(true);
+            visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             typeName = type.getName() + "_Decorated";
             generatedType = Type.getType("L" + typeName.replaceAll("\\.", "/") + ";");
             superclassType = Type.getType(type);
