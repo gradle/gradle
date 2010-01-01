@@ -50,6 +50,7 @@ libraries = [
         commons_io      : 'commons-io:commons-io:1.4@jar',
         dom4j           : 'dom4j:dom4j:1.6.1@jar',
         groovy          : 'org.codehaus.groovy:groovy:1.7.0@jar',
+        ivy             : 'org.apache.ivy:ivy:2.1.0@jar',
         jaxen           : 'jaxen:jaxen:1.1@jar',
         jopt_simple     : 'net.sf.jopt-simple:jopt-simple:2.4.1@jar',
         slf4j_api       : 'org.slf4j:slf4j-api:1.5.10@jar',
