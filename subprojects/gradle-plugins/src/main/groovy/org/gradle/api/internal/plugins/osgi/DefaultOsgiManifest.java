@@ -58,7 +58,7 @@ public class DefaultOsgiManifest implements OsgiManifest {
         try {
             setAnalyzerProperties(analyzer);
             return analyzer.calcManifest();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

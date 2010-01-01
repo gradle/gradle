@@ -124,14 +124,14 @@ public class DefaultOsgiManifestTest {
     }
 
     @Test
-    public void generate() throws IOException {
+    public void generate() throws Exception {
         setUpOsgiManifest();
         prepareMock();
         assertEquals(testManifest, osgiManifest.generateManifest());
     }
 
     @Test
-    public void overwrite() throws IOException {
+    public void overwrite() throws Exception {
         setUpOsgiManifest();
         prepareMock();
         GradleManifest gradleManifest = new GradleManifest(new Manifest());
@@ -143,7 +143,7 @@ public class DefaultOsgiManifestTest {
     }
 
     @Test
-    public void generateWithNull() throws IOException {
+    public void generateWithNull() throws Exception {
         setUpOsgiManifest();
         prepareMockForNullTest();
         osgiManifest.setVersion(null);
@@ -171,14 +171,14 @@ public class DefaultOsgiManifestTest {
         osgiManifest.instruction(Analyzer.IMPORT_PACKAGE, testImportPackages);
     }
 
-    private void prepareMock() throws IOException {
+    private void prepareMock() throws Exception {
         context.checking(new Expectations() {{
             one(analyzerMock).setProperty(Analyzer.BUNDLE_VERSION, osgiManifest.getVersion());
         }});
         prepareMockForNullTest();
     }
 
-    private void prepareMockForNullTest() throws IOException {
+    private void prepareMockForNullTest() throws Exception {
         context.checking(new Expectations() {{
             one(analyzerMock).setProperty(Analyzer.BUNDLE_SYMBOLICNAME, osgiManifest.getSymbolicName());
             one(analyzerMock).setProperty(Analyzer.BUNDLE_NAME, osgiManifest.getName());

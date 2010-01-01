@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+repositories {
+    mavenRepo urls: 'http://www.aQute.biz/repo'
+}
+
 dependencies {
     groovy libraries.groovy_depends
 
@@ -22,7 +26,7 @@ dependencies {
             libraries.commons_lang,
             libraries.commons_io,
             libraries.ivy,
-            "biz.aQute:bndlib:0.0.357@jar",
+            "biz.aQute:bndlib:0.0.384@jar",
             "org.apache.mina:mina-core:2.0.0-RC1",
             libraries.junit,
             "dom4j:dom4j:1.6.1@jar",
