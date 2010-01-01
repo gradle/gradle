@@ -31,7 +31,7 @@ dependencies {
 
     compile libraries.ivy, "jsch:jsch:0.1.31@jar"
 
-    compile "net.sf.jopt-simple:jopt-simple:2.4.1@jar",
+    compile libraries.jopt_simple,
             libraries.ant,
             "org.apache.ant:ant-nodeps:1.7.0@jar",
             libraries.logback_classic,
@@ -39,7 +39,7 @@ dependencies {
             libraries.slf4j_api,
             libraries.jul_to_slf4j,
             libraries.commons_io,
-            "commons-lang:commons-lang:2.3@jar",
+            libraries.commons_lang,
             "commons-codec:commons-codec:1.2@jar",
             "commons-collections:commons-collections:3.2.1@jar",
             "slide:webdavlib:2.0@jar",

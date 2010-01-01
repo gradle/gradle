@@ -1,14 +1,30 @@
+/*
+ * Copyright 2009 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 dependencies {
     compile project(':core')
     compile project(':openApi')
 
     groovy libraries.groovy_depends
 
-    compile libraries.jopt_simple,
-            libraries.dom4j,
-            libraries.jaxen,
+    compile libraries.dom4j,
             libraries.commons_io,
-            libraries.slf4j_api
+            libraries.slf4j_api,
+            libraries.jopt_simple
+
+    runtime libraries.jaxen
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
@@ -26,25 +42,9 @@ task integTest(type: AntTest, dependsOn: [ rootProject.intTestImage ]) {
 
 compileJava.options.depend()
 
-/*
- * Copyright 2009 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 //this is just to exclude integration tests
 test {
-    // We set forkmode to ONCE as our tests are written in Groovy and the startup time of Groovy is significant.
-    options.fork(jvmArgs: ["-ea", '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'])
+    options.fork(jvmArgs: ['-ea', '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'])
 
     exclude 'org/gradle/integtests/**/*.*'
 }

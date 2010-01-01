@@ -19,11 +19,11 @@ dependencies {
     compile project(':core')
 
     compile libraries.slf4j_api,
-            "commons-lang:commons-lang:2.3@jar",
+            libraries.commons_lang,
             libraries.commons_io,
             libraries.ivy,
-            "biz.aQute:bndlib:0.0.255@jar",
-            "org.apache.mina:mina-core:2.0.0-M4",
+            "biz.aQute:bndlib:0.0.357@jar",
+            "org.apache.mina:mina-core:2.0.0-RC1",
             libraries.junit,
             "dom4j:dom4j:1.6.1@jar",
             "jaxen:jaxen:1.1@jar"

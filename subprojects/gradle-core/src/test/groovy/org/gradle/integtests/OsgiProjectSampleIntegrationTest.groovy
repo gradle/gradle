@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class OsgiProjectSampleIntegrationTest {
     static void checkManifest(Manifest manifest, start) {
         assertEquals('Example Gradle Activator', manifest.mainAttributes.getValue('Bundle-Name'))
         assertEquals('2', manifest.mainAttributes.getValue('Bundle-ManifestVersion'))
-        assertEquals('Bnd-0.0.255', manifest.mainAttributes.getValue('Tool'))
+        assertEquals('Bnd-0.0.357', manifest.mainAttributes.getValue('Tool'))
         assertTrue(start <= Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')))
         assertEquals('1.0', manifest.mainAttributes.getValue('Bundle-Version'))
         assertEquals('gradle_tooling.osgi', manifest.mainAttributes.getValue('Bundle-SymbolicName'))

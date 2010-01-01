@@ -75,7 +75,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String HELP = "h";
     private static final String GUI = "gui";
 
-    OptionParser parser = new OptionParser() {
+    private final OptionParser parser = new OptionParser() {
         {
             acceptsAll(WrapUtil.toList(NO_DEFAULT_IMPORTS), "Disable usage of default imports for build script files.");
             acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"), String.format(
@@ -187,11 +187,11 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         if (options.has(NO_DEFAULT_IMPORTS)) {
             startParameter.setDefaultImportsFile(null);
         } else if (options.has(DEFAULT_IMPORT_FILE)) {
-            startParameter.setDefaultImportsFile(new File(options.argumentOf(DEFAULT_IMPORT_FILE)));
+            startParameter.setDefaultImportsFile(new File((String) options.valueOf(DEFAULT_IMPORT_FILE)));
         }
 
         if (options.has(SYSTEM_PROP)) {
-            List<String> props = options.argumentsOf(SYSTEM_PROP);
+            List<String> props = (List<String>) options.valuesOf(SYSTEM_PROP);
             for (String keyValueExpression : props) {
                 String[] elements = keyValueExpression.split("=");
                 startParameter.getSystemPropertiesArgs().put(elements[0], elements.length == 1 ? "" : elements[1]);
@@ -199,7 +199,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
 
         if (options.has(PROJECT_PROP)) {
-            List<String> props = options.argumentsOf(PROJECT_PROP);
+            List<String> props = (List<String>) options.valuesOf(PROJECT_PROP);
             for (String keyValueExpression : props) {
                 String[] elements = keyValueExpression.split("=");
                 startParameter.getProjectProperties().put(elements[0], elements.length == 1 ? "" : elements[1]);
@@ -211,19 +211,19 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
 
         if (options.has(PROJECT_DIR)) {
-            startParameter.setProjectDir(new File(options.argumentOf(PROJECT_DIR)));
+            startParameter.setProjectDir(new File((String) options.valueOf(PROJECT_DIR)));
         }
         if (options.hasArgument(GRADLE_USER_HOME)) {
-            startParameter.setGradleUserHomeDir(new File(options.argumentOf(GRADLE_USER_HOME)));
+            startParameter.setGradleUserHomeDir(new File((String) options.valueOf(GRADLE_USER_HOME)));
         }
         if (options.hasArgument(BUILD_FILE)) {
-            startParameter.setBuildFile(new File(options.argumentOf(BUILD_FILE)));
+            startParameter.setBuildFile(new File((String) options.valueOf(BUILD_FILE)));
         }
         if (options.hasArgument(SETTINGS_FILE)) {
-            startParameter.setSettingsFile(new File(options.argumentOf(SETTINGS_FILE)));
+            startParameter.setSettingsFile(new File((String) options.valueOf(SETTINGS_FILE)));
         }
 
-        for (String script : (List<String>) options.argumentsOf(INIT_SCRIPT)) {
+        for (String script : (List<String>) options.valuesOf(INIT_SCRIPT)) {
             startParameter.addInitScript(new File(script));
         }
 
@@ -244,7 +244,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
                         "Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
                         EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
             }
-            startParameter.useEmbeddedBuildFile(options.argumentOf(EMBEDDED_SCRIPT));
+            startParameter.useEmbeddedBuildFile((String) options.valueOf(EMBEDDED_SCRIPT));
         }
 
         if (options.has(FULL_STACKTRACE)) {
@@ -280,14 +280,14 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
 
         if (options.has(TASKS)) {
-            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(
-                    BuiltInTasksBuildExecuter.Options.TASKS, options.argumentOf(TASKS)));
+            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS,
+                    (String) options.valueOf(TASKS)));
         } else if (options.has(PROPERTIES)) {
-            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(
-                    BuiltInTasksBuildExecuter.Options.PROPERTIES, options.argumentOf(PROPERTIES)));
+            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES,
+                    (String) options.valueOf(PROPERTIES)));
         } else if (options.has(DEPENDENCIES)) {
             startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(
-                    BuiltInTasksBuildExecuter.Options.DEPENDENCIES, options.argumentOf(DEPENDENCIES)));
+                    BuiltInTasksBuildExecuter.Options.DEPENDENCIES, (String) options.valueOf(DEPENDENCIES)));
         } else if (!options.nonOptionArguments().isEmpty()) {
             startParameter.setTaskNames(options.nonOptionArguments());
         }
@@ -301,14 +301,10 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
 
         if (options.has(EXCLUDE_TASK)) {
-            startParameter.setExcludedTaskNames(options.valuesOf(EXCLUDE_TASK));
+            startParameter.setExcludedTaskNames((List<String>) options.valuesOf(EXCLUDE_TASK));
         }
 
         startParameter.setLogLevel(getLogLevel(options));
-    }
-
-    private BuiltInTasksBuildExecuter createBuildInTasksExecuter(BuiltInTasksBuildExecuter.Options options, String path) {
-        return new BuiltInTasksBuildExecuter(options, path);
     }
 
     public void showHelp(OutputStream out) {
