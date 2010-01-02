@@ -21,7 +21,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.*;
-import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StrictScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -429,7 +429,7 @@ public class StartParameter {
         } else {
             File canonicalFile = GFileUtils.canonicalise(settingsFile);
             currentDir = canonicalFile.getParentFile();
-            settingsScriptSource = new StrictScriptSource(new FileScriptSource("settings file", canonicalFile));
+            settingsScriptSource = new StrictScriptSource(new UriScriptSource("settings file", canonicalFile));
         }
     }
 

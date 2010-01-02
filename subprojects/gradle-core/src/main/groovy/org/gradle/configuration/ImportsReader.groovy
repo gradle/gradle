@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project
+package org.gradle.configuration
 
 import org.gradle.StartParameter
+import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
@@ -37,5 +38,9 @@ class ImportsReader {
         String importsText = (defaultImportsFile ? defaultImportsFile.text : '') +
         (projectImportsFiles && projectImportsFiles.isFile() ? projectImportsFiles.text : '')
         importsText
+    }
+
+    ScriptSource withImports(ScriptSource source, File rootDir) {
+        new ImportsScriptSource(source, this, rootDir)
     }
 }

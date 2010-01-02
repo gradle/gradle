@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.util.GFileUtils;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
 import org.gradle.StartParameter;
@@ -44,8 +45,15 @@ public class DefaultInitScriptFinderTest {
         }});
 
         List<ScriptSource> sourceList = new DefaultInitScriptFinder().findScripts(gradleMock);
-        assertThat(testStartParameter.getInitScripts().size(), equalTo(sourceList.size()));
-        assertThat(testStartParameter.getInitScripts(), equalTo(getSourceFiles(sourceList)));
+        assertThat(getSourceFiles(sourceList), equalTo(canonicalise(testStartParameter.getInitScripts())));
+    }
+
+    private List<File> canonicalise(List<File> files) {
+        List<File> results = new ArrayList<File>();
+        for (File file : files) {
+            results.add(GFileUtils.canonicalise(file));
+        }
+        return results;
     }
 
     private List<File> getSourceFiles(List<ScriptSource> sources)

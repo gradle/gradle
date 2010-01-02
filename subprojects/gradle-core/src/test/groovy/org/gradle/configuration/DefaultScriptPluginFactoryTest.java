@@ -18,7 +18,6 @@ package org.gradle.configuration;
 import org.gradle.api.internal.artifacts.dsl.ClasspathScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.project.ImportsReader;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.groovy.scripts.*;
 import org.jmock.Expectations;
@@ -32,7 +31,6 @@ import org.junit.runner.RunWith;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 
 @RunWith(JMock.class)
@@ -60,8 +58,12 @@ public class DefaultScriptPluginFactoryTest {
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
+            ScriptSource sourceWithImportsMock = context.mock(ScriptSource.class, "imports");
 
-            one(scriptCompilerFactoryMock).createCompiler(with(reflectionEquals(new ImportsScriptSource(scriptSourceMock, importsReaderMock, null))));
+            one(importsReaderMock).withImports(scriptSourceMock, null);
+            will(returnValue(sourceWithImportsMock));
+
+            one(scriptCompilerFactoryMock).createCompiler(sourceWithImportsMock);
             will(returnValue(scriptCompilerMock));
 
             one(scriptHandlerFactoryMock).create(parentClassLoader);
@@ -118,8 +120,12 @@ public class DefaultScriptPluginFactoryTest {
 
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
+            ScriptSource sourceWithImportsMock = context.mock(ScriptSource.class, "imports");
 
-            one(scriptCompilerFactoryMock).createCompiler(with(reflectionEquals(new ImportsScriptSource(scriptSourceMock, importsReaderMock, null))));
+            one(importsReaderMock).withImports(scriptSourceMock, null);
+            will(returnValue(sourceWithImportsMock));
+
+            one(scriptCompilerFactoryMock).createCompiler(sourceWithImportsMock);
             will(returnValue(scriptCompilerMock));
 
             allowing(target).beforeCompile(with(notNullValue(ScriptPlugin.class)));

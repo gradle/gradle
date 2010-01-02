@@ -662,15 +662,19 @@ public interface Project extends Comparable<Project> {
      *
      * <ul>
      *
-     * <li>{@link File}. If the file is an absolute file, return it as is. Otherwise, interpret the file's path relative
-     * to the project directory.</li>
+     * <li>{@link File}. If the file is an absolute file, it is returned as is. Otherwise, the file's path is
+     * interpreted relative to the project directory.</li>
+     *
+     * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
+     * 'file' URLs are supported.
      *
      * <li>{@link Closure}. The closure's return value is resolved recursively.</li>
      *
      * <li>{@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
      *
      * <li>{@link Object}. The object's {@code toString()} value is interpreted as a path. If the path is a relative
-     * path, the project directory will be used as a base directory.</li>
+     * path, the project directory will be used as a base directory. A String starting with 'file:' is treated as a
+     * file URL.</li>
      *
      * </ul>
      *
@@ -1213,14 +1217,14 @@ public interface Project extends Comparable<Project> {
     void apply(Closure closure);
 
     /**
-     * <p>Configures this project using plugins or scripts. The following options are
-     * available:</p>
+     * <p>Configures this project using plugins or scripts. The following options are available:</p>
      *
      * <ul><li>{@code script}: A script to apply to the project.</li>
      *
      * <li>{@code plugin}: A plugin to apply to the project.</li>
      *
-     * <li>{@code to}: The target delegate object or objects. Use this to configure objects other than the project.</li></ul>
+     * <li>{@code to}: The target delegate object or objects. Use this to configure objects other than the
+     * project.</li></ul>
      *
      * <p>For more detail, see {@link org.gradle.api.plugins.ObjectConfigurationAction}.</p>
      *

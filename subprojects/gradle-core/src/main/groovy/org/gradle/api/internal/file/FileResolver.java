@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 
 import java.io.File;
+import java.net.URI;
 
 public interface FileResolver {
     File resolve(Object path);
@@ -29,4 +30,6 @@ public interface FileResolver {
     FileCollection resolveFiles(Object... paths);
 
     FileTree resolveFilesAsTree(Object... paths);
+
+    URI resolveUri(Object path);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 
 import java.io.File;
@@ -45,7 +45,7 @@ public class DefaultSettingsFinder implements ISettingsFinder {
                                        new StringScriptSource("empty settings file", ""));
         } else {
             return new SettingsLocation(settingsFile.getParentFile(),
-                                       new FileScriptSource("settings file", settingsFile));
+                                       new UriScriptSource("settings file", settingsFile));
         }
     }
 }

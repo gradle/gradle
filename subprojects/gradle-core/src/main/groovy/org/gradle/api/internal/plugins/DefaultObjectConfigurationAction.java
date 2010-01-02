@@ -21,11 +21,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.groovy.scripts.FileScriptSource;
 import org.gradle.groovy.scripts.StrictScriptSource;
+import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
 
-import java.io.File;
+import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -76,9 +76,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private void applyScript(Object script) {
-        File scriptFile = resolver.resolve(script);
-        ScriptPlugin configurer = configurerFactory.create(new StrictScriptSource(new FileScriptSource(
-                "script", scriptFile)));
+        URI scriptUri = resolver.resolveUri(script);
+        ScriptPlugin configurer = configurerFactory.create(new StrictScriptSource(new UriScriptSource(
+                "script", scriptUri)));
         for (Object target : targets) {
             configurer.use(target);
         }

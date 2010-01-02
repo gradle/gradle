@@ -29,7 +29,7 @@ import org.gradle.configuration.ScriptPlugin
 public class DefaultObjectConfigurationActionTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Object target = new Object()
-    private final File file = new File('script')
+    private final URI file = new URI('script:something')
     private final FileResolver resolver = context.mock(FileResolver.class)
     private final ScriptPluginFactory factory = context.mock(ScriptPluginFactory.class)
     private final ScriptPlugin configurer = context.mock(ScriptPlugin.class)
@@ -43,7 +43,7 @@ public class DefaultObjectConfigurationActionTest {
     @Test
     public void appliesScriptsToDefaultTargetObject() {
         context.checking {
-            one(resolver).resolve('script')
+            one(resolver).resolveUri('script')
             will(returnValue(file))
 
             one(factory).create(withParam(notNullValue()))
@@ -62,7 +62,7 @@ public class DefaultObjectConfigurationActionTest {
         Object target2 = new Object()
 
         context.checking {
-            one(resolver).resolve('script')
+            one(resolver).resolveUri('script')
             will(returnValue(file))
 
             one(factory).create(withParam(notNullValue()))
@@ -84,7 +84,7 @@ public class DefaultObjectConfigurationActionTest {
         Object target2 = new Object()
 
         context.checking {
-            one(resolver).resolve('script')
+            one(resolver).resolveUri('script')
             will(returnValue(file))
 
             one(factory).create(withParam(notNullValue()))

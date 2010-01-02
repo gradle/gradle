@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 
@@ -45,7 +45,7 @@ public class ProjectFactory implements IProjectFactory {
         } else if (!buildFile.exists()) {
             source = new StringScriptSource("empty build file", "");
         } else {
-            source = new FileScriptSource("build file", buildFile);
+            source = new UriScriptSource("build file", buildFile);
         }
 
         DefaultProject project = new DefaultProject(

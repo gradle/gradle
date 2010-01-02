@@ -15,18 +15,22 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.PathValidation;
+import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.Callable;
-
-import groovy.lang.Closure;
+import java.util.regex.Pattern;
 
 public abstract class AbstractFileResolver implements FileResolver {
+    private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
+
     public File resolve(Object path) {
         return resolve(path, PathValidation.NONE);
     }
@@ -38,14 +42,72 @@ public abstract class AbstractFileResolver implements FileResolver {
         return file;
     }
 
+    public URI resolveUri(Object path) {
+        return convertObjectToURI(path);
+    }
+
     protected abstract File doResolve(Object path);
 
+    protected URI convertObjectToURI(Object path) {
+        Object object = unpack(path);
+        Object converted = stringToFileOrUri(object);
+        if (converted instanceof File) {
+            return resolve(converted).toURI();
+        }
+        return (URI) converted;
+    }
+
     protected File convertObjectToFile(Object path) {
+        Object object = unpack(path);
+        if (object == null) {
+            return null;
+        }
+        Object converted = stringToFileOrUri(object);
+        if (converted instanceof File) {
+            return (File) converted;
+        }
+        throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", converted));
+    }
+
+    private Object stringToFileOrUri(Object path) {
+        if (path instanceof File) {
+            return path;
+        }
+        if (path instanceof URI) {
+            URI uri = (URI) path;
+            if (uri.getScheme().equals("file")) {
+                return new File(uri.getPath());
+            }
+            return uri;
+        }
+        String str = path.toString();
+        if (str.startsWith("file:")) {
+            return new File(str.substring(5));
+        }
+        
+        for (File file : File.listRoots()) {
+            String rootPath = file.getAbsolutePath();
+            if (str.startsWith(rootPath) || str.startsWith(rootPath.replace(File.separatorChar, '/'))) {
+                return new File(str);
+            }
+        }
+
+        // Check if string starts with a URI scheme
+        if (URI_SCHEME.matcher(str).matches()) {
+            try {
+                return new URI(str);
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return new File(str);
+    }
+
+    private Object unpack(Object path) {
         Object current = path;
         while (current != null) {
-            if (current instanceof File) {
-                return (File) current;
-            } else if (current instanceof Closure) {
+            if (current instanceof Closure) {
                 current = ((Closure) current).call();
             } else if (current instanceof Callable) {
                 try {
@@ -54,7 +116,7 @@ public abstract class AbstractFileResolver implements FileResolver {
                     throw new RuntimeException(e);
                 }
             } else {
-                return new File(current.toString());
+                return current;
             }
         }
         return null;

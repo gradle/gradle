@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.plugins.Convention;
-import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.Matchers;
@@ -112,7 +112,7 @@ public class ProjectFactoryTest {
         assertSame(project, project.getRootProject());
         checkProjectResources(project);
 
-        ScriptSource expectedScriptSource = new FileScriptSource("build file", buildFile);
+        ScriptSource expectedScriptSource = new UriScriptSource("build file", buildFile);
         assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
     }
 
@@ -139,7 +139,7 @@ public class ProjectFactoryTest {
         assertSame(project, parentProject.getChildProjects().get("somename"));
         checkProjectResources(project);
 
-        ScriptSource expectedScriptSource = new FileScriptSource("build file", buildFile);
+        ScriptSource expectedScriptSource = new UriScriptSource("build file", buildFile);
         assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
     }
 

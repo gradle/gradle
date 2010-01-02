@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.Matchers;
@@ -59,7 +60,7 @@ public class DefaultSettingsFinderTest {
         }});
         SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
         assertEquals(TEST_SETTINGSFILE.getParentFile(), settingsLocation.getSettingsDir());
-        assertEquals(TEST_SETTINGSFILE, settingsLocation.getSettingsScriptSource().getSourceFile());
+        assertEquals(GFileUtils.canonicalise(TEST_SETTINGSFILE), settingsLocation.getSettingsScriptSource().getSourceFile());
     }
 
     @Test
@@ -72,7 +73,7 @@ public class DefaultSettingsFinderTest {
         }});
         SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
         assertEquals(TEST_SETTINGSFILE.getParentFile(), settingsLocation.getSettingsDir());
-        assertEquals(TEST_SETTINGSFILE, settingsLocation.getSettingsScriptSource().getSourceFile());
+        assertEquals(GFileUtils.canonicalise(TEST_SETTINGSFILE), settingsLocation.getSettingsScriptSource().getSourceFile());
     }
 
     @Test

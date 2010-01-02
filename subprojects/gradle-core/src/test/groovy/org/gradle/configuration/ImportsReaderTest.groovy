@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
  
-package org.gradle.api.internal.project
+package org.gradle.configuration
 
 import org.gradle.util.TemporaryFolder
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.gradle.StartParameter
+import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
@@ -71,5 +73,14 @@ class ImportsReaderTest {
         testProjectImportsFile.delete()
         String result = testObj.getImports(testDir)
         assertEquals('', result)
+    }
+
+    @Test public void testCreatesScriptSource() {
+        ScriptSource source = [:] as ScriptSource
+        ScriptSource importsSource = testObj.withImports(source, testDir)
+        assertThat(importsSource, instanceOf(ImportsScriptSource.class))
+        assertThat(importsSource.source, sameInstance(source))
+        assertThat(importsSource.importsReader, sameInstance(testObj))
+        assertThat(importsSource.rootDir, equalTo(testDir))
     }
 }

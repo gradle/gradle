@@ -96,7 +96,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 classLoaderProvider = defaultScriptHandler;
             }
             
-            ScriptSource withImports = new ImportsScriptSource(scriptSource, importsReader, null);
+            ScriptSource withImports = importsReader.withImports(scriptSource, null);
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
 
             compiler.setClassloader(classLoaderProvider.getClassLoader());

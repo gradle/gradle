@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class BaseDirConverterTest {
         testDir = new File(baseDir, 'testdir')
     }
 
-    @Test (expected = IllegalArgumentException) public void testWithNullPath() {
+    @Test(expected = IllegalArgumentException) public void testWithNullPath() {
         baseDirConverter.resolve(null)
     }
 
@@ -150,6 +150,30 @@ class BaseDirConverterTest {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
     }
 
+    @Test public void testResolveRelativeURIString() {
+        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve('file:relative'))
+        assertEquals(new File(baseDir.parentFile, 'relative'), baseDirConverter.resolve('file:../relative'))
+    }
+
+    @Test public void testResolveAbsoluteURIString() {
+        File absoluteFile = new File('nonRelative').absoluteFile
+        assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toString()))
+    }
+
+    @Test public void testResolveAbsoluteURI() {
+        File absoluteFile = new File('nonRelative').absoluteFile
+        assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI()))
+    }
+
+    @Test public void testCannotResolveNonFileURI() {
+        try {
+            baseDirConverter.resolve("http://www.gradle.org")
+            fail()
+        } catch (InvalidUserDataException e) {
+            assertThat(e.message, equalTo('Cannot convert URL \'http://www.gradle.org\' to a file.'))
+        }
+    }
+
     @Test public void testResolveClosure() {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({'relative'}))
     }
@@ -163,7 +187,7 @@ class BaseDirConverterTest {
         Closure closure = {callable}
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(closure))
     }
-    
+
     @Test public void testFiles() {
         FileCollection collection = baseDirConverter.resolveFiles('a', 'b')
         assertThat(collection, instanceOf(PathResolvingFileCollection))
@@ -174,5 +198,37 @@ class BaseDirConverterTest {
         FileCollection source = baseDirConverter.resolveFiles('a')
         FileCollection collection = baseDirConverter.resolveFiles(source)
         assertThat(collection, sameInstance(source))
+    }
+
+    @Test public void testResolveAbsolutePathToUri() {
+        File absoluteFile = new File('nonRelative').absoluteFile
+        assertEquals(absoluteFile.toURI(), baseDirConverter.resolveUri(absoluteFile.path))
+    }
+
+    @Test public void testResolveRelativePathToUri() {
+        assertEquals(new File(baseDir, 'relative').toURI(), baseDirConverter.resolveUri('relative'))
+    }
+
+    @Test public void testResolveAbsoluteFileToUri() {
+        File absoluteFile = new File('nonRelative').absoluteFile
+        assertEquals(absoluteFile.toURI(), baseDirConverter.resolveUri(absoluteFile))
+    }
+
+    @Test public void testResolveRelativeFileToUri() {
+        File relativeFile = new File('relative')
+        assertEquals(new File(baseDir, 'relative').toURI(), baseDirConverter.resolveUri(relativeFile))
+    }
+
+    @Test public void testResolveUriStringToUri() {
+        assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri("http://www.gradle.org"))
+    }
+    
+    @Test public void testResolveUriToUri() {
+        URI uri = new URI("http://www.gradle.org")
+        assertEquals(uri, baseDirConverter.resolveUri(uri))
+    }
+    
+    @Test public void testResolveUrlToUri() {
+        assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri(new URL("http://www.gradle.org")))
     }
 }

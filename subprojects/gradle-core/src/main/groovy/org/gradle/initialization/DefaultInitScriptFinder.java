@@ -19,7 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StrictScriptSource;
-import org.gradle.groovy.scripts.FileScriptSource;
+import org.gradle.groovy.scripts.UriScriptSource;
 
 import java.io.File;
 import java.util.List;
@@ -35,7 +35,7 @@ public class DefaultInitScriptFinder implements InitScriptFinder
         List<File> scriptFiles = gradle.getStartParameter().getInitScripts();
         List<ScriptSource> scripts = new ArrayList<ScriptSource>(scriptFiles.size());
         for (File file : scriptFiles) {
-            scripts.add(new StrictScriptSource(new FileScriptSource("initialization script", file)));
+            scripts.add(new StrictScriptSource(new UriScriptSource("initialization script", file)));
         }
 
         return scripts;

@@ -21,7 +21,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.DryRunBuildExecuter
-import org.gradle.groovy.scripts.FileScriptSource
+import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.BuildFileProjectSpec
@@ -145,7 +145,7 @@ class StartParameterTest {
         parameter.settingsFile = file
 
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
-        assertThat(parameter.settingsScriptSource.source, reflectionEquals(new FileScriptSource("settings file", file.canonicalFile)))
+        assertThat(parameter.settingsScriptSource.source, reflectionEquals(new UriScriptSource("settings file", file.canonicalFile)))
     }
 
     @Test public void testSetNullSettingsFile() {

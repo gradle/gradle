@@ -21,7 +21,7 @@ import static org.junit.Assert.*
 import org.junit.runner.RunWith
 import org.junit.Test
 import org.junit.Before
-import org.gradle.groovy.scripts.FileScriptSource
+import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.GradleVersion
 
@@ -50,7 +50,7 @@ class CacheProjectIntegrationTest {
         projectDir.mkdirs()
         userHomeDir = dist.getUserHomeDir()
         buildFile = projectDir.file('build.gradle')
-        ScriptSource source = new FileScriptSource("build file", buildFile)
+        ScriptSource source = new UriScriptSource("build file", buildFile)
         propertiesFile = userHomeDir.file("caches/$version/scripts/$source.className/cache.properties")
         classFile = userHomeDir.file("caches/$version/scripts/$source.className/no_buildscript_ProjectScript/${source.className}.class")
         artifactsCache = projectDir.file(".gradle/$version/taskArtifacts/cache.bin")
