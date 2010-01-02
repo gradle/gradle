@@ -21,7 +21,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import org.hamcrest.Matcher;

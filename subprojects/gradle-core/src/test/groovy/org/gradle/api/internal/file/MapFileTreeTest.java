@@ -18,11 +18,12 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import static org.gradle.api.file.FileVisitorUtil.*;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
+
 import org.junit.Rule;
 import org.junit.Test;
 

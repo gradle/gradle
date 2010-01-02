@@ -18,7 +18,7 @@ package org.gradle.cache;
 import org.gradle.CacheUsage;
 import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.TemporaryFolder;

@@ -20,7 +20,7 @@ import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import org.hamcrest.Description;

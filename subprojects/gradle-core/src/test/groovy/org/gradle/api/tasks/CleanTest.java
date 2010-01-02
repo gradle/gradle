@@ -18,7 +18,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import static org.junit.Assert.*;

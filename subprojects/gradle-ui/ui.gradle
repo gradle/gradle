@@ -27,7 +27,9 @@ dependencies {
     runtime libraries.jaxen
 
     testCompile project(path: ':core', configuration: 'testFixtures')
+    testCompile project(path: ':core', configuration: 'integTestFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+    testRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
 
 task integTest(type: AntTest, dependsOn: [ rootProject.intTestImage ]) {

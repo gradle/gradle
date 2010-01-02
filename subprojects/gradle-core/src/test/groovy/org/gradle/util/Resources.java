@@ -15,7 +15,6 @@
  */
 package org.gradle.util;
 
-import org.gradle.integtests.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;

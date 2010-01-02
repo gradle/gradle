@@ -22,7 +22,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.exec.ExecHandle;

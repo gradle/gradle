@@ -16,14 +16,14 @@
 package org.gradle.integtests;
 
 import junit.framework.AssertionFailedError;
-import org.gradle.gradleplugin.foundation.favorites.FavoriteTask;
-import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.foundation.BuildInformation;
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
 import org.gradle.foundation.TestUtility;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.gradleplugin.foundation.favorites.FavoriteTask;
+import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,7 +37,7 @@ import java.io.File;
  *
  * @author mhunsicker
  */
-public class FavoritesIntegrationTest extends AbstractIntegrationTest {
+public class FavoritesIntegrationTest {
     private BuildInformation buildInformation;
 
     private ProjectView myRootProject;

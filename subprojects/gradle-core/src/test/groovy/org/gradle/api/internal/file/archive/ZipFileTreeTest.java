@@ -17,11 +17,12 @@ package org.gradle.api.internal.file.archive;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+
+import org.gradle.util.TestFile;
 import org.junit.Test;
 import org.junit.Rule;
 import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
-import org.gradle.integtests.TestFile;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
 import static org.gradle.api.file.FileVisitorUtil.*;
 import org.gradle.api.InvalidUserDataException;

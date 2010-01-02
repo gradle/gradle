@@ -18,7 +18,7 @@ package org.gradle.cache.btree;
 import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.Serializer;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;

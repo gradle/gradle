@@ -147,6 +147,7 @@ dependencies {
 }
 
 evaluationDependsOn(':docs')
+evaluationDependsOn(':core')
 
 clean.dependsOn subprojects.collect { "$it.path:clean" }
 
@@ -250,24 +251,24 @@ task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, 
     options.systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
     include 'org/gradle/integtests/**/*IntegrationTest.*'
 
-    testClassesDir = project(':core').sourceSets.test.classesDir
-    classpath = project(':core').sourceSets.test.runtimeClasspath + configurations.testRuntime
+    testClassesDir = project(':core').sourceSets.integTest.classesDir
+    classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
     testResultsDir = file('build/test-results')
     testReportDir = file('build/reports/tests')
     testSrcDirs = []
-    doFirst {task ->
+    doFirst {
         if (isDevBuild()) {
-            task.exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
+            exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
         }
-        task.options.systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
+        options.systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
         def forkArgs
         if (noForkIntegTests()) {
-            task.options.systemProperties['org.gradle.integtest.nofork'] = "true"
+            options.systemProperties['org.gradle.integtest.nofork'] = "true"
             forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError']]
         } else {
             forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError']]
         }
-        task.options.fork(forkArgs)
+        options.fork(forkArgs)
     }
 }
 

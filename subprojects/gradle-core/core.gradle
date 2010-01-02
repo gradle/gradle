@@ -22,6 +22,25 @@ configurations {
     testFixturesRuntime {
         extendsFrom testFixtures, testRuntime
     }
+    integTestCompile {
+        extendsFrom testCompile
+    }
+    integTestRuntime {
+        extendsFrom intTestCompile, testRuntime
+    }
+    integTestFixtures {
+        extendsFrom testFixtures
+    }
+    integTestFixturesRuntime {
+        extendsFrom integTestFixtures, integTestRuntime
+    }
+}
+
+sourceSets {
+    integTest {
+        compileClasspath = sourceSets.test.classes + sourceSets.main.classes + configurations.integTestCompile
+        runtimeClasspath = classes + compileClasspath + configurations.integTestRuntime
+    }
 }
 
 dependencies {
@@ -54,6 +73,7 @@ dependencies {
             "org.apache.ant:ant-trax:1.7.0@jar"
 
     testFixtures sourceSets.test.classes, sourceSets.main.classes
+    integTestFixtures sourceSets.integTest.classes
 }
 
 processResources.doLast {
@@ -90,6 +110,4 @@ test {
     try { maxPermSize = customMaxPermSize; logger.debug('Using custom MaxPermSize: ' + maxPermSize + ' for :core:test') } catch (MissingPropertyException e) { }
 
     options.fork(jvmArgs: ["-ea", "-Xms${xmsSize}", "-Xmx${xmxSize}", "-XX:MaxPermSize=${maxPermSize}", '-XX:+HeapDumpOnOutOfMemoryError'])
-
-    exclude 'org/gradle/integtests/**/*IntegrationTest.*'
 }

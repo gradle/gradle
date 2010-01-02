@@ -21,7 +21,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.ReadableCopySpec;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
 import org.hamcrest.Description;
 import static org.hamcrest.Matchers.*;

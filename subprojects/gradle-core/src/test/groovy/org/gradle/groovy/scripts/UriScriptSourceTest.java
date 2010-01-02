@@ -19,7 +19,7 @@ import org.apache.commons.io.FileUtils;
 
 import static org.gradle.util.Matchers.*;
 
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
 
 import static org.hamcrest.Matchers.*;

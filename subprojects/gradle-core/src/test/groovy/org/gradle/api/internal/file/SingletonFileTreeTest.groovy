@@ -17,7 +17,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.integtests.TestFile
+import org.gradle.util.TestFile
 import org.gradle.util.TemporaryFolder
 import org.junit.Before
 import org.junit.Rule

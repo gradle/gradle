@@ -19,11 +19,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import static org.gradle.api.file.FileVisitorUtil.*;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+
 import org.junit.Rule;
 import org.junit.Test;
 

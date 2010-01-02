@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.copy
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.file.RelativePath
-import org.gradle.integtests.TestFile
+import org.gradle.util.TestFile
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock

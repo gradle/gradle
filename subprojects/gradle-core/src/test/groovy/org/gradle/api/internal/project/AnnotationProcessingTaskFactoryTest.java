@@ -21,7 +21,7 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import static org.gradle.util.Matchers.*;

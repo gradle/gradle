@@ -17,11 +17,12 @@ package org.gradle.cache;
 
 import org.gradle.CacheUsage;
 import org.gradle.cache.btree.BTreePersistentIndexedCache;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+
 import org.junit.Rule;
 import org.junit.Test;
 

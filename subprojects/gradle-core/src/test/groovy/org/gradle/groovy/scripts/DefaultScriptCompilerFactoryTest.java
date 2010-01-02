@@ -16,7 +16,7 @@
 
 package org.gradle.groovy.scripts;
 
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GUtil;

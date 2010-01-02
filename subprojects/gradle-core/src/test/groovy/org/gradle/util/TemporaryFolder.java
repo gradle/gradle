@@ -15,11 +15,10 @@
  */
 package org.gradle.util;
 
-import org.gradle.integtests.TestFile;
+import org.apache.commons.lang.StringUtils;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 

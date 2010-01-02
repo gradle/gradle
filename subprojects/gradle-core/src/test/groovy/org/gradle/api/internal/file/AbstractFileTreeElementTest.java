@@ -16,10 +16,11 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.integtests.TestFile;
+import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.GFileUtils;
 import static org.junit.Assert.*;
+
 import org.junit.Rule;
 import org.junit.Test;
 

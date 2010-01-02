@@ -28,7 +28,7 @@ import org.gradle.initialization.BuildFileProjectSpec
 import org.gradle.initialization.DefaultProjectSpec
 import org.gradle.initialization.ProjectDirectoryProjectSpec
 import org.gradle.initialization.ProjectSpec
-import org.gradle.integtests.TestFile
+import org.gradle.util.TestFile
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.Test
