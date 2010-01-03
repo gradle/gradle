@@ -49,8 +49,8 @@ class TestFileHelper {
         }
 
         if (nativeTools && !System.getProperty("os.name").toLowerCase().contains("windows")) {
-            Process process = ['unzip', file.absolutePath, '-d', target.absolutePath].execute()
-            process.consumeProcessOutput()
+            Process process = ['unzip', '-o', file.absolutePath, '-d', target.absolutePath].execute()
+            process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
             return
         }

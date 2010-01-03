@@ -51,6 +51,7 @@ public class UriScriptSourceTest {
 
     private URI createJar() throws URISyntaxException {
         TestFile jarFile = tmpDir.getDir().file("test.jar");
+        testDir.file("ignoreme").write("content");
         testDir.zipTo(jarFile);
         return new URI(String.format("jar:%s!/build.script", jarFile.toURI()));
     }
