@@ -27,6 +27,7 @@ import org.gradle.groovy.scripts.*
 import static org.junit.Assert.*
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.ScriptPlugin
+import org.gradle.api.internal.GradleInternal
 
 /**
  * @author Hans Dockter
@@ -45,6 +46,7 @@ class ScriptEvaluatingSettingsProcessorTest {
     ScriptPluginFactory configurerFactoryMock
     Map expectedGradleProperties
     URLClassLoader urlClassLoader
+    GradleInternal gradleMock
 
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
@@ -55,6 +57,7 @@ class ScriptEvaluatingSettingsProcessorTest {
         settingsProcessor = new ScriptEvaluatingSettingsProcessor(configurerFactoryMock, settingsFactory)
         expectedSettingsFinder = new DefaultSettingsFinder()
         scriptSourceMock = context.mock(ScriptSource)
+        gradleMock = context.mock(GradleInternal)
         expectedStartParameter = new StartParameter()
         expectedGradleProperties = [a: 'b']
         propertiesLoaderMock = [getGradleProperties: { expectedGradleProperties }] as IGradlePropertiesLoader
@@ -70,7 +73,7 @@ class ScriptEvaluatingSettingsProcessorTest {
         expectedSettings.setProjectDescriptorRegistry(projectDescriptorRegistry)
         expectedSettings.setStartParameter(expectedStartParameter)
         context.checking {
-            one(settingsFactory).createSettings(TEST_ROOT_DIR, scriptSourceMock, expectedGradleProperties, expectedStartParameter, urlClassLoader)
+            one(settingsFactory).createSettings(gradleMock, TEST_ROOT_DIR, scriptSourceMock, expectedGradleProperties, expectedStartParameter, urlClassLoader)
             will(returnValue(expectedSettings))
         }
     }
@@ -89,6 +92,6 @@ class ScriptEvaluatingSettingsProcessorTest {
         }
         
         SettingsLocation settingsLocation = new SettingsLocation(TEST_ROOT_DIR, scriptSourceMock)
-        assertSame(expectedSettings, settingsProcessor.process(settingsLocation, urlClassLoader, expectedStartParameter, propertiesLoaderMock))
+        assertSame(expectedSettings, settingsProcessor.process(gradleMock, settingsLocation, urlClassLoader, expectedStartParameter, propertiesLoaderMock))
     }
 }

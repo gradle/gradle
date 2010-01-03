@@ -90,8 +90,8 @@ public class SettingsHandlerTest {
             allowing(settingsFinder).find(startParameter);
             will(returnValue(settingsLocation));
 
-            one(settingsProcessor).process(settingsLocation, urlClassLoader, startParameter,
-                    gradlePropertiesLoader);
+            one(settingsProcessor).process(gradle, settingsLocation, urlClassLoader,
+                    startParameter, gradlePropertiesLoader);
             will(returnValue(settings));
 
             one(scriptClassLoader).addParent(urlClassLoader);

@@ -67,7 +67,7 @@ public class BuildSourceBuilder {
                 throw new UncheckedIOException(e);
             }
         }
-        return new URLClassLoader(urls, Thread.currentThread().getContextClassLoader());
+        return new URLClassLoader(urls, getClass().getClassLoader());
     }
 
     public Set<File> createBuildSourceClasspath(StartParameter startParameter) {

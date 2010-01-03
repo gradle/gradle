@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
@@ -48,10 +49,12 @@ public class SettingsFactoryTest {
         StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
         SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry);
         final URLClassLoader urlClassLoader = new URLClassLoader(new URL[0]);
+        GradleInternal gradle = context.mock(GradleInternal.class);
 
-        DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(expectedSettingsDir,
-                expectedScriptSource, expectedGradleProperties, expectedStartParameter, urlClassLoader);
+        DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(gradle,
+                expectedSettingsDir, expectedScriptSource, expectedGradleProperties, expectedStartParameter, urlClassLoader);
 
+        assertSame(gradle, settings.getGradle());
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         assertEquals(expectedGradleProperties, settings.getAdditionalProperties());
         assertSame(expectedSettingsDir, settings.getSettingsDir());

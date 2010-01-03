@@ -18,6 +18,7 @@ package org.gradle.api.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.invocation.Gradle;
 
 import java.io.File;
 
@@ -165,4 +166,11 @@ public interface Settings {
      * @return The parameters. Never returns null.
      */
     StartParameter getStartParameter();
+
+    /**
+     * Returns the {@link Gradle} instance for the current build.
+     * 
+     * @return The Gradle instance. Never returns null.
+     */
+    Gradle getGradle();
 }

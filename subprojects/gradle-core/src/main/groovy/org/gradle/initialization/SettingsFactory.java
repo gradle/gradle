@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 
@@ -34,10 +35,10 @@ public class SettingsFactory {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 
-    public SettingsInternal createSettings(File settingsDir, ScriptSource settingsScript,
+    public SettingsInternal createSettings(GradleInternal gradle, File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
                                            URLClassLoader classloader) {
-        DefaultSettings settings = new DefaultSettings(projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter);
+        DefaultSettings settings = new DefaultSettings(gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter);
         settings.getAdditionalProperties().putAll(gradleProperties);
         return settings;
     }

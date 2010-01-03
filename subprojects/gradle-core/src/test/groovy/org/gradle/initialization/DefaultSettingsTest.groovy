@@ -28,6 +28,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import org.gradle.api.internal.GradleInternal
 
 /**
  * @author Hans Dockter
@@ -39,6 +40,7 @@ class DefaultSettingsTest {
     URLClassLoader expectedClassLoader
     Map gradleProperties
     ScriptSource scriptSourceMock
+    GradleInternal gradleMock
     DefaultSettings settings
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     DefaultProjectDescriptorRegistry projectDescriptorRegistry
@@ -51,9 +53,10 @@ class DefaultSettingsTest {
         expectedClassLoader = new URLClassLoader(new URL[0])
 
         scriptSourceMock = context.mock(ScriptSource)
+        gradleMock = context.mock(GradleInternal)
 
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-        settings = new DefaultSettings(projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter)
+        settings = new DefaultSettings(gradleMock, projectDescriptorRegistry, expectedClassLoader, settingsDir, scriptSourceMock, startParameter)
     }
 
     @Test public void testSettings() {
@@ -65,6 +68,7 @@ class DefaultSettingsTest {
         assertEquals(settingsDir, settings.getRootProject().getProjectDir())
         assertEquals(settings.getRootProject().getProjectDir().getName(), settings.getRootProject().getName())
         assertEquals(settings.rootProject.buildFileName, Project.DEFAULT_BUILD_FILE);
+        assertSame(gradleMock, settings.gradle)
     }
 
     @Test public void testInclude() {

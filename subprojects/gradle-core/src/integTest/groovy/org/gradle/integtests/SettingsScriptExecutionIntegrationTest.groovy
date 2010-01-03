@@ -38,7 +38,7 @@ println 'error message'
 assertNotNull(settings)
 assertSame(buildscript.classLoader, getClass().classLoader.parent)
 assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
-//assertSame(Gradle.class.classLoader, buildscript.classLoader.parent.parent)
+assertSame(gradle.scriptClassLoader.parent, buildscript.classLoader.parent.parent)
 '''
         testFile('build.gradle') << 'task doStuff'
 

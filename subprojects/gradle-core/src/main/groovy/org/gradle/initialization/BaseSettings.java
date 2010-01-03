@@ -20,6 +20,7 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DynamicObjectHelper;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -48,14 +49,17 @@ public class BaseSettings implements SettingsInternal {
 
     private DynamicObjectHelper dynamicObjectHelper;
 
+    private GradleInternal gradle;
     private IProjectDescriptorRegistry projectDescriptorRegistry;
 
     protected BaseSettings() {
     }
 
-    public BaseSettings(IProjectDescriptorRegistry projectDescriptorRegistry,
+    public BaseSettings(GradleInternal gradle,
+                        IProjectDescriptorRegistry projectDescriptorRegistry,
                         URLClassLoader classloader, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
+        this.gradle = gradle;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
@@ -68,6 +72,10 @@ public class BaseSettings implements SettingsInternal {
     @Override
     public String toString() {
         return String.format("settings '%s'", rootProjectDescriptor.getName());
+    }
+
+    public GradleInternal getGradle() {
+        return gradle;
     }
 
     public Settings getSettings() {

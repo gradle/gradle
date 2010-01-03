@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -47,12 +48,13 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         this.settingsFactory = settingsFactory;
     }
 
-    public SettingsInternal process(SettingsLocation settingsLocation,
+    public SettingsInternal process(GradleInternal gradle,
+                                    SettingsLocation settingsLocation,
                                     URLClassLoader buildSourceClassLoader,
                                     StartParameter startParameter,
                                     IGradlePropertiesLoader propertiesLoader) {
         Clock settingsProcessingClock = new Clock();
-        SettingsInternal settings = settingsFactory.createSettings(settingsLocation.getSettingsDir(),
+        SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(),
                 settingsLocation.getSettingsScriptSource(), propertiesLoader.getGradleProperties(), startParameter, buildSourceClassLoader);
         applySettingsScript(settingsLocation, buildSourceClassLoader, settings);
         logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());

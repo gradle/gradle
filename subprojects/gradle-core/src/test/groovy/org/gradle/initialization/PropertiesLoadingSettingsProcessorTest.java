@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.internal.GradleInternal;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.Expectations;
@@ -43,16 +44,17 @@ public class PropertiesLoadingSettingsProcessorTest {
         final SettingsInternal settings = context.mock(SettingsInternal.class);
         final File settingsDir = new File("root");
         final ScriptSource settingsScriptSource = context.mock(ScriptSource.class);
+        final GradleInternal gradle = context.mock(GradleInternal.class);
         final SettingsLocation settingsLocation = new SettingsLocation(settingsDir, settingsScriptSource);
 
         PropertiesLoadingSettingsProcessor processor = new PropertiesLoadingSettingsProcessor(delegate);
 
         context.checking(new Expectations() {{
             one(propertiesLoader).loadProperties(settingsDir, startParameter);
-            one(delegate).process(settingsLocation, urlClassLoader, startParameter, propertiesLoader);
+            one(delegate).process(gradle, settingsLocation, urlClassLoader, startParameter, propertiesLoader);
             will(returnValue(settings));
         }});
 
-        assertThat(processor.process(settingsLocation, urlClassLoader, startParameter, propertiesLoader), sameInstance(settings));
+        assertThat(processor.process(gradle, settingsLocation, urlClassLoader, startParameter, propertiesLoader), sameInstance(settings));
     }
 }

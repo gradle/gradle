@@ -18,6 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.api.internal.GradleInternal
 
 /**
  * @author Hans Dockter
@@ -25,10 +26,11 @@ import org.gradle.groovy.scripts.ScriptSource
 public class DefaultSettings extends BaseSettings {
     public DefaultSettings() {}
 
-    DefaultSettings(IProjectDescriptorRegistry projectDescriptorRegistry,
+    DefaultSettings(GradleInternal gradle,
+                    IProjectDescriptorRegistry projectDescriptorRegistry,
                     URLClassLoader classloader, File settingsDir,
                     ScriptSource settingsScript, StartParameter startParameter) {
-      super(projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter)
+      super(gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter)
     }
 
     def propertyMissing(String property) {
