@@ -19,41 +19,25 @@ import org.gradle.api.GradleException;
 
 import java.io.File;
 
-public class StrictScriptSource implements ScriptSource {
-    private final ScriptSource source;
+public class StrictScriptSource extends DelegatingScriptSource {
 
     public StrictScriptSource(ScriptSource source) {
-        this.source = source;
-    }
-
-    public ScriptSource getSource() {
-        return source;
+        super(source);
     }
 
     public String getText() {
+        ScriptSource source = getSource();
         File sourceFile = source.getSourceFile();
-        if (!sourceFile.exists()) {
-            throw new GradleException(String.format("Cannot read %s as it does not exist.", source.getDisplayName()));
+
+        if (sourceFile != null) {
+            if (!sourceFile.exists()) {
+                throw new GradleException(String.format("Cannot read %s as it does not exist.", source.getDisplayName()));
+            }
+            if (!sourceFile.isFile()) {
+                throw new GradleException(String.format("Cannot read %s as it is not a file.", source.getDisplayName()));
+            }
         }
-        if (!sourceFile.isFile()) {
-            throw new GradleException(String.format("Cannot read %s as it is not a file.", source.getDisplayName()));
-        }
+
         return source.getText();
-    }
-
-    public String getClassName() {
-        return source.getClassName();
-    }
-
-    public File getSourceFile() {
-        return source.getSourceFile();
-    }
-
-    public String getFileName() {
-        return source.getFileName();
-    }
-
-    public String getDisplayName() {
-        return source.getDisplayName();
     }
 }

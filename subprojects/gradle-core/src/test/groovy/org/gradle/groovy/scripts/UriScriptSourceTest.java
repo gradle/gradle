@@ -141,6 +141,24 @@ public class UriScriptSourceTest {
     }
 
     @Test
+    public void usesScriptFilePathForFileNameUsingFile() {
+        UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
+        assertThat(source.getFileName(), equalTo(scriptFile.getAbsolutePath()));
+    }
+
+    @Test
+    public void usesScriptFilePathForFileNameUsingFileUri() {
+        UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
+        assertThat(source.getFileName(), equalTo(scriptFile.getAbsolutePath()));
+    }
+
+    @Test
+    public void usesScriptUriForFileNameUsingHttpUri() throws URISyntaxException {
+        UriScriptSource source = new UriScriptSource("<file-type>", new URI("http://www.gradle.org/unknown.txt"));
+        assertThat(source.getFileName(), equalTo("http://www.gradle.org/unknown.txt"));
+    }
+    
+    @Test
     public void encodesScriptFileBaseNameToClassName() {
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
         assertThat(source.getClassName(), matchesRegexp("build_script_[0-9a-z]+"));

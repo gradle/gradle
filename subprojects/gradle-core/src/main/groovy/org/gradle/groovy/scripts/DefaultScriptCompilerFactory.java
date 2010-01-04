@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.HashUtil;
+import org.gradle.util.ReflectionUtil;
 
 import java.io.File;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         private Transformer transformer;
 
         public ScriptCompilerImpl(ScriptSource source) {
-            this.source = source;
+            this.source = new CachingScriptSource(source);
         }
 
         public ScriptCompiler setClassloader(ClassLoader classloader) {
@@ -87,10 +88,12 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
             }
 
             if (!cache.isValid() || !classesDir.exists()) {
-                scriptCompilationHandler.compileScriptToDir(source, classLoader, classesDir, transformer, scriptBaseClass);
+                scriptCompilationHandler.compileToDir(source, classLoader, classesDir, transformer, scriptBaseClass);
                 cache.markValid();
             }
-            return scriptCompilationHandler.loadScriptFromDir(source, classLoader, classesDir, scriptBaseClass);
+            Class<? extends T> scriptClass = scriptCompilationHandler.loadFromDir(source, classLoader, classesDir,
+                    scriptBaseClass);
+            return scriptBaseClass.cast(ReflectionUtil.newInstance(scriptClass, new Object[0]));
         }
     }
 }

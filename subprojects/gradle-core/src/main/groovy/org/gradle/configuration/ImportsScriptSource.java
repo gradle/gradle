@@ -15,27 +15,23 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.groovy.scripts.DelegatingScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
 
-public class ImportsScriptSource implements ScriptSource {
-    private final ScriptSource source;
+public class ImportsScriptSource extends DelegatingScriptSource {
     private final ImportsReader importsReader;
     private final File rootDir;
 
     public ImportsScriptSource(ScriptSource source, ImportsReader importsReader, File rootDir) {
-        this.source = source;
+        super(source);
         this.importsReader = importsReader;
         this.rootDir = rootDir;
     }
 
-    public ScriptSource getSource() {
-        return source;
-    }
-
     public String getText() {
-        String text = source.getText();
+        String text = getSource().getText();
         assert text != null;
 
         String imports;
@@ -46,21 +42,5 @@ public class ImportsScriptSource implements ScriptSource {
         }
 
         return text + imports;
-    }
-
-    public String getClassName() {
-        return source.getClassName();
-    }
-
-    public File getSourceFile() {
-        return source.getSourceFile();
-    }
-
-    public String getFileName() {
-        return source.getFileName();
-    }
-
-    public String getDisplayName() {
-        return source.getDisplayName();
     }
 }

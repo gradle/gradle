@@ -65,6 +65,8 @@ libraries = [
 
 libraries.groovy_depends  = [libraries.groovy, libraries.ant, libraries.ant_launcher, libraries.asm_all,
         libraries.antlr, libraries.commons_cli, libraries.ant_junit, libraries.junit]
+libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.22@jar", "org.mortbay.jetty:jetty-util:6.1.22@jar",
+        "javax.servlet:servlet-api:2.5@jar"]
 
 allprojects {
     group = 'org.gradle'

@@ -16,19 +16,20 @@
 
 package org.gradle.groovy.scripts;
 
-import org.gradle.util.TestFile;
+import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GUtil;
 import org.gradle.util.HashUtil;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,6 +39,10 @@ import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Map;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -60,15 +65,14 @@ public class DefaultScriptCompilerFactoryTest {
     CacheRepository cacheRepositoryMock;
     PersistentCache cacheMock;
 
-    Script expectedScript;
-
     Mockery context = new JUnit4Mockery();
 
     Class expectedScriptBaseClass = groovy.lang.Script.class;
     Map<String, Object> expectedCacheProperties;
 
     ScriptSource source;
-    private ScriptRunner expectedScriptRunner;
+    ScriptSource expectedSource;
+    ScriptRunner expectedScriptRunner;
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
@@ -83,10 +87,10 @@ public class DefaultScriptCompilerFactoryTest {
         testScriptFile = new File(tmpDir.getDir(), "script/mybuild.craidle");
         cacheDir = new File(tmpDir.getDir(), "cache");
         expectedScriptCacheDir = new TestFile(cacheDir, "Script").createDir();
-        expectedScript = context.mock(Script.class);
         expectedScriptRunner = context.mock(ScriptRunner.class);
         scriptProcessor = new DefaultScriptCompilerFactory(scriptCompilationHandlerMock, scriptRunnerFactoryMock, cacheRepositoryMock);
         source = context.mock(ScriptSource.class);
+        expectedSource = new CachingScriptSource(source);
         String expectedHash = HashUtil.createHash(TEST_SCRIPT_TEXT);
         expectedCacheProperties = GUtil.map("source.filename", "file-name", "source.hash", expectedHash);
 
@@ -115,6 +119,8 @@ public class DefaultScriptCompilerFactoryTest {
 
     @Test
     public void testWithSourceFileNotCached() {
+        final Collector<TestScript> collector = collector();
+
         context.checking(new Expectations() {{
             one(cacheRepositoryMock).getGlobalCache("scripts/class-name", expectedCacheProperties);
             will(returnValue(cacheMock));
@@ -122,28 +128,28 @@ public class DefaultScriptCompilerFactoryTest {
             allowing(cacheMock).isValid();
             will(returnValue(false));
 
-            one(scriptCompilationHandlerMock).compileScriptToDir(source, testClassLoader, expectedScriptCacheDir, null,
+            one(scriptCompilationHandlerMock).compileToDir(expectedSource, testClassLoader, expectedScriptCacheDir, null,
                     expectedScriptBaseClass);
 
             one(cacheMock).markValid();
 
-            one(scriptCompilationHandlerMock).loadScriptFromDir(source, testClassLoader, expectedScriptCacheDir,
+            one(scriptCompilationHandlerMock).loadFromDir(expectedSource, testClassLoader, expectedScriptCacheDir,
                     expectedScriptBaseClass);
-            will(returnValue(expectedScript));
+            will(returnValue(TestScript.class));
 
-            one(expectedScript).setContextClassloader(testClassLoader);
-            
-            one(expectedScript).setScriptSource(source);
-
-            one(scriptRunnerFactoryMock).create(expectedScript);
-            will(returnValue(expectedScriptRunner));
+            one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));
+            will(collectTo(collector).then(returnValue(expectedScriptRunner)));
         }});
 
         assertSame(expectedScriptRunner, scriptProcessor.createCompiler(source).compile(expectedScriptBaseClass));
+        assertSame(testClassLoader, collector.get().getContextClassloader());
+        assertEquals(expectedSource, collector.get().getScriptSource());
     }
 
     @Test
     public void testWithCachedSourceFile() {
+        final Collector<TestScript> collector = collector();
+
         context.checking(new Expectations() {{
             one(cacheRepositoryMock).getGlobalCache("scripts/class-name", expectedCacheProperties);
             will(returnValue(cacheMock));
@@ -151,22 +157,21 @@ public class DefaultScriptCompilerFactoryTest {
             allowing(cacheMock).isValid();
             will(returnValue(true));
 
-            one(scriptCompilationHandlerMock).loadScriptFromDir(source, testClassLoader, expectedScriptCacheDir, expectedScriptBaseClass);
-            will(returnValue(expectedScript));
+            one(scriptCompilationHandlerMock).loadFromDir(expectedSource, testClassLoader, expectedScriptCacheDir, expectedScriptBaseClass);
+            will(returnValue(TestScript.class));
 
-            one(expectedScript).setContextClassloader(testClassLoader);
-
-            one(expectedScript).setScriptSource(source);
-
-            one(scriptRunnerFactoryMock).create(expectedScript);
-            will(returnValue(expectedScriptRunner));
+            one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));
+            will(collectTo(collector).then(returnValue(expectedScriptRunner)));
         }});
 
         assertSame(expectedScriptRunner, scriptProcessor.createCompiler(source).compile(expectedScriptBaseClass));
+        assertSame(testClassLoader, collector.get().getContextClassloader());
+        assertEquals(expectedSource, collector.get().getScriptSource());
     }
 
     @Test
-    public void testUsesSuppliedClassLoader() {
+    public void testUsesSuppliedClassLoaderToLoadScript() {
+        final Collector<TestScript> collector = collector();
         final ClassLoader classLoader = new ClassLoader() {
         };
 
@@ -177,26 +182,23 @@ public class DefaultScriptCompilerFactoryTest {
             allowing(cacheMock).isValid();
             will(returnValue(true));
 
-            one(scriptCompilationHandlerMock).loadScriptFromDir(
-                    source,
+            one(scriptCompilationHandlerMock).loadFromDir(
+                    expectedSource,
                     classLoader,
                     expectedScriptCacheDir, 
                     expectedScriptBaseClass);
-            will(returnValue(expectedScript));
+            will(returnValue(TestScript.class));
 
-            one(expectedScript).setContextClassloader(classLoader);
-
-            one(expectedScript).setScriptSource(source);
-
-            one(scriptRunnerFactoryMock).create(expectedScript);
-            will(returnValue(expectedScriptRunner));
+            one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));
+            will(collectTo(collector).then(returnValue(expectedScriptRunner)));
         }});
 
         assertSame(expectedScriptRunner, scriptProcessor.createCompiler(source).setClassloader(classLoader).compile(expectedScriptBaseClass));
+        assertSame(classLoader, collector.get().getContextClassloader());
     }
 
     @Test
-    public void testUsesSuppliedTransformerToGenerateCacheDir() {
+    public void testUsesSuppliedTransformerToDetermineCacheDirName() {
         final Transformer transformer = context.mock(Transformer.class);
         final File expectedCacheDir = new TestFile(expectedScriptCacheDir.getParentFile(), "transformer_Script").createDir();
 
@@ -210,18 +212,30 @@ public class DefaultScriptCompilerFactoryTest {
             allowing(cacheMock).isValid();
             will(returnValue(true));
 
-            one(scriptCompilationHandlerMock).loadScriptFromDir(source, testClassLoader, expectedCacheDir,
+            one(scriptCompilationHandlerMock).loadFromDir(expectedSource, testClassLoader, expectedCacheDir,
                     expectedScriptBaseClass);
-            will(returnValue(expectedScript));
+            will(returnValue(TestScript.class));
 
-            one(expectedScript).setContextClassloader(testClassLoader);
-
-            one(expectedScript).setScriptSource(source);
-
-            one(scriptRunnerFactoryMock).create(expectedScript);
+            one(scriptRunnerFactoryMock).create(with(notNullValue(TestScript.class)));
             will(returnValue(expectedScriptRunner));
         }});
 
         assertSame(expectedScriptRunner, scriptProcessor.createCompiler(source).setTransformer(transformer).compile(expectedScriptBaseClass));
+    }
+
+    public static class TestScript extends Script {
+        @Override
+        public StandardOutputRedirector getStandardOutputRedirector() {
+            return null;
+        }
+
+        @Override
+        public void init(Object target, ServiceRegistry services) {
+        }
+
+        @Override
+        public Object run() {
+            return null;
+        }
     }
 }

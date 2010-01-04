@@ -20,9 +20,9 @@ import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.TestFile;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -80,9 +80,9 @@ public class MappingCopySpecVisitorTest {
     public void visitFileInvokesEachCopyAction() {
         final Action<FileCopyDetails> action1 = context.mock(Action.class, "action1");
         final Action<FileCopyDetails> action2 = context.mock(Action.class, "action2");
-        final Collector<FileCopyDetails> collectDetails1 = collectParam();
-        final Collector<Object> collectDetails2 = collectParam();
-        final Collector<Object> collectDetails3 = collectParam();
+        final Collector<FileCopyDetails> collectDetails1 = collector();
+        final Collector<Object> collectDetails2 = collector();
+        final Collector<Object> collectDetails3 = collector();
 
         context.checking(new Expectations(){{
             Sequence seq = context.sequence("seq");
@@ -94,15 +94,15 @@ public class MappingCopySpecVisitorTest {
 
             one(action1).execute(with(notNullValue(FileCopyDetails.class)));
             inSequence(seq);
-            will(collectDetails1);
+            will(collectTo(collectDetails1));
 
             one(action2).execute(with(notNullValue(FileCopyDetails.class)));
             inSequence(seq);
-            will(collectDetails2);
+            will(collectTo(collectDetails2));
 
             one(delegate).visitFile(with(not(sameInstance(details))));
             inSequence(seq);
-            will(collectDetails3);
+            will(collectTo(collectDetails3));
         }});
 
         visitor.visitSpec(spec);
@@ -241,7 +241,7 @@ public class MappingCopySpecVisitorTest {
     }
 
     private FileVisitDetails expectSpecAndFileVisited() {
-        final Collector<FileVisitDetails> collector = collectParam();
+        final Collector<FileVisitDetails> collector = collector();
 
         context.checking(new Expectations() {{
             one(delegate).visitSpec(spec);
@@ -250,7 +250,7 @@ public class MappingCopySpecVisitorTest {
             will(returnValue(toList()));
 
             one(delegate).visitFile(with(not(sameInstance(details))));
-            will(collector);
+            will(collectTo(collector));
         }});
 
         visitor.visitSpec(spec);
@@ -259,7 +259,7 @@ public class MappingCopySpecVisitorTest {
     }
 
     private FileCopyDetails expectActionExecutedWhenFileVisited() {
-        final Collector<FileCopyDetails> collectDetails = collectParam();
+        final Collector<FileCopyDetails> collectDetails = collector();
         final Action<FileCopyDetails> action = context.mock(Action.class, "action1");
 
         context.checking(new Expectations(){{
@@ -272,7 +272,7 @@ public class MappingCopySpecVisitorTest {
 
             one(action).execute(with(notNullValue(FileCopyDetails.class)));
             inSequence(seq);
-            will(collectDetails);
+            will(collectTo(collectDetails));
 
             one(delegate).visitFile(with(not(sameInstance(details))));
             inSequence(seq);
@@ -286,13 +286,13 @@ public class MappingCopySpecVisitorTest {
     }
 
     private FileVisitDetails expectSpecAndDirVisited() {
-        final Collector<FileVisitDetails> collector = collectParam();
+        final Collector<FileVisitDetails> collector = collector();
 
         context.checking(new Expectations() {{
             one(delegate).visitSpec(spec);
             one(delegate).visitDir(with(not(sameInstance(details))));
 
-            will(collector);
+            will(collectTo(collector));
         }});
 
         visitor.visitSpec(spec);

@@ -17,13 +17,12 @@ package org.gradle.groovy.scripts;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.GradleException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HashUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
@@ -59,8 +58,8 @@ public class UriScriptSource implements ScriptSource {
             }
         } catch (FileNotFoundException e ) {
             return "";
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not read %s.", getDisplayName()), e);
         }
     }
 
@@ -98,7 +97,7 @@ public class UriScriptSource implements ScriptSource {
     }
 
     public String getFileName() {
-        return sourceFile.getPath();
+        return sourceFile != null ? sourceFile.getPath() : sourceUri.toString();
     }
 
     public String getDisplayName() {

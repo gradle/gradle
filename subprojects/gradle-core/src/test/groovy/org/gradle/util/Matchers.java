@@ -18,15 +18,17 @@ package org.gradle.util;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.hamcrest.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
+import org.jmock.internal.ReturnDefaultValueAction;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import static org.hamcrest.Matchers.*;
 
 public class Matchers {
     @Factory
@@ -255,24 +257,52 @@ public class Matchers {
         };
     }
 
-    public static <T> Collector<T> collectParam() {
+    /**
+     * Returns a placeholder for a mock method parameter.
+     */
+    public static <T> Collector<T> collector() {
         return new Collector<T>();
     }
 
-    public static class Collector<T> implements Action {
+    /**
+     * Returns an action which collects the first parameter into the given placeholder.
+     */
+    public static CollectAction collectTo(Collector<?> collector) {
+        return new CollectAction(collector);
+    }
+
+    public static class CollectAction implements Action {
+        private Action action = new ReturnDefaultValueAction();
+        private final Collector<?> collector;
+
+        public CollectAction(Collector<?> collector) {
+            this.collector = collector;
+        }
+
+        public Action then(Action action) {
+            this.action = action;
+            return this;
+        }
+
+        public void describeTo(Description description) {
+            description.appendText("collect parameter then ").appendDescriptionOf(action);
+        }
+
+        public Object invoke(Invocation invocation) throws Throwable {
+            collector.setValue(invocation.getParameter(0));
+            return action.invoke(invocation);
+        }
+    }
+
+    public static class Collector<T> {
         private T value;
 
         public T get() {
             return value;
         }
 
-        public Object invoke(Invocation invocation) throws Throwable {
-            value = (T) invocation.getParameter(0);
-            return null;
-        }
-
-        public void describeTo(Description description) {
-            description.appendText("collect parameter");
+        void setValue(Object parameter) {
+            value = (T) parameter;
         }
     }
 }

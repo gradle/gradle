@@ -20,10 +20,8 @@ dependencies {
     compile project(':plugins')
 
     compile libraries.slf4j_api,
-            "org.mortbay.jetty:jetty:6.1.22@jar",
-            "org.mortbay.jetty:jetty-plus:6.1.22@jar",
-            "org.mortbay.jetty:jetty-util:6.1.22@jar",
-            "javax.servlet:servlet-api:2.5@jar"
+            libraries.jetty_depends,
+            "org.mortbay.jetty:jetty-plus:6.1.22@jar"
 
     runtime "org.mortbay.jetty:jsp-api-2.1:6.1.14@jar",
             "org.mortbay.jetty:jsp-2.1:6.1.14@jar",

@@ -25,6 +25,7 @@ import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
+import org.gradle.api.GradleException;
 import org.gradle.api.ScriptCompilationException;
 import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
 import org.gradle.util.TemporaryFolder;
@@ -110,94 +111,70 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test
-    public void testCompileScriptToDir() {
-        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+    public void testCompileScriptToDir() throws Exception {
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
-        Script script = scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                expectedScriptClass).newInstance();
         evaluateScript(script);
     }
 
     @Test
-    public void testCompileScriptToDirWithWhitespaceOnly() {
+    public void testCompileScriptToDirWithWhitespaceOnly() throws Exception {
         final ScriptSource scriptSource = scriptSource("// ignore me\n");
-        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
-        Script script = scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                expectedScriptClass).newInstance();
         assertThat(script, is(expectedScriptClass));
     }
 
     @Test
-    public void testCompileScriptToDirWithEmptyScript() {
+    public void testCompileScriptToDirWithEmptyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("");
-        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
-        Script script = scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
+        Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                expectedScriptClass).newInstance();
         assertThat(script, is(expectedScriptClass));
     }
 
     @Test
-    public void testCompileScriptToDirWithClassDefinitionOnlyScript() {
+    public void testCompileScriptToDirWithClassDefinitionOnlyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("class SomeClass {}");
-        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
 
-        Script script = scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass);
-        assertThat(script, is(expectedScriptClass));
-    }
-
-    @Test
-    public void testCreateScriptOnTheFly() {
-        Script script = scriptCompilationHandler.compileScript(scriptSource, classLoader, null,
-                expectedScriptClass);
-
-        checkScriptClassesNotInCache();
-
-        evaluateScript(script);
-    }
-
-    @Test
-    public void testCreateScriptOnTheFlyWithWhitespaceOnlyScript() {
-        Script script = scriptCompilationHandler.compileScript(new StringScriptSource("script",
-                "// ignore me\n"), classLoader, null, expectedScriptClass);
-
-        checkScriptClassesNotInCache();
-
-        assertThat(script, is(expectedScriptClass));
-    }
-
-    @Test
-    public void testCreateScriptOnTheFlyWithEmptyScript() {
-        Script script = scriptCompilationHandler.compileScript(new StringScriptSource("script", ""), classLoader,
-                null, expectedScriptClass);
-
-        checkScriptClassesNotInCache();
-
+        Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                expectedScriptClass).newInstance();
         assertThat(script, is(expectedScriptClass));
     }
 
     @Test
     public void testLoadFromDirWhenNotAssignableToBaseClass() {
-        scriptCompilationHandler.compileScriptToDir(scriptSource, classLoader, scriptCacheDir, null, Script.class);
-        assertNull(scriptCompilationHandler.loadScriptFromDir(scriptSource, classLoader, scriptCacheDir,
-                expectedScriptClass));
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, Script.class);
+        try {
+            scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                    expectedScriptClass);
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), equalTo("Could not load compiled classes for script-display-name from cache."));
+            assertThat(e.getCause(), instanceOf(ClassCastException.class));
+        }
     }
 
     @Test
     public void testCompileToDirWithException() {
         ScriptSource source = new StringScriptSource("script", "\n\nnew HHHHJSJSJ jsj");
         try {
-            scriptCompilationHandler.compileScriptToDir(source, classLoader, scriptCacheDir, null, expectedScriptClass);
+            scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, null, expectedScriptClass);
             fail();
         } catch (ScriptCompilationException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
@@ -206,19 +183,7 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test
-    public void testCreateScriptWithException() {
-        ScriptSource source = new StringScriptSource("script", "\n\nnew HHHHJSJSJ jsj");
-        try {
-            scriptCompilationHandler.compileScript(source, classLoader, null, expectedScriptClass);
-            fail();
-        } catch (ScriptCompilationException e) {
-            assertThat(e.getScriptSource(), sameInstance(source));
-            assertThat(e.getLineNumber(), equalTo(3));
-        }
-    }
-
-    @Test
-    public void testCanVisitAndTransformScriptClass() {
+    public void testCanVisitAndTransformScriptClass() throws Exception {
         Transformer visitor = new AbstractScriptTransformer() {
             public String getId() {
                 return "id";
@@ -243,18 +208,15 @@ public class DefaultScriptCompilationHandlerTest {
             }
         };
 
-        Script script = scriptCompilationHandler.compileScript(scriptSource("transformMe()"),
-                classLoader, visitor, expectedScriptClass);
+        ScriptSource source = scriptSource("transformMe()");
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, visitor, expectedScriptClass);
+        Script script = scriptCompilationHandler.loadFromDir(source, classLoader, scriptCacheDir, expectedScriptClass).newInstance();
         evaluateScript(script);
     }
 
     private void checkScriptClassesInCache() {
         assertTrue(scriptCacheDir.isDirectory());
         assertTrue(cachedFile.isFile());
-    }
-
-    private void checkScriptClassesNotInCache() {
-        assertTrue(!scriptCacheDir.exists() || (scriptCacheDir.isDirectory() && scriptCacheDir.list().length == 0));
     }
 
     private void evaluateScript(Script script) {

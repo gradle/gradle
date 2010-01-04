@@ -72,6 +72,8 @@ dependencies {
     runtime libraries.ant_launcher,
             "org.apache.ant:ant-trax:1.7.0@jar"
 
+    integTestCompile libraries.jetty_depends
+
     testFixtures sourceSets.test.classes, sourceSets.main.classes
     integTestFixtures sourceSets.integTest.classes
 }

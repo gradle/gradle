@@ -35,7 +35,8 @@ public class DefaultCacheFactory implements CacheFactory {
         }
         else {
             if (!properties.equals(cache.getProperties())) {
-                throw new UnsupportedOperationException("Cache is already open with different state.");
+                throw new UnsupportedOperationException(String.format(
+                        "Cache '%s' is already open with different state.", cacheDir));
             }
         }
         return cache;

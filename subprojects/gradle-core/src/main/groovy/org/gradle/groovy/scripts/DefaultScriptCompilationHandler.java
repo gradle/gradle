@@ -15,7 +15,6 @@
  */
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
@@ -23,7 +22,6 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
-import org.codehaus.groovy.runtime.InvokerHelper;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
 import org.gradle.api.ScriptCompilationException;
@@ -45,19 +43,7 @@ import java.security.CodeSource;
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
 
-    public <T extends Script> T compileScript(ScriptSource source, ClassLoader classLoader,
-                                                     Transformer transformer,
-                                                     Class<T> scriptBaseClass) {
-        Clock clock = new Clock();
-        CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
-        Class scriptClass = compileScript(source, classLoader, configuration, transformer);
-        T script = scriptBaseClass.cast(InvokerHelper.createScript(scriptClass, new Binding()));
-
-        logger.debug("Timing: Creating script took: {}", clock.getTime());
-        return script;
-    }
-
-    public void compileScriptToDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+    public void compileToDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                              Transformer transformer, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
         GFileUtils.deleteDirectory(scriptCacheDir);
@@ -136,24 +122,14 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         return configuration;
     }
 
-    public <T extends Script> T loadScriptFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+    public <T extends Script> Class<? extends T> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                                               Class<T> scriptBaseClass) {
-        Clock clock = new Clock();
-        Script script;
         try {
             URLClassLoader urlClassLoader = new URLClassLoader(WrapUtil.toArray(scriptCacheDir.toURI().toURL()),
                     classLoader);
-            script = (Script) urlClassLoader.loadClass(source.getClassName()).newInstance();
-        } catch (ClassNotFoundException e) {
-            logger.debug("Class not in cache: ", e);
-            return null;
+            return urlClassLoader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
         } catch (Exception e) {
-            throw new GradleException(e);
+            throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
         }
-        if (!scriptBaseClass.isInstance(script)) {
-            return null;
-        }
-        logger.debug("Timing: Loading script from cache took: {}", clock.getTime());
-        return scriptBaseClass.cast(script);
     }
 }

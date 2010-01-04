@@ -117,8 +117,8 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
 
     private void setLayouts(LogLevel logLevel, ConsoleAppender errorConsoleAppender,
                             ConsoleAppender nonErrorConsoleAppender, LoggerContext lc) {
-        String debugLayout = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n";
-        String infoLayout = "%msg%n";
+        String debugLayout = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%ex";
+        String infoLayout = "%msg%n%ex";
         if (logLevel == LogLevel.DEBUG) {
             nonErrorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
             errorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));

@@ -20,6 +20,7 @@ import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.junit.Test
 import org.gradle.util.TestFile
+import org.junit.Ignore
 
 public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -57,6 +58,38 @@ assertEquals('value', someProp)
     }
 
     @Test
+    public void canExecuteExternalScriptAgainstAnArbitraryObject() {
+        createBuildSrc()
+
+        testFile('external.gradle') << '''
+println 'quiet message'
+captureStandardOutput(LogLevel.ERROR)
+println 'error message'
+new BuildSrcClass()
+assertEquals('doStuff', name)
+assertSame(buildscript.classLoader, getClass().classLoader.parent)
+assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
+assertSame(project.gradle.scriptClassLoader, buildscript.classLoader.parent)
+assertNotSame(project.buildscript.classLoader, buildscript.classLoader)
+someProp = 'value'
+'''
+        testFile('build.gradle') << '''
+task doStuff
+apply {
+    to doStuff
+    script 'external.gradle'
+}
+assertEquals('value', doStuff.someProp)
+'''
+
+        ExecutionResult result = inTestDirectory().withTasks('doStuff').run()
+        assertThat(result.output, containsString('quiet message'))
+        assertThat(result.output, not(containsString('error message')))
+        assertThat(result.error, containsString('error message'))
+        assertThat(result.error, not(containsString('quiet message')))
+    }
+    
+    @Test
     public void canExecuteExternalScriptFromSettingsScript() {
         testFile('settings.gradle') << ''' apply { script 'other.gradle' } '''
         testFile('other.gradle') << ''' include 'child' '''
@@ -89,35 +122,38 @@ class ListenerImpl extends BuildAdapter {
     }
 
     @Test
-    public void canExecuteExternalScriptAgainstAnArbitraryObject() {
-        createBuildSrc()
-
-        testFile('external.gradle') << '''
-println 'quiet message'
-captureStandardOutput(LogLevel.ERROR)
-println 'error message'
-new BuildSrcClass()
-assertEquals('doStuff', name)
-assertSame(buildscript.classLoader, getClass().classLoader.parent)
-assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
-assertSame(project.gradle.scriptClassLoader, buildscript.classLoader.parent)
-assertNotSame(project.buildscript.classLoader, buildscript.classLoader)
-someProp = 'value'
-'''
-        testFile('build.gradle') << '''
+    public void canFetchScriptViaHttp() {
+        TestFile script = testFile('external.gradle') << '''
 task doStuff
-apply {
-    to doStuff
-    script 'external.gradle'
-}
-assertEquals('value', doStuff.someProp)
 '''
+        HttpServer server = new HttpServer()
+        server.add('/external.gradle', script)
+        server.start()
 
-        ExecutionResult result = inTestDirectory().withTasks('doStuff').run()
-        assertThat(result.output, containsString('quiet message'))
-        assertThat(result.output, not(containsString('error message')))
-        assertThat(result.error, containsString('error message'))
-        assertThat(result.error, not(containsString('quiet message')))
+        testFile('build.gradle') << """
+apply script: 'http://localhost:$server.port/external.gradle'
+defaultTasks 'doStuff'
+"""
+
+        inTestDirectory().run()
+
+        server.stop()
+    }
+
+    @Test @Ignore
+    public void cachesScriptClassForAGivenScript() {
+        testFile('settings.gradle') << 'include \'a\', \'b\''
+        testFile('external.gradle') << 'appliedScript = this'
+        testFile('build.gradle') << '''
+allprojects {
+   apply script: rootProject.file('external.gradle') 
+}
+subprojects {
+    assertSame(appliedScript.class, rootProject.appliedScript.class)
+}
+task doStuff
+'''
+        inTestDirectory().withTasks('doStuff').run()
     }
 
     private TestFile createBuildSrc() {
@@ -125,7 +161,7 @@ assertEquals('value', doStuff.someProp)
             public class BuildSrcClass { }
 '''
     }
-    
+
     private def createExternalJar() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile('org/gradle/test/BuildClass.java') << '''

@@ -104,24 +104,21 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             BuildScriptClasspathScriptTransformer classpathScriptTransformer
                     = new BuildScriptClasspathScriptTransformer(classpathClosureName);
             compiler.setTransformer(classpathScriptTransformer);
-            ScriptRunner<? extends BasicScript> classPathScript = compiler.compile(scriptType);
-            setDelegate(classPathScript, target, services);
 
-            classPathScript.run();
+            ScriptRunner<? extends BasicScript> classPathScriptRunner = compiler.compile(scriptType);
+            classPathScriptRunner.getScript().init(target, services);
+            classPathScriptRunner.run();
+
             classLoaderProvider.updateClassPath();
 
             compiler.setTransformer(new BuildScriptTransformer(classpathScriptTransformer));
             ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);
-            setDelegate(runner, target, services);
+
+            runner.getScript().init(target, services);
             if (scriptAware != null) {
                 scriptAware.afterCompile(this, runner.getScript());
             }
-
             runner.run();
-        }
-
-        private void setDelegate(ScriptRunner<? extends BasicScript> scriptRunner, Object target, ServiceRegistry services) {
-            scriptRunner.getScript().init(target, services);
         }
     }
 }
