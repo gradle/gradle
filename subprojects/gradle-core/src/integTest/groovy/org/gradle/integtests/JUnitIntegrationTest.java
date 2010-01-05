@@ -34,7 +34,7 @@ public class JUnitIntegrationTest {
         TestFile testDir = dist.getTestDir();
         TestFile buildFile = testDir.file("build.gradle");
         buildFile.writelns(
-                "usePlugin('java')",
+                "apply id: 'java'",
                 "repositories { mavenCentral() }",
                 "dependencies { testCompile 'junit:junit:4.4' }"
         );
@@ -56,7 +56,7 @@ public class JUnitIntegrationTest {
         TestFile testDir = dist.getTestDir();
         testDir.file("settings.gradle").write("include 'a', 'b'");
         testDir.file("b/build.gradle").writelns(
-                "usePlugin('java')",
+                "apply id: 'java'",
                 "repositories { mavenCentral() }",
                 "dependencies { compile 'junit:junit:4.4' }"
         );
@@ -67,7 +67,7 @@ public class JUnitIntegrationTest {
                 "}");
         TestFile buildFile = testDir.file("a/build.gradle");
         buildFile.writelns(
-                "usePlugin('java')",
+                "apply id: 'java'",
                 "repositories { mavenCentral() }",
                 "dependencies { testCompile project(':b') }",
                 "test { options.fork() }"
@@ -98,7 +98,7 @@ public class JUnitIntegrationTest {
         );
 
         testDir.file("build.gradle").writelns(
-                "usePlugin 'java'",
+                "apply id: 'java'",
                 "repositories { mavenCentral() } ",
                 "dependencies { testCompile 'junit:junit:4.4' }",
                 "def listener = new TestListenerImpl()",
@@ -137,7 +137,7 @@ public class JUnitIntegrationTest {
         );
 
         testDir.file("build.gradle").writelns(
-                "usePlugin 'java'",
+                "apply id: 'java'",
                 "repositories { mavenCentral() } ",
                 "dependencies { testCompile 'junit:junit:3.8' }",
                 "def listener = new TestListenerImpl()",

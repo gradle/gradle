@@ -36,7 +36,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     public static final String PROJECT_REPORT = "projectReport";
 
     public void use(Project project) {
-        project.usePlugin(ReportingBasePlugin.class);
+        project.getPlugins().usePlugin(ReportingBasePlugin.class);
         project.getConvention().getPlugins().put("projectReports", new ProjectReportsPluginConvention(project));
 
         TaskReportTask taskReportTask = project.getTasks().add(TASK_REPORT, TaskReportTask.class);

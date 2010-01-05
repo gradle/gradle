@@ -1,4 +1,4 @@
-usePlugin 'war'
+apply id: 'war'
 
 version = '2.5'
 

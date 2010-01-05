@@ -1,4 +1,4 @@
-usePlugin 'java'
+apply id: 'java'
 
 task show << {
     sourceSets.main.classesDir = new File(buildDir, 'output')

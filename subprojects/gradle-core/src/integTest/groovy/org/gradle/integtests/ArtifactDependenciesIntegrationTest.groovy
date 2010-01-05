@@ -91,13 +91,13 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     public void resolvedProjectArtifactsContainProjectVersionInTheirNames() {
         testFile('settings.gradle').write("include 'a', 'b'");
         testFile('a/build.gradle') << '''
-            usePlugin('base')
+            apply id: 'base'
             configurations { compile }
             task aJar(type: Jar) { }
             artifacts { compile aJar }
 '''
         testFile('b/build.gradle') << '''
-            usePlugin('base')
+            apply id: 'base'
             version = 'early'
             configurations { compile }
             task bJar(type: Jar) { }
@@ -118,7 +118,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     public void canUseArtifactSelectorForProjectDependencies() {
         testFile('settings.gradle').write("include 'a', 'b'");
         testFile('a/build.gradle') << '''
-            usePlugin('base')
+            apply id: 'base'
             configurations { 'default' {} }
             task aJar(type: Jar) { }
             artifacts { 'default' aJar }

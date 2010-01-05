@@ -48,9 +48,11 @@ public interface Script {
      * <p>Configures the delegate object for this script using plugins or scripts. The following options are
      * available:</p>
      *
-     * <ul><li>{@code script}: A script to apply to the delegate object.</li>
+     * <ul><li>{@code url}: The URL for the script to apply to the delegate object.</li>
      *
-     * <li>{@code plugin}: A plugin to apply to the delegate object.</li>
+     * <li>{@code id}: The id of the plugin to apply to the delegate object.</li>
+     *
+     * <li>{@code type}: The implementation class of the plugin to apply to the delegate object.</li>
      *
      * <li>{@code to}: The target delegate object or objects.</li></ul>
      *

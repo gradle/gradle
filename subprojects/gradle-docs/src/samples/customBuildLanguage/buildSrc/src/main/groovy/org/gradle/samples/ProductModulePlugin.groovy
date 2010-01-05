@@ -24,7 +24,7 @@ import org.gradle.api.Project
 class ProductModulePlugin implements Plugin<Project> {
     void use(Project project) {
         project.configure(project) {
-            usePlugin 'java'
+            apply id: 'java'
             repositories {
                 mavenCentral()
             }

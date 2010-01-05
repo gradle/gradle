@@ -1,4 +1,4 @@
-usePlugin 'java'
+apply id: 'java'
 
 // START SNIPPET access-source-set
 // Various ways to access the main source set

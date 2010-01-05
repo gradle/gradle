@@ -24,14 +24,14 @@ import java.io.IOException;
 public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesEmptyProject() {
-        testFile("build.gradle").writelns("apply plugin: 'java'");
+        testFile("build.gradle").writelns("apply id: 'java'");
         inTestDirectory().withTasks("build").run();
     }
 
     @Test
     public void compilationFailureBreaksBuild() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns("apply plugin: 'java'");
+        buildFile.writelns("apply id: 'java'");
         testFile("src/main/java/org/gradle/broken.java").write("broken");
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure();
@@ -44,7 +44,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testCompilationFailureBreaksBuild() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns("apply plugin: 'java'");
+        buildFile.writelns("apply id: 'java'");
         testFile("src/main/java/org/gradle/ok.java").write("package org.gradle; class ok { }");
         testFile("src/test/java/org/gradle/broken.java").write("broken");
 
@@ -58,7 +58,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesTestSrcWhichDoesNotContainAnyTestCases() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns("apply plugin: 'java'");
+        buildFile.writelns("apply id: 'java'");
         testFile("src/test/java/org/gradle/NotATest.java").writelns("package org.gradle;", "public class NotATest {}");
 
         usingBuildFile(buildFile).withTasks("build").run();
@@ -67,7 +67,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void javadocGenerationFailureBreaksBuild() throws IOException {
         TestFile buildFile = testFile("javadocs.gradle");
-        buildFile.write("apply plugin: 'java'");
+        buildFile.write("apply id: 'java'");
         testFile("src/main/java/org/gradle/broken.java").write("class Broken { }");
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("javadoc").runWithFailure();
@@ -80,7 +80,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesResourceOnlyProject() throws IOException {
         TestFile buildFile = testFile("resources.gradle");
-        buildFile.write("apply plugin: 'java'");
+        buildFile.write("apply id: 'java'");
         testFile("src/main/resources/org/gradle/resource.file").write("test resource");
 
         usingBuildFile(buildFile).withTasks("build").run();
@@ -92,7 +92,7 @@ public class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("settings.gradle").write("rootProject.name = 'empty'");
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "apply plugin: 'java'",
+                "apply id: 'java'",
                 "version = ''"
         );
         testFile("src/main/resources/org/gradle/resource.file").write("some resource");

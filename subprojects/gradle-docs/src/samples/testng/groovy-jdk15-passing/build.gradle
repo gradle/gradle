@@ -1,4 +1,4 @@
-usePlugin('groovy')
+apply id: 'groovy'
 
 sourceCompatibility=1.5
 

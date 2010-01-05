@@ -48,7 +48,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
 '''
 
         testFile('buildSrc/build.gradle') << '''
-            usePlugin 'java'
+            apply id: 'java'
             assertThat(gradle.parent, notNullValue())
             classes << {
                 assertThat(gradle.parent, notNullValue())

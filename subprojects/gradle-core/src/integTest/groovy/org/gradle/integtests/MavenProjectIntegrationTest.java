@@ -22,8 +22,8 @@ public class MavenProjectIntegrationTest extends AbstractIntegrationTest {
     public void handlesSubProjectsWithoutTheMavenPluginApplied() {
         testFile("settings.gradle").write("include 'subProject'");
         testFile("build.gradle").writelns(
-                "usePlugin 'java'",
-                "usePlugin 'maven'"
+                "apply id: 'java'",
+                "apply id: 'maven'"
         );
         inTestDirectory().withTaskList().run();
     }

@@ -25,8 +25,8 @@ class CodeQualityIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesEmptyProjects() {
         testFile('build.gradle') << '''
-usePlugin 'groovy'
-usePlugin 'code-quality'
+apply id: 'groovy'
+apply id: 'code-quality'
 '''
         inTestDirectory().withTasks('check').run()
     }
@@ -34,8 +34,8 @@ usePlugin 'code-quality'
     @Test
     public void generatesReportForJavaSource() {
         testFile('build.gradle') << '''
-usePlugin 'java'
-usePlugin 'code-quality'
+apply id: 'java'
+apply id: 'code-quality'
 '''
         writeCheckstyleConfig()
 
@@ -51,8 +51,8 @@ usePlugin 'code-quality'
     @Test
     public void generatesReportForJavaSourceInGroovySourceDirs() {
         testFile('build.gradle') << '''
-usePlugin 'groovy'
-usePlugin 'code-quality'
+apply id: 'groovy'
+apply id: 'code-quality'
 dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
 '''
         writeCheckstyleConfig()
@@ -73,8 +73,8 @@ dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
     @Test
     public void checkstyleOnlyChecksJavaSource() {
         testFile('build.gradle') << '''
-usePlugin 'groovy'
-usePlugin 'code-quality'
+apply id: 'groovy'
+apply id: 'code-quality'
 '''
         writeCheckstyleConfig()
 
@@ -91,8 +91,8 @@ usePlugin 'code-quality'
     @Test
     public void checkstyleViolationBreaksBuild() {
         testFile('build.gradle') << '''
-usePlugin 'groovy'
-usePlugin 'code-quality'
+apply id: 'groovy'
+apply id: 'code-quality'
 '''
         writeCheckstyleConfig()
 
@@ -109,8 +109,8 @@ usePlugin 'code-quality'
     @Test
     public void generatesReportForGroovySource() {
         testFile('build.gradle') << '''
-usePlugin 'groovy'
-usePlugin 'code-quality'
+apply id: 'groovy'
+apply id: 'code-quality'
 dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
 '''
         writeCodeNarcConfigFile()
@@ -127,8 +127,8 @@ dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
     @Test
     public void codeNarcOnlyChecksGroovySource() {
         testFile('build.gradle') << '''
-usePlugin 'groovy'
-usePlugin 'code-quality'
+apply id: 'groovy'
+apply id: 'code-quality'
 '''
 
         writeCodeNarcConfigFile()
@@ -144,8 +144,8 @@ usePlugin 'code-quality'
     @Test
     public void codeNarcViolationBreaksBuild() {
         testFile('build.gradle') << '''
-usePlugin 'groovy'
-usePlugin 'code-quality'
+apply id: 'groovy'
+apply id: 'code-quality'
 dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
 '''
 

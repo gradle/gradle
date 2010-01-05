@@ -343,7 +343,9 @@ public interface Project extends Comparable<Project> {
      *
      * @param pluginName The name of the plugin.
      * @return This project.
+     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method instead.
      */
+    @Deprecated
     Project usePlugin(String pluginName);
 
     /**
@@ -351,7 +353,9 @@ public interface Project extends Comparable<Project> {
      *
      * @param pluginClass The class of the plugin.  This class must implement the {@link Plugin} interface.
      * @return This project.
+     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method instead.
      */
+    @Deprecated
     Project usePlugin(Class<? extends Plugin> pluginClass);
 
     /**
@@ -1219,9 +1223,11 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Configures this project using plugins or scripts. The following options are available:</p>
      *
-     * <ul><li>{@code script}: A script to apply to the project.</li>
+     * <ul><li>{@code url}: The URL for the script to apply to the project.</li>
      *
-     * <li>{@code plugin}: A plugin to apply to the project.</li>
+     * <li>{@code id}: The id of the plugin to apply to the project.</li>
+     *
+     * <li>{@code type}: The implementation class of the plugin to apply to the project.</li>
      *
      * <li>{@code to}: The target delegate object or objects. Use this to configure objects other than the
      * project.</li></ul>

@@ -1,7 +1,7 @@
 import org.apache.maven.settings.Settings
 
-usePlugin('war')
-usePlugin('maven')
+apply id: 'war'
+apply id: 'maven'
 
 group = 'gradle'
 version = '1.0'

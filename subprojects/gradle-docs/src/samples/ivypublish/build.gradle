@@ -1,6 +1,6 @@
 import org.junit.Assert
 
-usePlugin('java')
+apply id: 'java'
 
 version = '1.0'
 group = 'org.gradle.test'

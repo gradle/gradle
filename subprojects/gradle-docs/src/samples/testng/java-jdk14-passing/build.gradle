@@ -1,4 +1,4 @@
-usePlugin('java')
+apply id: 'java'
 
 sourceCompatibility=1.4
 

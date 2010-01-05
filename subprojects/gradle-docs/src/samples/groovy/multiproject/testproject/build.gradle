@@ -1,4 +1,4 @@
-usePlugin 'groovy'
+apply id: 'groovy'
 
 group = 'org.gradle'
 version = '1.0'

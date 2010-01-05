@@ -1,4 +1,4 @@
-usePlugin 'java'
+apply id: 'java'
 
 // START SNIPPET file-set
 task zipWithFileSet(type: Zip) {

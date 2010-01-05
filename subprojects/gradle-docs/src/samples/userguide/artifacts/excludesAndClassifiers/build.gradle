@@ -1,4 +1,4 @@
-usePlugin 'java'
+apply id: 'java'
 
 // START SNIPPET file-system-resolver
 repositories {

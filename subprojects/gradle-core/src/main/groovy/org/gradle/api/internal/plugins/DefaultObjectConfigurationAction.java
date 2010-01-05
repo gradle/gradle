@@ -48,7 +48,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    public ObjectConfigurationAction script(final Object script) {
+    public ObjectConfigurationAction url(final Object script) {
         actions.add(new Runnable() {
             public void run() {
                 applyScript(script);
@@ -57,7 +57,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    public ObjectConfigurationAction plugin(final Class<? extends Plugin> pluginClass) {
+    public ObjectConfigurationAction type(final Class<? extends Plugin> pluginClass) {
         actions.add(new Runnable() {
             public void run() {
                 applyPlugin(pluginClass);
@@ -66,7 +66,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    public ObjectConfigurationAction plugin(final String pluginName) {
+    public ObjectConfigurationAction id(final String pluginName) {
         actions.add(new Runnable() {
             public void run() {
                 applyPlugin(pluginName);
@@ -88,7 +88,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         for (Object target : targets) {
             if (target instanceof Project) {
                 Project project = (Project) target;
-                project.usePlugin(pluginClass);
+                project.getPlugins().usePlugin(pluginClass);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -99,7 +99,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         for (Object target : targets) {
             if (target instanceof Project) {
                 Project project = (Project) target;
-                project.usePlugin(pluginName);
+                project.getPlugins().usePlugin(pluginName);
             } else {
                 throw new UnsupportedOperationException();
             }

@@ -1,4 +1,4 @@
-usePlugin org.gradle.samples.ProductModulePlugin
+apply type: org.gradle.samples.ProductModulePlugin
 
 dependencies {
     compile project(':identityManagement')

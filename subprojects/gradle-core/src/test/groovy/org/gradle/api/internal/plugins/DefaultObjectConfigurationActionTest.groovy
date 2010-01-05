@@ -52,7 +52,7 @@ public class DefaultObjectConfigurationActionTest {
             one(configurer).use(target)
         }
 
-        action.script('script')
+        action.url('script')
         action.execute()
     }
 
@@ -72,7 +72,7 @@ public class DefaultObjectConfigurationActionTest {
             one(configurer).use(target2)
         }
 
-        action.script('script')
+        action.url('script')
         action.to(target1)
         action.to(target2)
         action.execute()
@@ -94,7 +94,7 @@ public class DefaultObjectConfigurationActionTest {
             one(configurer).use(target2)
         }
 
-        action.script('script')
+        action.url('script')
         action.to([[target1], target2])
         action.execute()
     }

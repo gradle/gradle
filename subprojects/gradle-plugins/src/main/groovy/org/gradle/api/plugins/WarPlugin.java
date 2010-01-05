@@ -43,7 +43,7 @@ public class WarPlugin implements Plugin<Project> {
     public static final String WAR_TASK_NAME = "war";
 
     public void use(final Project project) {
-        project.usePlugin(JavaPlugin.class);
+        project.getPlugins().usePlugin(JavaPlugin.class);
         final WarPluginConvention pluginConvention = new WarPluginConvention(project);
         project.getConvention().getPlugins().put("war", pluginConvention);
 

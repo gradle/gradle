@@ -1,8 +1,8 @@
 group = 'gradle_tooling'
 version = '1.0'
 
-usePlugin 'groovy'
-usePlugin 'osgi'
+apply id: 'groovy'
+apply id: 'osgi'
 
 repositories {
     mavenCentral()

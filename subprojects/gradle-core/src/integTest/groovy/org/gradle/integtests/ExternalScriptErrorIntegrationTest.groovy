@@ -22,7 +22,7 @@ class ExternalScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsScriptEvaluationFailsWithGroovyException() {
         testFile('build.gradle') << '''
-apply { script 'other.gradle' }
+apply { url 'other.gradle' }
 '''
         TestFile script = testFile('other.gradle') << '''
 
@@ -40,7 +40,7 @@ doStuff()
     @Test
     public void reportsScriptCompilationException() {
         testFile('build.gradle') << '''
-apply { script 'other.gradle' }
+apply { url 'other.gradle' }
 '''
         TestFile script = testFile('other.gradle')
         script.text = 'import org.gradle()'
@@ -54,7 +54,7 @@ apply { script 'other.gradle' }
     @Test
     public void reportsMissingScript() {
         TestFile buildScript = testFile('build.gradle') << '''
-apply { script 'unknown.gradle' }
+apply { url 'unknown.gradle' }
 '''
         TestFile script = testFile('unknown.gradle')
 
@@ -68,7 +68,7 @@ apply { script 'unknown.gradle' }
     @Test
     public void reportsTaskExecutionFailsWithRuntimeException() {
         testFile('build.gradle') << '''
-apply { script 'other.gradle' }
+apply { url 'other.gradle' }
 '''
         TestFile script = testFile('other.gradle') << '''
 task doStuff << {

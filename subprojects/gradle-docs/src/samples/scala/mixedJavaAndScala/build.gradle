@@ -1,4 +1,4 @@
-usePlugin 'scala'
+apply id: 'scala'
 
 version = 1.0
 

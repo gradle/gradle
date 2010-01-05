@@ -2,7 +2,7 @@ subprojects {
     repositories {
         mavenCentral()
     }
-    usePlugin('java')
+    apply id: 'java'
     group = 'org.gradle.sample'
     version = '1.0'
 }

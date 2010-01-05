@@ -13,7 +13,7 @@ buildscript {
 group = 'sealife'
 
 project(':atlantic') {
-    usePlugin('java')
+    apply id: 'java'
     configurations {
         other
     }
@@ -23,7 +23,7 @@ project(':atlantic') {
 }
 
 project(':northSea') {
-    usePlugin('java')
+    apply id: 'java'
     configurations {
         other
     }

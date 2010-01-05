@@ -29,9 +29,9 @@ class ProjectLayoutIntegrationTest {
     public void canHaveSomeSourceAndResourcesInSameDirectoryAndSomeInDifferentDirectories() {
         dist.testFile('settings.gradle') << 'rootProject.name = "sharedSource"'
         dist.testFile('build.gradle') << '''
-usePlugin('java')
-usePlugin('groovy')
-usePlugin('scala')
+apply id: 'java'
+apply id: 'groovy'
+apply id: 'scala'
 
 repositories {
     mavenRepo urls: 'http://scala-tools.org/repo-releases/'
@@ -130,14 +130,14 @@ sourceSets.each {
     public void multipleProjectsCanShareTheSameSourceDirectory() {
         dist.testFile('settings.gradle') << 'include "a", "b"'
         dist.testFile('a/build.gradle') << '''
-usePlugin 'java'
+apply id: 'java'
 sourceSets.main.java {
     srcDirs '../src'
     include 'org/gradle/a/**'
 }
 '''
         dist.testFile('b/build.gradle') << '''
-usePlugin 'java'
+apply id: 'java'
 dependencies { compile project(':a') }
 sourceSets.main.java {
     srcDirs '../src'

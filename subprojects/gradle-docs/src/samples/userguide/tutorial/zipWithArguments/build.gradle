@@ -1,4 +1,4 @@
-usePlugin 'java'
+apply id: 'java'
 archivesBaseName = 'gradle'
 version = 1.0
 

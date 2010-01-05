@@ -1,4 +1,4 @@
-usePlugin 'java'
+apply id: 'java'
 version = 1.0
 
 task myZip(type: Zip) {

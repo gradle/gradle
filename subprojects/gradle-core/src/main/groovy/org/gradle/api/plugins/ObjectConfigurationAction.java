@@ -37,10 +37,10 @@ public interface ObjectConfigurationAction {
      * scripts. Scripts and plugins are applied in the order that they are added.
      *
      * @param script The script. Evaluated as for {@link org.gradle.api.Project#file(Object)}. However, note that
-     * a URL can also be used, allowing the script to be fetched over HTTP, for example.
+     * a URL can also be used, allowing the script to be fetched using HTTP, for example.
      * @return this
      */
-    ObjectConfigurationAction script(Object script);
+    ObjectConfigurationAction url(Object script);
 
     /**
      * Adds a {@link org.gradle.api.Plugin} to use to configure the target objects. You can call this method multiple
@@ -49,7 +49,7 @@ public interface ObjectConfigurationAction {
      * @param pluginClass The plugin to apply.
      * @return this
      */
-    ObjectConfigurationAction plugin(Class<? extends Plugin> pluginClass);
+    ObjectConfigurationAction type(Class<? extends Plugin> pluginClass);
 
     /**
      * Adds a {@link org.gradle.api.Plugin} to use to configure the target objects. You can call this method multiple
@@ -58,5 +58,5 @@ public interface ObjectConfigurationAction {
      * @param pluginName The plugin to apply.
      * @return this
      */
-    ObjectConfigurationAction plugin(String pluginName);
+    ObjectConfigurationAction id(String pluginName);
 }

@@ -1,9 +1,7 @@
 task configure << {
     pos = new java.text.FieldPosition(10)
-    apply {
-        script 'other.gradle'
-        to pos
-    }
+    // Apply the script
+    apply url: 'other.gradle', to: pos
     println pos.beginIndex
     println pos.endIndex
 }

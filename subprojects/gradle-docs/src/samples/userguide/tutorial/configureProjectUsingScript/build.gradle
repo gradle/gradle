@@ -1,3 +1,1 @@
-apply {
-    script 'other.gradle'
-}
+apply url: 'other.gradle'

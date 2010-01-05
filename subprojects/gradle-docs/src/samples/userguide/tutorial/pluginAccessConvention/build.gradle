@@ -1,4 +1,4 @@
-usePlugin 'java'
+apply id: 'java'
 
 task show << {
     // Access the convention property as a project property

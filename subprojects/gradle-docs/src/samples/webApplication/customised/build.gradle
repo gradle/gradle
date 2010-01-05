@@ -3,8 +3,8 @@ import org.apache.commons.httpclient.methods.GetMethod
 
 group = 'gradle'
 version = '1.0'
-usePlugin('war')
-usePlugin('jetty')
+apply id: 'war'
+apply id: 'jetty'
 
 configurations {
    moreLibs

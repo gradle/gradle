@@ -1,4 +1,4 @@
-usePlugin 'java'
+apply id: 'java'
 
 task show << {
     processResources.destinationDir = new File(buildDir, 'output')

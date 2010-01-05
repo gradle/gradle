@@ -144,7 +144,6 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private StandardOutputRedirector standardOutputRedirector;
     private DynamicObjectHelper dynamicObjectHelper;
-    private boolean nagged;
 
     public AbstractProject(String name) {
         this.name = name;
@@ -528,11 +527,13 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project usePlugin(String pluginName) {
+        warnUsePluginDeprecated();
         pluginContainer.usePlugin(pluginName);
         return this;
     }
 
     public Project usePlugin(Class<? extends Plugin> pluginClass) {
+        warnUsePluginDeprecated();
         pluginContainer.usePlugin(pluginClass);
         return this;
     }
@@ -571,7 +572,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Task createTask(Map args, String name, Closure action) {
-        warnDeprecated();
+        warnCreateTaskDeprecated();
         Map<String, Object> allArgs = new HashMap<String, Object>(args);
         allArgs.put(Task.TASK_NAME, name);
         allArgs.put(Task.TASK_ACTION, action);
@@ -579,7 +580,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Task createTask(Map<String, ?> args, String name, Action<? super Task> action) {
-        warnDeprecated();
+        warnCreateTaskDeprecated();
         Map<String, Object> allArgs = new HashMap<String, Object>(args);
         allArgs.put(Task.TASK_NAME, name);
         if (action != null) {
@@ -588,11 +589,12 @@ public abstract class AbstractProject implements ProjectInternal {
         return taskContainer.add(allArgs);
     }
 
-    private void warnDeprecated() {
-        if (!nagged) {
-            logger.warn("The Project.createTask() method is deprecated and will be removed in the next version of Gradle. You should use the task() method instead.");
-            nagged = true;
-        }
+    private void warnCreateTaskDeprecated() {
+        DeprecationLogger.nagUser("Project.createTask()", "task()");
+    }
+
+    private void warnUsePluginDeprecated() {
+        DeprecationLogger.nagUser("Project.usePlugin()", "apply()");
     }
 
     public void addChildProject(ProjectInternal childProject) {

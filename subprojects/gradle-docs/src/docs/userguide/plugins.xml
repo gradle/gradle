@@ -25,9 +25,9 @@
         <title>Declaring plugins</title>
         <para>If you want to use the plugin for building a Java project, simply include
         </para>
-        <programlisting><![CDATA[
-usePlugin('java')
-]]></programlisting>
+        <sample id="useJavaPlugin" dir="java/quickstart" title="Using a plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
         <para>in your script. That's all. From a technological point of view plugins use just the same
             operations as you can use from your build scripts. That is, they use the Project and Task API.
             The Gradle plugins generally use this API to:

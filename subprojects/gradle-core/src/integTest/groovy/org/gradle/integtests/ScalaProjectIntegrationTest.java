@@ -21,7 +21,7 @@ public class ScalaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesEmptyProject() {
         testFile("build.gradle").writelns(
-                "usePlugin('scala')"
+                "apply id: 'scala'"
         );
         inTestDirectory().withTasks("build").run();
     }
@@ -29,7 +29,7 @@ public class ScalaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesJavaSourceOnly() {
         testFile("src/main/java/somepackage/SomeClass.java").writelns("public class SomeClass { }");
-        testFile("build.gradle").write("usePlugin('scala')");
+        testFile("build.gradle").write("apply id: 'scala'");
         testFile("settings.gradle").write("rootProject.name='javaOnly'");
         inTestDirectory().withTasks("build").run();
         testFile("build/libs/javaOnly.jar").assertExists();
