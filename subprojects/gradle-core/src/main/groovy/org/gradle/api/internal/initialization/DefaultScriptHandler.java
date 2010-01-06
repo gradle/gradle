@@ -21,17 +21,16 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.ObservableUrlClassLoader;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 public class DefaultScriptHandler implements ScriptHandlerInternal {
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
     private final ConfigurationContainer configContainer;
-    private final MutableClassLoader classLoader;
+    private final ObservableUrlClassLoader classLoader;
     private final Configuration classpathConfiguration;
 
     public DefaultScriptHandler(RepositoryHandler repositoryHandler, DependencyHandler dependencyHandler,
@@ -39,7 +38,7 @@ public class DefaultScriptHandler implements ScriptHandlerInternal {
         this.repositoryHandler = repositoryHandler;
         this.dependencyHandler = dependencyHandler;
         this.configContainer = configContainer;
-        this.classLoader = new MutableClassLoader(parentClassLoader);
+        this.classLoader = new ObservableUrlClassLoader(parentClassLoader);
         classpathConfiguration = configContainer.add(CLASSPATH_CONFIGURATION);
     }
 
@@ -74,17 +73,6 @@ public class DefaultScriptHandler implements ScriptHandlerInternal {
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }
-        }
-    }
-
-    private static class MutableClassLoader extends URLClassLoader {
-        public MutableClassLoader(ClassLoader parentClassLoader) {
-            super(new URL[0], parentClassLoader);
-        }
-
-        @Override
-        protected void addURL(URL url) {
-            super.addURL(url);
         }
     }
 }

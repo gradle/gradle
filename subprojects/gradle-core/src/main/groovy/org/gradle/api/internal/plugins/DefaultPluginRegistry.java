@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.util.GUtil;
+import org.gradle.util.ObservableUrlClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +39,29 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private static Logger logger = LoggerFactory.getLogger(DefaultPluginRegistry.class);
     private final Map<String, String> properties = new HashMap<String, String>();
     private final Map<Class<? extends Plugin>, Plugin<?>> plugins = new HashMap<Class<? extends Plugin>, Plugin<?>>();
+    private final DefaultPluginRegistry parent;
+    private final ClassLoader classLoader;
 
     public DefaultPluginRegistry(ClassLoader classLoader) {
+        this(null, classLoader);
+    }
+
+    private DefaultPluginRegistry(DefaultPluginRegistry parent, ClassLoader classLoader) {
+        this.parent = parent;
+        this.classLoader = classLoader;
+        buildProperties(classLoader);
+        if (classLoader instanceof ObservableUrlClassLoader) {
+            ObservableUrlClassLoader observableUrlClassLoader = (ObservableUrlClassLoader) classLoader;
+            observableUrlClassLoader.whenUrlAdded(new Action<ClassLoader>() {
+                public void execute(ClassLoader classLoader) {
+                    buildProperties(classLoader);
+                }
+            });
+        }
+    }
+
+    private void buildProperties(ClassLoader classLoader) {
+        properties.clear();
         try {
             Enumeration<URL> propertiesFiles = classLoader.getResources("META-INF/gradle-plugins.properties");
             while (propertiesFiles.hasMoreElements()) {
@@ -51,19 +74,29 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
     }
 
+    public PluginRegistry createChild(ClassLoader childClassPath) {
+        return new DefaultPluginRegistry(this, childClassPath);
+    }
+
     public Plugin loadPlugin(String pluginId) {
         return loadPlugin(getTypeForId(pluginId));
     }
 
     public <T extends Plugin> T loadPlugin(Class<T> pluginClass) {
+        if (parent != null) {
+            return parent.loadPlugin(pluginClass);
+        }
+        
         T plugin = pluginClass.cast(plugins.get(pluginClass));
         if (plugin == null) {
             try {
                 plugin = pluginClass.newInstance();
             } catch (InstantiationException e) {
-                throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.", pluginClass.getSimpleName()), e.getCause());
+                throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
+                        pluginClass.getSimpleName()), e.getCause());
             } catch (Exception e) {
-                throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.", pluginClass.getSimpleName()), e);
+                throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
+                        pluginClass.getSimpleName()), e);
             }
             plugins.put(pluginClass, plugin);
         }
@@ -75,6 +108,13 @@ public class DefaultPluginRegistry implements PluginRegistry {
     }
 
     public String getIdForType(Class<? extends Plugin> type) {
+        if (parent != null) {
+            String id = parent.getIdForType(type);
+            if (id != null) {
+                return id;
+            }
+        }
+        
         for (String id : properties.keySet()) {
             if (properties.get(id).equals(type.getName())) {
                 return id;
@@ -84,12 +124,21 @@ public class DefaultPluginRegistry implements PluginRegistry {
     }
 
     public Class<? extends Plugin> getTypeForId(String pluginId) {
+        if (parent != null) {
+            try {
+                return parent.getTypeForId(pluginId);
+            } catch (UnknownPluginException e) {
+                // Ignore
+            }
+        }
+
         String implClassName = properties.get(pluginId);
         if (!GUtil.isTrue(implClassName)) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
+        
         try {
-            return Class.forName(implClassName).asSubclass(Plugin.class);
+            return classLoader.loadClass(implClassName).asSubclass(Plugin.class);
         } catch (ClassNotFoundException e) {
             throw new PluginInstantiationException(String.format("Could not find implementation class '%s' for plugin '%s'.", implClassName, pluginId), e);
         }

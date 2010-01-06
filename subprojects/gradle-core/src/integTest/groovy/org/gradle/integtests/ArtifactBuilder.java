@@ -22,5 +22,7 @@ import java.io.File;
 public interface ArtifactBuilder {
     TestFile sourceFile(String path);
 
+    TestFile resourceFile(String path);
+
     void buildJar(File jarFile);
 }

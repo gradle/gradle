@@ -17,8 +17,6 @@ package org.gradle.foundation.ipc.gradle;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.foundation.ipc.basic.MessageObject;
 
 import java.io.File;
@@ -31,8 +29,6 @@ import java.io.File;
  * @author mhunsicker
  */
 public class ExecuteGradleCommandServerProtocol extends AbstractGradleServerProtocol {
-    private final Logger logger = Logging.getLogger(ExecuteGradleCommandServerProtocol.class);
-
     private static final String INIT_SCRIPT_NAME = "execute-command-init-script";
 
     private ExecutionInteraction executionInteraction;

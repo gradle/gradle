@@ -22,6 +22,24 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * A hierarchical {@link ServiceRegistry} implementation. Subclasses can register services by:
+ *
+ * <ul> <li>Calling {@link #add(org.gradle.api.internal.project.DefaultServiceRegistry.Service)} to register a factory
+ * for the service.</li>
+ *
+ * <li>Calling {@link #add(Class, Object)} to register a service instance.</li>
+ *
+ * <li>Adding a factory method. A factory method should have a name that starts with 'create', take no parameters, and
+ * have a non-void return type. For example, <code>protected SomeService createSomeService() { .... }</code>.</li>
+ *
+ * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single parameter, and a have a non-void return type. 
+ *
+ *  </ul>
+ *
+ * <p>Service instances are created on demand. If a service of a given type cannot be located, the registry uses its
+ * parent registry, if any, to locate the service.</p>
+ */
 public class DefaultServiceRegistry implements ServiceRegistry {
     private final List<Service> services = new ArrayList<Service>();
     private final ServiceRegistry parent;
@@ -34,6 +52,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     public DefaultServiceRegistry(ServiceRegistry parent) {
         this.parent = parent;
         findFactoryMethods();
+        findDecoratorMethods();
     }
 
     @Override
@@ -43,9 +62,21 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
     private void findFactoryMethods() {
         for (Method method : getClass().getDeclaredMethods()) {
-            if (method.getName().startsWith("create") && method.getParameterTypes().length == 0
+            if (method.getName().startsWith("create")
+                    && method.getParameterTypes().length == 0
                     && method.getReturnType() != Void.class) {
                 add(new FactoryMethodService(method));
+            }
+        }
+    }
+
+    private void findDecoratorMethods() {
+        for (Method method : getClass().getDeclaredMethods()) {
+            if (method.getName().startsWith("create")
+                    && method.getParameterTypes().length == 1
+                    && method.getReturnType() != Void.class
+                    && method.getParameterTypes()[0].equals(method.getReturnType())) {
+                add(new DecoratorMethodService(method));
             }
         }
     }
@@ -58,6 +89,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         add(new FixedInstanceService<T>(serviceType, serviceInstance));
     }
 
+    /**
+     * Closes all services for this registry. For each service, if the service has a public void close() method, that
+     * method is called to close the service.
+     */
     public void close() {
         try {
             for (Service service : services) {
@@ -93,8 +128,8 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             }
         }
 
-        throw new UnknownServiceException(serviceType,
-                String.format("No service of type %s available in %s.", serviceType.getSimpleName(), this));
+        throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.",
+                serviceType.getSimpleName(), this));
     }
 
     private static Object invoke(Method method, Object target, Object... args) {
@@ -104,7 +139,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             if (e.getCause() instanceof RuntimeException) {
                 throw (RuntimeException) e.getCause();
             }
-            throw new GradleException(e);
+            throw new GradleException(e.getCause());
         } catch (Exception e) {
             throw new GradleException(e);
         }
@@ -118,6 +153,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             this.serviceType = serviceType;
         }
 
+        boolean creates(Class<?> serviceType) {
+            return serviceType.isAssignableFrom(this.serviceType);
+        }
+        
         <T> T getService(Class<T> serviceType) {
             if (!serviceType.isAssignableFrom(this.serviceType)) {
                 return null;
@@ -173,7 +212,22 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
+    private class DecoratorMethodService extends Service {
+        private final Method method;
+
+        public DecoratorMethodService(Method method) {
+            super(method.getReturnType());
+            this.method = method;
+        }
+
+        @Override
+        protected Object create() {
+            return invoke(method, DefaultServiceRegistry.this, parent.get(method.getParameterTypes()[0]));
+        }
+    }
+
     static class UnknownServiceException extends IllegalArgumentException {
+
         private final Class<?> type;
 
         UnknownServiceException(Class<?> type, String message) {

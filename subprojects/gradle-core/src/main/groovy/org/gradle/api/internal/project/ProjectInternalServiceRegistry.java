@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
@@ -57,6 +58,10 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         this.project = project;
     }
 
+    protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
+        return parentRegistry.createChild(get(ScriptClassLoaderProvider.class).getClassLoader());
+    }
+    
     protected AntBuilderFactory createAntBuilderFactory() {
         return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
     }

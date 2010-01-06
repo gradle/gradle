@@ -32,4 +32,6 @@ public interface PluginRegistry {
     String getIdForType(Class<? extends Plugin> pluginClass);
 
     Class<? extends Plugin> getTypeForId(String pluginId);
+
+    PluginRegistry createChild(ClassLoader childClassPath);
 }

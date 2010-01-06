@@ -32,8 +32,11 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -59,6 +62,7 @@ public class ProjectInternalServiceRegistryTest {
     private final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final ProjectInternalServiceRegistry registry = new ProjectInternalServiceRegistry(parent, project);
+    private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
 
     @Before
     public void setUp() {
@@ -75,6 +79,8 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(publishArtifactFactory));
             allowing(parent).get(DependencyFactory.class);
             will(returnValue(dependencyFactory));
+            allowing(parent).get(PluginRegistry.class);
+            will(returnValue(pluginRegistry));
         }});
     }
 
@@ -94,6 +100,17 @@ public class ProjectInternalServiceRegistryTest {
     public void providesATaskContainer() {
         assertThat(registry.get(TaskContainer.class), instanceOf(DefaultTaskContainer.class));
         assertThat(registry.get(TaskContainer.class), sameInstance(registry.get(TaskContainer.class)));
+    }
+
+    @Test
+    public void providesAPluginContainer() {
+        expectScriptClassLoaderProviderCreated();
+        context.checking(new Expectations() {{
+            one(pluginRegistry).createChild(with(notNullValue(ClassLoader.class)));
+        }});
+
+        assertThat(registry.get(PluginContainer.class), instanceOf(DefaultProjectsPluginContainer.class));
+        assertThat(registry.get(PluginContainer.class), sameInstance(registry.get(PluginContainer.class)));
     }
 
     @Test
@@ -133,7 +150,17 @@ public class ProjectInternalServiceRegistryTest {
 
     @Test
     public void providesAScriptHandlerAndScriptClassLoaderProvider() {
+        expectScriptClassLoaderProviderCreated();
+
+        assertThat(registry.get(ScriptHandler.class), instanceOf(DefaultScriptHandler.class));
+        assertThat(registry.get(ScriptHandler.class), sameInstance(registry.get(ScriptHandler.class)));
+        assertThat(registry.get(ScriptClassLoaderProvider.class), sameInstance((Object) registry.get(
+                ScriptHandler.class)));
+    }
+
+    private void expectScriptClassLoaderProviderCreated() {
         expectConfigurationHandlerCreated();
+        
         context.checking(new Expectations() {{
             allowing(project).getParent();
             will(returnValue(null));
@@ -143,11 +170,6 @@ public class ProjectInternalServiceRegistryTest {
 
             ignoring(configurationContainer);
         }});
-
-        assertThat(registry.get(ScriptHandler.class), instanceOf(DefaultScriptHandler.class));
-        assertThat(registry.get(ScriptHandler.class), sameInstance(registry.get(ScriptHandler.class)));
-        assertThat(registry.get(ScriptClassLoaderProvider.class), sameInstance((Object) registry.get(
-                ScriptHandler.class)));
     }
 
     private void expectConfigurationHandlerCreated() {

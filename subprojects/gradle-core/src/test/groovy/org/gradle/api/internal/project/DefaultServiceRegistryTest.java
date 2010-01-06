@@ -83,7 +83,7 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
-    public void createsAnCachesRegisteredServiceInstance() {
+    public void createsAndCachesRegisteredServiceInstance() {
         final BigDecimal value = BigDecimal.TEN;
         registry.add(new DefaultServiceRegistry.Service(BigDecimal.class) {
             @Override
@@ -99,6 +99,19 @@ public class DefaultServiceRegistryTest {
     public void usesFactoryMethodToCreateServiceInstance() {
         assertThat(registry.get(String.class), equalTo("12"));
         assertThat(registry.get(Integer.class), equalTo(12));
+    }
+
+    @Test
+    public void usesDecoratorMethodToDecorateParentServiceInstance() {
+        final ServiceRegistry parent = context.mock(ServiceRegistry.class);
+        TestRegistry registry = new TestRegistry(parent);
+
+        context.checking(new Expectations() {{
+            one(parent).get(Long.class);
+            will(returnValue(110L));
+        }});
+
+        assertThat(registry.get(Long.class), equalTo(120L));
     }
 
     @Test
@@ -142,6 +155,10 @@ public class DefaultServiceRegistryTest {
 
         protected String createString() {
             return get(Integer.class).toString();
+        }
+
+        protected Long createLong(Long value) {
+            return value + 10;
         }
 
         protected Integer createInt() {

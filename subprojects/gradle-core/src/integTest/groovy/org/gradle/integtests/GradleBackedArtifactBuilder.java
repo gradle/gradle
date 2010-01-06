@@ -33,9 +33,14 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
         return rootDir.file("src/main/java", path);
     }
 
+    public TestFile resourceFile(String path) {
+        return rootDir.file("src/main/resources", path);
+    }
+
     public void buildJar(File jarFile) {
         rootDir.file("build.gradle").writelns(
                 "apply id: 'java'",
+                "dependencies.compile files(org.gradle.util.BootstrapUtil.gradleClasspath)",
                 String.format("jar.destinationDir = file('%s')", GradleUtil.unbackslash(jarFile.getParentFile())),
                 String.format("jar.archiveName = '%s'", jarFile.getName())
         );

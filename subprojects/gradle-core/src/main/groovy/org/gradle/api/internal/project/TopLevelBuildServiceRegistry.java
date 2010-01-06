@@ -80,12 +80,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         add(ClassGenerator.class, new AsmBackedClassGenerator());
         add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
         add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
-        add(new Service(CacheFactory.class) {
-            @Override
-            protected Object create() {
-                return new AutoCloseCacheFactory(parent.get(CacheFactory.class));
-            }
-        });
+    }
+
+    protected CacheFactory createCacheFactory(CacheFactory parentFactory) {
+        return new AutoCloseCacheFactory(parentFactory);
     }
 
     protected TaskExecuter createTaskExecuter() {
