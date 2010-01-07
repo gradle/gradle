@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,21 +30,28 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 
+/**
+ * An instance of this class is created for each test class.
+ */
 public class TestListenerFormatter implements JUnitResultFormatter {
     private static final String PORT_VMARG = "test.listener.remote.port";
-    private RemoteSender<TestListener> sender;
+    private static RemoteSender<TestListener> sender;
+    private static TestListener defaultSender;
     private TestListener remoteSender;
     private Throwable error;
 
     public TestListenerFormatter() throws IOException {
-        int port = Integer.parseInt(System.getProperty(PORT_VMARG, "0"));
-        if (port <= 0) {
-            throw new IllegalArgumentException(String.format("Invalid port '%s' specified for remote test listener.",
-                    System.getProperty(PORT_VMARG)));
+        if (defaultSender == null) {
+            int port = Integer.parseInt(System.getProperty(PORT_VMARG, "0"));
+            if (port <= 0) {
+                throw new IllegalArgumentException(String.format("Invalid port '%s' specified for remote test listener.",
+                        System.getProperty(PORT_VMARG)));
+            }
+            sender = new RemoteSender<TestListener>(TestListener.class, port);
+            ShutdownHookActionRegister.closeOnExit(sender);
+            defaultSender = sender.getSource();
         }
-        sender = new RemoteSender<TestListener>(TestListener.class, port);
-        ShutdownHookActionRegister.closeOnExit(sender);
-        remoteSender = sender.getSource();
+        remoteSender = defaultSender;
     }
 
     public TestListenerFormatter(TestListener listener) throws IOException {
