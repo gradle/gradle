@@ -1,5 +1,5 @@
 apply id: 'groovy'
 dependencies {
-    compile files(org.gradle.util.BootstrapUtil.gradleClasspath)
-    groovy files(org.gradle.util.BootstrapUtil.groovyFiles)
+    compile gradleApi()
+    groovy localGroovy()
 }

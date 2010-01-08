@@ -48,7 +48,7 @@ public class RemoteListenerIntegrationTest {
         ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);
         broadcast.add(listenerMock);
         RemoteExceptionListener exceptionListener = new RemoteExceptionListener();
-        RemoteReceiver receiver = new RemoteReceiver(broadcast, exceptionListener);
+        RemoteReceiver receiver = new RemoteReceiver(broadcast, exceptionListener, getClass().getClassLoader());
 
         executeJava(RemoteProcess.class.getName(), receiver.getBoundPort());
         if (exceptionListener.ex != null) {

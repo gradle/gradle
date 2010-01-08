@@ -86,8 +86,11 @@ class DistributionIntegrationTest {
         contentsDir.file("lib/gradle-core-${version}.jar").assertIsFile()
         contentsDir.file("lib/gradle-ui-${version}.jar").assertIsFile()
         contentsDir.file("lib/gradle-launcher-${version}.jar").assertIsFile()
-        contentsDir.file("lib/gradle-jetty-${version}.jar").assertIsFile()
-        contentsDir.file("lib/gradle-wrapper-${version}.jar").assertIsFile()
+        contentsDir.file("lib/plugins/gradle-code-quality-${version}.jar").assertIsFile()
+        contentsDir.file("lib/plugins/gradle-plugins-${version}.jar").assertIsFile()
+        contentsDir.file("lib/plugins/gradle-jetty-${version}.jar").assertIsFile()
+        contentsDir.file("lib/plugins/gradle-wrapper-${version}.jar").assertIsFile()
+        contentsDir.file("lib/plugins/gradle-wrapper-tasks-${version}.jar").assertIsFile()
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()

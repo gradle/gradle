@@ -18,59 +18,67 @@ package org.gradle.integtests
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
+import org.junit.runner.RunWith
 
-class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
+@RunWith(DistributionIntegrationTestRunner.class)
+class BuildAggregationIntegrationTest {
+    // Injected by test runner
+    private GradleDistribution dist;
+    private GradleExecuter executer;
+
     @Test
     public void canExecuteAnotherBuildFromBuild() {
-        testFile('build.gradle') << '''
-            assertThat(gradle.parent, nullValue())
+        dist.testFile('build.gradle') << '''
+            assert gradle.parent == null
             task build(type: GradleBuild) {
                 dir = 'other'
                 tasks = ['dostuff']
+                startParameter.searchUpwards = false
             }
 '''
 
-        testFile('other/build.gradle') << '''
-            assertThat(gradle.parent, notNullValue())
+        dist.testFile('other/build.gradle') << '''
+            assert gradle.parent != null
             task dostuff << {
-                assertThat(gradle.parent, notNullValue())
+                assert gradle.parent != null
             }
 '''
 
-        inTestDirectory().withTasks('build').run()
+        executer.withTasks('build').run()
     }
 
     @Test
     public void treatsBuildSrcProjectAsANestedBuild() {
-        testFile('build.gradle') << '''
-            assertThat(gradle.parent, nullValue())
+        dist.testFile('build.gradle') << '''
+            assert gradle.parent == null
             task build
 '''
 
-        testFile('buildSrc/build.gradle') << '''
+        dist.testFile('buildSrc/build.gradle') << '''
             apply id: 'java'
-            assertThat(gradle.parent, notNullValue())
+            assert gradle.parent != null
             classes << {
-                assertThat(gradle.parent, notNullValue())
+                assert gradle.parent != null
             }
 '''
 
-        inTestDirectory().withTasks('build').run()
+        executer.withTasks('build').run()
     }
 
     @Test
     public void reportsNestedBuildFailure() {
-        TestFile other = testFile('other.gradle') << '''
+        TestFile other = dist.testFile('other.gradle') << '''
             1/0
 '''
 
-        testFile('build.gradle') << '''
+        dist.testFile('build.gradle') << '''
             task build(type: GradleBuild) {
                 buildFile = 'other.gradle'
+                startParameter.searchUpwards = false
             }
 '''
 
-        ExecutionFailure failure = inTestDirectory().withTasks('build').runWithFailure()
+        ExecutionFailure failure = executer.withTasks('build').runWithFailure()
         failure.assertHasFileName("Build file '${other}'")
         failure.assertHasLineNumber(2)
         failure.assertHasDescription('A problem occurred evaluating root project')
@@ -79,11 +87,9 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void reportsBuildSrcFailure() {
-        testFile('buildSrc/src/main/java/Broken.java') << 'broken!'
-        ExecutionFailure failure = inTestDirectory().runWithFailure()
+        dist.testFile('buildSrc/src/main/java/Broken.java') << 'broken!'
+        ExecutionFailure failure = executer.runWithFailure()
         failure.assertHasFileName('Default buildSrc build script')
         failure.assertHasDescription('Execution failed for task \':compileJava\'')
     }
 }
-
-

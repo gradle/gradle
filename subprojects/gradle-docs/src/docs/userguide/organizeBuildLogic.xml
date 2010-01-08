@@ -128,7 +128,7 @@
             and the <literal>tasks</literal> property to specify which tasks to execute.
         </para>
         <sample id="nestedBuild" dir="userguide/organizeBuildLogic/nestedBuild" title="Running another build from a build">
-            <sourcefile file="build.gradle"/>
+            <sourcefile file="build.gradle" snippet="execute-build"/>
             <sourcefile file="other.gradle"/>
             <output args="-q build"/>
         </sample>

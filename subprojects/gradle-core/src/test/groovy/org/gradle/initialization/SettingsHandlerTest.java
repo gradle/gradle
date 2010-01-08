@@ -75,7 +75,7 @@ public class SettingsHandlerTest {
             allowing(settings).getProjectRegistry();
             will(returnValue(projectRegistry));
 
-            allowing(settings).createClassLoader();
+            allowing(settings).getClassLoader();
             will(returnValue(urlClassLoader));
 
             allowing(gradle).getScriptClassLoader();

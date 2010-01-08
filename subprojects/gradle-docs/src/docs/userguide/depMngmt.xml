@@ -278,6 +278,15 @@
                 <output args="-q list"/>
             </sample>
         </section>
+        <section>
+            <title>Gradle API Dependency</title>
+            <para>You can declare a dependency on the API of the current version of Gradle by using the
+                <apilink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="gradleApi"/> method. This is
+                useful when you are developing custom Gradle tasks or plugins.</para>
+            <sample id="gradle-api-dependencies" dir="java/multiproject/buildSrc" title="Gradle API dependencies">
+                <sourcefile file="build.gradle" snippet="gradle-api-dependencies"/>
+            </sample>
+        </section>
         <section id='sub:exclude_transitive_dependencies'>
             <title>Excluding transitive dependencies</title>
             <para>You can exclude a <emphasis>transitive</emphasis> dependency either by configuration or by dependency:

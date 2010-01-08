@@ -24,11 +24,9 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.util.ClasspathUtil;
 
 import java.io.File;
 import java.net.URLClassLoader;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -139,17 +137,6 @@ public class BaseSettings implements SettingsInternal {
             return projectPath.substring(1);
         }
         return projectPath;
-    }
-
-    // todo We don't have command query separation here. This is a temporary thing. If our new classloader handling works out, which
-    // adds simply the build script jars to the context classloader we can remove the return argument and simplify our design.
-    public URLClassLoader createClassLoader() {
-        File toolsJar = ClasspathUtil.getToolsJar();
-        if (toolsJar != null) {
-            ClasspathUtil.addUrl((URLClassLoader) classloader.getParent(), Collections.singleton(toolsJar));
-        }
-
-        return classloader;
     }
 
     public URLClassLoader getClassLoader() {

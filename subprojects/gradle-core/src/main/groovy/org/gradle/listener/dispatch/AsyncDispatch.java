@@ -16,6 +16,7 @@
 package org.gradle.listener.dispatch;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -28,17 +29,41 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final LinkedList<T> queue = new LinkedList<T>();
+    private final int maxQueueSize;
     private boolean closed;
+    private boolean dispatching = true;
 
     public AsyncDispatch(Executor executor, final Dispatch<? super T> dispatch) {
+        this(executor, dispatch, MAX_QUEUE_SIZE);
+    }
+
+    public AsyncDispatch(Executor executor, final Dispatch<? super T> dispatch, int maxQueueSize) {
+        this.maxQueueSize = maxQueueSize;
         executor.execute(new Runnable() {
             public void run() {
-                pushMessages(dispatch);
+                dispatchThreadMain(dispatch);
             }
         });
     }
 
-    private void pushMessages(Dispatch<? super T> dispatch) {
+    private void dispatchThreadMain(Dispatch<? super T> dispatch) {
+        try {
+            dispatchMessages(dispatch);
+        } finally {
+            onDispatchThreadExit();
+        }
+    }
+
+    private void onDispatchThreadExit() {
+        lock.lock();
+        try {
+            dispatching = false;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void dispatchMessages(Dispatch<? super T> dispatch) {
         while (true) {
             List<T> messages = new ArrayList<T>();
             lock.lock();
@@ -58,12 +83,14 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
             }
 
             if (messages.isEmpty()) {
+                // Have been closed
                 return;
             }
+
             for (T message : messages) {
                 dispatch.dispatch(message);
             }
-            
+
             lock.lock();
             try {
                 queue.subList(0, messages.size()).clear();
@@ -77,7 +104,7 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
     public void dispatch(final T message) {
         lock.lock();
         try {
-            while (!closed && queue.size() >= MAX_QUEUE_SIZE) {
+            while (dispatching && !closed && queue.size() >= maxQueueSize) {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
@@ -86,6 +113,9 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
             }
             if (closed) {
                 throw new IllegalStateException("This message dispatch has been closed.");
+            }
+            if (!dispatching) {
+                throw new IllegalStateException("Cannot dispatch messages, as the dispatch thread has exited.");
             }
             queue.add(message);
             condition.signalAll();
@@ -99,12 +129,19 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
         try {
             closed = true;
             condition.signalAll();
-            while (!queue.isEmpty()) {
+            Date expiry = new Date(System.currentTimeMillis() + (120 * 1000));
+            while (dispatching && !queue.isEmpty()) {
                 try {
-                    condition.await();
+                    if (!condition.awaitUntil(expiry)) {
+                        throw new IllegalStateException("Timeout waiting for messages to be flushed.");
+                    }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+            }
+            if (!queue.isEmpty()) {
+                throw new IllegalStateException(
+                        "Cannot wait for messages to be flushed, as the dispatch thread has exited.");
             }
         } finally {
             lock.unlock();

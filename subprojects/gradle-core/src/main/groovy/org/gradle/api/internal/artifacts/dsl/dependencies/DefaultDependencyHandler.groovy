@@ -68,6 +68,14 @@ class DefaultDependencyHandler implements DependencyHandler {
         return dependencyFactory.createModule(notation, configureClosure)
     }
 
+    public Dependency gradleApi() {
+        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API);
+    }
+
+    public Dependency localGroovy() {
+        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
+    }
+
     public def methodMissing(String name, args) {
         Configuration configuration = configurationContainer.findByName(name)
         if (configuration == null) {

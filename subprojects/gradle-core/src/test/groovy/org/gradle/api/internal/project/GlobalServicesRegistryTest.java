@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
-import org.gradle.initialization.CommandLine2StartParameterConverter;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.initialization.DefaultLoggingConfigurer;
-import org.gradle.initialization.LoggingConfigurer;
+import org.gradle.initialization.*;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -28,11 +27,6 @@ import static org.junit.Assert.*;
 
 public class GlobalServicesRegistryTest {
     private final GlobalServicesRegistry registry = new GlobalServicesRegistry();
-
-    @Test
-    public void providesALoggingConfigurer() {
-        assertThat(registry.get(LoggingConfigurer.class), instanceOf(DefaultLoggingConfigurer.class));
-    }
 
     @Test
     public void providesCommandLineArgsConverter() {
@@ -43,5 +37,15 @@ public class GlobalServicesRegistryTest {
     @Test
     public void providesACacheFactory() {
         assertThat(registry.get(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
+    }
+    
+    @Test
+    public void providesAClassPathRegistry() {
+        assertThat(registry.get(ClassPathRegistry.class), instanceOf(DefaultClassPathRegistry.class));
+    }
+    
+    @Test
+    public void providesAClassLoaderFactory() {
+        assertThat(registry.get(ClassLoaderFactory.class), instanceOf(DefaultClassLoaderFactory.class));
     }
 }

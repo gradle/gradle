@@ -65,7 +65,7 @@ class BuildSourceBuilderTest {
         rootProjectMock = context.mock(Project)
         configurationMock = context.mock(Configuration)
         cacheInvalidationStrategyMock = context.mock(CacheInvalidationStrategy)
-        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, cacheInvalidationStrategyMock)
+        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, cacheInvalidationStrategyMock, context.mock(ClassLoaderFactory))
         expectedStartParameter = new StartParameter(
                 searchUpwards: false,
                 currentDir: testBuildSrcDir,

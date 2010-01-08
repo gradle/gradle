@@ -15,20 +15,20 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
-import org.gradle.initialization.CommandLine2StartParameterConverter;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.initialization.DefaultLoggingConfigurer;
-import org.gradle.initialization.LoggingConfigurer;
+import org.gradle.initialization.*;
 
 /**
  * Contains the services shared by all builds in a given process.
  */
 public class GlobalServicesRegistry extends DefaultServiceRegistry {
     public GlobalServicesRegistry() {
-        add(LoggingConfigurer.class, new DefaultLoggingConfigurer());
         add(CommandLine2StartParameterConverter.class, new DefaultCommandLine2StartParameterConverter());
         add(CacheFactory.class, new DefaultCacheFactory());
+        add(ClassPathRegistry.class, new DefaultClassPathRegistry());
+        add(ClassLoaderFactory.class, new DefaultClassLoaderFactory(get(ClassPathRegistry.class)));
     }
 }

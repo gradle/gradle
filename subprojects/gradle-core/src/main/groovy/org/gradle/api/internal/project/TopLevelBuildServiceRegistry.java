@@ -23,10 +23,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.ExceptionAnalyser;
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -42,6 +39,7 @@ import org.gradle.api.internal.changedetection.CachingHasher;
 import org.gradle.api.internal.changedetection.DefaultHasher;
 import org.gradle.api.internal.changedetection.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.tasks.DefaultTaskExecuter;
@@ -196,7 +194,11 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                         new ModuleDependencyFactory(
                                 classGenerator),
                         new SelfResolvingDependencyFactory(
-                                classGenerator)),
+                                classGenerator),
+                        new ClassPathDependencyFactory(
+                                classGenerator,
+                                get(ClassPathRegistry.class),
+                                new IdentityFileResolver())),
                 new DefaultClientModuleFactory(
                         classGenerator),
                 new DefaultProjectDependencyFactory(
@@ -242,7 +244,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected MultiParentClassLoader createRootClassLoader() {
-        return new MultiParentClassLoader(getClass().getClassLoader());
+        return get(ClassLoaderFactory.class).createScriptClassLoader();
     }
     
     protected InitScriptHandler createInitScriptHandler() {
@@ -275,7 +277,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected IsolatedAntBuilder createIsolatedAntBuilder() {
-        return new DefaultIsolatedAntBuilder();
+        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
     }
     
     public ServiceRegistryFactory createFor(Object domainObject) {

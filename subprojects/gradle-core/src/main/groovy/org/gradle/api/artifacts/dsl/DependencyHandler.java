@@ -95,7 +95,7 @@ public interface DependencyHandler {
      * Adds a dependency to the given configuration.
      *
      * @param configurationName The name of the configuration.
-     * @param dependencyNotation The dependency notation, in one of the notations decribed above.
+     * @param dependencyNotation The dependency notation, in one of the notations described above.
      * @return The dependency.
      */
     Dependency add(String configurationName, Object dependencyNotation);
@@ -104,9 +104,51 @@ public interface DependencyHandler {
      * Adds a dependency to the given configuration, and configures the dependency using the given closure/
      *
      * @param configurationName The name of the configuration.
-     * @param dependencyNotation The dependency notation, in one of the notations decribed above.
+     * @param dependencyNotation The dependency notation, in one of the notations described above.
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency.
      */
     Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
+
+    /**
+     * Creates a dependency on a client module.
+     *
+     * @param notation The module notation, in one of the notations described above.
+     * @return The dependency.
+     */
+    Dependency module(Object notation);
+
+    /**
+     * Creates a dependency on a client module. The dependency is configured using the given closure before it is
+     * returned.
+     *
+     * @param notation The module notation, in one of the notations described above.
+     * @param configureClosure The closure to use to configure the dependency.
+     * @return The dependency.
+     */
+    Dependency module(Object notation, Closure configureClosure);
+
+    /**
+     * Creates a dependency on a project.
+     *
+     * @param notation The project notation, in one of the notations described above.
+     * @return The dependency.
+     */
+    Dependency project(Object notation);
+
+    /**
+     * Creates a dependency on a project. The dependency is configured using the given closure before it is returned.
+     *
+     * @param notation The project notation, in one of the notations described above.
+     * @param configureClosure The closure to use to configure the dependency.
+     * @return The dependency.
+     */
+    Dependency project(Object notation, Closure configureClosure);
+
+    /**
+     * Creates a dependency on the API of the current version of Gradle.
+     *
+     * @return The dependency.
+     */
+    Dependency gradleApi();
 }

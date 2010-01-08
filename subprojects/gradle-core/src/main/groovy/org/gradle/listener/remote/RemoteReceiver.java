@@ -42,14 +42,21 @@ public class RemoteReceiver implements Closeable {
     private final ServerSocketChannel serverSocket;
     private final ExceptionListener exceptionListener;
     private final ExecutorService executor;
+    private final ClassLoader classLoader;
 
     public RemoteReceiver(Dispatch<? super Event> broadcaster) throws IOException {
-        this(broadcaster, null);
+        this(broadcaster, null, Thread.currentThread().getContextClassLoader());
     }
 
-    public RemoteReceiver(Dispatch<? super Event> broadcaster, ExceptionListener exceptionListener) throws IOException {
+    public RemoteReceiver(Dispatch<? super Event> broadcaster, ClassLoader classLoader) throws IOException {
+        this(broadcaster, null, classLoader);
+    }
+
+    public RemoteReceiver(Dispatch<? super Event> broadcaster, ExceptionListener exceptionListener,
+                          ClassLoader classLoader) throws IOException {
         this.broadcaster = broadcaster;
         this.exceptionListener = exceptionListener;
+        this.classLoader = classLoader;
         serverSocket = ServerSocketChannel.open();
         serverSocket.socket().bind(new InetSocketAddress(InetAddress.getByName(null), 0));
         executor = Executors.newCachedThreadPool();
@@ -76,11 +83,10 @@ public class RemoteReceiver implements Closeable {
             try {
                 try {
                     InputStream inputStream = new BufferedInputStream(Channels.newInputStream(socket));
-                    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
                     while (true) {
                         Message message = Message.receive(inputStream, classLoader);
                         if (message instanceof EndOfStream) {
-                            // End of stream - finish with this
+                            // End of stream - finish with this connection
                             return;
                         }
 
@@ -90,6 +96,8 @@ public class RemoteReceiver implements Closeable {
                         } catch (Exception e) {
                             if (exceptionListener != null) {
                                 exceptionListener.receiverThrewException(e);
+                            } else {
+                                throw e;
                             }
                         }
                     }

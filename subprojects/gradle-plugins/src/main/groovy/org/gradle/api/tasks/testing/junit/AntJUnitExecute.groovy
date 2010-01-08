@@ -17,12 +17,12 @@
 package org.gradle.api.tasks.testing.junit
 
 import org.gradle.api.tasks.testing.AntTest
-import org.gradle.util.BootstrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.listener.remote.RemoteReceiver
 import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.internal.ClassPathRegistry
 
 /**
  * @author Hans Dockter
@@ -32,21 +32,25 @@ import org.gradle.listener.ListenerBroadcast
 //todo: Find a more stable way to find the ant junit jars
 class AntJUnitExecute {
     private static Logger logger = LoggerFactory.getLogger(AntJUnitExecute)
-
     private static final String CLASSPATH_ID = 'runtests.classpath'
+    private final ClassPathRegistry classPathRegistry
+
+    def AntJUnitExecute(ClassPathRegistry classPathRegistry) {
+        this.classPathRegistry = classPathRegistry
+    }
 
     void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, Collection<String> includes,
                  Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant,
                  ListenerBroadcast<TestListener> testListenerBroadcaster) {
         ant.mkdir(dir: testResultsDir.absolutePath)
-        createAntClassPath(ant, classPath + BootstrapUtil.antJunitJarFiles + BootstrapUtil.gradleTestListenerFiles)
+        createAntClassPath(ant, classPath + classPathRegistry.getClassPathFiles("ANT_JUNIT") + classPathRegistry.getClassPathFiles("TEST_LISTENER"))
         Map otherArgs = [
                 includeantruntime: 'false',
                 errorproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY,
                 failureproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY
         ]
 
-        final RemoteReceiver remoteReceiver = new RemoteReceiver(testListenerBroadcaster);
+        final RemoteReceiver remoteReceiver = new RemoteReceiver(testListenerBroadcaster, TestListenerFormatter.class.classLoader);
         logger.debug("Listening for test listener events on port {}.", remoteReceiver.boundPort)
         try {
             ant.junit(otherArgs + junitOptions.optionMap()) {

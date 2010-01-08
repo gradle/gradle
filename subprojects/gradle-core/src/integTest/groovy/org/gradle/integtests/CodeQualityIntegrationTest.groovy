@@ -53,7 +53,7 @@ apply id: 'code-quality'
         testFile('build.gradle') << '''
 apply id: 'groovy'
 apply id: 'code-quality'
-dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
+dependencies { groovy localGroovy() }
 '''
         writeCheckstyleConfig()
 
@@ -111,7 +111,7 @@ apply id: 'code-quality'
         testFile('build.gradle') << '''
 apply id: 'groovy'
 apply id: 'code-quality'
-dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
+dependencies { groovy localGroovy() }
 '''
         writeCodeNarcConfigFile()
 
@@ -146,7 +146,7 @@ apply id: 'code-quality'
         testFile('build.gradle') << '''
 apply id: 'groovy'
 apply id: 'code-quality'
-dependencies { groovy files(org.gradle.util.BootstrapUtil.gradleClasspath) }
+dependencies { groovy localGroovy() }
 '''
 
         writeCodeNarcConfigFile()

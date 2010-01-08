@@ -16,7 +16,8 @@
 
 package org.gradle.launcher;
 
-import org.gradle.util.BootstrapUtil;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DefaultClassPathRegistry;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -24,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,13 +40,14 @@ public class GradleMain {
         processGradleHome(bootStrapDebug);
         processGradleUserHome(bootStrapDebug);
 
-        List<URL> classpath = toUrl(BootstrapUtil.getGradleClasspath());
+        ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry();
+        URL[] classpath = classPathRegistry.getClassPathUrls("GRADLE_RUNTIME");
         ClassLoader parentClassloader = ClassLoader.getSystemClassLoader().getParent();
         if (bootStrapDebug) {
             System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
-            System.out.println("Adding the following files to new lib classloader: " + classpath);
+            System.out.println("Adding the following files to new lib classloader: " + Arrays.toString(classpath));
         }
-        URLClassLoader libClassLoader = new URLClassLoader(classpath.toArray(new URL[classpath.size()]), parentClassloader);
+        URLClassLoader libClassLoader = new URLClassLoader(classpath, parentClassloader);
         Thread.currentThread().setContextClassLoader(libClassLoader);
         Class mainClass = libClassLoader.loadClass("org.gradle.launcher.Main");
         Method mainMethod = mainClass.getMethod("main", String[].class);

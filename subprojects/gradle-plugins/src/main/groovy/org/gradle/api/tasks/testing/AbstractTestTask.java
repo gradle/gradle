@@ -21,6 +21,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
@@ -90,6 +91,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
         return testListenerBroadcaster;
     }
 
+    public ClassPathRegistry getClassPathRegistry() {
+        return getServices().get(ClassPathRegistry.class);
+    }
+    
     /**
      * Registers a test listener with this task.  This listener will NOT be notified of tests executed by other tasks.
      * To get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.

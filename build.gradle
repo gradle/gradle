@@ -50,7 +50,7 @@ libraries = [
         commons_io      : 'commons-io:commons-io:1.4@jar',
         commons_lang    : 'commons-lang:commons-lang:2.4@jar',
         dom4j           : 'dom4j:dom4j:1.6.1@jar',
-        groovy          : 'org.codehaus.groovy:groovy:1.7.0@jar',
+        groovy          : 'org.codehaus.groovy:groovy-all:1.7.0@jar',
         ivy             : 'org.apache.ivy:ivy:2.1.0@jar',
         jaxen           : 'jaxen:jaxen:1.1@jar',
         jopt_simple     : 'net.sf.jopt-simple:jopt-simple:3.2@jar',
@@ -63,8 +63,8 @@ libraries = [
         junit           : 'junit:junit:4.7'
     ]
 
-libraries.groovy_depends  = [libraries.groovy, libraries.ant, libraries.ant_launcher, libraries.asm_all,
-        libraries.antlr, libraries.commons_cli, libraries.ant_junit, libraries.junit]
+libraries.groovy_depends  = [libraries.groovy, libraries.ant, libraries.ant_launcher, libraries.commons_cli,
+        libraries.ant_junit, libraries.junit]
 libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.22@jar", "org.mortbay.jetty:jetty-util:6.1.22@jar",
         "javax.servlet:servlet-api:2.5@jar"]
 
@@ -137,14 +137,21 @@ configurations {
     runtime {
         visible = false
     }
+    plugins {
+        visible = false
+    }
     testRuntime {
         extendsFrom runtime
+        extendsFrom plugins
     }
 }
 
 dependencies {
-    groovyProjects().each {
+    runtimeProjects().each {
         runtime project(path: it.path)
+    }
+    pluginProjects().each {
+        plugins project(path: it.path)
     }
 }
 
@@ -176,6 +183,9 @@ binDistImage = copySpec {
     }
     into('lib') {
         from configurations.runtime
+        into('plugins') {
+            from configurations.plugins - configurations.runtime
+        }
     }
 }
 
@@ -351,6 +361,14 @@ task rebuildWrapper(dependsOn: [clean, wrapper])
 
 def groovyProjects() {
     subprojects.findAll { project -> project.name != 'docs' }
+}
+
+def runtimeProjects() {
+    groovyProjects() - pluginProjects()
+}
+
+def pluginProjects() {
+    ['plugins', 'codeQuality', 'jetty', 'wrapper'].collect { project(it) }
 }
 
 class Version {

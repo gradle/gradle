@@ -109,6 +109,10 @@ public class GFileUtils {
         return FileUtils.toFiles(urls);
     }
 
+    public static URL[] toURLs(Collection<File> files) {
+        return toURLs(files.toArray(new File[files.size()]));
+    }
+
     public static URL[] toURLs(File[] files) {
         try {
             return FileUtils.toURLs(files);

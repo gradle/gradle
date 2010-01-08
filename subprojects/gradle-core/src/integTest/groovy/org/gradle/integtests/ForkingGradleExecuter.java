@@ -106,6 +106,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.errorOutput(errStream);
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", System.getProperty("java.home"));
+        builder.environment("GRADLE_OPTS", "-ea");
         builder.environment(environmentVars);
         builder.execDirectory(getWorkingDir());
 
@@ -177,7 +178,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void assertHasLineNumber(int lineNumber) {
-            throw new UnsupportedOperationException();
+            assertThat(getError(), containsString(String.format(" line: %d", lineNumber)));
         }
 
         public void assertHasFileName(String filename) {
@@ -185,7 +186,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void assertHasCause(String description) {
-            assertThatCause(equalTo(description));
+            assertThatCause(startsWith(description));
         }
 
         public void assertThatCause(final Matcher<String> matcher) {
@@ -203,7 +204,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void assertHasDescription(String context) {
-            assertThatDescription(equalTo(context));
+            assertThatDescription(startsWith(context));
         }
 
         public void assertThatDescription(Matcher<String> matcher) {

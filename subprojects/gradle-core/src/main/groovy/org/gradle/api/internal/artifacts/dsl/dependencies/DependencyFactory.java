@@ -24,6 +24,10 @@ import org.gradle.api.artifacts.ProjectDependency;
  * @author Hans Dockter
  */
 public interface DependencyFactory {
+    enum ClassPathNotation {
+        GRADLE_API, LOCAL_GROOVY
+    }
+    
     Dependency createDependency(Object dependencyNotation, Closure closure);
     Dependency createDependency(Object dependencyNotation);
 

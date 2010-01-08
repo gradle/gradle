@@ -38,7 +38,7 @@ assertNotNull(gradle)
 assertSame(initscript.classLoader, getClass().classLoader.parent)
 assertSame(initscript.classLoader, Thread.currentThread().contextClassLoader)
 assertSame(scriptClassLoader, initscript.classLoader.parent)
-assertSame(Gradle.class.classLoader, scriptClassLoader.parent)
+assertSame(Gradle.class.classLoader, scriptClassLoader.parent.parent)
 '''
         testFile('build.gradle') << 'task doStuff'
 

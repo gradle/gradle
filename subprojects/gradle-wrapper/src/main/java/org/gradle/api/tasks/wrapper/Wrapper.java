@@ -19,6 +19,7 @@ package org.gradle.api.tasks.wrapper;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.*;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GUtil;
 
@@ -101,8 +102,8 @@ public class Wrapper extends DefaultTask {
         String wrapperPropertiesPath = wrapperDir + WRAPPER_PROPERTIES;
         File jarFileDestination = new File(getProject().getProjectDir(), wrapperJar);
         File propertiesFileDestination = new File(getProject().getProjectDir(), wrapperPropertiesPath);
-        File jarFileSource = new File(getProject().getGradle().getGradleHomeDir() + "/lib",
-                WRAPPER_JAR_BASE_NAME + "-" + getProject().getGradle().getGradleVersion() + ".jar");
+        Gradle gradle = getProject().getGradle();
+        File jarFileSource = new File(gradle.getGradleHomeDir(), "lib/plugins/" + WRAPPER_JAR_BASE_NAME + "-" + gradle.getGradleVersion() + ".jar");
         propertiesFileDestination.delete();
         jarFileDestination.delete();
         writeProperties(propertiesFileDestination);

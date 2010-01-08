@@ -103,7 +103,7 @@ def writeVersionProperties(File destination) {
 
 test {
     xmsSize = '128m'
-    xmxSize = '1100m'
+    xmxSize = '512m'
     maxPermSize = '128m'
 
     // there must be a nicer way of doing this...

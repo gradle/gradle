@@ -63,7 +63,7 @@ public class SettingsHandler {
             }
         }
 
-        gradle.getScriptClassLoader().addParent(settings.createClassLoader());
+        gradle.getScriptClassLoader().addParent(settings.getClassLoader());
         return settings;
     }
 

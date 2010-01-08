@@ -17,12 +17,12 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.JUnit4GroovyMockery
-import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.artifacts.*
-import static org.junit.Assert.assertThat
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -58,7 +58,7 @@ class DefaultDependencyHandlerTest {
             one(configurationMock).addDependency(dependencyDummy);
         }
 
-        assertThat(dependencyHandler.add(TEST_CONF_NAME, someNotation), Matchers.equalTo(dependencyDummy))
+        assertThat(dependencyHandler.add(TEST_CONF_NAME, someNotation), equalTo(dependencyDummy))
     }
 
     @Test
@@ -72,7 +72,7 @@ class DefaultDependencyHandlerTest {
             one(configurationMock).addDependency(dependencyDummy);
         }
 
-        assertThat(dependencyHandler.add(TEST_CONF_NAME, someNotation, closure), Matchers.equalTo(dependencyDummy))
+        assertThat(dependencyHandler.add(TEST_CONF_NAME, someNotation, closure), equalTo(dependencyDummy))
     }
 
     @Test
@@ -84,7 +84,7 @@ class DefaultDependencyHandlerTest {
             one(configurationMock).addDependency(dependencyDummy);
         }
 
-        assertThat(dependencyHandler."$TEST_CONF_NAME"(someNotation), Matchers.equalTo(dependencyDummy))
+        assertThat(dependencyHandler."$TEST_CONF_NAME"(someNotation), equalTo(dependencyDummy))
     }
 
     @Test
@@ -97,7 +97,7 @@ class DefaultDependencyHandlerTest {
             one(configurationMock).addDependency(dependencyDummy);
         }
 
-        assertThat(dependencyHandler."$TEST_CONF_NAME"(someNotation, configureClosure), Matchers.equalTo(dependencyDummy))
+        assertThat(dependencyHandler."$TEST_CONF_NAME"(someNotation, configureClosure), equalTo(dependencyDummy))
     }
 
     @Test
@@ -137,7 +137,7 @@ class DefaultDependencyHandlerTest {
         ProjectDependency projectDependency = context.mock(ProjectDependency)
         Map someMapNotation = [:]
         Closure projectDependencyClosure = {
-            assertThat("$TEST_CONF_NAME"(project(someMapNotation)), Matchers.equalTo(projectDependency))
+            assertThat("$TEST_CONF_NAME"(project(someMapNotation)), equalTo(projectDependency))
         }
         context.checking {
             allowing(dependencyFactoryStub).createProject(projectFinderDummy, someMapNotation, null); will(returnValue(projectDependency))
@@ -154,7 +154,7 @@ class DefaultDependencyHandlerTest {
         Map someMapNotation = [:]
         Closure configureClosure = {}
         Closure projectDependencyClosure = {
-            assertThat("$TEST_CONF_NAME"(project(someMapNotation, configureClosure)), Matchers.equalTo(projectDependency))
+            assertThat("$TEST_CONF_NAME"(project(someMapNotation, configureClosure)), equalTo(projectDependency))
         }
         context.checking {
             allowing(dependencyFactoryStub).createProject(projectFinderDummy, someMapNotation, configureClosure); will(returnValue(projectDependency))
@@ -170,7 +170,7 @@ class DefaultDependencyHandlerTest {
         ClientModule clientModule = context.mock(ClientModule)
         String someNotation = "someNotation"
         Closure moduleClosure = {
-            assertThat("$TEST_CONF_NAME"(module(someNotation)), Matchers.equalTo(clientModule))
+            assertThat("$TEST_CONF_NAME"(module(someNotation)), equalTo(clientModule))
         }
         context.checking {
             allowing(dependencyFactoryStub).createModule(someNotation, null); will(returnValue(clientModule))
@@ -187,7 +187,7 @@ class DefaultDependencyHandlerTest {
         String someNotation = "someNotation"
         Closure configureClosure = {}
         Closure moduleClosure = {
-            assertThat("$TEST_CONF_NAME"(module(someNotation, configureClosure)), Matchers.equalTo(clientModule))
+            assertThat("$TEST_CONF_NAME"(module(someNotation, configureClosure)), equalTo(clientModule))
         }
         context.checking {
             allowing(dependencyFactoryStub).createModule(someNotation, configureClosure); will(returnValue(clientModule))
@@ -198,6 +198,44 @@ class DefaultDependencyHandlerTest {
         ConfigureUtil.configure(moduleClosure, dependencyHandler)
     }
 
+    @Test
+    void pushGradleApi() {
+        Dependency dependency = context.mock(Dependency)
+        context.checking {
+            one(dependencyFactoryStub).createDependency(DependencyFactory.ClassPathNotation.GRADLE_API)
+            will(returnValue(dependency))
+
+            one(dependencyFactoryStub).createDependency(dependency, null)
+            will(returnValue(dependency))
+
+            one(configurationMock).addDependency(dependency)
+        }
+
+        Closure moduleClosure = {
+            assertThat("$TEST_CONF_NAME"(gradleApi()), sameInstance(dependency))
+        }
+        ConfigureUtil.configure(moduleClosure, dependencyHandler)
+    }
+
+    @Test
+    void pushLocalGroovy() {
+        Dependency dependency = context.mock(Dependency)
+        context.checking {
+            one(dependencyFactoryStub).createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY)
+            will(returnValue(dependency))
+
+            one(dependencyFactoryStub).createDependency(dependency, null)
+            will(returnValue(dependency))
+
+            one(configurationMock).addDependency(dependency)
+        }
+
+        Closure moduleClosure = {
+            assertThat("$TEST_CONF_NAME"(localGroovy()), sameInstance(dependency))
+        }
+        ConfigureUtil.configure(moduleClosure, dependencyHandler)
+    }
+    
     @Test (expected = MissingMethodException)
     void pushToUnknownConfiguration() {
         String unknownConf = TEST_CONF_NAME + "delta"

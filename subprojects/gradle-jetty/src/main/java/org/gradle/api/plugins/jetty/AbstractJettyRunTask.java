@@ -16,10 +16,14 @@
 
 package org.gradle.api.plugins.jetty;
 
-import org.gradle.api.*;
-import org.gradle.api.plugins.jetty.internal.*;
-import org.gradle.api.tasks.*;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.plugins.jetty.internal.ConsoleScanner;
+import org.gradle.api.plugins.jetty.internal.JettyPluginServer;
+import org.gradle.api.plugins.jetty.internal.JettyPluginWebAppContext;
+import org.gradle.api.plugins.jetty.internal.Monitor;
+import org.gradle.api.tasks.*;
+import org.gradle.util.GFileUtils;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.RequestLog;
 import org.mortbay.jetty.Server;
@@ -29,8 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
@@ -158,19 +160,14 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     public abstract void finishConfigurationBeforeStart() throws Exception;
 
-    @org.gradle.api.tasks.TaskAction
+    @TaskAction
     protected void start() {
-        ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
-        List<URL> additionalClasspath = new ArrayList<URL>();
+        ClassLoader originalClassloader = Server.class.getClassLoader();
+        List<File> additionalClasspath = new ArrayList<File>();
         for (File additionalRuntimeJar : getAdditionalRuntimeJars()) {
-            try {
-                additionalClasspath.add(additionalRuntimeJar.toURI().toURL());
-            } catch (MalformedURLException e) {
-                throw new InvalidUserDataException(e);
-            }
+            additionalClasspath.add(additionalRuntimeJar);
         }
-        URLClassLoader jettyClassloader = new URLClassLoader(additionalClasspath.toArray(
-                new URL[additionalClasspath.size()]), originalClassloader);
+        URLClassLoader jettyClassloader = new URLClassLoader(GFileUtils.toURLs(additionalClasspath), originalClassloader);
         try {
             Thread.currentThread().setContextClassLoader(jettyClassloader);
             startJetty();

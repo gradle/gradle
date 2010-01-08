@@ -18,9 +18,15 @@ package org.gradle.api.internal.project
 import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.util.*
+import org.gradle.api.internal.ClassPathRegistry
 
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     private final Map<List<File>, Map<String, Object>> classloaders = [:]
+    private final ClassPathRegistry classPathRegistry
+
+    def DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry) {
+        this.classPathRegistry = classPathRegistry
+    }
 
     void execute(Iterable<File> classpath, Closure antClosure) {
         List<File> normalisedClasspath = classpath as List
@@ -37,7 +43,8 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 
             Closure converter = {File file -> file.toURI().toURL() }
             URL[] classpathUrls = fullClasspath.collect(converter)
-            URL[] gradleCoreUrls = BootstrapUtil.gradleCoreFiles.collect(converter)
+            // Need gradle core to pick up ant logging adapter
+            URL[] gradleCoreUrls = classPathRegistry.getClassPathUrls("GRADLE_CORE")
 
             FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().classLoader)
             loggingLoader.allowPackage('org.slf4j')

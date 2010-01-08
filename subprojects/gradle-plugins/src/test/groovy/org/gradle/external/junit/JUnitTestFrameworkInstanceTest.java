@@ -17,6 +17,7 @@ package org.gradle.external.junit;
 
 import static junit.framework.Assert.assertNotNull;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
@@ -73,6 +74,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(jUnitForkOptionsMock).setDir(projectDir);
             one(testMock).getTestClassesDir();will(returnValue(testClassesDir));
             one(testMock).getClasspath();will(returnValue(classpathMock));
+            one(testMock).getClassPathRegistry();will(returnValue(context.mock(ClassPathRegistry.class)));
             one(classpathMock).getAsFileTree();will(returnValue(classpathAsFileTreeMock));
             one(classpathAsFileTreeMock).visit(with(aNonNull(FileVisitor.class)));
         }});

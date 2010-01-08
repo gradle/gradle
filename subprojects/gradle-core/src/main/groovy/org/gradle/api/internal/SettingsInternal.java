@@ -22,10 +22,8 @@ import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 
-import java.net.URLClassLoader;
-
 public interface SettingsInternal extends Settings {
-    URLClassLoader createClassLoader();
+    ClassLoader getClassLoader();
 
     StartParameter getStartParameter();
 

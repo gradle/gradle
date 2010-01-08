@@ -17,10 +17,11 @@ package org.gradle.initialization;
 
 import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
-import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistry;
+import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
@@ -33,13 +34,15 @@ import org.gradle.util.WrapUtil;
  * @author Hans Dockter
  */
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
-    private final ServiceRegistry sharedServices = new GlobalServicesRegistry();
+    private final ServiceRegistry sharedServices;
     private final NestedBuildTracker tracker = new NestedBuildTracker();
     private LoggingConfigurer loggingConfigurer;
     private CommandLine2StartParameterConverter commandLine2StartParameterConverter;
 
     public DefaultGradleLauncherFactory() {
-        loggingConfigurer = sharedServices.get(LoggingConfigurer.class);
+        loggingConfigurer = new DefaultLoggingConfigurer();
+        loggingConfigurer.configure(LogLevel.LIFECYCLE);
+        sharedServices = new GlobalServicesRegistry();
         commandLine2StartParameterConverter = sharedServices.get(CommandLine2StartParameterConverter.class);
     }
 
@@ -79,7 +82,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
-                                new DefaultCacheInvalidationStrategy()
+                                new DefaultCacheInvalidationStrategy(),
+                                serviceRegistry.get(ClassLoaderFactory.class)
                         )),
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(

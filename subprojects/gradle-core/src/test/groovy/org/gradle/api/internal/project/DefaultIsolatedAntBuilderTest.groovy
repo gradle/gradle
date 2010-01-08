@@ -21,8 +21,9 @@ import org.apache.tools.ant.BuildException
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.ConditionTask
 import org.gradle.api.GradleException
+import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.project.ant.BasicAntBuilder
-import org.gradle.util.BootstrapUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -31,12 +32,15 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 class DefaultIsolatedAntBuilderTest {
-    private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder()
+    private final ClassPathRegistry registry = new DefaultClassPathRegistry()
+    private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry)
     private TestAppender appender
     private ch.qos.logback.classic.Logger delegateLogger
+    private Collection classpath
 
     @Before
     public void attachAppender() {
+        classpath = registry.getClassPathFiles("ANT") + registry.getClassPathFiles("LOCAL_GROOVY")
         appender = new TestAppender()
         delegateLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger('ROOT')
         delegateLogger.addAppender(appender)
@@ -53,7 +57,7 @@ class DefaultIsolatedAntBuilderTest {
     public void executesClosureAgainstDifferentVersionOfAntAndGroovy() {
         Object antBuilder = null
         Object antProject = null
-        builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
+        builder.execute(classpath) {
             antBuilder = delegate.builder
             antProject = delegate.antProject
         }
@@ -82,7 +86,7 @@ class DefaultIsolatedAntBuilderTest {
     public void executesNestedClosures() {
         String propertyValue = null
         Object task = null
-        builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
+        builder.execute(classpath) {
             property(name: 'message', value: 'a message')
             task = condition(property: 'prop', value: 'a message') {
                 isset(property: 'message')
@@ -97,7 +101,7 @@ class DefaultIsolatedAntBuilderTest {
 
     @Test
     public void attachesLogger() {
-        builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
+        builder.execute(classpath) {
             property(name: 'message', value: 'a message')
             echo('${message}')
         }
@@ -107,7 +111,7 @@ class DefaultIsolatedAntBuilderTest {
 
     @Test
     public void addsToolsJarToClasspath() {
-        builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
+        builder.execute(classpath) {
             delegate.builder.class.classLoader.loadClass('com.sun.tools.javac.Main')
         }
     }
@@ -115,11 +119,11 @@ class DefaultIsolatedAntBuilderTest {
     @Test
     public void cachesClassloaderForGivenClassPath() {
         Object antBuilder1 = null
-        builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
+        builder.execute(classpath) {
             antBuilder1 = delegate.builder
         }
         Object antBuilder2 = null
-        builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
+        builder.execute(classpath) {
             antBuilder2 = delegate.builder
         }
 
@@ -132,7 +136,7 @@ class DefaultIsolatedAntBuilderTest {
         ClassLoader contextLoader = null
         Object antProject = null
 
-        builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
+        builder.execute(classpath) {
             antProject = delegate.antProject
             contextLoader = Thread.currentThread().contextClassLoader
         }
@@ -144,7 +148,7 @@ class DefaultIsolatedAntBuilderTest {
     @Test
     public void gradleClassesAreNotVisibleToAnt() {
         ClassLoader loader = null
-        builder.execute(BootstrapUtil.antJarFiles + BootstrapUtil.groovyFiles) {
+        builder.execute(classpath) {
             loader = antProject.getClass().classLoader
         }
 

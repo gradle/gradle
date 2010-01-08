@@ -23,6 +23,7 @@ import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.TestSuite;
+import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.remote.RemoteSender;
 import org.gradle.util.shutdown.ShutdownHookActionRegister;
 
@@ -30,26 +31,32 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 
-/**
- * An instance of this class is created for each test class.
- */
 public class TestListenerFormatter implements JUnitResultFormatter {
     private static final String PORT_VMARG = "test.listener.remote.port";
-    private static RemoteSender<TestListener> sender;
     private static TestListener defaultSender;
     private TestListener remoteSender;
     private Throwable error;
 
     public TestListenerFormatter() throws IOException {
+        // An instance of this class is created for each test class, so use a singleton RemoteSender
         if (defaultSender == null) {
-            int port = Integer.parseInt(System.getProperty(PORT_VMARG, "0"));
-            if (port <= 0) {
-                throw new IllegalArgumentException(String.format("Invalid port '%s' specified for remote test listener.",
-                        System.getProperty(PORT_VMARG)));
+            String portStr = System.getProperty(PORT_VMARG);
+            if (portStr == null) {
+                // This can happen when the listener is instantiated in the build process, for example, when the
+                // test vm crashes
+                defaultSender = new ListenerBroadcast<TestListener>(TestListener.class).getSource();
             }
-            sender = new RemoteSender<TestListener>(TestListener.class, port);
-            ShutdownHookActionRegister.closeOnExit(sender);
-            defaultSender = sender.getSource();
+            else {
+                // Assume we're in the forked test process
+                int port = Integer.parseInt(portStr);
+                if (port <= 0) {
+                    throw new IllegalArgumentException(String.format(
+                            "Invalid port '%s' specified for remote test listener.", System.getProperty(PORT_VMARG)));
+                }
+                RemoteSender<TestListener> sender = new RemoteSender<TestListener>(TestListener.class, port);
+                ShutdownHookActionRegister.closeOnExit(sender);
+                defaultSender = sender.getSource();
+            }
         }
         remoteSender = defaultSender;
     }

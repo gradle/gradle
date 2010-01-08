@@ -46,7 +46,7 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
     }
 
     public void initialize(Project project, AbstractTestTask testTask) {
-        antJUnitExecute = new AntJUnitExecute();
+        antJUnitExecute = new AntJUnitExecute(testTask.getClassPathRegistry());
         antJUnitReport = new AntJUnitReport();
         options = new JUnitOptions(testFramework);
 

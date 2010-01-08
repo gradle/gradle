@@ -153,7 +153,7 @@ class DefaultSettingsTest {
     @Test public void testCreateClassLoader() {
         StartParameter expectedStartParameter = settings.startParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File(settingsDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR))
-        URLClassLoader createdClassLoader = settings.createClassLoader()
+        URLClassLoader createdClassLoader = settings.getClassLoader()
         assertSame(createdClassLoader, expectedClassLoader)
     }
 

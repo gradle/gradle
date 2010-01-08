@@ -21,7 +21,8 @@ import java.util.*;
 
 /**
  * A ClassLoader which hides all non-system classes, packages and resources from the parent ClassLoader. Allows certain
- * non-system packages to be declared as visible.
+ * non-system packages to be declared as visible. By default, only the Java system classes, packages and resources are
+ * visible.
  */
 public class FilteringClassLoader extends ClassLoader {
     private final Set<String> packageNames = new HashSet<String>();

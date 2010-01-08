@@ -17,6 +17,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
@@ -31,12 +32,10 @@ import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
-import org.gradle.initialization.DefaultExceptionAnalyser;
-import org.gradle.initialization.InitScriptHandler;
-import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
-import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
+import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -59,8 +58,9 @@ public class TopLevelBuildServiceRegistryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final StartParameter startParameter = new StartParameter();
-    private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
+    private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
+    private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
 
     @Before
     public void setUp() {
@@ -68,6 +68,9 @@ public class TopLevelBuildServiceRegistryTest {
         context.checking(new Expectations(){{
             allowing(parent).get(CacheFactory.class);
             will(returnValue(cacheFactory));
+            allowing(parent).get(ClassPathRegistry.class);
+            will(returnValue(classPathRegistry));
+
         }});
     }
     
@@ -147,31 +150,46 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAnInitScriptHandler() {
+        expectScriptClassLoaderCreated();
         assertThat(factory.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
         assertThat(factory.get(InitScriptHandler.class), sameInstance(factory.get(InitScriptHandler.class)));
     }
-    
+
     @Test
     public void providesAScriptObjectConfigurerFactory() {
+        expectScriptClassLoaderCreated();
         assertThat(factory.get(ScriptPluginFactory.class), instanceOf(DefaultScriptPluginFactory.class));
         assertThat(factory.get(ScriptPluginFactory.class), sameInstance(factory.get(ScriptPluginFactory.class)));
     }
-    
+
     @Test
     public void providesASettingsProcessor() {
+        expectScriptClassLoaderCreated();
         assertThat(factory.get(SettingsProcessor.class), instanceOf(PropertiesLoadingSettingsProcessor.class));
         assertThat(factory.get(SettingsProcessor.class), sameInstance(factory.get(SettingsProcessor.class)));
     }
-    
+
     @Test
     public void providesAnExceptionAnalyser() {
         assertThat(factory.get(ExceptionAnalyser.class), instanceOf(DefaultExceptionAnalyser.class));
         assertThat(factory.get(ExceptionAnalyser.class), sameInstance(factory.get(ExceptionAnalyser.class)));
     }
-    
+
     @Test
     public void providesAnIsolatedAntBuilder() {
         assertThat(factory.get(IsolatedAntBuilder.class), instanceOf(DefaultIsolatedAntBuilder.class));
         assertThat(factory.get(IsolatedAntBuilder.class), sameInstance(factory.get(IsolatedAntBuilder.class)));
+    }
+
+    private void expectScriptClassLoaderCreated() {
+        context.checking(new Expectations() {{
+            ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
+
+            allowing(parent).get(ClassLoaderFactory.class);
+            will(returnValue(classLoaderFactory));
+
+            one(classLoaderFactory).createScriptClassLoader();
+            will(returnValue(new MultiParentClassLoader()));
+        }});
     }
 }

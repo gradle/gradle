@@ -17,18 +17,26 @@
 package org.gradle.api.tasks.javadoc
 
 import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.util.BootstrapUtil
 import org.gradle.api.file.FileCollection
 import org.gradle.api.Project
 import org.gradle.util.GradleUtil
+import org.gradle.api.internal.ClassPathRegistry
 
 /**
  * @author Hans Dockter
  */
 class AntGroovydoc {
+    private final IsolatedAntBuilder ant
+    private final ClassPathRegistry classPathRegistry
+
+    def AntGroovydoc(IsolatedAntBuilder ant, ClassPathRegistry classPathRegistry) {
+        this.ant = ant;
+        this.classPathRegistry = classPathRegistry;
+    }
+
     void execute(FileCollection source, File destDir, boolean use, String windowTitle,
-        String docTitle, String header, String footer, String overview, boolean includePrivate, Set links, IsolatedAntBuilder ant,
-        List groovyClasspath, Project project) {
+                 String docTitle, String header, String footer, String overview, boolean includePrivate, Set links,
+                 List groovyClasspath, Project project) {
 
         File tmpDir = new File(project.buildDir, "tmp/groovydoc")
         GradleUtil.deleteDir(tmpDir)
@@ -41,23 +49,24 @@ class AntGroovydoc {
         args.sourcepath = tmpDir.toString()
         args.destdir = destDir
         args.use = use
-        args['private'] = includePrivate 
+        args['private'] = includePrivate
         addToMapIfNotNull(args, 'windowtitle', windowTitle)
         addToMapIfNotNull(args, 'doctitle', docTitle)
         addToMapIfNotNull(args, 'header', header)
         addToMapIfNotNull(args, 'footer', footer)
         addToMapIfNotNull(args, 'overview', overview)
 
-        ant.execute(BootstrapUtil.antJarFiles + groovyClasspath) {
+        ant.execute(classPathRegistry.getClassPathFiles("ANT") + groovyClasspath) {
             taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
             groovydoc(args)
-            links.each { link ->
-                link(packages: link.packages.join(','), href : link.url)
+            links.each {link ->
+                link(packages: link.packages.join(','), href: link.url)
             }
         }
     }
 
     void addToMapIfNotNull(Map map, String key, Object value) {
-        if (value != null) map.put(key, value)
+        if (value != null)
+            map.put(key, value)
     }
 }

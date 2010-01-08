@@ -18,6 +18,7 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.*;
@@ -38,7 +39,7 @@ public class Groovydoc extends SourceTask {
 
     private File destinationDir;
 
-    private AntGroovydoc antGroovydoc = new AntGroovydoc();
+    private AntGroovydoc antGroovydoc;
 
     private boolean use;
 
@@ -58,6 +59,9 @@ public class Groovydoc extends SourceTask {
 
     public Groovydoc() {
         captureStandardOutput(LogLevel.INFO);
+        IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
+        ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
+        antGroovydoc = new AntGroovydoc(antBuilder, classPathRegistry);
     }
 
     @TaskAction
@@ -66,7 +70,7 @@ public class Groovydoc extends SourceTask {
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         IsolatedAntBuilder builder = getServices().get(IsolatedAntBuilder.class);
         antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(), getDocTitle(), getHeader(),
-                getFooter(), getOverview(), isIncludePrivate(), getLinks(), builder, taskClasspath, getProject());
+                getFooter(), getOverview(), isIncludePrivate(), getLinks(), taskClasspath, getProject());
     }
 
     private void throwExceptionIfTaskClasspathIsEmpty(List taskClasspath) {

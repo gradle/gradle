@@ -63,12 +63,13 @@ public class DefaultDependencyFactory implements DependencyFactory {
                 // ignore
             }
             catch (Exception e) {
-                throw new GradleException("Dependency creation error.", e);
+                throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
             }
         }
 
         if (dependency == null) {
-            throw new InvalidUserDataException("The dependency notation: " + dependencyNotation + " is invalid!");
+            throw new InvalidUserDataException(String.format("The dependency notation: %s is invalid.",
+                    dependencyNotation));
         }
         return dependency;
     }

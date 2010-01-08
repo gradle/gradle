@@ -11,3 +11,17 @@ dependencies {
 }
 
 manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.GradleWrapperMain')
+
+jar {
+    include 'org/gradle/wrapper/**'
+}
+
+task taskJar(type: Jar) {
+    from sourceSets.main.classes
+    exclude 'org/gradle/wrapper/**'
+    baseName = "$jar.baseName-tasks"
+}
+
+artifacts {
+    archives taskJar
+}

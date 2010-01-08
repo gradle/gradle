@@ -76,7 +76,6 @@ public class GroovyCompileTest extends AbstractCompileTest {
         setUpMocksAndAttributes(testObj, TEST_GROOVY_CLASSPATH);
         context.checking(new Expectations(){{
             one(antGroovycCompileMock).execute(
-                    with(equalTo(ant)),
                     with(hasSameItems(testObj.getSource())),
                     with(equalTo(testObj.getDestinationDir())),
                     with(equalTo(TEST_DEPENDENCY_MANAGER_CLASSPATH)),

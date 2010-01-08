@@ -18,12 +18,12 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.util.BootstrapUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.internal.ClassPathRegistry
 
 /**
- * Please not: includeAntRuntime=false is ignored if groovyc is used in non fork mode. In this case the runtime classpath is
+ * Please note: includeAntRuntime=false is ignored if groovyc is used in non fork mode. In this case the runtime classpath is
  * added to the compile classpath.
  * See: http://jira.codehaus.org/browse/GROOVY-2717
  *
@@ -33,21 +33,29 @@ class AntGroovyc {
     private static Logger logger = LoggerFactory.getLogger(AntGroovyc)
 
     int numFilesCompiled;
+    private final IsolatedAntBuilder ant
+    private final ClassPathRegistry classPathRegistry
 
     List nonGroovycJavacOptions = ['verbose', 'deprecation', 'includeJavaRuntime', 'includeAntRuntime', 'optimize', 'fork', 'failonerror', 'listfiles', 'nowarn', 'depend']
 
-    public void execute(IsolatedAntBuilder antNode, FileCollection source, File targetDir, List classpath,
+
+    def AntGroovyc(IsolatedAntBuilder ant, ClassPathRegistry classPathRegistry) {
+        this.ant = ant;
+        this.classPathRegistry = classPathRegistry;
+    }
+
+    public void execute(FileCollection source, File targetDir, List classpath,
                         String sourceCompatibility, String targetCompatibility, GroovyCompileOptions groovyOptions,
                         CompileOptions compileOptions, List groovyClasspath) {
         // Force a particular Ant version. Also add in commons-cli, as the Groovy POM does not.
-        List antBuilderClasspath = BootstrapUtil.antJarFiles + groovyClasspath + BootstrapUtil.commonsCliFiles
-        antNode.execute(antBuilderClasspath) {
+        List antBuilderClasspath = classPathRegistry.getClassPathFiles("ANT") + groovyClasspath + classPathRegistry.getClassPathFiles("COMMONS_CLI")
+        ant.execute(antBuilderClasspath) {
             taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
             def task = groovyc([includeAntRuntime: false, destdir: targetDir, classpath: (classpath + antBuilderClasspath).join(File.pathSeparator)]
                     + groovyOptions.optionMap()) {
                 source.addToAntBuilder(delegate, 'src', FileCollection.AntType.MatchingTask)
-                javac([source: sourceCompatibility, target: targetCompatibility] + filterNonGroovycOptions(compileOptions))  {
-                    compileOptions.compilerArgs.each { value ->
+                javac([source: sourceCompatibility, target: targetCompatibility] + filterNonGroovycOptions(compileOptions)) {
+                    compileOptions.compilerArgs.each {value ->
                         compilerarg(value: value)
                     }
                 }

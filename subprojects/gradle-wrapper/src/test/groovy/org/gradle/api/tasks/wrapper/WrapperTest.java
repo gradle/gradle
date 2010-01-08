@@ -65,7 +65,7 @@ public class WrapperTest extends AbstractTaskTest {
         wrapper.setGradleVersion("1.0");
         testDir = tmpDir.getDir();
         File testGradleHome = new File(testDir, "testGradleHome");
-        File testGradleHomeLib = new File(testGradleHome, "lib");
+        File testGradleHomeLib = new File(testGradleHome, "lib/plugins");
         testGradleHomeLib.mkdirs();
         createSourceWrapperJar(testGradleHomeLib);
         getProject().getGradle().getStartParameter().setGradleHomeDir(testGradleHome);
