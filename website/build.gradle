@@ -1,7 +1,7 @@
 import groovy.text.SimpleTemplateEngine
 
 // to get a clean
-usePlugin 'base'
+apply id: 'base'
 
 repositories {
     mavenCentral()

@@ -15,7 +15,7 @@
  */
 import java.text.DateFormat
 
-usePlugin 'groovy'
+apply id: 'groovy'
 
 configurations {
     testFixtures

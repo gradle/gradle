@@ -1,7 +1,7 @@
 import org.apache.ivy.plugins.resolver.*
 
-usePlugin('groovy')
-usePlugin('code-quality')
+apply id: 'groovy'
+apply id: 'code-quality'
 
 repositories {
     mavenCentral()

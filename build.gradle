@@ -34,7 +34,7 @@ version = new Version(project)
 
 defaultTasks "clean", "assemble"
 
-usePlugin 'base'
+apply id: 'base'
 
 startScriptsDir = new File("$buildDir/startScripts")
 
@@ -90,9 +90,9 @@ allprojects {
 def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.5.1@jar']
 
 configure(groovyProjects()) {
-    usePlugin 'groovy'
-    usePlugin 'code-quality'
-    usePlugin 'eclipse'
+    apply id: 'groovy'
+    apply id: 'code-quality'
+    apply id: 'eclipse'
 
     archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
     dependencies {
