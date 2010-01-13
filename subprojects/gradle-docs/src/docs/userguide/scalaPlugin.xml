@@ -23,6 +23,14 @@
     </para>
 
     <section>
+        <title>Usage</title>
+        <para>To use the Scala plugin, include in your build script:</para>
+        <sample id="useScalaPlugin" dir="scala/quickstart" title="Using the Scala plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+
+    <section>
         <title>Tasks</title>
         <para>The Scala plugin adds the following tasks to the project.</para>
         <table>

@@ -2,7 +2,9 @@ group = 'gradle_tooling'
 version = '1.0'
 
 apply id: 'groovy'
+// START SNIPPET use-plugin
 apply id: 'osgi'
+// END SNIPPET use-plugin
 
 repositories {
     mavenCentral()

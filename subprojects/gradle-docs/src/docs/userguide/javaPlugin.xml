@@ -21,6 +21,14 @@
     </para>
 
     <section>
+        <title>Usage</title>
+        <para>To use the Java plugin, include in your build script:</para>
+        <sample id="useJavaPlugin" dir="java/quickstart" title="Using the Java plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+
+    <section>
         <title>Source sets</title>
         <para>The Java plugin introduces the concept of a <firstterm>source set</firstterm>. A source set is a group of
             source files which are compiled and executed together. These source files may include Java source files and

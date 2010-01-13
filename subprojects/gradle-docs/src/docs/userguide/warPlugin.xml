@@ -20,6 +20,14 @@
     </para>
 
     <section>
+        <title>Usage</title>
+        <para>To use the War plugin, include in your build script:</para>
+        <sample id="useWarPlugin" dir="webApplication/quickstart" title="Using the War plugin">
+            <sourcefile file="build.gradle" snippet="use-war-plugin"/>
+        </sample>
+    </section>
+
+    <section>
         <title>Tasks</title>
         <para>The War plugin adds the following tasks to the project.</para>
         <table>

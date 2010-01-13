@@ -21,6 +21,14 @@
     </para>
 
     <section>
+        <title>Usage</title>
+        <para>To use the OSGi plugin, include in your build script:</para>
+        <sample id="useOsgiPlugin" dir="osgi" title="Using the OSGi plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+
+    <section>
         <title>Tasks</title>
         <para>TBD</para>
     </section>

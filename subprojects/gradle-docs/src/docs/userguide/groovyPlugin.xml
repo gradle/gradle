@@ -28,6 +28,14 @@
     </para>
 
     <section>
+        <title>Usage</title>
+        <para>To use the Groovy plugin, include in your build script:</para>
+        <sample id="useGroovyPlugin" dir="groovy/quickstart" title="Using the Groovy plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+
+    <section>
         <title>Tasks</title>
         <para>The Groovy plugin adds the following tasks to the project.</para>
         <table>

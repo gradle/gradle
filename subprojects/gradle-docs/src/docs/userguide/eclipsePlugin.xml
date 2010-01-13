@@ -20,15 +20,15 @@
     </note>
     
     <para>The Eclipse plugin generates files that are used by <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>). Both external and project dependencies are considered.</para>
-    <para>To use the plugin, include in your build script:</para>
+
+    <para>The Eclipse plugin will create different files depending on the other plugins used. If used together with the Java Plugin, <filename>.project</filename> and <filename>.classpath</filename> files will be generated. If used with the War plugin, additional wtp files will be generated.</para>
+<section>
+        <title>Usage</title>
+    <para>To use the Eclipse plugin, include in your build script:</para>
     <sample id="useEclipsePlugin" dir="java/quickstart" title="Using the Eclipse plugin">
         <sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
     </sample>
-    
-<para>The Eclipse plugin will create different files depending on the other plugins used. If used together with the Java Plugin, <filename>.project</filename> and <filename>.classpath</filename> files will be generated. If used with the War plugin, additional wtp files will be generated.</para>
-<section>
-        <title>Usage</title>
-<para>There are several tasks (presented in <xref linkend='eclipsetasks'/>) that the Eclipse plugin provides, but you will probably use only <literal>eclipse</literal> task by executing <userinput>gradle eclipse</userinput>.
+    <para>There are several tasks (presented in <xref linkend='eclipsetasks'/>) that the Eclipse plugin provides, but you will probably use only <literal>eclipse</literal> task by executing <userinput>gradle eclipse</userinput>.
 </para>
     </section>
     <section>

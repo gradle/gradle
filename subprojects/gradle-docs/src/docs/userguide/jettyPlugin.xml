@@ -21,6 +21,14 @@
     </para>
 
     <section>
+        <title>Usage</title>
+        <para>To use the Jetty plugin, include in your build script:</para>
+        <sample id="useJettyPlugin" dir="webApplication/quickstart" title="Using the Jetty plugin">
+            <sourcefile file="build.gradle" snippet="use-jetty-plugin"/>
+        </sample>
+    </section>
+
+    <section>
         <title>Tasks</title>
         <para>The Jetty plugin defines the following tasks:</para>
         <table>

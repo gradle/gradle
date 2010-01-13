@@ -1,5 +1,3 @@
-import org.gradle.api.Rule
-
 defaultTasks 'dists'
 
 task clean(description: "Deletes the build directory ($buildDirName)")

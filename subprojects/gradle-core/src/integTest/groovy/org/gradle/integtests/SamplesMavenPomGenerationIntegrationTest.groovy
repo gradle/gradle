@@ -33,7 +33,7 @@ import org.gradle.util.TestFile
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
-class PomGenerationIntegrationTest {
+class SamplesMavenPomGenerationIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist
     private GradleExecuter executer
@@ -46,7 +46,7 @@ class PomGenerationIntegrationTest {
 
     @Before
     public void setUp() {
-        pomProjectDir = dist.samplesDir.file('pomGeneration')
+        pomProjectDir = dist.samplesDir.file('maven/pomGeneration')
         repoDir = pomProjectDir.file('pomRepo');
         snapshotRepoDir = pomProjectDir.file('snapshotRepo');
     }

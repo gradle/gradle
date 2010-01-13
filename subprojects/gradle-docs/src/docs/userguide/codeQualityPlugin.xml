@@ -24,9 +24,14 @@
         </itemizedlist>
     </para>
 
-    <para>To use the plugin, add the following to your build script:</para>
-    <programlisting>apply id: 'code-quality'</programlisting>
-    
+    <section>
+        <title>Usage</title>
+        <para>To use the code quality plugin, include in your build script:</para>
+        <sample id="useCodeQualityPlugin" dir="codeQuality" title="Using the code quality plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+    </section>
+
     <section>
         <title>Tasks</title>
         <para>When used with the Java plugin, the code quality plugin adds the following tasks to the project:</para>

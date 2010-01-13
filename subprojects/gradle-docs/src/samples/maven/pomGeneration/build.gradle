@@ -1,7 +1,9 @@
 import org.apache.maven.settings.Settings
 
 apply id: 'war'
+// START SNIPPET use-plugin
 apply id: 'maven'
+// END SNIPPET use-plugin
 
 group = 'gradle'
 version = '1.0'
@@ -40,7 +42,7 @@ artifacts {
     archives javadocZip
 }
 
-// Configure the repository and snapshot repository
+// Configure the release and snapshot repositories
 
 def deployer = null
 uploadArchives {
@@ -65,10 +67,9 @@ if (hasProperty('customVersion')) {
 
 // For our integration tests
 
-install.doLast {install ->
+install.doLast {
     Settings settings = installer.settings
-    new File(buildDir, "localRepoPath.txt").write(settings.getLocalRepository())
-
+    new File(buildDir, "localRepoPath.txt").write(settings.localRepository)
 }
 
 clean.doFirst {

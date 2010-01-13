@@ -1,7 +1,9 @@
 apply id: 'eclipse'
-// START SNIPPET declare-scala-version
+// START SNIPPET use-plugin
 apply id: 'scala'
+// END SNIPPET use-plugin
 
+// START SNIPPET declare-scala-version
 repositories {
     mavenRepo urls: 'http://scala-tools.org/repo-releases/'
 }

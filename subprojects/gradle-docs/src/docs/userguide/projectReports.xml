@@ -27,6 +27,14 @@
     </para>
 
     <section>
+        <title>Usage</title>
+        <para>To use the Project report plugin, include in your build script:</para>
+<programlisting language="java">
+apply id: 'project-report'
+</programlisting>
+    </section>
+
+    <section>
         <title>Tasks</title>
         <para>The project report plugin defines the following tasks:</para>
         <table>
