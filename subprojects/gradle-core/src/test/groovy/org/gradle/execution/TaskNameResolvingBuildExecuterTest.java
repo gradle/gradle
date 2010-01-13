@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -284,8 +284,10 @@ public class TaskNameResolvingBuildExecuterTest {
         final Task task2 = task("name2");
 
         context.checking(new Expectations() {{
-            one(project).getTasksByName("name1", true);
-            will(returnValue(toSet(task1)));
+            one(project).getChildProjects();
+            will(returnValue(toMap("child", otherProject)));
+            one(otherProjectTaskContainer).findByName("name1");
+            will(returnValue(task1));
             one(project).getTasksByName("name2", true);
             will(returnValue(toSet(task2)));
 
@@ -301,9 +303,9 @@ public class TaskNameResolvingBuildExecuterTest {
             inSequence(sequence);
         }});
 
-        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "name2"));
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("child:name1", "name2"));
         executer.select(gradle);
-        assertThat(executer.getDisplayName(), equalTo("primary tasks 'name1', 'name2'"));
+        assertThat(executer.getDisplayName(), equalTo("primary tasks 'child:name1', 'name2'"));
         executer.execute();
     }
 
