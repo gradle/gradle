@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.logging.Logging
 import org.gradle.api.Script
+import org.gradle.api.internal.file.FileOperations
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)
@@ -39,7 +40,9 @@ abstract class DefaultScript extends BasicScript {
     def void init(Object target, ServiceRegistry services) {
         super.init(target, services);
         this.services = services
-        if (scriptSource.sourceFile) {
+        if (target instanceof FileOperations) {
+            resolver = target.fileResolver
+        } else if (scriptSource.sourceFile) {
             resolver = new BaseDirConverter(scriptSource.sourceFile.parentFile)
         } else {
             resolver = new IdentityFileResolver()
@@ -47,14 +50,18 @@ abstract class DefaultScript extends BasicScript {
         scriptHandler = services.get(ScriptHandler.class)
     }
 
+    FileResolver getFileResolver() {
+        resolver
+    }
+
     void apply(Closure closure) {
-        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, services.get(ScriptPluginFactory.class), scriptTarget)
+        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(ScriptPluginFactory.class), scriptTarget)
         ConfigureUtil.configure(closure, action)
         action.execute()
     }
 
     void apply(Map options) {
-        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(resolver, services.get(ScriptPluginFactory.class), scriptTarget)
+        ObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(ScriptPluginFactory.class), scriptTarget)
         ConfigureUtil.configure(options, action)
         action.execute()
     }
@@ -68,15 +75,24 @@ abstract class DefaultScript extends BasicScript {
     }
 
     File file(Object path) {
-        resolver.resolve(path)
+        if (scriptTarget instanceof FileOperations) {
+            return scriptTarget.file(path)
+        }
+        return fileResolver.resolve(path)
     }
 
     ConfigurableFileCollection files(Object ... paths) {
-        resolver.resolveFiles(paths)
+        if (scriptTarget instanceof FileOperations) {
+            return scriptTarget.files(paths)
+        }
+        fileResolver.resolveFiles(paths)
     }
 
     ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, resolver.resolveFiles(paths))
+        if (scriptTarget instanceof FileOperations) {
+            return scriptTarget.files(paths, configureClosure)
+        }
+        ConfigureUtil.configure(configureClosure, fileResolver.resolveFiles(paths))
     }
 
     public void captureStandardOutput(LogLevel level) {

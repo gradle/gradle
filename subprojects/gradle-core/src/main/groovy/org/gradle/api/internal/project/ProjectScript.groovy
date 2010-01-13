@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
+import org.gradle.api.internal.file.FileResolver
 
 abstract class ProjectScript extends BasicScript {
 
@@ -39,6 +40,10 @@ abstract class ProjectScript extends BasicScript {
 
     def void buildscript(Closure configureClosure) {
         scriptTarget.buildscript(configureClosure)
+    }
+
+    def FileResolver getFileResolver() {
+        return scriptTarget.fileResolver
     }
 
     def File file(Object path) {

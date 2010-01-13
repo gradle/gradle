@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,13 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
 
-public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware {
+public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations {
     ProjectInternal getParent();
 
     Project evaluate();

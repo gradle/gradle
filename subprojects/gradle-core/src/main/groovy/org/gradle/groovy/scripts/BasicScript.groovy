@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.gradle.groovy.scripts
 
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.api.internal.project.StandardOutputRedirector
+import org.gradle.api.internal.file.FileOperations
 
 /**
  * @author Hans Dockter
@@ -24,7 +25,7 @@ import org.gradle.api.internal.project.StandardOutputRedirector
  * todo: We need our own base class as a workaround for http://jira.codehaus.org/browse/GROOVY-2635. When this bug is fixed we can use the metaclass.
  * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
  */
-abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script {
+abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, FileOperations {
     private StandardOutputRedirector redirector
     private Object target
 
