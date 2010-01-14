@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
-import org.gradle.StartParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,6 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutionShortCircuitTaskExecuter.class);
     private final TaskExecuter executer;
     private final TaskArtifactStateRepository repository;
-    private final StartParameter startParameter;
     private static final TaskExecutionResult UP_TO_DATE_RESULT = new TaskExecutionResult() {
         public Throwable getFailure() {
             return null;
@@ -43,17 +41,15 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
         }
     };
 
-    public ExecutionShortCircuitTaskExecuter(TaskExecuter executer, TaskArtifactStateRepository repository,
-                                             StartParameter startParameter) {
+    public ExecutionShortCircuitTaskExecuter(TaskExecuter executer, TaskArtifactStateRepository repository) {
         this.executer = executer;
         this.repository = repository;
-        this.startParameter = startParameter;
     }
 
     public TaskExecutionResult execute(TaskInternal task, TaskState state) {
         LOGGER.debug("Determining if {} is up-to-date", task);
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
-        if (!startParameter.isNoOpt() && taskArtifactState.isUpToDate()) {
+        if (taskArtifactState.isUpToDate()) {
             LOGGER.debug("{} is up-to-date", task);
             return UP_TO_DATE_RESULT;
         }

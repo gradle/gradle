@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,18 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
-import org.gradle.StartParameter;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class ExecutionShortCircuitTaskExecuterTest {
@@ -39,8 +39,7 @@ public class ExecutionShortCircuitTaskExecuterTest {
     private final TaskExecutionResult result = context.mock(TaskExecutionResult.class);
     private final TaskArtifactStateRepository repository = context.mock(TaskArtifactStateRepository.class);
     private final TaskArtifactState taskArtifactState = context.mock(TaskArtifactState.class);
-    private final StartParameter startParameter = new StartParameter();
-    private final ExecutionShortCircuitTaskExecuter executer = new ExecutionShortCircuitTaskExecuter(delegate, repository, startParameter);
+    private final ExecutionShortCircuitTaskExecuter executer = new ExecutionShortCircuitTaskExecuter(delegate, repository);
 
     @Test
     public void skipsTaskWhenOutputsAreUpToDate() {
@@ -101,27 +100,6 @@ public class ExecutionShortCircuitTaskExecuterTest {
             will(returnValue(new RuntimeException()));
         }});
 
-        assertThat(executer.execute(task, taskState), sameInstance(result));
-    }
-
-    @Test
-    public void executesTaskWhenNoOptFlagIsSet() {
-        context.checking(new Expectations() {{
-            one(repository).getStateFor(task);
-            will(returnValue(taskArtifactState));
-
-            one(taskArtifactState).invalidate();
-
-            one(delegate).execute(task, taskState);
-            will(returnValue(result));
-
-            allowing(result).getFailure();
-            will(returnValue(null));
-
-            one(taskArtifactState).update();
-        }});
-
-        startParameter.setNoOpt(true);
         assertThat(executer.execute(task, taskState), sameInstance(result));
     }
 }

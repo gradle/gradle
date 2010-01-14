@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,6 @@ public class SkipTaskExecuter implements TaskExecuter {
     }
 
     private TaskExecutionResult doExecute(TaskInternal task, TaskState state) {
-        if (!task.getEnabled()) {
-            logger.info("Skipping execution as task is disabled.");
-            return new DefaultTaskExecutionResult(task, null, "SKIPPED");
-        }
-
         boolean skip;
         try {
             skip = !task.getOnlyIf().isSatisfiedBy(task);
@@ -55,7 +50,7 @@ public class SkipTaskExecuter implements TaskExecuter {
 
         if (skip) {
             logger.info("Skipping execution as task onlyIf is false.");
-            return new DefaultTaskExecutionResult(task, null, "SKIPPED as onlyIf is false");
+            return new DefaultTaskExecutionResult(task, null, "SKIPPED");
         }
 
         return executer.execute(task, state);

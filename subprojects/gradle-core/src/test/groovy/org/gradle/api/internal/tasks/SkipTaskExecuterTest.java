@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,22 +81,6 @@ public class SkipTaskExecuterTest {
     }
 
     @Test
-    public void skipsDisabledTask() {
-        context.checking(new Expectations() {{
-            allowing(task).getEnabled();
-            will(returnValue(false));
-        }});
-
-        TaskExecutionResult result = executer.execute(task, state);
-
-        assertThat(result.getFailure(), nullValue());
-        assertThat(result.getSkipMessage(), equalTo("SKIPPED"));
-
-        assertTrue(state.isExecuted());
-        assertFalse(state.isDidWork());
-    }
-
-    @Test
     public void skipsTaskWhoseOnlyIfPredicateIsFalse() {
         context.checking(new Expectations() {{
             allowing(task).getEnabled();
@@ -108,7 +92,7 @@ public class SkipTaskExecuterTest {
         TaskExecutionResult result = executer.execute(task, state);
 
         assertThat(result.getFailure(), nullValue());
-        assertThat(result.getSkipMessage(), equalTo("SKIPPED as onlyIf is false"));
+        assertThat(result.getSkipMessage(), equalTo("SKIPPED"));
         assertTrue(state.isExecuted());
         assertFalse(state.isDidWork());
     }

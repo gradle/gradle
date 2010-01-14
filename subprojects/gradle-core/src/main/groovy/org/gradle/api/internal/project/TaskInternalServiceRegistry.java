@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.api.tasks.TaskOutputs;
 
 /**
  * Contains the services for a given task.
@@ -35,7 +35,7 @@ public class TaskInternalServiceRegistry extends DefaultServiceRegistry implemen
         return new DefaultTaskInputs(project.getFileResolver());
     }
 
-    protected TaskOutputs createTaskOutputs() {
+    protected TaskOutputsInternal createTaskOutputs() {
         return new DefaultTaskOutputs(project.getFileResolver());
     }
 

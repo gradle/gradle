@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package org.gradle.api.internal.changedetection;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -381,7 +381,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
             final TaskInternal task = context.mock(type, String.format("task%d", counter++));
             context.checking(new Expectations(){{
                 TaskInputs taskInputs = context.mock(TaskInputs.class, String.format("inputs%d", counter++));
-                TaskOutputs taskOutputs = context.mock(TaskOutputs.class, String.format("outputs%d", counter++));
+                TaskOutputsInternal taskOutputs = context.mock(TaskOutputsInternal.class, String.format("outputs%d", counter++));
                 FileCollection outputFileCollection = context.mock(FileCollection.class, String.format("taskOutputFiles%d", counter++));
                 FileCollection inputFileCollection = context.mock(FileCollection.class, String.format(
                         "taskInputFiles%d", counter++));

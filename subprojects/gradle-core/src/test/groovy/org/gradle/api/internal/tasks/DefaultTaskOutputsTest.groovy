@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.*
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.TaskInternal;
 
 class DefaultTaskOutputsTest {
     private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver)
@@ -46,5 +47,17 @@ class DefaultTaskOutputsTest {
     public void hasInputFilesWhenNonEmptyInputFilesRegistered() {
         outputs.files('a')
         assertTrue(outputs.hasOutputFiles)
+    }
+    
+    @Test
+    public void canSpecifyUpToDatePredicateUsingClosure() {
+        boolean upToDate = false
+        outputs.upToDateWhen { upToDate }
+
+        assertFalse(outputs.upToDateSpec.isSatisfiedBy([:] as TaskInternal))
+
+        upToDate = true
+
+        assertTrue(outputs.upToDateSpec.isSatisfiedBy([:] as TaskInternal))
     }
 }

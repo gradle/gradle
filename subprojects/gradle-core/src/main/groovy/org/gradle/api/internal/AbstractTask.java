@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
 import org.gradle.api.execution.TaskExecutionResult;
@@ -29,11 +28,10 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
 import org.gradle.api.logging.*;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.ArrayList;
@@ -66,9 +64,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String description;
 
-    private Spec<? super Task> onlyIfSpec = Specs.satisfyAll();
+    private AndSpec<Task> onlyIfSpec = new AndSpec<Task>(createNewOnlyIfSpec());
 
-    private final TaskOutputs outputs;
+    private final TaskOutputsInternal outputs;
 
     private final TaskInputs inputs;
 
@@ -97,7 +95,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention());
         dependencies = new DefaultTaskDependency(project.getTasks());
         services = project.getServiceRegistryFactory().createFor(this);
-        outputs = services.get(TaskOutputs.class);
+        outputs = services.get(TaskOutputsInternal.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
     }
@@ -158,11 +156,27 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void onlyIf(Closure onlyIfClosure) {
-        this.onlyIfSpec = (Spec<Task>) DefaultGroovyMethods.asType(onlyIfClosure, Spec.class);
+        this.onlyIfSpec = this.onlyIfSpec.and(onlyIfClosure);
     }
 
     public void onlyIf(Spec<? super Task> onlyIfSpec) {
-        this.onlyIfSpec = onlyIfSpec;
+        this.onlyIfSpec = this.onlyIfSpec.and(onlyIfSpec);
+    }
+
+    public void setOnlyIf(Spec<? super Task> spec) {
+        onlyIfSpec = createNewOnlyIfSpec().and(spec);
+    }
+
+    public void setOnlyIf(Closure onlyIfClosure) {
+        onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure);
+    }
+
+    private AndSpec<Task> createNewOnlyIfSpec() {
+        return new AndSpec<Task>(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return element == AbstractTask.this && enabled;
+            }
+        });
     }
 
     public Spec<? super TaskInternal> getOnlyIf() {
@@ -335,7 +349,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return inputs;
     }
 
-    public TaskOutputs getOutputs() {
+    public TaskOutputsInternal getOutputs() {
         return outputs;
     }
 

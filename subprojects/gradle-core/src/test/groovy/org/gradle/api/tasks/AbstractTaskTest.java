@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskState;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -37,6 +38,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
@@ -242,10 +244,86 @@ public abstract class AbstractTaskTest {
     }
 
     @Test
-    public void testCanSpecifyOnlyIfPredicateUsingClosure() {
+    public void canSpecifyOnlyIfPredicateUsingClosure() {
         AbstractTask task = getTask();
+        assertTrue(task.getOnlyIf().isSatisfiedBy(task));
+
         task.onlyIf(HelperUtil.toClosure("{ task -> false }"));
         assertFalse(task.getOnlyIf().isSatisfiedBy(task));
+    }
+
+    @Test
+    public void canSpecifyOnlyIfPredicateUsingSpec() {
+        final Spec<Task> spec = context.mock(Spec.class);
+
+        final AbstractTask task = getTask();
+        assertTrue(task.getOnlyIf().isSatisfiedBy(task));
+
+        context.checking(new Expectations() {{
+            allowing(spec).isSatisfiedBy(task);
+            will(returnValue(false));
+        }});
+
+        task.onlyIf(spec);
+        assertFalse(task.getOnlyIf().isSatisfiedBy(task));
+    }
+
+    @Test
+    public void onlyIfPredicateIsTrueWhenTaskIsEnabledAndAllPredicatesAreTrue() {
+        final AtomicBoolean condition1 = new AtomicBoolean(true);
+        final AtomicBoolean condition2 = new AtomicBoolean(true);
+
+        AbstractTask task = getTask();
+        task.onlyIf(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return condition1.get();
+            }
+        });
+        task.onlyIf(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return condition2.get();
+            }
+        });
+
+        assertTrue(task.getOnlyIf().isSatisfiedBy(task));
+
+        task.setEnabled(false);
+        assertFalse(task.getOnlyIf().isSatisfiedBy(task));
+
+        task.setEnabled(true);
+        condition1.set(false);
+        assertFalse(task.getOnlyIf().isSatisfiedBy(task));
+
+        condition1.set(true);
+        condition2.set(false);
+        assertFalse(task.getOnlyIf().isSatisfiedBy(task));
+
+        condition2.set(true);
+        assertTrue(task.getOnlyIf().isSatisfiedBy(task));
+    }
+
+    @Test
+    public void canReplaceOnlyIfSpec() {
+        final AtomicBoolean condition1 = new AtomicBoolean(true);
+        AbstractTask task = getTask();
+        task.onlyIf(context.mock(Spec.class, "spec1"));
+        task.setOnlyIf(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return condition1.get();
+            }
+        });
+
+        assertTrue(task.getOnlyIf().isSatisfiedBy(task));
+
+        task.setEnabled(false);
+        assertFalse(task.getOnlyIf().isSatisfiedBy(task));
+
+        task.setEnabled(true);
+        condition1.set(false);
+        assertFalse(task.getOnlyIf().isSatisfiedBy(task));
+
+        condition1.set(true);
+        assertTrue(task.getOnlyIf().isSatisfiedBy(task));
     }
 
     @Test

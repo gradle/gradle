@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,35 @@
  */
 package org.gradle.api.internal.tasks;
 
+import groovy.lang.Closure;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.PathResolvingFileCollection;
+import org.gradle.api.specs.AndSpec;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 
-public class DefaultTaskOutputs implements TaskOutputs {
+public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final PathResolvingFileCollection outputFiles;
+    private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
 
     public DefaultTaskOutputs(FileResolver resolver) {
         outputFiles = new PathResolvingFileCollection("task output files", resolver, null);
+    }
+
+    public Spec<? super TaskInternal> getUpToDateSpec() {
+        return upToDateSpec;
+    }
+
+    public void upToDateWhen(Closure upToDateClosure) {
+        upToDateSpec = upToDateSpec.and(upToDateClosure);
+    }
+
+    public void upToDateWhen(Spec<? super Task> upToDateSpec) {
+        this.upToDateSpec = this.upToDateSpec.and(upToDateSpec);
     }
 
     public boolean getHasOutputFiles() {

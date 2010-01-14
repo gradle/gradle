@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,44 @@ package org.gradle.api.specs;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.gradle.util.HelperUtil;
 import org.junit.Test;
 
 /**
  * @author Hans Dockter
  */
-public class AndSpecTest extends AbstractCompositeTest {
-    public CompositeSpec createCompositeSpec(Spec... specs) {
-        return new AndSpec(specs);
+public class AndSpecTest extends AbstractCompositeSpecTest {
+    public CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs) {
+        return new AndSpec<Object>(specs);
     }
 
     @Test
     public void isSatisfiedWhenNoSpecs() {
-        assertTrue(new AndSpec().isSatisfiedBy(new Object()));
+        assertTrue(new AndSpec<Object>().isSatisfiedBy(new Object()));
     }
     
     @Test
     public void isSatisfiedByWithAllTrue() {
-        assertTrue(new AndSpec(createAtomicElements(true, true, true)).isSatisfiedBy(new Object()));
+        assertTrue(new AndSpec<Object>(createAtomicElements(true, true, true)).isSatisfiedBy(new Object()));
     }
 
     @Test
     public void isSatisfiedByWithOneFalse() {
-        assertFalse(new AndSpec(createAtomicElements(true, false, true)).isSatisfiedBy(new Object()));
+        assertFalse(new AndSpec<Object>(createAtomicElements(true, false, true)).isSatisfiedBy(new Object()));
+    }
+    
+    @Test
+    public void canAddSpecs() {
+        AndSpec<Object> spec = new AndSpec<Object>(createAtomicElements(true));
+        spec = spec.and(createAtomicElements(false));
+        assertFalse(spec.isSatisfiedBy(new Object()));
+    }
+    
+    @Test
+    public void canAddClosureAsASpec() {
+        AndSpec<Object> spec = new AndSpec<Object>(createAtomicElements(true));
+        spec = spec.and(HelperUtil.toClosure("{ false }"));
+        assertFalse(spec.isSatisfiedBy(new Object()));
     }
 }

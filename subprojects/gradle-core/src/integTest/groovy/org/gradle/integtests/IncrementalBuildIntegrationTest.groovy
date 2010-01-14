@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.junit.Test
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
+import org.gradle.util.TestFile.Snapshot
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -166,5 +167,28 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
         testFile('src/file1.txt').delete()
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':b')
+    }
+
+    @Test
+    public void canUseUpToDatePredicateToForceTaskToExecute() {
+        testFile('build.gradle') << '''
+task a(type: org.gradle.integtests.TransformerTask) {
+    inputFile = file('src.txt')
+    outputFile = file('src.a.txt')
+    outputs.upToDateWhen { false }
+}
+'''
+        TestFile inputFile = testFile('src.txt')
+        TestFile outputFile = testFile('src.a.txt')
+
+        inputFile.text = 'content'
+
+        inTestDirectory().withTasks('a').run().assertTasksExecuted(':a').assertTasksSkipped()
+
+        Snapshot outputFileState = outputFile.snapshot()
+
+        inTestDirectory().withTasks('a').run().assertTasksExecuted(':a').assertTasksSkipped()
+
+        outputFile.assertHasChangedSince(outputFileState)
     }
 }

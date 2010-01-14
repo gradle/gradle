@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,21 @@
  */
 package org.gradle.api.specs;
 
+import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.util.GUtil;
+
+import java.util.Arrays;
+
 /**
  * @author Hans Dockter
  */
 public class AndSpec<T> extends CompositeSpec<T> {
     public AndSpec(Spec<? super T>... specs) {
+        super(specs);
+    }
+
+    public AndSpec(Iterable<? extends Spec<? super T>> specs) {
         super(specs);
     }
 
@@ -32,5 +42,11 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return true;
     }
 
+    public AndSpec<T> and(Spec<? super T>... specs) {
+        return new AndSpec<T>(GUtil.addLists(getSpecs(), Arrays.asList(specs)));
+    }
 
+    public AndSpec<T> and(Closure spec) {
+        return and((Spec<T>) DefaultGroovyMethods.asType(spec, Spec.class));
+    }
 }

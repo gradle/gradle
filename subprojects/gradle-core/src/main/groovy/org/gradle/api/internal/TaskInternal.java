@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.execution.TaskExecutionResult;
+import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.specs.Spec;
 
@@ -35,4 +35,6 @@ public interface TaskInternal extends Task {
     TaskExecuter getExecuter();
 
     void setExecuter(TaskExecuter executer);
+
+    TaskOutputsInternal getOutputs();
 }

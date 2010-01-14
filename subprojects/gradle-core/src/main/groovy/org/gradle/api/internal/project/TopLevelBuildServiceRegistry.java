@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
-import org.gradle.api.internal.changedetection.CachingHasher;
-import org.gradle.api.internal.changedetection.DefaultHasher;
-import org.gradle.api.internal.changedetection.DefaultTaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.*;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -89,8 +86,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new ExecutionShortCircuitTaskExecuter(
                         new DefaultTaskExecuter(
                                 get(ListenerManager.class).getBroadcaster(TaskActionListener.class)),
-                        get(TaskArtifactStateRepository.class),
-                        startParameter));
+                        get(TaskArtifactStateRepository.class)));
     }
 
     protected RepositoryHandlerFactory createRepositoryHandlerFactory() {
@@ -220,11 +216,13 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected TaskArtifactStateRepository createTaskArtifactStateRepository() {
-        return new DefaultTaskArtifactStateRepository(
-                get(CacheRepository.class),
-                new CachingHasher(
-                        new DefaultHasher(),
-                        get(CacheRepository.class)));
+        return new ShortCircuitTaskArtifactStateRepository(
+                startParameter,
+                new DefaultTaskArtifactStateRepository(
+                        get(CacheRepository.class),
+                        new CachingHasher(
+                                new DefaultHasher(),
+                                get(CacheRepository.class))));
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory() {

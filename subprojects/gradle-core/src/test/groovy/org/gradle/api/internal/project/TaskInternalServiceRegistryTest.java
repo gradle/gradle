@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,20 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.api.tasks.TaskOutputs;
-import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
-import static org.junit.Assert.*;
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class TaskInternalServiceRegistryTest {
@@ -51,8 +52,8 @@ public class TaskInternalServiceRegistryTest {
     }
 
     @Test
-    public void createsATaskOutputsInstance() {
-        TaskOutputs outputs = registry.get(TaskOutputs.class);
+    public void createsATaskOutputsInternalInstance() {
+        TaskOutputsInternal outputs = registry.get(TaskOutputsInternal.class);
         assertThat(outputs, instanceOf(DefaultTaskOutputs.class));
     }
 }

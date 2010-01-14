@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,21 +200,25 @@ public interface Task extends Comparable<Task> {
     Task dependsOn(Object... paths);
 
     /**
-     * <p>Execute the task only if the closure returns true.  The closure will be evaluated at the task execution time,
-     * not during configuration.  The closure will be passed a single parameter, this task.  The closure will be coerced
-     * to a {@link org.gradle.api.specs.Spec} of type {@link Task}. </p> <p>If the closure returns false, the task will
-     * not execute, but will log a message of 'SKIPPED as onlyIf is false'.</p> <p>Typical usage:</p>
-     * <code>myTask.onlyIf{ dependsOnTaskDidWork() } </code>
+     * <p>Execute the task only if the given closure returns true.  The closure will be evaluated at task execution
+     * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
+     * false, the task will be skipped.</p>
+     *
+     * <p>You may add multiple such predicates. The task is skipped if any of the predicates return false.</p>
+     *
+     * <p>Typical usage:<code>myTask.onlyIf{ dependsOnTaskDidWork() } </code></p>
      *
      * @param onlyIfClosure code to execute to determine if task should be run
-     * @see #getDidWork()
      */
     void onlyIf(Closure onlyIfClosure);
 
     /**
-     * <p>Execute the task only if the spec is satisfied. The spec will be evaluated at task execution time, not during
-     * configuration. </p> <p>If the Spec is not satisfied, the task will not execute, but will log a message of
-     * 'SKIPPED as onlyIf is false'.</p> <p>Typical usage (from Java):</p>
+     * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
+     * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
+     *
+     * <p>You may add multiple such predicates. The task is skipped if any of the predicates return false.</p>
+     *
+     * <p>Typical usage (from Java):</p>
      * <pre>myTask.onlyIf(new Spec<Task>() {
      *    boolean isSatisfiedBy(Task task) {
      *       return task.dependsOnTaskDidWork();
@@ -223,9 +227,29 @@ public interface Task extends Comparable<Task> {
      * </pre>
      *
      * @param onlyIfSpec specifies if a task should be run
-     * @see #getDidWork()
      */
     void onlyIf(Spec<? super Task> onlyIfSpec);
+
+    /**
+     * <p>Execute the task only if the given closure returns true.  The closure will be evaluated at task execution
+     * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
+     * false, the task will be skipped.</p>
+     *
+     * <p>The given predicate replaces all such predicates for this task.</p>
+     *
+     * @param onlyIfClosure code to execute to determine if task should be run
+     */
+    void setOnlyIf(Closure onlyIfClosure);
+
+    /**
+     * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
+     * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
+     *
+     * <p>The given predicate replaces all such predicates for this task.</p>
+     *
+     * @param onlyIfSpec specifies if a task should be run
+     */
+    void setOnlyIf(Spec<? super Task> onlyIfSpec);
 
     /**
      * <p>Checks if the task actually did any work.  Even if a Task executes, it may determine that it has nothing to

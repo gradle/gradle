@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
  */
 package org.gradle.api.tasks;
 
+import groovy.lang.Closure;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.specs.Spec;
 
 /**
  * <p>A {@code TaskOutputs} represents the outputs of a task.</p>
@@ -23,6 +26,30 @@ import org.gradle.api.file.FileCollection;
  * <p>You can obtain a {@code TaskOutputs} instance using {@link org.gradle.api.Task#getOutputs()}.</p>
  */
 public interface TaskOutputs {
+    /**
+     * <p>Adds a predicate to determine whether the outputs of this task are up-to-date. The given closure is executed
+     * at task execution time. The closure is passed the task as a parameter. If the closure returns false, the task
+     * outputs are considered out-of-date and the task will be executed executed.</p>
+     *
+     * <p>You can add multiple such predicates. The task outputs are considered out-of-date when any predicate returns
+     * false.<p>
+     *
+     * @param upToDateClosure The closure to use to determine whether the task outputs are up-to-date.
+     */
+    void upToDateWhen(Closure upToDateClosure);
+
+    /**
+     * <p>Adds a predicate to determine whether the outputs of this task are up-to-date. The given spec is evaluated at
+     * task execution time. If the spec returns false, the task outputs are considered out-of-date and the task will be
+     * executed.</p>
+     *
+     * <p>You can add multiple such predicates. The task outputs are considered out-of-date when any predicate returns
+     * false.<p>
+     *
+     * @param upToDateSpec The spec to use to determine whether the task outputs are up-to-date.
+     */
+    void upToDateWhen(Spec<? super Task> upToDateSpec);
+
     /**
      * Returns true if this task can produce output files. Note that a task may be able to produce output files and
      * still have an empty set of output files.

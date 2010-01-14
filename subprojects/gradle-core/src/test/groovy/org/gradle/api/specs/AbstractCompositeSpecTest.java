@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,23 @@
 package org.gradle.api.specs;
 
 import org.gradle.util.WrapUtil;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.util.Matchers.*;
+import static org.junit.Assert.*;
+
 /**
  * @author Hans Dockter
  */
-abstract public class AbstractCompositeTest {
+abstract public class AbstractCompositeSpecTest {
     private Spec spec1;
     private Spec spec2;
 
-    public abstract CompositeSpec createCompositeSpec(Spec... specs);
+    public abstract CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs);
 
     @Before
     public void setUp() {
@@ -48,12 +50,12 @@ abstract public class AbstractCompositeTest {
 
     @Test
     public void init() {
-        CompositeSpec compositeSpec = createCompositeSpec(spec1, spec2);
+        CompositeSpec<Object> compositeSpec = createCompositeSpec(spec1, spec2);
         assertEquals(WrapUtil.toList(spec1, spec2), compositeSpec.getSpecs());
     }
 
-    protected Spec[] createAtomicElements(boolean... satisfies) {
-        List<Spec> result = new ArrayList<Spec>();
+    protected Spec<Object>[] createAtomicElements(boolean... satisfies) {
+        List<Spec<Object>> result = new ArrayList<Spec<Object>>();
         for (final boolean satisfy : satisfies) {
             result.add(new Spec<Object>() {
                 public boolean isSatisfiedBy(Object o) {
@@ -66,7 +68,7 @@ abstract public class AbstractCompositeTest {
 
     @Test
     public void equality() {
-        assertTrue(createCompositeSpec(spec1).equals(createCompositeSpec(spec1)));
+        assertThat(createCompositeSpec(spec1), strictlyEqual(createCompositeSpec(spec1)));
         assertFalse(createCompositeSpec(spec1).equals(createCompositeSpec(spec2)));
     }
 }
