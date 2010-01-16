@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public class GradleLauncherTest {
         expectedStartParams.setTaskNames(expectedTaskNames);
         expectedStartParams.setCurrentDir(expectedCurrentDir);
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
-        expectedStartParams.setGradleUserHomeDir(tmpDir.dir("gradleUserHome"));
+        expectedStartParams.setGradleUserHomeDir(tmpDir.createDir("gradleUserHome"));
 
         gradleLauncher = new GradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
                 gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock,
@@ -335,7 +335,7 @@ public class GradleLauncherTest {
     @Test
     public void testNewInstanceFactory() {
         StartParameter startParameter = new StartParameter();
-        startParameter.setGradleHomeDir(tmpDir.dir("gradleHome"));
+        startParameter.setGradleHomeDir(tmpDir.createDir("gradleHome"));
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
         assertThat(gradleLauncher, notNullValue());
     }

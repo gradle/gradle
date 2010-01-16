@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class CachingHasherTest {
             PersistentIndexedCache.class);
     private final CacheRepository cacheRepository = context.mock(CacheRepository.class);
     private final byte[] hash = "hash".getBytes();
-    private final File file = tmpDir.file("testfile").write("content");
+    private final File file = tmpDir.createFile("testfile").write("content");
     private CachingHasher hasher;
 
     @Before

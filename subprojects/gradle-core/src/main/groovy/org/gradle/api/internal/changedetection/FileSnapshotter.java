@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskOutputs;
 
-public interface TaskOutputsInternal extends TaskOutputs {
-    Spec<? super TaskInternal> getUpToDateSpec();
-
+public interface FileSnapshotter {
     /**
-     * Returns the output files + the contents of the output directories
+     * Creates a snapshot of the contents of the given collection
+     *
+     * @param files The files to snapshot
+     * @return The snapshot.
      */
-    FileCollection getCandidateFiles();
+    FileCollectionSnapshot snapshot(FileCollection files);
 }

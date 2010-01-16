@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,8 @@ public class DefaultGradlePropertiesLoaderTest {
 
     @Before
     public void setUp() {
-        gradleUserHomeDir = tmpDir.dir("gradleUserHome");
-        settingsDir = tmpDir.dir("settingsDir");
+        gradleUserHomeDir = tmpDir.createDir("gradleUserHome");
+        settingsDir = tmpDir.createDir("settingsDir");
         gradlePropertiesLoader = new DefaultGradlePropertiesLoader();
         startParameter = new StartParameter();
         startParameter.setGradleUserHomeDir(gradleUserHomeDir);
@@ -96,7 +96,7 @@ public class DefaultGradlePropertiesLoaderTest {
     public void reloadsProperties() {
         writePropertyFile(settingsDir, GUtil.map("prop1", "value", "prop2", "value"));
 
-        File otherSettingsDir = tmpDir.dir("otherSettingsDir");
+        File otherSettingsDir = tmpDir.createDir("otherSettingsDir");
         writePropertyFile(otherSettingsDir, GUtil.map("prop1", "otherValue"));
 
         gradlePropertiesLoader.loadProperties(settingsDir, startParameter, systemProperties, envProperties);

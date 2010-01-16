@@ -220,9 +220,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 startParameter,
                 new DefaultTaskArtifactStateRepository(
                         get(CacheRepository.class),
-                        new CachingHasher(
-                                new DefaultHasher(),
-                                get(CacheRepository.class))));
+                        new DefaultFileSnapshotter(
+                                new CachingHasher(
+                                    new DefaultHasher(),
+                                    get(CacheRepository.class)))));
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class BuildFileProjectSpecTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
-    private final File file = tmpDir.file("build");
+    private final File file = tmpDir.createFile("build");
     private final BuildFileProjectSpec spec = new BuildFileProjectSpec(file);
     private int counter;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private static final byte DIR = 1;
     private static final byte MISSING = 3;
     private final CacheRepository repository;
-    private final Hasher hasher;
+    private final FileSnapshotter fileSnapshotter;
     private PersistentIndexedCache<File, OutputGenerators> cache;
 
-    public DefaultTaskArtifactStateRepository(CacheRepository repository, Hasher hasher) {
+    public DefaultTaskArtifactStateRepository(CacheRepository repository, FileSnapshotter fileSnapshotter) {
         this.repository = repository;
-        this.hasher = hasher;
+        this.fileSnapshotter = fileSnapshotter;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
@@ -88,7 +88,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private TaskInfo getThisExecution(TaskInternal task) {
-        return new TaskInfo(task, hasher);
+        return new TaskInfo(task, fileSnapshotter);
     }
 
     private TaskExecution getLastExecution(TaskKey key, TaskInfo thisExecution) {
@@ -219,24 +219,31 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private static class TaskInfo implements Serializable, TaskExecution {
-        private final Map<String, InputFileInfo> inputFiles = new HashMap<String, InputFileInfo>();
         private final Map<File, OutputFileInfo> outputFiles = new HashMap<File, OutputFileInfo>();
         private boolean acceptInputs;
+        private final FileCollectionSnapshot inputsSnapshot;
+        private FileCollectionSnapshot outputsSnapshot;
+        // Transient state
+        private transient final FileCollectionSnapshot outputsBefore;
+        private transient final TaskInternal task;
+        private transient final FileSnapshotter fileSnapshotter;
 
-        public TaskInfo(TaskInternal task, Hasher hasher) {
-            acceptInputs = task.getInputs().getHasInputFiles();
-            for (File file : task.getInputs().getFiles()) {
-                inputFiles.put(file.getAbsolutePath(), new InputFileInfo(file, hasher));
-            }
+        public TaskInfo(TaskInternal task, FileSnapshotter fileSnapshotter) {
+            this.task = task;
+            this.fileSnapshotter = fileSnapshotter;
             for (File file : task.getOutputs().getFiles()) {
                 outputFiles.put(file, null);
             }
+            acceptInputs = task.getInputs().getHasInputFiles();
+            inputsSnapshot = fileSnapshotter.snapshot(task.getInputs().getFiles());
+            outputsBefore = fileSnapshotter.snapshot(task.getOutputs().getCandidateFiles());
         }
 
         public void snapshotOutputFiles() {
             for (File file : outputFiles.keySet()) {
                 outputFiles.put(file, new OutputFileInfo(file));
             }
+            outputsSnapshot = fileSnapshotter.snapshot(task.getOutputs().getCandidateFiles());
         }
 
         public List<String> isSameAs(TaskExecution last) {
@@ -251,31 +258,40 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
             TaskInfo lastExecution = (TaskInfo) last;
 
-            if (!outputFiles.keySet().equals(lastExecution.outputFiles.keySet())) {
-                return Arrays.asList("The set of output files has changed.");
-            }
-
-            for (Map.Entry<File, OutputFileInfo> entry : lastExecution.outputFiles.entrySet()) {
-                File file = entry.getKey();
-                OutputFileInfo lastOutputFile = entry.getValue();
-                if (!lastOutputFile.isUpToDate(file)) {
-                    return Arrays.asList(String.format("Output file %s has changed.", file));
+            final List<String> messages = new ArrayList<String>();
+            outputsBefore.changesSince(lastExecution.outputsSnapshot, new FileCollectionSnapshot.ChangeListener() {
+                public void added(File file) {
+                    // Don't care about extra files
                 }
-            }
 
-            if (!inputFiles.keySet().equals(lastExecution.inputFiles.keySet())) {
-                return Arrays.asList("The set of input files has changed");
-            }
-
-            for (Map.Entry<String, InputFileInfo> entry : inputFiles.entrySet()) {
-                String file = entry.getKey();
-                InputFileInfo inputFile = entry.getValue();
-                InputFileInfo lastInputFile = lastExecution.inputFiles.get(file);
-                if (!inputFile.isUpToDate(lastInputFile)) {
-                    return Arrays.asList(String.format("Input file %s has changed.", file));
+                public void removed(File file) {
+                    messages.add(String.format("Output file %s removed.", file));
                 }
+
+                public void changed(File file) {
+                    messages.add(String.format("Output file %s changed.", file));
+                }
+            });
+            if (!messages.isEmpty()) {
+                return messages;
             }
 
+            inputsSnapshot.changesSince(lastExecution.inputsSnapshot, new FileCollectionSnapshot.ChangeListener() {
+                public void added(File file) {
+                    messages.add(String.format("Input file %s added.", file));
+                }
+
+                public void removed(File file) {
+                    messages.add(String.format("Input file %s removed.", file));
+                }
+
+                public void changed(File file) {
+                    messages.add(String.format("Input file %s changed.", file));
+                }
+            });
+            if (!messages.isEmpty()) {
+                return messages;
+            }
             return null;
         }
     }
@@ -301,7 +317,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return newType == FILE;
             }
             if (newType != DIR) {
-                // Was a dir, must stull be a dir
+                // Was a dir, must still be a dir
                 return false;
             }
 
@@ -312,31 +328,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
             // Was not empty, must still be not empty
             return file.list().length != 0;
-        }
-    }
-
-    private static class InputFileInfo implements Serializable {
-        private final byte type;
-        private final byte[] hash;
-
-        private InputFileInfo(File file, Hasher hasher) {
-            type = type(file);
-            if (type == FILE) {
-                hash = hasher.hash(file);
-            }
-            else {
-                hash = null;
-            }
-        }
-
-        public boolean isUpToDate(InputFileInfo lastInputFile) {
-            if (type != lastInputFile.type) {
-                return false;
-            }
-            if (type == FILE && !Arrays.equals(hash, lastInputFile.hash)) {
-                return false;
-            }
-            return true;
         }
     }
 }

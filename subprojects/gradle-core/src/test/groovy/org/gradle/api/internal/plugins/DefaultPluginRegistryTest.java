@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class DefaultPluginRegistryTest {
     }
 
     private ClassLoader createClassLoader(Map<String, String> properties, String name) throws IOException {
-        TestFile classPath = testDir.dir(name);
+        TestFile classPath = testDir.createDir(name);
         Properties props = new Properties();
         props.putAll(properties);
         final TestFile propertiesFile = classPath.file("META-INF/gradle-plugins.properties");

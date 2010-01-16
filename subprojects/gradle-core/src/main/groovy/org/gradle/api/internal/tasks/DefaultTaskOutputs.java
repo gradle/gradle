@@ -54,6 +54,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return outputFiles;
     }
 
+    public FileCollection getCandidateFiles() {
+        return outputFiles.getAsFileTree();
+    }
+
     public TaskOutputs files(Object... paths) {
         outputFiles.from(paths);
         return this;

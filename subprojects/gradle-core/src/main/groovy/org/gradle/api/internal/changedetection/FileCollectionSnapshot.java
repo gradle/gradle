@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskOutputs;
+import java.io.File;
+import java.io.Serializable;
 
-public interface TaskOutputsInternal extends TaskOutputs {
-    Spec<? super TaskInternal> getUpToDateSpec();
+public interface FileCollectionSnapshot extends Serializable {
+    void changesSince(FileCollectionSnapshot snapshot, ChangeListener listener);
 
-    /**
-     * Returns the output files + the contents of the output directories
-     */
-    FileCollection getCandidateFiles();
+    interface ChangeListener {
+        void added(File file);
+
+        void removed(File file);
+
+        void changed(File file);
+    }
 }

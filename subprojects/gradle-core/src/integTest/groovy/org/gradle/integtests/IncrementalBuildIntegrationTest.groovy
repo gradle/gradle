@@ -92,7 +92,7 @@ task b(type: org.gradle.integtests.TransformerTask, dependsOn: a) {
         assertThat(outputFileA.text, equalTo('[new content]'))
         assertThat(outputFileB.text, equalTo('[[new content]]'))
 
-        // Change build file in non-material way
+        // Change build file in a way which does not affect the task
 
         testFile('build.gradle').text += '''
 task c
@@ -107,7 +107,10 @@ b.outputFile = file('new-output.txt')
 '''
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a')
-    }
+
+        // Run with --no-opt command-line options
+        inTestDirectory().withTasks('b').withArguments('--no-opt').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+   }
 
     @Test
     public void skipsTaskWhenInputDirContentsHaveNotChanged() {
@@ -167,6 +170,43 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
         testFile('src/file1.txt').delete()
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':b')
+    }
+
+    @Test
+    public void multipleTasksCanGenerateIntoOverlappingOutputDirectories() {
+        testFile('build.gradle') << '''
+task a(type: org.gradle.integtests.DirTransformerTask) {
+    inputDir = file('src/a')
+    outputDir = file('build')
+}
+task b(type: org.gradle.integtests.DirTransformerTask) {
+    inputDir = file('src/b')
+    outputDir = file('build')
+}
+'''
+
+        testFile('src/a').mkdirs()
+        testFile('src/b').mkdirs()
+        testFile('src/a/file1.txt').write('content')
+        testFile('src/b/file2.txt').write('content')
+
+        inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+
+        // No changes
+
+        inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
+
+        // Delete an output file
+
+        testFile('build/file1.txt').delete()
+
+        inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':b')
+
+        // Change an output file
+
+        testFile('build/file1.txt').write('something else')
+
+        inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':b')
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public class AbstractFileTreeElementTest {
     public final TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Test public void testNeedsCopy() throws IOException {
-        TestFile source = tmpDir.file("src");
+        TestFile source = tmpDir.createFile("src");
         TestFile dest = tmpDir.getDir().file("dest");
         dest.assertDoesNotExist();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ public class DefaultCacheRepositoryTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final TestFile homeDir = tmpDir.dir("home");
-    private final TestFile buildRootDir = tmpDir.dir("build");
+    private final TestFile homeDir = tmpDir.createDir("home");
+    private final TestFile buildRootDir = tmpDir.createDir("build");
     private final TestFile sharedCacheDir = homeDir.file("caches");
     private final String version = new GradleVersion().getVersion();
     private final Map properties = GUtil.map("a", "value", "b", "value2");

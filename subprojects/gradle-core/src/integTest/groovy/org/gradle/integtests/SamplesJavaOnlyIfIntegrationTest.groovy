@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,9 @@
  */
 package org.gradle.integtests
 
+import org.gradle.util.TestFile
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.Ignore
-import org.gradle.util.TestFile
 
 @RunWith (DistributionIntegrationTestRunner.class)
 public class SamplesJavaOnlyIfIntegrationTest {
@@ -40,7 +39,6 @@ public class SamplesJavaOnlyIfIntegrationTest {
      * execute dists
      * check that it re-ran tests 
      */
-    @Ignore
     @Test public void testOptimizedBuild() {
         File javaprojectDir = new File(dist.samplesDir, 'java/onlyif')
         // Build and test projects
@@ -68,27 +66,6 @@ public class SamplesJavaOnlyIfIntegrationTest {
         removeFile(javaprojectDir, 'build/classes/main/org/gradle/Person.class')
 
         executer.inDirectory(javaprojectDir).withTasks('test').run()
-
-        // Check tests have run
-        assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        assertExists(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
-    }
-
-    @Ignore
-    @Test public void testNoOptCommandLine() {
-        File javaprojectDir = new File(dist.samplesDir, 'java/onlyif')
-        // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'test').run()
-
-        // Check tests have run
-        assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        assertExists(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
-
-        // remove test results
-        removeFile(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')
-        removeFile(javaprojectDir, 'build/test-results/TESTS-TestSuites.xml')
-
-        executer.inDirectory(javaprojectDir).withTasks('test').withArguments('-o').run()
 
         // Check tests have run
         assertExists(javaprojectDir, 'build/test-results/TEST-org.gradle.PersonTest.xml')

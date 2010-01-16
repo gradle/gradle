@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,15 +78,15 @@ public interface FileTreeElement {
     boolean copyTo(File target);
 
     /**
-     * Returns the name of this file.
+     * Returns the base name of this file.
      *
      * @return The name. Never returns null.
      */
     String getName();
 
     /**
-     * Returns the path of this file, relative to the root of thie containing file tree. Uses '/' as the hierarchy
-     * separator.
+     * Returns the path of this file, relative to the root of the containing file tree. Always uses '/' as the hierarchy
+     * separator, regardless of platform file separator. Same as calling <code>getRelativePath().getPathString()</code>.
      *
      * @return The path. Never returns null.
      */

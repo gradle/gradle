@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ class DefaultCacheFactoryTest {
     public void cachesCacheInstances() {
         PersistentCache cache = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
         assertThat(factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value']), sameInstance(cache))
-        assertThat(factory.open(tmpDir.dir('some-other-dir'), CacheUsage.ON, [prop: 'value']), not(sameInstance(cache)))
+        assertThat(factory.open(tmpDir.createDir('some-other-dir'), CacheUsage.ON, [prop: 'value']), not(sameInstance(cache)))
     }
 
     @Test

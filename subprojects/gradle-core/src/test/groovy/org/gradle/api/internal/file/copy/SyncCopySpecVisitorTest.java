@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class SyncCopySpecVisitorTest {
     
     @Test
     public void deletesExtraFilesFromDestinationDirectoryAtTheEndOfVisit() {
-        TestFile destDir = tmpDir.dir("dest");
+        TestFile destDir = tmpDir.createDir("dest");
         destDir.file("subdir/included.txt").createFile();
         destDir.file("subdir/extra.txt").createFile();
         destDir.file("included.txt").createFile();
@@ -70,7 +70,7 @@ public class SyncCopySpecVisitorTest {
 
     @Test
     public void deletesExtraDirectoriesFromDestinationDirectoryAtTheEndOfVisit() {
-        TestFile destDir = tmpDir.dir("dest");
+        TestFile destDir = tmpDir.createDir("dest");
         destDir.file("included.txt").createFile();
         destDir.file("extra/extra.txt").createFile();
 
@@ -83,7 +83,7 @@ public class SyncCopySpecVisitorTest {
 
     @Test
     public void doesNotDeleteDestDirectoryWhenNothingCopied() {
-        TestFile destDir = tmpDir.dir("dest");
+        TestFile destDir = tmpDir.createDir("dest");
         destDir.file("extra.txt").createFile();
         destDir.file("extra/extra.txt").createFile();
 
@@ -105,7 +105,7 @@ public class SyncCopySpecVisitorTest {
 
     @Test
     public void didWorkWhenFilesDeleted() {
-        TestFile destDir = tmpDir.dir("dest");
+        TestFile destDir = tmpDir.createDir("dest");
         destDir.file("extra.txt").createFile();
 
         visitor.startVisit(action(destDir));
