@@ -16,16 +16,40 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.PathValidation;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
+import java.util.Map;
 
 public interface FileOperations {
     File file(Object path);
+
+    File file(Object path, PathValidation validation);
+
+    FileResolver getFileResolver();
+
+    String relativePath(Object path);
 
     ConfigurableFileCollection files(Object... paths);
 
     ConfigurableFileCollection files(Object paths, Closure configureClosure);
 
-    FileResolver getFileResolver();
+    ConfigurableFileTree fileTree(Object baseDir);
+
+    ConfigurableFileTree fileTree(Map<String, ?> args);
+
+    ConfigurableFileTree fileTree(Closure closure);
+
+    FileTree zipTree(Object zipPath);
+
+    FileTree tarTree(Object tarPath);
+
+    CopySpec copySpec(Closure closure);
+
+    WorkResult copy(Closure closure);
 }

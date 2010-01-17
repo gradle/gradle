@@ -16,15 +16,12 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.groovy.scripts.BasicScript
 import org.gradle.api.initialization.dsl.ScriptHandler
-
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.groovy.scripts.DefaultScript
 
-abstract class ProjectScript extends BasicScript {
+abstract class ProjectScript extends DefaultScript {
 
     def void apply(Closure closure) {
         scriptTarget.apply(closure)
@@ -40,22 +37,6 @@ abstract class ProjectScript extends BasicScript {
 
     def void buildscript(Closure configureClosure) {
         scriptTarget.buildscript(configureClosure)
-    }
-
-    def FileResolver getFileResolver() {
-        return scriptTarget.fileResolver
-    }
-
-    def File file(Object path) {
-        scriptTarget.file(path)
-    }
-
-    def ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        scriptTarget.files(paths, configureClosure)
-    }
-
-    def ConfigurableFileCollection files(Object ... paths) {
-        scriptTarget.files(paths)
     }
 
     def void disableStandardOutputCapture() {

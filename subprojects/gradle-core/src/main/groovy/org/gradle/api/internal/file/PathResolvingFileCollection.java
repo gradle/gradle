@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
     private final List<Object> files;
     private final String displayName;
     private final FileResolver resolver;
-    private final DefaultTaskDependency builtBy;
+    private final DefaultTaskDependency buildDependency;
 
     public PathResolvingFileCollection(FileResolver fileResolver, TaskResolver taskResolver, Object... files) {
         this("file collection", fileResolver, taskResolver, files);
@@ -43,7 +43,7 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.files = new ArrayList<Object>(Arrays.asList(files));
-        builtBy = new DefaultTaskDependency(taskResolver);
+        buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
     public PathResolvingFileCollection clear() {
@@ -67,23 +67,23 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
     }
 
     public ConfigurableFileCollection builtBy(Object... tasks) {
-        builtBy.add(tasks);
+        buildDependency.add(tasks);
         return this;
     }
 
     public Set<Object> getBuiltBy() {
-        return builtBy.getValues();
+        return buildDependency.getValues();
     }
 
     public ConfigurableFileCollection setBuiltBy(Iterable<?> tasks) {
-        builtBy.setValues(tasks);
+        buildDependency.setValues(tasks);
         return this;
     }
 
     @Override
     protected void addDependencies(DefaultTaskDependency dependency) {
         super.addDependencies(dependency);
-        dependency.add(builtBy);
+        dependency.add(buildDependency);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
                 sources.add(collection);
             } else {
                 final File file = (File) element;
-                sources.add(new SingletonFileCollection(file, builtBy));
+                sources.add(new SingletonFileCollection(file, buildDependency));
             }
         }
     }

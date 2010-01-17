@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -343,7 +343,8 @@ public interface Project extends Comparable<Project> {
      *
      * @param pluginName The name of the plugin.
      * @return This project.
-     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method instead.
+     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method
+     *             instead.
      */
     @Deprecated
     Project usePlugin(String pluginName);
@@ -353,7 +354,8 @@ public interface Project extends Comparable<Project> {
      *
      * @param pluginClass The class of the plugin.  This class must implement the {@link Plugin} interface.
      * @return This project.
-     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method instead.
+     * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method
+     *             instead.
      */
     @Deprecated
     Project usePlugin(Class<? extends Plugin> pluginClass);
@@ -677,8 +679,8 @@ public interface Project extends Comparable<Project> {
      * <li>{@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
      *
      * <li>{@link Object}. The object's {@code toString()} value is interpreted as a path. If the path is a relative
-     * path, the project directory will be used as a base directory. A String starting with 'file:' is treated as a
-     * file URL.</li>
+     * path, the project directory will be used as a base directory. A String starting with 'file:' is treated as a file
+     * URL.</li>
      *
      * </ul>
      *
@@ -699,15 +701,13 @@ public interface Project extends Comparable<Project> {
     File file(Object path, PathValidation validation) throws InvalidUserDataException;
 
     /**
-     * <p>Returns a file object with a relative path to the project directory. If the passed path is already a relative
-     * path, a file object with the same path is returned. If the passed path is an absolute path, a file object either
-     * the relative path to the project dir is returned, or null, if the absolute path has not the project dir as one of
-     * its parent dirs.
+     * <p>Returns the relative path from the project directory to the given path. The given path object is (logically)
+     * resolved as described for {@link #file(Object)}, from which a relative path is calculated.</p>
      *
-     * @param path An object which toString method value is interpreted as path.
-     * @return A file with a relative path to the project dir, or null if the given path is outside the project dir.
+     * @param path The path to convert to a relative path.
+     * @return The relative path. Never returns null.
      */
-    File relativePath(Object path);
+    String relativePath(Object path);
 
     /**
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
@@ -764,9 +764,11 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
-     * as for {@link #file(Object)}.</p> <p/> <p>The returned file tree is lazy, so that it scans for files only when
-     * the contents of the file tree are queried. The file tree is also live, so that it scans for files each time the
-     * contents of the file tree are queried.</p>
+     * as for {@link #file(Object)}.</p>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
      *
      * @param baseDir The base directory of the file tree. Evaluated as for {@link #file(Object)}.
      * @return the file tree. Never returns null.
@@ -775,11 +777,13 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
-     * properties on the new file tree.  Example:</p> <p/>
+     * properties on the new file tree.  Example:</p>
+     *
      * <pre>
      * fileTree(dir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
      * </pre>
-     * <p/> <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
@@ -790,14 +794,16 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided closure.  The closure will be used to configure
-     * the new file tree. The file tree is passed to the closure as its delegate.  Example:</p> <p/>
+     * the new file tree. The file tree is passed to the closure as its delegate.  Example:</p>
+     *
      * <pre>
      * fileTree {
      *    from 'src'
      *    exclude '**&#47;.svn/**'
      * }.copy { into 'dest'}
      * </pre>
-     * <p/> <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
      *
@@ -809,9 +815,11 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
      * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
-     * method to unzip a ZIP file.</p> <p/> <p>The returned file tree is lazy, so that it scans for files only when the
-     * contents of the file tree are queried. The file tree is also live, so that it scans for files each time the
-     * contents of the file tree are queried.</p>
+     * method to unzip a ZIP file.</p>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
      *
      * @param zipPath The ZIP file. Evaluated as for {@link #file(Object)}.
      * @return the file tree. Never returns null.
@@ -821,9 +829,11 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path is
      * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
-     * method to untar a TAR file.</p> <p/> <p>The returned file tree is lazy, so that it scans for files only when the
-     * contents of the file tree are queried. The file tree is also live, so that it scans for files each time the
-     * contents of the file tree are queried.</p>
+     * method to untar a TAR file.</p>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
      *
      * @param tarPath The TAR file. Evaluated as for {@link #file(Object)}.
      * @return the file tree. Never returns null.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,13 @@ import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
@@ -44,6 +46,8 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.File;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -69,6 +73,8 @@ public class ProjectInternalServiceRegistryTest {
         context.checking(new Expectations() {{
             allowing(project).getGradle();
             will(returnValue(gradle));
+            allowing(project).getProjectDir();
+            will(returnValue(new File("project-dir")));
             allowing(parent).get(ITaskFactory.class);
             will(returnValue(taskFactory));
             allowing(parent).get(RepositoryHandlerFactory.class);
@@ -156,6 +162,24 @@ public class ProjectInternalServiceRegistryTest {
         assertThat(registry.get(ScriptHandler.class), sameInstance(registry.get(ScriptHandler.class)));
         assertThat(registry.get(ScriptClassLoaderProvider.class), sameInstance((Object) registry.get(
                 ScriptHandler.class)));
+    }
+
+    @Test
+    public void providesAFileResolver() {
+        assertThat(registry.get(FileResolver.class), instanceOf(BaseDirConverter.class));
+        assertThat(registry.get(FileResolver.class), sameInstance(registry.get(FileResolver.class)));
+    }
+
+    @Test
+    public void providesAFileOperationsInstance() {
+        assertThat(registry.get(FileOperations.class), instanceOf(DefaultFileOperations.class));
+        assertThat(registry.get(FileOperations.class), sameInstance(registry.get(FileOperations.class)));
+    }
+    
+    @Test
+    public void providesATemporaryFileProvider() {
+        assertThat(registry.get(TemporaryFileProvider.class), instanceOf(DefaultTemporaryFileProvider.class));
+        assertThat(registry.get(TemporaryFileProvider.class), sameInstance(registry.get(TemporaryFileProvider.class)));
     }
 
     private void expectScriptClassLoaderProviderCreated() {

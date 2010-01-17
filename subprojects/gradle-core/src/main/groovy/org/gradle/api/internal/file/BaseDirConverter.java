@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.file;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -28,6 +32,29 @@ public class BaseDirConverter extends AbstractFileResolver {
 
     public BaseDirConverter(File baseDir) {
         this.baseDir = baseDir;
+    }
+
+    public String resolveAsRelativePath(Object path) {
+        List<String> basePath = Arrays.asList(StringUtils.split(baseDir.getAbsolutePath(), "/" + File.separator));
+        File targetFile = resolve(path);
+        List<String> targetPath = new ArrayList<String>(Arrays.asList(StringUtils.split(targetFile.getAbsolutePath(),
+                "/" + File.separator)));
+
+        // Find and remove common prefix
+        int maxDepth = Math.min(basePath.size(), targetPath.size());
+        int prefixLen = 0;
+        for (; prefixLen < maxDepth && basePath.get(prefixLen).equals(targetPath.get(prefixLen)); prefixLen++) {
+        }
+        basePath = basePath.subList(prefixLen, basePath.size());
+        targetPath = targetPath.subList(prefixLen, targetPath.size());
+
+        for (int i = 0; i < basePath.size(); i++) {
+            targetPath.add(0, "..");
+        }
+        if (targetPath.isEmpty()) {
+            return ".";
+        }
+        return GUtil.join(targetPath, File.separator);
     }
 
     @Override

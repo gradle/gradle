@@ -30,28 +30,32 @@ import org.gradle.util.ConfigureUtil
 import org.gradle.api.logging.Logging
 import org.gradle.api.Script
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.PathValidation
+import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.WorkResult
+import org.gradle.api.file.CopySpec
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)
     private ServiceRegistry services
-    private FileResolver resolver
-    private ScriptHandler scriptHandler
+    private FileOperations fileOperations
 
     def void init(Object target, ServiceRegistry services) {
         super.init(target, services);
         this.services = services
         if (target instanceof FileOperations) {
-            resolver = target.fileResolver
+            fileOperations = target
         } else if (scriptSource.sourceFile) {
-            resolver = new BaseDirConverter(scriptSource.sourceFile.parentFile)
+            fileOperations = new DefaultFileOperations(new BaseDirConverter(scriptSource.sourceFile.parentFile), null, null)
         } else {
-            resolver = new IdentityFileResolver()
+            fileOperations = new DefaultFileOperations(new IdentityFileResolver(), null, null)
         }
-        scriptHandler = services.get(ScriptHandler.class)
     }
 
     FileResolver getFileResolver() {
-        resolver
+        fileOperations.fileResolver
     }
 
     void apply(Closure closure) {
@@ -67,7 +71,7 @@ abstract class DefaultScript extends BasicScript {
     }
 
     ScriptHandler getBuildscript() {
-        return scriptHandler;
+        return services.get(ScriptHandler.class);
     }
 
     void buildscript(Closure configureClosure) {
@@ -75,24 +79,51 @@ abstract class DefaultScript extends BasicScript {
     }
 
     File file(Object path) {
-        if (scriptTarget instanceof FileOperations) {
-            return scriptTarget.file(path)
-        }
-        return fileResolver.resolve(path)
+        fileOperations.file(path)
+    }
+
+    File file(Object path, PathValidation validation) {
+        fileOperations.file(path, validation)
     }
 
     ConfigurableFileCollection files(Object ... paths) {
-        if (scriptTarget instanceof FileOperations) {
-            return scriptTarget.files(paths)
-        }
-        fileResolver.resolveFiles(paths)
+        fileOperations.files(paths)
     }
 
     ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        if (scriptTarget instanceof FileOperations) {
-            return scriptTarget.files(paths, configureClosure)
-        }
-        ConfigureUtil.configure(configureClosure, fileResolver.resolveFiles(paths))
+        fileOperations.files(paths, configureClosure)
+    }
+
+    String relativePath(Object path) {
+        fileOperations.relativePath(path)
+    }
+
+    ConfigurableFileTree fileTree(Object baseDir) {
+        fileOperations.fileTree(baseDir)
+    }
+
+    ConfigurableFileTree fileTree(Map args) {
+        fileOperations.fileTree(args)
+    }
+
+    ConfigurableFileTree fileTree(Closure closure) {
+        fileOperations.fileTree(closure)
+    }
+
+    FileTree zipTree(Object zipPath) {
+        fileOperations.zipTree(zipPath)
+    }
+
+    FileTree tarTree(Object tarPath) {
+        fileOperations.tarTree(tarPath)
+    }
+
+    WorkResult copy(Closure closure) {
+        fileOperations.copy(closure)
+    }
+
+    CopySpec copySpec(Closure closure) {
+        fileOperations.copySpec(closure)
     }
 
     public void captureStandardOutput(LogLevel level) {

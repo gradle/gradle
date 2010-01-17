@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,32 +21,32 @@ import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
 import org.gradle.StartParameter
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.artifacts.repositories.InternalRepository
-import org.gradle.api.file.FileCollection
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.BeanDynamicObject
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactoryTest
-
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.PathResolvingFileCollection
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider
 import org.gradle.api.internal.plugins.DefaultConvention
-
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputLogging
 import org.gradle.api.plugins.Convention
+import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Directory
 import org.gradle.configuration.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
@@ -61,16 +61,11 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.*
-
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
-import org.gradle.api.artifacts.Module
-import org.gradle.api.plugins.PluginContainer
 
 /**
  * @author Hans Dockter
- * todo: test for relativeFilePath
  */
 @RunWith (JMock.class)
 class DefaultProjectTest {
@@ -179,6 +174,8 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(StandardOutputRedirector); will(returnValue(outputRedirectorMock))
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
+            allowing(serviceRegistryMock).get(FileResolver); will(returnValue([:] as FileResolver))
+            allowing(serviceRegistryMock).get(FileOperations); will(returnValue([:] as FileOperations))
         }
 
         build = context.mock(GradleInternal)
@@ -862,34 +859,6 @@ def scriptMethod(Closure closure) {
         assertEquals(new File(child1.projectDir, "${Project.DEFAULT_BUILD_DIR_NAME}").canonicalFile, child1.buildDir)
     }
 
-    @Test void testFile() {
-        String expectedPath = 'somepath'
-        PathValidation expectedValidation = PathValidation.FILE
-        boolean converterCalled = false
-        child1.fileResolver = [resolve: {String path, PathValidation pathValidation ->
-            converterCalled = true
-            assertEquals(expectedPath, path)
-            assertEquals(expectedValidation, pathValidation)
-            child1.projectDir
-        }] as FileResolver
-        child1.file(expectedPath, PathValidation.FILE)
-        assertTrue(converterCalled)
-
-        converterCalled = false
-        child1.fileResolver = [resolve: {String path ->
-            converterCalled = true
-            assertEquals(expectedPath, path)
-            child1.projectDir
-        }] as FileResolver
-        child1.file(expectedPath)
-        assertTrue(converterCalled)
-    }
-
-    @Test public void testFiles() {
-        FileCollection collection = project.files('a', 'b')
-        assertThat(collection, instanceOf(PathResolvingFileCollection))
-    }
-
     @Test public void testDir() {
         Task dirTask1 = HelperUtil.createTask(Directory.class)
         Task dirTask12 = HelperUtil.createTask(Directory.class)
@@ -985,35 +954,6 @@ def scriptMethod(Closure closure) {
 
     @Test void testConfigureProjects() {
         checkConfigureProject('configure', [project, child1] as Set)
-    }
-
-    @Test void testRelativePath() {
-        checkRelativePath(project.&relativePath)
-    }
-
-    @Test (expected = GradleException) void testRelativePathWithUncontainedAbsolutePath() {
-        File uncontainedAbsoluteFile = new File("abc").absoluteFile;
-        project.relativePath(uncontainedAbsoluteFile)
-    }
-
-    @Test void testFindRelativePath() {
-        checkRelativePath(project.&findRelativePath)
-        File uncontainedAbsoluteFile = new File(project.getProjectDir().toString() + "xxx", "abc");
-        assertNull(project.findRelativePath(uncontainedAbsoluteFile))
-    }
-
-    private def checkRelativePath(Closure pathFinder) {
-        String relativePath = 'src/main';
-        File relativeFile = new File(relativePath);
-        String absoluteFile = new File(project.getProjectDir(), "relativePath").getAbsolutePath();
-
-        println project.getProjectDir()
-        println absoluteFile
-
-        assertEquals(relativeFile, pathFinder(relativePath))
-        assertEquals(relativeFile, pathFinder(relativeFile))
-        assertEquals(new File("relativePath"), pathFinder(absoluteFile))
-        assertEquals(new File(""), pathFinder(""))
     }
 
     @Test void testHasUsefulToString() {

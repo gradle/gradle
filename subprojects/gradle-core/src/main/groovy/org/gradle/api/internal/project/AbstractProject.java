@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,16 +32,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.file.BaseDirConverter;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileSet;
-import org.gradle.api.internal.file.PathResolvingFileCollection;
-import org.gradle.api.internal.file.archive.TarFileTree;
-import org.gradle.api.internal.file.archive.ZipFileTree;
-import org.gradle.api.internal.file.copy.CopyActionImpl;
-import org.gradle.api.internal.file.copy.CopySpecImpl;
-import org.gradle.api.internal.file.copy.FileCopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
@@ -108,6 +100,7 @@ public abstract class AbstractProject implements ProjectInternal {
     private State state;
 
     private FileResolver fileResolver;
+    private FileOperations fileOperations;
 
     private AntBuilderFactory antBuilderFactory;
 
@@ -182,9 +175,9 @@ public abstract class AbstractProject implements ProjectInternal {
             depth = parent.getDepth() + 1;
         }
 
-        fileResolver = new BaseDirConverter(getProjectDir());
-
         services = serviceRegistryFactory.createFor(this);
+        fileResolver = services.get(FileResolver.class);
+        fileOperations = services.get(FileOperations.class);
         antBuilderFactory = services.get(AntBuilderFactory.class);
         taskContainer = services.get(TaskContainerInternal.class);
         repositoryHandlerFactory = services.get(RepositoryHandlerFactory.class);
@@ -698,70 +691,43 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File file(Object path) {
-        return fileResolver.resolve(path);
+        return fileOperations.file(path);
     }
 
     public File file(Object path, PathValidation validation) {
-        return fileResolver.resolve(path, validation);
+        return fileOperations.file(path, validation);
     }
 
     public ConfigurableFileCollection files(Object... paths) {
-        return new PathResolvingFileCollection(fileResolver, taskContainer, paths);
+        return fileOperations.files(paths);
     }
 
     public ConfigurableFileCollection files(Object paths, Closure closure) {
-        PathResolvingFileCollection result = new PathResolvingFileCollection(fileResolver, taskContainer, paths);
-        return ConfigureUtil.configure(closure, result);
+        return fileOperations.files(paths, closure);
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return new FileSet(baseDir, fileResolver);
+        return fileOperations.fileTree(baseDir);
     }
 
-    public FileSet fileTree(Map<String, ?> args) {
-        return new FileSet(args, fileResolver);
+    public ConfigurableFileTree fileTree(Map<String, ?> args) {
+        return fileOperations.fileTree(args);
     }
 
-    public FileSet fileTree(Closure closure) {
-        FileSet result = new FileSet(Collections.emptyMap(), fileResolver);
-        return ConfigureUtil.configure(closure, result);
+    public ConfigurableFileTree fileTree(Closure closure) {
+        return fileOperations.fileTree(closure);
     }
 
     public FileTree zipTree(Object zipPath) {
-        return new ZipFileTree(file(zipPath), getExpandDir());
+        return fileOperations.zipTree(zipPath);
     }
 
     public FileTree tarTree(Object tarPath) {
-        return new TarFileTree(file(tarPath), getExpandDir());
+        return fileOperations.tarTree(tarPath);
     }
 
-    private File getExpandDir() {
-        return new File(getBuildDir(), "tmp/expandedArchives");
-    }
-
-    public File relativePath(Object path) {
-        File result = findRelativePath(path);
-        if (result == null) {
-            throw new GradleException("Path = " + path + " is not a subdirectory of the project root dir.");
-        }
-        return result;
-    }
-
-    public File findRelativePath(Object path) {
-        File file = new File(path.toString());
-        if (!file.isAbsolute()) {
-            return file;
-        }
-        File loopFile = file;
-        String relativePath = "";
-        while (loopFile != null) {
-            if (loopFile.equals(getProjectDir())) {
-                break;
-            }
-            relativePath = loopFile.getName() + "/" + relativePath;
-            loopFile = loopFile.getParentFile();
-        }
-        return loopFile == null ? null : new File(relativePath);
+    public String relativePath(Object path) {
+        return fileOperations.relativePath(path);
     }
 
     public Directory dir(String path) {
@@ -852,16 +818,11 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public WorkResult copy(Closure closure) {
-        CopyActionImpl action = new FileCopyActionImpl(fileResolver, new FileCopySpecVisitor());
-        configure(action,  closure);
-        action.execute();
-        return action;
+        return fileOperations.copy(closure);
     }
 
     public CopySpec copySpec(Closure closure) {
-        CopySpecImpl copySpec = new CopySpecImpl(fileResolver);
-        configure(copySpec, closure);
-        return copySpec;
+        return fileOperations.copySpec(closure);
     }
 
     public ServiceRegistryFactory getServiceRegistryFactory() {

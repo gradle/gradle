@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,22 +145,26 @@ class BaseDirConverterTest {
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile))
     }
 
+    @Test public void testResolveRelativeObject() {
+        assertEquals(new File(baseDir, "12"), baseDirConverter.resolve(12))
+    }
+
     @Test public void testResolveRelativeFile() {
         File relativeFile = new File('relative')
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
     }
 
-    @Test public void testResolveRelativeURIString() {
+    @Test public void testResolveRelativeFileURIString() {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve('file:relative'))
         assertEquals(new File(baseDir.parentFile, 'relative'), baseDirConverter.resolve('file:../relative'))
     }
 
-    @Test public void testResolveAbsoluteURIString() {
+    @Test public void testResolveAbsoluteFileURIString() {
         File absoluteFile = new File('nonRelative').absoluteFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toString()))
     }
 
-    @Test public void testResolveAbsoluteURI() {
+    @Test public void testResolveAbsoluteFileURI() {
         File absoluteFile = new File('nonRelative').absoluteFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI()))
     }
@@ -230,5 +234,27 @@ class BaseDirConverterTest {
     
     @Test public void testResolveUrlToUri() {
         assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri(new URL("http://www.gradle.org")))
+    }
+
+    @Test public void testResolveRelativePathToRelativePath() {
+        assertEquals("relative", baseDirConverter.resolveAsRelativePath("relative"))
+    }
+
+    @Test public void testResolveAbsoluteChildPathToRelativePath() {
+        String absoluteFile = new File(baseDir, 'child').absoluteFile
+        assertEquals('child', baseDirConverter.resolveAsRelativePath(absoluteFile))
+    }
+
+    @Test public void testResolveAbsoluteSiblingPathToRelativePath() {
+        String absoluteFile = new File(baseDir, '../sibling').absoluteFile
+        assertEquals("..${File.separator}sibling".toString(), baseDirConverter.resolveAsRelativePath(absoluteFile))
+    }
+
+    @Test public void testResolveBaseDirToRelativePath() {
+        assertEquals('.', baseDirConverter.resolveAsRelativePath(baseDir))
+    }
+    
+    @Test public void testResolveParentDirToRelativePath() {
+        assertEquals('..', baseDirConverter.resolveAsRelativePath(baseDir.parentFile))
     }
 }

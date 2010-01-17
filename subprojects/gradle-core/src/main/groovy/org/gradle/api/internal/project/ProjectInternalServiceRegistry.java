@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
@@ -40,12 +41,15 @@ import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * Contains the services for a given project.
@@ -61,7 +65,23 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
         return parentRegistry.createChild(get(ScriptClassLoaderProvider.class).getClassLoader());
     }
-    
+
+    protected FileResolver createFileResolver() {
+        return new BaseDirConverter(project.getProjectDir());
+    }
+
+    protected FileOperations createFileOperations() {
+        return new DefaultFileOperations(get(FileResolver.class), get(TaskResolver.class), get(TemporaryFileProvider.class));
+    }
+
+    protected TemporaryFileProvider createTemporaryFileProvider() {
+        return new DefaultTemporaryFileProvider(new Callable<File>() {
+            public File call() throws Exception {
+                return new File(project.getBuildDir(), "tmp");
+            }
+        });
+    }
+
     protected AntBuilderFactory createAntBuilderFactory() {
         return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
     }

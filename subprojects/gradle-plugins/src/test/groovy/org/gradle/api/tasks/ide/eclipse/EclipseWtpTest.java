@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.ide.eclipse;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
@@ -28,7 +27,6 @@ import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +34,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -73,14 +73,6 @@ public class EclipseWtpTest extends AbstractTaskTest {
         configureEclipse();
         eclipseWtp.execute();
         checkWtpFile();
-    }
-
-    @Test(expected = GradleException.class)
-    public void generateWtpWithAbsoluteSourcePathInResourceMappings() throws IOException {
-        configureEclipse();
-        eclipseWtp.getWarResourceMappings().put("someDeployPath",
-                WrapUtil.<Object>toList(new File(getProject().getProjectDir() + "xxx", "conf3").getAbsolutePath()));
-        eclipseWtp.generateWtp();
     }
 
     private void checkWtpFile() throws IOException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,21 @@
  */
 package org.gradle.api.internal.tasks;
 
+import groovy.lang.Closure;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.api.tasks.TaskInputs;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
+
 public class DefaultTaskInputs implements TaskInputs {
     private final PathResolvingFileCollection inputFiles;
     private final FileResolver resolver;
+    private final Map<String, Object> properties = new HashMap<String, Object>();
 
     public DefaultTaskInputs(FileResolver resolver) {
         this.resolver = resolver;
@@ -44,6 +51,32 @@ public class DefaultTaskInputs implements TaskInputs {
 
     public TaskInputs dir(Object dirPath) {
         inputFiles.from(resolver.resolveFilesAsTree(dirPath));
+        return this;
+    }
+
+    public Map<String, Object> getProperties() {
+        Map<String, Object> actualProperties = new HashMap<String, Object>();
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof Callable) {
+                Callable callable = (Callable) value;
+                try {
+                    value = callable.call();
+                } catch (Exception e) {
+                    throw new GradleException(e);
+                }
+            }
+            if (value instanceof Closure) {
+                Closure closure = (Closure) value;
+                value = closure.call();
+            }
+            actualProperties.put(entry.getKey(), value);
+        }
+        return actualProperties;
+    }
+
+    public TaskInputs property(String name, Object value) {
+        properties.put(name, value);
         return this;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class EclipseUtil {
     }
 
     static String relativePath(Project project, Object path) {
-        return FilenameUtils.separatorsToUnix(project.relativePath(path).toString());
+        return FilenameUtils.separatorsToUnix(project.relativePath(path));
     }
 
     static void addFacet(Document document, String facetType, Attribute... attributes) {
