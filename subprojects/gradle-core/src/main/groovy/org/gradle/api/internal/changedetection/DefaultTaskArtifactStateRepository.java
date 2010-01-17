@@ -222,7 +222,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private final Map<File, OutputFileInfo> outputFiles = new HashMap<File, OutputFileInfo>();
         private boolean acceptInputs;
         private final FileCollectionSnapshot inputsSnapshot;
+        private final Map<String, Object> inputProperties;
         private FileCollectionSnapshot outputsSnapshot;
+
         // Transient state
         private transient final FileCollectionSnapshot outputsBefore;
         private transient final TaskInternal task;
@@ -237,6 +239,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             acceptInputs = task.getInputs().getHasInputFiles();
             inputsSnapshot = fileSnapshotter.snapshot(task.getInputs().getFiles());
             outputsBefore = fileSnapshotter.snapshot(task.getOutputs().getCandidateFiles());
+            inputProperties = task.getInputs().getProperties();
         }
 
         public void snapshotOutputFiles() {
@@ -292,6 +295,12 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             if (!messages.isEmpty()) {
                 return messages;
             }
+
+            if (!inputProperties.equals(lastExecution.inputProperties)) {
+                messages.add("Input properties have changed.");
+                return messages;
+            }
+            
             return null;
         }
     }

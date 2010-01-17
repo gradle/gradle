@@ -21,8 +21,14 @@ import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
 
 /**
- * Attached to a task property to indicate that the task should be skipped when the value of the property is an empty
- * {@link org.gradle.api.file.FileCollection} or directory.
+ * <p>Attached to a task property to indicate that the task should be skipped when the value of the property is an empty
+ * {@link org.gradle.api.file.FileCollection} or directory.</p>
+ *
+ * <p>This annotation can be used with the following annotations:</p>
+ *
+ * <ul><li>{@link org.gradle.api.tasks.InputFiles}</li>
+ *
+ * <li>{@link org.gradle.api.tasks.InputDirectory}</li> </ul>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

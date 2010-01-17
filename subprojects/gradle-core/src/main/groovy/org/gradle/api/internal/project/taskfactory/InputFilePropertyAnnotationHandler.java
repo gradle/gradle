@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.Callable;
 
-public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
-    private final ValidationAction ouputFileValidation = new ValidationAction() {
+public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
+    private final ValidationAction inputFileValidation = new ValidationAction() {
         public void validate(String propertyName, Object value) throws InvalidUserDataException {
-            File fileValue = GFileUtils.canonicalise((File) value);
-            if (fileValue.exists() && !fileValue.isFile()) {
+            File fileValue = (File) value;
+            if (!fileValue.exists()) {
                 throw new InvalidUserDataException(String.format(
-                        "Cannot write to file '%s' specified for property '%s' as it is a directory.", fileValue,
-                        propertyName));
+                        "File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
             }
-            if (!fileValue.getParentFile().isDirectory() && !fileValue.getParentFile().mkdirs()) {
+            if (!fileValue.isFile()) {
                 throw new InvalidUserDataException(String.format(
-                        "Cannot create parent directory '%s' of file specified for property '%s'.",
-                        fileValue.getParentFile(), propertyName));
+                        "File '%s' specified for property '%s' is not a file.", fileValue, propertyName));
             }
         }
     };
     private final PropertyActions propertyActions = new PropertyActions() {
         public ValidationAction getValidationAction() {
-            return ouputFileValidation;
+            return inputFileValidation;
         }
 
         public ValidationAction getSkipAction() {
@@ -52,15 +49,15 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
         }
 
         public void attachInputs(TaskInputs inputs, Callable<Object> futureValue) {
+            inputs.files(futureValue);
         }
 
         public void attachOutputs(TaskOutputs outputs, Callable<Object> futureValue) {
-            outputs.files(futureValue);
         }
     };
 
     public Class<? extends Annotation> getAnnotationType() {
-        return OutputFile.class;
+        return InputFile.class;
     }
 
     public PropertyActions getActions(AnnotatedElement target, String propertyName) {

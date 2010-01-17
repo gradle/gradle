@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.gradle.integtests;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.OutputFile;
@@ -27,6 +28,7 @@ import java.io.File;
 public class TransformerTask extends DefaultTask {
     private File inputFile;
     private File outputFile;
+    private String format = "[%s]";
 
     @InputFile
     public File getInputFile() {
@@ -46,10 +48,19 @@ public class TransformerTask extends DefaultTask {
         this.outputFile = outputFile;
     }
 
+    @Input
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
     @TaskAction
     public void transform() {
         TestFile inputFile = new TestFile(this.inputFile);
         TestFile outputFile = new TestFile(this.outputFile);
-        outputFile.write(String.format("[%s]", inputFile.getText()));
+        outputFile.write(String.format(format, inputFile.getText()));
     }
 }

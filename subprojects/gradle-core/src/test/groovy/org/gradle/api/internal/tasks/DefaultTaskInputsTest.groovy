@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.*
 import static org.gradle.util.Matchers.*
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.file.FileTree
+import java.util.concurrent.Callable
 
 class DefaultTaskInputsTest {
     private final File treeFile = new File('tree')
@@ -50,11 +51,29 @@ class DefaultTaskInputsTest {
     }
     
     @Test
+    public void canRegisterInputProperty() {
+        inputs.property('a', 'value')
+        assertThat(inputs.properties, equalTo([a: 'value']))
+    }
+    
+    @Test
+    public void canRegisterInputPropertyUsingAClosure() {
+        inputs.property('a', { 'value' })
+        assertThat(inputs.properties, equalTo([a: 'value']))
+    }
+
+    @Test
+    public void canRegisterInputPropertyUsingACallable() {
+        inputs.property('a', { 'value' } as Callable)
+        assertThat(inputs.properties, equalTo([a: 'value']))
+    }
+
+    @Test
     public void hasInputFilesWhenEmptyInputFilesRegistered() {
         inputs.files([])
         assertTrue(inputs.hasInputFiles)
     }
-    
+
     @Test
     public void hasInputFilesWhenNonEmptyInputFilesRegistered() {
         inputs.files('a')

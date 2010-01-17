@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.api.internal.project.taskfactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.ReflectionUtil;
@@ -41,9 +42,12 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     private final ITaskFactory taskFactory;
     private final Map<Class, List<Action<Task>>> actionsForType = new HashMap<Class, List<Action<Task>>>();
     private final List<? extends PropertyAnnotationHandler> handlers = Arrays.asList(
-            new InputFilePropertyAnnotationHandler(), new InputDirectoryPropertyAnnotationHandler(),
-            new InputFilesPropertyAnnotationHandler(), new OutputFilePropertyAnnotationHandler(),
-            new OutputDirectoryPropertyAnnotationHandler());
+            new InputFilePropertyAnnotationHandler(),
+            new InputDirectoryPropertyAnnotationHandler(),
+            new InputFilesPropertyAnnotationHandler(),
+            new OutputFilePropertyAnnotationHandler(),
+            new OutputDirectoryPropertyAnnotationHandler(),
+            new InputPropertyAnnotationHandler());
     private final ValidationAction notNullValidator = new ValidationAction() {
         public void validate(String propertyName, Object value) throws InvalidUserDataException {
             if (value == null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,9 @@ import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.invocation.DefaultGradle
 import org.gradle.api.internal.project.*
+import org.gradle.api.internal.project.taskfactory.TaskFactory
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 
 /**
  * @author Hans Dockter

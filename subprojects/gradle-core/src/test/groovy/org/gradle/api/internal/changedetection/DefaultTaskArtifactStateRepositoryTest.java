@@ -242,6 +242,39 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
+    public void artifactsAreNotUpToDateWhenAnyInputPropertyValueChanged() {
+        execute();
+
+        TaskArtifactState state = repository.getStateFor(builder().withProperty("prop", "new value").task());
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void inputPropertyValueCanBeNull() {
+        TaskInternal task = builder().withProperty("prop", null).task();
+        execute(task);
+
+        TaskArtifactState state = repository.getStateFor(task);
+        assertTrue(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreNotUpToDateWhenAnyInputPropertyAdded() {
+        execute();
+
+        TaskArtifactState state = repository.getStateFor(builder().withProperty("prop2", "value").task());
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreNotUpToDateWhenAnyInputPropertyRemoved() {
+        execute(builder().withProperty("prop2", "value").task());
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
     public void artifactsAreNotUpToDateWhenStateHasBeenInvalidated() {
         execute();
 
@@ -397,6 +430,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
         private Collection<? extends File> outputs = outputFiles;
         private Collection<? extends TestFile> create = createFiles;
         private Class<? extends TaskInternal> type = TaskInternal.class;
+        private Map<String, Object> inputProperties = new HashMap<String, Object>(toMap("prop", "value"));
 
         TaskBuilder withInputFiles(File... inputFiles) {
             inputs = Arrays.asList(inputFiles);
@@ -428,6 +462,11 @@ public class DefaultTaskArtifactStateRepositoryTest {
             return this;
         }
 
+        public TaskBuilder withProperty(String name, Object value) {
+            inputProperties.put(name, value);
+            return this;
+        }
+
         TaskInternal task() {
             final TaskInternal task = context.mock(type, String.format("task%d", counter++));
             context.checking(new Expectations(){{
@@ -449,6 +488,8 @@ public class DefaultTaskArtifactStateRepositoryTest {
                 will(returnValue(inputFileCollection));
                 allowing(inputFileCollection).iterator();
                 will(returnIterator(inputs == null ? emptySet() : inputs));
+                allowing(taskInputs).getProperties();
+                will(returnValue(inputProperties));
                 allowing(task).getOutputs();
                 will(returnValue(taskOutputs));
                 allowing(taskOutputs).getFiles();

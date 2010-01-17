@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.internal.project.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskContainer;

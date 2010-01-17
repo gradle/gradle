@@ -21,8 +21,22 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a property as optional. This means that a value does not have to be specified for the property, but any value
- * specified must meet any validation constraints for the property.
+ * <p>Marks a task property as optional. This means that a value does not have to be specified for the property, but any
+ * value specified must meet the validation constraints for the property.</p>
+ *
+ * <p>This annotation can be used with any of the following property annotations:</p>
+ *
+ * <ul> <li>{@link org.gradle.api.tasks.Input}</li>
+ *
+ * <li>{@link org.gradle.api.tasks.InputFile}</li>
+ *
+ * <li>{@link org.gradle.api.tasks.InputDirectory}</li>
+ *
+ * <li>{@link org.gradle.api.tasks.InputFiles}</li>
+ *
+ * <li>{@link org.gradle.api.tasks.OutputFile}</li>
+ *
+ * <li>{@link org.gradle.api.tasks.OutputDirectory}</li> </ul>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

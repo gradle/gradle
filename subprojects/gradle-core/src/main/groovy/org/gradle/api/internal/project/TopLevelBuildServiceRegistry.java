@@ -39,6 +39,7 @@ import org.gradle.api.internal.changedetection.*;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.project.taskfactory.*;
 import org.gradle.api.internal.tasks.DefaultTaskExecuter;
 import org.gradle.api.internal.tasks.SkipTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.api.internal.project.taskfactory;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.util.GUtil;
 

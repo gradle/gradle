@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.TestFile;
@@ -410,7 +412,25 @@ public class AnnotationProcessingTaskFactoryTest {
         TaskWithInputDir task = expectTaskCreated(BrokenTaskWithInputDir.class, missingDir);
         task.execute();
     }
-    
+
+    @Test
+    public void validationActionSucceedsWhenInputValueSpecified() {
+        TaskWithInput task = expectTaskCreated(TaskWithInput.class, "value");
+        task.execute();
+    }
+
+    @Test
+    public void validationActionFailsWhenInputValueNotSpecified() {
+        TaskWithInput task = expectTaskCreated(TaskWithInput.class, new Object[]{null});
+        assertValidationFails(task, "Error validating task ':task': No value has been specified for property 'inputValue'.");
+    }
+
+    @Test
+    public void registersSpecifiedInputValue() {
+        TaskWithInput task = expectTaskCreated(TaskWithInput.class, "value");
+        assertThat(task.getInputs().getProperties().get("inputValue"), equalTo((Object) "value"));
+    }
+
     @Test
     public void validationActionSucceedsWhenPropertyMarkedWithOptionalAnnotationNotSpecified() {
         TaskWithOptionalInputFile task = expectTaskCreated(TaskWithOptionalInputFile.class);
@@ -516,6 +536,19 @@ public class AnnotationProcessingTaskFactoryTest {
         @InputDirectory
         public File getInputDir() {
             return inputDir;
+        }
+    }
+
+    public static class TaskWithInput extends DefaultTask {
+        String inputValue;
+
+        public TaskWithInput(String inputValue) {
+            this.inputValue = inputValue;
+        }
+
+        @Input
+        public String getInputValue() {
+            return inputValue;
         }
     }
 
