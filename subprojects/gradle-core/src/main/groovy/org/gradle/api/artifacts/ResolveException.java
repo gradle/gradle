@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,10 @@ public class ResolveException extends GradleException {
 
     public ResolveException(Configuration configuration, Throwable cause) {
         super(buildMessage(configuration, null), cause);
+    }
+
+    public ResolveException(String message, Throwable cause) {
+        super(message, cause);
     }
 
     private static String buildMessage(Configuration configuration, String message) {

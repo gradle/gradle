@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,10 @@ import org.gradle.api.Project
 import org.junit.Test
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.api.tasks.ide.eclipse.ProjectType
+import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.ide.eclipse.EclipseProject
+import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
+import org.gradle.api.tasks.ide.eclipse.EclipseWtp
 
 public class EclipsePluginTest {
     private final Project project = HelperUtil.createRootProject()
@@ -52,7 +56,9 @@ public class EclipsePluginTest {
         assertThat(task, dependsOn())
 
         task = project.tasks[EclipsePlugin.ECLIPSE_CLEAN_TASK_NAME]
+        assertThat(task, instanceOf(Delete.class))
         assertThat(task, dependsOn())
+        assertThat(task.from, equalTo([EclipseProject.PROJECT_FILE_NAME, EclipseClasspath.CLASSPATH_FILE_NAME, new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)] as Set))
     }
 
     @Test

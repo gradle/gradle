@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.tasks.DefaultTaskDependency
-import org.gradle.api.tasks.Clean
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
 import org.gradle.util.HelperUtil
 import org.junit.Test
@@ -49,9 +49,9 @@ class BasePluginTest {
         plugin.use(project)
 
         def task = project.tasks[BasePlugin.CLEAN_TASK_NAME]
-        assertThat(task, instanceOf(Clean))
+        assertThat(task, instanceOf(Delete))
         assertThat(task, dependsOn())
-        assertThat(task.dir, equalTo(project.buildDir))
+        assertThat(task.targets.files, equalTo([project.buildDir] as Set))
 
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))

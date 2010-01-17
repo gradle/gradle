@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.tasks.Clean
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
@@ -62,9 +62,9 @@ class BasePlugin implements Plugin<Project> {
     }
 
     private void addClean(final Project project) {
-        Clean clean = project.tasks.add(CLEAN_TASK_NAME, Clean.class)
+        Delete clean = project.tasks.add(CLEAN_TASK_NAME, Delete.class)
         clean.description = "Deletes the build directory.";
-        clean.conventionMapping.dir = { project.buildDir }
+        clean.from { project.buildDir }
     }
 
     private void configureBuildConfigurationRule(final Project project) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.util.GUtil
 import org.gradle.util.WrapUtil
 import org.gradle.api.tasks.ide.eclipse.*
+import org.gradle.api.Task
+import org.gradle.api.tasks.Delete
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which generates Eclipse project files for projects that use the {@link
@@ -61,7 +63,11 @@ public class EclipsePlugin implements Plugin<Project> {
                 configureEclipseClasspath(project)
         ).setDescription("Generates an Eclipse .project and .classpath file.");
 
-        project.tasks.add(ECLIPSE_CLEAN_TASK_NAME, EclipseClean.class).setDescription("Deletes the Eclipse .project and .classpath files.");
+        Delete clean = project.tasks.add(ECLIPSE_CLEAN_TASK_NAME, Delete.class)
+        clean.description = "Deletes the Eclipse .project and .classpath files.";
+        clean.from EclipseProject.PROJECT_FILE_NAME
+        clean.from EclipseClasspath.CLASSPATH_FILE_NAME
+        clean.from new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)
     }
 
     private EclipseProject configureEclipseProject(Project project) {

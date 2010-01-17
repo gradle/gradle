@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@
                     <literal>clean</literal>
                 </td>
                 <td>-</td>
-                <td><apilink class="org.gradle.api.tasks.Clean"/></td>
+                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
                 <td>Deletes the project build directory.</td>
             </tr>
             <tr>
@@ -934,7 +934,7 @@
 
     <section id='sec:clean'>
         <title>Clean</title>
-        <para>The <literal>clean</literal> task is an instance of <apilink class="org.gradle.api.tasks.Clean"/>. It
+        <para>The <literal>clean</literal> task is an instance of <apilink class="org.gradle.api.tasks.Delete"/>. It
             simply removes the directory denoted by its <literal>dir</literal>
             property.
         </para>
