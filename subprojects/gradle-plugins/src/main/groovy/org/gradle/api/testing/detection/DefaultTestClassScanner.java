@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package org.gradle.api.testing.detection;
 
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileSet;
+import org.gradle.api.testing.fabric.DefaultTestClassRunInfo;
+import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * The default test class scanner depending on the availability of a test framework detecter a detection or filename
@@ -34,30 +34,22 @@ import java.util.Set;
  */
 public class DefaultTestClassScanner implements TestClassScanner {
     private final File testClassDirectory;
-    private final List<String> includePatterns;
-    private final List<String> excludePatterns;
+    private final Collection<String> includePatterns;
+    private final Collection<String> excludePatterns;
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
 
-    public DefaultTestClassScanner(File testClassDirectory, Set<String> includePatterns, Set<String> excludePatterns,
-                                   TestFrameworkDetector testFrameworkDetector, TestClassProcessor testClassProcessor) {
-        if (testClassDirectory == null) {
-            throw new IllegalArgumentException("testClassDirectory is null!");
-        }
-        if (testClassProcessor == null) {
-            throw new IllegalArgumentException("testClassProcessor is null!");
-        }
-
+    public DefaultTestClassScanner(File testClassDirectory, Collection<String> includePatterns,
+                                   Collection<String> excludePatterns, TestFrameworkDetector testFrameworkDetector,
+                                   TestClassProcessor testClassProcessor) {
         this.testClassDirectory = testClassDirectory;
-        this.includePatterns = includePatterns == null ? new ArrayList<String>() : new ArrayList<String>(
-                includePatterns);
-        this.excludePatterns = excludePatterns == null ? new ArrayList<String>() : new ArrayList<String>(
-                excludePatterns);
+        this.includePatterns = includePatterns;
+        this.excludePatterns = excludePatterns;
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
     }
 
-    public void executeScan() {
+    public void run() {
         final FileSet testClassFileSet = new FileSet(testClassDirectory, null);
 
         if (testFrameworkDetector == null) {
@@ -71,7 +63,7 @@ public class DefaultTestClassScanner implements TestClassScanner {
         testClassFileSet.include(includePatterns);
         testClassFileSet.exclude(excludePatterns);
 
-        testFrameworkDetector.setTestClassProcessor(testClassProcessor);
+        testFrameworkDetector.startDetection(testClassProcessor);
 
         testClassFileSet.visit(new ClassFileVisitor() {
             public void visitClassFile(FileVisitDetails fileDetails) {
@@ -93,8 +85,9 @@ public class DefaultTestClassScanner implements TestClassScanner {
 
         testClassFileSet.visit(new ClassFileVisitor() {
             public void visitClassFile(FileVisitDetails fileDetails) {
-                testClassProcessor.processTestClass(fileDetails.getRelativePath().getPathString().replaceAll("\\.class",
-                        ""));
+                String className = fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
+                TestClassRunInfo testClass = new DefaultTestClassRunInfo(className);
+                testClassProcessor.processTestClass(testClass);
             }
         });
     }

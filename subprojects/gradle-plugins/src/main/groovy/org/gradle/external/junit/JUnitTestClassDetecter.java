@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,11 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.EmptyVisitor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 /**
  * @author Tom Eyckmans
  */
 class JUnitTestClassDetecter extends TestClassVisitor {
-
-    private static final Logger LOG = LoggerFactory.getLogger(JUnitTestClassDetecter.class);
-
     private boolean isAbstract = false;
     private String className = null;
     private String superClassName = null;
@@ -79,33 +72,6 @@ class JUnitTestClassDetecter extends TestClassVisitor {
         }
 
         return new EmptyVisitor();
-    }
-
-    /**
-     * Visits information about an inner class. This inner class is not necessarily a member of the class being
-     * visited.
-     *
-     * @param name the internal name of an inner class (see {@link org.objectweb.asm.Type#getInternalName()
-     * getInternalName}).
-     * @param outerName the internal name of the class to which the inner class belongs (see {@link
-     * org.objectweb.asm.Type#getInternalName() getInternalName}). May be <tt>null</tt> for not member classes.
-     * @param innerName the (simple) name of the inner class inside its enclosing class. May be <tt>null</tt> for
-     * anonymous inner classes.
-     * @param access the access flags of the inner class as originally declared in the enclosing class.
-     */
-    public void visitInnerClass(String name, String outerName, String innerName, int access) {
-        boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
-        boolean isPublic = (access & Opcodes.ACC_PUBLIC) != 0;
-        if (outerName != null && innerName != null && isStatic && isPublic) {
-            final File innerTestClassFile = new File(detector.getTestClassesDirectory(),
-                    className + "$" + innerName + ".class");
-            if (innerTestClassFile.exists()) {
-                if (detector.processTestClass(innerTestClassFile)) {
-                    LOG.debug("test-class-scan : [inner test class] : " + className + " : [name: " + name
-                            + ", outerName: " + outerName + ", innerName: " + innerName + "]");
-                }
-            }
-        }
     }
 
     /**

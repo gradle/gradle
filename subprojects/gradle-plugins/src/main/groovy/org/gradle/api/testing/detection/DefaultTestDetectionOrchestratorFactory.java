@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package org.gradle.api.testing.detection;
 
-import org.gradle.api.tasks.testing.NativeTest;
+import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.testing.TestOrchestratorFactory;
-import org.gradle.api.testing.fabric.*;
+import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.util.queues.BlockingQueueItemProducer;
 
 import java.util.concurrent.BlockingQueue;
@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultTestDetectionOrchestratorFactory implements TestDetectionOrchestratorFactory {
     private final TestOrchestratorFactory testOrchestratorFactory;
-    private final TestClassRunInfoFactory testClassRunInfoFactory;
     private final TestClassScannerFactory testClassScannerFactory;
     private final BlockingQueueItemProducer<TestClassRunInfo> testDetectionQueueProducer;
 
@@ -41,25 +40,16 @@ public class DefaultTestDetectionOrchestratorFactory implements TestDetectionOrc
 
         this.testOrchestratorFactory = testOrchestratorFactory;
 
-        testClassRunInfoFactory = new DefaultTestClassRunInfoFactory();
         testClassScannerFactory = new DefaultTestClassScannerFactory();
         final BlockingQueue<TestClassRunInfo> testDetectionQueue = testOrchestratorFactory.getTestDetectionQueue();
         testDetectionQueueProducer = new BlockingQueueItemProducer<TestClassRunInfo>(testDetectionQueue, 100L,
                 TimeUnit.MILLISECONDS);
     }
 
-    public TestDetectionRunner createDetectionRunner() {
-        final NativeTest testTask = testOrchestratorFactory.getTestTask();
-        final TestClassProcessor testClassProcessor = new QueueItemProducingTestClassProcessor(
-                testDetectionQueueProducer, testClassRunInfoFactory);
+    public TestClassScanner createDetectionRunner() {
+        final AbstractTestTask testTask = testOrchestratorFactory.getTestTask();
+        final TestClassProcessor testClassProcessor = new QueueItemProducingTestClassProcessor(testDetectionQueueProducer);
 
-        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(testTask,
-                testClassProcessor);
-
-        return new TestDetectionRunner(testClassScanner);
-    }
-
-    public Thread createDetectionThread(TestDetectionRunner detectionRunner) {
-        return new Thread(detectionRunner);
+        return testClassScannerFactory.createTestClassScanner(testTask, testClassProcessor);
     }
 }

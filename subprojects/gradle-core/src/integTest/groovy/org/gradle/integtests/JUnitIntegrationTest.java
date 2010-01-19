@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,26 @@ public class JUnitIntegrationTest {
 
         executer.withTasks("a:test").run();
         testDir.file("a/build/test-results/TEST-org.gradle.SomeTest.xml").assertIsFile();
+    }
+
+    @Test
+    public void canHaveTestsOnInnerClasses() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("build.gradle").writelns(
+                "apply id: 'java'",
+                "repositories { mavenCentral() }",
+                "dependencies { compile 'junit:junit:4.4' }"
+        );
+        testDir.file("src/test/java/org/gradle/SomeTest.java").writelns(
+                "package org.gradle;",
+                "public class SomeTest {",
+                "    public static class SomeInner {",
+                "        @org.junit.Test public void ok() { }",
+                "    }",
+                "}");
+
+        executer.withTasks("test").run();
+        testDir.file("build/test-results/TEST-org.gradle.SomeTest$SomeInner.xml").assertIsFile();
     }
 
     @Test

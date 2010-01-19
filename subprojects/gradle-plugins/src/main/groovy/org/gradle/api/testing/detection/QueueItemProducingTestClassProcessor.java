@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.gradle.api.testing.detection;
 
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.api.testing.fabric.TestClassRunInfoFactory;
 import org.gradle.util.queues.BlockingQueueItemProducer;
 
 /**
@@ -27,27 +26,12 @@ import org.gradle.util.queues.BlockingQueueItemProducer;
  */
 public class QueueItemProducingTestClassProcessor implements TestClassProcessor {
     private final BlockingQueueItemProducer<TestClassRunInfo> testDetectionQueueProducer;
-    private final TestClassRunInfoFactory testClassRunInfoFactory;
 
-    public QueueItemProducingTestClassProcessor(
-            final BlockingQueueItemProducer<TestClassRunInfo> testDetectionQueueProducer,
-            final TestClassRunInfoFactory testClassRunInfoFactory) {
-        if (testDetectionQueueProducer == null) {
-            throw new IllegalArgumentException("testDetectionQueueProducer  == null!");
-        }
-        if (testClassRunInfoFactory == null) {
-            throw new IllegalArgumentException("testClassRunInfoFactory  == null!");
-        }
-
+    public QueueItemProducingTestClassProcessor(final BlockingQueueItemProducer<TestClassRunInfo> testDetectionQueueProducer) {
         this.testDetectionQueueProducer = testDetectionQueueProducer;
-        this.testClassRunInfoFactory = testClassRunInfoFactory;
     }
 
-    public void processTestClass(final String testClassName) {
-        final TestClassRunInfo testClassRunInfo = testClassRunInfoFactory.createTestClassRunInfo(testClassName);
-
-        if (testClassRunInfo != null) {
-            testDetectionQueueProducer.produce(testClassRunInfo);
-        }
+    public void processTestClass(TestClassRunInfo testClass) {
+        testDetectionQueueProducer.produce(testClass);
     }
 }
