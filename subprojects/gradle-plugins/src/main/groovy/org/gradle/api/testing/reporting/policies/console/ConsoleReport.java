@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,91 +15,39 @@
  */
 package org.gradle.api.testing.reporting.policies.console;
 
-import org.gradle.api.testing.reporting.policies.ReportPolicyInstance;
-import org.gradle.api.testing.reporting.ReportInfo;
-import org.gradle.api.testing.reporting.Report;
-import org.gradle.api.testing.reporting.TestClassProcessResultReportInfo;
 import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.fabric.*;
-import org.gradle.util.queues.AbstractBlockingQueueItemConsumer;
-import org.gradle.util.ThreadUtils;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.testing.reporting.ReportInfo;
+import org.gradle.api.testing.reporting.TestClassProcessResultReportInfo;
+import org.gradle.api.testing.reporting.policies.Report;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ExecutorService;
 import java.util.*;
 
 /**
  * @author Tom Eyckmans
  */
-public class ConsoleReportPolicyInstance implements ReportPolicyInstance {
+public class ConsoleReport implements Report {
 
-    private static Logger logger = LoggerFactory.getLogger(ConsoleReportPolicyInstance.class);
+    private static Logger logger = LoggerFactory.getLogger(ConsoleReport.class);
 
-    private Report report;
+    private final Map<TestMethodProcessResultState, TestMethodProcessResultState> methodProcessResultStateMapping;
+    private final ConsoleReportPolicy config;
 
-    private ExecutorService reportThreadPool;
-    private List<ReportInfoQueueItemConsumer> consumers;
-
-    private Map<TestMethodProcessResultState, TestMethodProcessResultState> methodProcessResultStateMapping;
-    private ConsoleReportPolicyConfig config;
-
-    public ConsoleReportPolicyInstance(TestFrameworkInstance testFrameworkInstance) {
+    public ConsoleReport(TestFrameworkInstance testFrameworkInstance, ConsoleReportPolicy config) {
+        this.config = config;
         methodProcessResultStateMapping = testFrameworkInstance.getTestFramework().getMethodProcessResultStateMapping();
     }
 
-    public void initialize(Report report) {
-        this.report = report;
-
-        config = (ConsoleReportPolicyConfig) report.getConfig().getPolicyConfig();
-
-        reportThreadPool = ThreadUtils.newFixedThreadPool(config.getAmountOfReportingThreads());
-
-        consumers = new ArrayList<ReportInfoQueueItemConsumer>();
-
-        for (int i = 0; i < config.getAmountOfReportingThreads(); i++) {
-            consumers.add(new ReportInfoQueueItemConsumer(report.getReportInfoQueue(), 100L, TimeUnit.MILLISECONDS,
-                    this));
-        }
-    }
-
     public void start() {
-        for (ReportInfoQueueItemConsumer reportConsumer : consumers) {
-            reportThreadPool.submit(reportConsumer);
-        }
     }
 
     public void stop() {
-        for (ReportInfoQueueItemConsumer reportConsumer : consumers) {
-            reportConsumer.stopConsuming();
-        }
-
-        ThreadUtils.shutdown(reportThreadPool);
-        ThreadUtils.awaitTermination(reportThreadPool);
     }
 
-    private class ReportInfoQueueItemConsumer extends AbstractBlockingQueueItemConsumer<ReportInfo> {
-
-        private final ConsoleReportPolicyInstance reportPolicyInstance;
-
-        public ReportInfoQueueItemConsumer(BlockingQueue<ReportInfo> toConsumeQueue, long pollTimeout,
-                                           TimeUnit pollTimeoutTimeUnit,
-                                           ConsoleReportPolicyInstance reportPolicyInstance) {
-            super(toConsumeQueue, pollTimeout, pollTimeoutTimeUnit);
-            this.reportPolicyInstance = reportPolicyInstance;
-        }
-
-        protected boolean consume(ReportInfo queueItem) {
-            reportPolicyInstance.process(queueItem);
-
-            return false;
-        }
-    }
-
-    public void process(ReportInfo reportInfo) {
-        if (TestClassProcessResultReportInfo.class == reportInfo.getClass()) {
+    public void addReportInfo(ReportInfo reportInfo) {
+        if (reportInfo instanceof TestClassProcessResultReportInfo) {
             final TestClassProcessResultReportInfo testClassInfo = (TestClassProcessResultReportInfo) reportInfo;
 
             final Pipeline pipeline = testClassInfo.getPipeline();

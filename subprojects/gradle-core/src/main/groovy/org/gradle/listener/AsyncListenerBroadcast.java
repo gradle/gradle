@@ -25,7 +25,8 @@ import java.util.concurrent.Executors;
 
 /**
  * An {@code AsyncListenerBroadcast} is a {@code ListenerBroadcast} which dispatches events to listeners asynchronously
- * to the generation of the events. Ordering between listeners is maintained.
+ * to the generation of the events. Events are delivered in the order generated, and ordering between listeners is
+ * maintained.
  */
 public class AsyncListenerBroadcast<T> extends ListenerBroadcast<T> {
     public AsyncListenerBroadcast(Class<T> type) {

@@ -19,12 +19,8 @@ import org.gradle.api.testing.execution.control.refork.ReforkReasonConfigs;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyConfig;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyNames;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyRegister;
-import org.gradle.api.testing.pipelinesplit.policies.SplitPolicy;
 import org.gradle.api.testing.pipelinesplit.policies.SinglePipelineSplitPolicy;
-import org.gradle.api.testing.reporting.ReportConfig;
-
-import java.util.List;
-import java.util.ArrayList;
+import org.gradle.api.testing.pipelinesplit.policies.SplitPolicy;
 
 /**
  * @author Tom Eyckmans
@@ -34,7 +30,6 @@ public class PipelineConfig {
     private SplitPolicy splitPolicy;
     private ForkPolicyConfig forkPolicyConfig;
     private ReforkReasonConfigs reforkReasonConfigs;
-    private List<ReportConfig> reports;
 
     public PipelineConfig(String name) {
         this(name, new SinglePipelineSplitPolicy(), 
@@ -53,7 +48,6 @@ public class PipelineConfig {
         this.splitPolicy = splitPolicy;
         this.forkPolicyConfig = forkPolicyConfig;
         this.reforkReasonConfigs = new ReforkReasonConfigs();
-        this.reports = new ArrayList<ReportConfig>();
     }
 
     public String getName() {
@@ -90,13 +84,5 @@ public class PipelineConfig {
 
     public void setReforkReasonConfigs(ReforkReasonConfigs reforkReasonConfigs) {
         this.reforkReasonConfigs = reforkReasonConfigs;
-    }
-
-    public List<ReportConfig> getReports() {
-        return reports;
-    }
-
-    public void setReports(List<ReportConfig> reports) {
-        this.reports = reports;
     }
 }

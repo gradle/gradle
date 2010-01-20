@@ -29,8 +29,6 @@ import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.reporting.TestClassProcessResultReportInfo;
 import org.gradle.api.testing.reporting.TestReportProcessor;
 
-import java.util.List;
-
 /**
  * @author Tom Eyckmans
  */
@@ -77,14 +75,11 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
     }
 
     void processPreviousTestResult(int forkId, TestClassProcessResult previousProcessResult) {
-        // TODO submit to thread pool before reporting to different reports.
         if (previousProcessResult != null) {
-            final List<? extends TestReportProcessor> reports = pipeline.getReports();
             final TestClassProcessResultReportInfo result = new TestClassProcessResultReportInfo(forkId, pipeline,
                     previousProcessResult);
-            for (final TestReportProcessor report : reports) {
-                report.addReportInfo(result);
-            }
+            TestReportProcessor processor = pipeline.getReportProcessor();
+            processor.addReportInfo(result);
         }
     }
 

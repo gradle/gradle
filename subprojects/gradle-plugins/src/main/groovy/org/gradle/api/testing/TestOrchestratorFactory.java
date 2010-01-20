@@ -50,8 +50,8 @@ public class TestOrchestratorFactory {
         DefaultTestClassScannerFactory testClassScannerFactory = new DefaultTestClassScannerFactory();
         TestDetectionOrchestrator detectionOrchestrator = new DefaultTestDetectionOrchestrator(
                 testClassScannerFactory.createTestClassScanner(testTask, pipelineSplitOrchestrator.getProcessor()));
-        PipelinesManager pipelinesManager = new PipelinesManager(pipelineFactory, forkControl);
         ReportsManager reportOrchestrator = new DefaultReportsManager();
+        PipelinesManager pipelinesManager = new PipelinesManager(pipelineFactory, forkControl, reportOrchestrator.getProcessor());
 
         return new TestOrchestratorContext(testOrchestrator, detectionOrchestrator, pipelineSplitOrchestrator,
                 pipelinesManager, reportOrchestrator);

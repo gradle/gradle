@@ -20,12 +20,9 @@ import org.gradle.api.testing.execution.control.refork.DefaultReforkControl;
 import org.gradle.api.testing.execution.control.refork.ReforkControl;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.api.testing.reporting.Report;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.api.testing.reporting.TestReportProcessor;
 import org.gradle.util.queues.BlockingQueueItemProducer;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -41,22 +38,21 @@ public class QueueingPipeline implements Pipeline {
     private final BlockingQueue<TestClassRunInfo> runInfoQueue;
     private final BlockingQueueItemProducer<TestClassRunInfo> runInfoQueueProducer;
     private final PipelineConfig config;
+    private final TestReportProcessor testReportProcessor;
     private ForkPolicyInstance forkPolicyInstance;
     private final ReforkControl reforkControl;
     private final AtomicBoolean pipelineSplittingEnded = new AtomicBoolean(Boolean.FALSE);
-    private final List<Report> reports;
-    private final ListenerBroadcast<PipelineListener> broadcast = new ListenerBroadcast<PipelineListener>(PipelineListener.class);
 
-    public QueueingPipeline(PipelinesManager manager, int id, NativeTest testTask, PipelineConfig config) {
+    public QueueingPipeline(PipelinesManager manager, int id, NativeTest testTask, PipelineConfig config, TestReportProcessor testReportProcessor) {
         this.manager = manager;
         this.id = id;
         this.testTask = testTask;
         this.config = config;
+        this.testReportProcessor = testReportProcessor;
         this.runInfoQueue = new ArrayBlockingQueue<TestClassRunInfo>(1000);
         this.runInfoQueueProducer = new BlockingQueueItemProducer<TestClassRunInfo>(runInfoQueue, 100L,
                 TimeUnit.MILLISECONDS);
         this.reforkControl = new DefaultReforkControl();
-        this.reports = new ArrayList<Report>();
     }
 
     public int getId() {
@@ -107,20 +103,10 @@ public class QueueingPipeline implements Pipeline {
 
     public void stopped() {
         forkPolicyInstance.stop();
-        broadcast.getSource().pipelineStopped(this);
         manager.stopped(this);
     }
 
-    public List<Report> getReports() {
-        return reports;
-    }
-
-    public void addReport(Report report) {
-        this.reports.add(report);
-        report.addPipeline(this);
-    }
-
-    public void addListener(PipelineListener listener) {
-        broadcast.add(listener);
+    public TestReportProcessor getReportProcessor() {
+        return testReportProcessor;
     }
 }

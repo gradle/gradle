@@ -21,6 +21,7 @@ import org.gradle.api.testing.execution.fork.policies.ForkPolicy;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyConfig;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyRegister;
+import org.gradle.api.testing.reporting.TestReportProcessor;
 import org.gradle.util.ConditionWaitHandle;
 import org.gradle.util.ThreadUtils;
 
@@ -40,6 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PipelinesManager {
     private final PipelineFactory pipelineFactory;
     private final ForkControl forkControl;
+    private final TestReportProcessor testReportProcessor;
 
     private final Lock lock;
     private final Map<Integer, Pipeline> pipelinesInfo;
@@ -49,9 +51,10 @@ public class PipelinesManager {
 
     private int pipelineIdSequence;
 
-    public PipelinesManager(PipelineFactory pipelineFactory, ForkControl forkControl) {
+    public PipelinesManager(PipelineFactory pipelineFactory, ForkControl forkControl, TestReportProcessor testReportProcessor) {
         this.pipelineFactory = pipelineFactory;
         this.forkControl = forkControl;
+        this.testReportProcessor = testReportProcessor;
 
         lock = new ReentrantLock();
         pipelinesInfo = new HashMap<Integer, Pipeline>();
@@ -98,7 +101,8 @@ public class PipelinesManager {
     private QueueingPipeline addPipeline(PipelineConfig pipelineConfig) {
         lock.lock();
         try {
-            final QueueingPipeline pipeline = pipelineFactory.createPipeline(this, pipelineIdSequence++, pipelineConfig);
+            final QueueingPipeline pipeline = pipelineFactory.createPipeline(this, pipelineIdSequence++,
+                    pipelineConfig, testReportProcessor);
 
             pipelinesInfo.put(pipeline.getId(), pipeline);
             orderedPipelines.add(pipeline);

@@ -16,6 +16,7 @@
 package org.gradle.api.testing.execution;
 
 import org.gradle.api.tasks.testing.NativeTest;
+import org.gradle.api.testing.reporting.TestReportProcessor;
 
 /**
  * @author Tom Eyckmans
@@ -27,7 +28,7 @@ public class PipelineFactory {
         this.testTask = testTask;
     }
 
-    public QueueingPipeline createPipeline(PipelinesManager manager, int id, PipelineConfig pipelineConfig) {
-        return new QueueingPipeline(manager, id, testTask, pipelineConfig);
+    public QueueingPipeline createPipeline(PipelinesManager manager, int id, PipelineConfig pipelineConfig, TestReportProcessor testReportProcessor) {
+        return new QueueingPipeline(manager, id, testTask, pipelineConfig, testReportProcessor);
     }
 }

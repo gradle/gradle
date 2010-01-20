@@ -17,18 +17,16 @@ package org.gradle.api.testing.reporting;
 
 import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.execution.PipelinesManager;
-import org.gradle.api.testing.execution.QueueingPipeline;
 
 /**
  * @author Tom Eyckmans
  */
 public interface ReportsManager {
-
     void initialize(NativeTest testTask, PipelinesManager pipelinesManager);
 
+    TestReportProcessor getProcessor();
+    
     void startReporting();
 
     void waitForReportEnd();
-
-    void pipelineStopped(QueueingPipeline pipeline);
 }
