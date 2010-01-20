@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,43 +24,80 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
+/**
+ * A {@link org.gradle.listener.dispatch.Dispatch} implementation which delivers messages asynchronously. Calls to
+ * {@link #dispatch} queue the message. A single thread delivers the messages in order to a delegate {@link
+ * org.gradle.listener.dispatch.Dispatch}.
+ */
+public class AsyncDispatch<T> implements StoppableDispatch<T> {
+    private enum State {
+        Init, Dispatching, Broken, Stopped
+    }
+
     private static final int MAX_QUEUE_SIZE = 200;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final LinkedList<T> queue = new LinkedList<T>();
+    private final Executor executor;
     private final int maxQueueSize;
-    private boolean closed;
-    private boolean dispatching = true;
+    private State state;
+
+    public AsyncDispatch(Executor executor) {
+        this(executor, null, MAX_QUEUE_SIZE);
+    }
 
     public AsyncDispatch(Executor executor, final Dispatch<? super T> dispatch) {
         this(executor, dispatch, MAX_QUEUE_SIZE);
     }
 
     public AsyncDispatch(Executor executor, final Dispatch<? super T> dispatch, int maxQueueSize) {
+        this.executor = executor;
         this.maxQueueSize = maxQueueSize;
+        state = State.Init;
+        if (dispatch != null) {
+            start(dispatch);
+        }
+    }
+
+    public void start(final Dispatch<? super T> dispatch) {
+        onDispatchThreadStart();
         executor.execute(new Runnable() {
             public void run() {
-                dispatchThreadMain(dispatch);
+                try {
+                    dispatchMessages(dispatch);
+                } finally {
+                    onDispatchThreadExit();
+                }
             }
         });
     }
 
-    private void dispatchThreadMain(Dispatch<? super T> dispatch) {
+    private void onDispatchThreadStart() {
+        lock.lock();
         try {
-            dispatchMessages(dispatch);
+            if (state != State.Init) {
+                throw new IllegalStateException("This dispatch has already been started.");
+            }
+            setState(State.Dispatching);
         } finally {
-            onDispatchThreadExit();
+            lock.unlock();
         }
     }
 
     private void onDispatchThreadExit() {
         lock.lock();
         try {
-            dispatching = false;
+            if (state != State.Stopped) {
+                setState(State.Broken);
+            }
         } finally {
             lock.unlock();
         }
+    }
+
+    private void setState(State state) {
+        this.state = state;
+        condition.signalAll();
     }
 
     private void dispatchMessages(Dispatch<? super T> dispatch) {
@@ -68,7 +105,7 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
             List<T> messages = new ArrayList<T>();
             lock.lock();
             try {
-                while (!closed && queue.isEmpty()) {
+                while (state == State.Dispatching && queue.isEmpty()) {
                     try {
                         condition.await();
                     } catch (InterruptedException e) {
@@ -83,7 +120,7 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
             }
 
             if (messages.isEmpty()) {
-                // Have been closed
+                // Have been stopped
                 return;
             }
 
@@ -104,17 +141,17 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
     public void dispatch(final T message) {
         lock.lock();
         try {
-            while (dispatching && !closed && queue.size() >= maxQueueSize) {
+            while ((state == State.Init || state == State.Dispatching) && queue.size() >= maxQueueSize) {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
-            if (closed) {
-                throw new IllegalStateException("This message dispatch has been closed.");
+            if (state == State.Stopped) {
+                throw new IllegalStateException("This message dispatch has been stopped.");
             }
-            if (!dispatching) {
+            if (state == State.Broken) {
                 throw new IllegalStateException("Cannot dispatch messages, as the dispatch thread has exited.");
             }
             queue.add(message);
@@ -124,13 +161,14 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
         }
     }
 
-    public void close() {
+    public void stop() {
         lock.lock();
         try {
-            closed = true;
-            condition.signalAll();
+            if (state != State.Broken) {
+                setState(State.Stopped);
+            }
             Date expiry = new Date(System.currentTimeMillis() + (120 * 1000));
-            while (dispatching && !queue.isEmpty()) {
+            while (state != State.Broken && !queue.isEmpty()) {
                 try {
                     if (!condition.awaitUntil(expiry)) {
                         throw new IllegalStateException("Timeout waiting for messages to be flushed.");
@@ -139,7 +177,7 @@ public class AsyncDispatch<T extends Message> implements CloseableDispatch<T> {
                     throw new RuntimeException(e);
                 }
             }
-            if (!queue.isEmpty()) {
+            if (state == State.Broken && !queue.isEmpty()) {
                 throw new IllegalStateException(
                         "Cannot wait for messages to be flushed, as the dispatch thread has exited.");
             }

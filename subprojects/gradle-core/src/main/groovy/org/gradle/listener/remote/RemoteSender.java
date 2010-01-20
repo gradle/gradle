@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 public class RemoteSender<T> implements Closeable {
     private final ProxyDispatchAdapter<T> source;
     private final Socket socket;
-    private final CloseableDispatch<Message> asyncDispatch;
+    private final StoppableDispatch<Message> asyncDispatch;
     private ExecutorService executor;
 
     public RemoteSender(Class<T> type, int port) throws IOException {
@@ -45,7 +45,7 @@ public class RemoteSender<T> implements Closeable {
 
     public void close() throws IOException {
         asyncDispatch.dispatch(new EndOfStream());
-        asyncDispatch.close();
+        asyncDispatch.stop();
         executor.shutdown();
         socket.close();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,14 +33,18 @@ public class ProxyDispatchAdapter<T> {
         this.type = type;
         this.dispatch = dispatch;
         source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
-                new BroadcastInvocationHandler()));
+                new DispatchingInvocationHandler()));
+    }
+
+    public Class<T> getType() {
+        return type;
     }
 
     public T getSource() {
         return source;
     }
 
-    private class BroadcastInvocationHandler implements InvocationHandler {
+    private class DispatchingInvocationHandler implements InvocationHandler {
         public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
             if (method.getName().equals("equals")) {
                 return parameters[0] != null && Proxy.isProxyClass(parameters[0].getClass())

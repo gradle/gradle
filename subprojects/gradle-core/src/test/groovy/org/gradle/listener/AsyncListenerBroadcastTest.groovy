@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class AsyncListenerBroadcastTest extends MultithreadedTestCase {
             broadcast.source.event("$it")
         }
 
-        broadcast.close()
+        broadcast.stop()
     }
 
     @Test
@@ -67,7 +67,7 @@ public class AsyncListenerBroadcastTest extends MultithreadedTestCase {
             broadcast.source.event("$it")
         }
 
-        broadcast.close()
+        broadcast.stop()
     }
 
     @Test
@@ -77,45 +77,44 @@ public class AsyncListenerBroadcastTest extends MultithreadedTestCase {
         context.checking {
             one(listener1).event("1")
             will {
-                moveTo(1)
-                blockUntil(2)
+                syncAt(1)
+                syncAt(2)
             }
             one(listener1).event("2")
             one(listener1).event("3")
         }
         
-        thread {
+        run {
             broadcast.source.event("1")
-            blockUntil(1)
+            syncAt(1)
             broadcast.source.event("2")
             broadcast.source.event("3")
-            moveTo(2)
-        }.waitFor()
+            syncAt(2)
+        }
 
-        broadcast.close()
+        broadcast.stop()
     }
 
     @Test
-    public void closeBlocksUntilEventsDelivered() {
+    public void stopBlocksUntilAllEventsDelivered() {
         broadcast.add(listener1)
 
         context.checking {
             one(listener1).event("1")
             will {
-                blockUntil(1)
-                moveTo(2)
+                syncAt(1)
+                syncAt(2)
             }
         }
 
         broadcast.source.event("1")
 
-        thread {
-            moveTo(1)
-            broadcast.close()
+        run {
+            syncAt(1)
+            expectLater(2)
+            broadcast.stop()
             shouldBeAt(2)
         }
-
-        waitForAll()
     }
 }
 
