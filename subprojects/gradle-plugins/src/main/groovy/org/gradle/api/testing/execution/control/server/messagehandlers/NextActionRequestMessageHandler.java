@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.gradle.api.testing.execution.control.refork.ReforkControl;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.api.testing.reporting.Report;
 import org.gradle.api.testing.reporting.TestClassProcessResultReportInfo;
+import org.gradle.api.testing.reporting.TestReportProcessor;
 
 import java.util.List;
 
@@ -79,10 +79,10 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
     void processPreviousTestResult(int forkId, TestClassProcessResult previousProcessResult) {
         // TODO submit to thread pool before reporting to different reports.
         if (previousProcessResult != null) {
-            final List<Report> reports = pipeline.getReports();
+            final List<? extends TestReportProcessor> reports = pipeline.getReports();
             final TestClassProcessResultReportInfo result = new TestClassProcessResultReportInfo(forkId, pipeline,
                     previousProcessResult);
-            for (final Report report : reports) {
+            for (final TestReportProcessor report : reports) {
                 report.addReportInfo(result);
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.gradle.api.testing.reporting;
 
 import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.execution.PipelinesManager;
-import org.gradle.api.testing.execution.Pipeline;
+import org.gradle.api.testing.execution.QueueingPipeline;
 
 /**
  * @author Tom Eyckmans
@@ -30,5 +30,5 @@ public interface ReportsManager {
 
     void waitForReportEnd();
 
-    void pipelineStopped(Pipeline pipeline);
+    void pipelineStopped(QueueingPipeline pipeline);
 }

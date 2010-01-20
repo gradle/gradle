@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,15 @@ import org.gradle.api.testing.execution.fork.policies.ForkPolicyRegister;
 import org.gradle.util.ConditionWaitHandle;
 import org.gradle.util.ThreadUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Tom Eyckmans
@@ -37,29 +41,26 @@ public class PipelinesManager {
     private final PipelineFactory pipelineFactory;
     private final ForkControl forkControl;
 
-    private final ReadWriteLock pipelinesLock;
+    private final Lock lock;
     private final Map<Integer, Pipeline> pipelinesInfo;
-    private final List<Pipeline> orderedPipelines;
-
+    private final List<QueueingPipeline> orderedPipelines;
     private final List<Pipeline> notStopped;
-    private final Lock allStoppedLock;
     private final Condition allStoppedCondition;
 
-    private final AtomicInteger pipelineIdSequence;
+    private int pipelineIdSequence;
 
     public PipelinesManager(PipelineFactory pipelineFactory, ForkControl forkControl) {
         this.pipelineFactory = pipelineFactory;
         this.forkControl = forkControl;
 
-        pipelinesLock = new ReentrantReadWriteLock();
+        lock = new ReentrantLock();
         pipelinesInfo = new HashMap<Integer, Pipeline>();
-        orderedPipelines = new ArrayList<Pipeline>();
+        orderedPipelines = new ArrayList<QueueingPipeline>();
 
         notStopped = new CopyOnWriteArrayList<Pipeline>();
-        allStoppedLock = new ReentrantLock();
-        allStoppedCondition = allStoppedLock.newCondition();
+        allStoppedCondition = lock.newCondition();
 
-        pipelineIdSequence = new AtomicInteger(0);
+        pipelineIdSequence = 0;
     }
 
     public void initialize(NativeTest testTask) {
@@ -71,7 +72,7 @@ public class PipelinesManager {
         }
 
         for (final PipelineConfig pipelineConfig : pipelineConfigs.values()) {
-            final Pipeline pipeline = addPipeline(pipelineConfig);
+            final QueueingPipeline pipeline = addPipeline(pipelineConfig);
 
             // initialize fork policy
             final ForkPolicyConfig forkPolicyConfig = pipelineConfig.getForkPolicyConfig();
@@ -85,32 +86,19 @@ public class PipelinesManager {
         }
     }
 
-    private int getNextPipelineId() {
-        return pipelineIdSequence.incrementAndGet();
-    }
-
-    public Pipeline getPipeline(int pipelineId) {
-        pipelinesLock.readLock().lock();
+    public List<QueueingPipeline> getPipelines() {
+        lock.lock();
         try {
-            return pipelinesInfo.get(pipelineId);
+            return new ArrayList<QueueingPipeline>(orderedPipelines);
         } finally {
-            pipelinesLock.readLock().unlock();
+            lock.unlock();
         }
     }
 
-    public List<Pipeline> getPipelines() {
-        pipelinesLock.readLock().lock();
+    private QueueingPipeline addPipeline(PipelineConfig pipelineConfig) {
+        lock.lock();
         try {
-            return Collections.unmodifiableList(orderedPipelines);
-        } finally {
-            pipelinesLock.readLock().unlock();
-        }
-    }
-
-    public Pipeline addPipeline(PipelineConfig pipelineConfig) {
-        pipelinesLock.writeLock().lock();
-        try {
-            final Pipeline pipeline = pipelineFactory.createPipeline(this, getNextPipelineId(), pipelineConfig);
+            final QueueingPipeline pipeline = pipelineFactory.createPipeline(this, pipelineIdSequence++, pipelineConfig);
 
             pipelinesInfo.put(pipeline.getId(), pipeline);
             orderedPipelines.add(pipeline);
@@ -119,12 +107,12 @@ public class PipelinesManager {
 
             return pipeline;
         } finally {
-            pipelinesLock.writeLock().unlock();
+            lock.unlock();
         }
     }
 
     public void waitForExecutionEnd() {
-        ThreadUtils.interleavedConditionWait(allStoppedLock, allStoppedCondition, 100L, TimeUnit.MILLISECONDS,
+        ThreadUtils.interleavedConditionWait(lock, allStoppedCondition, 100L, TimeUnit.MILLISECONDS,
                 new ConditionWaitHandle() {
                     public boolean checkCondition() {
                         return notStopped.isEmpty();
@@ -137,29 +125,25 @@ public class PipelinesManager {
     }
 
     public void stopped(Pipeline pipeline) {
-        allStoppedLock.lock();
+        lock.lock();
         try {
-            for (final PipelineListener listener : pipeline.getListeners()) {
-                listener.pipelineStopped(pipeline);
-            }
-
             notStopped.remove(pipeline);
             if (notStopped.isEmpty()) {
                 allStoppedCondition.signal();
             }
         } finally {
-            allStoppedLock.unlock();
+            lock.unlock();
         }
     }
 
     public void pipelineSplittingEnded() {
-        pipelinesLock.readLock().lock();
+        lock.lock();
         try {
-            for (final Pipeline pipeline : orderedPipelines) {
+            for (final QueueingPipeline pipeline : orderedPipelines) {
                 pipeline.pipelineSplittingEnded();
             }
         } finally {
-            pipelinesLock.readLock().unlock();
+            lock.unlock();
         }
     }
 }

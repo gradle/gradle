@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package org.gradle.api.testing.execution.fork.policies.local.single;
 
 import org.gradle.api.Project;
 import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.PipelineDispatcherForkInfoListener;
 import org.gradle.api.testing.execution.PipelineDispatcher;
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.control.server.TestServersManager;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandleFactory;
 import org.gradle.api.testing.execution.fork.ForkConfigWriter;
@@ -43,13 +43,13 @@ import java.io.File;
 public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalSimpleForkPolicyInstance.class);
 
-    private final Pipeline pipeline;
+    private final QueueingPipeline pipeline;
     private final ForkControl forkControl;
     private final TestServersManager testServersManager;
 
     private int controlServerPort;
 
-    public LocalSimpleForkPolicyInstance(Pipeline pipeline, ForkControl forkControl,
+    public LocalSimpleForkPolicyInstance(QueueingPipeline pipeline, ForkControl forkControl,
                                          TestServersManager testServersManager) {
         if (pipeline == null) {
             throw new IllegalArgumentException("pipeline is null!");
@@ -76,11 +76,10 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
         final int amountToStart = ((LocalSimpleForkPolicyConfig) pipeline.getConfig().getForkPolicyConfig())
                 .getAmountToStart();
 
-        LOGGER.warn("Setting up test server & fork for pipeline {}", pipelineId);
+        LOGGER.info("Setting up test server & fork for pipeline {}", pipelineId);
 
         final PipelineDispatcher pipelineDispatcher = new PipelineDispatcher(pipeline,
                 new TestServerClientHandleFactory(forkControl));
-        pipeline.setDispatcher(pipelineDispatcher);
 
         // startup the test server
         controlServerPort = testServersManager.addAndStartServer(pipeline, pipelineDispatcher);
@@ -114,7 +113,7 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
 
     public void prepareFork(ForkInfo forkInfo) {
         final LocalSimpleForkPolicyForkInfo policyInfo = (LocalSimpleForkPolicyForkInfo) forkInfo.getForkPolicyInfo();
-        final Pipeline pipeline = forkInfo.getPipeline();
+        final QueueingPipeline pipeline = forkInfo.getPipeline();
         final NativeTest testTask = pipeline.getTestTask();
         final int pipelineId = pipeline.getId();
         final Project project = testTask.getProject();

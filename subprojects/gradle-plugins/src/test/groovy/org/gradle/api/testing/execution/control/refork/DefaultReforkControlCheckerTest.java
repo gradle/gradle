@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -69,7 +70,7 @@ public class DefaultReforkControlCheckerTest {
         final ReforkControl control = context.mock(ReforkControl.class);
         final ReforkContextData reforkContextData = context.mock(ReforkContextData.class);
 
-        final Pipeline pipeline = context.mock(Pipeline.class);
+        final Pipeline pipeline = context.mock(QueueingPipeline.class);
         final int forkId = 1;
 
         // throws exception during check

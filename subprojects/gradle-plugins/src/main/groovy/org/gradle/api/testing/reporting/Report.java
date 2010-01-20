@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.gradle.api.testing.reporting;
 
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.util.queues.BlockingQueueItemProducer;
 import org.gradle.api.testing.reporting.policies.ReportPolicyInstance;
 import org.gradle.api.testing.execution.Pipeline;
@@ -28,12 +29,12 @@ import java.util.ArrayList;
 /**
  * @author Tom Eyckmans
  */
-public class Report {
+public class Report implements TestReportProcessor {
     private final ReportConfig config;
     private final ReportPolicyInstance reportPolicyInstance;
     private final BlockingQueue<ReportInfo> reportInfoQueue;
     private final BlockingQueueItemProducer<ReportInfo> reportInfoQueueProducer;
-    private final List<Pipeline> pipelines;
+    private final List<QueueingPipeline> pipelines;
 
     public Report(ReportConfig config, ReportPolicyInstance reportPolicyInstance) {
         if (config == null) {
@@ -48,7 +49,7 @@ public class Report {
         reportInfoQueue = new ArrayBlockingQueue<ReportInfo>(1000);
         reportInfoQueueProducer = new BlockingQueueItemProducer<ReportInfo>(reportInfoQueue, 100L,
                 TimeUnit.MILLISECONDS);
-        pipelines = new ArrayList<Pipeline>();
+        pipelines = new ArrayList<QueueingPipeline>();
     }
 
     public ReportConfig getConfig() {
@@ -68,11 +69,11 @@ public class Report {
         reportInfoQueueProducer.produce(reportInfo);
     }
 
-    public List<Pipeline> getPipelines() {
+    public List<QueueingPipeline> getPipelines() {
         return pipelines;
     }
 
-    public void addPipeline(Pipeline pipeline) {
+    public void addPipeline(QueueingPipeline pipeline) {
         pipelines.add(pipeline);
     }
 

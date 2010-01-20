@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.gradle.api.testing.execution.control.server;
 
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.fork.ForkControl;
-import org.gradle.api.testing.execution.Pipeline;
 
 /**
  * @author Tom Eyckmans
@@ -32,7 +32,7 @@ public class TestServerClientHandleFactory {
         this.forkControl = forkControl;
     }
 
-    public TestServerClientHandle createTestServerClientHandle(Pipeline pipeline, int forkId) {
+    public TestServerClientHandle createTestServerClientHandle(QueueingPipeline pipeline, int forkId) {
         return new TestServerClientHandle(pipeline, forkId, forkControl);
     }
 }

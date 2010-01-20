@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.testing.execution;
+package org.gradle.api.testing.reporting;
 
-import org.gradle.api.testing.detection.TestClassProcessor;
-
-public interface Pipeline extends TestClassProcessor {
-    int getId();
-
-    String getName();
-
-    PipelineConfig getConfig();
+public interface TestReportProcessor {
+    void addReportInfo(ReportInfo reportInfo);
 }

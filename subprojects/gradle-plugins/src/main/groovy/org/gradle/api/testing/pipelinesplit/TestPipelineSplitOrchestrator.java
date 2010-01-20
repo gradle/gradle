@@ -22,12 +22,10 @@ import org.gradle.api.testing.execution.PipelineConfig;
 import org.gradle.api.testing.execution.PipelinesManager;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.pipelinesplit.policies.SplitPolicy;
-import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyConfig;
-import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyInstance;
-import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyRegister;
 import org.gradle.listener.AsyncProxy;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author Tom Eyckmans
@@ -44,26 +42,17 @@ public class TestPipelineSplitOrchestrator {
     }
 
     public void startPipelineSplitting(final PipelinesManager pipelinesManager) {
-        final Map<Spec<TestClassRunInfo>, Pipeline> pipelineMatchers = new HashMap<Spec<TestClassRunInfo>, Pipeline>();
-        final List<Spec<TestClassRunInfo>> splitPolicyMatchers = new ArrayList<Spec<TestClassRunInfo>>();
+        Map<Spec<TestClassRunInfo>, Pipeline> pipelineMatchers = new LinkedHashMap<Spec<TestClassRunInfo>, Pipeline>();
 
-        for (final Pipeline pipeline : pipelinesManager.getPipelines()) {
-            final PipelineConfig pipelineConfig = pipeline.getConfig();
-            final SplitPolicyConfig splitPolicyConfig = pipelineConfig.getSplitPolicyConfig();
-
-            final SplitPolicy splitPolicy = SplitPolicyRegister.getSplitPolicy(splitPolicyConfig.getPolicyName());
-            final SplitPolicyInstance splitPolicyInstance = splitPolicy.getSplitPolicyInstance(pipelineConfig);
-
-            splitPolicyInstance.prepare();
-
-            final Spec<TestClassRunInfo> matcher = splitPolicyInstance.createSplitPolicyMatcher();
+        for (Pipeline pipeline : pipelinesManager.getPipelines()) {
+            PipelineConfig pipelineConfig = pipeline.getConfig();
+            SplitPolicy splitPolicy = pipelineConfig.getSplitPolicyConfig();
+            Spec<TestClassRunInfo> matcher = splitPolicy.createSplitPolicyMatcher(pipelineConfig);
 
             pipelineMatchers.put(matcher, pipeline);
-            splitPolicyMatchers.add(matcher);
         }
 
-        TestClassProcessor splitter = new PipelineSplitWorker(Collections.unmodifiableList(splitPolicyMatchers),
-                Collections.unmodifiableMap(pipelineMatchers));
+        TestClassProcessor splitter = new SplittingTestClassProcessor(pipelineMatchers);
         asyncProxy.start(splitter);
     }
 

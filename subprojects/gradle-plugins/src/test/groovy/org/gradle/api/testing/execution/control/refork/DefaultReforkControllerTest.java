@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
-import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.PipelineConfig;
 
 import java.util.List;
@@ -54,7 +54,7 @@ public class DefaultReforkControllerTest {
     @Test
     public void okInitializationTest()
     {
-        final Pipeline pipeline = context.mock(Pipeline.class);
+        final QueueingPipeline pipeline = context.mock(QueueingPipeline.class);
         final PipelineConfig pipelineConfig = context.mock(PipelineConfig.class);
         final ReforkReasonConfigs reforkReasonConfigs = context.mock(ReforkReasonConfigs.class);
         final DefaultReforkControlInitialiser initialiser = context.mock(DefaultReforkControlInitialiser.class);

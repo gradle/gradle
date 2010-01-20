@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.gradle.api.testing.execution.control.server;
 
 import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.PipelineDispatcher;
+import org.gradle.api.testing.execution.QueueingPipeline;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class TestServersManager {
         }
     }
 
-    public void addServer(Pipeline pipeline, PipelineDispatcher pipelineDispatcher) {
+    public void addServer(QueueingPipeline pipeline, PipelineDispatcher pipelineDispatcher) {
         if (pipeline == null) {
             throw new IllegalArgumentException("pipeline == null!");
         }
@@ -85,7 +86,7 @@ public class TestServersManager {
         return controlServer.start();
     }
 
-    public int addAndStartServer(Pipeline pipeline, PipelineDispatcher pipelineDispatcher) {
+    public int addAndStartServer(QueueingPipeline pipeline, PipelineDispatcher pipelineDispatcher) {
         addServer(pipeline, pipelineDispatcher);
 
         return startServer(pipeline);

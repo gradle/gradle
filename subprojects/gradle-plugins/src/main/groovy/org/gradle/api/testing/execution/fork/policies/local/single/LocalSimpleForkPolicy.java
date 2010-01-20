@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.execution.fork.policies.local.single;
 
-import org.gradle.api.testing.execution.Pipeline;
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.control.server.ExternalControlServerFactory;
 import org.gradle.api.testing.execution.control.server.TestServersManager;
 import org.gradle.api.testing.execution.fork.ForkControl;
@@ -42,7 +42,7 @@ public class LocalSimpleForkPolicy implements ForkPolicy {
         return new LocalSimpleForkPolicyConfig(getName());
     }
 
-    public ForkPolicyInstance getForkPolicyInstance(Pipeline pipeline, ForkControl forkControl) {
+    public ForkPolicyInstance getForkPolicyInstance(QueueingPipeline pipeline, ForkControl forkControl) {
         if (forkControl == null) {
             throw new IllegalArgumentException("forkControl is null!");
         }

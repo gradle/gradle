@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.execution.fork;
 
-import org.gradle.api.testing.execution.Pipeline;
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyForkInfo;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -31,13 +31,13 @@ public class ForkInfo {
     private static final Logger LOGGER = LoggerFactory.getLogger(ForkInfo.class);
 
     private final int id;
-    private final Pipeline pipeline;
+    private final QueueingPipeline pipeline;
     private ForkPolicyForkInfo policyInfo;
     private boolean restarting;
 
     private List<ForkInfoListener> listeners = new CopyOnWriteArrayList<ForkInfoListener>();
 
-    public ForkInfo(int id, Pipeline pipeline) {
+    public ForkInfo(int id, QueueingPipeline pipeline) {
         this.id = id;
         this.pipeline = pipeline;
     }
@@ -46,7 +46,7 @@ public class ForkInfo {
         return id;
     }
 
-    public Pipeline getPipeline() {
+    public QueueingPipeline getPipeline() {
         return pipeline;
     }
 

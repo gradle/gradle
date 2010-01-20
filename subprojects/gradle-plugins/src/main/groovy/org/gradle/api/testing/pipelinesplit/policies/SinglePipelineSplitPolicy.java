@@ -16,13 +16,15 @@
 package org.gradle.api.testing.pipelinesplit.policies;
 
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
+import org.gradle.api.testing.execution.PipelineConfig;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 
 /**
  * @author Tom Eyckmans
  */
-public interface SplitPolicyInstance {
-    void prepare();
-
-    Spec<TestClassRunInfo> createSplitPolicyMatcher();
+public class SinglePipelineSplitPolicy implements SplitPolicy {
+    public Spec<TestClassRunInfo> createSplitPolicyMatcher(PipelineConfig config) {
+        return Specs.satisfyAll();
+    }
 }

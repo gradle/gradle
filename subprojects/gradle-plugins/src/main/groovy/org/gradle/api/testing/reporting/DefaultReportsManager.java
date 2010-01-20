@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 package org.gradle.api.testing.reporting;
 
 import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.PipelinesManager;
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.reporting.policies.ReportPolicy;
 import org.gradle.api.testing.reporting.policies.ReportPolicyConfig;
 import org.gradle.api.testing.reporting.policies.ReportPolicyInstance;
@@ -71,8 +71,8 @@ public class DefaultReportsManager implements ReportsManager {
             reportPolicyInstance.initialize(report);
         }
 
-        final List<Pipeline> pipelines = pipelinesManager.getPipelines();
-        for (final Pipeline pipeline : pipelines) {
+        final List<QueueingPipeline> pipelines = pipelinesManager.getPipelines();
+        for (final QueueingPipeline pipeline : pipelines) {
             final List<ReportConfig> pipelineReportConfigs = pipeline.getConfig().getReports();
 
             for (final ReportConfig pipelineReportConfig : pipelineReportConfigs) {
@@ -111,7 +111,7 @@ public class DefaultReportsManager implements ReportsManager {
         }
     }
 
-    public void pipelineStopped(Pipeline pipeline) {
+    public void pipelineStopped(QueueingPipeline pipeline) {
         allStoppedLock.lock();
         try {
             final List<Report> reports = pipeline.getReports();

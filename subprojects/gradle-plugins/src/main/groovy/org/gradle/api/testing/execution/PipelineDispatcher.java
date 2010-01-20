@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PipelineDispatcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(PipelineDispatcher.class);
 
-    private final Pipeline pipeline;
+    private final QueueingPipeline pipeline;
     private final BlockingQueue<TestClassRunInfo> testsToDispatch;
 
     private final Map<Class<?>, TestControlMessageHandler> messageClassHandlers;
@@ -61,7 +61,7 @@ public class PipelineDispatcher {
     private final Lock runningClientsLock;
     private final Condition allClientsStopped;
 
-    public PipelineDispatcher(Pipeline pipeline, TestServerClientHandleFactory clientHandleFactory) {
+    public PipelineDispatcher(QueueingPipeline pipeline, TestServerClientHandleFactory clientHandleFactory) {
         this.pipeline = pipeline;
         this.clientHandleFactory = clientHandleFactory;
         this.messageClassHandlers = new HashMap<Class<?>, TestControlMessageHandler>();
@@ -104,7 +104,7 @@ public class PipelineDispatcher {
         }
     }
 
-    public Pipeline getPipeline() {
+    public QueueingPipeline getPipeline() {
         return pipeline;
     }
 
