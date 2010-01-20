@@ -15,11 +15,10 @@
  */
 package org.gradle.integtests
 
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
-import org.gradle.util.TestFile.Snapshot
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -230,17 +229,10 @@ task a(type: org.gradle.integtests.TransformerTask) {
     outputs.upToDateWhen { false }
 }
 '''
-        TestFile inputFile = testFile('src.txt')
-        TestFile outputFile = testFile('src.a.txt')
-
-        inputFile.text = 'content'
+        testFile('src.txt').text = 'content'
 
         inTestDirectory().withTasks('a').run().assertTasksExecuted(':a').assertTasksSkipped()
 
-        Snapshot outputFileState = outputFile.snapshot()
-
         inTestDirectory().withTasks('a').run().assertTasksExecuted(':a').assertTasksSkipped()
-
-        outputFile.assertHasChangedSince(outputFileState)
     }
 }
