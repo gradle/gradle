@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,73 +15,44 @@
  */
 package org.gradle.api.testing.pipelinesplit;
 
-import org.gradle.api.testing.execution.Pipeline;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.testing.detection.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyMatcher;
-import org.gradle.util.queues.AbstractBlockingQueueItemConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Tom Eyckmans
  */
-public class PipelineSplitWorker extends AbstractBlockingQueueItemConsumer<TestClassRunInfo> {
+public class PipelineSplitWorker implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(PipelineSplitWorker.class);
 
-    private final TestPipelineSplitOrchestrator splitOrchestrator;
-    private final AtomicLong matchCount = new AtomicLong(0);
-    private final AtomicLong discardedCount = new AtomicLong(0);
-    private final List<SplitPolicyMatcher> splitPolicyMatchers;
-    private Map<SplitPolicyMatcher, Pipeline> pipelineMatchers;
+    private final List<? extends Spec<TestClassRunInfo>> splitPolicyMatchers;
+    private final Map<? extends Spec<TestClassRunInfo>, ? extends TestClassProcessor> pipelineMatchers;
 
-    public PipelineSplitWorker(TestPipelineSplitOrchestrator splitOrchestrator,
-                               BlockingQueue<TestClassRunInfo> toConsumeQueue, long pollTimeout,
-                               TimeUnit pollTimeoutTimeUnit, List<SplitPolicyMatcher> splitPolicyMatchers,
-                               Map<SplitPolicyMatcher, Pipeline> pipelineMatchers) {
-        super(toConsumeQueue, pollTimeout, pollTimeoutTimeUnit);
-        this.splitOrchestrator = splitOrchestrator;
+    public PipelineSplitWorker(List<? extends Spec<TestClassRunInfo>> splitPolicyMatchers,
+                               Map<? extends Spec<TestClassRunInfo>, ? extends TestClassProcessor> pipelineMatchers) {
         this.splitPolicyMatchers = splitPolicyMatchers;
         this.pipelineMatchers = pipelineMatchers;
     }
 
-    public void setUp() {
-        splitOrchestrator.splitWorkerStarted(this);
-    }
+    public void processTestClass(TestClassRunInfo testClass) {
+        LOGGER.debug("[pipeline-splitting >> test-run] {}", testClass.getTestClassName());
 
-    protected boolean consume(TestClassRunInfo queueItem) {
-        LOGGER.debug("[pipeline-splitting >> test-run] {}", queueItem.getTestClassName());
+        Spec<TestClassRunInfo> matcher = null;
 
-        SplitPolicyMatcher matcher = null;
-
-        final Iterator<SplitPolicyMatcher> matcherIterator = splitPolicyMatchers.iterator();
+        final Iterator<? extends Spec<TestClassRunInfo>> matcherIterator = splitPolicyMatchers.iterator();
         while (matcher == null && matcherIterator.hasNext()) {
-            final SplitPolicyMatcher currentMatcher = matcherIterator.next();
-            if (currentMatcher.match(queueItem)) {
+            Spec<TestClassRunInfo> currentMatcher = matcherIterator.next();
+            if (currentMatcher.isSatisfiedBy(testClass)) {
                 matcher = currentMatcher;
             }
         }
 
-        if (matcher != null) {
-            pipelineMatchers.get(matcher).addTestClassRunInfo(queueItem);
-            matchCount.incrementAndGet();
-        } else {
-            discardedCount.incrementAndGet();
-        }
-
-        return false; // don't stop
-    }
-
-    protected void tearDown() {
-        LOGGER.debug("[split-worker-match-count] " + matchCount.get());
-        LOGGER.debug("[split-worker-discarded-count] " + discardedCount.get());
-
-        splitOrchestrator.splitWorkerStopped(this);
+        pipelineMatchers.get(matcher).processTestClass(testClass);
     }
 }

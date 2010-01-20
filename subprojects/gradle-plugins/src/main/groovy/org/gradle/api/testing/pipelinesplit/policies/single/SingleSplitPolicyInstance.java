@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@
  */
 package org.gradle.api.testing.pipelinesplit.policies.single;
 
+import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.testing.execution.PipelineConfig;
+import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.pipelinesplit.policies.AbstractSplitPolicyInstance;
-import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyMatcher;
 
 /**
  * @author Tom Eyckmans
@@ -27,7 +29,7 @@ public class SingleSplitPolicyInstance extends AbstractSplitPolicyInstance {
         super(config);
     }
 
-    public SplitPolicyMatcher createSplitPolicyMatcher() {
-        return new SinglePipelineSplitPolicyMatcher(config);
+    public Spec<TestClassRunInfo> createSplitPolicyMatcher() {
+        return Specs.satisfyAll();
     }
 }

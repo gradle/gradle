@@ -26,14 +26,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class DefaultTestDetectionOrchestrator implements TestDetectionOrchestrator {
-    private final TestDetectionOrchestratorFactory factory;
-
     private final Lock detectionRunStateLock;
-
     private Thread detectionThread;
+    private final TestClassScanner scanner;
 
-    public DefaultTestDetectionOrchestrator(final TestDetectionOrchestratorFactory factory) {
-        this.factory = factory;
+    public DefaultTestDetectionOrchestrator(TestClassScanner scanner) {
+        this.scanner = scanner;
         this.detectionRunStateLock = new ReentrantLock();
     }
 
@@ -41,8 +39,7 @@ public class DefaultTestDetectionOrchestrator implements TestDetectionOrchestrat
         detectionRunStateLock.lock();
         try {
             if (detectionThread == null) {
-                Runnable detectionRunner = factory.createDetectionRunner();
-                detectionThread = new Thread(detectionRunner);
+                detectionThread = new Thread(scanner);
                 detectionThread.start();
             } else {
                 throw new IllegalStateException("detection already started");
