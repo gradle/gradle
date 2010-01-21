@@ -16,7 +16,6 @@
 package org.gradle.integtests;
 
 import org.gradle.util.TestFile;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -102,7 +101,7 @@ public class JUnitIntegrationTest {
         testDir.file("build/test-results/TEST-org.gradle.SomeTest$SomeInner.xml").assertIsFile();
     }
 
-    @Test @Ignore
+    @Test
     public void canListenForTestResults() {
         TestFile testDir = dist.getTestDir();
         testDir.file("src/main/java/AppException.java").writelns(
@@ -146,7 +145,7 @@ public class JUnitIntegrationTest {
         assertThat(result.getOutput(), containsLine("FINISH TEST unknownError(SomeTest) error: org.gradle.listener.dispatch.PlaceholderException: AppException: null"));
     }
 
-    @Test @Ignore
+    @Test
     public void canListenForTestResultsWhenJUnit3IsUsed() {
         TestFile testDir = dist.getTestDir();
         testDir.file("src/test/java/SomeTest.java").writelns(
