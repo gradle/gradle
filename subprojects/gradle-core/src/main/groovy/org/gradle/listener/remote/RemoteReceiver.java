@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package org.gradle.listener.remote;
 
 import org.gradle.listener.dispatch.Dispatch;
 import org.gradle.listener.dispatch.EndOfStream;
-import org.gradle.listener.dispatch.Event;
+import org.gradle.listener.dispatch.MethodInvocation;
 import org.gradle.listener.dispatch.Message;
 import org.gradle.util.ThreadUtils;
 import org.slf4j.Logger;
@@ -38,21 +38,21 @@ import java.util.concurrent.Executors;
 
 public class RemoteReceiver implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteReceiver.class);
-    private final Dispatch<? super Event> broadcaster;
+    private final Dispatch<? super MethodInvocation> broadcaster;
     private final ServerSocketChannel serverSocket;
     private final ExceptionListener exceptionListener;
     private final ExecutorService executor;
     private final ClassLoader classLoader;
 
-    public RemoteReceiver(Dispatch<? super Event> broadcaster) throws IOException {
+    public RemoteReceiver(Dispatch<? super MethodInvocation> broadcaster) throws IOException {
         this(broadcaster, null, Thread.currentThread().getContextClassLoader());
     }
 
-    public RemoteReceiver(Dispatch<? super Event> broadcaster, ClassLoader classLoader) throws IOException {
+    public RemoteReceiver(Dispatch<? super MethodInvocation> broadcaster, ClassLoader classLoader) throws IOException {
         this(broadcaster, null, classLoader);
     }
 
-    public RemoteReceiver(Dispatch<? super Event> broadcaster, ExceptionListener exceptionListener,
+    public RemoteReceiver(Dispatch<? super MethodInvocation> broadcaster, ExceptionListener exceptionListener,
                           ClassLoader classLoader) throws IOException {
         this.broadcaster = broadcaster;
         this.exceptionListener = exceptionListener;
@@ -90,9 +90,9 @@ public class RemoteReceiver implements Closeable {
                             return;
                         }
 
-                        Event event = (Event) message;
+                        MethodInvocation invocation = (MethodInvocation) message;
                         try {
-                            broadcaster.dispatch(event);
+                            broadcaster.dispatch(invocation);
                         } catch (Exception e) {
                             if (exceptionListener != null) {
                                 exceptionListener.receiverThrewException(e);

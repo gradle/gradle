@@ -26,7 +26,6 @@ import org.gradle.util.ConditionWaitHandle;
 import org.gradle.util.ThreadUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -44,7 +43,6 @@ public class PipelinesManager {
     private final TestReportProcessor testReportProcessor;
 
     private final Lock lock;
-    private final Map<Integer, Pipeline> pipelinesInfo;
     private final List<QueueingPipeline> orderedPipelines;
     private final List<Pipeline> notStopped;
     private final Condition allStoppedCondition;
@@ -57,7 +55,6 @@ public class PipelinesManager {
         this.testReportProcessor = testReportProcessor;
 
         lock = new ReentrantLock();
-        pipelinesInfo = new HashMap<Integer, Pipeline>();
         orderedPipelines = new ArrayList<QueueingPipeline>();
 
         notStopped = new CopyOnWriteArrayList<Pipeline>();
@@ -89,10 +86,10 @@ public class PipelinesManager {
         }
     }
 
-    public List<QueueingPipeline> getPipelines() {
+    public List<Pipeline> getPipelines() {
         lock.lock();
         try {
-            return new ArrayList<QueueingPipeline>(orderedPipelines);
+            return new ArrayList<Pipeline>(orderedPipelines);
         } finally {
             lock.unlock();
         }
@@ -104,9 +101,7 @@ public class PipelinesManager {
             final QueueingPipeline pipeline = pipelineFactory.createPipeline(this, pipelineIdSequence++,
                     pipelineConfig, testReportProcessor);
 
-            pipelinesInfo.put(pipeline.getId(), pipeline);
             orderedPipelines.add(pipeline);
-
             notStopped.add(pipeline);
 
             return pipeline;

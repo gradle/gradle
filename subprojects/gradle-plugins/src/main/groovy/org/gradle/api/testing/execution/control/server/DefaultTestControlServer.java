@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@ package org.gradle.api.testing.execution.control.server;
 
 import org.apache.mina.core.service.IoAcceptor;
 import org.gradle.api.GradleException;
-import org.gradle.api.testing.execution.PipelineDispatcher;
 import org.gradle.api.testing.execution.control.server.transport.IoAcceptorFactory;
 import org.gradle.api.testing.execution.control.server.transport.TestServerIoHandler;
+import org.gradle.api.testing.execution.control.server.transport.TransportMessage;
+import org.gradle.listener.dispatch.Dispatch;
 
 import java.io.IOException;
 
@@ -33,16 +34,9 @@ public class DefaultTestControlServer implements TestControlServer {
     private IoAcceptor ioAcceptor;
     private int port;
 
-    public DefaultTestControlServer(IoAcceptorFactory ioAcceptorFactory, PipelineDispatcher pipelineDispatcher) {
-        if (ioAcceptorFactory == null) {
-            throw new IllegalArgumentException("socketAcceptorProvider is null!");
-        }
-        if (pipelineDispatcher == null) {
-            throw new IllegalArgumentException("pipeline is null!");
-        }
-
+    public DefaultTestControlServer(IoAcceptorFactory ioAcceptorFactory, Dispatch<TransportMessage> dispatch) {
         this.ioAcceptorFactory = ioAcceptorFactory;
-        this.testServerIoHandler = new TestServerIoHandler(pipelineDispatcher);
+        this.testServerIoHandler = new TestServerIoHandler(dispatch);
     }
 
     public int start() {

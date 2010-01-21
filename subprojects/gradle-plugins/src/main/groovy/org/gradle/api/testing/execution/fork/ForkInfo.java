@@ -17,25 +17,17 @@ package org.gradle.api.testing.execution.fork;
 
 import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyForkInfo;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import org.gradle.listener.ListenerBroadcast;
 
 /**
  * @author Tom Eyckmans
  */
 public class ForkInfo {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ForkInfo.class);
-
     private final int id;
     private final QueueingPipeline pipeline;
     private ForkPolicyForkInfo policyInfo;
     private boolean restarting;
-
-    private List<ForkInfoListener> listeners = new CopyOnWriteArrayList<ForkInfoListener>();
+    private final ListenerBroadcast<ForkInfoListener> listeners = new ListenerBroadcast<ForkInfoListener>(ForkInfoListener.class);
 
     public ForkInfo(int id, QueueingPipeline pipeline) {
         this.id = id;
@@ -75,57 +67,22 @@ public class ForkInfo {
     }
 
     public void starting() {
-        final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
-        for (final ForkInfoListener currentListener : currentListeners) {
-            try {
-                currentListener.starting(id);
-            } catch (Throwable t) {
-                LOGGER.warn("failed to notify fork listener of fork " + id + " starting", t);
-            }
-        }
+        listeners.getSource().starting(id);
     }
 
     public void started() {
-        final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
-        for (final ForkInfoListener currentListener : currentListeners) {
-            try {
-                currentListener.started(id);
-            } catch (Throwable t) {
-                LOGGER.warn("failed to notify fork listener of fork " + id + " started", t);
-            }
-        }
+        listeners.getSource().started(id);
     }
 
     public void finished() {
-        final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
-        for (final ForkInfoListener currentListener : currentListeners) {
-            try {
-                currentListener.stopped(id);
-            } catch (Throwable t) {
-                LOGGER.warn("failed to notify fork listener of fork " + id + " stop", t);
-            }
-        }
+        listeners.getSource().stopped(id);
     }
 
     public void failed(final Throwable cause) {
-        final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
-        for (final ForkInfoListener currentListener : currentListeners) {
-            try {
-                currentListener.failed(id, cause);
-            } catch (Throwable t) {
-                LOGGER.warn("failed to notify fork listener of fork " + id + " failure", t);
-            }
-        }
+        listeners.getSource().failed(id, cause);
     }
 
     public void aborted() {
-        final List<ForkInfoListener> currentListeners = new ArrayList<ForkInfoListener>(listeners);
-        for (final ForkInfoListener currentListener : currentListeners) {
-            try {
-                currentListener.aborted(id);
-            } catch (Throwable t) {
-                LOGGER.warn("failed to notify fork aborted of fork " + id + " aborted", t);
-            }
-        }
+        listeners.getSource().aborted(id);
     }
 }

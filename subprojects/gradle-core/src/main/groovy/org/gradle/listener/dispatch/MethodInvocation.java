@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@ package org.gradle.listener.dispatch;
 
 import java.lang.reflect.Method;
 
-public class Event extends Message {
+public class MethodInvocation extends Message {
     private transient Method method;
     private String methodName;
     private Class[] parameters;
     private Object[] arguments;
 
-    public Event(Method method, Object[] args) {
+    public MethodInvocation(Method method, Object[] args) {
         this.method = method;
         methodName = method.getName();
         parameters = method.getParameterTypes();

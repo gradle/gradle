@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.gradle.api.testing.execution.control.server.transport;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
-import org.gradle.api.testing.execution.PipelineDispatcher;
+import org.gradle.listener.dispatch.Dispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,15 +29,15 @@ public class TestServerIoHandler extends IoHandlerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestServerIoHandler.class);
 
-    private final PipelineDispatcher pipelineDispatcher;
+    private final Dispatch<TransportMessage> dispatch;
 
-    public TestServerIoHandler(PipelineDispatcher pipelineDispatcher) {
-        this.pipelineDispatcher = pipelineDispatcher;
+    public TestServerIoHandler(Dispatch<TransportMessage> dispatch) {
+        this.dispatch = dispatch;
     }
 
     @Override
     public void messageReceived(IoSession ioSession, Object message) throws Exception {
-        pipelineDispatcher.messageReceived(ioSession, message);
+        dispatch.dispatch(new TransportMessage(ioSession, message));
     }
 
     @Override

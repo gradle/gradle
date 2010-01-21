@@ -102,9 +102,9 @@ public class AsyncProxyTest extends MultithreadedTestCase {
 
         run {
             syncAt(1)
-            expectLater(2)
-            proxy.stop()
-            shouldBeAt(2)
+            expectBlocksUntil(2) {
+                proxy.stop()
+            }
         }
     }
 }

@@ -16,7 +16,9 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
+import junit.framework.AssertionFailedError;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,20 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * <p>A base class for testing concurrent code.</p>
+ *
+ * <p>Provides several ways to start and manage threads. You can use the {@link #start(groovy.lang.Closure)} or {@link
+ * #run(groovy.lang.Closure)} methods to execute test code in other threads. You can use {@link #waitForAll()} to wait
+ * for all test threads to complete. In addition, the test tear-down method will ensure that no exceptions were thrown
+ * in any test threads.</p>
+ *
+ * <p>Provides an {@link java.util.concurrent.Executor} implementation, which uses test threads to execute any tasks
+ * submitted to it.</p>
+ *
+ * <p>You can use {@link #syncAt(int)} and {@link #expectBlocksUntil(int, groovy.lang.Closure)} to synchronise between
+ * test threads.</p>
+ */
 public class MultithreadedTestCase {
     private static final Logger LOGGER = LoggerFactory.getLogger(MultithreadedTestCase.class);
     private static final int MAX_WAIT_TIME = 5000;
@@ -38,6 +54,9 @@ public class MultithreadedTestCase {
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private int currentTick = 0;
     private final Condition synchingChanged = lock.newCondition();
+    private boolean stopped;
+    private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure
+            = new ThreadLocal<Matcher<? extends Throwable>>();
 
     /**
      * Creates an Executor which the test can control.
@@ -114,6 +133,9 @@ public class MultithreadedTestCase {
     private void testThreadStarted(Thread thread) {
         lock.lock();
         try {
+            if (stopped) {
+                throw new IllegalStateException("Cannot start new threads, as this test case has been stopped.");
+            }
             LOGGER.debug("Started {}", thread);
             active.add(thread);
             activeChanged.signalAll();
@@ -126,11 +148,22 @@ public class MultithreadedTestCase {
         lock.lock();
         try {
             active.remove(thread);
+            Matcher<? extends Throwable> matcher = expectedFailure.get();
             if (failure != null) {
-                LOGGER.debug(String.format("Failure in %s", thread), failure);
-                failures.add(failure);
+                if (matcher != null && matcher.matches(failure)) {
+                    LOGGER.debug("Finished {} with expected failure.", thread);
+                } else {
+                    LOGGER.error(String.format("Failure in %s", thread), failure);
+                    failures.add(failure);
+                }
             } else {
-                LOGGER.debug("Finished {}", thread);
+                if (matcher != null) {
+                    String message = String.format("Did not get expected failure in %s", thread);
+                    LOGGER.error(message);
+                    failures.add(new AssertionFailedError(message));
+                } else {
+                    LOGGER.debug("Finished {}", thread);
+                }
             }
             activeChanged.signalAll();
         } finally {
@@ -162,7 +195,7 @@ public class MultithreadedTestCase {
     }
 
     /**
-     * Waits for all asynchronous activity to complete. Re-throws any exceptions which occurred.
+     * Waits for all asynchronous activity to complete. Applies a timeout, and re-throws any exceptions which occurred.
      */
     public void waitForAll() {
         Date expiry = new Date(System.currentTimeMillis() + 2 * MAX_WAIT_TIME);
@@ -189,7 +222,7 @@ public class MultithreadedTestCase {
             if (!failures.isEmpty()) {
                 Throwable failure = failures.get(0);
                 failures.clear();
-                throw new RuntimeException("An exception occurred in a test thread.", failure);
+                throw new RuntimeException("An unexpected exception occurred in a test thread.", failure);
             }
         } finally {
             lock.unlock();
@@ -198,13 +231,19 @@ public class MultithreadedTestCase {
 
     @After
     public void waitForStop() {
+        lock.lock();
+        try {
+            stopped = true;
+        } finally {
+            lock.unlock();
+        }
         waitForAll();
     }
 
     /**
      * Blocks until the clock has reached the given tick. The clock advances to the given tick when all test threads
-     * have called {@link #syncAt(int)} or {@link #expectLater(int)} with the given tick, and there are least 2 test
-     * threads.
+     * have called {@link #syncAt(int)} or {@link #expectBlocksUntil(int, groovy.lang.Closure)} with the given tick, and
+     * there are least 2 test threads.
      *
      * @param tick The expected clock tick
      */
@@ -253,7 +292,7 @@ public class MultithreadedTestCase {
      *
      * @param tick The expected clock tick.
      */
-    public void expectLater(int tick) {
+    private void expectLater(int tick) {
         LOGGER.debug("Thread {} expecting tick {}", Thread.currentThread(), tick);
 
         lock.lock();
@@ -274,6 +313,18 @@ public class MultithreadedTestCase {
     }
 
     /**
+     * Asserts that the given closure blocks until the given clock tick is reached.
+     *
+     * @param tick The expected clock tick when the closure completes.
+     * @param closure The closure to execute.
+     */
+    public void expectBlocksUntil(int tick, Closure closure) {
+        expectLater(tick);
+        closure.call();
+        shouldBeAt(tick);
+    }
+
+    /**
      * Asserts that the clock is at the given tick.
      *
      * @param tick The expected clock tick.
@@ -288,6 +339,13 @@ public class MultithreadedTestCase {
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * Indicates that the current test thread will fail with an exception that matches the given criteria.
+     */
+    public void willFailWith(Matcher<? extends Throwable> matcher) {
+        expectedFailure.set(matcher);
     }
 
     private class ExecutorImpl implements Executor {

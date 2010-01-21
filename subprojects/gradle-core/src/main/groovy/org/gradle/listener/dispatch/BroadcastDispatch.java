@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class BroadcastDispatch<T> implements StoppableDispatch<Event> {
+public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation> {
     private final Class<T> type;
     private final Map<Object, InvocationHandler> handlers = new LinkedHashMap<Object, InvocationHandler>();
     private final DelegatingInvocationHandler noOpLogger = new DelegatingInvocationHandler() {
@@ -74,10 +74,10 @@ public class BroadcastDispatch<T> implements StoppableDispatch<Event> {
         return String.format("Failed to notify %s.", typeDescription);
     }
 
-    public void dispatch(Event event) {
+    public void dispatch(MethodInvocation invocation) {
         try {
-            Method method = event.getMethod(type);
-            dispatch(method, event.getArguments());
+            Method method = invocation.getMethod(type);
+            dispatch(method, invocation.getArguments());
         } catch (ListenerNotificationException e) {
             throw e;
         } catch (Throwable throwable) {

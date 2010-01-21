@@ -29,13 +29,20 @@ import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.reporting.TestClassProcessResultReportInfo;
 import org.gradle.api.testing.reporting.TestReportProcessor;
 
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * @author Tom Eyckmans
  */
 public class NextActionRequestMessageHandler extends AbstractTestServerControlMessageHandler {
 
-    protected NextActionRequestMessageHandler(PipelineDispatcher pipelineDispatcher) {
+    public NextActionRequestMessageHandler(PipelineDispatcher pipelineDispatcher) {
         super(pipelineDispatcher);
+    }
+
+    public Set<? extends Class<?>> getMessageClasses() {
+        return Collections.singleton(NextActionRequestMessage.class);
     }
 
     public void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client) {

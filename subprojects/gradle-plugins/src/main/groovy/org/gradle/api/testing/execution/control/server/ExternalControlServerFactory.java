@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,42 +15,30 @@
  */
 package org.gradle.api.testing.execution.control.server;
 
-import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.PipelineDispatcher;
-import org.gradle.api.testing.execution.control.messages.TestControlMessageHandler;
-import org.gradle.api.testing.execution.control.messages.TestControlMessageHandlerFactory;
-import org.gradle.api.testing.execution.control.server.messagehandlers.ForkStartedMessageHandlerFactory;
-import org.gradle.api.testing.execution.control.server.messagehandlers.ForkStoppedMessageHandlerFactory;
-import org.gradle.api.testing.execution.control.server.messagehandlers.NextActionRequestMessageHandlerFactory;
+import org.gradle.api.testing.execution.control.server.messagehandlers.*;
 import org.gradle.api.testing.execution.control.server.transport.ExternalIoAcceptorFactory;
 import org.gradle.api.testing.execution.control.server.transport.IoAcceptorFactory;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.gradle.api.testing.execution.control.server.transport.TransportMessage;
+import org.gradle.listener.dispatch.Dispatch;
 
 /**
  * @author Tom Eyckmans
  */
 public class ExternalControlServerFactory implements ControlServerFactory {
-    private static List<TestControlMessageHandlerFactory> messageHandlerFactories
-            = new ArrayList<TestControlMessageHandlerFactory>();
-
-    static {
-        messageHandlerFactories.add(new ForkStartedMessageHandlerFactory());
-        messageHandlerFactories.add(new ForkStoppedMessageHandlerFactory());
-        messageHandlerFactories.add(new NextActionRequestMessageHandlerFactory());
-    }
-
-    public TestControlServer createTestControlServer(Pipeline pipeline, PipelineDispatcher pipelineDispatcher) {
+    public TestControlServer createTestControlServer(final PipelineDispatcher pipelineDispatcher) {
         final IoAcceptorFactory ioAcceptorFactory = new ExternalIoAcceptorFactory();
 
-        for (TestControlMessageHandlerFactory messageHandlerFactory : messageHandlerFactories) {
-            TestControlMessageHandler messageHandler = messageHandlerFactory.createTestControlMessageHandler(
-                    pipelineDispatcher);
+        CompositeMessageHandler handler = new CompositeMessageHandler(pipelineDispatcher);
+        handler.add(new ForkStartedMessageHandler(pipelineDispatcher));
+        handler.add(new ForkStoppedMessageHandler(pipelineDispatcher));
+        handler.add(new NextActionRequestMessageHandler(pipelineDispatcher));
+        pipelineDispatcher.setMessageHandler(handler);
 
-            pipelineDispatcher.addMessageHandler(messageHandlerFactory.getMessageClasses(), messageHandler);
-        }
-
-        return new DefaultTestControlServer(ioAcceptorFactory, pipelineDispatcher);
+        return new DefaultTestControlServer(ioAcceptorFactory, new Dispatch<TransportMessage>() {
+            public void dispatch(TransportMessage message) {
+                pipelineDispatcher.messageReceived(message.getIoSession(), message.getMessage());
+            }
+        });
     }
 }

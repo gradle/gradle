@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.gradle.listener;
 
-import org.gradle.listener.dispatch.Event;
+import org.gradle.listener.dispatch.MethodInvocation;
 import org.gradle.util.TestClosure;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -82,8 +82,8 @@ public class ListenerBroadcastTest {
         broadcast.add(listener1);
         broadcast.add(listener2);
 
-        Event event = new Event(TestListener.class.getMethod("event1", String.class), new Object[] { "param" });
-        broadcast.dispatch(event);
+        MethodInvocation invocation = new MethodInvocation(TestListener.class.getMethod("event1", String.class), new Object[] { "param" });
+        broadcast.dispatch(invocation);
     }
 
     @Test
@@ -228,7 +228,7 @@ public class ListenerBroadcastTest {
         broadcast.add(listener);
 
         try {
-            broadcast.dispatch(new Event(TestListener.class.getMethod("event1", String.class), new Object[]{"param"}));
+            broadcast.dispatch(new MethodInvocation(TestListener.class.getMethod("event1", String.class), new Object[]{"param"}));
             fail();
         } catch (ListenerNotificationException e) {
             assertThat(e.getMessage(), equalTo("Failed to notify test listener."));

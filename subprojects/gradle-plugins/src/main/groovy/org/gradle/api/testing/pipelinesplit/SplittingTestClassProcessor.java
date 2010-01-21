@@ -18,8 +18,6 @@ package org.gradle.api.testing.pipelinesplit;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.testing.detection.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -27,8 +25,6 @@ import java.util.Map;
  * @author Tom Eyckmans
  */
 public class SplittingTestClassProcessor implements TestClassProcessor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SplittingTestClassProcessor.class);
-
     private final Map<? extends Spec<TestClassRunInfo>, ? extends TestClassProcessor> pipelineMatchers;
 
     public SplittingTestClassProcessor(Map<? extends Spec<TestClassRunInfo>, ? extends TestClassProcessor> pipelineMatchers) {
@@ -36,17 +32,15 @@ public class SplittingTestClassProcessor implements TestClassProcessor {
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
-        LOGGER.debug("[pipeline-splitting >> test-run] {}", testClass.getTestClassName());
-
-        TestClassProcessor processor = null;
-
         for (Map.Entry<? extends Spec<TestClassRunInfo>, ? extends TestClassProcessor> entry : pipelineMatchers.entrySet()) {
             Spec<TestClassRunInfo> currentMatcher = entry.getKey();
             if (currentMatcher.isSatisfiedBy(testClass)) {
-                processor = entry.getValue();
+                TestClassProcessor processor = entry.getValue();
+                processor.processTestClass(testClass);
+                return;
             }
         }
 
-        processor.processTestClass(testClass);
+        throw new IllegalArgumentException(String.format("No processor is available for test class %s.", testClass));
     }
 }

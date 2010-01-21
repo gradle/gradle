@@ -57,10 +57,8 @@ public class ForkControl {
 
         final ForkInfo forkInfo = new ForkInfo(forkId, pipeline);
 
-        forkInfo.setPolicyInfo(forkPolicyInstance.createForkPolicyForkInfo());
-
-        forkPolicyInstance.prepareFork(forkInfo);
-
+        forkInfo.setPolicyInfo(forkPolicyInstance.createForkPolicyForkInfo(forkInfo));
+        
         return forkInfo;
     }
 
@@ -107,8 +105,6 @@ public class ForkControl {
         try {
             forkInfo.starting();
 
-            final ForkPolicyInstance forkPolicyInstance = forkInfo.getPipeline().getForkPolicyInstance();
-
             Map<Integer, ForkInfo> forks = forkHandles.get(forkInfo.getPipeline().getId());
             if (forks == null) {
                 forks = new HashMap<Integer, ForkInfo>();
@@ -116,7 +112,7 @@ public class ForkControl {
             forks.put(forkInfo.getId(), forkInfo);
             forkHandles.put(forkInfo.getPipeline().getId(), forks);
 
-            forkPolicyInstance.startFork(forkInfo);
+            forkInfo.getForkPolicyInfo().start();
 
             startedForks++;
         } finally {

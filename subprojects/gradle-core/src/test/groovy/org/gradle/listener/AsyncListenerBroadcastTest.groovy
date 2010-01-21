@@ -111,9 +111,9 @@ public class AsyncListenerBroadcastTest extends MultithreadedTestCase {
 
         run {
             syncAt(1)
-            expectLater(2)
-            broadcast.stop()
-            shouldBeAt(2)
+            expectBlocksUntil(2) {
+                broadcast.stop()
+            }
         }
     }
 }

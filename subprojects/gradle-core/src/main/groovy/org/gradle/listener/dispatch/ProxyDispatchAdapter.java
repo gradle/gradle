@@ -26,10 +26,10 @@ import java.lang.reflect.Proxy;
  */
 public class ProxyDispatchAdapter<T> {
     private final Class<T> type;
-    private final Dispatch<? super Event> dispatch;
+    private final Dispatch<? super MethodInvocation> dispatch;
     private final T source;
 
-    public ProxyDispatchAdapter(Class<T> type, Dispatch<? super Event> dispatch) {
+    public ProxyDispatchAdapter(Class<T> type, Dispatch<? super MethodInvocation> dispatch) {
         this.type = type;
         this.dispatch = dispatch;
         source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
@@ -56,7 +56,7 @@ public class ProxyDispatchAdapter<T> {
             if (method.getName().equals("toString")) {
                 return String.format("%s broadcast", type.getSimpleName());
             }
-            dispatch.dispatch(new Event(method, parameters));
+            dispatch.dispatch(new MethodInvocation(method, parameters));
             return null;
         }
     }

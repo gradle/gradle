@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,7 @@ import org.gradle.api.testing.execution.control.messages.client.ForkStoppedMessa
 import org.gradle.api.testing.execution.control.messages.client.NextActionRequestMessage;
 import org.gradle.api.testing.execution.control.refork.ReforkContextData;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
-import org.gradle.util.queues.BlockingQueueItemProducer;
-
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import org.gradle.listener.dispatch.Dispatch;
 
 /**
  * @author Tom Eyckmans
@@ -38,29 +35,21 @@ import java.util.concurrent.TimeUnit;
 public class DefaultTestControlClient implements TestControlClient {
     private final int forkId;
     private final IoConnectorFactory ioConnectorFactory;
+    private final Dispatch<TestControlMessage> dispatch;
 
     private IoConnector ioConnector;
     private IoSession ioSession;
-    private final BlockingQueueItemProducer<TestControlMessage> testControlMessageProvider;
 
     public DefaultTestControlClient(int forkId, IoConnectorFactory ioConnectorFactory,
-                                    BlockingQueue<TestControlMessage> testControlMessageQueue) {
-        if (ioConnectorFactory == null) {
-            throw new IllegalArgumentException("ioConnectorProvider == null!");
-        }
-        if (testControlMessageQueue == null) {
-            throw new IllegalArgumentException("testControlMessageQueue == null!");
-        }
-
+                                    Dispatch<TestControlMessage> dispatch) {
         this.forkId = forkId;
         this.ioConnectorFactory = ioConnectorFactory;
-        this.testControlMessageProvider = new BlockingQueueItemProducer<TestControlMessage>(testControlMessageQueue,
-                100L, TimeUnit.MILLISECONDS);
+        this.dispatch = dispatch;
     }
 
     public void open() {
         try {
-            ioConnector = ioConnectorFactory.getIoConnector(new TestClientIoHandler(testControlMessageProvider));
+            ioConnector = ioConnectorFactory.getIoConnector(new TestClientIoHandler(dispatch));
 
             final ConnectFuture connectFuture = ioConnector.connect(ioConnectorFactory.getSocketAddress());
 

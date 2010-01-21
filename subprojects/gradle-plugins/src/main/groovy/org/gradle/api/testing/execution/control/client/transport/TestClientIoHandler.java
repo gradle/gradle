@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
 import org.gradle.api.testing.execution.control.messages.TestControlMessage;
-import org.gradle.util.queues.BlockingQueueItemProducer;
+import org.gradle.listener.dispatch.Dispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,14 +30,14 @@ public class TestClientIoHandler extends IoHandlerAdapter {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(TestClientIoHandler.class);
 
-    private final BlockingQueueItemProducer<TestControlMessage> testControlMessageProducer;
+    private final Dispatch<TestControlMessage> dispatch;
 
-    public TestClientIoHandler(BlockingQueueItemProducer<TestControlMessage> testControlMessageProducer) {
-        if (testControlMessageProducer == null) {
+    public TestClientIoHandler(Dispatch<TestControlMessage> dispatch) {
+        if (dispatch == null) {
             throw new IllegalArgumentException("testControlMessageProducer == null!");
         }
 
-        this.testControlMessageProducer = testControlMessageProducer;
+        this.dispatch = dispatch;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class TestClientIoHandler extends IoHandlerAdapter {
             final Class messageClass = message.getClass();
 
             if (TestControlMessage.class.isAssignableFrom(messageClass)) {
-                testControlMessageProducer.produce((TestControlMessage) message);
+                dispatch.dispatch((TestControlMessage) message);
             } else {
                 LOGGER.warn("received an unsupported message of type {}", messageClass);
             }

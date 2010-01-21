@@ -20,8 +20,6 @@ import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.ForkStatus;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -30,8 +28,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class TestServerClientHandle {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestServerClientHandle.class);
-
     private final QueueingPipeline pipeline;
     private final int forkId;
     private final ForkControl forkControl;

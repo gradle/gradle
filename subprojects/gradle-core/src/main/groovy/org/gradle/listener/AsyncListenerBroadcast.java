@@ -17,8 +17,8 @@ package org.gradle.listener;
 
 import org.gradle.api.Transformer;
 import org.gradle.listener.dispatch.AsyncDispatch;
+import org.gradle.listener.dispatch.MethodInvocation;
 import org.gradle.listener.dispatch.StoppableDispatch;
-import org.gradle.listener.dispatch.Event;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -34,9 +34,9 @@ public class AsyncListenerBroadcast<T> extends ListenerBroadcast<T> {
     }
 
     AsyncListenerBroadcast(Class<T> type, final Executor executor) {
-        super(type, new Transformer<StoppableDispatch<Event>>() {
-            public StoppableDispatch<Event> transform(StoppableDispatch<Event> original) {
-                return new AsyncDispatch<Event>(executor, original);
+        super(type, new Transformer<StoppableDispatch<MethodInvocation>>() {
+            public StoppableDispatch<MethodInvocation> transform(StoppableDispatch<MethodInvocation> original) {
+                return new AsyncDispatch<MethodInvocation>(executor, original);
             }
         });
     }

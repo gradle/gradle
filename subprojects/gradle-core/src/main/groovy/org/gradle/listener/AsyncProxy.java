@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @param <T>
  */
 public class AsyncProxy<T> {
-    private final AsyncDispatch<Event> asyncDispatch;
+    private final AsyncDispatch<MethodInvocation> asyncDispatch;
     private final ProxyDispatchAdapter<T> adapter;
 
     /**
@@ -51,9 +51,9 @@ public class AsyncProxy<T> {
      * Creates a started proxy which dispatches to the given target object.
      */
     public AsyncProxy(Class<T> type, T target, Executor executor) {
-        asyncDispatch = new AsyncDispatch<Event>(executor);
+        asyncDispatch = new AsyncDispatch<MethodInvocation>(executor);
         if (target != null) {
-            asyncDispatch.start(new ReflectionDispatch(type, target));
+            asyncDispatch.add(new ReflectionDispatch(type, target));
         }
         adapter = new ProxyDispatchAdapter<T>(type, asyncDispatch);
     }
@@ -66,7 +66,7 @@ public class AsyncProxy<T> {
      * Starts this proxy. All method calls are dispatched to the given target object.
      */
     public void start(T target) {
-        asyncDispatch.start(new ReflectionDispatch(adapter.getType(), target));
+        asyncDispatch.add(new ReflectionDispatch(adapter.getType(), target));
     }
 
     /**
@@ -76,7 +76,7 @@ public class AsyncProxy<T> {
         asyncDispatch.stop();
     }
 
-    private static class ReflectionDispatch implements Dispatch<Event> {
+    private static class ReflectionDispatch implements Dispatch<MethodInvocation> {
         private final Class<?> type;
         private final AtomicReference<Object> target;
 
@@ -85,7 +85,7 @@ public class AsyncProxy<T> {
             this.target = new AtomicReference<Object>(target);
         }
 
-        public void dispatch(Event message) {
+        public void dispatch(MethodInvocation message) {
             try {
                 message.getMethod(type).invoke(target.get(), message.getArguments());
             } catch (InvocationTargetException e) {

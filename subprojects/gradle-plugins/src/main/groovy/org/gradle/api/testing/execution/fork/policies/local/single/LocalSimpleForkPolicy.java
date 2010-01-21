@@ -17,7 +17,6 @@ package org.gradle.api.testing.execution.fork.policies.local.single;
 
 import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.control.server.ExternalControlServerFactory;
-import org.gradle.api.testing.execution.control.server.TestServersManager;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.policies.*;
 
@@ -27,11 +26,9 @@ import org.gradle.api.testing.execution.fork.policies.*;
 public class LocalSimpleForkPolicy implements ForkPolicy {
 
     private final ExternalControlServerFactory testServerFactory;
-    private final TestServersManager testServersManager;
 
     public LocalSimpleForkPolicy() {
         testServerFactory = new ExternalControlServerFactory();
-        testServersManager = new TestServersManager(testServerFactory);
     }
 
     public ForkPolicyName getName() {
@@ -43,10 +40,6 @@ public class LocalSimpleForkPolicy implements ForkPolicy {
     }
 
     public ForkPolicyInstance getForkPolicyInstance(QueueingPipeline pipeline, ForkControl forkControl) {
-        if (forkControl == null) {
-            throw new IllegalArgumentException("forkControl is null!");
-        }
-
-        return new LocalSimpleForkPolicyInstance(pipeline, forkControl, testServersManager);
+        return new LocalSimpleForkPolicyInstance(pipeline, forkControl, testServerFactory);
     }
 }

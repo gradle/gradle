@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Transformer;
 import org.gradle.listener.dispatch.BroadcastDispatch;
 import org.gradle.listener.dispatch.StoppableDispatch;
-import org.gradle.listener.dispatch.Event;
+import org.gradle.listener.dispatch.MethodInvocation;
 import org.gradle.listener.dispatch.ProxyDispatchAdapter;
 
 /**
@@ -31,21 +31,21 @@ import org.gradle.listener.dispatch.ProxyDispatchAdapter;
  *
  * @param <T> The listener type.
  */
-public class ListenerBroadcast<T> implements StoppableDispatch<Event> {
+public class ListenerBroadcast<T> implements StoppableDispatch<MethodInvocation> {
     private final ProxyDispatchAdapter<T> source;
     private final BroadcastDispatch<T> broadcast;
     private final Class<T> type;
-    private final StoppableDispatch dispatch;
+    private final StoppableDispatch<MethodInvocation> dispatch;
 
     public ListenerBroadcast(Class<T> type) {
-        this(type, new Transformer<StoppableDispatch<Event>>() {
-            public StoppableDispatch<Event> transform(StoppableDispatch<Event> original) {
+        this(type, new Transformer<StoppableDispatch<MethodInvocation>>() {
+            public StoppableDispatch<MethodInvocation> transform(StoppableDispatch<MethodInvocation> original) {
                 return original;
             }
         });
     }
 
-    protected ListenerBroadcast(Class<T> type, Transformer<StoppableDispatch<Event>> transformer) {
+    protected ListenerBroadcast(Class<T> type, Transformer<StoppableDispatch<MethodInvocation>> transformer) {
         this.type = type;
         broadcast = new BroadcastDispatch<T>(type);
         dispatch = transformer.transform(broadcast);
@@ -136,7 +136,7 @@ public class ListenerBroadcast<T> implements StoppableDispatch<Event> {
      *
      * @param event The event
      */
-    public void dispatch(Event event) {
+    public void dispatch(MethodInvocation event) {
         dispatch.dispatch(event);
     }
 

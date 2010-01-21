@@ -15,27 +15,18 @@
  */
 package org.gradle.api.testing.execution.fork.policies.local.single;
 
-import org.gradle.api.Project;
-import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.api.testing.execution.PipelineDispatcherForkInfoListener;
 import org.gradle.api.testing.execution.PipelineDispatcher;
+import org.gradle.api.testing.execution.PipelineDispatcherForkInfoListener;
 import org.gradle.api.testing.execution.QueueingPipeline;
-import org.gradle.api.testing.execution.control.server.TestServersManager;
+import org.gradle.api.testing.execution.control.server.ExternalControlServerFactory;
+import org.gradle.api.testing.execution.control.server.TestControlServer;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandleFactory;
-import org.gradle.api.testing.execution.fork.ForkConfigWriter;
 import org.gradle.api.testing.execution.fork.ForkControl;
-import org.gradle.api.testing.execution.fork.ForkControlListener;
 import org.gradle.api.testing.execution.fork.ForkInfo;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyForkInfo;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;
-import org.gradle.api.testing.fabric.TestFrameworkInstance;
-import org.gradle.util.exec.ExecHandle;
-import org.gradle.util.exec.ExecHandleBuilder;
-import org.gradle.util.exec.DummyExecOutputHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 /**
  * @author Tom Eyckmans
@@ -45,29 +36,18 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
 
     private final QueueingPipeline pipeline;
     private final ForkControl forkControl;
-    private final TestServersManager testServersManager;
-
-    private int controlServerPort;
+    private TestControlServer server;
+    private final ExternalControlServerFactory serverFactory;
 
     public LocalSimpleForkPolicyInstance(QueueingPipeline pipeline, ForkControl forkControl,
-                                         TestServersManager testServersManager) {
-        if (pipeline == null) {
-            throw new IllegalArgumentException("pipeline is null!");
-        }
-        if (forkControl == null) {
-            throw new IllegalArgumentException("forkControl is null!");
-        }
-        if (testServersManager == null) {
-            throw new IllegalArgumentException("testServersManager is null!");
-        }
-
+                                         ExternalControlServerFactory serverFactory) {
+        this.serverFactory = serverFactory;
         this.pipeline = pipeline;
         this.forkControl = forkControl;
-        this.testServersManager = testServersManager;
     }
 
-    public ForkPolicyForkInfo createForkPolicyForkInfo() {
-        return new LocalSimpleForkPolicyForkInfo(this);
+    public ForkPolicyForkInfo createForkPolicyForkInfo(ForkInfo forkInfo) {
+        return new LocalSimpleForkPolicyForkInfo(forkInfo, server, forkControl);
     }
 
     public void initialize() {
@@ -82,7 +62,8 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
                 new TestServerClientHandleFactory(forkControl));
 
         // startup the test server
-        controlServerPort = testServersManager.addAndStartServer(pipeline, pipelineDispatcher);
+        server = serverFactory.createTestControlServer(pipelineDispatcher);
+        server.start();
 
         // TODO [teyck] I think it would be better to start the forks for a pipeline when a certain amount of tests are found.
         for (int i = 0; i < amountToStart; i++) {
@@ -94,47 +75,7 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
         }
     }
 
-    public void startFork(ForkInfo forkInfo) {
-        final LocalSimpleForkPolicyForkInfo policyInfo = (LocalSimpleForkPolicyForkInfo) forkInfo.getForkPolicyInfo();
-
-        final ExecHandleBuilder forkHandleBuilder = policyInfo.getForkHandleBuilder();
-
-        final ExecHandle forkHandle = forkHandleBuilder.getExecHandle();
-
-        policyInfo.setForkHandle(forkHandle);
-
-        forkHandle.addListeners(new ForkControlListener(forkControl, forkInfo.getPipeline().getId(), forkInfo.getId()));
-        forkHandle.start();
-    }
-
     public void stop() {
-        testServersManager.stopServer(pipeline);
-    }
-
-    public void prepareFork(ForkInfo forkInfo) {
-        final LocalSimpleForkPolicyForkInfo policyInfo = (LocalSimpleForkPolicyForkInfo) forkInfo.getForkPolicyInfo();
-        final QueueingPipeline pipeline = forkInfo.getPipeline();
-        final NativeTest testTask = pipeline.getTestTask();
-        final int pipelineId = pipeline.getId();
-        final Project project = testTask.getProject();
-        final TestFrameworkInstance testFramework = testTask.getTestFramework();
-        final ForkConfigWriter forkConfigWriter = new ForkConfigWriter(testTask, pipelineId, forkInfo.getId(),
-                controlServerPort);
-        final File forkConfigFile = forkConfigWriter.writeConfigFile();
-
-        final ExecHandleBuilder forkHandleBuilder = new ExecHandleBuilder(
-                false) // TODO we probably want loggers for each fork
-                .execDirectory(project.getRootDir()).execCommand("java").errorOutputHandle(new DummyExecOutputHandle())
-                .standardOutputHandle(new DummyExecOutputHandle());
-
-        testFramework.applyForkJvmArguments(forkHandleBuilder);
-
-        forkHandleBuilder.arguments("-cp", System.getProperty("gradle.fork.launcher.cp"),
-                "org.gradle.api.testing.execution.fork.ForkLaunchMain", forkConfigFile.getAbsolutePath(),
-                "org.gradle.api.testing.execution.control.client.TestForkExecuter");
-
-        testFramework.applyForkArguments(forkHandleBuilder);
-
-        policyInfo.setForkHandleBuilder(forkHandleBuilder);
+        server.stop();
     }
 }

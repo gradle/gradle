@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.io.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-public class EventTest {
+public class MethodInvocationTest {
     private final GroovyClassLoader source = new GroovyClassLoader(getClass().getClassLoader());
     private final GroovyClassLoader dest = new GroovyClassLoader(getClass().getClassLoader());
 
@@ -114,11 +114,11 @@ public class EventTest {
 
     private Object transport(Object arg) throws Exception {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        new Event(String.class.getMethod("length"), new Object[]{arg}).send(outputStream);
+        new MethodInvocation(String.class.getMethod("length"), new Object[]{arg}).send(outputStream);
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-        Event event = (Event) Message.receive(inputStream, dest);
-        return event.getArguments()[0];
+        MethodInvocation invocation = (MethodInvocation) Message.receive(inputStream, dest);
+        return invocation.getArguments()[0];
     }
 
     private static class UnserializableException extends RuntimeException {
