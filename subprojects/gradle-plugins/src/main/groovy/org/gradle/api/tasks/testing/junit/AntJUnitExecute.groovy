@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,8 @@ class AntJUnitExecute {
                  Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant,
                  ListenerBroadcast<TestListener> testListenerBroadcaster) {
         ant.mkdir(dir: testResultsDir.absolutePath)
-        createAntClassPath(ant, classPath + classPathRegistry.getClassPathFiles("ANT_JUNIT") + classPathRegistry.getClassPathFiles("TEST_LISTENER"))
+//        createAntClassPath(ant, classPath + classPathRegistry.getClassPathFiles("ANT_JUNIT") + classPathRegistry.getClassPathFiles("TEST_LISTENER"))
+        createAntClassPath(ant, classPath + classPathRegistry.getClassPathFiles("ANT_JUNIT"))
         Map otherArgs = [
                 includeantruntime: 'false',
                 errorproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY,
@@ -64,8 +65,8 @@ class AntJUnitExecute {
                     env(key: key, value: value)
                 }
                 formatter(junitOptions.formatterOptions.optionMap())
-                sysproperty(key: TestListenerFormatter.PORT_VMARG, value: remoteReceiver.boundPort)
-                formatter(type: 'plain', classname: TestListenerFormatter.class.name)
+//                sysproperty(key: TestListenerFormatter.PORT_VMARG, value: remoteReceiver.boundPort)
+//                formatter(type: 'plain', classname: TestListenerFormatter.class.name)
                 batchtest(todir: testResultsDir.absolutePath) {
                     fileset(dir: compiledTestsClassesDir.absolutePath) {
                         includes.each {
