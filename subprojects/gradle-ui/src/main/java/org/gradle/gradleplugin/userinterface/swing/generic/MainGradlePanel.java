@@ -52,8 +52,9 @@ public class MainGradlePanel extends JPanel {
     private List<GradleTab> gradleTabs = new ArrayList<GradleTab>();
 
     private JTabbedPane tabbedPane;
+   private SetupTab setupTab;
 
-    public MainGradlePanel(GradlePluginLord gradlePluginLord, OutputUILord outputUILord, SettingsNode settings, AlternateUIInteraction alternateUIInteraction) {
+   public MainGradlePanel(GradlePluginLord gradlePluginLord, OutputUILord outputUILord, SettingsNode settings, AlternateUIInteraction alternateUIInteraction) {
         this.alternateUIInteraction = alternateUIInteraction;
         this.gradlePluginLord = gradlePluginLord;
         this.settings = settings;
@@ -65,7 +66,8 @@ public class MainGradlePanel extends JPanel {
         gradleTabs.add(new TaskTreeTab(gradlePluginLord, settings.addChildIfNotPresent("task-tab"), alternateUIInteraction));
         gradleTabs.add(new FavoriteTasksTab(gradlePluginLord, settings.addChildIfNotPresent("favorites-tab")));
         gradleTabs.add(new CommandLineTab(gradlePluginLord, settings.addChildIfNotPresent("command_line-tab")));
-        gradleTabs.add(new SetupTab(gradlePluginLord, outputUILord, settings.addChildIfNotPresent("setup-tab")));
+        setupTab = new SetupTab(gradlePluginLord, outputUILord, settings.addChildIfNotPresent("setup-tab"));
+        gradleTabs.add( setupTab );
     }
 
     private int getGradleTabIndex(Class soughtClass) {
@@ -220,4 +222,14 @@ public class MainGradlePanel extends JPanel {
             tabbedPane.add(gradleTab.getName(), gradleTab.createComponent());
         }
     }
+
+   /**
+    This adds the specified component to the setup panel. It is added below the last
+    'default' item. You can only add 1 component here, so if you need to add multiple
+    things, you'll have to handle adding that to yourself to the one component.
+    @param component the component to add.
+    */
+   public void setCustomPanelToSetupTab( JComponent component ) {
+      setupTab.setCustomPanel( component );
+   }
 }

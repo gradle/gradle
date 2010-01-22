@@ -18,8 +18,10 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
+import org.gradle.foundation.output.FileLinkDefinitionLord;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.request.Request;
+import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -27,8 +29,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.JButton;
@@ -42,6 +42,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ActionEvent;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.io.File;
 
 /**
  * This is a panel that displays the results of executing a gradle command. It shows gradle's output as well as
@@ -52,9 +53,10 @@ import java.util.Calendar;
 public class OutputPanel extends JPanel implements ExecuteGradleCommandServerProtocol.ExecutionInteraction {
 
     private OutputPanelParent parent;
+    private AlternateUIInteraction alternateUIInteraction;
 
     private JPanel gradleOutputTextPanel;
-    private JTextArea gradleOutputTextArea;
+    private OutputTextPane gradleOutputTextPane;
 
     private JPanel progressPanel;
     private JLabel progressLabel;
@@ -81,13 +83,25 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
 
        void reportExecuteFinished( Request request, boolean wasSuccessful );
 
-      void executeAgain( Request request, OutputPanel outputPanel );
+       void executeAgain( Request request, OutputPanel outputPanel );
+
+       public FileLinkDefinitionLord getFileLinkDefinitionLord();
    }
 
-    public OutputPanel( OutputPanelParent parent ) {
+    public OutputPanel( OutputPanelParent parent, AlternateUIInteraction alternateUIInteraction ) {
        this.parent = parent;
-       setupUI();
+       this.alternateUIInteraction = alternateUIInteraction;
     }
+
+   /**
+    Call this after initializing this, but after setting any additional swing properties (actually, just the font for now).
+    I really only added this as an optimization. Since we'll always be setting the font, I didn't want the various style
+    objects created only to be thrown away and re-created. This way, you can set the font before we create the styles.
+
+    */
+   public void initialize() {
+      setupUI();
+   }
 
    /**
     * This is called whenever a new request is made. It associates this request with this output panel.
@@ -95,7 +109,7 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     * @param request
     * @param onlyShowOutputOnErrors
     */
-   public void initialize( Request request, boolean onlyShowOutputOnErrors )
+   public void setRequest( Request request, boolean onlyShowOutputOnErrors )
    {
       this.request = request;
       if( request.forceOutputToBeShown() ) {
@@ -165,21 +179,15 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     private Component createGradleOutputPanel() {
         gradleOutputTextPanel = new JPanel(new BorderLayout());
 
-        gradleOutputTextArea = new JTextArea();
-        gradleOutputTextArea.setEditable(false);
-        gradleOutputTextArea.setLineWrap(false);    //we only wrap on newlines, not in the middle of a line
-        gradleOutputTextArea.setWrapStyleWord(false);
-        gradleOutputTextArea.setBackground( Color.white );  //its not editable, but it looks better with a white background. (I tried using UI.Manager.getColor( "TextArea.background" ) (and others) but it was showing up as gray when using inside Idea. I think the L&F remapped some things and we want it white.
-        
-        //gradle formats some output in 'ascii art' fashion. This ensures things line up properly.
-        Font font = new Font("Monospaced", Font.PLAIN, UIManager.getDefaults().getFont("Label.font").getSize());
-        gradleOutputTextArea.setFont(font);
+        gradleOutputTextPane = new OutputTextPane( new OutputTextPane.Interaction()
+        {
+           public void fileClicked( File file, int line )
+           {
+              alternateUIInteraction.openFile( file, line );
+           }
+        }, alternateUIInteraction.doesSupportEditingOpeningFiles(), getFont(), parent.getFileLinkDefinitionLord() );
 
-        JScrollPane scrollPane = new JScrollPane(gradleOutputTextArea);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-
-        gradleOutputTextPanel.add(scrollPane, BorderLayout.CENTER);
+        gradleOutputTextPanel.add( gradleOutputTextPane.asComponent(), BorderLayout.CENTER);
 
         return gradleOutputTextPanel;
     }
@@ -256,7 +264,7 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         executeAgainButton.setVisible( false );
         statusLabel.setText("");
         statusLabel.setForeground(UIManager.getColor("Label.foreground"));
-        gradleOutputTextArea.setText("");
+        gradleOutputTextPane.setText("");
         progressLabel.setText("");
     }
 
@@ -268,40 +276,43 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     private void appendGradleOutput(final String text) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                gradleOutputTextArea.insert(text, gradleOutputTextArea.getDocument().getLength());
-                gradleOutputTextArea.setCaretPosition(gradleOutputTextArea.getDocument().getLength());
+                gradleOutputTextPane.appendText( text );
             }
         });
     }
 
-    private void clearGradleOutput() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                gradleOutputTextArea.setText( "" );
-            }
-        });
-    }
-
-    private void setProgress(String text, float percentComplete) {
-        progressBar.setValue((int) percentComplete);
-        progressLabel.setText(text);
+    private void setProgress( final String text, final float percentComplete) {
+       SwingUtilities.invokeLater( new Runnable()
+       {
+          public void run()
+          {
+              progressBar.setValue((int) percentComplete);
+              progressLabel.setText(text);
+          }
+       } );
     }
 
     /**
        Notification that execution of a task or tasks has been started.
     */
     public void reportExecutionStarted() {
-        setPending(false);
-        setBusy(true);
-        setProgress("Starting", 0);
-        if (showProgress) {
-           progressPanel.setVisible(true);
-        }
+       SwingUtilities.invokeLater( new Runnable()
+       {
+          public void run()
+          {
+             setPending(false);
+             setBusy(true);
+             setProgress("Starting", 0);
+             if (showProgress) {
+                progressPanel.setVisible(true);
+             }
 
-       statusLabel.setText("Executing");
+             statusLabel.setText("Executing");
 
-        //give the user the option to override this.
-        forceShowOutputButtonLabel.setVisible(onlyShowOutputOnErrors);
+             //give the user the option to override this.
+             forceShowOutputButtonLabel.setVisible(onlyShowOutputOnErrors);
+          }
+       } );
     }
 
    /**
@@ -309,11 +320,17 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     *
     * @param size the total number of tasks.
     */
-   public void reportNumberOfTasksToExecute( int size )
+   public void reportNumberOfTasksToExecute( final int size )
    {  //if we only have a single task, then the intire process will be indeterminately long (it'll just from 0 to 100)
-      boolean isIndeterminate = size == 1;
-      progressBar.setIndeterminate( isIndeterminate );
-      progressBar.setStringPainted( !isIndeterminate );
+      SwingUtilities.invokeLater( new Runnable()
+       {
+          public void run()
+          {
+            boolean isIndeterminate = size == 1;
+            progressBar.setIndeterminate( isIndeterminate );
+            progressBar.setStringPainted( !isIndeterminate );
+          }
+      } );
    }
 
    /**
@@ -335,40 +352,46 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
      *
      * @param throwable
     */
-    public void reportExecutionFinished(boolean wasSuccessful, String output, Throwable throwable) {
-        setPending(false); //this can be called before we actually get a start message if it fails early. This clears the pending flag so we know we can reuse it.
-        setBusy(false);
-        progressPanel.setVisible(false);
+    public void reportExecutionFinished( final boolean wasSuccessful, final String output, final Throwable throwable) {
+       SwingUtilities.invokeLater( new Runnable()
+       {
+          public void run()
+          {
+              setPending(false); //this can be called before we actually get a start message if it fails early. This clears the pending flag so we know we can reuse it.
+              setBusy(false);
+              progressPanel.setVisible(false);
 
-        //Make the output equal to all of our output. There are some timing issues where we don't get the last live output from gradle.
-        //This 'output' is the entire text. This way we always get all output.
-        clearGradleOutput();
-        appendGradleOutput( getPrefixText() );  //replace our prefix text
-        appendGradleOutput( output );
+              //Make the output equal to all of our output. There are some timing issues where we don't get the last live output from gradle.
+              //This 'output' is the entire text. This way we always get all output.
+              String newText = getPrefixText() + output;
+              gradleOutputTextPane.setText( newText );
 
-        //show the user the time we finished this.
-        SimpleDateFormat formatter = new SimpleDateFormat("h:mm:ss aa");
-        String formattedTime = formatter.format(Calendar.getInstance().getTime());
+              //show the user the time we finished this.
+              SimpleDateFormat formatter = new SimpleDateFormat("h:mm:ss aa");
+              String formattedTime = formatter.format(Calendar.getInstance().getTime());
 
-        if (wasSuccessful) {
-            statusLabel.setText("Completed successfully at " + formattedTime);
-            appendGradleOutput("\nCompleted Successfully");
-        } else {
-            statusLabel.setText("Completed with errors at " + formattedTime);
-            statusLabel.setForeground(Color.red.darker());
+              if (wasSuccessful) {
+                  statusLabel.setText("Completed successfully at " + formattedTime);
+                  appendGradleOutput("\nCompleted Successfully");
+              } else {
+                  statusLabel.setText("Completed with errors at " + formattedTime);
+                  statusLabel.setForeground(Color.red.darker());
 
-            //since errors occurred, show the output. If onlyShowOutputOnErrors is false, this textPanel will already be visible.
-            gradleOutputTextPanel.setVisible(true);
-        }
+                  //since errors occurred, show the output. If onlyShowOutputOnErrors is false, this textPanel will already be visible.
+                  gradleOutputTextPanel.setVisible(true);
+              }
 
-        executeAgainButton.setVisible( true );
+              executeAgainButton.setVisible( true );
 
-        appendThrowable(throwable);
+              appendThrowable(throwable);
 
-        //lastly, if the text output is not visible, make the 'show output' button visible
-        forceShowOutputButtonLabel.setVisible(!gradleOutputTextPanel.isVisible());
+              //lastly, if the text output is not visible, make the 'show output' button visible
+              forceShowOutputButtonLabel.setVisible(!gradleOutputTextPanel.isVisible());
 
-       parent.reportExecuteFinished( request, wasSuccessful );
+              parent.reportExecuteFinished( request, wasSuccessful );
+
+          }
+       } );
     }
 
     private void appendThrowable(Throwable throwable) {
@@ -455,4 +478,24 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
         setPinned(false);  //unpin it when it is removed
         return true;
     }
+
+   /**
+    Sets the font for this component.
+
+    @param font the desired <code>Font</code> for this component
+    @beaninfo preferred: true
+    bound: true
+    attribute: visualUpdate true
+    description: The font for the component.
+    @see Component#getFont
+    */
+   @Override
+   public void setFont( Font font )
+   {
+      super.setFont( font );
+      if( gradleOutputTextPane != null )  //this gets called by internal Swing APIs, so we may not have this yet.
+      {
+         gradleOutputTextPane.setFont( font );
+      }
+   }
 }

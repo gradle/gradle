@@ -14,7 +14,7 @@
  * limitations under the License.
 */
 package org.gradle.integtests
- 
+
 import org.gradle.gradleplugin.foundation.GradlePluginLord
 import org.junit.runner.RunWith
 import org.junit.Test
@@ -25,64 +25,65 @@ import org.gradle.util.GFileUtils
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol
 import org.gradle.gradleplugin.foundation.runner.GradleRunner
 import org.gradle.foundation.TestUtility;
- 
+
 /**
 This tests the that live output is gathered while executing a task.
 @author mhunsicker
 */
 @RunWith(DistributionIntegrationTestRunner.class)
 class LiveOutputIntegrationTest {
- 
+
     static final String JAVA_PROJECT_NAME = 'javaproject'
     static final String SHARED_NAME = 'shared'
     static final String API_NAME = 'api'
     static final String WEBAPP_NAME = 'webservice'
     static final String SERVICES_NAME = 'services'
     static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
- 
+
     private File javaprojectDir
     private List projects;
- 
+
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
- 
+
     @Before
     void setUp() {
         javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
         projects = [SHARED_NAME, API_NAME, WEBAPP_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
         deleteBuildDir(projects)
     }
- 
+
     @After
     void tearDown() {
         deleteBuildDir(projects)
     }
- 
+
     private def deleteBuildDir(List projects) {
         return projects.each {GFileUtils.deleteDirectory(new File(dist.samplesDir, "$it/build"))}
     }
- 
+
     /**
 This executes 'build' on the java multiproject sample. We want to make sure that
 we do get live output from gradle. We're not concerned with what it is, because
 that's likely to change over time. This version executes the command via GradlePlugin.
- 
+
 @author mhunsicker
 */
- 
+
     @Test
     public void liveOutputObtainedViaGradlePlugin() {
+       System.out.println("project dir: " + javaprojectDir );
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('assemble').run();
- 
+
         File multiProjectDirectory = new File(dist.getSamplesDir(), "java/multiproject");
         Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
- 
+
         GradlePluginLord gradlePluginLord = new GradlePluginLord();
         gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
         gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
- 
+
         gradlePluginLord.startExecutionQueue(); //for tests, we'll need to explicitly start the execution queue (unless we do a refresh via the TestUtility).
 
         TestExecutionInteraction executionInteraction = new TestExecutionInteraction();
@@ -92,26 +93,26 @@ that's likely to change over time. This version executes the command via GradleP
 
         verifyLiveOutputObtained( executionInteraction );
     }
- 
+
     /**
 This executes 'build' on the java multiproject sample. We want to make sure that
 we do get live output from gradle. We're not concerned with what it is, because
 that's likely to change over time. This version executes the command via GradleRunner.
- 
+
 @author mhunsicker
 */
     @Test
     public void liveOutputObtainedViaGradleRunner() {
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('assemble').run();
- 
+
         File multiProjectDirectory = new File(dist.getSamplesDir(), "java/multiproject");
         Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
- 
+
         GradleRunner gradleRunner = new GradleRunner( multiProjectDirectory, dist.gradleHomeDir, null );
- 
+
         TestExecutionInteraction executionInteraction = new TestExecutionInteraction();
- 
+
         //execute a command. We don't really care what the command is, just something that generates output
         gradleRunner.executeCommand("-t", org.gradle.api.logging.LogLevel.LIFECYCLE,
                                             org.gradle.StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS,
@@ -131,12 +132,12 @@ that's likely to change over time. This version executes the command via GradleR
 
             totalWaitTime += 1;
         }
-      
+
         verifyLiveOutputObtained( executionInteraction );
     }
- 
- 
- 
+
+
+
    /**
   This verifies that it has live output. It also checks that we received some final output as well
   as that the execution was successful
@@ -158,7 +159,7 @@ that's likely to change over time. This version executes the command via GradleR
       Assert.assertTrue( "Verifying the final output message was received", executionInteraction.finalMessage.length() > 30 )
    }
 }
- 
+
 //this class just holds onto our liveOutput and also tracks whether or not we've finished.
 public class TestExecutionInteraction implements ExecuteGradleCommandServerProtocol.ExecutionInteraction
 {
@@ -166,12 +167,12 @@ public class TestExecutionInteraction implements ExecuteGradleCommandServerProto
    private boolean executionFinishedReported = false;
    private boolean wasSuccessful = false;
    private String finalMessage;
- 
+
    public void reportLiveOutput(String message)
    {
       liveOutput.append( message );
    }
- 
+
    //when we finish executing, we'll make sure we got some type of live output from gradle.
    public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable)
    {
@@ -180,12 +181,12 @@ public class TestExecutionInteraction implements ExecuteGradleCommandServerProto
       this.wasSuccessful = true
       this.finalMessage = message
    }
- 
+
    public void reportExecutionStarted() { }
    public void reportNumberOfTasksToExecute(int size) { }
    public void reportTaskStarted(String message, float percentComplete) { }
    public void reportTaskComplete(String message, float percentComplete) { }
- 
- 
- 
+
+
+
 }

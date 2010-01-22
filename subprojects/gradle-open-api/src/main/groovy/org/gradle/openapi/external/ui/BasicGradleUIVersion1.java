@@ -15,6 +15,9 @@
  */
 package org.gradle.openapi.external.ui;
 
+import org.gradle.openapi.external.foundation.GradleInterfaceVersion1;
+
+import javax.swing.JComponent;
 import java.io.File;
 
 /*
@@ -50,7 +53,7 @@ public interface BasicGradleUIVersion1
             }
 
    /*
-      Call this to deteremine if you can close this pane. if we're busy, we'll
+      Call this to determine if you can close this pane. if we're busy, we'll
       ask the user if they want to close.
 
       @param  closeInteraction allows us to interact with the user
@@ -153,8 +156,14 @@ public interface BasicGradleUIVersion1
     */
    public void refreshTaskTree();
 
+    /**
+     * @return the output lord which shows the live output of all commands being executed. You can add observers to this as well as alter how it finds file links. 
+     */
+   public OutputUILordVersion1 getOutputLord();
+
+    //these were moved to OutputUILordVersion1, but remain here for backward compatibility
    public void addOutputObserver( OutputObserverVersion1 outputObserverVersion1 );
-   public void removeOutputObserver( OutputObserverVersion1 outputObserverVersion1 );
+   public void removeOutputObserver( OutputObserverVersion1 outputObserverVersion1 );    
 
    /**
       Determines if commands are currently being executed or not.
@@ -167,4 +176,18 @@ public interface BasicGradleUIVersion1
     @return true to only show output if errors occur, false to show it always.
     */
    public boolean getOnlyShowOutputOnErrors();
+
+   /**
+    This adds the specified component to the setup panel. It is added below the last
+    'default' item. You can only add 1 component here, so if you need to add multiple
+    things, you'll have to handle adding that to yourself to the one component.
+    @param component the component to add.
+    */
+   public void setCustomPanelToSetupTab( JComponent component );
+
+    /**
+     * @return an object that works with lower level gradle and contains the current projects and tasks.
+     * You can also execute tasks from it and perform certain setup.
+     */
+   public GradleInterfaceVersion1 getGradleInterfaceVersion1();
 }

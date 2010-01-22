@@ -32,6 +32,8 @@ import java.io.File;
 */
 public class ExecutionRequest extends AbstractRequest {
 
+   public static final Type TYPE = new Type() {};
+
     public ExecutionRequest(long requestID, String fullCommandLine, String displayName, boolean forceOutputToBeShown, ExecutionQueue executionQueue) {
         super(requestID, fullCommandLine, displayName, forceOutputToBeShown, executionQueue);
     }
@@ -58,5 +60,10 @@ public class ExecutionRequest extends AbstractRequest {
    public void executeAgain( GradlePluginLord gradlePluginLord )
    {
       gradlePluginLord.addExecutionRequestToQueue( getFullCommandLine(), getDisplayName(), forceOutputToBeShown() );
+   }
+
+   public Type getType()
+   {
+      return TYPE;
    }
 }

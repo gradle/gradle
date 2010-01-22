@@ -19,6 +19,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class abstracts running multiple tasks consecutively. This exists because I'm not certain that Gradle is
@@ -47,9 +49,20 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
     }
 
     /**
-    * The contains the command line to execute and some other information.
+    * Marker interface for a request. It contains the command line to execute and some other information.
     */
     public interface Request {
+
+
+      /**
+       Marker interface for types. This defines a high-level category of this request (Refresh and Execution are the only types at the moment).
+       */
+      public interface Type {}
+
+      /**
+       @return the type of request.
+       */
+      public Type getType();
     }
 
     public ExecutionQueue(ExecutionInteraction<R> executeInteraction) {
@@ -76,6 +89,10 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
 
     public boolean hasRequests() {
        return !requests.isEmpty();
+    }
+
+    public List<R> getRequests() {
+       return new ArrayList<R>( requests );
     }
 
     /**

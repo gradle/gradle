@@ -15,9 +15,12 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
+import org.gradle.foundation.output.FileLinkDefinitionLord;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
+
+import java.awt.Font;
 
 /**
  This interface manages the output of executing gradle tasks.
@@ -71,4 +74,15 @@ public interface OutputUILord
    public void removeOutputObserver( OutputObserver observer );
 
    public int getTabCount();
+
+   /**
+    Sets the font for the output text
+    @param font the new font
+    */
+   public void setOutputTextFont( Font font );
+
+    /**
+     * @return the object this is used to handle parsing of files in the output.
+     */
+   public FileLinkDefinitionLord getFileLinkDefinitionLord();
 }

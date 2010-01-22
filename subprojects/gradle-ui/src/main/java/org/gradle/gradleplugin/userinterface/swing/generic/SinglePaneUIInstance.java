@@ -52,7 +52,7 @@ public class SinglePaneUIInstance extends AbstractGradleUIInstance
 
     public void initialize(SettingsNode settings, AlternateUIInteraction alternateUIInteraction) {
 
-        outputPanelLord = new OutputPanelLord( gradlePluginLord );
+        outputPanelLord = new OutputPanelLord( gradlePluginLord, alternateUIInteraction );
 
         super.initialize( settings, alternateUIInteraction );
     }

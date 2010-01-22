@@ -16,7 +16,6 @@
 package org.gradle.openapi.external.ui;
 
 import java.io.File;
-import java.util.List;
 
 /*
  This is how the gradle UI panel interacts with the UI that is holding it.
@@ -29,23 +28,35 @@ import java.util.List;
  */
 public interface AlternateUIInteractionVersion1
 {
-   /*
-      This is called when we should edit the specified files. Open them in the
-      current IDE or some external editor.
+   /**
+    Notification that you should open the specified file and go to the specified line. Its up to the
+    application to determine if this file should be opened for editing or simply displayed. The difference
+    comes into play for things like xml or html files where a user may want to open them in a browser vs
+    a source code file where they may want to open it directly in an IDE.
 
-      @param  files      the files to open
+    @param file the file to edit
+    @param line the line to go to. -1 if no line is specified.
+    */
+   public void openFile( File file, int line );
+
+   /*
+      This is called when we should open the specified file for editing. This version explicitly wants them
+      edited versus just opened.
+
+      @param  file      the file to open
+      @param line the line to go to. -1 if no line is specified.
       @author mhunsicker
    */
-   public void editFiles( List<File> files );
+   public void editFile( File file, int line );
 
    /*
-      Determines if we can call editFiles. This is not a dynamic answer and
-      should always return either true of false. If you want to change the
+      Determines if we can call editFiles or openFile. This is not a dynamic answer
+      and should always return either true of false. If you want to change the
       answer, return true and then handle the files differently in editFiles.
       @return true if support editing files, false otherwise.
       @author mhunsicker
    */
-   public boolean doesSupportEditingFiles();
+   public boolean doesSupportEditingOpeningFiles();
 
    /**
     Notification that a command is about to be executed. This is mostly useful

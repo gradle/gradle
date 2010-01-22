@@ -24,6 +24,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Font;
 import java.io.File;
 
 /**
@@ -173,5 +174,23 @@ public abstract class AbstractGradleUIInstance implements BasicGradleUI {
    public boolean isBusy()
    {
       return gradlePluginLord.isBusy();
+   }
+
+   /**
+    This adds the specified component to the setup panel. It is added below the last
+    'default' item. You can only add 1 component here, so if you need to add multiple
+    things, you'll have to handle adding that to yourself to the one component.
+    @param component the component to add.
+    */
+   public void setCustomPanelToSetupTab( JComponent component ) {
+      gradlePanel.setCustomPanelToSetupTab( component );
+   }
+
+   /**
+    Sets the font for the output text
+    @param font the new font
+    */
+   public void setOutputTextFont( Font font ) {
+      getOutputUILord().setOutputTextFont( font );
    }
 }

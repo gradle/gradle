@@ -48,12 +48,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * This tab contains general settings for the plugin.
@@ -72,8 +67,8 @@ public class SetupTab implements GradleTab {
     private static final String CUSTOM_GRADLE_EXECUTOR = "custom-gradle-executor";
 
     private GradlePluginLord gradlePluginLord;
-   private OutputUILord outputUILord;
-   private SettingsNode settingsNode;
+    private OutputUILord outputUILord;
+    private SettingsNode settingsNode;
 
     private JPanel mainPanel;
 
@@ -91,7 +86,9 @@ public class SetupTab implements GradleTab {
 
     private JCheckBox useCustomGradleExecutorCheckBox;
     private JTextField customGradleExecutorField;
-    private static JButton browseForCustomGradleExecutorButton;
+    private JButton browseForCustomGradleExecutorButton;
+
+   private JPanel customPanelPlaceHolder;
 
    public SetupTab(GradlePluginLord gradlePluginLord, OutputUILord outputUILord, SettingsNode settingsNode) {
         this.gradlePluginLord = gradlePluginLord;
@@ -129,6 +126,11 @@ public class SetupTab implements GradleTab {
         mainPanel.add(createOptionsPanel());
         mainPanel.add(Box.createVerticalStrut(10));
         mainPanel.add(createCustomExecutorPanel());
+        mainPanel.add(Box.createVerticalStrut(10));
+
+        //add a panel that can be used to add custom things to the setup tab
+        customPanelPlaceHolder = new JPanel( new BorderLayout() );
+        mainPanel.add( customPanelPlaceHolder );
 
         //Glue alone doesn't work in this situation. This forces everything to the top.
         JPanel expandingPanel = new JPanel(new BorderLayout());
@@ -275,9 +277,9 @@ public class SetupTab implements GradleTab {
         return wrappers;
     }
 
-    /**
+   /**
      * This exists solely for overriding toString to something nicer. We'll captilize the first letter. The rest become
-     * lower case. Ultimately, this should probably move into LogLevel.
+     * lower case. Ultimately, this should probably move into LogLevel. We'll also put the log level shortcut in parenthesis
     */
     private class LogLevelWrapper {
         private LogLevel logLevel;
@@ -286,8 +288,15 @@ public class SetupTab implements GradleTab {
         private LogLevelWrapper(LogLevel logLevel) {
             this.logLevel = logLevel;
 
-            String temp = logLevel.toString().toLowerCase().replace('_', ' '); //if we ever add underscores, replace them with spaces.
+            String temp = logLevel.toString().toLowerCase().replace('_', ' '); //replace underscores in the name with spaces
             this.toString = Character.toUpperCase(temp.charAt(0)) + temp.substring(1);
+
+            //add the command line character to the end (so if an error message says use a log level, you can easily translate)
+            String commandLineCharacter = new DefaultCommandLine2StartParameterConverter().getLogLevelCommandLine( logLevel );
+            if( commandLineCharacter != null && !commandLineCharacter.equals( "" ))
+            {
+               this.toString += " (-" + commandLineCharacter + ")";
+            }
         }
 
         public String toString() {
@@ -322,8 +331,8 @@ public class SetupTab implements GradleTab {
         panel.setBorder(BorderFactory.createTitledBorder("Stack Trace Output"));
 
         showNoStackTraceRadioButton = new JRadioButton("Exceptions Only");
-        showStackTrackRadioButton = new JRadioButton("Standard Stack Trace");
-        showFullStackTrackRadioButton = new JRadioButton("Full Stack Trace");
+        showStackTrackRadioButton = new JRadioButton("Standard Stack Trace (-" + DefaultCommandLine2StartParameterConverter.STACKTRACE + ")");  //add the command line character to the end (so if an error message says use a stack trace level, you can easily translate)
+        showFullStackTrackRadioButton = new JRadioButton("Full Stack Trace (-" + DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE + ")" );
 
         showNoStackTraceRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS);
         showStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, StartParameter.ShowStacktrace.ALWAYS);
@@ -560,5 +569,17 @@ public class SetupTab implements GradleTab {
 
         //refresh the tasks.
         gradlePluginLord.addRefreshRequestToQueue();
+    }
+
+   /**
+    This adds the specified component to the setup panel. It is added below the last
+    'default' item. You can only add 1 component here, so if you need to add multiple
+    things, you'll have to handle adding that to yourself to the one component.
+    @param component the component to add.
+    */
+    public void setCustomPanel( JComponent component ) {
+       customPanelPlaceHolder.add( component, BorderLayout.CENTER );
+       customPanelPlaceHolder.invalidate();
+       mainPanel.validate();
     }
 }
