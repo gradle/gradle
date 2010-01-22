@@ -79,13 +79,13 @@ public class BorderlessImageToggleButton extends JToggleButton {
     }
 
     /**
-     * <!===== setBorder =====================================================> I added this to correct an architecture
+     * I added this to correct an architecture
      * problem. Whenever this button was removed or added to a parent container the underlying swing architecture was
      * resetting the border and it wasn't taking into account our need to change the border depending on the selection
      * state of the button. This overrides negates that effect causing the button to behave as intended.
      *
      * @param border The new border to set for this button the we disregard and replace with our own.
-     * @author wwhitaker <!=======================================================================>
+     * @author wwhitaker
      */
     public void setBorder(Border border) {
         super.setBorder(

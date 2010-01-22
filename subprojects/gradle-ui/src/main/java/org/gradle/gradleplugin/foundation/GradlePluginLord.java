@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.List;
+import java.util.Iterator;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -428,6 +429,11 @@ public class GradlePluginLord {
            return null;
         }
 
+       if( hasRequestOfType( RefreshTaskListRequest.TYPE ) )
+       {
+          return null; //we're already doing a refresh.
+       }
+
        //we'll request a task list since there is no way to do a no op. We're not really interested
         //in what's being executed, just the ability to get the task list (which must be populated as
         //part of executing anything).
@@ -577,14 +583,42 @@ public class GradlePluginLord {
 
    /**
     * Determines if there are tasks executing or waiting to execute.
+    * We only care about execution requests, not refresh requests.
     * @return true if this is busy, false if not.
     */
    public boolean isBusy()
    {
-      if( executionQueue.hasRequests() ) {
-         return true;
+      return hasRequestOfType( ExecutionRequest.TYPE );
+   }
+
+   /**
+    Determines if we have an request of the specified type
+    @param type the sought type of request.
+    @return true if it has the request, false if not.
+    */
+   private boolean hasRequestOfType( Request.Type type )
+   {
+      Iterator<Request> iterator = currentlyExecutingRequests.iterator();
+      while( iterator.hasNext() )
+      {
+         ExecutionQueue.Request request = iterator.next();
+         if( request.getType() == type )
+         {
+            return true;
+         }
       }
 
-      return !currentlyExecutingRequests.isEmpty();
+      List<Request> pendingRequests = executionQueue.getRequests();
+      iterator = pendingRequests.iterator();
+      while( iterator.hasNext() )
+      {
+         ExecutionQueue.Request request = iterator.next();
+         if( request.getType() == type )
+         {
+            return true;
+         }
+      }
+
+      return false;
    }
 }

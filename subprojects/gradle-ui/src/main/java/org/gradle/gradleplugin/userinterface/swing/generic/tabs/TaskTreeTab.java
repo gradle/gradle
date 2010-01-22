@@ -57,7 +57,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -192,7 +191,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
                 populate();
             }
         });
-       
+
         toggleFilterButton.setSelected(true);
 
         editFilterButton = Utility.createButton(getClass(), "edit-filter.png", "Edits the filter to control what is visible", new AbstractAction("Edit Filter...") {
@@ -310,7 +309,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
    /**
    * Notification that a command is about to be executed. This is mostly useful for IDE's that may need to save their files.
    *
-   * @param fullCommandLine the command that's about to be executed.
+   * @param request the request that's about to be executed.
    * @author mhunsicker
     */
    public void aboutToExecuteRequest( Request request )
@@ -456,7 +455,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
 
         executeButton.setEnabled(canDoThings);
 
-        if (alternateUIInteraction.doesSupportEditingFiles())   //I'll allow this to be dynamic. If we start supporting editing while running (say a user configured a setting to use a specific external tool), then we'll allow it.
+        if (alternateUIInteraction.doesSupportEditingOpeningFiles())   //I'll allow this to be dynamic. If we start supporting editing while running (say a user configured a setting to use a specific external tool), then we'll allow it.
         {
             editFileMenuItem.setVisible(true);
             boolean hasProjectsSelected = treeComponent.hasProjectsSelected();
@@ -521,18 +520,13 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     private void editSelectedFiles() {
         TaskTreeComponent.MultipleSelection tasks = treeComponent.getSelectedProjectsAndTasks();
 
-        List<File> files = new ArrayList<File>();
         Iterator<ProjectView> iterator = tasks.projects.iterator();
         while (iterator.hasNext()) {
             ProjectView projectView = iterator.next();
             File file = projectView.getBuildFile();
             if( file != null ) {
-               files.add( file );
+               alternateUIInteraction.editFile(file, -1 );
             }
-        }
-
-        if (!files.isEmpty()) {
-           alternateUIInteraction.editFiles(files);
         }
     }
 

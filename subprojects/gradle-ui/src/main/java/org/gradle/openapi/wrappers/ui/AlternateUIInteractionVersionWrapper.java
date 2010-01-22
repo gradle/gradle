@@ -20,7 +20,6 @@ import org.gradle.openapi.external.ui.AlternateUIInteractionVersion1;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Wrapper to shield version changes in AlternateUIInteraction from an external user of gradle open API.
@@ -48,12 +47,16 @@ public class AlternateUIInteractionVersionWrapper implements AlternateUIInteract
       //}
     }
 
-    public void editFiles(List<File> files) {
-        alternateUIInteractionVersion1.editFiles(files);
+   public void openFile( File file, int line ) {
+      alternateUIInteractionVersion1.openFile(file, line );
+   }
+
+   public void editFile( File file, int line ) {
+        alternateUIInteractionVersion1.editFile( file, line );
     }
 
-    public boolean doesSupportEditingFiles() {
-        return alternateUIInteractionVersion1.doesSupportEditingFiles();
+    public boolean doesSupportEditingOpeningFiles() {
+        return alternateUIInteractionVersion1.doesSupportEditingOpeningFiles();
     }
 
     public void aboutToExecuteCommand( String fullCommandLine ) {

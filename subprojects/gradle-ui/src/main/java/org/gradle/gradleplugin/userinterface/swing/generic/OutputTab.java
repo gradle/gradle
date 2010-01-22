@@ -17,6 +17,7 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -49,8 +50,8 @@ public class OutputTab extends OutputPanel {
    private static ImageIcon closeIcon;
    private static ImageIcon closeHighlightIcon;
 
-   public OutputTab(OutputPanelParent parent, String header) {
-        super( parent );
+   public OutputTab(OutputPanelParent parent, String header, AlternateUIInteraction alternateUIInteraction) {
+        super( parent, alternateUIInteraction );
         mainPanel = new JPanel();
         mainPanel.setOpaque(false);
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));

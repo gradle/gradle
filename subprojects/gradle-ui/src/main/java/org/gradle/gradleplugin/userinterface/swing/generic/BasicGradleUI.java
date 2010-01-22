@@ -19,6 +19,7 @@ import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.userinterface.swing.generic.tabs.GradleTab;
 
 import javax.swing.JComponent;
+import java.awt.Font;
 
 /**
  .
@@ -121,4 +122,17 @@ public interface BasicGradleUI
       @return true if we're busy, false if not.
    */
    public boolean isBusy();
+
+   /**
+    This adds the specified component to the setup panel. It is added below the last
+    'default' item. You must call this after initialize
+    @param component the component to add.
+    */
+   public void setCustomPanelToSetupTab( JComponent component );
+
+   /**
+    Sets the font for the output text
+    @param font the new font
+    */
+   public void setOutputTextFont( Font font );
 }

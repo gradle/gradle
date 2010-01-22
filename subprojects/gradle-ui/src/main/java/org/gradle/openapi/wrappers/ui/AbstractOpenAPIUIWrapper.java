@@ -20,30 +20,32 @@ import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.gradleplugin.userinterface.swing.generic.BasicGradleUI;
-import org.gradle.openapi.external.ui.AlternateUIInteractionVersion1;
-import org.gradle.openapi.external.ui.BasicGradleUIVersion1;
-import org.gradle.openapi.external.ui.CommandLineArgumentAlteringListenerVersion1;
-import org.gradle.openapi.external.ui.GradleTabVersion1;
-import org.gradle.openapi.external.ui.SettingsNodeVersion1;
-import org.gradle.openapi.external.ui.OutputObserverVersion1;
+import org.gradle.openapi.external.foundation.GradleInterfaceVersion1;
+import org.gradle.openapi.external.ui.*;
+import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapper;
 
+import javax.swing.JComponent;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.awt.Font;
 
 /**
-
+* Implementation of BasicGradleUI meant to help shield external users from internal changes.
+* This also provides the basics for the UI regardless of whether the output is in a separate
+ * pane or not.
  @author mhunsicker
 */
 public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
 {
     private U basicGradleUI;
     private Map<GradleTabVersion1, GradleTabVersionWrapper> tabMap = new HashMap<GradleTabVersion1, GradleTabVersionWrapper>();
-    private Map<CommandLineArgumentAlteringListenerVersion1, CommandLineArgumentAlteringListenerWrapper> commandLineListenerMap = new HashMap<CommandLineArgumentAlteringListenerVersion1, CommandLineArgumentAlteringListenerWrapper>();
-    private Map<OutputObserverVersion1,OutputObserverWrapper> outputObserverMap = new HashMap<OutputObserverVersion1, OutputObserverWrapper>( );
 
     protected SettingsNodeVersionWrapper settingsVersionWrapper;
     protected AlternateUIInteractionVersionWrapper alternateUIInteractionVersionWrapper;
+    protected GradleInterfaceWrapper gradleInterfaceWrapper;
+
+    private OutputUILordWrapper outputUILordWrapper;
 
    public AbstractOpenAPIUIWrapper( SettingsNodeVersion1 settings, AlternateUIInteractionVersion1 alternateUIInteraction)
    {
@@ -60,7 +62,7 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
             Notification that a command is about to be executed. This is mostly useful
             for IDE's that may need to save their files.
 
-            @param fullCommandLine the command that's about to be executed.
+            @param request the request that's about to be executed
             @author mhunsicker
             */
            public void aboutToExecuteRequest( Request request )
@@ -72,6 +74,9 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
            public void refreshRequestAdded( RefreshTaskListRequest request ) { }
            public void requestExecutionComplete( Request request, int result, String output ) { }
         }, false );
+
+       outputUILordWrapper = new OutputUILordWrapper( basicGradleUI.getOutputUILord() );
+       gradleInterfaceWrapper = new GradleInterfaceWrapper( basicGradleUI.getGradlePluginLord() );
     }
 
    public U getGradleUI() {
@@ -115,21 +120,21 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
       @return the root directory of your gradle project.
    */
    public File getCurrentDirectory() {
-       return basicGradleUI.getGradlePluginLord().getCurrentDirectory();
+       return gradleInterfaceWrapper.getCurrentDirectory();
    }
 
    /**
       @param  currentDirectory the new root directory of your gradle project.
    */
    public void setCurrentDirectory(File currentDirectory) {
-       basicGradleUI.getGradlePluginLord().setCurrentDirectory(currentDirectory);
+       gradleInterfaceWrapper.setCurrentDirectory(currentDirectory);
    }
 
    /**
     * @return the gradle home directory. Where gradle is installed.
     */
    public File getGradleHomeDirectory() {
-       return basicGradleUI.getGradlePluginLord().getGradleHomeDirectory();
+       return gradleInterfaceWrapper.getGradleHomeDirectory();
    }
 
    /**
@@ -142,7 +147,7 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
     * @return the Executable to run gradle command or null to use the default
     */
    public File getCustomGradleExecutable() {
-       return basicGradleUI.getGradlePluginLord().getCustomGradleExecutor();
+       return gradleInterfaceWrapper.getCustomGradleExecutable();
    }
 
     /**
@@ -192,39 +197,28 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
      * @param listener the listener that modifies the command line arguments.
      */
     public void addCommandLineArgumentAlteringListener(CommandLineArgumentAlteringListenerVersion1 listener) {
-        CommandLineArgumentAlteringListenerWrapper wrapper = new CommandLineArgumentAlteringListenerWrapper(listener);
-
-        //we have to store our wrapper so you can call remove the listener using your passed-in object
-        commandLineListenerMap.put(listener, wrapper);
-
-        basicGradleUI.getGradlePluginLord().addCommandLineArgumentAlteringListener(wrapper);
+        gradleInterfaceWrapper.addCommandLineArgumentAlteringListener(listener);
     }
 
     public void removeCommandLineArgumentAlteringListener(CommandLineArgumentAlteringListenerVersion1 listener) {
-        CommandLineArgumentAlteringListenerWrapper wrapper = commandLineListenerMap.remove(listener);
-        if (wrapper != null) {
-           basicGradleUI.getGradlePluginLord().removeCommandLineArgumentAlteringListener(wrapper);
-        }
+        gradleInterfaceWrapper.removeCommandLineArgumentAlteringListener(listener);
+    }
+
+    public OutputUILordVersion1 getOutputLord()
+    {
+        return new OutputUILordWrapper( basicGradleUI.getOutputUILord() );
     }
 
 
     public void addOutputObserver( OutputObserverVersion1 observer )
     {
-       OutputObserverWrapper wrapper = new OutputObserverWrapper( observer );
-       outputObserverMap.put( observer, wrapper );
-
-       basicGradleUI.getOutputUILord().addOutputObserver( wrapper, false );
-
+        outputUILordWrapper.addOutputObserver( observer );
     }
 
     public void removeOutputObserver( OutputObserverVersion1 observer )
     {
-       OutputObserverWrapper wrapper = outputObserverMap.remove(  observer );
-       if( wrapper != null ) {
-          basicGradleUI.getOutputUILord().removeOutputObserver( wrapper );
-       }
+       outputUILordWrapper.removeOutputObserver( observer );
     }
-
 
     /**
     Call this to execute the given gradle command.
@@ -265,5 +259,33 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
    public boolean getOnlyShowOutputOnErrors()
    {
       return getGradleUI().getOutputUILord().getOnlyShowOutputOnErrors();
+   }
+
+   /**
+    This adds the specified component to the setup panel. It is added below the last
+    'default' item. You can only add 1 component here, so if you need to add multiple
+    things, you'll have to handle adding that to yourself to the one component.
+    @param component the component to add.
+    */
+   public void setCustomPanelToSetupTab( JComponent component )
+   {
+      getGradleUI().setCustomPanelToSetupTab( component );
+   }
+
+   /**
+    Sets the font for the output text
+    @param font the new font
+    */
+   public void setOutputTextFont( Font font )
+   {
+      getGradleUI().setOutputTextFont( font );
+   }
+
+    /**
+     * @return an object that works with lower level gradle and contains the current projects and tasks.
+     */
+   public GradleInterfaceVersion1 getGradleInterfaceVersion1()
+   {
+      return gradleInterfaceWrapper;
    }
 }

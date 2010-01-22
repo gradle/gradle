@@ -34,6 +34,9 @@ import java.util.List;
  * @author mhunsicker
  */
 public class RefreshTaskListRequest extends AbstractRequest {
+
+    public static final Type TYPE = new Type() {};
+
     private GradlePluginLord gradlePluginLord;
 
     public RefreshTaskListRequest(long requestID, String fullCommandLine, ExecutionQueue executionQueue, GradlePluginLord gradlePluginLord) {
@@ -103,5 +106,10 @@ public class RefreshTaskListRequest extends AbstractRequest {
    public void executeAgain( GradlePluginLord gradlePluginLord )
    {
       gradlePluginLord.addRefreshRequestToQueue();
+   }
+
+   public Type getType()
+   {
+      return TYPE;
    }
 }

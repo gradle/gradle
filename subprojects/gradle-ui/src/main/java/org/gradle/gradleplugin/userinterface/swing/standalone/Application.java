@@ -35,8 +35,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.Iterator;
-import java.util.List;
+import java.net.URI;
 
 /**
  * The main entry point for a stand-alone application for Gradle. The real work is not done here. This is just a UI
@@ -62,7 +61,7 @@ public class Application implements AlternateUIInteraction {
     private LifecycleListener lifecycleListener = null;
     private DOM4JSettingsNode rootSettingsNode;
 
-    /**
+   /**
      * Interface that allows the caller to do post shutdown processing. For example, you may want to exit the VM. You
      * may not.
      */
@@ -177,37 +176,132 @@ public class Application implements AlternateUIInteraction {
         PreferencesAssistant.restoreSettings(rootSettingsNode, frame, WINDOW_PREFERENCES_ID, Application.class);
     }
 
-    /**
+   /**
+    Notification that you should open the specified file and go to the specified line. Its up to the
+    application to determine if this file should be opened for editing or simply displayed. The difference
+    comes into play for things like xml or html files where a user may want to open them in a browser vs
+    a source code file where they may want to open it directly in an IDE.
+
+    @param file the file to edit
+    @param line the line to go to. -1 if no line is specified.
+    */
+   public void openFile( File file, int line ) {
+      String name = file.getName().toLowerCase();
+      if( name.endsWith( ".html" ) || name.endsWith( ".htm" ) )
+      {
+         browseFile( file );
+      }
+      else
+      {
+         editFile( file, line );
+      }
+   }
+
+   public void browseFile( File file ) {
+      if( !file.exists())  //the file might not exist. This happens if its just using the default settings (no file is required).
+         {
+            JOptionPane.showMessageDialog(frame, "File does not exist '" + file.getAbsolutePath() + "'");
+         } else {
+
+         if( !invokeDesktopFunction( "browse", URI.class, file.toURI() ) )
+         {
+            String extension = getFileNameExtension( file.getName() );
+            JOptionPane.showMessageDialog(frame, "Cannot browse file. Do you have an application assocated with '" + extension + "' files?");
+         }
+       }
+   }
+
+
+   /**
      * This is called when we should edit the specified file. Open it in the current IDE or some external editor.
      *
-     * @param files the files to open
+     * @param file
+    @param line
      */
-    public void editFiles(List<File> files) {
-        try {
+    public void editFile( File file, int line )  {
+      editFileInExternalApplication( file, true );
+    }
+
+   /**
+    This edits the application using java.awt.Desktop. Since we're compiling with 1.5 and this is a 1.6 feature,
+    this is done using reflection making this much uglier than it needs to be.
+    @param file the file to edit
+    @param attemptToOpen true if we should attempt to just open the file is editing it fails. Often, file associations
+    don't distinguish edit from open and open is the default.
+    */
+    public void editFileInExternalApplication( File file, boolean attemptToOpen )  {
+        if( !file.exists())  //the file might not exist. This happens if its just using the default settings (no file is required).
+         {
+            JOptionPane.showMessageDialog(frame, "File does not exist '" + file.getAbsolutePath() + "'");
+         } else {
+         if( !invokeDesktopFunction( "edit", File.class, file ) )
+         {
+            openFileInExternalApplication( file );
+         }
+       }
+   }
+
+   public void openFileInExternalApplication( File file )  {
+
+        if( !file.exists())  //the file might not exist. This happens if its just using the default settings (no file is required).
+         {
+            JOptionPane.showMessageDialog(frame, "File does not exist '" + file.getAbsolutePath() + "'");
+         } else {
+         if( !invokeDesktopFunction( "open", File.class, file ) )
+         {
+            String extension = getFileNameExtension( file.getName() );
+            JOptionPane.showMessageDialog(frame, "Cannot open file. Do you have an application assocated with '" + extension + "' files?");
+         }
+       }
+   }
+
+   /**
+    This invokes one of the java.awt.Desktop functions. Since we're compiling with 1.5 and this is a 1.6 feature,
+    this is done using reflection making this much uglier than it needs to be. This is for calling one of the
+    'edit', 'browse', 'open' or even 'mail' functions that always take a single argument.
+
+    @param name  the function to invoke
+    @param argumentClass  the class of the argument of the above function. 
+    @param argument the argument itself.
+    @return true if it worked, false if not. It might fail if the platform doesn't support editing/opening
+    the file passed in, for example.
+    */
+   public boolean invokeDesktopFunction( String name, Class argumentClass, Object argument )  {
+      try {
             Class<?> desktopClass = Class.forName("java.awt.Desktop");
             Method getDesktopMethod = desktopClass.getDeclaredMethod("getDesktop", (Class<?>[]) null);
             Object desktopObject = getDesktopMethod.invoke(null, (Object[]) null);
             if (desktopObject != null)   //may be null if this plaform doesn't support this.
             {
-                Method method = desktopClass.getMethod("edit", new Class[]{File.class});
-                Iterator<File> iterator = files.iterator();
-                while (iterator.hasNext()) {
-                    File file = iterator.next();
-                    if (file.exists())  //the file might not exist. This happens if its just using the default settings (no file is required).
-                    {
-                        method.invoke(desktopObject, file);
-                    } else {
-                        JOptionPane.showMessageDialog(frame, "File does not exist '" + file.getAbsolutePath() + "'");
-                    }
-                }
+                Method method = desktopClass.getMethod( name, new Class[]{ argumentClass });
+                method.invoke(desktopObject, argument );
+               return true;
             }
-        } catch (NoSuchMethodException e) {
-            logger.info("Trying to edit files via java's Desktop method. This VM doesn't support it.", e);
-            //we're not requiring 1.6, so its not a problem if we don't find the method. We just don't get this feature.
-        } catch (Exception e) {
-            logger.error("Trying to edit files via java's Desktop methods.", e);
-        }
-    }
+       } catch (Exception e) {
+            //ignore this. Just return false. This is relatively normal to get these and if you look at where this is called with 'edit', if it fails, we'll try again with open.
+       }
+      return false;
+   }
+
+
+   /**<!===== getFileNameExtension ===========================================>
+      Returns the file extension preserving its case.
+
+      <!      Name       Description>
+      @param  fileName   the file name
+      @return its extension.
+      @author mhunsicker
+   <!=======================================================================>*/
+   public static String getFileNameExtension( String fileName )
+   {
+      String result = fileName;
+      int indexOfDot = fileName.lastIndexOf('.');
+      if ( indexOfDot > 0 ) {
+          result = fileName.substring( indexOfDot + 1, result.length() );
+      }
+
+       return result;
+   }
 
     /**
      * Determines if we can call editFiles. This is not a dynamic answer and should always return either true of false.
@@ -215,7 +309,7 @@ public class Application implements AlternateUIInteraction {
      *
      * @return true if support editing files, false otherwise.
      */
-    public boolean doesSupportEditingFiles() {
+    public boolean doesSupportEditingOpeningFiles() {
         return doesSupportEditingFiles;
     }
 
