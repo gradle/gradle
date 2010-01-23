@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.dispatch;
+package org.gradle.messaging.dispatch;
 
-public interface StoppableDispatch<T> extends Dispatch<T> {
+public interface StoppableDispatch<T> extends Dispatch<T>, Stoppable {
     /**
      * Stops this dispatch. Stops accepting new events and blocks until all events have been dispatched.
      */

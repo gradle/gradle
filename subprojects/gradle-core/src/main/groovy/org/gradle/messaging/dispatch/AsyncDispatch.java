@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.dispatch;
+package org.gradle.messaging.dispatch;
 
 import org.gradle.api.GradleException;
 
@@ -25,13 +25,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A {@link org.gradle.listener.dispatch.Dispatch} implementation which delivers messages asynchronously. Calls to
- * {@link #dispatch} queue the message. Worker threads delivers the messages in order to one of a pool of delegate
- * {@link org.gradle.listener.dispatch.Dispatch} instances.
+ * <p>A {@link org.gradle.messaging.dispatch.Dispatch} implementation which delivers messages asynchronously. Calls to
+ * {@link #dispatch} queue the message. Worker threads delivers the messages in the order they have been received to one
+ * of a pool of delegate {@link org.gradle.messaging.dispatch.Dispatch} instances.</p>
+ *
+ * <p>One or more {@link org.gradle.messaging.dispatch.Receive} instances can use used as a source of messages.</p>
  */
-public class AsyncDispatch<T> implements StoppableDispatch<T> {
+public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
     private enum State {
-        Init, Stopped
+        Init, Stopping, Stopped
     }
 
     private static final int MAX_QUEUE_SIZE = 200;
@@ -40,7 +42,8 @@ public class AsyncDispatch<T> implements StoppableDispatch<T> {
     private final LinkedList<T> queue = new LinkedList<T>();
     private final Executor executor;
     private final int maxQueueSize;
-    private int targets;
+    private int dispatchers;
+    private int receivers;
     private State state;
 
     public AsyncDispatch(Executor executor) {
@@ -56,11 +59,24 @@ public class AsyncDispatch<T> implements StoppableDispatch<T> {
         this.maxQueueSize = maxQueueSize;
         state = State.Init;
         if (dispatch != null) {
-            add(dispatch);
+            dispatchTo(dispatch);
         }
     }
 
-    public void add(final Dispatch<? super T> dispatch) {
+    public void receiveFrom(final Receive<? extends T> receive) {
+        onReceiveThreadStart();
+        executor.execute(new Runnable() {
+            public void run() {
+                try {
+                    receiveMessages(receive);
+                } finally {
+                    onReceiveThreadExit();
+                }
+            }
+        });
+    }
+
+    public void dispatchTo(final Dispatch<? super T> dispatch) {
         onDispatchThreadStart();
         executor.execute(new Runnable() {
             public void run() {
@@ -73,10 +89,35 @@ public class AsyncDispatch<T> implements StoppableDispatch<T> {
         });
     }
 
+    private void onReceiveThreadStart() {
+        lock.lock();
+        try {
+            if (state != State.Init) {
+                throw new IllegalStateException("This dispatch has been stopped.");
+            }
+            receivers++;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void onReceiveThreadExit() {
+        lock.lock();
+        try {
+            receivers--;
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private void onDispatchThreadStart() {
         lock.lock();
         try {
-            targets++;
+            if (state != State.Init) {
+                throw new IllegalStateException("This dispatch has been stopped.");
+            }
+            dispatchers++;
         } finally {
             lock.unlock();
         }
@@ -85,10 +126,38 @@ public class AsyncDispatch<T> implements StoppableDispatch<T> {
     private void onDispatchThreadExit() {
         lock.lock();
         try {
-            targets--;
+            dispatchers--;
             condition.signalAll();
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void receiveMessages(Receive<? extends T> receive) {
+        while (true) {
+            T message = receive.receive();
+            if (message == null) {
+                return;
+            }
+
+            lock.lock();
+            try {
+                while (state != State.Stopped && queue.size() >= maxQueueSize) {
+                    try {
+                        condition.await();
+                    } catch (InterruptedException e) {
+                        throw new GradleException(e);
+                    }
+                }
+                assert state != State.Stopped;
+                queue.add(message);
+                condition.signalAll();
+                if (state != State.Init) {
+                    return;
+                }
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
@@ -102,7 +171,7 @@ public class AsyncDispatch<T> implements StoppableDispatch<T> {
             T message = null;
             lock.lock();
             try {
-                while (state == State.Init && queue.isEmpty()) {
+                while (state != State.Stopped && queue.isEmpty()) {
                     try {
                         condition.await();
                     } catch (InterruptedException e) {
@@ -129,7 +198,7 @@ public class AsyncDispatch<T> implements StoppableDispatch<T> {
     public void dispatch(final T message) {
         lock.lock();
         try {
-            while (state == State.Init && queue.size() >= maxQueueSize) {
+            while (state != State.Stopped && queue.size() >= maxQueueSize) {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
@@ -146,24 +215,53 @@ public class AsyncDispatch<T> implements StoppableDispatch<T> {
         }
     }
 
+    /**
+     * Commences a shutdown of this dispatch.
+     */
+    public void requestStop() {
+        lock.lock();
+        try {
+            doRequestStop();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void doRequestStop() {
+        if (receivers > 0) {
+            setState(State.Stopping);
+        }
+        else {
+            setState(State.Stopped);
+        }
+    }
+
     public void stop() {
         lock.lock();
         try {
-            setState(State.Stopped);
             Date expiry = new Date(System.currentTimeMillis() + (120 * 1000));
-            while (targets > 0) {
-                try {
-                    if (!condition.awaitUntil(expiry)) {
-                        throw new IllegalStateException("Timeout waiting for messages to be flushed.");
-                    }
-                } catch (InterruptedException e) {
-                    throw new GradleException(e);
+
+            doRequestStop();
+
+            while (receivers > 0) {
+                if (!condition.awaitUntil(expiry)) {
+                    throw new IllegalStateException("Timeout waiting for receiver threads to be dispatched.");
                 }
             }
+
+            setState(State.Stopped);
+            while (dispatchers > 0) {
+                if (!condition.awaitUntil(expiry)) {
+                    throw new IllegalStateException("Timeout waiting for messages to be dispatched.");
+                }
+            }
+
             if (!queue.isEmpty()) {
                 throw new IllegalStateException(
-                        "Cannot wait for messages to be flushed, as there are no dispatch threads.");
+                        "Cannot wait for messages to be dispatched, as there are no dispatch threads running.");
             }
+        } catch (InterruptedException e) {
+            throw new GradleException(e);
         } finally {
             lock.unlock();
         }

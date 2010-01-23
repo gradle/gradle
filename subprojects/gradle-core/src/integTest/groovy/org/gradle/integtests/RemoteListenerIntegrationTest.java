@@ -18,6 +18,8 @@ package org.gradle.integtests;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.remote.RemoteReceiver;
 import org.gradle.listener.remote.RemoteSender;
+import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleBuilder;
 import org.gradle.util.exec.ExecHandleState;
@@ -26,9 +28,9 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.URI;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 public class RemoteListenerIntegrationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
@@ -38,7 +40,7 @@ public class RemoteListenerIntegrationTest {
     private static final int    SECOND_MESSAGE_INT  = 2;
 
     @Test
-    public void tryRemoteSenderAndReceiver() throws Throwable {
+    public void remoteProcessCanSendEventsToThisProcess() throws Throwable {
         final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
         context.checking(new Expectations() {{
             one(listenerMock).send(FIRST_MESSAGE_TEXT, FIRST_MESSAGE_INT);
@@ -47,48 +49,62 @@ public class RemoteListenerIntegrationTest {
 
         ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);
         broadcast.add(listenerMock);
-        RemoteExceptionListener exceptionListener = new RemoteExceptionListener();
-        RemoteReceiver receiver = new RemoteReceiver(broadcast, exceptionListener, getClass().getClassLoader());
+        RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);
+        RemoteReceiver receiver = new RemoteReceiver(TestListenerInterface.class, exceptionListener);
 
-        executeJava(RemoteProcess.class.getName(), receiver.getBoundPort());
+        executeJava(RemoteProcess.class.getName(), receiver.getLocalAddress());
         if (exceptionListener.ex != null) {
             throw exceptionListener.ex;
         }
-        receiver.close();
+
+        receiver.stop();
         context.assertIsSatisfied();
     }
 
-    public static class RemoteExceptionListener implements RemoteReceiver.ExceptionListener {
+    public static class RemoteExceptionListener implements Dispatch<MethodInvocation> {
         Throwable ex;
+        final Dispatch<MethodInvocation> dispatch;
 
-        public void receiverThrewException(Throwable throwable) {
-            ex = throwable;
+        public RemoteExceptionListener(Dispatch<MethodInvocation> dispatch) {
+            this.dispatch = dispatch;
+        }
+
+        public void dispatch(MethodInvocation message) {
+            try {
+                dispatch.dispatch(message);
+            } catch (Throwable e) {
+                ex = e;
+            }
         }
     }
 
     public static class RemoteProcess {
-        public static void main(String[] args) throws IOException {
-            int port = Integer.parseInt(args[0]);
-            RemoteSender<TestListenerInterface> remoteSender = new RemoteSender<TestListenerInterface>(
-                    TestListenerInterface.class, port);
-            TestListenerInterface sender = remoteSender.getSource();
-            sender.send(FIRST_MESSAGE_TEXT, FIRST_MESSAGE_INT);
-            sender.send(SECOND_MESSAGE_TEXT, SECOND_MESSAGE_INT);
-            remoteSender.close();
+        public static void main(String[] args) {
+            try {
+                RemoteSender<TestListenerInterface> remoteSender = new RemoteSender<TestListenerInterface>(
+                        TestListenerInterface.class, new URI(args[0]));
+                TestListenerInterface sender = remoteSender.getSource();
+                sender.send(FIRST_MESSAGE_TEXT, FIRST_MESSAGE_INT);
+                sender.send(SECOND_MESSAGE_TEXT, SECOND_MESSAGE_INT);
+                remoteSender.close();
+            } catch (Throwable t) {
+                t.printStackTrace();
+                System.exit(1);
+            }
         }
     }
 
-    private void executeJava(String mainClass, int port) {
+    private void executeJava(String mainClass, URI serverAddress) {
         ExecHandleBuilder builder = new ExecHandleBuilder();
         builder.execDirectory(new File(System.getProperty("user.dir")));
         builder.execCommand(new File(System.getProperty("java.home")+"/bin/java").getPath());
         builder.arguments("-cp", System.getProperty("java.class.path"));
 
-        builder.arguments(mainClass, String.valueOf(port));
+        builder.arguments(mainClass, String.valueOf(serverAddress));
 
         ExecHandle proc = builder.getExecHandle();
         ExecHandleState result = proc.startAndWaitForFinish();
-        assertTrue(result == ExecHandleState.SUCCEEDED);
+        assertEquals(ExecHandleState.SUCCEEDED, result);
     }
 
     public interface TestListenerInterface {

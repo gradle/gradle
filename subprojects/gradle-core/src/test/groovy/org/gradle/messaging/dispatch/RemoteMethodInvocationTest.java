@@ -13,19 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.dispatch;
+package org.gradle.messaging.dispatch;
 
 import groovy.lang.GroovyClassLoader;
 import org.junit.Test;
 
 import java.io.*;
 
+import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-public class MethodInvocationTest {
+public class RemoteMethodInvocationTest {
     private final GroovyClassLoader source = new GroovyClassLoader(getClass().getClassLoader());
     private final GroovyClassLoader dest = new GroovyClassLoader(getClass().getClassLoader());
+
+    @Test
+    public void equalsAndHashCode() throws Exception {
+        RemoteMethodInvocation invocation = new RemoteMethodInvocation(1, new Object[]{"param"});
+        RemoteMethodInvocation equalInvocation = new RemoteMethodInvocation(1, new Object[]{"param"});
+        RemoteMethodInvocation differentMethod = new RemoteMethodInvocation(2, new Object[]{"param"});
+        RemoteMethodInvocation differentArgs = new RemoteMethodInvocation(1, new Object[]{"a", "b"});
+        assertThat(invocation, strictlyEqual(equalInvocation));
+        assertThat(invocation, not(equalTo(differentMethod)));
+        assertThat(invocation, not(equalTo(differentArgs)));
+    }
 
     @Test
     public void replacesUnserializableExceptionWithPlaceholder() throws Exception {
@@ -69,7 +81,7 @@ public class MethodInvocationTest {
         PlaceholderException e = (PlaceholderException) transported;
         assertThat(e.getMessage(), equalTo(UndeserializableException.class.getName() + ": " + original.getMessage()));
         assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
-        
+
         assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
         assertThat(e.getCause().getMessage(), equalTo("nested"));
         assertThat(e.getCause().getStackTrace(), equalTo(cause.getStackTrace()));
@@ -114,10 +126,10 @@ public class MethodInvocationTest {
 
     private Object transport(Object arg) throws Exception {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        new MethodInvocation(String.class.getMethod("length"), new Object[]{arg}).send(outputStream);
+        new RemoteMethodInvocation(1, new Object[]{arg}).send(outputStream);
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-        MethodInvocation invocation = (MethodInvocation) Message.receive(inputStream, dest);
+        RemoteMethodInvocation invocation = (RemoteMethodInvocation) Message.receive(inputStream, dest);
         return invocation.getArguments()[0];
     }
 

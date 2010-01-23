@@ -18,7 +18,7 @@ package org.gradle.api.testing.execution.control.server.transport;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
-import org.gradle.listener.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

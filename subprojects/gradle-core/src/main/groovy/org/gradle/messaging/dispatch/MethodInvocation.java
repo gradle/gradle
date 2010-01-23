@@ -13,32 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.dispatch;
+package org.gradle.messaging.dispatch;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
-public class MethodInvocation extends Message {
-    private transient Method method;
-    private String methodName;
-    private Class[] parameters;
-    private Object[] arguments;
+public class MethodInvocation {
+    private final Method method;
+    private final Object[] arguments;
 
     public MethodInvocation(Method method, Object[] args) {
         this.method = method;
-        methodName = method.getName();
-        parameters = method.getParameterTypes();
         arguments = args;
     }
 
+    public Class<?> getTargetClass() {
+        return method.getDeclaringClass();
+    }
+    
     public Object[] getArguments() {
         return arguments;
     }
 
-    public Method getMethod(Class<?> type) throws NoSuchMethodException {
-        if (method != null) {
-            return method;
+    public Method getMethod() {
+        return method;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
         }
-        return type.getMethod(methodName, parameters);
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+
+        MethodInvocation other = (MethodInvocation) obj;
+        if (!method.equals(other.method)) {
+            return false;
+        }
+
+        return (Arrays.equals(arguments, other.arguments));
+    }
+
+    @Override
+    public int hashCode() {
+        return method.hashCode();
     }
 }
 

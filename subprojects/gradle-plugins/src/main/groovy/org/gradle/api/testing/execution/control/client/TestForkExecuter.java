@@ -19,7 +19,7 @@ import org.gradle.api.testing.execution.control.client.transport.ExternalIoConne
 import org.gradle.api.testing.execution.control.client.transport.IoConnectorFactory;
 import org.gradle.api.testing.execution.control.messages.TestControlMessage;
 import org.gradle.api.testing.execution.fork.ForkExecuter;
-import org.gradle.listener.dispatch.AsyncDispatch;
+import org.gradle.messaging.dispatch.AsyncDispatch;
 
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -50,7 +50,7 @@ public class TestForkExecuter implements ForkExecuter {
 
                 TestControlMessageDispatcher testControlMessageDispatcher = new TestControlMessageDispatcher(
                         testControlClient, sandboxClassLoader);
-                asyncDispatch.add(testControlMessageDispatcher);
+                asyncDispatch.dispatchTo(testControlMessageDispatcher);
 
                 testControlMessageDispatcher.waitForExitReceived();
                 asyncDispatch.stop();

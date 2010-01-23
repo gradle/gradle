@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.testing.execution.control.server.transport.IoAcceptorFactory;
 import org.gradle.api.testing.execution.control.server.transport.TestServerIoHandler;
 import org.gradle.api.testing.execution.control.server.transport.TransportMessage;
-import org.gradle.listener.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.Dispatch;
 
 import java.io.IOException;
 

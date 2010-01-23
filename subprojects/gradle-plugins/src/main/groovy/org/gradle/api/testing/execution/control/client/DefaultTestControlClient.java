@@ -27,7 +27,7 @@ import org.gradle.api.testing.execution.control.messages.client.ForkStoppedMessa
 import org.gradle.api.testing.execution.control.messages.client.NextActionRequestMessage;
 import org.gradle.api.testing.execution.control.refork.ReforkContextData;
 import org.gradle.api.testing.fabric.TestClassProcessResult;
-import org.gradle.listener.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.Dispatch;
 
 /**
  * @author Tom Eyckmans

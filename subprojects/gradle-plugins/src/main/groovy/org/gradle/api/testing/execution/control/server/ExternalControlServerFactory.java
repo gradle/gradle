@@ -20,7 +20,7 @@ import org.gradle.api.testing.execution.control.server.messagehandlers.*;
 import org.gradle.api.testing.execution.control.server.transport.ExternalIoAcceptorFactory;
 import org.gradle.api.testing.execution.control.server.transport.IoAcceptorFactory;
 import org.gradle.api.testing.execution.control.server.transport.TransportMessage;
-import org.gradle.listener.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.Dispatch;
 
 /**
  * @author Tom Eyckmans

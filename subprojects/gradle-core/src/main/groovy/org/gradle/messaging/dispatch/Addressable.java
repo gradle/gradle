@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.dispatch;
+package org.gradle.messaging.dispatch;
 
-public interface Dispatch<T> {
-    void dispatch(T message);
+import java.net.URI;
+
+public interface Addressable {
+    URI getLocalAddress();
+
+    URI getRemoteAddress();
 }
