@@ -27,7 +27,7 @@ import org.gradle.api.testing.execution.control.refork.DefaultDataGatherControl;
 import org.gradle.api.testing.execution.control.refork.ReforkContextData;
 import org.gradle.api.testing.execution.control.refork.ReforkReasonConfigs;
 import org.gradle.api.testing.fabric.*;
-import org.gradle.listener.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

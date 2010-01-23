@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.dispatch;
+package org.gradle.messaging.dispatch;
 
-import org.gradle.api.UncheckedIOException;
+import java.net.URI;
 
-import java.io.IOException;
-import java.io.OutputStream;
+public class ConnectRequest extends Message {
+    private final URI destinationAddress;
+    private final URI sourceAddress;
 
-public class SerializingDispatch implements Dispatch<Message> {
-    private final OutputStream outstr;
-
-    public SerializingDispatch(OutputStream outstr) {
-        this.outstr = outstr;
+    public ConnectRequest(URI destinationAddress, URI sourceAddress) {
+        this.destinationAddress = destinationAddress;
+        this.sourceAddress = sourceAddress;
     }
 
-    public void dispatch(Message message) {
-        try {
-            message.send(outstr);
-            outstr.flush();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public URI getDestinationAddress() {
+        return destinationAddress;
+    }
+
+    public URI getSourceAddress() {
+        return sourceAddress;
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.dispatch;
+package org.gradle.messaging.dispatch;
 
 import groovy.lang.Closure;
 import org.gradle.api.GradleException;
@@ -76,7 +76,7 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
 
     public void dispatch(MethodInvocation invocation) {
         try {
-            Method method = invocation.getMethod(type);
+            Method method = invocation.getMethod();
             dispatch(method, invocation.getArguments());
         } catch (ListenerNotificationException e) {
             throw e;

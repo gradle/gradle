@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.dispatch;
+package org.gradle.messaging.dispatch;
 
 import org.gradle.util.ReflectionUtil;
 
@@ -70,7 +70,8 @@ public abstract class Message implements Serializable {
                     // Ignore
                 } catch (InvalidClassException e) {
                     try {
-                        Throwable throwable = ReflectionUtil.newInstance(classLoader.loadClass(type), new Object[]{message});
+                        Throwable throwable = ReflectionUtil.newInstance(classLoader.loadClass(type),
+                                new Object[]{message});
                         throwable.initCause(getCause(classLoader));
                         throwable.setStackTrace(stackTrace);
                         return throwable;
@@ -80,7 +81,8 @@ public abstract class Message implements Serializable {
                 }
             }
 
-            PlaceholderException exception = new PlaceholderException(String.format("%s: %s", type, message), getCause(classLoader));
+            PlaceholderException exception = new PlaceholderException(String.format("%s: %s", type, message), getCause(
+                    classLoader));
             exception.setStackTrace(stackTrace);
             return exception;
         }

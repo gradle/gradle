@@ -15,7 +15,7 @@
  */
 package org.gradle.listener;
 
-import org.gradle.listener.dispatch.MethodInvocation;
+import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.util.TestClosure;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.gradle.util.HelperUtil.*;
+import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -35,9 +36,7 @@ public class ListenerBroadcastTest {
     @Test
     public void createsSourceObject() {
         assertThat(broadcast.getSource(), notNullValue());
-        assertTrue(broadcast.getSource().equals(broadcast.getSource()));
-        assertFalse(broadcast.getSource().equals("something"));
-        assertFalse(broadcast.getSource().equals(null));
+        assertThat(broadcast.getSource(), strictlyEqual(broadcast.getSource()));
         assertFalse(broadcast.getSource().equals(new ListenerBroadcast<TestListener>(TestListener.class).getSource()));
         assertEquals(broadcast.getSource().hashCode(), broadcast.getSource().hashCode());
         assertThat(broadcast.getSource().toString(), equalTo("TestListener broadcast"));

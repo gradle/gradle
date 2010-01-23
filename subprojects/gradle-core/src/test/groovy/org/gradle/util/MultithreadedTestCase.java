@@ -34,8 +34,8 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <p>Provides several ways to start and manage threads. You can use the {@link #start(groovy.lang.Closure)} or {@link
  * #run(groovy.lang.Closure)} methods to execute test code in other threads. You can use {@link #waitForAll()} to wait
- * for all test threads to complete. In addition, the test tear-down method will ensure that no exceptions were thrown
- * in any test threads.</p>
+ * for all test threads to complete. In addition, the test tear-down method blocks until all test threads have stopped
+ * and ensures that no exceptions were thrown in any test threads.</p>
  *
  * <p>Provides an {@link java.util.concurrent.Executor} implementation, which uses test threads to execute any tasks
  * submitted to it.</p>
@@ -48,12 +48,12 @@ public class MultithreadedTestCase {
     private static final int MAX_WAIT_TIME = 5000;
     private ExecutorImpl executor;
     private final Lock lock = new ReentrantLock();
-    private final Condition activeChanged = lock.newCondition();
+    private final Condition condition = lock.newCondition();
     private final Set<Thread> active = new HashSet<Thread>();
     private final Set<Thread> synching = new HashSet<Thread>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
-    private int currentTick = 0;
-    private final Condition synchingChanged = lock.newCondition();
+    private final Map<Integer, ClockTickImpl> ticks = new HashMap<Integer, ClockTickImpl>();
+    private ClockTickImpl currentTick = getTick(0);
     private boolean stopped;
     private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure
             = new ThreadLocal<Matcher<? extends Throwable>>();
@@ -138,7 +138,7 @@ public class MultithreadedTestCase {
             }
             LOGGER.debug("Started {}", thread);
             active.add(thread);
-            activeChanged.signalAll();
+            condition.signalAll();
         } finally {
             lock.unlock();
         }
@@ -165,7 +165,7 @@ public class MultithreadedTestCase {
                     LOGGER.debug("Finished {}", thread);
                 }
             }
-            activeChanged.signalAll();
+            condition.signalAll();
         } finally {
             lock.unlock();
         }
@@ -181,7 +181,7 @@ public class MultithreadedTestCase {
         try {
             while (active.contains(thread)) {
                 try {
-                    boolean signalled = activeChanged.awaitUntil(expiry);
+                    boolean signalled = condition.awaitUntil(expiry);
                     if (!signalled) {
                         throw new RuntimeException("timeout waiting for test thread to stop.");
                     }
@@ -208,7 +208,7 @@ public class MultithreadedTestCase {
             }
             try {
                 while (!active.isEmpty()) {
-                    boolean signaled = activeChanged.awaitUntil(expiry);
+                    boolean signaled = condition.awaitUntil(expiry);
                     if (!signaled) {
                         throw new RuntimeException("Timeout waiting for threads to finish.");
                     }
@@ -222,6 +222,12 @@ public class MultithreadedTestCase {
             if (!failures.isEmpty()) {
                 Throwable failure = failures.get(0);
                 failures.clear();
+                if (failure instanceof RuntimeException) {
+                    throw (RuntimeException) failure;
+                }
+                if (failure instanceof Error) {
+                    throw (Error) failure;
+                }
                 throw new RuntimeException("An unexpected exception occurred in a test thread.", failure);
             }
         } finally {
@@ -241,6 +247,27 @@ public class MultithreadedTestCase {
     }
 
     /**
+     * Returns the meta-info for the given clock tick.
+     */
+    public ClockTick clockTick(int tick) {
+        lock.lock();
+        try {
+            return getTick(tick);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private ClockTickImpl getTick(int tick) {
+        ClockTickImpl clockTick = ticks.get(tick);
+        if (clockTick == null) {
+            clockTick = new ClockTickImpl(tick);
+            ticks.put(tick, clockTick);
+        }
+        return clockTick;
+    }
+
+    /**
      * Blocks until the clock has reached the given tick. The clock advances to the given tick when all test threads
      * have called {@link #syncAt(int)} or {@link #expectBlocksUntil(int, groovy.lang.Closure)} with the given tick, and
      * there are least 2 test threads.
@@ -252,9 +279,10 @@ public class MultithreadedTestCase {
 
         lock.lock();
         try {
-            if (tick != currentTick + 1) {
-                throw new RuntimeException(String.format("Cannot wait for clock tick %d, as clock is currently at %s.",
-                        tick, currentTick));
+            ClockTickImpl clockTick = getTick(tick);
+            if (!clockTick.isImmediatelyAfter(currentTick)) {
+                throw new RuntimeException(String.format("Cannot wait for %s, as clock is currently at %s.", clockTick,
+                        currentTick));
             }
             if (!active.contains(Thread.currentThread())) {
                 throw new RuntimeException("Cannot wait for clock tick from a thread which is not a test thread.");
@@ -262,21 +290,26 @@ public class MultithreadedTestCase {
 
             Date expiry = new Date(System.currentTimeMillis() + MAX_WAIT_TIME);
             synching.add(Thread.currentThread());
-            synchingChanged.signalAll();
-            while (currentTick != tick && (!synching.equals(active) || synching.size() == 1)) {
+            condition.signalAll();
+            while (failures.isEmpty() && currentTick != clockTick && !clockTick.allThreadsSynced(synching, active)) {
                 try {
-                    boolean signalled = synchingChanged.awaitUntil(expiry);
+                    boolean signalled = condition.awaitUntil(expiry);
                     if (!signalled) {
                         throw new RuntimeException(String.format(
-                                "Timeout waiting for all threads to reach tick %d. Currently at %d.", tick,
+                                "Timeout waiting for all threads to reach %s. Currently at %s.", clockTick,
                                 currentTick));
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
-            if (currentTick + 1 == tick) {
-                currentTick = tick;
+            if (!failures.isEmpty()) {
+                throw new RuntimeException(String.format(
+                        "Could not wait for all threads to reach %s, as a failure has occurred in another test thread.",
+                        clockTick));
+            }
+            if (clockTick.isImmediatelyAfter(currentTick)) {
+                currentTick = clockTick;
                 synching.clear();
             }
         } finally {
@@ -297,16 +330,17 @@ public class MultithreadedTestCase {
 
         lock.lock();
         try {
-            if (tick != currentTick + 1) {
-                throw new RuntimeException(String.format("Cannot wait for clock tick %d, as clock is currently at %s.",
-                        tick, currentTick));
+            ClockTickImpl clockTick = getTick(tick);
+            if (!clockTick.isImmediatelyAfter(currentTick)) {
+                throw new RuntimeException(String.format("Cannot wait for %s, as clock is currently at %s.", clockTick,
+                        currentTick));
             }
             if (!active.contains(Thread.currentThread())) {
                 throw new RuntimeException("Cannot wait for clock tick from a thread which is not a test thread.");
             }
 
             synching.add(Thread.currentThread());
-            synchingChanged.signalAll();
+            condition.signalAll();
         } finally {
             lock.unlock();
         }
@@ -332,8 +366,8 @@ public class MultithreadedTestCase {
     public void shouldBeAt(int tick) {
         lock.lock();
         try {
-            if (currentTick != tick) {
-                throw new RuntimeException(String.format("Expected clock to be at tick %d, but is at %d.", tick,
+            if (currentTick != getTick(tick)) {
+                throw new RuntimeException(String.format("Expected clock to be at %s, but is at %s.", tick,
                         currentTick));
             }
         } finally {
@@ -356,5 +390,39 @@ public class MultithreadedTestCase {
 
     public interface ThreadHandle {
         ThreadHandle waitFor();
+    }
+
+    public interface ClockTick {
+        ClockTick hasParticipants(int count);
+    }
+
+    private static class ClockTickImpl implements ClockTick {
+        private final int number;
+        private int participants;
+
+        private ClockTickImpl(int number) {
+            this.number = number;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("tick %d", number);
+        }
+
+        public ClockTick hasParticipants(int count) {
+            participants = count;
+            return this;
+        }
+
+        public boolean allThreadsSynced(Set<Thread> synching, Set<Thread> active) {
+            if (participants > 0) {
+                return synching.size() == participants;
+            }
+            return synching.equals(active) && synching.size() > 1;
+        }
+
+        public boolean isImmediatelyAfter(ClockTickImpl other) {
+            return number == other.number + 1;
+        }
     }
 }

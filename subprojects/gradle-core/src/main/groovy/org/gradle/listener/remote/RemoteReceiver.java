@@ -15,118 +15,43 @@
  */
 package org.gradle.listener.remote;
 
-import org.gradle.listener.dispatch.Dispatch;
-import org.gradle.listener.dispatch.EndOfStream;
-import org.gradle.listener.dispatch.MethodInvocation;
-import org.gradle.listener.dispatch.Message;
-import org.gradle.util.ThreadUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.messaging.dispatch.DefaultConnector;
+import org.gradle.messaging.DefaultMessagingServer;
+import org.gradle.messaging.ObjectConnection;
+import org.gradle.messaging.dispatch.*;
 
-import java.io.BufferedInputStream;
-import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.nio.channels.AsynchronousCloseException;
-import java.nio.channels.Channels;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.net.URI;
 
-public class RemoteReceiver implements Closeable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteReceiver.class);
-    private final Dispatch<? super MethodInvocation> broadcaster;
-    private final ServerSocketChannel serverSocket;
-    private final ExceptionListener exceptionListener;
-    private final ExecutorService executor;
-    private final ClassLoader classLoader;
+public class RemoteReceiver implements Stoppable {
+    private final ObjectConnection connection;
+    private final DefaultMessagingServer server;
+    private final TcpIncomingConnector incomingConnector;
+    private final DefaultConnector channelFactory;
 
-    public RemoteReceiver(Dispatch<? super MethodInvocation> broadcaster) throws IOException {
-        this(broadcaster, null, Thread.currentThread().getContextClassLoader());
+    public RemoteReceiver(Class<?> type, Dispatch<? super MethodInvocation> dispatch) throws IOException {
+        incomingConnector = new TcpIncomingConnector(type.getClassLoader());
+        channelFactory = new DefaultConnector(new NoOpOutgoingConnector(), incomingConnector);
+        server = new DefaultMessagingServer(channelFactory, type.getClassLoader());
+        connection = server.createUnicastConnection();
+        connection.addIncoming(type, dispatch);
     }
 
-    public RemoteReceiver(Dispatch<? super MethodInvocation> broadcaster, ClassLoader classLoader) throws IOException {
-        this(broadcaster, null, classLoader);
+    public URI getLocalAddress() {
+        return connection.getLocalAddress();
     }
 
-    public RemoteReceiver(Dispatch<? super MethodInvocation> broadcaster, ExceptionListener exceptionListener,
-                          ClassLoader classLoader) throws IOException {
-        this.broadcaster = broadcaster;
-        this.exceptionListener = exceptionListener;
-        this.classLoader = classLoader;
-        serverSocket = ServerSocketChannel.open();
-        serverSocket.socket().bind(new InetSocketAddress(InetAddress.getByName(null), 0));
-        executor = Executors.newCachedThreadPool();
-        executor.submit(new Receiver());
+    public void stop() {
+        incomingConnector.requestStop();
+        server.stop();
+        channelFactory.stop();
+        incomingConnector.stop();
     }
 
-    public int getBoundPort() {
-        return serverSocket.socket().getLocalPort();
-    }
-
-    public void close() throws IOException {
-        serverSocket.close();
-        ThreadUtils.shutdown(executor);
-    }
-
-    private class Handler implements Runnable {
-        private final SocketChannel socket;
-
-        public Handler(SocketChannel socket) {
-            this.socket = socket;
+    private static class NoOpOutgoingConnector implements OutgoingConnector {
+        public Connection<Message> create(URI destinationUri) {
+            throw new UnsupportedOperationException();
         }
-
-        public void run() {
-            try {
-                try {
-                    InputStream inputStream = new BufferedInputStream(Channels.newInputStream(socket));
-                    while (true) {
-                        Message message = Message.receive(inputStream, classLoader);
-                        if (message instanceof EndOfStream) {
-                            // End of stream - finish with this connection
-                            return;
-                        }
-
-                        MethodInvocation invocation = (MethodInvocation) message;
-                        try {
-                            broadcaster.dispatch(invocation);
-                        } catch (Exception e) {
-                            if (exceptionListener != null) {
-                                exceptionListener.receiverThrewException(e);
-                            } else {
-                                throw e;
-                            }
-                        }
-                    }
-                } finally {
-                    socket.close();
-                }
-            } catch (Exception e) {
-                LOGGER.warn("Could not handle remote event connection.", e);
-            }
-        }
-    }
-
-    private class Receiver implements Runnable {
-        public void run() {
-            try {
-                while (true) {
-                    SocketChannel socket = serverSocket.accept();
-                    executor.submit(new Handler(socket));
-                }
-            } catch (AsynchronousCloseException e) {
-                // Ignore
-            } catch (IOException e) {
-                LOGGER.warn("Could not accept remote event connection.", e);
-            }
-        }
-    }
-
-    public static interface ExceptionListener {
-        public void receiverThrewException(Throwable throwable);
     }
 }
 

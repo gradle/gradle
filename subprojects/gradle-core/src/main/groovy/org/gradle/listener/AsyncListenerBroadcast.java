@@ -16,9 +16,9 @@
 package org.gradle.listener;
 
 import org.gradle.api.Transformer;
-import org.gradle.listener.dispatch.AsyncDispatch;
-import org.gradle.listener.dispatch.MethodInvocation;
-import org.gradle.listener.dispatch.StoppableDispatch;
+import org.gradle.messaging.dispatch.AsyncDispatch;
+import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.dispatch.StoppableDispatch;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
