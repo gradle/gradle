@@ -16,29 +16,64 @@
 package org.gradle.api.testing.execution.control.server;
 
 import org.gradle.api.testing.execution.PipelineDispatcher;
-import org.gradle.api.testing.execution.control.server.messagehandlers.*;
-import org.gradle.api.testing.execution.control.server.transport.ExternalIoAcceptorFactory;
-import org.gradle.api.testing.execution.control.server.transport.IoAcceptorFactory;
-import org.gradle.api.testing.execution.control.server.transport.TransportMessage;
+import org.gradle.api.testing.execution.control.messages.client.TestClientControlMessage;
+import org.gradle.api.testing.execution.control.messages.server.TestServerControlMessage;
+import org.gradle.api.testing.execution.control.server.messagehandlers.CompositeMessageHandler;
+import org.gradle.api.testing.execution.control.server.messagehandlers.ForkStartedMessageHandler;
+import org.gradle.api.testing.execution.control.server.messagehandlers.ForkStoppedMessageHandler;
+import org.gradle.api.testing.execution.control.server.messagehandlers.NextActionRequestMessageHandler;
+import org.gradle.messaging.ObjectConnection;
+import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.Stoppable;
+
+import java.net.URI;
 
 /**
  * @author Tom Eyckmans
  */
-public class ExternalControlServerFactory implements ControlServerFactory {
-    public TestControlServer createTestControlServer(final PipelineDispatcher pipelineDispatcher) {
-        final IoAcceptorFactory ioAcceptorFactory = new ExternalIoAcceptorFactory();
+public class ExternalControlServerFactory implements ControlServerFactory, Stoppable {
+    private final TcpMessagingServer server;
 
+    public ExternalControlServerFactory() {
+        server = new TcpMessagingServer(TestServerControlMessage.class.getClassLoader());
+    }
+
+    public TestControlServer createTestControlServer(final PipelineDispatcher pipelineDispatcher) {
         CompositeMessageHandler handler = new CompositeMessageHandler(pipelineDispatcher);
         handler.add(new ForkStartedMessageHandler(pipelineDispatcher));
         handler.add(new ForkStoppedMessageHandler(pipelineDispatcher));
         handler.add(new NextActionRequestMessageHandler(pipelineDispatcher));
         pipelineDispatcher.setMessageHandler(handler);
 
-        return new DefaultTestControlServer(ioAcceptorFactory, new Dispatch<TransportMessage>() {
-            public void dispatch(TransportMessage message) {
-                pipelineDispatcher.messageReceived(message.getIoSession(), message.getMessage());
+        ObjectConnection connection = server.createUnicastConnection();
+        final Dispatch<TestServerControlMessage> outgoing = connection.addOutgoing(Dispatch.class);
+        Dispatch<TestClientControlMessage> incoming = new Dispatch<TestClientControlMessage>() {
+            public void dispatch(final TestClientControlMessage message) {
+                pipelineDispatcher.messageReceived(message, outgoing);
             }
-        });
+        };
+        connection.addIncoming(Dispatch.class, incoming);
+        return new TestControlServerImpl(connection);
+    }
+
+    public void stop() {
+        server.stop();
+    }
+
+    private class TestControlServerImpl implements TestControlServer {
+        private final ObjectConnection connection;
+
+        public TestControlServerImpl(ObjectConnection connection) {
+            this.connection = connection;
+        }
+
+        public URI getLocalAddress() {
+            return connection.getLocalAddress();
+        }
+
+        public void stop() {
+            connection.stop();
+        }
     }
 }

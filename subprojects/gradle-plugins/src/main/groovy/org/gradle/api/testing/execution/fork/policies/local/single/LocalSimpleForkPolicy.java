@@ -16,7 +16,7 @@
 package org.gradle.api.testing.execution.fork.policies.local.single;
 
 import org.gradle.api.testing.execution.QueueingPipeline;
-import org.gradle.api.testing.execution.control.server.ExternalControlServerFactory;
+import org.gradle.api.testing.execution.control.server.ControlServerFactory;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.policies.*;
 
@@ -24,12 +24,6 @@ import org.gradle.api.testing.execution.fork.policies.*;
  * @author Tom Eyckmans
  */
 public class LocalSimpleForkPolicy implements ForkPolicy {
-
-    private final ExternalControlServerFactory testServerFactory;
-
-    public LocalSimpleForkPolicy() {
-        testServerFactory = new ExternalControlServerFactory();
-    }
 
     public ForkPolicyName getName() {
         return ForkPolicyNames.LOCAL_SIMPLE;
@@ -39,7 +33,8 @@ public class LocalSimpleForkPolicy implements ForkPolicy {
         return new LocalSimpleForkPolicyConfig(getName());
     }
 
-    public ForkPolicyInstance getForkPolicyInstance(QueueingPipeline pipeline, ForkControl forkControl) {
-        return new LocalSimpleForkPolicyInstance(pipeline, forkControl, testServerFactory);
+    public ForkPolicyInstance getForkPolicyInstance(QueueingPipeline pipeline, ForkControl forkControl,
+                                                    ControlServerFactory controlServerFactory) {
+        return new LocalSimpleForkPolicyInstance(pipeline, forkControl, controlServerFactory);
     }
 }

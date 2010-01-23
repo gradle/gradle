@@ -15,6 +15,9 @@
  */
 package org.gradle.messaging;
 
+/**
+ * A {@code MessagingClient} maintains a single bi-directional uni-cast object connection with some peer.
+ */
 public interface MessagingClient {
     /**
      * Returns the connection for this client.

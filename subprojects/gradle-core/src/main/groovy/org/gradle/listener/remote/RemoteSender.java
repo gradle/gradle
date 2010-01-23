@@ -15,10 +15,7 @@
  */
 package org.gradle.listener.remote;
 
-import org.gradle.api.Action;
-import org.gradle.messaging.dispatch.DefaultConnector;
-import org.gradle.messaging.DefaultMessagingClient;
-import org.gradle.messaging.dispatch.*;
+import org.gradle.messaging.TcpMessagingClient;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -26,12 +23,10 @@ import java.net.URI;
 
 public class RemoteSender<T> implements Closeable {
     private final T source;
-    private final DefaultConnector channelFactory;
-    private final DefaultMessagingClient client;
+    private final TcpMessagingClient client;
 
     public RemoteSender(Class<T> type, URI serverAddress) throws IOException {
-        channelFactory = new DefaultConnector(new TcpOutgoingConnector(type.getClassLoader()), new NoOpIncomingConnector());
-        client = new DefaultMessagingClient(channelFactory, type.getClassLoader(), serverAddress);
+        client = new TcpMessagingClient(type.getClassLoader(), serverAddress);
         source = client.getConnection().addOutgoing(type);
     }
 
@@ -41,16 +36,5 @@ public class RemoteSender<T> implements Closeable {
 
     public void close() throws IOException {
         client.stop();
-        channelFactory.stop();
-    }
-
-    private static class NoOpIncomingConnector implements IncomingConnector {
-        public URI getLocalAddress() {
-            throw new UnsupportedOperationException();
-        }
-
-        public void accept(Action<Connection<Message>> action) {
-        }
     }
 }
-

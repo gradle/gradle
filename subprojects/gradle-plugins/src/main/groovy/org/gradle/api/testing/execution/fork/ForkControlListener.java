@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,14 +38,19 @@ public class ForkControlListener implements ExecHandleListener {
     }
 
     public void executionFinished(ExecHandle execHandle) {
-        forkControl.forkFinished(pipelineId, forkId);
+        switch(execHandle.getState()) {
+            case SUCCEEDED:
+                forkControl.forkFinished(pipelineId, forkId);
+                break;
+            case ABORTED:
+                forkControl.forkAborted(pipelineId, forkId);
+                break;
+            case FAILED:
+                executionFailed(execHandle);
+        }
     }
 
-    public void executionAborted(ExecHandle execHandle) {
-        forkControl.forkAborted(pipelineId, forkId);
-    }
-
-    public void executionFailed(ExecHandle execHandle) {
+    private void executionFailed(ExecHandle execHandle) {
         final int exitCode = execHandle.getExitCode();
         final int normalExitCode = execHandle.getNormalTerminationExitCode();
 

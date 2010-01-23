@@ -15,12 +15,13 @@
  */
 package org.gradle.api.testing.execution.control.server.messagehandlers;
 
-import org.apache.mina.core.session.IoSession;
 import org.gradle.api.testing.execution.PipelineDispatcher;
 import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.control.messages.TestControlMessageHandler;
 import org.gradle.api.testing.execution.control.messages.server.StopForkActionMessage;
+import org.gradle.api.testing.execution.control.messages.server.TestServerControlMessage;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,15 +43,16 @@ public class CompositeMessageHandler implements TestControlMessageHandler {
         return handlers.keySet();
     }
 
-    public void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client) {
+    public void handle(Object controlMessage, TestServerClientHandle client,
+                       Dispatch<TestServerControlMessage> clientConnection) {
         Class<?> messageClass = controlMessage.getClass();
         TestControlMessageHandler handler = handlers.get(messageClass);
         if (handler != null) {
-            handler.handle(ioSession, controlMessage, client);
+            handler.handle(controlMessage, client, clientConnection);
         } else {
             QueueingPipeline pipeline = pipelineDispatcher.getPipeline();
             LOGGER.error("received unknown message of type {} on pipeline ", messageClass, pipeline.getName());
-            ioSession.write(new StopForkActionMessage(pipeline.getId()));
+            clientConnection.dispatch(new StopForkActionMessage(pipeline.getId()));
         }
     }
 

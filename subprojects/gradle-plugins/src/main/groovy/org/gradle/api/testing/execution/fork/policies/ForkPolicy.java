@@ -16,6 +16,7 @@
 package org.gradle.api.testing.execution.fork.policies;
 
 import org.gradle.api.testing.execution.QueueingPipeline;
+import org.gradle.api.testing.execution.control.server.ControlServerFactory;
 import org.gradle.api.testing.execution.fork.ForkControl;
 
 /**
@@ -26,5 +27,5 @@ public interface ForkPolicy {
 
     ForkPolicyConfig getForkPolicyConfigInstance();
 
-    ForkPolicyInstance getForkPolicyInstance(QueueingPipeline pipeline, ForkControl forkControl);
+    ForkPolicyInstance getForkPolicyInstance(QueueingPipeline pipeline, ForkControl forkControl, ControlServerFactory controlServerFactory);
 }

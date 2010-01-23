@@ -16,6 +16,7 @@
 package org.gradle.api.testing.execution;
 
 import org.gradle.api.tasks.testing.NativeTest;
+import org.gradle.api.testing.execution.control.server.ExternalControlServerFactory;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicy;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyConfig;
@@ -46,6 +47,7 @@ public class PipelinesManager {
     private final List<QueueingPipeline> orderedPipelines;
     private final List<Pipeline> notStopped;
     private final Condition allStoppedCondition;
+    private final ExternalControlServerFactory serverFactory = new ExternalControlServerFactory();
 
     private int pipelineIdSequence;
 
@@ -77,7 +79,7 @@ public class PipelinesManager {
             // initialize fork policy
             final ForkPolicyConfig forkPolicyConfig = pipelineConfig.getForkPolicyConfig();
             final ForkPolicy forkPolicy = ForkPolicyRegister.getForkPolicy(forkPolicyConfig.getPolicyName());
-            final ForkPolicyInstance forkPolicyInstance = forkPolicy.getForkPolicyInstance(pipeline, forkControl);
+            final ForkPolicyInstance forkPolicyInstance = forkPolicy.getForkPolicyInstance(pipeline, forkControl, serverFactory);
             pipeline.setForkPolicyInstance(forkPolicyInstance);
             pipeline.getForkPolicyInstance().initialize();
 
@@ -121,6 +123,7 @@ public class PipelinesManager {
                         // nothing - just return
                     }
                 });
+        serverFactory.stop();
     }
 
     public void stopped(Pipeline pipeline) {

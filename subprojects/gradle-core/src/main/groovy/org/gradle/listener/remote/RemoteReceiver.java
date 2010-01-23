@@ -15,24 +15,22 @@
  */
 package org.gradle.listener.remote;
 
-import org.gradle.messaging.dispatch.DefaultConnector;
-import org.gradle.messaging.DefaultMessagingServer;
+import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
-import org.gradle.messaging.dispatch.*;
+import org.gradle.messaging.TcpMessagingServer;
+import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.dispatch.Stoppable;
 
 import java.io.IOException;
 import java.net.URI;
 
 public class RemoteReceiver implements Stoppable {
+    private final MessagingServer server;
     private final ObjectConnection connection;
-    private final DefaultMessagingServer server;
-    private final TcpIncomingConnector incomingConnector;
-    private final DefaultConnector channelFactory;
 
     public RemoteReceiver(Class<?> type, Dispatch<? super MethodInvocation> dispatch) throws IOException {
-        incomingConnector = new TcpIncomingConnector(type.getClassLoader());
-        channelFactory = new DefaultConnector(new NoOpOutgoingConnector(), incomingConnector);
-        server = new DefaultMessagingServer(channelFactory, type.getClassLoader());
+        server = new TcpMessagingServer(type.getClassLoader());
         connection = server.createUnicastConnection();
         connection.addIncoming(type, dispatch);
     }
@@ -42,16 +40,7 @@ public class RemoteReceiver implements Stoppable {
     }
 
     public void stop() {
-        incomingConnector.requestStop();
         server.stop();
-        channelFactory.stop();
-        incomingConnector.stop();
-    }
-
-    private static class NoOpOutgoingConnector implements OutgoingConnector {
-        public Connection<Message> create(URI destinationUri) {
-            throw new UnsupportedOperationException();
-        }
     }
 }
 

@@ -18,10 +18,9 @@ package org.gradle.api.testing.execution.control.client;
 import org.gradle.api.GradleException;
 import org.gradle.api.testing.TestFrameworkRegister;
 import org.gradle.api.testing.execution.control.messages.TestControlMessage;
-import org.gradle.api.testing.execution.control.messages.server.ExecuteTestActionMessage;
-import org.gradle.api.testing.execution.control.messages.server.InitializeActionMessage;
-import org.gradle.api.testing.execution.control.messages.server.StopForkActionMessage;
-import org.gradle.api.testing.execution.control.messages.server.WaitActionMesssage;
+import org.gradle.api.testing.execution.control.messages.client.NextActionRequestMessage;
+import org.gradle.api.testing.execution.control.messages.client.TestClientControlMessage;
+import org.gradle.api.testing.execution.control.messages.server.*;
 import org.gradle.api.testing.execution.control.refork.DataGatherControl;
 import org.gradle.api.testing.execution.control.refork.DefaultDataGatherControl;
 import org.gradle.api.testing.execution.control.refork.ReforkContextData;
@@ -42,7 +41,8 @@ import java.util.concurrent.Executors;
 public class TestControlMessageDispatcher implements Dispatch<TestControlMessage> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestControlMessageDispatcher.class);
 
-    private final TestControlClient testControlClient;
+    private final int forkId;
+    private final Dispatch<TestClientControlMessage> serverConnection;
     private final ClassLoader sandboxClassLoader;
     private final CountDownLatch exitReceived;
 
@@ -51,8 +51,9 @@ public class TestControlMessageDispatcher implements Dispatch<TestControlMessage
     private DataGatherControl dataGatherControl;
     private TestProcessResultFactory testProcessResultFactory;
 
-    public TestControlMessageDispatcher(TestControlClient testControlClient, ClassLoader sandboxClassLoader) {
-        this.testControlClient = testControlClient;
+    public TestControlMessageDispatcher(int forkId, Dispatch<TestClientControlMessage> serverConnection, ClassLoader sandboxClassLoader) {
+        this.forkId = forkId;
+        this.serverConnection = serverConnection;
         this.sandboxClassLoader = sandboxClassLoader;
         this.exitReceived = new CountDownLatch(1);
         this.threadPool = Executors.newFixedThreadPool(1); // TODO future - multithreaded test execution.
@@ -108,7 +109,14 @@ public class TestControlMessageDispatcher implements Dispatch<TestControlMessage
     public void actionExecuted(TestClassProcessResult previousProcessTestResult,
                                ReforkContextData reforkContextData) {
         if (exitReceived.getCount() > 0) {
-            testControlClient.requestNextControlMessage(previousProcessTestResult, reforkContextData);
+            final NextActionRequestMessage nextActionRequestMessage = new NextActionRequestMessage(forkId);
+
+            nextActionRequestMessage.setPreviousProcessedTestResult(previousProcessTestResult);
+
+            if ( !reforkContextData.isEmpty() ) {
+                nextActionRequestMessage.setReforkDecisionContext(reforkContextData);
+            }
+            serverConnection.dispatch(nextActionRequestMessage);
         }
     }
 
