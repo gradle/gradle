@@ -15,13 +15,14 @@
  */
 package org.gradle.api.testing.execution;
 
-import org.apache.mina.core.session.IoSession;
 import org.gradle.api.testing.execution.control.messages.TestControlMessageHandler;
 import org.gradle.api.testing.execution.control.messages.client.TestClientControlMessage;
+import org.gradle.api.testing.execution.control.messages.server.TestServerControlMessage;
 import org.gradle.api.testing.execution.control.messages.server.WaitActionMesssage;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandleFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.util.ConditionWaitHandle;
 import org.gradle.util.ThreadUtils;
 import org.slf4j.Logger;
@@ -74,15 +75,15 @@ public class PipelineDispatcher {
     /**
      * Handle messages received from the fork.
      */
-    public void messageReceived(IoSession ioSession, Object message) {
+    public void messageReceived(Object message, Dispatch<TestServerControlMessage> clientConnection) {
         if (message != null) {
             try {
                 final int forkId = ((TestClientControlMessage) message).getForkId();
                 final TestServerClientHandle client = clientHandles.get(forkId);
                 if (client == null) {
-                    ioSession.write(new WaitActionMesssage(pipeline.getId(), 1000L));
+                    clientConnection.dispatch(new WaitActionMesssage(pipeline.getId(), 1000L));
                 } else {
-                    messageHandler.handle(ioSession, message, client);
+                    messageHandler.handle(message, client, clientConnection);
                 }
             } catch (Throwable t) {
                 LOGGER.error("failed to handle " + message, t);

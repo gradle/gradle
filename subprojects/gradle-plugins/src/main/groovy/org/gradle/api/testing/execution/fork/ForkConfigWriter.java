@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
 
 /**
  * @author Tom Eyckmans
@@ -35,13 +36,13 @@ public class ForkConfigWriter {
     private final NativeTest testTask;
     private final int pipelineId;
     private final int forkId;
-    private final int testServerPort;
+    private final URI testServerAddress;
 
-    public ForkConfigWriter(NativeTest testTask, int pipelineId, int forkId, int testServerPort) {
+    public ForkConfigWriter(NativeTest testTask, int pipelineId, int forkId, URI testServerAddress) {
         this.testTask = testTask;
         this.pipelineId = pipelineId;
         this.forkId = forkId;
-        this.testServerPort = testServerPort;
+        this.testServerAddress = testServerAddress;
     }
 
     public File writeConfigFile() {
@@ -94,7 +95,7 @@ public class ForkConfigWriter {
             configFileWriter.newLine();
             configFileWriter.write(String.valueOf(forkId));
             configFileWriter.newLine();
-            configFileWriter.write(String.valueOf(testServerPort));
+            configFileWriter.write(String.valueOf(testServerAddress));
             configFileWriter.newLine();
             configFileWriter.write(testTask.getTestFramework().getTestFramework().getId());
             configFileWriter.newLine();

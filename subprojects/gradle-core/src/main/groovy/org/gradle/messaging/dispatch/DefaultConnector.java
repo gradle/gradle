@@ -39,7 +39,7 @@ public class DefaultConnector implements Connector, Stoppable {
     private final ExecutorService executorService;
 
     public DefaultConnector(OutgoingConnector outgoingConnector,
-                                 IncomingConnector incomingConnector) {
+                            IncomingConnector incomingConnector) {
         this.outgoingConnector = outgoingConnector;
         this.incomingConnector = incomingConnector;
         executorService = Executors.newCachedThreadPool();

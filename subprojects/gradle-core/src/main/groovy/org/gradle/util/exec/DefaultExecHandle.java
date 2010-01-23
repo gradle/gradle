@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -311,7 +311,7 @@ public class DefaultExecHandle implements ExecHandle {
             setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException(
                     "exitCode(" + exitCode + ") != " + normalTerminationExitCode + "!"));
             shutdownThreadPool();
-            broadcast.getSource().executionFailed(this);
+            broadcast.getSource().executionFinished(this);
         } else {
             setEndStateInfo(ExecHandleState.SUCCEEDED, 0, null);
             shutdownThreadPool();
@@ -324,7 +324,7 @@ public class DefaultExecHandle implements ExecHandle {
 
         setState(ExecHandleState.ABORTED);
         shutdownThreadPool();
-        broadcast.getSource().executionAborted(this);
+        broadcast.getSource().executionFinished(this);
     }
 
     void failed(Throwable failureCause) {
@@ -332,7 +332,7 @@ public class DefaultExecHandle implements ExecHandle {
 
         setEndStateInfo(ExecHandleState.FAILED, -1, failureCause);
         shutdownThreadPool();
-        broadcast.getSource().executionFailed(this);
+        broadcast.getSource().executionFinished(this);
     }
 
     public void addListeners(ExecHandleListener... listeners) {
