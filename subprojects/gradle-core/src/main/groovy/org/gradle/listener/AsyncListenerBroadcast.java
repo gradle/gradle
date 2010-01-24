@@ -33,7 +33,7 @@ public class AsyncListenerBroadcast<T> extends ListenerBroadcast<T> {
         this(type, Executors.newSingleThreadExecutor());
     }
 
-    AsyncListenerBroadcast(Class<T> type, final Executor executor) {
+    public AsyncListenerBroadcast(Class<T> type, final Executor executor) {
         super(type, new Transformer<StoppableDispatch<MethodInvocation>>() {
             public StoppableDispatch<MethodInvocation> transform(StoppableDispatch<MethodInvocation> original) {
                 return new AsyncDispatch<MethodInvocation>(executor, original);

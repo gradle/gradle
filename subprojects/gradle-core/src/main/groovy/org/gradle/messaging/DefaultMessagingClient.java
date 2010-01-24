@@ -26,9 +26,9 @@ public class DefaultMessagingClient implements MessagingClient {
 
     public DefaultMessagingClient(Connector connector, ClassLoader classLoader, URI serverAddress) {
         IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader);
-        OutgoingConnection<Message> messageDispatch = connector.connect(serverAddress, incoming.getIncomingDispatch());
-        OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(messageDispatch);
-        connection = new DefaultObjectConnection(messageDispatch, outgoing, incoming);
+        OutgoingConnection<Message> connection = connector.connect(serverAddress, incoming.getIncomingDispatch());
+        OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(connection);
+        this.connection = new DefaultObjectConnection(connection, connection, outgoing, incoming);
     }
 
     public ObjectConnection getConnection() {

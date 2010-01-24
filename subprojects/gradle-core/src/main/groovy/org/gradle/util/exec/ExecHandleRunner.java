@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.util.exec;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 
@@ -27,7 +28,7 @@ public class ExecHandleRunner implements Runnable {
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
     private final AtomicBoolean keepWaiting;
-    private final ExecutorService threadPool;
+    private final Executor threadPool;
 
     public ExecHandleRunner(DefaultExecHandle execHandle, ExecutorService threadPool) {
         if (execHandle == null) {

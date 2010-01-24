@@ -22,14 +22,13 @@ import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.Stoppable;
 
-import java.io.IOException;
 import java.net.URI;
 
 public class RemoteReceiver implements Stoppable {
     private final MessagingServer server;
     private final ObjectConnection connection;
 
-    public RemoteReceiver(Class<?> type, Dispatch<? super MethodInvocation> dispatch) throws IOException {
+    public RemoteReceiver(Class<?> type, Dispatch<? super MethodInvocation> dispatch) {
         server = new TcpMessagingServer(type.getClassLoader());
         connection = server.createUnicastConnection();
         connection.addIncoming(type, dispatch);

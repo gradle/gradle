@@ -26,7 +26,8 @@ public class OutgoingMethodInvocationHandler {
             = new ConcurrentHashMap<Class<?>, ProxyDispatchAdapter<?>>();
 
     public OutgoingMethodInvocationHandler(Dispatch<Message> outgoingDispatch) {
-        this.methodInvocationDispatch = new MethodInvocationMarshallingDispatch(outgoingDispatch);
+        this.methodInvocationDispatch = new ThreadSafeDispatch<MethodInvocation>(
+                new MethodInvocationMarshallingDispatch(outgoingDispatch));
     }
 
     public <T> T addOutgoing(Class<T> type) {

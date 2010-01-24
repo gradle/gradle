@@ -15,6 +15,15 @@
  */
 package org.gradle.messaging.dispatch;
 
+/**
+ * A sink for messages. Implementations do not have to be thread-safe.
+ */
 public interface Dispatch<T> {
+    /**
+     * Dispatches the next message. Blocks until the messages has been accepted but generally does not wait for the
+     * message to be processed. Delivery guarantees are implementation specific.
+     *
+     * @param message The message.
+     */
     void dispatch(T message);
 }

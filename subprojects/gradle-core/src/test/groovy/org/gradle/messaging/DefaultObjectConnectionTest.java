@@ -15,8 +15,8 @@
  */
 package org.gradle.messaging;
 
-import org.gradle.api.Action;
-import org.gradle.messaging.dispatch.OutgoingConnection;
+import org.gradle.messaging.dispatch.Addressable;
+import org.gradle.messaging.dispatch.AsyncStoppable;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.jmock.Expectations;
@@ -35,8 +35,8 @@ public class DefaultObjectConnectionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private DefaultObjectConnection sender;
     private DefaultObjectConnection receiver;
-    private final OutgoingConnection messageConnection = context.mock(OutgoingConnection.class);
-    private final Action<ObjectConnection> stopAction = context.mock(Action.class);
+    private final Addressable messageConnection = context.mock(Addressable.class);
+    private final AsyncStoppable stopControl = context.mock(AsyncStoppable.class);
 
     @Before
     public void setUp() {
@@ -45,9 +45,10 @@ public class DefaultObjectConnectionTest {
                 getClass().getClassLoader());
         OutgoingMethodInvocationHandler senderOutgoing = new OutgoingMethodInvocationHandler(
                 receiverIncoming.getIncomingDispatch());
-        OutgoingMethodInvocationHandler receiverOutgoing = new OutgoingMethodInvocationHandler(senderIncoming.getIncomingDispatch());
-        sender = new DefaultObjectConnection(messageConnection, senderOutgoing, senderIncoming);
-        receiver = new DefaultObjectConnection(messageConnection, receiverOutgoing, receiverIncoming, stopAction);
+        OutgoingMethodInvocationHandler receiverOutgoing = new OutgoingMethodInvocationHandler(
+                senderIncoming.getIncomingDispatch());
+        sender = new DefaultObjectConnection(messageConnection, stopControl, senderOutgoing, senderIncoming);
+        receiver = new DefaultObjectConnection(messageConnection, stopControl, receiverOutgoing, receiverIncoming);
     }
 
     @Test
@@ -160,8 +161,7 @@ public class DefaultObjectConnectionTest {
     @Test
     public void stopsConnectionOnStop() {
         context.checking(new Expectations() {{
-            one(messageConnection).stop();
-            one(stopAction).execute(receiver);
+            one(stopControl).stop();
         }});
 
         receiver.stop();

@@ -15,23 +15,16 @@
  */
 package org.gradle.messaging;
 
-import org.gradle.api.Action;
-import org.gradle.messaging.dispatch.Connector;
-import org.gradle.messaging.dispatch.OutgoingConnection;
-import org.gradle.messaging.dispatch.Message;
+import org.gradle.messaging.dispatch.*;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultMessagingServer implements MessagingServer {
     private final Connector connector;
     private final ClassLoader classLoader;
     private final Set<ObjectConnection> connections = new CopyOnWriteArraySet<ObjectConnection>();
-    private final Action<ObjectConnection> cleanupAction = new Action<ObjectConnection>() {
-        public void execute(ObjectConnection objectConnection) {
-            connections.remove(objectConnection);
-        }
-    };
 
     public DefaultMessagingServer(Connector connector, ClassLoader classLoader) {
         this.connector = connector;
@@ -40,10 +33,23 @@ public class DefaultMessagingServer implements MessagingServer {
 
     public ObjectConnection createUnicastConnection() {
         IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader);
-        OutgoingConnection<Message> messageConnection = connector.accept(incoming.getIncomingDispatch());
+        final OutgoingConnection<Message> messageConnection = connector.accept(incoming.getIncomingDispatch());
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(messageConnection);
-        DefaultObjectConnection connection = new DefaultObjectConnection(messageConnection, outgoing, incoming,
-                cleanupAction);
+        final AtomicReference<ObjectConnection> connectionRef = new AtomicReference<ObjectConnection>();
+        AsyncStoppable stopControl = new AsyncStoppable() {
+            public void requestStop() {
+                messageConnection.requestStop();
+            }
+
+            public void stop() {
+                messageConnection.stop();
+                connections.remove(connectionRef.get());
+            }
+        };
+
+        DefaultObjectConnection connection = new DefaultObjectConnection(messageConnection, stopControl, outgoing,
+                incoming);
+        connectionRef.set(connection);
         connections.add(connection);
         return connection;
     }
