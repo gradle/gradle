@@ -43,15 +43,6 @@ public class DefaultMessagingServerTest {
         assertThat(connection, instanceOf(DefaultObjectConnection.class));
     }
 
-    private OutgoingConnection<Message> expectMessageConnectionCreated() {
-        final OutgoingConnection<Message> messageConnection = context.mock(OutgoingConnection.class, String.valueOf(counter++));
-        context.checking(new Expectations() {{
-            one(connector).accept(with(notNullValue(Dispatch.class)));
-            will(returnValue(messageConnection));
-        }});
-        return messageConnection;
-    }
-
     @Test
     public void stopsAllConnectionsOnStop() {
         final OutgoingConnection<Message> connection1 = expectMessageConnectionCreated();
@@ -68,5 +59,29 @@ public class DefaultMessagingServerTest {
         }});
 
         server.stop();
-   }
+    }
+
+    @Test
+    public void discardsConnectionWhenItIsStopped() {
+        final OutgoingConnection<Message> connection1 = expectMessageConnectionCreated();
+
+        ObjectConnection objectConnection = server.createUnicastConnection();
+
+        context.checking(new Expectations() {{
+            one(connection1).stop();
+        }});
+
+        objectConnection.stop();
+        server.stop();
+    }
+
+    private OutgoingConnection<Message> expectMessageConnectionCreated() {
+        final OutgoingConnection<Message> messageConnection = context.mock(OutgoingConnection.class, String.valueOf(
+                counter++));
+        context.checking(new Expectations() {{
+            one(connector).accept(with(notNullValue(Dispatch.class)));
+            will(returnValue(messageConnection));
+        }});
+        return messageConnection;
+    }
 }

@@ -39,7 +39,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     private TestListener remoteSender;
     private Throwable error;
 
-    public TestListenerFormatter() throws IOException, URISyntaxException {
+    public TestListenerFormatter() throws URISyntaxException {
         // An instance of this class is created for each test class, so use a singleton RemoteSender
         if (defaultSender == null) {
             String serverAddress = System.getProperty(SERVER_ADDRESS);

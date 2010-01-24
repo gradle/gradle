@@ -15,13 +15,17 @@
  */
 package org.gradle.messaging.dispatch;
 
-import java.net.URI;
+public class ThreadSafeDispatch<T> implements Dispatch<T> {
+    private final Object lock = new Object();
+    private final Dispatch<T> dispatch;
 
-/**
- * A factory for bi-directional connections.
- */
-public interface Connector {
-    OutgoingConnection<Message> accept(Dispatch<Message> incomingDispatch);
+    public ThreadSafeDispatch(Dispatch<T> dispatch) {
+        this.dispatch = dispatch;
+    }
 
-    OutgoingConnection<Message> connect(URI destinationAddress, Dispatch<Message> incomingDispatch);
+    public void dispatch(T message) {
+        synchronized (lock) {
+            dispatch.dispatch(message);
+        }
+    }
 }

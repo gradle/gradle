@@ -15,43 +15,33 @@
  */
 package org.gradle.messaging;
 
-import org.gradle.api.Action;
-import org.gradle.messaging.dispatch.OutgoingConnection;
+import org.gradle.messaging.dispatch.Addressable;
+import org.gradle.messaging.dispatch.AsyncStoppable;
 import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.Message;
 import org.gradle.messaging.dispatch.MethodInvocation;
 
 import java.net.URI;
 
 public class DefaultObjectConnection implements ObjectConnection {
-    private final Action<ObjectConnection> stopAction;
+    private final Addressable addressable;
+    private final AsyncStoppable stopControl;
     private final OutgoingMethodInvocationHandler outgoing;
     private final IncomingMethodInvocationHandler incoming;
-    private final OutgoingConnection<Message> outgoingDispatch;
 
-    public DefaultObjectConnection(OutgoingConnection<Message> outgoingDispatch,
+    public DefaultObjectConnection(Addressable addressable, AsyncStoppable stopControl,
                                    OutgoingMethodInvocationHandler outgoing, IncomingMethodInvocationHandler incoming) {
-        this(outgoingDispatch, outgoing, incoming, new Action<ObjectConnection>() {
-            public void execute(ObjectConnection objectConnection) {
-            }
-        });
-    }
-
-    public DefaultObjectConnection(OutgoingConnection<Message> outgoingDispatch,
-                                   OutgoingMethodInvocationHandler outgoing, IncomingMethodInvocationHandler incoming,
-                                   Action<ObjectConnection> stopAction) {
-        this.stopAction = stopAction;
+        this.addressable = addressable;
+        this.stopControl = stopControl;
         this.outgoing = outgoing;
         this.incoming = incoming;
-        this.outgoingDispatch = outgoingDispatch;
     }
 
     public URI getRemoteAddress() {
-        return outgoingDispatch.getRemoteAddress();
+        return addressable.getRemoteAddress();
     }
 
     public URI getLocalAddress() {
-        return outgoingDispatch.getLocalAddress();
+        return addressable.getLocalAddress();
     }
 
     public <T> void addIncoming(Class<T> type, T instance) {
@@ -67,11 +57,10 @@ public class DefaultObjectConnection implements ObjectConnection {
     }
 
     public void requestStop() {
-        outgoingDispatch.requestStop();
+        stopControl.requestStop();
     }
 
     public void stop() {
-        outgoingDispatch.stop();
-        stopAction.execute(this);
+        stopControl.stop();
     }
 }

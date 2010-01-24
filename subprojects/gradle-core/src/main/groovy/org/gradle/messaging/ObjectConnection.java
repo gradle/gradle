@@ -17,9 +17,12 @@ package org.gradle.messaging;
 
 import org.gradle.messaging.dispatch.*;
 
+/**
+ * Manages a set of incoming and outgoing channels between 2 peers. Implementations must be thread-safe.
+ */
 public interface ObjectConnection extends Addressable, AsyncStoppable {
     /**
-     * Creates a transmitter for outgoing messages on the given type.
+     * Creates a transmitter for outgoing messages on the given type. The returned object is thread-safe.
      *
      * @param type The type
      * @return A sink. Method calls made on this object are sent as outgoing messages.
@@ -27,7 +30,8 @@ public interface ObjectConnection extends Addressable, AsyncStoppable {
     <T> T addOutgoing(Class<T> type);
 
     /**
-     * Registers a handler for incoming messages on the given type.
+     * Registers a handler for incoming messages on the given type. The provided handler is not required to be
+     * thread-safe.
      *
      * @param type The type.
      * @param instance The handler instance. Incoming messages on the given type are delivered to this handler.
@@ -35,7 +39,8 @@ public interface ObjectConnection extends Addressable, AsyncStoppable {
     <T> void addIncoming(Class<T> type, T instance);
 
     /**
-     * Registers a handler for incoming messages on the given type.
+     * Registers a handler for incoming messages on the given type. The provided handler is not required to be
+     * thread-safe.
      *
      * @param type The type.
      * @param dispatch The handler instance. Incoming messages on the given type are delivered to this handler.

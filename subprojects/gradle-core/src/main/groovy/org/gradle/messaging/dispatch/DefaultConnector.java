@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -107,12 +106,12 @@ public class DefaultConnector implements Connector, Stoppable {
         private final EndOfStreamFilter incomingDispatch;
         private final AsyncDispatch<Message> outgoingQueue;
         private final AsyncDispatch<Message> incomingQueue;
-        private final AtomicReference<Connection<Message>> connection = new AtomicReference<Connection<Message>>();
+        private final DeferredConnection connection = new DeferredConnection();
 
         private Channel(URI sourceAddress, URI destinationAddress, Dispatch<Message> incomingDispatch) {
             this.sourceAddress = sourceAddress;
             this.destinationAddress = destinationAddress;
-            outgoingQueue = new AsyncDispatch<Message>(executorService);
+            outgoingQueue = new AsyncDispatch<Message>(executorService, connection);
             outgoingDispatch = new EndOfStreamDispatch(outgoingQueue);
             this.incomingDispatch = new EndOfStreamFilter(incomingDispatch, new Runnable() {
                 public void run() {
@@ -120,12 +119,11 @@ public class DefaultConnector implements Connector, Stoppable {
                 }
             });
             this.incomingQueue = new AsyncDispatch<Message>(executorService, this.incomingDispatch);
+            incomingQueue.receiveFrom(connection);
         }
 
-        public void setConnection(final Connection<Message> connection) {
-            this.connection.set(connection);
-            outgoingQueue.dispatchTo(connection);
-            incomingQueue.receiveFrom(connection);
+        public void setConnection(Connection<Message> connection) {
+            this.connection.connect(connection);
         }
 
         public void dispatch(Message message) {
@@ -151,21 +149,15 @@ public class DefaultConnector implements Connector, Stoppable {
         }
 
         public void stop() {
+            // End-of-stream handshake
             requestStop();
             incomingDispatch.stop();
 
+            // Flush queues (should be empty)
             incomingQueue.requestStop();
             outgoingQueue.requestStop();
-            Connection<Message> connection = this.connection.getAndSet(null);
-            if (connection != null) {
-                connection.requestStop();
-            }
-
             incomingQueue.stop();
             outgoingQueue.stop();
-            if (connection != null) {
-                connection.stop();
-            }
         }
     }
 

@@ -25,7 +25,7 @@ public class RemoteSender<T> implements Closeable {
     private final T source;
     private final TcpMessagingClient client;
 
-    public RemoteSender(Class<T> type, URI serverAddress) throws IOException {
+    public RemoteSender(Class<T> type, URI serverAddress) {
         client = new TcpMessagingClient(type.getClassLoader(), serverAddress);
         source = client.getConnection().addOutgoing(type);
     }
